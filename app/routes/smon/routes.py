@@ -20,20 +20,14 @@ import app.modules.tools.common as tools_common
 def smon():
     roxywi_common.check_user_group_for_flask()
 
-    smon = sql.smon_list(g.user_params['group_id'])
-    smon_status = tools_common.is_tool_active('roxy-wi-smon')
-    user_subscription = roxywi_common.return_user_subscription()
     kwargs = {
         'autorefresh': 1,
-        'role': g.user_params['role'],
-        'user': g.user_params['user'],
-        'user_services': g.user_params['user_services'],
-        'token': g.user_params['token'],
+        'user_params': g.user_params,
         'lang': g.user_params['lang'],
-        'smon': smon,
+        'smon': sql.smon_list(g.user_params['group_id']),
         'group': g.user_params['group_id'],
-        'smon_status': smon_status,
-        'user_subscription': user_subscription,
+        'smon_status': tools_common.is_tool_active('roxy-wi-smon'),
+        'user_subscription': roxywi_common.return_user_subscription(),
     }
 
     return render_template('smon/dashboard.html', **kwargs)
@@ -43,17 +37,13 @@ def smon():
 @login_required
 @get_user_params()
 def smon_dashboard(dashboard_id, check_id):
-    check_id = int(check_id)
     roxywi_common.check_user_group_for_flask()
-    user_subscription = roxywi_common.return_user_subscription()
-    smon_name = sql.get_smon_service_name_by_id(dashboard_id)
-    check_interval = sql.get_setting('smon_check_interval')
+    check_id = int(check_id)
     smon = sql.select_one_smon(dashboard_id, check_id)
     present = datetime.now(timezone('UTC'))
     present = present.strftime('%b %d %H:%M:%S %Y %Z')
     present = datetime.strptime(present, '%b %d %H:%M:%S %Y %Z')
     cert_day_diff = 'N/A'
-    uptime = smon_mod.check_uptime(dashboard_id)
 
     try:
         avg_res_time = round(sql.get_avg_resp_time(dashboard_id, check_id), 2)
@@ -71,18 +61,15 @@ def smon_dashboard(dashboard_id, check_id):
 
     kwargs = {
         'autorefresh': 1,
-        'role': g.user_params['role'],
-        'user': g.user_params['user'],
-        'user_services': g.user_params['user_services'],
-        'token': g.user_params['token'],
+        'user_params': g.user_params,
         'lang': g.user_params['lang'],
         'smon': smon,
         'group': g.user_params['group_id'],
-        'user_subscription': user_subscription,
-        'check_interval': check_interval,
-        'uptime': uptime,
+        'user_subscription': roxywi_common.return_user_subscription(),
+        'check_interval': sql.get_setting('smon_check_interval'),
+        'uptime': smon_mod.check_uptime(dashboard_id),
         'avg_res_time': avg_res_time,
-        'smon_name': smon_name,
+        'smon_name': sql.get_smon_service_name_by_id(dashboard_id),
         'cert_day_diff': cert_day_diff,
         'check_id': check_id,
         'dashboard_id': dashboard_id,
@@ -97,20 +84,13 @@ def smon_dashboard(dashboard_id, check_id):
 @get_user_params()
 def status_page():
     if request.method == 'GET':
-        smon_list = sql.smon_list(g.user_params['group_id'])
-        pages = sql.select_status_pages(g.user_params['group_id'])
-        smon_status = tools_common.is_tool_active('roxy-wi-smon')
-        user_subscription = roxywi_common.return_user_subscription()
         kwargs = {
-            'role': g.user_params['role'],
-            'user': g.user_params['user'],
-            'user_services': g.user_params['user_services'],
-            'token': g.user_params['token'],
+            'user_params': g.user_params,
             'lang': g.user_params['lang'],
-            'smon': smon_list,
-            'pages': pages,
-            'smon_status': smon_status,
-            'user_subscription': user_subscription
+            'smon': sql.smon_list(g.user_params['group_id']),
+            'pages': sql.select_status_pages(g.user_params['group_id']),
+            'smon_status': tools_common.is_tool_active('roxy-wi-smon'),
+            'user_subscription': roxywi_common.return_user_subscription()
         }
 
         return render_template('smon/manage_status_page.html', **kwargs)
@@ -184,18 +164,12 @@ def smon_history_statuses_avg(page_id):
 def smon_history():
     roxywi_common.check_user_group_for_flask()
 
-    smon = sql.alerts_history('SMON', g.user_params['group_id'])
-    smon_status = tools_common.is_tool_active('roxy-wi-smon')
-    user_subscription = roxywi_common.return_user_subscription()
     kwargs = {
-        'role': g.user_params['role'],
-        'user': g.user_params['user'],
-        'user_services': g.user_params['user_services'],
-        'token': g.user_params['token'],
+        'user_params': g.user_params,
         'lang': g.user_params['lang'],
-        'smon': smon,
-        'smon_status': smon_status,
-        'user_subscription': user_subscription
+        'smon': sql.alerts_history('SMON', g.user_params['group_id']),
+        'smon_status': tools_common.is_tool_active('roxy-wi-smon'),
+        'user_subscription': roxywi_common.return_user_subscription()
     }
 
     return render_template('smon/history.html', **kwargs)
@@ -212,10 +186,7 @@ def smon_host_history(server_ip):
     smon = sql.alerts_history('SMON', g.user_params['group_id'], host=needed_host)
     user_subscription = roxywi_common.return_user_subscription()
     kwargs = {
-        'role': g.user_params['role'],
-        'user': g.user_params['user'],
-        'user_services': g.user_params['user_services'],
-        'token': g.user_params['token'],
+        'user_params': g.user_params,
         'lang': g.user_params['lang'],
         'smon': smon,
         'smon_status': smon_status,
@@ -248,32 +219,19 @@ def smon_history_cur_status(dashboard_id, check_id):
 def smon_admin():
     roxywi_auth.page_for_admin(level=3)
     user_group = g.user_params['group_id']
-    smon_status = tools_common.is_tool_active('roxy-wi-smon')
-    telegrams = sql.get_user_telegram_by_group(user_group)
-    slacks = sql.get_user_slack_by_group(user_group)
-    pds = sql.get_user_pd_by_group(user_group)
-    smon_checks = sql.select_smon(user_group)
-    smon_ping = sql.select_smon_ping()
-    smon_tcp = sql.select_smon_tcp()
-    smon_http = sql.select_smon_http()
-    smon_dns = sql.select_smon_dns()
-    user_subscription = roxywi_common.return_user_subscription()
     kwargs = {
-        'role': g.user_params['role'],
-        'user': g.user_params['user'],
-        'user_services': g.user_params['user_services'],
-        'token': g.user_params['token'],
+        'user_params': g.user_params,
         'lang': g.user_params['lang'],
-        'smon': smon_checks,
-        'smon_status': smon_status,
-        'user_subscription': user_subscription,
-        'telegrams': telegrams,
-        'slacks': slacks,
-        'pds': pds,
-        'smon_ping': smon_ping,
-        'smon_tcp:': smon_tcp,
-        'smon_http': smon_http,
-        'smon_dns': smon_dns
+        'smon': sql.select_smon(user_group),
+        'smon_status': tools_common.is_tool_active('roxy-wi-smon'),
+        'user_subscription': roxywi_common.return_user_subscription(),
+        'telegrams': sql.get_user_telegram_by_group(user_group),
+        'slacks': sql.get_user_slack_by_group(user_group),
+        'pds': sql.get_user_pd_by_group(user_group),
+        'smon_ping': sql.select_smon_ping(),
+        'smon_tcp:': sql.select_smon_tcp(),
+        'smon_http': sql.select_smon_http(),
+        'smon_dns': sql.select_smon_dns()
     }
 
     return render_template('smon/add.html', **kwargs)
@@ -315,7 +273,8 @@ def smon_add():
                 'pds': sql.get_user_pd_by_group(user_group),
                 'slacks': sql.get_user_slack_by_group(user_group),
                 'telegrams': sql.get_user_telegram_by_group(user_group),
-                'smon_service': sql.select_smon_check_by_id(last_id, check_type)
+                'smon_service': sql.select_smon_check_by_id(last_id, check_type),
+                'lang': lang
             }
 
             return render_template('ajax/smon/show_new_smon.html', **kwargs)

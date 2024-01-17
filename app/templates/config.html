@@ -25,16 +25,16 @@
 <script src="/inc/codemirror/mode/haproxy.js"></script>
 <script src="/inc/codemirror/keymap/sublime.js"></script>
 <script src="/inc/configshow.js"></script>
-{% if is_serv_protected and role > 2 %}
+{% if is_serv_protected and user_params['role'] > 2 %}
 <meta http-equiv="refresh" content="0; url=/app/service">
 {% else %}
-	{% if selects|length == 0 %}
+	{% if user_params['servers']|length == 0 %}
 		{% include 'include/getstarted.html' %}
 	{% else %}
 	<p>
 		<form action="{{ action }}" method="post" class="left-space">
 			<input type="hidden" id="service" value="{{service|default('haproxy', true)}}" />
-			{% include 'include/select.html' %}
+			{{ select('serv', values=user_params['servers'], is_servers='true', selected=serv) }}
 			{% if service == 'nginx' or service == 'apache' %}
 			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.running}} {{lang.words.config}}" onclick="showConfigFiles()">{{lang.words.open|title()}}</a>
 			{% else %}
@@ -47,10 +47,10 @@
 				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.map}}" onclick="showMap()">{{lang.words.map|title()}}</a>
 			{% endif %}
 				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.compare|title()}} {{lang.words.configs}}" onclick="showCompareConfigs()">{{lang.words.compare|title()}}</a>
-			{% if role <= 3 %}
+			{% if user_params['role'] <= 3 %}
 				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.versions}}" onclick="openVersions()">{{lang.menu_links.versions.link}}</a>
 			{% endif %}
-			{% if role <= 2 %}
+			{% if user_params['role'] <= 2 %}
 				<a href="/app/servers#backup" class="ui-button ui-widget ui-corner-all" title="Git">Git</a>
 			{% endif %}
 		</form>
@@ -63,7 +63,7 @@
 	{% endif %}
 
 	{% if config %}
-		{% if role <= 3 %}
+		{% if user_params['role'] <= 3 %}
 			<h4 class="left-space">{{lang.words.config|title()}} {% if config_file_name and config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} {{lang.words.from}} {{ serv }}</h4>
 			<form action="/app/config/{{service}}/{{serv}}/save" name="saveconfig" id="saveconfig" method="post" class="left-space">
 				<input type="hidden" value="{{ serv }}" name="serv">

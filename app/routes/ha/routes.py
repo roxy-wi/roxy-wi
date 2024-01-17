@@ -6,7 +6,7 @@ from flask_login import login_required
 from app.routes.ha import bp
 from middleware import get_user_params, check_services
 import modules.db.sql as sql
-import app.modules.common.common as common
+import modules.common.common as common
 import modules.server.server as server_mod
 import modules.roxywi.common as roxywi_common
 import modules.service.keepalived as keepalived
@@ -24,17 +24,16 @@ def before_request():
 @check_services
 @get_user_params()
 def cluster_function(service):
-    user_params = g.user_params
-    group_id = user_params['group_id']
+    group_id = g.user_params['group_id']
     if request.method == 'GET':
-        clusters = sql.select_clusters(group_id)
-        is_needed_tool = common.is_tool('ansible')
-        user_subscription = roxywi_common.return_user_subscription()
+        kwargs = {
+            'user_params': g.user_params,
+            'clusters': sql.select_clusters(group_id),
+            'is_needed_tool': common.is_tool('ansible'),
+            'user_subscription': roxywi_common.return_user_subscription()
+        }
 
-        return render_template(
-            'ha_cluster.html', role=user_params['role'], user=user_params['user'], clusters=clusters, is_needed_tool=is_needed_tool,
-            user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang'], user_subscription=user_subscription
-        )
+        return render_template('ha_cluster.html', **kwargs)
     elif request.method == 'PUT':
         cluster = json.loads(request.form.get('jsonData'))
 
@@ -61,23 +60,22 @@ def cluster_function(service):
 @check_services
 @get_user_params()
 def get_ha_cluster(service, cluster_id):
-    user_params = g.user_params
-    group_id = user_params['group_id']
-    clusters = sql.select_cluster(cluster_id)
     router_id = sql.get_router_id(cluster_id, default_router=1)
-    slaves = sql.select_cluster_slaves(cluster_id, router_id)
-    virts = sql.select_clusters_virts()
-    vips = sql.select_cluster_vips(cluster_id)
-    servers = roxywi_common.get_dick_permit(virt=1)
-    cluster_services = sql.select_cluster_services(cluster_id)
-    services = sql.select_services()
+    kwargs = {
+        'user_params': g.user_params,
+        'servers': roxywi_common.get_dick_permit(virt=1),
+        'clusters': sql.select_cluster(cluster_id),
+        'slaves': sql.select_cluster_slaves(cluster_id, router_id),
+        'virts': sql.select_clusters_virts(),
+        'vips': sql.select_cluster_vips(cluster_id),
+        'cluster_services': sql.select_cluster_services(cluster_id),
+        'services': sql.select_services(),
+        'group_id': g.user_params['group_id'],
+        'router_id': router_id,
+        'lang': g.user_params['lang']
+    }
 
-    return render_template(
-        'ajax/ha/clusters.html', role=user_params['role'], user=user_params['user'], servers=servers,
-        user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang'],
-        clusters=clusters, slaves=slaves, virts=virts, vips=vips, cluster_services=cluster_services, services=services,
-        group_id=group_id, router_id=router_id
-    )
+    return render_template('ajax/ha/clusters.html', **kwargs)
 
 
 @bp.route('/<service>/settings/<int:cluster_id>')
@@ -120,12 +118,11 @@ def get_cluster_settings(service, cluster_id):
 @check_services
 @get_user_params()
 def show_ha_cluster(service, cluster_id):
-    user_params = g.user_params
     services = []
     service = 'keepalived'
     service_desc = sql.select_service(service)
     router_id = sql.get_router_id(cluster_id, default_router=1)
-    servers = sql.select_cluster_master_slaves(cluster_id, user_params['group_id'], router_id)
+    servers = sql.select_cluster_master_slaves(cluster_id, g.user_params['group_id'], router_id)
     waf_server = ''
     cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
     keep_alive, stderr = server_mod.subprocess_execute(cmd)
@@ -161,14 +158,20 @@ def show_ha_cluster(service, cluster_id):
         servers_with_status1.append(servers_with_status)
 
     user_subscription = roxywi_common.return_user_subscription()
+    kwargs = {
+        'user_params': g.user_params,
+        'servers': servers_with_status1,
+        'waf_server': waf_server,
+        'service': service,
+        'services': services,
+        'service_desc': service_desc,
+        'keep_alive': ''.join(keep_alive),
+        'restart_settings': restart_settings,
+        'user_subscription': user_subscription,
+        'lang': g.user_params['lang']
+    }
 
-    return render_template(
-        'service.html', role=user_params['role'], user=user_params['user'],
-        servers=servers_with_status1, keep_alive=''.join(keep_alive), service=service, services=services,
-        user_services=user_params['user_services'], user_status=user_subscription['user_status'],
-        user_plan=user_subscription['user_plan'], waf_server=waf_server, restart_settings=restart_settings,
-        service_desc=service_desc, token=user_params['token'], lang=user_params['lang']
-    )
+    return render_template('service.html', **kwargs)
 
 
 @bp.route('/<service>/slaves/<int:cluster_id>', methods=['GET', 'POST'])

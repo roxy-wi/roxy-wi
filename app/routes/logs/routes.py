@@ -25,26 +25,27 @@ def before_request():
 @get_user_params()
 def logs_internal():
     log_type = request.args.get('type')
+    log_path = get_config.get_config_var('main', 'log_path')
+    selects = roxywi_common.get_files(log_path, file_format="log")
 
     if log_type == '2':
         roxywi_auth.page_for_admin(level=2)
     else:
         roxywi_auth.page_for_admin()
 
-    user_params = g.user_params
-    log_path = get_config.get_config_var('main', 'log_path')
-    selects = roxywi_common.get_files(log_path, file_format="log")
-
     if log_type is None:
         selects.append(['fail2ban.log', 'fail2ban.log'])
         selects.append(['roxy-wi.error.log', 'error.log'])
         selects.append(['roxy-wi.access.log', 'access.log'])
 
-    return render_template(
-        'logs_internal.html', autorefresh=1, role=user_params['role'], user=user_params['user'],
-        user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang'],
-        selects=selects, serv='viewlogs'
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'autorefresh': 1,
+        'selects': selects,
+        'serv': 'viewlogs',
+        'lang': g.user_params['lang']
+    }
+    return render_template('logs_internal.html', **kwargs)
 
 
 @bp.route('/<service>', defaults={'waf': None})
@@ -52,15 +53,14 @@ def logs_internal():
 @check_services
 @get_user_params()
 def logs(service, waf):
-    user_params = g.user_params
     serv = request.args.get('serv')
     rows = request.args.get('rows')
     grep = request.args.get('grep')
-    exgrep = request.args.get('exgrep')
-    hour = request.args.get('hour')
-    minute = request.args.get('minute')
-    hour1 = request.args.get('hour1')
-    minute1 = request.args.get('minute1')
+    # exgrep = request.args.get('exgrep')
+    # hour = request.args.get('hour')
+    # minute = request.args.get('minute')
+    # hour1 = request.args.get('hour1')
+    # minute1 = request.args.get('minute1')
     log_file = request.args.get('file')
 
     if rows is None:
@@ -78,11 +78,21 @@ def logs(service, waf):
     else:
         return redirect(url_for('index'))
 
-    return render_template(
-        'logs.html', autorefresh=1, role=user_params['role'], user=user_params['user'], select_id='serv', rows=rows,
-        remote_file=log_file, selects=servers, waf=waf, service=service, user_services=user_params['user_services'],
-        token=user_params['token'], lang=user_params['lang'], service_name=service_name, grep=grep, serv=serv
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'autorefresh': 1,
+        'servers': servers,
+        'serv': serv,
+        'service': service,
+        'service_name': service_name,
+        'grep': grep,
+        'rows': rows,
+        'remote_file': log_file,
+        'waf': waf,
+        'lang': g.user_params['lang']
+    }
+
+    return render_template('logs.html', **kwargs)
 
 
 @bp.route('/<service>/<serv>', methods=['GET', 'POST'])
@@ -92,11 +102,10 @@ def show_remote_log_files(service, serv):
     serv = common.checkAjaxInput(serv)
     log_path = sql.get_setting(f'{service}_path_logs')
     return_files = server_mod.get_remote_files(serv, log_path, 'log')
+    lang = roxywi_common.get_user_lang_for_flask()
 
     if 'error: ' in return_files:
         return return_files
-
-    lang = roxywi_common.get_user_lang_for_flask()
 
     return render_template(
         'ajax/show_log_files.html', serv=serv, return_files=return_files, path_dir=log_path, lang=lang
@@ -106,22 +115,13 @@ def show_remote_log_files(service, serv):
 @bp.route('/<service>/<serv>/<rows>', defaults={'waf': '0'}, methods=['GET', 'POST'])
 @bp.route('/<service>/waf/<serv>/<rows>', defaults={'waf': '1'}, methods=['GET', 'POST'])
 def show_logs(service, serv, rows, waf):
-    if request.method == 'GET':
-        grep = request.args.get('grep')
-        exgrep = request.args.get('exgrep')
-        hour = request.args.get('hour')
-        minute = request.args.get('minute')
-        hour1 = request.args.get('hour1')
-        minute1 = request.args.get('minute1')
-        log_file = request.args.get('file')
-    else:
-        grep = request.form.get('grep')
-        exgrep = request.form.get('exgrep')
-        hour = request.form.get('hour')
-        minute = request.form.get('minute')
-        hour1 = request.form.get('hour1')
-        minute1 = request.form.get('minute1')
-        log_file = request.form.get('file')
+    grep = request.form.get('grep') or request.args.get('grep')
+    exgrep = request.form.get('exgrep') or request.args.get('exgrep')
+    hour = request.form.get('hour') or request.args.get('hour')
+    minute = request.form.get('minute') or request.args.get('minute')
+    hour1 = request.form.get('hour1') or request.args.get('hour1')
+    minute1 = request.form.get('minute1') or request.args.get('minute1')
+    log_file = request.form.get('file') or request.args.get('file')
 
     if roxywi_common.check_user_group_for_flask():
         try:

@@ -44,12 +44,7 @@
 				<tr>
 					<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 					<td class="addOption">
-						<select required name="serv" id="serv">
-							<option disabled selected>------</option>
-							{% for select in selects %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}
-						</select>
+						{{ select('serv', values=user_params['servers'], is_servers='true') }}
 						<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 					</td>
 					<td rowspan="5" class="add-note addName alert-info">
@@ -312,12 +307,7 @@
 			<tr>
 				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
-					<select required name="serv" id="serv2">
-						<option disabled selected>------</option>
-						{% for select in selects %}
-							<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endfor %}
-					</select>
+					{{ select('serv2', values=user_params['servers'], is_servers='true') }}
 					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td rowspan="5" class="add-note addName alert-info">
@@ -508,12 +498,7 @@
 			<tr>
 				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
-					<select required name="serv" id="serv3">
-						<option disabled selected>------</option>
-						{% for select in selects %}
-							<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endfor %}
-					</select>
+					{{ select('serv3', values=user_params['servers'], is_servers='true') }}
 					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td rowspan="4" class="add-note addName alert-info">
@@ -736,12 +721,7 @@
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
-					<select required name="serv" id="serv5">
-						<option disabled selected>------</option>
-						{% for select in selects %}
-							<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endfor %}
-					</select>
+					{{ select('serv5', values=user_params['servers'], is_servers='true') }}
 					<button id="ssl_key_view" title="{{lang.words.view|title()}} {{lang.words.certs}}">{{lang.words.view|title()}}</button>
 				</td>
 				<td colspan="2" style="padding: 10px 0 10px 0;">
@@ -759,12 +739,7 @@
 			</tr>
 			<tr>
 				<td class="first-collumn padding10" valign="top" style="padding-top: 15px;">
-					<select required id="serv4">
-						<option disabled selected>------</option>
-						{% for select in selects %}
-							<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endfor %}
-					</select>
+					{{ select('serv4', values=user_params['servers'], is_servers='true') }}
 				</td>
 				<td valign="top" style="padding-top: 27px;">
 					{{ input('ssl_name') }}
@@ -785,12 +760,7 @@
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
-					<select required id="serv_for_lets">
-						<option disabled selected>------</option>
-						{% for select in selects %}
-						<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endfor %}
-					</select>
+					{{ select('serv_for_lets', values=user_params['servers'], is_servers='true') }}
 				</td>
 				<td>
 					{{ input('lets_domain', placeholder="example.com") }}
@@ -909,12 +879,7 @@
 			<tr>
 				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
-					<select required name="serv" id="userlist_serv">
-						<option disabled selected>------</option>
-						{% for select in selects %}
-							<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endfor %}
-					</select>
+					{{ select('userlist_serv', name='serv', values=user_params['servers'], is_servers='true') }}
 					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td rowspan="4" class="add-note addName alert-info">{{lang.add_page.desc.userlist_desc}}</td>
@@ -967,12 +932,7 @@
 			<tr>
 				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
-					<select required name="serv" id="existing_userlist_serv">
-						<option disabled selected>------</option>
-						{% for select in selects %}
-							<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endfor %}
-					</select>
+					{{ select('existing_userlist_serv', name='serv', values=user_params['servers'], is_servers='true') }}
 					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td>
@@ -1002,12 +962,7 @@
 			<tr>
 				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
-					<select required name="serv" id="peers_serv">
-						<option disabled selected>------</option>
-						{% for select in selects %}
-							<option value="{{ select.2 }}">{{ select.1 }}</option>
-						{% endfor %}
-					</select>
+					{{ select('peers_serv', name='serv', values=user_params['servers'], is_servers='true') }}
 					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td rowspan="4" class="add-note addName alert-info">
@@ -1074,13 +1029,7 @@
 					<button onclick="createList('black')">{{lang.words.create|title()}}</button>
 				</td>
 				<td class="first-collumn">
-					<select required name="serv-black-list" id="serv-black-list">
-						<option disabled selected>------</option>
-						<option value="all">{{lang.words.all|title()}}</option>
-							{% for select in selects %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}
-					</select>
+					{{ select('serv-black-list', values=user_params['servers'], is_servers='true') }}
 				</td>
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for list in black_lists %}
@@ -1105,13 +1054,7 @@
 					<button onclick="createList('white')">{{lang.words.create|title()}}</button>
 				</td>
 				<td class="first-collumn">
-					<select required name="serv-white-list" id="serv-white-list">
-						<option disabled selected>------</option>
-						<option value="all">{{lang.words.all|title()}}</option>
-							{% for select in selects %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}
-					</select>
+					{{ select('serv-white-list', values=user_params['servers'], is_servers='true') }}
 				</td>
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for list in white_lists %}
@@ -1146,13 +1089,7 @@
 					<button onclick="createMap()">{{lang.words.create|title()}}</button>
 				</td>
 				<td class="first-collumn">
-					<select required name="serv-map" id="serv-map">
-						<option disabled selected>------</option>
-						<option value="all">{{lang.words.all|title()}}</option>
-							{% for select in selects %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}
-					</select>
+					{{ select('serv-map', values=user_params['servers'], is_servers='true') }}
 				</td>
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for map in maps %}

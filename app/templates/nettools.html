@@ -3,21 +3,6 @@
 {% block h2 %}{{ lang.menu_links.monitoring.net_tools }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
-<style>
-    .ping_pre {
-        display: block;
-        padding: 10px;
-        margin: 0 0 10px;
-        font-family: 'Courier New', monospace;
-        font-size: 14px;
-        line-height: 1.42857143;
-        color: #333;
-        word-break: break-all;
-        word-wrap: break-word;
-        background-color: #f5f5f5;
-        border: 1px solid #ccc;
-    }
-</style>
 <script src="/inc/nettools.js"></script>
 <form name="nettools_icmp_form" id="nettools_icmp_form" method="post" action="/app/nettols/icmp">
     <table class="overview">
@@ -33,7 +18,7 @@
                 <select autofocus required name="server_from" id="nettools_icmp_server_from">
                     <option disabled selected>------</option>
                     <option value="localhost">Roxy-WI</option>
-                    {% for server in servers %}
+                    {% for server in user_params['servers'] %}
                     <option value="{{ server.2 }}">{{ server.1 }}</option>
                         {% endfor %}
                     </select>
@@ -65,7 +50,7 @@
                 <select autofocus required name="server_from" id="nettools_telnet_server_from">
                     <option disabled selected>------</option>
                     <option value="localhost">Roxy-WI</option>
-                    {% for server in servers %}
+                    {% for server in user_params['servers'] %}
                     <option value="{{ server.2 }}">{{ server.1 }}</option>
                     {% endfor %}
                 </select>
@@ -97,7 +82,7 @@
                 <select autofocus required name="server_from" id="nettools_nslookup_server_from">
                     <option disabled selected>------</option>
                     <option value="localhost">Roxy-WI</option>
-                    {% for server in servers %}
+                    {% for server in user_params['servers'] %}
                     <option value="{{ server.2 }}">{{ server.1 }}</option>
                     {% endfor %}
                 </select>
@@ -106,7 +91,7 @@
                 {% set values = dict() %}
                 {% set values = {'A':'A','AAA':'AAA', 'CNAME':'CNAME', 'MX':'MX', 'TXT':'TXT', 'PTR':'PTR', 'SRV':'SRV',
                 'SOA':'SOA', 'CAA':'CAA'} %}
-                {{ select('nettools_nslookup_record_type',  values=values, selected='A', required='required') }}
+                {{ select('nettools_nslookup_record_type', values=values, selected='A', required='required') }}
             </td>
             <td class="padding10 first-collumn">
                 {{ input('nettools_nslookup_name', title='Enter a DNS name') }}

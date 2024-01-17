@@ -28,32 +28,34 @@ def before_request():
 @get_user_params()
 def admin():
     roxywi_auth.page_for_admin()
-
-    user_params = g.user_params
-    users = sql.select_users()
-    settings = sql.get_setting('', all=1)
-    ldap_enable = sql.get_setting('ldap_enable')
-    services = sql.select_services()
-    gits = sql.select_gits()
-    masters = sql.select_servers(get_master_servers=1)
-    is_needed_tool = common.is_tool('ansible')
     grafana = 0
-    backups = sql.select_backups()
-    s3_backups = sql.select_s3_backups()
-    user_subscription = roxywi_common.return_user_subscription()
 
     if not roxy.is_docker():
-        grafana, stderr = server_mod.subprocess_execute("systemctl is-active grafana-server")
-        grafana = grafana[0]
+        grafana = tools_common.is_tool_active('grafana-server')
 
-    return render_template(
-        'admin.html', role=user_params['role'], user=user_params['user'], users=users, groups=sql.select_groups(),
-        servers=sql.select_servers(full=1), masters=masters, sshs=sql.select_ssh(), roles=sql.select_roles(),
-        settings=settings, backups=backups, s3_backups=s3_backups, services=services, timezones=pytz.all_timezones,
-        page="users.py", user_services=user_params['user_services'], ldap_enable=ldap_enable, gits=gits, guide_me=1,
-        user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
-        token=user_params['token'], is_needed_tool=is_needed_tool, lang=user_params['lang'], grafana=grafana
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'lang': g.user_params['lang'],
+        'users': sql.select_users(),
+        'groups': sql.select_groups(),
+        'sshs': sql.select_ssh(),
+        'servers': sql.select_servers(full=1),
+        'roles': sql.select_roles(),
+        'timezones': pytz.all_timezones,
+        'settings': sql.get_setting('', all=1),
+        'ldap_enable': sql.get_setting('ldap_enable'),
+        'services': sql.select_services(),
+        'gits': sql.select_gits(),
+        'masters': sql.select_servers(get_master_servers=1),
+        'is_needed_tool': common.is_tool('ansible'),
+        'grafana': grafana,
+        'backups': sql.select_backups(),
+        's3_backups': sql.select_s3_backups(),
+        'guide_me': 1,
+        'user_subscription': roxywi_common.return_user_subscription()
+    }
+
+    return render_template('admin.html', **kwargs)
 
 
 @bp.route('/tools')

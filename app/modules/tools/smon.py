@@ -2,7 +2,6 @@ from flask import render_template, abort
 
 import modules.db.sql as sql
 import modules.roxywi.common as roxywi_common
-import modules.server.server as server_mod
 
 
 def create_smon(name: str, hostname: str, port: int, enable: int, url: str, body: str, group: int, desc: str, telegram: int,

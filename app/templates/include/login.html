@@ -1,5 +1,5 @@
-{% if user %}
-	<span id="show-user-settings-button" class="user-circle login" title="{{lang.words.user3|title()}} {{lang.words.settings}}" style="margin-top: 5px;">{{user}}</span>
+{% if user_params['user'] %}
+	<span id="show-user-settings-button" class="user-circle login" title="{{lang.words.user3|title()}} {{lang.words.settings}}" style="margin-top: 5px;">{{user_params['user']}}</span>
 {% else %}
 	<a href=/app/login title="Login" class="login"> Login</a>
 {% endif %}

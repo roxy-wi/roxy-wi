@@ -18,7 +18,7 @@
 	<label for="{{id}}" title="{{title}}" class="{{id}}" style="{{style}}" data-help="{{title}}">{{desc}}</label><input name="{{name}}" type="checkbox" id="{{id}}" value="{{value|e}}" {{checked}} {{disabled}} />
 {%- endmacro %}
 
-{%- macro select(id, values, name='', required='', first='', class='', selected='', title='', disabled='true') -%}
+{%- macro select(id, values, name='', required='', first='', class='', selected='', title='', disabled='true', is_servers='') -%}
 	{% if name == '' %}
 		{% set name = id %}
 	{% endif %}
@@ -30,14 +30,26 @@
 	<select {{required}} name="{{name}}" id="{{id}}" title="{{title}}" data-help="{{title}}" class="{{class}}">
 		{% if first %}
 			<option {{disabled}} selected>{{first}}</option>
+		{% else %}
+			<option {{disabled}} selected>------</option>
 		{% endif %}
-		{% for v, des in values.items() %}
-			{% if v == selected|string() %}
-				<option value="{{v}}" selected>{{des}}</option>
-			{% else %}
-				<option value="{{v}}">{{des}}</option>
-			{% endif %}
-		{% endfor %}
+		{% if is_servers %}
+			{% for value in values %}
+				{% if value.2 == selected|string() %}
+					<option value="{{value.2}}" selected>{{value.1}}</option>
+				{% else %}
+					<option value="{{ value.2 }}">{{ value.1 }}</option>
+				{% endif %}
+			{% endfor %}
+		{% else %}
+			{% for v, des in values.items() %}
+				{% if v == selected|string() %}
+					<option value="{{v}}" selected>{{des}}</option>
+				{% else %}
+					<option value="{{v}}">{{des}}</option>
+				{% endif %}
+			{% endfor %}
+		{% endif %}
 	</select>
 {%- endmacro %}
 

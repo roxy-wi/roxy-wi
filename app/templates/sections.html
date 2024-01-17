@@ -2,7 +2,7 @@
 {% block title %}{{lang.words.edit|title()}} {{lang.words.section2}}{% endblock %}
 {% block h2 %}{{lang.words.edit|title()}} {{lang.words.section2}} {% endblock %}
 {% block content %}
-{% if is_serv_protected and role > 2 %}
+{% if is_serv_protected and user_params['role'] > 2 %}
 <meta http-equiv="refresh" content="0; url=/app/service/{{service}}">
 {% else %}
 <link rel="stylesheet" href="/inc/codemirror/lib/codemirror.css">
@@ -39,12 +39,12 @@
 		{% endfor %}
 	</select>
 	<input type="hidden" value="{{ serv }}" name="serv" id="serv">
-	{% if role <= 3 %}
+	{% if user_params['role'] <= 3 %}
 		<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.edit|title()}} {{lang.words.running}} {{lang.words.config}}" onclick="openSection()">{{lang.words.edit|title()}}</a>
 	{% endif %}
 </div>
 	{% if config %}
-		{% if role <= 3 %}
+		{% if user_params['role'] <= 3 %}
 			<div id="config" class="left-space">
 				<h4>{{lang.phrases.you_are_editing}} "{{section}}" {{lang.phrases.section_from_server}} {{ serv }}</h4>
 				<form action="/app/config/section/haproxy/{{serv}}/save" name="saveconfig" id="saveconfig" method="post">
@@ -56,7 +56,7 @@
 					<div style="width: 95%;">
 						<textarea name="config" class="config" id="config_text_area" rows="35" cols="100" style="height: 40%">{{ config }}</textarea>
 					</div>
-					{% if not is_serv_protected or role <= 2 %}
+					{% if not is_serv_protected or user_params['role'] <= 2 %}
 					<p>
 						<button type="submit" value="test" name="save" class="btn btn-default" title="{{lang.words.check|title()}} {{lang.words.config}} {{lang.words.without}} {{lang.words.saving}}">{{lang.phrases.check_config}}</button>
 						<button type="submit" value="save" name="save" class="btn btn-default" title="{{lang.phrases.save_title}}">{{lang.words.save|title()}}</button>

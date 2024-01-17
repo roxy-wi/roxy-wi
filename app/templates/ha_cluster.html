@@ -9,27 +9,6 @@
 <link href="/inc/css/servers.css" rel="stylesheet"/>
 <link href="/inc/css/smon.css" rel="stylesheet">
 <link href="/inc/css/ha.css" rel="stylesheet">
-<script>
-    $( function() {
-		$( ".sortable" ).sortable({
-			revert: true,
-			placeholder: "ui-state-highlight"
-		});
-		$( ".sortable" ).disableSelection();
-
-		$( ".sortable" ).sortable({
-			handle: ".portlet-header",
-			stop: function(event, ui) {
-				var itemOrder = $('.sortable').sortable("toArray");
-				for (var i = 0; i < itemOrder.length; i++) {
-					var pos = i;
-					var id = itemOrder[i].split('-')[2]
-					change_pos(pos, id);
-				}
-			}
-		});
-	});
-</script>
 {% if user_subscription.user_status == 0 or user_subscription.user_plan == 'user' %}
 	{% include 'include/no_sub.html' %}
 {% elif not is_needed_tool %}
@@ -41,10 +20,10 @@
         </h4>
     </div>
 {% else %}
-{% if role <= 2 %}
+{% if user_params['role'] <= 2 %}
 <div class="add-button add-button-big" title="{{lang.phrases.create_ha}}" onclick="createHaClusterStep1();">+ {{lang.ha_page.create_ha}}</div>
 {% endif %}
-<div class="up-pannel">
+<div class="up-pannel" class="sortable">
     {% for cluster in clusters %}
     <div id="cluster-{{cluster.id}}" class="div-server-hapwi animated-background"></div>
     {% endfor %}
@@ -154,6 +133,10 @@
             <td class="help_cursor" style="display: none" id="nginx_docker_td">
                 {{ checkbox('nginx_docker', title=lang.ha_page.try_install+' NGINX '+lang.ha_page.as_docker) }}
             </td>
+        </tr>
+        <tr>
+            <td class="padding20 help_cursor"><span title="{{lang.ha_page.try_install}} Apache">Apache</span></td>
+            <td class="help_cursor">{{ checkbox('apache', title=lang.ha_page.try_install+' Apache') }}</td>
         </tr>
     </table>
     <div class="alert alert-warning">

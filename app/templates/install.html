@@ -45,8 +45,8 @@
 				<td class="padding10 first-collumn">
 					<select autofocus required name="haproxyaddserv" id="haproxyaddserv">
 						<option disabled selected>------</option>
-						{% for select in servers %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
+						{% for select in user_params['servers'] %}
+                            <option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
 				</td>
@@ -54,7 +54,7 @@
 					{{ checkbox('haproxy_docker', title=lang.admin_page.desc.install_as_docker) }}
 				</td>
 				<td class="syn-flood-protection-field">
-					{{ checkbox('syn_flood', title=lang.words.enable|title() + ' SYN-flood '+ lang.words.protection, checked='checked') }}
+					{{ checkbox('haproxy_syn_flood', title=lang.words.enable|title() + ' SYN-flood '+ lang.words.protection, checked='checked') }}
 				</td>
 				<td>
 					<span class="ui-button ui-widget ui-corner-all" id="install" title="{{lang.words.install|title()}} HAProxy">{{lang.words.install|title()}}</span>
@@ -80,8 +80,8 @@
 				<td class="padding10 first-collumn">
 					<select autofocus required name="nginxaddserv" id="nginxaddserv">
 						<option disabled selected>------</option>
-						{% for select in servers %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
+						{% for select in user_params['servers'] %}
+                            <option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
 				</td>
@@ -115,8 +115,8 @@
 				<td class="padding10 first-collumn">
 					<select autofocus required name="apacheaddserv" id="apacheaddserv">
 						<option disabled selected>------</option>
-						{% for select in servers %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
+						{% for select in user_params['servers'] %}
+                            <option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
 				</td>
@@ -145,7 +145,7 @@
             </h4>
         </div>
         {% else %}
-        {% if role|int() == 1 %}
+        {% if user_params['role']|int() == 1 %}
         <table id="grafana-table">
             <caption><i class="fas fa-chart-bar caption-icon2"></i><h3>Grafana {{lang.words.and}} Prometheus {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
@@ -172,7 +172,7 @@
                 <td></td>
                 <td>
                     {% if grafana != "active" %}
-                    <span class="ui-button ui-widget ui-corner-all" id="grafna_install" title="{{lang.words.install|title()}} Grafana {{lang.words.and}} Prometheus {{lang.words.servers}}">{{lang.words.install|title()}}</span>
+                    <span class="ui-button ui-widget ui-corner-all" id="grafana_install" title="{{lang.words.install|title()}} Grafana {{lang.words.and}} Prometheus {{lang.words.servers}}">{{lang.words.install|title()}}</span>
                     {% endif %}
                 </td>
             </tr>
@@ -198,8 +198,8 @@
                 <td class="padding10 first-collumn">
                     <select autofocus required name="haproxy_exp_addserv" id="haproxy_exp_addserv">
                         <option disabled selected>------</option>
-                        {% for select in servers %}
-                        <option value="{{ select.2 }}">{{ select.1 }}</option>
+                        {% for select in user_params['servers'] %}
+                            <option value="{{ select.2 }}">{{ select.1 }}</option>
                         {% endfor %}
                     </select>
                 </td>
@@ -223,14 +223,14 @@
                 <td id="cur_nginx_exp_ver" class="padding10 first-collumn"></td>
                 <td class="padding10 first-collumn" style="width: 20%;">
                     {% set values = dict() %}
-                    {% set values = {'0.6.0':'0.6.0', '0.7.0':'0.7.0', '0.9.0':'0.9.0', '0.10.0':'0.10.0', '0.11.0':'0.11.0'} %}
-                    {{ select('nginxexpver',  values=values, selected='0.11.0') }}
+                    {% set values = {'0.7.0':'0.7.0', '0.9.0':'0.9.0', '0.10.0':'0.10.0', '0.11.0':'0.11.0', '1.0.0':'1.0.0', '1.1.0':'1.1.0'} %}
+                    {{ select('nginxexpver',  values=values, selected='1.1.0') }}
                 </td>
                 <td class="padding10 first-collumn">
                     <select autofocus required name="nginx_exp_addserv" id="nginx_exp_addserv">
                         <option disabled selected>------</option>
-                        {% for select in servers %}
-                        <option value="{{ select.2 }}">{{ select.1 }}</option>
+                        {% for select in user_params['servers'] %}
+                            <option value="{{ select.2 }}">{{ select.1 }}</option>
                         {% endfor %}
                     </select>
                 </td>
@@ -254,14 +254,14 @@
                 <td id="cur_apache_exp_ver" class="padding10 first-collumn"></td>
                 <td class="padding10 first-collumn" style="width: 20%;">
                     {% set values = dict() %}
-                    {% set values = {'0.10.0':'0.10.0', '0.13.4':'0.13.4', '1.0.1':'1.0.1'} %}
-                    {{ select('apacheexpver',  values=values, selected='1.0.1') }}
+                    {% set values = {'0.10.0':'0.10.0', '0.13.4':'0.13.4', '1.0.4':'1.0.4'} %}
+                    {{ select('apacheexpver',  values=values, selected='1.0.4') }}
                 </td>
                 <td class="padding10 first-collumn">
                     <select autofocus required name="apache_exp_addserv" id="apache_exp_addserv">
                         <option disabled selected>------</option>
-                        {% for select in servers %}
-                        <option value="{{ select.2 }}">{{ select.1 }}</option>
+                        {% for select in user_params['servers'] %}
+                            <option value="{{ select.2 }}">{{ select.1 }}</option>
                         {% endfor %}
                     </select>
                 </td>
@@ -291,8 +291,8 @@
                 <td class="padding10 first-collumn">
                     <select autofocus required name="keepalived_exp_addserv" id="keepalived_exp_addserv">
                         <option disabled selected>------</option>
-                        {% for select in servers %}
-                        <option value="{{ select.2 }}">{{ select.1 }}</option>
+                        {% for select in user_params['servers'] %}
+                            <option value="{{ select.2 }}">{{ select.1 }}</option>
                         {% endfor %}
                     </select>
                 </td>
@@ -316,14 +316,14 @@
                 <td id="cur_node_exp_ver" class="padding10 first-collumn"></td>
                 <td class="padding10 first-collumn" style="width: 20%;">
                     {% set values = dict() %}
-                    {% set values = {'1.2.0':'1.2.0', '1.2.2':'1.2.2', '1.3.0':'1.3.0', '1.3.1':'1.3.1', '1.5.0':'1.5.0', '1.6.1':'1.6.1'} %}
-                    {{ select('nodeexpver',  values=values, selected='1.6.1') }}
+                    {% set values = {'1.2.0':'1.2.0', '1.2.2':'1.2.2', '1.3.0':'1.3.0', '1.3.1':'1.3.1', '1.5.0':'1.5.0', '1.6.1':'1.6.1', '1.7.0':'1.7.0'} %}
+                    {{ select('nodeexpver',  values=values, selected='1.7.0') }}
                 </td>
                 <td class="padding10 first-collumn">
                     <select autofocus required name="node_exp_addserv" id="node_exp_addserv">
                         <option disabled selected>------</option>
-                        {% for select in servers %}
-                        <option value="{{ select.2 }}">{{ select.1 }}</option>
+                        {% for select in user_params['servers'] %}
+                            <option value="{{ select.2 }}">{{ select.1 }}</option>
                         {% endfor %}
                     </select>
                 </td>
@@ -363,8 +363,8 @@
 				<td class="padding10 first-collumn">
 					<select autofocus required name="geoipserv" id="geoipserv">
 						<option disabled selected>------</option>
-						{% for select in servers %}
-						<option value="{{ select.2 }}">{{ select.1 }}</option>
+						{% for select in user_params['servers'] %}
+						    <option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
 				</td>

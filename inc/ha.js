@@ -306,6 +306,7 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	let hap_docker = 0;
 	let nginx = 0;
 	let nginx_docker = 0;
+	let apache = 0;
 	req_method = 'POST';
 	if (edited) {
 		req_method = 'PUT';
@@ -331,6 +332,9 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	if ($('#nginx_docker').is(':checked')) {
 		nginx_docker = '1';
 	}
+	if ($('#apache').is(':checked')) {
+		apache = '1';
+	}
 	jsonData['cluster_id'] = cluster_id;
 	jsonData['name'] = $('#ha-cluster-name').val();
 	jsonData['desc'] = $('#ha-cluster-desc').val();
@@ -340,6 +344,7 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	jsonData['syn_flood'] = syn_flood;
 	jsonData['services'] = {'haproxy': {'enabled': hap, 'docker': hap_docker}};
 	jsonData['services']['nginx'] = {'enabled': nginx, 'docker': nginx_docker};
+	jsonData['services']['apache'] = {'enabled': apache, 'docker': 0};
 	jsonData['router_id'] = $('#router_id-' + cluster_id).val();
 	$.ajax({
 		url: "/app/ha/cluster",
@@ -380,6 +385,9 @@ function Reconfigure(jsonData, cluster_id) {
 	if (servers['services']['nginx']['enabled']) {
 		total_installation = total_installation + 1;
 	}
+	if (servers['services']['apache']['enabled']) {
+		total_installation = total_installation + 1;
+	}
 	var server_creating_title = $("#server_creating1").attr('title');
 	var server_creating = $("#server_creating1").dialog({
 		autoOpen: false,
@@ -401,10 +409,31 @@ function Reconfigure(jsonData, cluster_id) {
 	let progress_step = 100 / total_installation;
 	$.when(installServiceCluster(jsonData, 'keepalived', progress_step, cluster_id)).done(function () {
 		if (servers['services']['haproxy']['enabled']) {
-			installServiceCluster(jsonData, 'haproxy', progress_step, cluster_id);
-		}
-		if (servers['services']['nginx']['enabled']) {
-			installServiceCluster(jsonData, 'nginx', progress_step, cluster_id);
+			$.when(installServiceCluster(jsonData, 'haproxy', progress_step, cluster_id)).done(function () {
+				if (servers['services']['nginx']['enabled']) {
+					$.when(installServiceCluster(jsonData, 'nginx', progress_step, cluster_id)).done(function () {
+						if (servers['services']['apache']['enabled']) {
+							installServiceCluster(jsonData, 'apache', progress_step, cluster_id);
+						}
+					});
+				} else {
+					if (servers['services']['apache']['enabled']) {
+						installServiceCluster(jsonData, 'apache', progress_step, cluster_id);
+					}
+				}
+			});
+		} else {
+			if (servers['services']['nginx']['enabled']) {
+				$.when(installServiceCluster(jsonData, 'nginx', progress_step, cluster_id)).done(function () {
+					if (servers['services']['apache']['enabled']) {
+						installServiceCluster(jsonData, 'apache', progress_step, cluster_id);
+					}
+				});
+			} else {
+				if (servers['services']['apache']['enabled']) {
+					installServiceCluster(jsonData, 'apache', progress_step, cluster_id);
+				}
+			}
 		}
 	});
 }

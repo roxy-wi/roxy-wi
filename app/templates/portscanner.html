@@ -29,10 +29,10 @@
 </div>
 {% else %}
 	<div id="up-pannel">
-	{% if servers|length == 0 %}
+	{% if user_params['servers']|length == 0 %}
 		{% include 'include/getstarted.html' %}
 	{% endif %}
-	{% for s in servers %}
+	{% for s in user_params['servers'] %}
 		<div id="div-server-{{s.0}}" class="div-server-hapwi
 			{%- if port_scanner == 'active' %}
 				div-server-head-up
@@ -64,7 +64,7 @@
 					{% else %}
 						{{s.1}}
 					{% endif %}
-				{% if role <= 2 %}
+				{% if user_params['role'] <= 2 %}
 					<span class="server-action"></span>
 				{% endif %}
 			</div>
@@ -93,7 +93,7 @@
 				<br />
 			</div>
 			<div class="server-act-links" id="server-{{s.0}}">
-				{% if role <= 2 %}
+				{% if user_params['role'] <= 2 %}
 					{% set portscanner_enable_id = 'portscanner_enable-' + s.0|string() %}
 					{% set portscanner_notify_id = 'portscanner_notify-' + s.0|string() %}
 					{% set portscanner_history_id = 'portscanner_history-' + s.0|string() %}

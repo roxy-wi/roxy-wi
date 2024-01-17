@@ -1392,7 +1392,6 @@ label {
     background-position: 800px 0
   }
 }
-
 .animated-background {
   animation-duration: 2s;
   animation-fill-mode: forwards;
@@ -1403,4 +1402,15 @@ label {
   background: linear-gradient(to right, #eeeeee 8%, #bbbbbb 18%, #eeeeee 33%);
   background-size: 800px 104px;
   position: relative;
+}
+.ping_pre {
+	padding: 10px;
+	font-family: 'Courier New', monospace;
+	font-size: 14px;
+	line-height: 1.42857143;
+	color: #333;
+	word-break: break-all;
+	word-wrap: break-word;
+	background-color: #f5f5f5;
+	border: 1px solid #ccc;
 }

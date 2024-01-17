@@ -10,7 +10,7 @@
 	$("#secIntervals").css("display", "none");
 	var ip = []
 	var hostnamea = []
-	{% for s in servers %}
+	{% for s in user_params['servers'] %}
 		ip.push("{{s[2]}}")
 		var host = "{{s[2]}}"
 		host = host.replace(/\./g, '\\.');
@@ -24,7 +24,7 @@
 <table class="overview-wi" id="overview-roxy-wi">
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn-wi">
-			{% if role <= 2 %}
+			{% if user_params['role'] <= 2 %}
 				<a href="servers#servers" title="{{lang.words.manage|title()}} {{lang.words.servers}}">{{lang.words.servers|title()}}</a>
 			{% else %}
 				{{lang.words.servers|title()}}
@@ -61,14 +61,14 @@
 			</a>
 		</td>
 	</tr>
-	{% for s in servers %}
+	{% for s in user_params['servers'] %}
 		<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s[2]}}"></tr>
 	{% endfor %}
 </table>
 <table class="overview-wi" id="overview-load">
 	<tr class="overviewHead" style="height: 30px;">
 		<td class="padding10 first-collumn-wi" colspan="2">
-			{% if role <= 1 %}
+			{% if user_params['role'] <= 1 %}
 				<a href="/app/logs/internal" title="{{lang.words.view|title()}} Roxy-WI {{lang.words.logs}}" class="logs_link">
 					Roxy-WI {{lang.words.server_status}}
 				</a>
@@ -97,7 +97,7 @@
 	<thead>
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi" colspan=2>
-				{% if role <= 1 %}
+				{% if user_params['role'] <= 1 %}
 					<a href="admin#tools" title="{{lang.words.view|title()}} {{lang.words.services}} {{lang.words.status}}" class="logs_link">
 						Roxy-WI {{lang.words.services_status}}
 					</a>
@@ -114,11 +114,11 @@
 	</thead>
 	<tbody id="services_ovw"></tbody>
 </table>
-{% if role <= 2 %}
-	{% if role == 2 %}
+{% if user_params['role'] <= 2 %}
+	{% if user_params['role'] == 2 %}
 		{% set admin_uri = 'servers' %}
-	{% elif role == 1 %}
-		{% set admin_uri = 'users.py' %}
+	{% elif user_params['role'] == 1 %}
+		{% set admin_uri = 'admin' %}
 	{% endif %}
 	<table class="overview-wi" id="overview-users">
 		<thead>
@@ -148,11 +148,11 @@
 		<tbody id="users-table"></tbody>
 	</table>
 {% endif %}
-{% if role <= 1 %}
+{% if user_params['role'] <= 1 %}
 	<table class="overview-wi" id="overview-groups">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">
-				<a href="/app/users#groups" title="Manage groups" class="logs_link">{{lang.words.groups|title()}}</a>
+				<a href="/app/users#groups" title="{{lang.words.manage|title()}} {{lang.words.groups3}}" class="logs_link">{{lang.words.groups|title()}}</a>
 			</td>
 			<td class="second-collumn" style="width: 40%">{{lang.words.desc|title()}}</td>
 			<td>
@@ -204,11 +204,11 @@
 		{% endfor %}
 	</table>
 {% endif %}
-{% if role <= 2 %}
+{% if user_params['role'] <= 2 %}
 	<script>ShowOverviewLogs();</script>
 	<table class="overview-wi" id="overview-logs"></table>
 {% endif %}
-{% if role <= 1 %}
+{% if user_params['role'] <= 1 %}
 	<table class="overview-wi" id="overview-subs">
 		<tr class="overviewHead" style="height: 30px;">
 			<td class="padding10 first-collumn-wi" colspan="2">

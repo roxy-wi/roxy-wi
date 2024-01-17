@@ -189,8 +189,7 @@ def generate_kp_inv(json_data: json, install_service) -> object:
 	cluster_id = int(json_data['cluster_id'])
 	haproxy = json_data['services']['haproxy']['enabled']
 	nginx = json_data['services']['nginx']['enabled']
-	# apache = json_data['apache']
-	apache = 0
+	apache = json_data['services']['apache']['enabled']
 	keepalived_path_logs = sql.get_setting('keepalived_path_logs')
 	syn_flood_protect = str(json_data['syn_flood'])
 	routers = {}

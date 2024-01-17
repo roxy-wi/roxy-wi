@@ -18,14 +18,7 @@ def before_request():
 @bp.route('')
 @get_user_params()
 def runtimeapi():
-    user_params = g.user_params
-    servbackend = ""
-
-    return render_template(
-        'runtimeapi.html', title="RunTime API", role=user_params['role'], user=user_params['user'], select_id="serv",
-        selects=user_params['servers'], token=user_params['token'], user_services=user_params['user_services'],
-        servbackend=servbackend, lang=user_params['lang']
-    )
+    return render_template('runtimeapi.html', user_params=g.user_params, lang=g.user_params['lang'])
 
 
 @bp.route('/backends/<server_ip>')

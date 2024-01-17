@@ -19,7 +19,7 @@
 <script src="/inc/metrics.js"></script>
 <script src="/inc/chart.min-4.3.0.js"></script>
 <input type="hidden" id="service" value="{{service}}">
-{% if user_status == 0 %}
+{% if user_subscription['user_status'] == 0 %}
 	{% include 'include/no_sub.html' %}
 {% elif services == '0' %}
 <div style="text-align: center;">

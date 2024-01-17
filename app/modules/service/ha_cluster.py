@@ -11,9 +11,11 @@ def create_cluster(cluster: object, group_id: int) -> str:
     vip = common.is_ip_or_dns(cluster['vip'])
     syn_flood = int(cluster['syn_flood'])
     return_master = int(cluster['return_to_master'])
+    cluster_name = common.checkAjaxInput(cluster['name'])
+    desc = common.checkAjaxInput(cluster['desc'])
 
     try:
-        cluster_id = sql.create_cluster(cluster['name'], syn_flood, group_id, cluster['desc'])
+        cluster_id = sql.create_cluster(cluster_name, syn_flood, group_id, desc)
         roxywi_common.logging(cluster_id, 'New cluster has been created', keep_history=1, roxywi=1, service='HA cluster')
     except Exception as e:
         return f'error: Cannot create new HA cluster: {e}'
@@ -69,7 +71,8 @@ def create_cluster(cluster: object, group_id: int) -> str:
 def update_cluster(cluster: object, group_id: int) -> str:
     cluster_id = int(cluster['cluster_id'])
     syn_flood = int(cluster['syn_flood'])
-    cluster_name = cluster['name']
+    cluster_name = common.checkAjaxInput(cluster['name'])
+    desc = common.checkAjaxInput(cluster['desc'])
 
     try:
         router_id = sql.get_router_id(cluster_id, default_router=1)
@@ -77,7 +80,7 @@ def update_cluster(cluster: object, group_id: int) -> str:
         raise Exception(f'error: Cannot get router: {e}')
 
     try:
-        sql.update_cluster(cluster_id, cluster['name'], cluster['desc'], syn_flood)
+        sql.update_cluster(cluster_id, cluster_name, desc, syn_flood)
     except Exception as e:
         raise Exception(f'error: Cannot update HA cluster: {e}')
 
@@ -193,7 +196,7 @@ def update_slaves(json_data: object, router_id: int) -> None:
 
     for slave_id, value in cluster['servers'].items():
         if value['master']:
-            master_ip = value['ip']
+            master_ip = common.is_ip_or_dns(value['ip'])
 
     for server in server_ids_from_db:
         server_ids.append(server[0])
@@ -227,7 +230,7 @@ def update_slaves(json_data: object, router_id: int) -> None:
         if value['master']:
             continue
         try:
-            sql.update_server_master(master_ip, value['ip'])
+            sql.update_server_master(master_ip, common.is_ip_or_dns((value['ip'])))
         except Exception as e:
             raise Exception(f'error: Cannot update master on slave {value["ip"]}: {e}')
 

@@ -83,7 +83,7 @@
 				</div>
 				<p>
 					<a href="/app/waf/{{service}}/{{serv}}/rules" class="ui-button ui-widget ui-corner-all" title="Return to rules management">{{lang.words.back|title()}}</a>
-					{% if role <= 3 %}
+					{% if user_params['role'] <= 3 %}
 					<button type="submit" value="save" name="save" class="btn btn-default" title="{{lang.words.save|title()}} {{lang.words.without}} {{lang.words.reloading}}">{{lang.words.save|title()}}</button>
 					{% if service == 'haproxy' %}
 					<button type="submit" value="" name="" class="btn btn-default">{{lang.phrases.save_and_restart}}</button>

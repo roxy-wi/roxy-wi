@@ -4498,3 +4498,16 @@ def check_ha_virt(vip_id: int) -> bool:
 	except Exception:
 		return False
 	return True
+
+
+def select_ha_cluster_name_and_slaves() -> object:
+	try:
+		query = (
+			HaCluster.select(HaCluster.id, HaCluster.name, HaClusterSlave.server_id)
+				.join(HaClusterSlave)
+		)
+		result = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return result

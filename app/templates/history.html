@@ -44,7 +44,7 @@
             <th class="padding10 first-collumn" style="width: 100px;">{{lang.words.service|title()}}</th>
             <th>{{lang.words.user|title()}}</th>
             <th style="width: 100px">{{lang.words.service|title()}} IP</th>
-            <th style="width: 100px">{{lang.words.server|title()}}</th>
+            <th style="width: 100px">{%if service == 'cluster' %}{{lang.words.cluster|title()}} {%else%}{{lang.words.server|title()}}{% endif %}</th>
             <th>{{lang.words.action|title()}}</th>
             <th>{{lang.words.date|title()}}</th>
         </tr>
@@ -56,7 +56,7 @@
         <td>
             {% for u in users %}
             {% if u.user_id == h.user_id %}
-            <a href="/app/history.py?service=user&user_id={{u.user_id}}" title="Open history for {{u.username}}">{{ u.username }}</a>
+            <a href="/app/history/user/{{u.user_id}}" title="Open history for {{u.username}}">{{ u.username }}</a>
             {% endif %}
             {% endfor %}
         </td>
@@ -64,7 +64,9 @@
         <td>
             {% if h.server_ip != None %}
                 {% if h.service in ('haproxy', 'nginx', 'apache', 'keepalived') %}
-                    <a href="/app/hapservers.py?service={{h.service}}&serv={{h.server_ip}}" title="Open history for {{h.hostname}}">{{ h.hostname }}</a>
+                    <a href="/app/service/{{h.service}}/{{h.server_ip}}" title="Open history for {{h.hostname}}">{{ h.hostname }}</a>
+                {% elif h.service == 'HA cluster' %}
+                    {{h.hostname}}
                 {% endif %}
             {% endif %}
         </td>

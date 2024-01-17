@@ -19,13 +19,15 @@ def before_request():
 @bp.route('/overview')
 @get_user_params()
 def index():
-    user_params = g.user_params
-    groups = sql.select_groups()
-    return render_template(
-        'ovw.html', autorefresh=1, role=user_params['role'], user=user_params['user'], roles=sql.select_roles(),
-        servers=user_params['servers'], user_services=user_params['user_services'], groups=groups,
-        token=user_params['token'], guide_me=1, lang=user_params['lang']
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'autorefresh': 1,
+        'roles': sql.select_roles(),
+        'groups': sql.select_groups(),
+        'guide_me': 1,
+        'lang': g.user_params['lang']
+    }
+    return render_template('ovw.html', **kwargs)
 
 
 @bp.route('/overview/services')
@@ -51,5 +53,4 @@ def overview_sub():
 @bp.route('/overview/logs')
 @get_user_params()
 def overview_logs():
-    user_params = g.user_params
-    return render_template('ajax/ovw_log.html', role=user_params['role'], lang=user_params['lang'], roxy_wi_log=roxy_logs.roxy_wi_log())
+    return render_template('ajax/ovw_log.html', role=g.user_params['role'], lang=g.user_params['lang'], roxy_wi_log=roxy_logs.roxy_wi_log())

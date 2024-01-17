@@ -24,7 +24,7 @@
 		<td class="padding10 first-collumn" style="width: 10%;">
 			<form action="" method="post" id="show_internal_log_form">
 				<select autofocus required name="serv" id="viewlogs">
-				    <option selected>------</option>
+				    <option disabled selected>------</option>
                     {% for select in selects %}
                     {% if select.0 == serv %}
                     <option value="{{ select.0 }}" selected>{{ select.1 }}</option>

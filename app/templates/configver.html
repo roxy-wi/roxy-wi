@@ -5,7 +5,7 @@
 	<p>
 		<form action="/app/config/versions/{{service}}/{{serv}}" method="post" class="left-space">
 			<input type="hidden" id="service" value="{{service}}">
-			{% include 'include/select.html' %}
+			{{ select('serv', values=user_params['servers'], is_servers='true') }}
 			<button type="submit" value="open" name="open" class="btn btn-default">{{lang.words.open|title()}}</button>
 		</form>
 	</p>

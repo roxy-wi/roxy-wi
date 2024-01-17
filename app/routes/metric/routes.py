@@ -22,8 +22,6 @@ def before_request():
 @check_services
 @get_user_params()
 def metrics(service):
-    user_params = g.user_params
-    service_desc = sql.select_service(service)
     roxywi_common.check_user_group_for_flask()
     servers = ''
     services = '0'
@@ -53,14 +51,18 @@ def metrics(service):
     except Exception as e:
         return f'error: on Metrics page: {e}', 500
 
-    user_subscription = roxywi_common.return_user_subscription()
+    kwargs = {
+        'user_params': g.user_params,
+        'autorefresh': 1,
+        'servers': servers,
+        'service': service,
+        'services': services,
+        'service_desc': sql.select_service(service),
+        'user_subscription': roxywi_common.return_user_subscription(),
+        'lang': g.user_params['lang']
+    }
 
-    return render_template(
-        'metrics.html', autorefresh=1, role=user_params['role'], user=user_params['user'], servers=servers,
-        services=services, user_services=user_params['user_services'], service=service,
-        user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
-        token=user_params['token'], lang=user_params['lang'], service_desc=service_desc
-    )
+    return render_template('metrics.html', **kwargs)
 
 
 @bp.route('/cpu', methods=['POST'])

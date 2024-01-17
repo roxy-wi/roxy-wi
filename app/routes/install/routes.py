@@ -23,16 +23,13 @@ def before_request():
 @get_user_params()
 def install_monitoring():
     roxywi_auth.page_for_admin(level=2)
-
-    user_params = g.user_params
-    is_needed_tool = common.is_tool('ansible')
-    geoip_country_codes = sql.select_geoip_country_codes()
-
-    return render_template(
-        'install.html', role=user_params['role'], user=user_params['user'], servers=user_params['servers'],
-        user_services=user_params['user_services'], lang=user_params['lang'], geoip_country_codes=geoip_country_codes,
-        is_needed_tool=is_needed_tool, token=user_params['token']
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'is_needed_tool': common.is_tool('ansible'),
+        'geoip_country_codes': sql.select_geoip_country_codes(),
+        'lang': g.user_params['lang']
+    }
+    return render_template('install.html', **kwargs)
 
 
 @bp.post('/<service>')

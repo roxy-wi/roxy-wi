@@ -21,12 +21,9 @@ def before_request():
 @get_user_params()
 def checker_settings():
     roxywi_common.check_user_group_for_flask()
-    user_params = g.user_params
+    kwargs = {'user_params': g.user_params}
 
-    return render_template(
-        'checker.html', role=user_params['role'], user=user_params['user'], lang=user_params['lang'],
-        token=user_params['token'], user_services=user_params['user_services']
-    )
+    return render_template('checker.html', **kwargs)
 
 
 @bp.post('/settings/update')
@@ -62,16 +59,11 @@ def load_checker():
 def checker_history():
     roxywi_common.check_user_group_for_flask()
 
-    alerts_history = sql.alerts_history('Checker', g.user_params['group_id'])
-    user_subscription = roxywi_common.return_user_subscription()
     kwargs = {
-        'role': g.user_params['role'],
-        'user': g.user_params['user'],
-        'user_services': g.user_params['user_services'],
-        'token': g.user_params['token'],
+        'user_params': g.user_params,
         'lang': g.user_params['lang'],
-        'smon': alerts_history,
-        'user_subscription': user_subscription,
+        'smon': sql.alerts_history('Checker', g.user_params['group_id']),
+        'user_subscription': roxywi_common.return_user_subscription(),
     }
 
     return render_template('smon/checker_history.html', **kwargs)

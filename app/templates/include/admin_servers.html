@@ -163,14 +163,14 @@
 	{{lang.phrases.read_about_parameters}} <a href="https://roxy-wi.org/description/servers" title="{{lang.words.servers|title()}} {{lang.words.desc}}" target="_blank">{{lang.words.here}}</a>, {{lang.phrases.read_howto}} <a href="https://roxy-wi.org/howto/setup" title="How to setup servers, group and SSH credentials" target="_blank">{{lang.words.article}}</a>
 </div>
 {% endif %}
-{% if user_status == 0 or user_plan == 'user' %}
+{% if user_subscription['user_status'] == 0 or user_subscription['user_plan'] == 'user' %}
 <script>
 	$( function() {
 		$('select:regex(id, slavefor)').selectmenu();
 		$('select:regex(id, slavefor)').selectmenu("disable");
-		{% if user_status == 0 %}
+		{% if user_subscription['user_status'] == 0 %}
 			$('#slavefor-th').attr("title", "{{lang.phrases.slave_for_title}}. {{lang.phrases.no_sub}}. {{lang.phrases.pls_sub}}.");
-		{% elif user_plan == 'user' %}
+		{% elif user_subscription['user_plan'] == 'user' %}
 			$('#slavefor-th').attr("title", "{{lang.phrases.slave_for_title}}. {{lang.phrases.no_av_feat}}");
 		{% endif %}
 	});

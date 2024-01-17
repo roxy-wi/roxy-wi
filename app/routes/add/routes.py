@@ -30,10 +30,13 @@ def before_request():
 @get_user_params()
 def add(service):
     roxywi_auth.page_for_admin(level=3)
-
-    user_params = g.user_params
-    add = request.form.get('add')
-    conf_add = request.form.get('conf')
+    kwargs = {
+        'h2': 1,
+        'user_params': g.user_params,
+        'add': request.form.get('add'),
+        'conf_add': request.form.get('conf'),
+        'lang': g.user_params['lang']
+    }
 
     if service == 'haproxy':
         user_group = request.cookies.get('group')
@@ -51,21 +54,15 @@ def add(service):
         if not os.path.exists(black_dir):
             os.makedirs(black_dir)
 
-        white_lists = roxywi_common.get_files(folder=white_dir, file_format="lst")
-        black_lists = roxywi_common.get_files(folder=black_dir, file_format="lst")
-        maps = roxywi_common.get_files(folder=f'{lib_path}/maps/{user_group}', file_format="map")
+        kwargs.setdefault('options', sql.select_options())
+        kwargs.setdefault('saved_servers', sql.select_saved_servers())
+        kwargs.setdefault('white_lists', roxywi_common.get_files(folder=white_dir, file_format="lst"))
+        kwargs.setdefault('black_lists', roxywi_common.get_files(folder=black_dir, file_format="lst"))
+        kwargs.setdefault('maps', roxywi_common.get_files(folder=f'{lib_path}/maps/{user_group}', file_format="map"))
 
-        return render_template(
-            'add.html', h2=1, role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=add,
-            conf_add=conf_add, group=user_group, options=sql.select_options(), saved_servers=sql.select_saved_servers(),
-            white_lists=white_lists, black_lists=black_lists, user_services=user_params['user_services'],
-            token=user_params['token'], lang=user_params['lang'], maps=maps
-        )
+        return render_template('add.html', **kwargs)
     elif service == 'nginx':
-        return render_template(
-            'add_nginx.html', h2=1, role=user_params['role'], user=user_params['user'], selects=user_params['servers'], add=add,
-            conf_add=conf_add, user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
-        )
+        return render_template('add_nginx.html', **kwargs)
     else:
         return redirect(url_for('index'))
 

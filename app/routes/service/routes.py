@@ -10,6 +10,7 @@ import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.service.action as service_action
 import app.modules.service.common as service_common
+import app.modules.service.keepalived as keepalived
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxywi.overview as roxy_overview
 
@@ -26,16 +27,20 @@ def before_request():
 @check_services
 @get_user_params()
 def services(service, serv):
-    user_params = g.user_params
-    services = []
+    tools = []
     service_desc = sql.select_service(service)
     servers = roxywi_common.get_dick_permit(virt=1, service=service_desc.slug)
-    if len(servers) == 1:
-        serv = servers[0][2]
+    servers_with_status1 = []
     autorefresh = 0
     waf_server = ''
     cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
     keep_alive, stderr = server_mod.subprocess_execute(cmd)
+    services_name = {'roxy-wi-checker': 'Master backends checker service',
+                     'roxy-wi-keep_alive': 'Auto start service',
+                     'roxy-wi-metrics': 'Master metrics service'}
+
+    if len(servers) == 1:
+        serv = servers[0][2]
 
     if serv:
         if roxywi_common.check_is_server_in_group(serv):
@@ -48,13 +53,9 @@ def services(service, serv):
         else:
             raise Exception('error: wrong group')
     else:
-
         docker_settings = sql.select_docker_services_settings(service_desc.slug)
         restart_settings = sql.select_restart_services_settings(service_desc.slug)
 
-    services_name = {'roxy-wi-checker': 'Master backends checker service',
-                     'roxy-wi-keep_alive': 'Auto start service',
-                     'roxy-wi-metrics': 'Master metrics service'}
     for s, v in services_name.items():
         if distro.id() == 'ubuntu':
             if s == 'roxy-wi-keep_alive':
@@ -64,12 +65,10 @@ def services(service, serv):
             cmd = "rpm --query " + s + "-* |awk -F\"" + s + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
         service_ver, stderr = server_mod.subprocess_execute(cmd)
         try:
-            services.append([s, service_ver[0]])
+            tools.append([s, service_ver[0]])
         except Exception:
-            services.append([s, ''])
+            tools.append([s, ''])
 
-    haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-    servers_with_status1 = []
     for s in servers:
         servers_with_status = list()
         servers_with_status.append(s[0])
@@ -104,24 +103,10 @@ def services(service, serv):
                 servers_with_status.append(h)
                 servers_with_status.append(s[17])
         elif service == 'keepalived':
-            h = (['', ''],)
-            cmd = [
-                "/usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}' && systemctl status keepalived |"
-                "grep -e 'Active' |awk '{print $2, $9$10$11$12$13}' && ps ax |grep keepalived|grep -v grep |wc -l"
-            ]
-            try:
-                out = server_mod.ssh_command(s[2], cmd)
-                out1 = []
-                for k in out.split():
-                    out1.append(k)
-                h = (out1,)
-                servers_with_status.append(h)
-                servers_with_status.append(h)
-                servers_with_status.append(s[22])
-            except Exception:
-                servers_with_status.append(h)
-                servers_with_status.append(h)
-                servers_with_status.append(s[22])
+            status1, status2 = keepalived.get_status(s[2])
+            servers_with_status.append(status1)
+            servers_with_status.append(status2)
+            servers_with_status.append(s[22])
         elif service == 'apache':
             h = (['', ''],)
             apache_stats_user = sql.get_setting('apache_stats_user')
@@ -142,6 +127,7 @@ def services(service, serv):
                 servers_with_status.append(h)
                 servers_with_status.append(s[22])
         else:
+            haproxy_sock_port = sql.get_setting('haproxy_sock_port')
             cmd = f'echo "show info" |nc {s[2]} {haproxy_sock_port} -w 1 -v|grep -e "Ver\|Uptime:\|Process_num"'
             out = server_mod.subprocess_execute(cmd)
 
@@ -154,9 +140,7 @@ def services(service, serv):
 
             servers_with_status.append(s[12])
 
-        servers_with_status.append(sql.is_master(s[2]))
         servers_with_status.append(sql.select_servers(server=s[2]))
-
         is_keepalived = sql.select_keepalived(s[2])
 
         if is_keepalived:
@@ -173,15 +157,25 @@ def services(service, serv):
 
         servers_with_status1.append(servers_with_status)
 
-    user_subscription = roxywi_common.return_user_subscription()
+    kwargs = {
+        'user_params': g.user_params,
+        'clusters': sql.select_ha_cluster_name_and_slaves(),
+        'master_slave': sql.is_master(0, master_slave=1),
+        'user_subscription': roxywi_common.return_user_subscription(),
+        'autorefresh': autorefresh,
+        'servers': servers_with_status1,
+        'lang': g.user_params['lang'],
+        'serv': serv,
+        'service': service,
+        'services': tools,
+        'service_desc': service_desc,
+        'restart_settings': restart_settings,
+        'docker_settings': docker_settings,
+        'waf_server': waf_server,
+        'keep_alive': ''.join(keep_alive)
+    }
 
-    return render_template(
-        'service.html', autorefresh=autorefresh, role=user_params['role'], user=user_params['user'], servers=servers_with_status1,
-        keep_alive=''.join(keep_alive), serv=serv, service=service, services=services, user_services=user_params['user_services'],
-        docker_settings=docker_settings, user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'],
-        waf_server=waf_server, restart_settings=restart_settings, service_desc=service_desc, token=user_params['token'],
-        lang=user_params['lang']
-    )
+    return render_template('service.html', **kwargs)
 
 
 @bp.post('/action/<service>/check-service')
@@ -210,8 +204,6 @@ def last_edit(service, server_ip):
 @bp.route('/cpu-ram-metrics/<server_ip>/<server_id>/<name>/<service>')
 @get_user_params()
 def cpu_ram_metrics(server_ip, server_id, name, service):
-    user_params = g.user_params
-
     if service == 'haproxy':
         sock_port = sql.get_setting('haproxy_sock_port')
         cmd = f'echo "show info" |nc {server_ip} {sock_port} -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"'
@@ -228,19 +220,18 @@ def cpu_ram_metrics(server_ip, server_id, name, service):
     else:
         return_out = ''
 
-    server_status = (name, server_ip, return_out)
-
-    servers = []
+    servers = [[name, server_ip, return_out]]
     user_id = request.cookies.get('uuid')
     group_id = int(request.cookies.get('group'))
-    role = sql.get_user_role_by_uuid(user_id, group_id)
+    kwargs = {
+        'service_status': sorted(servers, key=common.get_key),
+        'role': sql.get_user_role_by_uuid(user_id, group_id),
+        'id': server_id,
+        'service_page': service,
+        'lang': g.user_params['lang']
+    }
 
-    servers.append(server_status)
-    servers_sorted = sorted(servers, key=common.get_key)
-
-    return render_template(
-        'ajax/overviewServers.html', service_status=servers_sorted, role=role, id=server_id, service_page=service, lang=user_params['lang']
-    )
+    return render_template('ajax/overviewServers.html', **kwargs)
 
 
 @bp.post('/haproxy/bytes')

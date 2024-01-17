@@ -2,7 +2,7 @@
 {% block title %}{{ lang.menu_links.versions.h2 }} {{ lang.words[service] }}{% endblock %}
 {% block h2 %}{{ lang.menu_links.versions.h2 }} {{ lang.words[service] }}{% endblock %}
 {% block content %}
-{% if selects|length == 0 %}
+{% if user_params['servers']|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
 <link href="/inc/css/table-6.3.9.css" rel="stylesheet" type="text/css">
@@ -10,7 +10,7 @@
 	<p>
 		<form action="{{ action }}" method="post" class="left-space">
 			<input type="hidden" value="{{service}}" name="service" id="service">
-			{% include 'include/select.html' %}
+			{{ select('serv', values=user_params['servers'], is_servers='true', selected=serv) }}
 				<a class="ui-button ui-widget ui-corner-all" title="Open versions" onclick="showListOfVersion(1)">{{lang.words.open|title()}}</a>
 				<a href="/app/config/{{service}}" class="ui-button ui-widget ui-corner-all" title="Configs page">{{lang.words.configs|title()}}</a>
 			{% if service != 'keepalived' %}
@@ -37,7 +37,7 @@
 		</div>
 	{% endif %}
 	{% if serv and not aftersave %}
-	{% for select in selects %}
+	{% for select in user_params['servers'] %}
 		{% if select.2 == serv %}
 			<script>showListOfVersion(1)</script>
 		{% endif %}

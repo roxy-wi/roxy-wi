@@ -15,7 +15,7 @@ $( function() {
 	$('#apache_install').click(function() {
 		installService('apache');
 	});
-	$('#grafna_install').click(function() {
+	$('#grafana_install').click(function() {
 		$("#ajaxmon").html('');
 		$("#ajaxmon").html(wait_mess);
 		$.ajax({
@@ -688,24 +688,6 @@ $( function() {
 		updateSSH(id[1])
 		sshKeyEnableShow(id[1])
 	});
-	$( "#settings select" ).on('select2:select',function() {
-		var id = $(this).attr('id');
-		var val = $(this).val();
-		updateSettings(id, val);
-		updateSettings(id[1])
-	});
-	$( "#settings input" ).change(function() {
-		var id = $(this).attr('id');
-		var val = $(this).val();
-		if($('#'+id).is(':checkbox')) {
-			if ($('#'+id).is(':checked')){
-				val = 1;
-			} else {
-				val = 0;
-			}
-		}
-		updateSettings(id, val);
-	});
 	$('#new-ssh_enable').click(function() {
 		if ($('#new-ssh_enable').is(':checked')) {
 			$('#ssh_pass').css('display', 'none');
@@ -1346,34 +1328,6 @@ function addGit(dialog_id) {
 			}
 		});
 	}
-}
-function updateSettings(param, val) {
-	try {
-		val = val.replace(/\//g, "92");
-	} catch (e) {
-		val = val;
-	}
-	toastr.clear();
-	$.ajax({
-		url: "/app/admin/setting/" + param,
-		data: {
-			val: val,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#" + param).parent().parent().addClass("update", 1000);
-				setTimeout(function () {
-					$("#" + param).parent().parent().removeClass("update");
-				}, 2500);
-			}
-		}
-	});
 }
 function sshKeyEnableShow(id) {
 	$('#ssh_enable-'+id).click(function() {

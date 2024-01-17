@@ -45,7 +45,7 @@
 			}
 		});
 		{% for s in services %}
-			{% if 'is not installed' in s.1 or s.1 == '' or user_status == 0 %}
+			{% if 'is not installed' in s.1 or s.1 == '' or user_subscription['user_status'] == 0 %}
 				{% if s.0 == 'roxy-wi-checker' %}
 					$(':regex(id, alert-)').checkboxradio('disable');
 				{% elif s.0 == 'roxy-wi-keep_alive' or s.0 == 'roxy-wi-keep-alive' %}
@@ -72,7 +72,7 @@
 					removeData();
 					{%- if service == 'haproxy' %}
 						{%- for s in servers %}
-							{%- if s.8.0.9 %}
+							{%- if s.7.0.9 %}
 								getChartData(server_ip)
 								getHttpChartData(server_ip)
 								getWafChartData(server_ip)
@@ -82,12 +82,12 @@
 					showOverviewServer('{{s.1}}', server_ip, '{{s.0}}', '{{service}}');
 					{%- if service == 'nginx' %}
 						showNginxConnections(server_ip)
-						{% if s.8.0.21 %}
+						{% if s.7.0.21 %}
 							getNginxChartData(server_ip)
 						{% endif %}
 					{%- elif service == 'apache' %}
 						showApachekBytes(server_ip)
-						{% if s.8.0.27 %}
+						{% if s.7.0.27 %}
 							getApacheChartData(server_ip)
 						{% endif %}
 					{%- elif service == 'haproxy' %}
@@ -163,35 +163,35 @@
 		{% endif %}
 		{% set checker_desc = lang.services.hapservers_desc %}
 		{% if service == 'nginx' %}
-			{% set is_auto_start_enabled = s.8.0.17 %}
-			{% set is_checker_enabled = s.8.0.19 %}
-			{% set is_metrics_enabled = s.8.0.21 %}
+			{% set is_auto_start_enabled = s.7.0.17 %}
+			{% set is_checker_enabled = s.7.0.19 %}
+			{% set is_metrics_enabled = s.7.0.21 %}
 			{% if s.5.0.1 == 'active' or s.5.0.1 == 'Up' %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
 		{% elif service == 'keepalived' %}
-			{% set is_auto_start_enabled = s.8.0.22 %}
-			{% set is_checker_enabled = s.8.0.23 %}
+			{% set is_auto_start_enabled = s.7.0.22 %}
+			{% set is_checker_enabled = s.7.0.23 %}
 			{% if s.5.0.1 == 'active' %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
 		{% elif service == 'apache' %}
-			{% set is_auto_start_enabled = s.8.0.25 %}
-			{% set is_checker_enabled = s.8.0.26 %}
-			{% set is_metrics_enabled = s.8.0.27 %}
+			{% set is_auto_start_enabled = s.7.0.25 %}
+			{% set is_checker_enabled = s.7.0.26 %}
+			{% set is_metrics_enabled = s.7.0.27 %}
 			{% if 'Apache' in s.4.0 %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
 				{% set additional_status_class = 'div-server-head-down' %}
 			{% endif %}
 		{% elif service == 'haproxy' %}
-			{% set is_auto_start_enabled = s.8.0.12 %}
-			{% set is_checker_enabled = s.8.0.8 %}
-			{% set is_metrics_enabled = s.8.0.9 %}
+			{% set is_auto_start_enabled = s.7.0.12 %}
+			{% set is_checker_enabled = s.7.0.8 %}
+			{% set is_metrics_enabled = s.7.0.9 %}
 			{% if s.5 != False %}
 				{% set additional_status_class = 'div-server-head-up' %}
 			{% else %}
@@ -216,7 +216,7 @@
 						{% endif %}
 					</span>
 				{% endif %}
-				{% if s.8.0.20 == 1 %}
+				{% if s.7.0.20 == 1 %}
 					<span class="lock" title="{{lang.phrases.server_is_inaccessible_for_editing}}"></span>
 				{% endif %}
 				{% for set in docker_settings %}
@@ -224,7 +224,7 @@
 					<span class="box" title="This server is dockerized"></span>
 					{% endif %}
 				{% endfor %}
-				{% if role <= 3 %}
+				{% if user_params['role'] <= 3 %}
 				<span class="server-action">
 					<a id="start-{{ s.2 }}" class="start" title="{{lang.words.start|title()}} {{service}} {{lang.words.service}}">
 						<span class="service-start" onclick="confirmAjaxAction('start', '{{service}}', '{{s.2}}')"></span>
@@ -262,6 +262,7 @@
 				{% endif %}
 			</div>
 			<div class="server-desc">
+				IP: {{ copy_to_clipboard(value=s.2, style='font-weight: bold') }}
 				{% if s.3 == '' %}
 				{{lang.words.no_desc|title()}}
 				{% else %}
@@ -299,40 +300,52 @@
 					<span id="edit_date_{{s.2}}"></span>
 				</span>
 				<div class="overflow_div">
-				IP: {{ copy_to_clipboard(value=s.2, style='font-weight: bold') }}
-				{% if s.7.0.0 != None %}
-					Master for: <b>{{ copy_to_clipboard(value=s.7.0.1, style='font-weight: bold') }}</b>
-				{% endif %}
-				{% if s.9.0 == '1' %}
+					{% for cluster in clusters %}
+						{% if cluster.haclusterslave.server_id|string() == s.0|string() %}
+							{{lang.words.cluster|title()}}:
+							<a href="/app/ha/cluster/{{cluster.id}}" title="{{lang.words.open|title()}} {{lang.words.cluster}}">{{cluster.name}}</a>
+							{% break %}
+						{% else %}
+							{% if loop.last %}
+							{{lang.phrases.not_in_cluster}}
+							{% endif %}
+						{% endif %}
+					{% endfor %}
+					{% for master in master_slave %}
+					{% if master.3 == s.2 %}
+						{{lang.words.slave_for}}: <b>{{ copy_to_clipboard(value=master.0, style='font-weight: bold') }}</b>
+					{% endif %}
+					{% endfor %}
+					{% if s.8.0 == '1' %}
 					VRRP: <b>
-					{% if s.9.1 == 'MASTER' or s.9.1 == 'BACKUP' or s.9.1 == 'INIT' or s.9.1 == 'FAULT' %}
-						{{s.9.1}}
+					{% if s.8.1 == 'MASTER' or s.8.1 == 'BACKUP' or s.8.1 == 'INIT' or s.8.1 == 'FAULT' %}
+						{{s.8.1}}
 					{% else %}
 						<span title="{{lang.errors.cannot_get_info}} Keepalived" class="help_cursor">{{lang.words.error|title()}}</span>
 					{% endif %}
 					</b>
-				{% endif %}
+					{% endif %}
 				</div>
 			</div>
-			<div class="server-act-links" id="server-{{s.8.0.0|string()}}-{{service}}">
-				{% if role <= 2 %}
-					{% set id = 'alert-' + s.8.0.0|string() %}
+			<div class="server-act-links" id="server-{{s.7.0.0|string()}}-{{service}}">
+				{% if user_params['role'] <= 2 %}
+					{% set id = 'alert-' + s.7.0.0|string() %}
 					{% if is_checker_enabled == 1 %}
 						{{ checkbox(id, title=checker_desc, value='1', desc='Checker', checked='checked') }}
 					{% else %}
 						{{ checkbox(id, title=checker_desc, value='1', desc='Checker') }}
 					{% endif %}
 				{% endif %}
-				{% if role <= 2 and service != 'keepalived' %}
-					{% set id = 'metrics-' + s.8.0.0|string() %}
+				{% if user_params['role'] <= 2 and service != 'keepalived' %}
+					{% set id = 'metrics-' + s.7.0.0|string() %}
 					{% if is_metrics_enabled == 1 %}
 						{{ checkbox(id, title='Collecting metrics is enabled', value='1', desc='Metrics', checked='checked') }}
 					{% else %}
 						{{ checkbox(id, title='Enable collecting metrics', value='1', desc='Metrics') }}
 					{% endif %}
 				{% endif %}
-				{% if role <= 2 %}
-					{% set id = 'active-' + s.8.0.0|string() %}
+				{% if user_params['role'] <= 2 %}
+					{% set id = 'active-' + s.7.0.0|string() %}
 					{% if is_auto_start_enabled == 1 %}
 						{{ checkbox(id, title='Auto Start is enabled', value='1', desc='Auto Start', checked='checked') }}
 					{% else %}
@@ -354,7 +367,7 @@
 			<a href="{{ url_for('main.stats', service=service, serv=s.2) }}" class="ui-button ui-widget ui-corner-all" {{stats_id}} title="{{lang.words.view|title()}} {{service}} {{lang.words.statistics}}">{{lang.menu_links.stats.link}}</a>
 			{% endif %}
 			<a href="{{ url_for('logs.logs', service=service) }}" {{logs_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{service}} {{lang.words.logs}}">{{lang.menu_links.logs.link}}</a>
-			{% if role <= 2 %}
+			{% if user_params['role'] <= 2 %}
 				<a href="{{ url_for('config.versions', service=service, server_ip=s.2) }}" class="ui-button ui-widget ui-corner-all" {{versions_id}} title="{{lang.words.view|title()}}/{{lang.words.rollback|title()}} {{lang.words.to}} {{lang.words.previous}} {{lang.words.config}}">{{lang.menu_links.versions.link}}</a>
 			{% endif %}
 			</div>
@@ -380,9 +393,9 @@
 	{% if serv %}
 	{% for s in servers %}
 	{% if service in ('haproxy', 'nginx', 'apache') %}
-		{% if (service == 'haproxy' and s.8.0.9)
-			or (service == 'nginx' and s.8.0.21)
-			or (service == 'apache' and s.8.0.27)  %}
+		{% if (service == 'haproxy' and s.7.0.9)
+			or (service == 'nginx' and s.7.0.21)
+			or (service == 'apache' and s.7.0.27)  %}
 			<div class="metrics-time-range">
 				<b>{{lang.words.time_range|title()}}:</b>
 				<select title="Choose time range" id="time-range">
@@ -399,7 +412,7 @@
 			</div>
 		{% endif %}
 	{% endif %}
-		 {% if service == 'haproxy' and s.8.0.9 %}
+		 {% if service == 'haproxy' and s.7.0.9 %}
 		<div id="server_metrics_div" class="chart-container_overview">
 			<canvas id="{{s.2}}" role="img"></canvas>
 		</div>
@@ -411,11 +424,11 @@
 			<canvas id="waf_{{s.2}}" role="img"></canvas>
 		</div>
 		{% endif %}
-		{% elif service == 'nginx' and s.8.0.21 %}
+		{% elif service == 'nginx' and s.7.0.21 %}
 		<div id="nginx_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
 			<canvas id="nginx_{{s.2}}" role="img"></canvas>
 		</div>
-		{% elif service == 'apache' and s.8.0.27 %}
+		{% elif service == 'apache' and s.7.0.27 %}
 		<div id="apache_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
 			<canvas id="apache_{{s.2}}" role="img"></canvas>
 		</div>

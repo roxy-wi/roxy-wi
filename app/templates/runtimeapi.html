@@ -2,14 +2,14 @@
 {% block title %}Runtime API{% endblock %}
 {% block h2 %}Runtime API{% endblock %}
 {% block content %}
-{% from 'include/input_macros.html' import input, checkbox %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
 <link href="/inc/css/table-6.3.9.css" rel="stylesheet" type="text/css">
 <script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
 <script type="text/javascript" charset="utf8" src="/inc/runtimeapi.js"></script>
 <div id="tabs">
 	<ul>
 		<li><a href="#runtimeapi" title="Runtime API - Roxy-WI">Runtime API</a></li>
-		{% if role <= 3 %}
+		{% if user_params['role'] <= 3 %}
 			<li><a href="#maxconn" title="Runtime API: {{lang.words.change|title()}} Maxconn - Roxy-WI">{{lang.words.change|title()}} Maxconn</a></li>
 			<li><a href="#servers" title="Runtime API: {{lang.words.servers|title()}} - Roxy-WI">{{lang.words.servers|title()}}</a></li>
 			<li><a href="#table" title="Runtime API: Stick Table - Roxy-WI">Stick Table</a></li>
@@ -23,7 +23,7 @@
 				<td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
 				<td>{{lang.words.action|title()}}</td>
 				<td>{{lang.words.command|title()}}</td>
-				{% if role <= 3 %}
+				{% if user_params['role'] <= 3 %}
 				<td class="checkbox-head">{{lang.words.save|title()}} {{lang.words.change}}</td>
 				{% endif %}
 				<td></td>
@@ -31,12 +31,12 @@
 			<tr>
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<form action="" method="post" id="runtimeapiform">
-						{% include 'include/select.html' %}
+						{{ select('serv', values=user_params['servers'], is_servers='true') }}
 				</td>
 				<td style="width: 30%;">
 					<select required name="servaction" id="servaction">
 						<option disabled>{{lang.words.select|title()}} {{lang.words.action}}</option>
-						{% if role <= 3 %}
+						{% if user_params['role'] <= 3 %}
 							<option value="disable">Disable</option>
 							<option value="shutdown">Shutdown</option>
 							<option value="enable">Enable</option>
@@ -52,7 +52,7 @@
 				<td>
 					{{ input('servbackend', value=servbackend, title='Frontend, backend/server, show: info, pools or help') }}
 				</td>
-				{% if role <= 3 %}
+				{% if user_params['role'] <= 3 %}
 				<td class="checkbox">
 					{{ checkbox('save', value='123') }}
 				</td>
@@ -78,7 +78,7 @@
 			{{lang.phrases.read_desc_runtime_api}} <a href="https://roxy-wi.org/description/runtimeapi#commands" title="Runtime API {{lang.words.desc}}" target="_blank">{{lang.words.here}}</a>
 		</div>
 	</div>
-	{% if role <= 3 %}
+	{% if user_params['role'] <= 3 %}
 	<div id="maxconn">
 		<table class="overview">
 			<caption><h3>{{lang.words.global|title()}}</h3></caption>
@@ -93,12 +93,7 @@
 				<tr>
 					<td class="padding10 first-collumn" style="width: 20%;">
 						<form action="" method="post" id="maxconnglobalform">
-							<select autofocus required name="serv" id="maxconn_global_select">
-								<option disabled selected>------</option>
-								{% for select in selects %}
-									<option value="{{ select.2 }}">{{ select.1 }}</option>
-								{% endfor %}
-							</select>
+							{{ select('maxconn_global_select', values=user_params['servers'], is_servers='true') }}
 					</td>
 					<td style="width: 75%;">
 						{{ input('maxconnintglobal', title=lang.words.enter|title() + ' maxconn', type="number", required='required') }}
@@ -124,12 +119,7 @@
 				<tr>
 					<td class="padding10 first-collumn" style="width: 20%;">
 						<form action="" method="post" id="maxconnform">
-							<select autofocus required name="serv" id="maxconn_select">
-								<option disabled selected>------</option>
-								{% for select in selects %}
-									<option value="{{ select.2 }}">{{ select.1 }}</option>
-								{% endfor %}
-							</select>
+							{{ select('maxconn_select', values=user_params['servers'], is_servers='true') }}
 					</td>
 					<td style="width: 25%">
 						<select required name="maxconnfront" id="maxconnfront">
@@ -160,12 +150,7 @@
 				<tr>
 					<td class="padding10 first-collumn" style="width: 20%;">
 						<form action="" method="post" id="maxconnbackform">
-							<select autofocus required name="serv" id="maxconn_backend_select">
-								<option disabled selected>------</option>
-								{% for select in selects %}
-									<option value="{{ select.2 }}">{{ select.1 }}</option>
-								{% endfor %}
-							</select>
+							{{ select('maxconn_backend_select', values=user_params['servers'], is_servers='true') }}
 					</td>
 					<td style="width: 25%;"><select required name="maxconnbackend" id="maxconnbackend"></select></td>
 					<td style="width: 25%;"><select required name="maxconn_backend_server" id="maxconn_backend_server"></select></td>
@@ -200,12 +185,7 @@
 			<tr>
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<form action="" method="post" id="runtimeapiServerIp">
-						<select autofocus required name="ip_select_server" id="ip_select_server">
-							<option disabled selected>------</option>
-							{% for select in selects %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}
-						</select>
+						{{ select('ip_select_server', values=user_params['servers'], is_servers='true') }}
 				</td>
 				<td class="padding10 first-collumn">
 					<select required name="ipBackendServer" id="ipBackendServer"></select>
@@ -241,12 +221,7 @@
 			<tr>
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<form action="" method="post" id="runtimeapiip">
-						<select autofocus required name="ip_select" id="ip_select">
-							<option disabled selected>------</option>
-							{% for select in selects %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}
-						</select>
+						{{ select('ip_select', values=user_params['servers'], is_servers='true') }}
 				</td>
 				<td class="padding10 first-collumn">
 					<select required name="ipbackend" id="ipbackend"></select>
@@ -277,12 +252,7 @@
 			<tr>
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<form action="" method="post" id="runtimeapiip_delete">
-						<select autofocus required name="ip_select_delete" id="ip_select_delete">
-							<option disabled selected>------</option>
-							{% for select in selects %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}
-						</select>
+						{{ select('ip_select_delete', values=user_params['servers'], is_servers='true') }}
 				</td>
 				<td class="padding10 first-collumn">
 					<select required name="ipbackend_delete" id="ipbackend_delete"></select>
@@ -311,12 +281,7 @@
 			<tr>
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<form action="" method="post" id="runtimeapitable">
-						<select autofocus required name="table_serv_select" id="table_serv_select">
-							<option disabled selected>------</option>
-							{% for select in selects %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}
-						</select>
+						{{ select('table_serv_select', values=user_params['servers'], is_servers='true') }}
 				</td>
 				<td>
 					<select required name="table_select" id="table_select">
@@ -343,12 +308,7 @@
 			<tr>
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<form action="" method="post" id="runtimeapilist">
-						<select autofocus required name="list_serv_select" id="list_serv_select">
-							<option disabled selected>------</option>
-							{% for select in selects %}
-							<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}
-						</select>
+						{{ select('list_serv_select', values=user_params['servers'], is_servers='true') }}
 				</td>
 				<td>
 					<select required name="list_select" id="list_select">
@@ -374,12 +334,7 @@
 			<tr>
 				<td class="padding10 first-collumn" style="width: 25%;">
 					<form action="" method="post" id="runtimeapisessions">
-						<select autofocus required name="sessions_serv_select" id="sessions_serv_select">
-							<option disabled selected>------</option>
-							{% for select in selects %}
-							<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}
-						</select>
+						{{ select('sessions_serv_select', values=user_params['servers'], is_servers='true') }}
 				</td>
 				<td>
 					<button type="submit" name="Enter" value="Enter" id="enter">{{lang.words.w_get|title()}} {{lang.words.sessions}}</button>

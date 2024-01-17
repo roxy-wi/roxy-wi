@@ -4,21 +4,12 @@
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
 <br />
-{% if selects|length == 0 %}
+{% if user_params['servers']|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
 <form action="" method="post" class="left-space">
 	<input type="hidden" id="service" value="{{service}}" />
-	<select autofocus required name="serv" id="serv">
-		<option disabled>------</option>
-			{% for select in selects %}
-				{% if select.2 == serv %}
-					<option value="{{ select.2 }}" selected>{{ select.1 }}</option>
-				{% else %}
-					<option value="{{ select.2 }}">{{ select.1 }}</option>
-				{% endif %}
-			{% endfor %}
-	</select>
+	{{ select('serv', values=user_params['servers'], is_servers='true', selected=serv) }}
 	<a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang.words.show|title()}} {{lang.words.stats}}" onclick="showStats()">{{lang.words.open|title()}}</a>
 	{% if service != 'nginx' and service != 'apache' %}
 	<div id="stats_filter">

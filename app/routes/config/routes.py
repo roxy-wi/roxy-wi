@@ -78,14 +78,10 @@ def find_in_config(service):
 def config(service, serv, edit, config_file_name, new):
     config_read = ""
     cfg = ""
-    stderr = ""
     error = ""
-    aftersave = ""
     is_restart = ''
     is_serv_protected = ''
     new_config = new
-    user_params = g.user_params
-    service_desc = sql.select_service(service)
 
     if serv and config_file_name:
         cfg = config_mod.return_cfg(service, serv, config_file_name)
@@ -118,12 +114,23 @@ def config(service, serv, edit, config_file_name, new):
     if new_config is not None:
         config_read = ' '
 
-    return render_template(
-        'config.html', role=user_params['role'], user=user_params['user'], select_id="serv", serv=serv, aftersave=aftersave,
-        config=config_read, cfg=cfg, selects=user_params['servers'], stderr=stderr, error=error, service=service,
-        is_restart=is_restart, user_services=user_params['user_services'], config_file_name=config_file_name,
-        is_serv_protected=is_serv_protected, token=user_params['token'], lang=user_params['lang'], service_desc=service_desc
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'serv': serv,
+        'aftersave': '',
+        'config': config_read,
+        'cfg': cfg,
+        'stderr': '',
+        'error': error,
+        'service': service,
+        'is_restart': is_restart,
+        'config_file_name': config_file_name,
+        'is_serv_protected': is_serv_protected,
+        'service_desc': sql.select_service(service),
+        'lang': g.user_params['lang']
+    }
+
+    return render_template('config.html', **kwargs)
 
 
 @bp.route('/<service>/<server_ip>/save', methods=['POST'])
@@ -173,7 +180,6 @@ def versions(service, server_ip):
     aftersave = ''
     file = set()
     stderr = ''
-    user_params = g.user_params
 
     if service in ('haproxy', 'keepalived'):
         conf_format = 'cfg'
@@ -205,11 +211,16 @@ def versions(service, server_ip):
                 except OSError as e:
                     stderr = "Error: %s - %s." % (e.filename, e.strerror)
 
-    return render_template(
-        'delver.html', role=user_params['role'], user=user_params['user'], select_id="serv", serv=server_ip, aftersave=aftersave,
-        selects=user_params['servers'], file=file, service=service, user_services=user_params['user_services'],
-        token=user_params['token'], lang=user_params['lang'], stderr=stderr
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'serv': server_ip,
+        'aftersave': aftersave,
+        'file': file,
+        'service': service,
+        'stderr': stderr,
+        'lang': g.user_params['lang']
+    }
+    return render_template('delver.html', **kwargs)
 
 
 @bp.route('/version/<service>/list', methods=['POST'])
@@ -228,11 +239,9 @@ def list_of_version(service):
 @get_user_params(disable=1)
 def show_version(service, server_ip, configver, save):
     roxywi_auth.page_for_admin(level=3)
-    user_params = g.user_params
     service_desc = sql.select_service(service)
     configs_dir = get_config.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
     configver = configs_dir + configver
-    servers = roxywi_common.get_dick_permit(service=service_desc.slug)
     aftersave = 0
     stderr = ''
 
@@ -256,41 +265,47 @@ def show_version(service, server_ip, configver, save):
         else:
             stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service)
 
-    return render_template(
-        'configver.html', role=user_params['role'], user=user_params['user'], select_id="serv", serv=server_ip, aftersave=aftersave,
-        selects=servers, stderr=stderr, save=save, configver=configver, service=service,
-        user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'serv': server_ip,
+        'aftersave': aftersave,
+        'configver': configver,
+        'service': service,
+        'stderr': stderr,
+        'lang': g.user_params['lang']
+    }
+
+    return render_template('configver.html', **kwargs)
 
 
 @bp.route('/section/haproxy/<server_ip>')
 @get_user_params()
 def haproxy_section(server_ip):
-    user_params = g.user_params
-    is_restart = 0
     hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
     cfg = f"{hap_configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
     error = config_mod.get_config(server_ip, cfg)
-    sections = section_mod.get_sections(cfg)
+    kwargs = {
+        'user_params': g.user_params,
+        'is_restart': 0,
+        'config': '',
+        'serv': server_ip,
+        'sections': section_mod.get_sections(cfg),
+        'error': error,
+        'lang': g.user_params['lang']
+    }
 
-    return render_template(
-        'sections.html', role=user_params['role'], user=user_params['user'], serv=server_ip, selects=user_params['servers'],
-        sections=sections, error=error, token=user_params['token'], lang=user_params['lang'], is_restart=is_restart, config='',
-        user_services=user_params['user_services']
-    )
+    return render_template('sections.html', **kwargs)
 
 
 @bp.route('/section/haproxy/<server_ip>/<section>')
 @get_user_params()
 def haproxy_section_show(server_ip, section):
-    user_params = g.user_params
     hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
     cfg = f"{hap_configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
     error = config_mod.get_config(server_ip, cfg)
-    sections = section_mod.get_sections(cfg)
     start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section)
     server_id = sql.select_server_id_by_ip(server_ip)
-    is_restart = sql.select_service_setting(server_id, 'haproxy', 'restart')
+    sections = section_mod.get_sections(cfg)
 
     os.system(f"/bin/mv {cfg} {cfg}.old")
 
@@ -299,12 +314,21 @@ def haproxy_section_show(server_ip, section):
     except Exception:
         pass
 
-    return render_template(
-        'sections.html', role=user_params['role'], user=user_params['user'], serv=server_ip, selects=user_params['servers'],
-        error=error, sections=sections, cfg=cfg, token=user_params['token'], lang=user_params['lang'],
-        is_restart=is_restart, config=config_read, start_line=start_line, end_line=end_line, section=section,
-        user_services=user_params['user_services']
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'is_restart': sql.select_service_setting(server_id, 'haproxy', 'restart'),
+        'serv': server_ip,
+        'sections': sections,
+        'cfg': cfg,
+        'config': config_read,
+        'start_line': start_line,
+        'end_line': end_line,
+        'section': section,
+        'error': error,
+        'lang': g.user_params['lang']
+    }
+
+    return render_template('sections.html', **kwargs)
 
 
 @bp.route('/section/haproxy/<server_ip>/save', methods=['POST'])
@@ -342,24 +366,23 @@ def haproxy_section_save(server_ip):
 @bp.route('/map/<service>/<serv>')
 @get_user_params()
 def show_compare_config(service, serv):
-    config_read = ""
-    cfg = ""
-    stderr = ""
-    error = ""
-    aftersave = ""
-    is_restart = ''
-    is_serv_protected = ''
-    config_file_name = ''
-    user_params = g.user_params
-    service_desc = sql.select_service(service)
+    kwargs = {
+        'user_params': g.user_params,
+        'aftersave': '',
+        'serv': serv,
+        'cfg': '',
+        'config': '',
+        'config_file_name': '',
+        'is_serv_protected': '',
+        'is_restart': '',
+        'service': service,
+        'stderr': '',
+        'error': '',
+        'service_desc': sql.select_service(service),
+        'lang': g.user_params['lang']
+    }
 
-    return render_template(
-        'config.html', role=user_params['role'], user=user_params['user'], select_id="serv", serv=serv, aftersave=aftersave,
-        config=config_read, cfg=cfg, selects=user_params['servers'], stderr=stderr, error=error, service=service,
-        is_restart=is_restart, user_services=user_params['user_services'], config_file_name=config_file_name,
-        is_serv_protected=is_serv_protected, token=user_params['token'], lang=user_params['lang'],
-        service_desc=service_desc
-    )
+    return render_template('config.html', **kwargs)
 
 
 @bp.route('/compare/<service>/<server_ip>/files')

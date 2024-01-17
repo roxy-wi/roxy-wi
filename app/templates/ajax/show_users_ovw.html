@@ -20,7 +20,7 @@
 			<td class="third-collumn-wi">
 			    {% for group in users_groups %}
 				    {% if USER.user_id|string() == group.user_id|string() %}
-					    {{ group.groups.name }}
+					    <span title="{{ group.groups.name }}: {{ group.groups.description }}"> {{ group.groups.name }}</span>
 					{% endif %}
 				{% endfor %}
 			</td>
@@ -52,7 +52,7 @@
 			<td class="third-collumn-wi">
 			    {% for group in users_groups %}
 				    {% if group.user_id|string() == USER.user_id|string() %}
-					    {{ group.groups.name }}{{ "," if not loop.last }}
+					    <span title="{{ group.groups.name }}: {{ group.groups.description }}"> {{ group.groups.name }}</span>
 					{% endif %}
 				{% endfor %}
 			</td>

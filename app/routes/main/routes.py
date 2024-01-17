@@ -24,41 +24,45 @@ import modules.service.haproxy as service_haproxy
 @app.errorhandler(403)
 @get_user_params()
 def page_is_forbidden(e):
-    user_params = g.user_params
-    return render_template(
-        'error.html', user=user_params['user'], role=user_params['role'], user_services=user_params['user_services'],
-        title=e, e=e
-    ), 403
+    kwargs = {
+        'user_params': g.user_params,
+        'title': e,
+        'e': e
+    }
+    return render_template('error.html', **kwargs), 403
 
 
 @app.errorhandler(404)
 @get_user_params()
 def page_not_found(e):
-    user_params = g.user_params
-    return render_template(
-        'error.html', user=user_params['user'], role=user_params['role'], user_services=user_params['user_services'],
-        title=e, e=e
-    ), 404
+    kwargs = {
+        'user_params': g.user_params,
+        'title': e,
+        'e': e
+    }
+    return render_template('error.html', **kwargs), 404
 
 
 @app.errorhandler(405)
 @get_user_params()
 def method_not_allowed(e):
-    user_params = g.user_params
-    return render_template(
-        'error.html', user=user_params['user'], role=user_params['role'], user_services=user_params['user_services'],
-        title=e, e=e
-    ), 405
+    kwargs = {
+        'user_params': g.user_params,
+        'title': e,
+        'e': e
+    }
+    return render_template('error.html', **kwargs), 405
 
 
 @app.errorhandler(500)
 @get_user_params()
 def internal_error(e):
-    user_params = g.user_params
-    return render_template(
-        'error.html', user=user_params['user'], role=user_params['role'], user_services=user_params['user_services'],
-        title=e, e=e
-    ), 500
+    kwargs = {
+        'user_params': g.user_params,
+        'title': e,
+        'e': e
+    }
+    return render_template('error.html', **kwargs), 500
 
 
 @app.before_request
@@ -78,24 +82,15 @@ def _db_close(exc):
 @check_services
 @get_user_params()
 def stats(service, serv):
-    user_params = g.user_params
-    service_desc = sql.select_service(service)
-
-    try:
-        if serv is None:
-            first_serv = user_params['servers']
-            for i in first_serv:
-                serv = i[2]
-                break
-    except Exception:
-        pass
-
-    servers = roxywi_common.get_dick_permit(service=service_desc.slug)
-    return render_template(
-        'statsview.html', autorefresh=1, role=user_params['role'], user=user_params['user'], selects=servers, serv=serv,
-        service=service, user_services=user_params['user_services'], token=user_params['token'],
-        select_id="serv", lang=user_params['lang'], service_desc=service_desc
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'autorefresh': 1,
+        'serv': serv,
+        'service': service,
+        'service_desc': sql.select_service(service),
+        'lang': g.user_params['lang']
+    }
+    return render_template('statsview.html', **kwargs)
 
 
 @bp.route('/stats/view/<service>/<server_ip>')
@@ -114,11 +109,7 @@ def show_stats(service, server_ip):
 @login_required
 @get_user_params(1)
 def nettools():
-    user_params = g.user_params
-    return render_template(
-        'nettools.html', autorefresh=0, role=user_params['role'], user=user_params['user'], servers=user_params['servers'],
-        user_services=user_params['user_services'], token=user_params['token'], lang=user_params['lang']
-    )
+    return render_template('nettools.html', user_params=g.user_params, lang=g.user_params['lang'])
 
 
 @bp.post('/nettols/<check>')
@@ -146,10 +137,7 @@ def nettols_check(check):
 @login_required
 @get_user_params()
 def service_history(service, server_ip):
-    users = sql.select_users()
     server_ip = common.checkAjaxInput(server_ip)
-    user_subscription = roxywi_common.return_user_subscription()
-    user_params = g.user_params
 
     if service in ('haproxy', 'nginx', 'keepalived', 'apache', 'cluster'):
         service_desc = sql.select_service(service)
@@ -167,11 +155,16 @@ def service_history(service, server_ip):
     elif service == 'user':
         history = sql.select_action_history_by_user_id(server_ip)
 
-    return render_template(
-        'history.html', role=user_params['role'], user=user_params['user'], users=users, serv=server_ip, service=service,
-        history=history, user_services=user_params['user_services'], token=user_params['token'],
-        user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], lang=user_params['lang']
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'user_subscription': roxywi_common.return_user_subscription(),
+        'users': sql.select_users(),
+        'serv': server_ip,
+        'service': service,
+        'history': history
+    }
+
+    return render_template('history.html', **kwargs)
 
 
 @bp.route('/servers')
@@ -180,35 +173,33 @@ def service_history(service, server_ip):
 def servers():
     roxywi_auth.page_for_admin(level=2)
 
-    user_params = g.user_params
-    ldap_enable = sql.get_setting('ldap_enable')
     user_group = roxywi_common.get_user_group(id=1)
-    settings = sql.get_setting('', all=1)
-    services = sql.select_services()
-    gits = sql.select_gits()
-    servers = roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1)
-    masters = sql.select_servers(get_master_servers=1, uuid=user_params['user_uuid'])
-    is_needed_tool = common.is_tool('ansible')
-    user_roles = sql.select_user_roles_by_group(user_group)
-    backups = sql.select_backups()
-    s3_backups = sql.select_s3_backups()
-    user_subscription = roxywi_common.return_user_subscription()
+    kwargs = {
+        'user_params': g.user_params,
+        'h2': 1,
+        'users': sql.select_users(group=user_group),
+        'groups': sql.select_groups(),
+        'servers': roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1),
+        'roles': sql.select_roles(),
+        'sshs': sql.select_ssh(group=user_group),
+        'masters': sql.select_servers(get_master_servers=1, uuid=g.user_params['user_uuid']),
+        'group': roxywi_common.get_user_group(id=1),
+        'services': sql.select_services(),
+        'timezones': pytz.all_timezones,
+        'guide_me': 1,
+        'settings': sql.get_setting('', all=1),
+        'backups': sql.select_backups(),
+        's3_backups': sql.select_s3_backups(),
+        'page': 'servers.py',
+        'ldap_enable': sql.get_setting('ldap_enable'),
+        'gits': sql.select_gits(),
+        'is_needed_tool': common.is_tool('ansible'),
+        'user_roles': sql.select_user_roles_by_group(user_group),
+        'user_subscription': roxywi_common.return_user_subscription(),
+        'lang': g.user_params['lang']
+    }
 
-    if user_params['lang'] == 'ru':
-        title = 'Сервера: '
-    else:
-        title = "Servers: "
-
-    return render_template(
-        'servers.html',
-        h2=1, title=title, role=user_params['role'], user=user_params['user'], users=sql.select_users(group=user_group),
-        groups=sql.select_groups(), servers=servers, roles=sql.select_roles(), sshs=sql.select_ssh(group=user_group),
-        masters=masters, group=user_group, services=services, timezones=pytz.all_timezones, guide_me=1,
-        token=user_params['token'], settings=settings, backups=backups, s3_backups=s3_backups, page="servers.py",
-         user_services=user_params['user_services'], ldap_enable=ldap_enable,
-        user_status=user_subscription['user_status'], user_plan=user_subscription['user_plan'], gits=gits,
-        is_needed_tool=is_needed_tool, lang=user_params['lang'], user_roles=user_roles
-    )
+    return render_template('servers.html', **kwargs)
 
 
 @bp.route('/internal/show_version')

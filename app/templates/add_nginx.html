@@ -20,12 +20,7 @@
 				<tr>
 					<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 					<td class="addOption">
-						<select required name="serv" id="serv">
-							<option disabled selected>------</option>
-							{% for select in selects %}
-								<option value="{{ select.2 }}">{{ select.1 }}</option>
-							{% endfor %}
-						</select>
+						{{ select('serv', values=user_params['servers'], is_servers='true') }}
 						<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 					</td>
 					<td rowspan="5" class="add-note addName alert-info">

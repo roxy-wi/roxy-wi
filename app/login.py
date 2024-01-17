@@ -93,7 +93,7 @@ def login_page():
     except Exception:
         lang = 'en'
 
-    return render_template('login.html', role=role, user=user1, lang=lang)
+    return render_template('login.html', user_params='', role=role, user=user1, lang=lang)
 
 
 @app.route('/logout', methods=['GET', 'POST'])

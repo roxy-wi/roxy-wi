@@ -34,32 +34,29 @@ def waf(service):
     if not roxywi_auth.is_access_permit_to_service(service):
         abort(403, f'You do not have needed permissions to access to {service.title()} service')
 
-    manage_rules = ''
-    waf_rule_id = ''
-    config_file_name = ''
-    waf_rule_file = ''
-    config_read = ''
-    rules = ''
-    serv = ''
-    cfg = ''
-    user_params = g.user_params
-
     if service == 'nginx':
         servers = roxywi_common.get_dick_permit(nginx=1)
     else:
-        servers = user_params['servers']
+        servers = g.user_params['servers']
 
-    title = "Web application firewall"
-    servers_waf = sql.select_waf_servers_metrics(user_params['user_uuid'])
-    autorefresh = 1
-
-    return render_template(
-        'waf.html', title=title, autorefresh=autorefresh, role=user_params['role'], user=user_params['user'], serv=serv,
-        servers=servers_waf, servers_all=servers, manage_rules=manage_rules, rules=rules,
-        user_services=user_params['user_services'], waf_rule_file=waf_rule_file, waf_rule_id=waf_rule_id,
-        config=config_read, cfg=cfg, token=user_params['token'], config_file_name=config_file_name, service=service,
-        lang=user_params['lang']
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'title': 'Web application firewall',
+        'autorefresh': 1,
+        'serv': '',
+        'servers': sql.select_waf_servers_metrics(g.user_params['user_uuid']),
+        'servers_all': servers,
+        'manage_rules': '',
+        'rules': '',
+        'waf_rule_file': '',
+        'waf_rule_id': '',
+        'config': '',
+        'cfg': '',
+        'config_file_name': '',
+        'service': service,
+        'lang': g.user_params['lang']
+    }
+    return render_template('waf.html', **kwargs)
 
 
 @bp.route('/<service>/<server_ip>/rules')
@@ -70,28 +67,27 @@ def waf_rules(service, server_ip):
     if not roxywi_auth.is_access_permit_to_service(service):
         abort(403, f'You do not have needed permissions to access to {service.title()} service')
 
-    manage_rules = '1'
-    waf_rule_id = ''
-    config_file_name = ''
-    waf_rule_file = ''
-    servers_waf = ''
-    config_read = ''
-    servers = ''
-    cfg = ''
-    user_params = g.user_params
-    title = "Manage rules - Web application firewall"
-    rules = sql.select_waf_rules(server_ip, service)
+    kwargs = {
+        'user_params': g.user_params,
+        'title': 'Manage rules - Web application firewall',
+        'serv': server_ip,
+        'servers': sql.select_waf_servers_metrics(g.user_params['user_uuid']),
+        'servers_all': '',
+        'manage_rules': '1',
+        'rules': sql.select_waf_rules(server_ip, service),
+        'waf_rule_file': '',
+        'waf_rule_id': '',
+        'config': '',
+        'cfg': '',
+        'config_file_name': '',
+        'service': service,
+        'lang': g.user_params['lang']
+    }
 
-    return render_template(
-        'waf.html', title=title, autorefresh=0, role=user_params['role'], user=user_params['user'], serv=server_ip,
-        servers=servers_waf, servers_all=servers, manage_rules=manage_rules, rules=rules,
-        user_services=user_params['user_services'], waf_rule_file=waf_rule_file, waf_rule_id=waf_rule_id,
-        config=config_read, cfg=cfg, token=user_params['token'], config_file_name=config_file_name, service=service,
-        lang=user_params['lang']
-    )
+    return render_template('waf.html', **kwargs)
 
 
-@bp.route('/<service>/<server_ip>/rule/<rule_id>')
+@bp.route('/<service>/<server_ip>/rule/<int:rule_id>')
 @get_user_params()
 def waf_rule_edit(service, server_ip, rule_id):
     roxywi_auth.page_for_admin(level=2)
@@ -99,24 +95,17 @@ def waf_rule_edit(service, server_ip, rule_id):
         abort(403, f'You do not have needed permissions to access to {service.title()} service')
     roxywi_common.check_is_server_in_group(server_ip)
 
-    manage_rules = ''
-    servers_waf = ''
-    config_read = ''
-    servers = ''
-    user_params = g.user_params
-    rules = sql.select_waf_rules(server_ip, service)
-
     if service == 'nginx':
         config_path = sql.get_setting('nginx_dir')
     else:
         config_path = sql.get_setting('haproxy_dir')
 
-    title = 'Edit a WAF rule'
     waf_rule_file = sql.select_waf_rule_by_id(rule_id)
     configs_dir = sql.get_setting('tmp_config_path')
     cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}-{waf_rule_file}"
     error = config_mod.get_config(server_ip, cfg, waf=service, waf_rule_file=waf_rule_file)
     config_file_name = common.return_nice_path(config_path) + 'waf/rules/' + waf_rule_file
+    config_read = ''
 
     try:
         conf = open(cfg, "r")
@@ -125,12 +114,24 @@ def waf_rule_edit(service, server_ip, rule_id):
     except IOError:
         print('Cannot read imported config file')
 
-    return render_template(
-        'waf.html', title=title, autorefresh=0, role=user_params['role'], user=user_params['user'], serv=server_ip,
-        servers=servers_waf, servers_all=servers, manage_rules=manage_rules, rules=rules,
-        user_services=user_params['user_services'], waf_rule_file=waf_rule_file, waf_rule_id=rule_id, config=config_read,
-        cfg=cfg, token=user_params['token'], config_file_name=config_file_name, service=service, lang=user_params['lang']
-    )
+    kwargs = {
+        'user_params': g.user_params,
+        'title': 'Edit a WAF rule',
+        'serv': server_ip,
+        'servers': sql.select_waf_servers_metrics(g.user_params['user_uuid']),
+        'servers_all': '',
+        'manage_rules': '',
+        'rules': sql.select_waf_rules(server_ip, service),
+        'waf_rule_file': sql.select_waf_rule_by_id(rule_id),
+        'waf_rule_id': rule_id,
+        'config': config_read,
+        'cfg': cfg,
+        'config_file_name': config_file_name,
+        'service': service,
+        'lang': g.user_params['lang']
+    }
+
+    return render_template('waf.html', **kwargs)
 
 
 @bp.route('/<service>/<server_ip>/rule/<rule_id>/save', methods=['POST'])

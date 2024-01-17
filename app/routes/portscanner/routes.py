@@ -20,31 +20,26 @@ def before_request():
 @bp.route('')
 @get_user_params(virt=1)
 def portscanner():
-    user_params = g.user_params
-    port_scanner_settings = sql.select_port_scanner_settings(user_params['group_id'])
-    port_scanner = tools_common.is_tool_active('roxy-wi-portscanner')
-    user_subscription = roxywi_common.return_user_subscription()
+    port_scanner_settings = sql.select_port_scanner_settings(g.user_params['group_id'])
 
     if not port_scanner_settings:
         port_scanner_settings = ''
         count_ports = ''
     else:
         count_ports = list()
-        for s in user_params['servers']:
+        for s in g.user_params['servers']:
             count_ports_from_sql = sql.select_count_opened_ports(s[2])
             i = (s[2], count_ports_from_sql)
             count_ports.append(i)
 
     kwargs = {
-        'role': user_params['role'],
-        'user': user_params['user'],
-        'servers': user_params['servers'],
+        'user_params': g.user_params,
+        'servers': g.user_params['servers'],
         'port_scanner_settings': port_scanner_settings,
         'count_ports': count_ports,
-        'port_scanner': port_scanner,
-        'token': user_params['token'],
-        'lang': user_params['lang'],
-        'user_subscription': user_subscription
+        'port_scanner': tools_common.is_tool_active('roxy-wi-portscanner'),
+        'lang': g.user_params['lang'],
+        'user_subscription': roxywi_common.return_user_subscription()
     }
 
     return render_template('portscanner.html', **kwargs)
@@ -53,18 +48,12 @@ def portscanner():
 @bp.route('/history/<server_ip>')
 @get_user_params()
 def portscanner_history(server_ip):
-    history = sql.select_port_scanner_history(server_ip)
-    user_subscription = roxywi_common.return_user_subscription()
     kwargs = {
         'h2': 1,
-        'role': g.user_params['role'],
-        'user': g.user_params['user'],
-        'servers': g.user_params['servers'],
-        'user_services': g.user_params['user_services'],
-        'token': g.user_params['token'],
+        'user_params': g.user_params,
         'lang': g.user_params['lang'],
-        'history': history,
-        'user_subscription': user_subscription
+        'history': sql.select_port_scanner_history(server_ip),
+        'user_subscription': roxywi_common.return_user_subscription()
     }
 
     return render_template('include/port_scan_history.html', **kwargs)
