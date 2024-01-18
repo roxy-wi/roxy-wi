@@ -11,12 +11,12 @@
 </style>
 <center>
     <h4>
-    {% if user_status['user_status'] == 0 %}
+    {% if user_subscription['user_status'] == 0 %}
     You are not subscribed. Please subscribe to have access to this feature.
         <p>
             Read <a href="https://roxy-wi.org/pricing" title="Roxy-WI pricing" target="_blank" class="link">here</a> about subscriptions
         </p>
-    {% elif user_status['user_plan'] == 'user' or user_status['user_plan'] != 'support' %}
+    {% elif user_subscription['user_plan'] == 'user' or user_subscription['user_plan'] != 'support' %}
         This feature is not available for your plan. To change the plan, follow this <a href="https://roxy-wi.org/pricing" title="Roxy-WI pricing" target="_blank" class="link">link</a>
     {% endif %}
     </h4>
