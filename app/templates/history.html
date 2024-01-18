@@ -3,7 +3,7 @@
 {% block title %}{{ lang.menu_links.history.title }} {{ lang.words[service] }}{% endblock %}
 {% block h2 %}{{ lang.menu_links.history.title }} {{ lang.words[service] }}{% endblock %}
 {% block content %}
-{% if user_status == 0 or user_plan == 'user' %}
+{% if user_subscription['user_status'] == 0 or user_subscription['user_plan'] == 'user' %}
 	{% include 'include/no_sub.html' %}
 {% else %}
 <link href="/inc/css/table-6.3.9.css" rel="stylesheet" type="text/css">
