@@ -624,7 +624,7 @@ def add_nginx_upstream():
     servers_split = ''
     generate = request.form.get('generateconfig')
 
-    if balance == 'round_robin':
+    if balance == 'round_robin' or balance is None:
         balance = ''
     else:
         balance = f'    {balance};\n'
