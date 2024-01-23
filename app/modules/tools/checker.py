@@ -37,6 +37,10 @@ def load_checker() -> str:
         kwargs.setdefault('user_subscription', user_subscription)
         kwargs.setdefault('user_params', user_params)
         kwargs.setdefault('lang', user_params['lang'])
+        kwargs.setdefault('haproxy_settings', sql.select_checker_settings(1))
+        kwargs.setdefault('nginx_settings', sql.select_checker_settings(2))
+        kwargs.setdefault('keepalived_settings', sql.select_checker_settings(3))
+        kwargs.setdefault('apache_settings', sql.select_checker_settings(4))
 
     return render_template('ajax/load_checker.html', **kwargs)
 

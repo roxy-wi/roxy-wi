@@ -29,6 +29,11 @@ def before_request():
 @check_services
 @get_user_params()
 def add(service):
+    """
+    Show page for Adding proxy and section for HAProxy and NGINX
+    :param service: Service name for service in what will be add
+    :return: Template with Add page or redirect to the index if no needed permission
+    """
     roxywi_auth.page_for_admin(level=3)
     kwargs = {
         'h2': 1,
@@ -69,6 +74,10 @@ def add(service):
 
 @bp.route('/haproxy/add', methods=['POST'])
 def add_haproxy():
+    """
+    Add HAProxy sections
+    :return: Generated section or output of adding status
+    """
     roxywi_auth.page_for_admin(level=3)
 
     haproxy_dir = sql.get_setting('haproxy_dir')
@@ -85,7 +94,7 @@ def add_haproxy():
     ssl = ""
     ssl_check = ""
     backend = ""
-    headers = ''
+    headers = ""
     acl = ""
     servers_split = ""
     new_listener = request.form.get('listener')
@@ -370,26 +379,31 @@ def add_haproxy():
 
 @bp.post('/haproxy/userlist')
 def add_userlist():
+    """
+    Add HAProxy section userlist
+    :return: Output of adding status
+    """
     roxywi_auth.page_for_admin(level=3)
     return add_mod.add_userlist()
 
 
 @bp.post('/haproxy/bwlist/create')
+@get_user_params()
 def create_bwlist():
     server_ip = common.is_ip_or_dns(request.form.get('serv'))
     color = common.checkAjaxInput(request.form.get('color'))
-    group = common.checkAjaxInput(request.form.get('group'))
+    group = g.user_params['group_id']
     list_name = common.checkAjaxInput(request.form.get('bwlists_create'))
 
     return add_mod.create_bwlist(server_ip, list_name, color, group)
 
 
 @bp.post('/haproxy/bwlist/save')
-@login_required
+@get_user_params()
 def save_bwlist():
     server_ip = common.is_ip_or_dns(request.form.get('serv'))
     color = common.checkAjaxInput(request.form.get('color'))
-    group = common.checkAjaxInput(request.form.get('group'))
+    group = g.user_params['group_id']
     bwlists_save = common.checkAjaxInput(request.form.get('bwlists_save'))
     list_con = request.form.get('bwlists_content')
     action = common.checkAjaxInput(request.form.get('bwlists_restart'))
@@ -465,9 +479,10 @@ def get_option(group):
 
 
 @bp.post('/option/save')
+@get_user_params()
 def save_option():
     option = common.checkAjaxInput(request.form.get('option'))
-    group = int(request.form.get('option_group'))
+    group = g.user_params['group_id']
 
     return add_mod.create_saved_option(option, group)
 
@@ -495,7 +510,7 @@ def delete_option(option_id):
         return 'ok'
 
 
-@bp.route('/server/get/<group>')
+@bp.route('/server/get/<int:group>')
 def get_saved_server(group):
     term = request.args.get('term')
 
@@ -503,9 +518,10 @@ def get_saved_server(group):
 
 
 @bp.post('/server/save')
+@get_user_params()
 def save_saved_server():
     server = common.checkAjaxInput(request.form.get('server'))
-    group = int(request.form.get('group'))
+    group = g.user_params['group_id']
     desc = common.checkAjaxInput(request.form.get('desc'))
 
     return add_mod.create_saved_server(server, group, desc)
@@ -537,11 +553,13 @@ def delete_saved_server(server_id):
 
 @bp.route('/certs/<server_ip>')
 def get_certs(server_ip):
+    server_ip = common.is_ip_or_dns(server_ip)
     return add_mod.get_ssl_certs(server_ip)
 
 
-@bp.route('/cert/<server_ip>/<cert_id>', methods=['DELETE', 'GET'])
+@bp.route('/cert/<server_ip>/<int:cert_id>', methods=['DELETE', 'GET'])
 def get_cert(server_ip, cert_id):
+    server_ip = common.is_ip_or_dns(server_ip)
     if request.method == 'DELETE':
         return add_mod.del_ssl_cert(server_ip, cert_id)
     elif request.method == 'GET':
@@ -557,49 +575,33 @@ def upload_cert():
     return add_mod.upload_ssl_cert(server_ip, ssl_name, ssl_cont)
 
 
-@bp.route('/cert/get/raw/<server_ip>/<cert_id>')
+@bp.route('/cert/get/raw/<server_ip>/<int:cert_id>')
 def get_cert_raw(server_ip, cert_id):
+    server_ip = common.is_ip_or_dns(server_ip)
     return add_mod.get_ssl_raw_cert(server_ip, cert_id)
 
 
-@bp.post('/map/create')
+@bp.route('/map', methods=['POST', 'PUT', 'DELETE', 'GET'])
+@get_user_params()
 def create_map():
     server_ip = common.checkAjaxInput(request.form.get('serv'))
-    map_name = common.checkAjaxInput(request.form.get('map_create'))
-    group = common.checkAjaxInput(request.form.get('group'))
+    map_name = common.checkAjaxInput(request.form.get('map_name')) or common.checkAjaxInput(request.args.get('map_name'))
+    group = g.user_params['group_id']
+    if request.method == 'POST':
+        try:
+            return add_mod.create_map(server_ip, map_name, group)
+        except Exception as e:
+            return str(e)
+    elif request.method == 'PUT':
+        content = request.form.get('content')
+        action = common.checkAjaxInput(request.form.get('map_restart'))
 
-    try:
-        return add_mod.create_map(server_ip, map_name, group)
-    except Exception as e:
-        return str(e)
-
-
-@bp.post('/map/save')
-def save_map():
-    server_ip = common.checkAjaxInput(request.form.get('serv'))
-    group = common.checkAjaxInput(request.form.get('group'))
-    map_save = common.checkAjaxInput(request.form.get('map_save'))
-    content = request.form.get('content')
-    action = common.checkAjaxInput(request.form.get('map_restart'))
-
-    return add_mod.save_map(map_save, content, group, server_ip, action)
-
-
-@bp.post('/map/edit')
-def edit_map():
-    group = common.checkAjaxInput(request.form.get('group'))
-    map_name = common.checkAjaxInput(request.form.get('edit_map'))
-
-    return add_mod.edit_map(map_name, group)
-
-
-@bp.post('/map/delete')
-def delete_map():
-    map_name = common.checkAjaxInput(request.form.get('map_delete'))
-    group = common.checkAjaxInput(request.form.get('group'))
-    server_id = common.checkAjaxInput(request.form.get('serv'))
-
-    return add_mod.delete_map(map_name, group, server_id)
+        return add_mod.save_map(map_name, content, group, server_ip, action), 201
+    elif request.method == 'DELETE':
+        server_id = common.checkAjaxInput(request.form.get('serv'))
+        return add_mod.delete_map(map_name, group, server_id)
+    elif request.method == 'GET':
+        return add_mod.edit_map(map_name, group)
 
 
 @bp.post('lets')
