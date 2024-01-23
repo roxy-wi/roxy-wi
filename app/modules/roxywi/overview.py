@@ -10,7 +10,7 @@ import modules.server.server as server_mod
 import modules.service.common as service_common
 
 
-def user_owv():
+def user_owv() -> str:
     lang = roxywi_common.get_user_lang_for_flask()
     roles = sql.select_roles()
     user_params = roxywi_common.get_users_params()
@@ -25,7 +25,7 @@ def user_owv():
     return render_template('ajax/show_users_ovw.html', users=users, users_groups=users_groups, lang=lang, roles=roles)
 
 
-def show_sub_ovw() -> None:
+def show_sub_ovw() -> str:
     lang = roxywi_common.get_user_lang_for_flask()
 
     return render_template('ajax/show_sub_ovw.html', sub=sql.select_user_all(), lang=lang)
@@ -104,7 +104,7 @@ def show_overview(serv) -> str:
     return render_template('ajax/overview.html', service_status=servers_sorted, role=role, lang=lang)
 
 
-def show_haproxy_binout(server_ip: str) -> None:
+def show_haproxy_binout(server_ip: str) -> str:
     port = sql.get_setting('haproxy_sock_port')
     bin_bout = []
     cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,9|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
@@ -135,7 +135,7 @@ def show_nginx_connections(server_ip: str) -> str:
     page = sql.get_setting('nginx_stats_page')
     url = f'http://{server_ip}:{port}/{page}'
 
-    r = requests.get(url, auth=(user, password))
+    r = requests.get(url, auth=(user, password), timeout=5)
 
     if r.status_code == 200:
         bin_bout = [0, 0]
@@ -159,7 +159,7 @@ def show_apache_bytes(server_ip: str) -> str:
     bin_bout = []
     url = f'http://{server_ip}:{port}/{page}?auto'
 
-    r = requests.get(url, auth=(user, password))
+    r = requests.get(url, auth=(user, password), timeout=5)
 
     if r.status_code == 200:
         for line in r.text.split('\n'):

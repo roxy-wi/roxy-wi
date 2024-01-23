@@ -784,7 +784,7 @@
 			</tr>
 		{% for option in options %}
 			<tr id="option-{{ option.id }}" class="{{ loop.cycle('odd', 'even') }}">
-				{% if option.groups == group or group == '1' %}
+				{% if option.groups|string() == user_params['group_id']|string() or group|string() == '1' %}
 				<td class="padding10 first-collumn">
 					{{ option.id }}
 				</td>
@@ -833,7 +833,7 @@
 			</tr>
 		{% for s in saved_servers %}
 			<tr id="servers-saved-{{ s.id }}" class="{{ loop.cycle('odd', 'even') }}">
-				{% if s.groups == group or group == '1' %}
+				{% if s.groups|string() == user_params['group_id']|string() or group|string() == '1' %}
 				<td class="padding10 first-collumn">
 					<input type="text" id="servers-ip-{{ s.id }}" value="{{ s.server }}" size="15" class="form-control">
 				</td>
@@ -1115,7 +1115,7 @@
 	<div id="dialog-confirm-cert" title="View certificate " style="display: none;">
 		<pre id="dialog-confirm-body"></pre>
 	</div>
-	<input type="hidden" id="group" value="{{ group }}">
+	<input type="hidden" id="group_id" value="{{ user_params['group_id']|string() }}">
 </div>
 </div>
 <script>

@@ -31,11 +31,11 @@ def create_cluster(cluster: object, group_id: int) -> str:
     except Exception as e:
         return f'error: Cannon add VIP: {e}'
 
-    for slave_id, value in cluster['servers'].items():
+    for _slave_id, value in cluster['servers'].items():
         if value['master']:
             master_ip = value['ip']
 
-    for slave_id, value in cluster['servers'].items():
+    for _slave_id, value in cluster['servers'].items():
         if value['master']:
             continue
         try:
@@ -194,7 +194,7 @@ def update_slaves(json_data: object, router_id: int) -> None:
     server_ids = []
     server_ids_from_json = []
 
-    for slave_id, value in cluster['servers'].items():
+    for _slave_id, value in cluster['servers'].items():
         if value['master']:
             master_ip = common.is_ip_or_dns(value['ip'])
 
@@ -226,7 +226,7 @@ def update_slaves(json_data: object, router_id: int) -> None:
         except Exception as e:
             raise Exception(f'error: Cannot recreate slaves server: {e}')
 
-    for slave_id, value in cluster['servers'].items():
+    for _slave_id, value in cluster['servers'].items():
         if value['master']:
             continue
         try:
@@ -251,7 +251,7 @@ def add_or_update_virt(cluster: object, cluster_id: int, vip_id: int, group_id: 
     vip = common.is_ip_or_dns(cluster['vip'])
     cluster_name = common.checkAjaxInput(cluster['name'])
 
-    for slave_id, value in cluster['servers'].items():
+    for _slave_id, value in cluster['servers'].items():
         if value['master']:
             master_ip = common.is_ip_or_dns(value['ip'])
 

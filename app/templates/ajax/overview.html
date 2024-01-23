@@ -1,7 +1,7 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% for service in service_status %}
 	<td class="padding10 first-collumn">
-		<a href="/app/history/server/{{ service.1 }}" title="{{service.0 }} history" class="logs_link">
+		<a href="/app/history/server/{{ service.1 }}" title="{{service.0 }} {{lang.words.history}}" class="logs_link">
 			{{ service.0 }}
 		</a>
 	</td>

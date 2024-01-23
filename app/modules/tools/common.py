@@ -64,7 +64,7 @@ def is_tool_active(tool_name: str) -> str:
 
 def update_cur_tool_versions() -> None:
     tools = sql.get_all_tools()
-    for s, v in tools.items():
+    for s, _v in tools.items():
         update_cur_tool_version(s)
 
 

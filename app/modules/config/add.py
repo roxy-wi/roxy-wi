@@ -305,7 +305,7 @@ def create_map(server_ip: str, map_name: str, group: str) -> str:
 	try:
 		server_mod.subprocess_execute(f'mkdir -p {map_path}')
 	except Exception as e:
-		assert Exception(f'error: cannot create a local folder for maps: {e}')
+		raise Exception(f'error: cannot create a local folder for maps: {e}')
 	try:
 		open(full_path, 'a').close()
 		try:
@@ -313,7 +313,7 @@ def create_map(server_ip: str, map_name: str, group: str) -> str:
 		except Exception:
 			pass
 	except IOError as e:
-		assert Exception(f'error: Cannot create a new {map_name} map. {e}, ')
+		raise Exception(f'error: Cannot create a new {map_name} map. {e}, ')
 	else:
 		return 'success: '
 

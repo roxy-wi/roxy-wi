@@ -1,7 +1,8 @@
 var ssl_offloading_var = "http-request set-header X-Forwarded-Port %[dst_port] \n"+
 						"http-request add-header X-Forwarded-Proto https if { ssl_fc } \n"+
 						"redirect scheme https if !{ ssl_fc } \n"
-
+var delete_word = $('#translate').attr('data-delete');
+var cancel_word = $('#translate').attr('data-cancel');
 $( function() {
 	$("#listen-mode-select").on('selectmenuchange', function () {
 		if ($("#listen-mode-select option:selected").val() == "tcp") {
@@ -252,7 +253,6 @@ $( function() {
 		}
 	});
 
-
 	var availableTags = [
 		"acl", "hdr(host)", "hdr_beg(host)", "hdr_dom(host)", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "set cookie", "dynamic-cookie-key", "mysql-check", "tcpka", "tcplog", "forwardfor", "option"
 	];
@@ -330,7 +330,7 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/add/haproxy/bwlists/black/" + $("#group").val(),
+				url: "/app/add/haproxy/bwlists/black/" + $("#group_id").val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -346,7 +346,7 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/add/haproxy/bwlists/black/" + $("#group").val(),
+				url: "/app/add/haproxy/bwlists/black/" + $("#group_id").val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -362,7 +362,7 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/add/haproxy/bwlists/white/" + $("#group").val(),
+				url: "/app/add/haproxy/bwlists/white/" + $("#group_id").val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -378,7 +378,7 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/add/haproxy/bwlists/white/" + $("#group").val(),
+				url: "/app/add/haproxy/bwlists/white/" + $("#group_id").val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -412,7 +412,7 @@ $( function() {
 	});
 	$("#saved-options").autocomplete({
 		dataType: "json",
-		source: "/app/add/option/get/" + $('#group').val(),
+		source: "/app/add/option/get/" + $('#group_id').val(),
 		autoFocus: true,
 		minLength: 1,
 		select: function (event, ui) {
@@ -431,10 +431,9 @@ $( function() {
 			return false;
 		}
 	});
-
 	$("#saved-options1").autocomplete({
 		dataType: "json",
-		source: "/app/add/option/get/" + $('#group').val(),
+		source: "/app/add/option/get/" + $('#group_id').val(),
 		autoFocus: true,
 		minLength: 1,
 		select: function (event, ui) {
@@ -455,7 +454,7 @@ $( function() {
 	});
 	$("#saved-options2").autocomplete({
 		dataType: "json",
-		source: "/app/add/option/get/" + $('#group').val(),
+		source: "/app/add/option/get/" + $('#group_id').val(),
 		autoFocus: true,
 		minLength: 1,
 		select: function (event, ui) {
@@ -473,8 +472,7 @@ $( function() {
 		$.ajax({
 			url: "/app/add/option/save",
 			data: {
-				option: $('#new-option').val(),
-				option_group: $('#group').val()
+				option: $('#new-option').val()
 			},
 			type: "POST",
 			success: function (data) {
@@ -496,7 +494,7 @@ $( function() {
 
 	});
 	$('[name=servers]').autocomplete({
-		source: "/app/add/server/get/" + $('#group').val(),
+		source: "/app/add/server/get/" + $('#group_id').val(),
 		autoFocus: true,
 		minLength: 1,
 		select: function (event, ui) {
@@ -519,7 +517,6 @@ $( function() {
 			url: "/app/add/server/save",
 			data: {
 				server: $('#new-saved-servers').val(),
-				group: $('#group').val(),
 				desc: $('#new-saved-servers-description').val()
 			},
 			type: "POST",
@@ -1026,7 +1023,6 @@ $( function() {
 		} else {
 			replace_text("#optionsInput1", ssl_offloading_var);
 		}
-
 	});
 	$('#ssl_offloading2').click(function () {
 		if ($('#optionsInput2').val().indexOf('ssl_fc ') == '-1') {
@@ -1035,7 +1031,6 @@ $( function() {
 			replace_text("#optionsInput2", ssl_offloading_var);
 		}
 	});
-
 	$(".redirectListen").on("click", function () {
 		resetProxySettings();
 		$("#tabs").tabs("option", "active", 1);
@@ -1057,7 +1052,6 @@ $( function() {
 		$("#tabs").tabs("option", "active", 4);
 		$("#serv5").selectmenu("open");
 	});
-
 	$("#create-http-listen").on("click", function () {
 		resetProxySettings();
 		createHttp(1, 'listen');
@@ -1284,7 +1278,7 @@ function createHttp(TabId, proxy) {
 		TabId = '';
 	}
 	$( "#serv"+TabId ).selectmenu( "open" );
-	history.pushState('Add '+proxy, 'Add '+proxy, 'add.py#'+proxy)
+	history.pushState('Add '+proxy, 'Add '+proxy, 'add/haproxy#'+proxy)
 }
 function createSsl(TabId, proxy) {
 	$('[name=port]').val('443');
@@ -1303,7 +1297,7 @@ function createSsl(TabId, proxy) {
 		TabId = '';
 	}
 	$( "#serv"+TabId ).selectmenu( "open" );
-	history.pushState('Add'+proxy, 'Add'+proxy, 'add.py#'+proxy)
+	history.pushState('Add'+proxy, 'Add'+proxy, 'add/haproxy#'+proxy)
 }
 function createHttps(TabId, proxy) {
 	$('[name=port]').val('443');
@@ -1317,25 +1311,28 @@ function createHttps(TabId, proxy) {
 		TabId = '';
 	}
 	$( "#serv"+TabId ).selectmenu( "open" );
-	history.pushState('Add'+proxy, 'Add'+proxy, 'add.py#'+proxy)
+	history.pushState('Add'+proxy, 'Add'+proxy, 'add/haproxy#'+proxy)
 }
 function confirmDeleteOption(id) {
-	 $( "#dialog-confirm" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-	  title: "Are you sure you want to delete " +$('#option-'+id).val() + "?",
-      buttons: {
-        "Delete": function() {
-			$( this ).dialog( "close" );	
-			removeOption(id);
-        },
-        Cancel: function() {
-			$( this ).dialog( "close" );
-        }
-      }
-    });
+	$("#dialog-confirm").dialog({
+		resizable: false,
+		height: "auto",
+		width: 400,
+		modal: true,
+		title: delete_word + " " + $('#option-body-' + id).val() + "?",
+		buttons: [{
+			text: delete_word,
+			click: function () {
+				$(this).dialog("close");
+				removeOption(id);
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
+				$(this).dialog("close");
+			}
+		}]
+	});
 }
 function removeOption(id) {
 	$("#option-"+id).css("background-color", "#f2dede");
@@ -1374,22 +1371,25 @@ function updateOptions(id) {
 	});
 }
 function confirmDeleteSavedServer(id) {
-	 $( "#dialog-confirm" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-	  title: "Are you sure you want to delete " +$('#servers-saved-'+id).val() + "?",
-      buttons: {
-        "Delete": function() {
-			$( this ).dialog( "close" );
-			removeSavedServer(id);
-        },
-        Cancel: function() {
-			$( this ).dialog( "close" );
-        }
-      }
-    });
+	$("#dialog-confirm").dialog({
+		resizable: false,
+		height: "auto",
+		width: 400,
+		modal: true,
+		title: delete_word + " " + $('#servers-ip-' + id).val() + "?",
+		buttons: [{
+			text: delete_word,
+			click: function () {
+				$(this).dialog("close");
+				removeSavedServer(id);
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
+				$(this).dialog("close");
+			}
+		}]
+	});
 }
 function removeSavedServer(id) {
 	$("#servers-saved-"+id).css("background-color", "#f2dede");
@@ -1427,8 +1427,6 @@ function updateSavedServer(id) {
 	} );
 }
 function view_ssl(id) {
-	var delete_word = $('#translate').attr('data-delete');
-	var cancel_word = $('#translate').attr('data-cancel');
 	var raw_word = $('#translate').attr('data-raw');
 	if(!checkIsServerFiled('#serv5')) return false;
 	$.ajax( {
@@ -1467,8 +1465,6 @@ function view_ssl(id) {
 	} );
 }
 function showRawSSL(id) {
-	var delete_word = $('#translate').attr('data-delete');
-	var cancel_word = $('#translate').attr('data-cancel');
 	$.ajax({
 		url: "/app/add/cert/get/raw/" + $('#serv5').val() + "/" + id,
 		success: function (data) {
@@ -1564,8 +1560,7 @@ function createList(color) {
 		url: "/app/add/haproxy/bwlist/create",
 		data: {
 			bwlists_create: list,
-			color: color,
-			group: $('#group').val()
+			color: color
 		},
 		type: "POST",
 		success: function( data ) {
@@ -1586,14 +1581,12 @@ function createList(color) {
 }
 function editList(list, color) {
 	$.ajax( {
-		url: "/app/add/haproxy/bwlist/" + list + "/" + color + "/" + $('#group').val(),
+		url: "/app/add/haproxy/bwlist/" + list + "/" + color + "/" + $('#group_id').val(),
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
-				var cancel_word = $('#translate').attr('data-cancel');
 				var save_word = $('#translate').attr('data-just_save');
-				var delete_word = $('#translate').attr('data-delete');
 				var upload_and_reload = $('#translate').attr('data-upload_and_reload');
 				var upload_and_restart = $('#translate').attr('data-upload_and_restart');
 				var edit_word = $('#translate').attr('data-edit');
@@ -1649,7 +1642,6 @@ function saveList(action, list, color) {
 			serv: serv,
 			bwlists_content: $('#edit_lists').val(),
 			color: color,
-			group: $('#group').val(),
 			bwlists_restart: action
 		},
 		type: "POST",
@@ -1673,7 +1665,7 @@ function deleteList(list, color) {
 	var serv = $( "#serv-"+color+"-list option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-"+color+"-list"))) return false;
 	$.ajax({
-		url: "/app/add/haproxy/bwlist/delete/" + serv + "/" + color + "/" + list + "/" + $('#group').val(),
+		url: "/app/add/haproxy/bwlist/delete/" + serv + "/" + color + "/" + list + "/" + $('#group_id').val(),
 		success: function (data) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
 				toastr.error(data);
@@ -1692,10 +1684,9 @@ function createMap() {
 	map_name = $('#new_map_name').val()
 	map_name = escapeHtml(map_name);
 	$.ajax( {
-		url: "/app/add/map/create",
+		url: "/app/add/map",
 		data: {
-			map_create: map_name,
-			group: $('#group').val()
+			map_name: map_name
 		},
 		type: "POST",
 		success: function( data ) {
@@ -1715,30 +1706,27 @@ function createMap() {
 	} );
 }
 function editMap(map) {
-	$.ajax( {
-		url: "/app/add/map/edit",
+	$.ajax({
+		url: "/app/add/map",
 		data: {
-			edit_map: map,
-			group: $('#group').val()
+			map_name: map,
 		},
-		type: "POST",
-		success: function( data ) {
+		type: "GET",
+		success: function (data) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
-				var cancel_word = $('#translate').attr('data-cancel');
 				var save_word = $('#translate').attr('data-just_save');
-				var delete_word = $('#translate').attr('data-delete');
 				var upload_and_reload = $('#translate').attr('data-upload_and_reload');
 				var upload_and_restart = $('#translate').attr('data-upload_and_restart');
 				var edit_word = $('#translate').attr('data-edit');
 				$('#edit_map').text(data);
-				$( "#dialog-confirm-map-edit" ).dialog({
+				$("#dialog-confirm-map-edit").dialog({
 					resizable: false,
 					height: "auto",
 					width: 650,
 					modal: true,
-					title: edit_word + " "+map,
+					title: edit_word + " " + map,
 					buttons: [{
 						text: delete_word,
 						click: function () {
@@ -1772,21 +1760,20 @@ function editMap(map) {
 				});
 			}
 		}
-	} );
+	});
 }
 function saveMap(action, map) {
 	var serv = $( "#serv-map option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-map"))) return false;
 	$.ajax({
-		url: "/app/add/map/save",
+		url: "/app/add/map",
 		data: {
-			map_save: map,
+			map_name: map,
 			serv: serv,
 			content: $('#edit_map').val(),
-			group: $('#group').val(),
 			map_restart: action
 		},
-		type: "POST",
+		type: "PUT",
 		success: function (data) {
 			data = data.split(" , ");
 			for (i = 0; i < data.length; i++) {
@@ -1807,13 +1794,12 @@ function deleteMap(map) {
 	var serv = $( "#serv-map option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-map"))) return false;
 	$.ajax({
-		url: "/app/add/map/delete",
+		url: "/app/add/map",
 		data: {
-			map_delete: map,
+			map_name: map,
 			serv: serv,
-			group: $('#group').val()
 		},
-		type: "POST",
+		type: "DELETE",
 		success: function (data) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
 				toastr.error(data);
@@ -1983,8 +1969,6 @@ function addProxy(form_name) {
 	});
 }
 function confirmDeleting(deleting_thing, id, dialog_id, color) {
-	var cancel_word = $('#translate').attr('data-cancel');
-	var delete_word = $('#translate').attr('data-delete');
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
 		height: "auto",

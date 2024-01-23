@@ -50,7 +50,7 @@ def get_exp_version(server_ip: str, service_name: str) -> str:
 	if service_name == 'haproxy':
 		commands = ["/opt/prometheus/exporters/haproxy_exporter --version 2>&1 |head -1|awk '{print $3}'"]
 	elif service_name == 'nginx':
-		commands = ["/opt/prometheus/exporters/nginx_exporter 2>&1 |head -1 |awk -F\"=\" '{print $2}'|awk '{print $1}'"]
+		commands = ["/opt/prometheus/exporters/nginx_exporter --version 2>&1 |head -1 |awk -F\"version\" '{print $2}'|awk '{print $1}'"]
 	elif service_name == 'node':
 		commands = ["node_exporter --version 2>&1 |head -1|awk '{print $3}'"]
 	elif service_name == 'apache':
@@ -119,7 +119,7 @@ def check_haproxy_config(server_ip):
 		print(f'error: {e}')
 
 
-def check_nginx_config(server_ip):
+def check_nginx_config(server_ip) -> bool:
 	commands = [f"nginx -q -t -p {sql.get_setting('nginx_dir')}"]
 
 	with mod_ssh.ssh_connect(server_ip) as ssh:
@@ -131,7 +131,7 @@ def check_nginx_config(server_ip):
 				return False
 
 
-def overview_backends(server_ip: str, service: str) -> None:
+def overview_backends(server_ip: str, service: str) -> str:
 	import modules.config.config as config_mod
 
 	lang = roxywi_common.get_user_lang_for_flask()
@@ -188,18 +188,13 @@ def get_overview_last_edit(server_ip: str, service: str) -> str:
 
 
 def get_stat_page(server_ip: str, service: str) -> str:
-	if service in ('nginx', 'apache'):
-		stats_user = sql.get_setting(f'{service}_stats_user')
-		stats_pass = sql.get_setting(f'{service}_stats_password')
-		stats_port = sql.get_setting(f'{service}_stats_port')
-		stats_page = sql.get_setting(f'{service}_stats_page')
-	else:
-		stats_user = sql.get_setting('stats_user')
-		stats_pass = sql.get_setting('stats_password')
-		stats_port = sql.get_setting('stats_port')
-		stats_page = sql.get_setting('stats_page')
+	stats_user = sql.get_setting(f'{service}_stats_user')
+	stats_pass = sql.get_setting(f'{service}_stats_password')
+	stats_port = sql.get_setting(f'{service}_stats_port')
+	stats_page = sql.get_setting(f'{service}_stats_page')
+
 	try:
-		response = requests.get(f'http://{server_ip}:{stats_port}/{stats_page}', auth=(stats_user, stats_pass))
+		response = requests.get(f'http://{server_ip}:{stats_port}/{stats_page}', auth=(stats_user, stats_pass), timeout=5)
 	except requests.exceptions.ConnectTimeout:
 		return 'error: Oops. Connection timeout occurred!'
 	except requests.exceptions.ReadTimeout:

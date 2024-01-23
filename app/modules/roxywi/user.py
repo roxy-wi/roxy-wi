@@ -71,7 +71,7 @@ def update_user_password(password, uuid, user_id_from_get):
     return 'ok'
 
 
-def get_user_services(user_id: int) -> None:
+def get_user_services(user_id: int) -> str:
     lang = roxywi_common.get_user_lang_for_flask()
     services = sql.select_services()
 
@@ -83,8 +83,8 @@ def get_user_services(user_id: int) -> None:
 def change_user_services(user: str, user_id: int, user_services: str) -> str:
     services = ''
 
-    for k, v in user_services.items():
-        for k2, v2 in v.items():
+    for _k, v in user_services.items():
+        for k2, _v2 in v.items():
             services += ' ' + k2
 
     try:
@@ -112,7 +112,7 @@ def get_user_active_group(uuid: str, group: str) -> str:
     return render_template('ajax/user_current_group.html', groups=groups, group=group, id=group_id, lang=lang)
 
 
-def show_user_groups_and_roles(user_id: int, lang: str) -> None:
+def show_user_groups_and_roles(user_id: int, lang: str) -> str:
     groups = sql.select_user_groups_with_names(user_id, user_not_in_group=1)
     roles = sql.select_roles()
     user_groups = sql.select_user_groups_with_names(user_id)
@@ -126,7 +126,7 @@ def is_current_user(user_id: int, user_uuid: str) -> bool:
     return False
 
 
-def save_user_group_and_role(user: str, groups_and_roles: str, user_uuid: str) -> str:
+def save_user_group_and_role(user: str, groups_and_roles: dict, user_uuid: str) -> str:
     resp = make_response('ok')
     for k, v in groups_and_roles.items():
         user_id = int(k)

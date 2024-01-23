@@ -67,7 +67,7 @@ def check_is_conf(config_path: str) -> bool:
 		if 'conf' in config_path or 'cfg' in config_path:
 			return True
 
-	return False
+	raise Exception('error: nice try')
 
 
 def string_to_dict(dict_string) -> dict:

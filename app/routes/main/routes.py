@@ -137,6 +137,7 @@ def nettols_check(check):
 @login_required
 @get_user_params()
 def service_history(service, server_ip):
+    history = ''
     server_ip = common.checkAjaxInput(server_ip)
 
     if service in ('haproxy', 'nginx', 'keepalived', 'apache', 'cluster'):
@@ -154,6 +155,8 @@ def service_history(service, server_ip):
             history = sql.select_action_history_by_server_id(server_id)
     elif service == 'user':
         history = sql.select_action_history_by_user_id(server_ip)
+    else:
+        abort(404, f'History not found')
 
     kwargs = {
         'user_params': g.user_params,
