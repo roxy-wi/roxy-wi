@@ -557,9 +557,10 @@ def get_certs(server_ip):
     return add_mod.get_ssl_certs(server_ip)
 
 
-@bp.route('/cert/<server_ip>/<int:cert_id>', methods=['DELETE', 'GET'])
+@bp.route('/cert/<server_ip>/<cert_id>', methods=['DELETE', 'GET'])
 def get_cert(server_ip, cert_id):
     server_ip = common.is_ip_or_dns(server_ip)
+    cert_id = common.checkAjaxInput(cert_id)
     if request.method == 'DELETE':
         return add_mod.del_ssl_cert(server_ip, cert_id)
     elif request.method == 'GET':
