@@ -230,7 +230,7 @@ def get_all_statuses():
 		login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
 		sock_port = sql.get_setting('haproxy_sock_port')
 
-		for s in servers:
+		for _s in servers:
 			servers = roxywi_common.get_dick_permit(username=login, group_id=group_id, token=token)
 
 		for s in servers:
@@ -848,14 +848,16 @@ def create_ha_cluster():
 	data = {'status': dict()}
 
 	try:
-		ha_cluster.create_cluster(json_loads, group_id)
+		cluster_id = ha_cluster.create_cluster(json_loads, group_id)
 	except Exception as e:
 		data['status'] = f'error: Cannot create HA cluster: {e}'
 		return data['status']
 	else:
 		data['status'].setdefault('cluster', 'done')
 	try:
-		service_mod.install_service('keepalived', body)
+		json_loads['cluster_id'] = cluster_id
+		json_dump = json.dumps(json_loads)
+		service_mod.install_service('keepalived', json_dump)
 	except Exception as e:
 		data['status'].setdefault('keepalived', f'error: {e}')
 	else:

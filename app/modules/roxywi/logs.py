@@ -73,22 +73,18 @@ def show_roxy_log(
 	if service in ('nginx', 'haproxy', 'apache', 'keepalived'):
 		syslog_server_enable = sql.get_setting('syslog_server_enable')
 		if syslog_server_enable is None or syslog_server_enable == 0:
+			local_path_logs = sql.get_setting(f'{service}_path_logs')
 			if service == 'nginx':
-				local_path_logs = sql.get_setting('nginx_path_logs')
 				commands = ["sudo cat %s/%s |tail -%s %s %s" % (local_path_logs, log_file, rows, grep_act, exgrep_act)]
 			elif service == 'apache':
-				local_path_logs = sql.get_setting('apache_path_logs')
 				commands = [
 					"sudo cat %s/%s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
 				]
 			elif service == 'keepalived':
-				local_path_logs = sql.get_setting('keepalived_path_logs')
 				commands = [
-					"sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (
-						local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
+					"sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
 				]
 			else:
-				local_path_logs = sql.get_setting('haproxy_path_logs')
 				commands = ["sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)]
 
 			syslog_server = serv

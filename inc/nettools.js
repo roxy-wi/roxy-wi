@@ -86,6 +86,13 @@ $( function() {
             url: frm.attr('action'),
             data: frm.serialize() + "&nettools_action=" + $(this).val(),
             type: frm.attr('method'),
+            xhrFields: {
+                onprogress: function (e) {
+                    console.log(e.currentTarget.responseText);
+                    $('#ajax-nettools').html(e.currentTarget.responseText);
+                }
+            },
+            dataType: 'text',
             success: function (data) {
                 data = data.replace('\n', "<br>");
                 if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1') {
@@ -96,7 +103,6 @@ $( function() {
                     toastr.warning(data)
                 } else {
                     toastr.clear();
-                    $('#ajax-nettools').html('<div class="ping_pre">' + data + '</div>');
                 }
             }
         });
