@@ -1,11 +1,43 @@
 import re
 
-import modules.db.sql as sql
-import modules.server.server as server_mod
-from modules.common.common import return_nice_path
+import app.modules.db.sql as sql
+import app.modules.server.server as server_mod
+from app.modules.common.common import return_nice_path
 
 
-def get_sections(config, **kwargs):
+SECTION_NAMES = (
+    'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', '#HideBlockStart',
+    '#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors'
+)
+
+
+def _extract_section_name(line: str):
+	"""
+	Extracts the section name from the given line.
+
+	:param line: The line to extract the section name from.
+	:return: The extracted section name as a string if it starts with one of the SECTION_NAMES,
+	         None otherwise.
+	"""
+	line = line.strip()
+	if line.startswith(SECTION_NAMES):
+		return line
+	return None
+
+
+def get_sections(config: str, **kwargs) -> list:
+	"""
+	This method, `get_sections`, is used to extract sections from a configuration file. It takes two parameters: `config`, which is the path to the configuration file, and `kwargs`, which
+	* is a variable-length keyword argument that can provide additional options.
+
+	:param config: The path to the configuration file.
+	:param kwargs: Additional options to customize the extraction.
+
+	:return: A list containing the extracted sections.
+
+	.. note:: The `service` option in `kwargs` can be used to specify a particular service to extract sections for. If the `service` option is not provided or is not equal to `'keepalived
+	*'`, this method will extract all sections. Otherwise, it will only extract sections that contain an IP address.
+	"""
 	return_config = list()
 	with open(config, 'r') as f:
 		for line in f:
@@ -15,17 +47,19 @@ def get_sections(config, **kwargs):
 				if find_ip:
 					return_config.append(find_ip[0])
 			else:
-				if line.startswith((
-					'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', '#HideBlockStart',
-					'#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors'
-				)):
+				if _extract_section_name(line):
 					line = line.strip()
 					return_config.append(line)
 
 	return return_config
 
 
-def get_section_from_config(config, section):
+def get_section_from_config(config: str, section) -> tuple:
+	"""
+	:param config: The path to the configuration file.
+	:param section: The section name to retrieve from the configuration file.
+	:return: A tuple containing the starting line number, ending line number, and the content of the specified section.
+	"""
 	record = False
 	start_line = ""
 	end_line = ""
@@ -38,10 +72,7 @@ def get_section_from_config(config, section):
 				record = True
 				continue
 			if record:
-				if line.startswith((
-					'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', '#HideBlockStart',
-					'#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors'
-				)):
+				if _extract_section_name(line):
 					record = False
 					end_line = index
 					end_line = end_line - 1
@@ -56,7 +87,14 @@ def get_section_from_config(config, section):
 	return start_line, end_line, return_config
 
 
-def rewrite_section(start_line, end_line, config, section):
+def rewrite_section(start_line: str, end_line: str, config: str, section: str) -> str:
+	"""
+	:param start_line: The line number where the section to be rewritten starts.
+	:param end_line: The line number where the section to be rewritten ends.
+	:param config: The path to the configuration file.
+	:param section: The new section to be inserted in place of the existing section.
+	:return: The modified configuration with the section rewritten.
+	"""
 	record = False
 	start_line = int(start_line)
 	end_line = int(end_line)
@@ -81,9 +119,14 @@ def rewrite_section(start_line, end_line, config, section):
 
 
 def get_remote_sections(server_ip: str, service: str) -> str:
-	remote_dir = service + '_dir'
-	config_dir = sql.get_setting(remote_dir)
-	config_dir = return_nice_path(config_dir)
+	"""
+	Get the remote sections from a server.
+
+	:param server_ip: The IP address of the server.
+	:param service: The name of the service (e.g., apache).
+	:return: The remote sections.
+	"""
+	config_dir = return_nice_path(sql.get_setting(f'{service}_dir'))
 	section_name = 'server_name'
 
 	if service == 'apache':

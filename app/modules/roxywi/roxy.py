@@ -6,8 +6,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-import modules.db.sql as sql
-import modules.roxywi.common as roxywi_common
+import app.modules.db.sql as sql
+import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
 
 

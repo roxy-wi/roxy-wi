@@ -4,8 +4,8 @@ from flask import request, abort, make_response, url_for
 from flask_login import login_user
 from datetime import datetime, timedelta
 
-import modules.db.sql as sql
-import modules.roxywi.common as roxywi_common
+import app.modules.db.sql as sql
+import app.modules.roxywi.common as roxywi_common
 
 
 def check_login(user_uuid, token) -> str:
@@ -112,7 +112,7 @@ def create_uuid_and_token(login: str):
 
 def do_login(user_uuid: str, user_group: str, user: str, next_url: str):
     try:
-        session_ttl = int(sql.get_setting('session_ttl'))
+        session_ttl = sql.get_setting('session_ttl')
     except Exception:
         session_ttl = 5
 

@@ -21,9 +21,8 @@ def before_request():
 @get_user_params()
 def checker_settings():
     roxywi_common.check_user_group_for_flask()
-    kwargs = {'user_params': g.user_params}
 
-    return render_template('checker.html', **kwargs)
+    return render_template('checker.html')
 
 
 @bp.post('/settings/update')
@@ -60,7 +59,6 @@ def checker_history():
     roxywi_common.check_user_group_for_flask()
 
     kwargs = {
-        'user_params': g.user_params,
         'lang': g.user_params['lang'],
         'smon': sql.alerts_history('Checker', g.user_params['group_id']),
         'user_subscription': roxywi_common.return_user_subscription(),

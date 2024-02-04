@@ -174,7 +174,7 @@
 		{% endfor %}
 	});
 </script>
-<link href="/inc/css/servers.css" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='css/servers.css') }}" rel="stylesheet"/>
 {% include 'include/intro/admin.html' %}
 {% include 'include/intro/js_script.html' %}
 {% endblock %}

@@ -61,15 +61,16 @@
 <br /><span class="add-button" title="{{lang.words.add|title()}} SSH" id="add-ssh-button">+ {{lang.words.add|title()}}</span>
 <br /><br />
 <table id="ssh_key">
-    <tr class="overviewHead" style="width: 50%;">
-        <td class="padding10 first-collumn" style="width: 25%;">{{lang.words.upload|title()}} SSH {{lang.words.key}}</td>
+    <tr class="overviewHead">
+        <td class="padding10 first-collumn">{{lang.words.upload|title()}} SSH {{lang.words.key}}</td>
+        <td style="width: 25%;">{{lang.phrases.ssh_passphrase}}</td>
         <td class="help_cursor">
             <span title="{{lang.phrases.private_key_note}}">{{lang.words.key|title()}}</span>
         </td>
         <td></td>
     </tr>
-    <tr style="width: 50%;">
-        <td class="first-collumn padding10" valign="top" style="padding-top: 15px;">
+    <tr>
+        <td class="first-collumn padding10" style="padding-top: 15px;">
             <select id="ssh-key-name">
                 <option disabled selected>------</option>
                 {% for ssh in sshs %}
@@ -77,6 +78,7 @@
                 {% endfor %}
             </select>
         </td>
+        <td>{{ input('ssh-key-pass', title=lang.phrases.ssh_passphrase, type='password') }}</td>
         <td style="padding-top: 15px;">
             <textarea id="ssh_cert" cols="50" rows="5"></textarea><br /><br />
             <a class="ui-button ui-widget ui-corner-all" id="ssh_key_upload" title="{{lang.words.upload|title()}} SSH {{lang.words.key}}" onclick="uploadSsh()">{{lang.words.upload|title()}}</a>

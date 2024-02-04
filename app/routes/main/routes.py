@@ -9,16 +9,16 @@ sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
 
 from app import app, cache
 from app.routes.main import bp
-import modules.db.sql as sql
+import app.modules.db.sql as sql
 from modules.db.db_model import conn
 from middleware import check_services, get_user_params
-import modules.common.common as common
-import modules.roxywi.roxy as roxy
-import modules.roxywi.auth as roxywi_auth
-import modules.roxywi.nettools as nettools_mod
-import modules.roxywi.common as roxywi_common
-import modules.service.common as service_common
-import modules.service.haproxy as service_haproxy
+import app.modules.common.common as common
+import app.modules.roxywi.roxy as roxy
+import app.modules.roxywi.auth as roxywi_auth
+import app.modules.roxywi.nettools as nettools_mod
+import app.modules.roxywi.common as roxywi_common
+import app.modules.service.common as service_common
+import app.modules.service.haproxy as service_haproxy
 
 
 @app.errorhandler(403)
@@ -83,7 +83,6 @@ def _db_close(exc):
 @get_user_params()
 def stats(service, serv):
     kwargs = {
-        'user_params': g.user_params,
         'autorefresh': 1,
         'serv': serv,
         'service': service,
@@ -109,7 +108,7 @@ def show_stats(service, server_ip):
 @login_required
 @get_user_params(1)
 def nettools():
-    return render_template('nettools.html', user_params=g.user_params, lang=g.user_params['lang'])
+    return render_template('nettools.html', lang=g.user_params['lang'])
 
 
 @bp.post('/nettols/<check>')
@@ -159,7 +158,6 @@ def service_history(service, server_ip):
         abort(404, f'History not found')
 
     kwargs = {
-        'user_params': g.user_params,
         'user_subscription': roxywi_common.return_user_subscription(),
         'users': sql.select_users(),
         'serv': server_ip,
@@ -178,7 +176,6 @@ def servers():
 
     user_group = roxywi_common.get_user_group(id=1)
     kwargs = {
-        'user_params': g.user_params,
         'h2': 1,
         'users': sql.select_users(group=user_group),
         'groups': sql.select_groups(),

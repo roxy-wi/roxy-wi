@@ -48,7 +48,6 @@
     - ansible_facts.services["firewalld.service"]['state'] == "running"
   with_items:  [ "{{ STAT_PORT }}", "{{ SOCK_PORT }}", "10000" ]
 
-
 - name: Open stat port for iptables
   iptables:
     chain: INPUT
@@ -58,27 +57,11 @@
   ignore_errors: yes
   with_items:  [ "{{ STAT_PORT }}", "{{ SOCK_PORT }}", "10000" ]
 
-- name: Create the haproxy group
-  group:
-    name: haproxy
-    state: present
-    system: true
-
-- name: Create the haproxy user
-  user:
-    name: haproxy
-    groups: haproxy
-    append: true
-    shell: /usr/sbin/nologin
-    system: true
-    create_home: false
-    home: /
-
 - name: Creates HAProxy directory
   file:
     path: /etc/haproxy
-    owner: haproxy
-    group: haproxy
+    owner: "{{ansible_user}}"
+    group: "{{ansible_user}}"
     state: directory
   ignore_errors: yes
 

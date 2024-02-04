@@ -1,10 +1,10 @@
 import os
 
-from flask import render_template, make_response
+from flask import render_template, make_response, request
 
-import modules.db.sql as sql
-import modules.roxywi.common as roxywi_common
-import modules.tools.alerting as alerting
+import app.modules.db.sql as sql
+import app.modules.roxywi.common as roxywi_common
+import app.modules.tools.alerting as alerting
 
 
 def create_user(new_user: str, email: str, password: str, role: str, activeuser: int, group: int) -> None:
@@ -28,8 +28,7 @@ def create_user(new_user: str, email: str, password: str, role: str, activeuser:
         except Exception as e:
             roxywi_common.logging('error: Cannot send email for a new user', e, roxywi=1, login=1)
     except Exception as e:
-        roxywi_common.logging('error: Cannot create a new user', e, roxywi=1, login=1)
-        raise Exception(f'error: Cannot create a new user: {e}')
+        roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot create a new user: {e}', roxywi=1, login=1)
 
 
 def delete_user(user_id: int) -> str:

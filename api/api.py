@@ -52,7 +52,7 @@ def index():
 		'server': 'create a new server inside a group. Must be JSON body: hostname, ip, port, virt: enter 0 if is not Virtual IP, group_id, master_id: enter 0 if is not slave, cred_id, description. METHOD: POST',
 		'server/ssh': 'show info about all SSH credentials inside a group. METHOD: GET',
 		'server/ssh': 'create a new SSH credentials inside a group. Must be JSON body: name, key_enabled, username, password. METHOD: POST',
-		'server/ssh/key': 'upload a new SSH key inside a group. Must be JSON body: name, key. Name it is credentials name, in key new lines must be replaced with "\n" METHOD: POST',
+		'server/ssh/key': 'upload a new SSH key inside a group. Must be JSON body: name, key, passphrase (could be empty). Name it is credentials name, in key new lines must be replaced with "\n" METHOD: POST',
 		'servers/status': 'show status all HAProxyes. METHOD: GET',
 		'haproxy/<id,hostname,ip>': 'show info about the HAProxy by id or hostname or ip. METHOD: GET',
 		'haproxy/<id,hostname,ip>/status': 'show HAProxy status by id or hostname or ip. METHOD: GET',

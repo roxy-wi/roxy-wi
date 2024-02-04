@@ -20,7 +20,7 @@ error_mess = roxywi_common.return_error_message()
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 
@@ -198,10 +198,11 @@ def update_ssh():
 def upload_ssh_key():
     user_group = roxywi_common.get_user_group()
     name = common.checkAjaxInput(request.form.get('name'))
+    passphrase = common.checkAjaxInput(request.form.get('pass'))
     key = request.form.get('ssh_cert')
 
     try:
-        return ssh_mod.upload_ssh_key(name, user_group, key)
+        return ssh_mod.upload_ssh_key(name, user_group, key, passphrase)
     except Exception as e:
         return str(e)
 

@@ -4,12 +4,12 @@
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
 <br />
-{% if user_params['servers']|length == 0 %}
+{% if g.user_params['servers']|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
 <form action="" method="post" class="left-space">
 	<input type="hidden" id="service" value="{{service}}" />
-	{{ select('serv', values=user_params['servers'], is_servers='true', selected=serv) }}
+	{{ select('serv', values=g.user_params['servers'], is_servers='true', selected=serv) }}
 	<a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang.words.show|title()}} {{lang.words.stats}}" onclick="showStats()">{{lang.words.open|title()}}</a>
 	{% if service != 'nginx' and service != 'apache' %}
 	<div id="stats_filter">
@@ -146,6 +146,6 @@
 		showStats();		
 	});
 </script>
-<link href="/inc/css/style-6.3.9.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/style-6.3.9.css') }}" rel="stylesheet">
 {% endif %}
 {% endblock %}

@@ -27,7 +27,6 @@ def cluster_function(service):
     group_id = g.user_params['group_id']
     if request.method == 'GET':
         kwargs = {
-            'user_params': g.user_params,
             'clusters': sql.select_clusters(group_id),
             'is_needed_tool': common.is_tool('ansible'),
             'user_subscription': roxywi_common.return_user_subscription()
@@ -62,7 +61,6 @@ def cluster_function(service):
 def get_ha_cluster(service, cluster_id):
     router_id = sql.get_router_id(cluster_id, default_router=1)
     kwargs = {
-        'user_params': g.user_params,
         'servers': roxywi_common.get_dick_permit(virt=1),
         'clusters': sql.select_cluster(cluster_id),
         'slaves': sql.select_cluster_slaves(cluster_id, router_id),
@@ -159,7 +157,6 @@ def show_ha_cluster(service, cluster_id):
 
     user_subscription = roxywi_common.return_user_subscription()
     kwargs = {
-        'user_params': g.user_params,
         'servers': servers_with_status1,
         'waf_server': waf_server,
         'service': service,
@@ -168,6 +165,8 @@ def show_ha_cluster(service, cluster_id):
         'keep_alive': ''.join(keep_alive),
         'restart_settings': restart_settings,
         'user_subscription': user_subscription,
+        'clusters': sql.select_ha_cluster_name_and_slaves(),
+        'master_slave': sql.is_master(0, master_slave=1),
         'lang': g.user_params['lang']
     }
 

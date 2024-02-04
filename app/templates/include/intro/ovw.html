@@ -45,8 +45,8 @@
 					intro: "Roles description",
 				},
                 {% endif %}
-                {% if user_params['role'] < 3 %}
-                    {% if user_params['role'] > 1 %}
+                {% if g.user_params['role'] < 3 %}
+                    {% if g.user_params['role'] > 1 %}
                         {% set board_id = 4 %}
                     {% else %}
                         {% set board_id = 7 %}
@@ -57,7 +57,7 @@
 					intro: "Last log entries",
 				},
                 {% endif %}
-                {% if user_params['role'] == 1 %}
+                {% if g.user_params['role'] == 1 %}
 				{
 					element: document.querySelector('#overview-subs'),
                     title: "Dashboard #8",

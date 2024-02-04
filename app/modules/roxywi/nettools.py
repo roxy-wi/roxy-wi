@@ -1,13 +1,31 @@
+from flask import Response, stream_with_context
+
+import app.modules.server.ssh as mod_ssh
 import modules.server.server as server_mod
 
 
-def ping_from_server(server_from: str, server_to: str, action: str) -> str:
-    stderr = ''
+def ping_from_server(server_from: str, server_to: str, action: str) -> Response:
     action_for_sending = ''
-    output1 = ''
 
-    if server_to == '':
-        return 'warning: enter a correct IP or DNS name'
+    def paint_output(generated):
+        yield '<div class="ping_pre">'
+        for k in generated:
+            try:
+                k = k.decode('utf-8')
+            except Exception:
+                yield ''
+            for i in k.split('\n'):
+                if i == ' ' or i == '':
+                    continue
+                if 'PING' in i:
+                    yield f'<span style="color: var(--link-dark-blue); display: block; margin-top: -5px;">{i}</span><br />\n'
+                elif i in ('no reply', 'no answer yet', 'Too many hops', '100% packet loss'):
+                    yield f'<span style="color: var(--red-color);">{i}</span><br />\n'
+                elif 'ms' in i and '100% packet loss' not in i:
+                    yield f'<span style="color: var(--green-color);">{i}</span><br />\n'
+                else:
+                    yield f'{i}<br />'
+        yield '</div>'
 
     if action == 'nettools_ping':
         action_for_sending = 'ping -c 4 -W 1 -s 56 -O '
@@ -17,29 +35,10 @@ def ping_from_server(server_from: str, server_to: str, action: str) -> str:
     action_for_sending = action_for_sending + server_to
 
     if server_from == 'localhost':
-        output, stderr = server_mod.subprocess_execute(action_for_sending)
+        return Response(stream_with_context(paint_output(server_mod.subprocess_execute_stream(action_for_sending))), mimetype='text/html')
     else:
-        action_for_sending = [action_for_sending]
-        output = server_mod.ssh_command(server_from, action_for_sending, raw=1, timeout=15)
-
-    if stderr != '':
-        return f'error: {stderr}'
-    for i in output:
-        if i == ' ' or i == '':
-            continue
-        i = i.strip()
-        if 'PING' in i:
-            output1 += '<span style="color: var(--link-dark-blue); display: block; margin-top: -5px;">'
-        elif 'no reply' in i or 'no answer yet' in i or 'Too many hops' in i or '100% packet loss' in i:
-            output1 += '<span style="color: var(--red-color);">'
-        elif 'ms' in i and '100% packet loss' not in i:
-            output1 += '<span style="color: var(--green-color);">'
-        else:
-            output1 += '<span>'
-
-        output1 += i + '</span><br />'
-
-    return output1
+        ssh_generator = mod_ssh.ssh_connect(server_from)
+        return Response(stream_with_context(paint_output(ssh_generator.generate(action_for_sending))), mimetype='text/html')
 
 
 def telnet_from_server(server_from: str, server_to: str, port_to: str) -> str:

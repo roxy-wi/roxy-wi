@@ -45,7 +45,7 @@
 				<td class="padding10 first-collumn">
 					<select autofocus required name="haproxyaddserv" id="haproxyaddserv">
 						<option disabled selected>------</option>
-						{% for select in user_params['servers'] %}
+						{% for select in g.user_params['servers'] %}
                             <option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
@@ -80,7 +80,7 @@
 				<td class="padding10 first-collumn">
 					<select autofocus required name="nginxaddserv" id="nginxaddserv">
 						<option disabled selected>------</option>
-						{% for select in user_params['servers'] %}
+						{% for select in g.user_params['servers'] %}
                             <option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
@@ -115,7 +115,7 @@
 				<td class="padding10 first-collumn">
 					<select autofocus required name="apacheaddserv" id="apacheaddserv">
 						<option disabled selected>------</option>
-						{% for select in user_params['servers'] %}
+						{% for select in g.user_params['servers'] %}
                             <option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
@@ -145,7 +145,7 @@
             </h4>
         </div>
         {% else %}
-        {% if user_params['role']|int() == 1 %}
+        {% if g.user_params['role']|int() == 1 %}
         <table id="grafana-table">
             <caption><i class="fas fa-chart-bar caption-icon2"></i><h3>Grafana {{lang.words.and}} Prometheus {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
@@ -193,12 +193,12 @@
                 <td class="padding10 first-collumn" style="width: 20%;">
                     {% set values = dict() %}
                     {% set values = {'0.9.0':'0.9.0', '0.10.0':'0.10.0', '0.11.0':'0.11.0', '0.12.0':'0.12.0', '0.13.0':'0.13.0', '0.14.0':'0.14.0', '0.15.0':'0.15.0'} %}
-                    {{ select('hapexpver',  values=values, selected='0.15.0') }}
+                    {{ select('haproxyexpver',  values=values, selected='0.15.0') }}
                 </td>
                 <td class="padding10 first-collumn">
                     <select autofocus required name="haproxy_exp_addserv" id="haproxy_exp_addserv">
                         <option disabled selected>------</option>
-                        {% for select in user_params['servers'] %}
+                        {% for select in g.user_params['servers'] %}
                             <option value="{{ select.2 }}">{{ select.1 }}</option>
                         {% endfor %}
                     </select>
@@ -229,7 +229,7 @@
                 <td class="padding10 first-collumn">
                     <select autofocus required name="nginx_exp_addserv" id="nginx_exp_addserv">
                         <option disabled selected>------</option>
-                        {% for select in user_params['servers'] %}
+                        {% for select in g.user_params['servers'] %}
                             <option value="{{ select.2 }}">{{ select.1 }}</option>
                         {% endfor %}
                     </select>
@@ -260,7 +260,7 @@
                 <td class="padding10 first-collumn">
                     <select autofocus required name="apache_exp_addserv" id="apache_exp_addserv">
                         <option disabled selected>------</option>
-                        {% for select in user_params['servers'] %}
+                        {% for select in g.user_params['servers'] %}
                             <option value="{{ select.2 }}">{{ select.1 }}</option>
                         {% endfor %}
                     </select>
@@ -291,7 +291,7 @@
                 <td class="padding10 first-collumn">
                     <select autofocus required name="keepalived_exp_addserv" id="keepalived_exp_addserv">
                         <option disabled selected>------</option>
-                        {% for select in user_params['servers'] %}
+                        {% for select in g.user_params['servers'] %}
                             <option value="{{ select.2 }}">{{ select.1 }}</option>
                         {% endfor %}
                     </select>
@@ -322,7 +322,7 @@
                 <td class="padding10 first-collumn">
                     <select autofocus required name="node_exp_addserv" id="node_exp_addserv">
                         <option disabled selected>------</option>
-                        {% for select in user_params['servers'] %}
+                        {% for select in g.user_params['servers'] %}
                             <option value="{{ select.2 }}">{{ select.1 }}</option>
                         {% endfor %}
                     </select>
@@ -363,7 +363,7 @@
 				<td class="padding10 first-collumn">
 					<select autofocus required name="geoipserv" id="geoipserv">
 						<option disabled selected>------</option>
-						{% for select in user_params['servers'] %}
+						{% for select in g.user_params['servers'] %}
 						    <option value="{{ select.2 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>

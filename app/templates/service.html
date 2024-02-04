@@ -4,7 +4,7 @@
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
 <script src="/inc/overview.js"></script>
-<link href="/inc/css/chart.min.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/chart.min.css') }}" rel="stylesheet">
 <script src="/inc/metrics.js"></script>
 <script src="/inc/chart.min-4.3.0.js"></script>
 {% if servers|length == 0 %} {% include 'include/getstarted.html' %} {% endif %}
@@ -224,7 +224,7 @@
 					<span class="box" title="This server is dockerized"></span>
 					{% endif %}
 				{% endfor %}
-				{% if user_params['role'] <= 3 %}
+				{% if g.user_params['role'] <= 3 %}
 				<span class="server-action">
 					<a id="start-{{ s.2 }}" class="start" title="{{lang.words.start|title()}} {{service}} {{lang.words.service}}">
 						<span class="service-start" onclick="confirmAjaxAction('start', '{{service}}', '{{s.2}}')"></span>
@@ -328,7 +328,7 @@
 				</div>
 			</div>
 			<div class="server-act-links" id="server-{{s.7.0.0|string()}}-{{service}}">
-				{% if user_params['role'] <= 2 %}
+				{% if g.user_params['role'] <= 2 %}
 					{% set id = 'alert-' + s.7.0.0|string() %}
 					{% if is_checker_enabled == 1 %}
 						{{ checkbox(id, title=checker_desc, value='1', desc='Checker', checked='checked') }}
@@ -336,7 +336,7 @@
 						{{ checkbox(id, title=checker_desc, value='1', desc='Checker') }}
 					{% endif %}
 				{% endif %}
-				{% if user_params['role'] <= 2 and service != 'keepalived' %}
+				{% if g.user_params['role'] <= 2 and service != 'keepalived' %}
 					{% set id = 'metrics-' + s.7.0.0|string() %}
 					{% if is_metrics_enabled == 1 %}
 						{{ checkbox(id, title='Collecting metrics is enabled', value='1', desc='Metrics', checked='checked') }}
@@ -344,7 +344,7 @@
 						{{ checkbox(id, title='Enable collecting metrics', value='1', desc='Metrics') }}
 					{% endif %}
 				{% endif %}
-				{% if user_params['role'] <= 2 %}
+				{% if g.user_params['role'] <= 2 %}
 					{% set id = 'active-' + s.7.0.0|string() %}
 					{% if is_auto_start_enabled == 1 %}
 						{{ checkbox(id, title='Auto Start is enabled', value='1', desc='Auto Start', checked='checked') }}
@@ -366,8 +366,8 @@
 			{% if service != 'keepalived' %}
 			<a href="{{ url_for('main.stats', service=service, serv=s.2) }}" class="ui-button ui-widget ui-corner-all" {{stats_id}} title="{{lang.words.view|title()}} {{service}} {{lang.words.statistics}}">{{lang.menu_links.stats.link}}</a>
 			{% endif %}
-			<a href="{{ url_for('logs.logs', service=service) }}" {{logs_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{service}} {{lang.words.logs}}">{{lang.menu_links.logs.link}}</a>
-			{% if user_params['role'] <= 2 %}
+			<a href="{{ url_for('logs.logs', service=service) }}?serv={{ s.2 }}" {{logs_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{service}} {{lang.words.logs}}">{{lang.menu_links.logs.link}}</a>
+			{% if g.user_params['role'] <= 2 %}
 				<a href="{{ url_for('config.versions', service=service, server_ip=s.2) }}" class="ui-button ui-widget ui-corner-all" {{versions_id}} title="{{lang.words.view|title()}}/{{lang.words.rollback|title()}} {{lang.words.to}} {{lang.words.previous}} {{lang.words.config}}">{{lang.menu_links.versions.link}}</a>
 			{% endif %}
 			</div>

@@ -8,7 +8,7 @@ import modules.common.common as common
 import modules.roxywi.auth as roxywi_auth
 import modules.server.server as server_mod
 import modules.service.common as service_common
-import modules.service.installation as service_mod
+import app.modules.service.installation as service_mod
 import modules.service.exporter_installation as exp_installation
 
 
@@ -24,7 +24,6 @@ def before_request():
 def install_monitoring():
     roxywi_auth.page_for_admin(level=2)
     kwargs = {
-        'user_params': g.user_params,
         'is_needed_tool': common.is_tool('ansible'),
         'geoip_country_codes': sql.select_geoip_country_codes(),
         'lang': g.user_params['lang']
@@ -56,14 +55,13 @@ def install_exporter(exporter):
     ver = common.checkAjaxInput(request.form.get('exporter_v'))
     ext_prom = common.checkAjaxInput(request.form.get('ext_prom'))
 
-    if exporter == 'haproxy':
-        return exp_installation.haproxy_exp_installation(server_ip, ver, ext_prom)
-    elif exporter in ('nginx', 'apache'):
-        return exp_installation.nginx_apache_exp_installation(server_ip, exporter, ver, ext_prom)
-    elif exporter in ('keepalived', 'node'):
-        return exp_installation.node_keepalived_exp_installation(exporter, server_ip, ver, ext_prom)
-    else:
+    if exporter not in ('haproxy', 'nginx', 'apache', 'keepalived', 'node'):
         return 'error: Wrong exporter'
+
+    try:
+        return exp_installation.install_exporter(server_ip, ver, ext_prom, exporter)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/exporter/<exporter>/version/<server_ip>')

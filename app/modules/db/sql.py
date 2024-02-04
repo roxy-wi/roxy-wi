@@ -4,6 +4,8 @@ import os
 import sys
 import traceback
 
+from flask import request
+
 from modules.db.db_model import *
 import modules.roxy_wi_tools as roxy_wi_tools
 
@@ -19,24 +21,17 @@ def out_error(error):
 
 
 def get_setting(param, **kwargs):
-	import http.cookies
-
 	user_group = ''
 	try:
-		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		user_group_id = cookie.get('group')
-		user_group_id1 = user_group_id.value
-		groups = sql.select_groups(id=user_group_id1)
+		user_group_id = request.cookies.get('group')
+		groups = select_groups(id=user_group_id)
 		for g in groups:
-			if g.group_id == int(user_group_id1):
-				if kwargs.get('id'):
-					user_group = g.group_id
-				else:
-					user_group = g.name
+			if int(g.group_id) == int(user_group_id):
+				user_group = g.group_id
+				break
 	except Exception:
 		pass
-
-	if user_group == '' or param in ('proxy'):
+	if user_group == '' or param == 'proxy':
 		user_group = 1
 
 	if kwargs.get('all'):
@@ -54,7 +49,7 @@ def get_setting(param, **kwargs):
 		else:
 			for setting in query_res:
 				if param in (
-					'nginx_stats_port', 'session_ttl', 'token_ttl', 'stats_port', 'haproxy_sock_port', 'ldap_type',
+					'nginx_stats_port', 'session_ttl', 'token_ttl', 'haproxy_stats_port', 'haproxy_sock_port', 'ldap_type',
 					'ldap_port', 'ldap_enable', 'log_time_storage', 'syslog_server_enable', 'smon_check_interval',
 					'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range', 'checker_keep_history_range',
 					'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port', 'smon_ssl_expire_warning_alert',
@@ -201,12 +196,12 @@ def add_setting_for_new_group(group_id):
 		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs',
 			'desc': 'Enable getting logs from a syslog server; (0 - no, 1 - yes)', 'group': group_id},
 		{'param': 'syslog_server', 'value': '', 'section': 'logs', 'desc': 'IP address of the syslog_server', 'group': group_id},
-		{'param': 'stats_user', 'value': 'admin', 'section': 'haproxy',
+		{'param': 'haproxy_stats_user', 'value': 'admin', 'section': 'haproxy',
 			'desc': 'Username for accessing HAProxy stats page', 'group': group_id},
-		{'param': 'stats_password', 'value': 'password', 'section': 'haproxy',
+		{'param': 'haproxy_stats_password', 'value': 'password', 'section': 'haproxy',
 			'desc': 'Password for accessing HAProxy stats page', 'group': group_id},
-		{'param': 'stats_port', 'value': '8085', 'section': 'haproxy', 'desc': 'Port for HAProxy stats page', 'group': group_id},
-		{'param': 'stats_page', 'value': 'stats', 'section': 'haproxy', 'desc': 'URI for HAProxy stats page', 'group': group_id},
+		{'param': 'haproxy_stats_port', 'value': '8085', 'section': 'haproxy', 'desc': 'Port for HAProxy stats page', 'group': group_id},
+		{'param': 'haproxy_stats_page', 'value': 'stats', 'section': 'haproxy', 'desc': 'URI for HAProxy stats page', 'group': group_id},
 		{'param': 'haproxy_dir', 'value': '/etc/haproxy', 'section': 'haproxy', 'desc': 'Path to the HAProxy directory', 'group': group_id},
 		{'param': 'haproxy_config_path', 'value': '/etc/haproxy/haproxy.cfg', 'section': 'haproxy', 'desc': 'Path to the HAProxy configuration file', 'group': group_id},
 		{'param': 'server_state_file', 'value': '/etc/haproxy/haproxy.state', 'section': 'haproxy', 'desc': 'Path to the HAProxy state file', 'group': group_id},
@@ -341,7 +336,7 @@ def update_server(hostname, group, typeip, enable, master, server_id, cred, port
 		out_error(e)
 
 
-def update_server_services(server_id: str, haproxy: int, nginx: int, apache: int, keepalived: int) -> bool:
+def update_server_services(server_id: int, haproxy: int, nginx: int, apache: int, keepalived: int) -> bool:
 	try:
 		server_update = Server.update(
 			haproxy=haproxy, nginx=nginx, apache=apache, keepalived=keepalived
@@ -503,13 +498,13 @@ def get_group_id_by_name(group_name):
 		return group_id.group_id
 
 
-def get_group_id_by_server_ip(server_ip):
-	try:
-		group_id = Server.get(Server.ip == server_ip)
-	except Exception as e:
-		out_error(e)
-	else:
-		return group_id.groups
+# def get_group_id_by_server_ip(server_ip):
+# 	try:
+# 		group_id = Server.get(Server.ip == server_ip)
+# 	except Exception as e:
+# 		out_error(e)
+# 	else:
+# 		return group_id.groups
 
 
 def get_cred_id_by_server_ip(server_ip):
@@ -549,22 +544,22 @@ def select_server_id_by_ip(server_ip):
 		return server_id
 
 
-def select_server_name_by_ip(server_ip):
-	try:
-		server_name = Server.get(Server.ip == server_ip).hostname
-	except Exception:
-		return None
-	else:
-		return server_name
-
-
-def select_server_group_by_ip(server_ip):
-	try:
-		groups = Server.get(Server.ip == server_ip).groups
-	except Exception as e:
-		return out_error(e)
-	else:
-		return groups
+# def select_server_name_by_ip(server_ip):
+# 	try:
+# 		server_name = Server.get(Server.ip == server_ip).hostname
+# 	except Exception:
+# 		return None
+# 	else:
+# 		return server_name
+#
+#
+# def select_server_group_by_ip(server_ip):
+# 	try:
+# 		groups = Server.get(Server.ip == server_ip).groups
+# 	except Exception as e:
+# 		return out_error(e)
+# 	else:
+# 		return groups
 
 
 def select_server_ip_by_id(server_id: int) -> str:
@@ -639,7 +634,6 @@ def select_servers(**kwargs):
 
 def write_user_uuid(login, user_uuid):
 	session_ttl = get_setting('session_ttl')
-	session_ttl = int(session_ttl)
 	user_id = get_user_id_by_username(login)
 	cur_date = get_date.return_date('regular', timedelta=session_ttl)
 
@@ -740,8 +734,8 @@ def delete_old_uuid():
 
 
 def update_last_act_user(uuid: str, token: str, ip: str) -> None:
-	session_ttl = int(get_setting('session_ttl'))
-	token_ttl = int(get_setting('token_ttl'))
+	session_ttl = get_setting('session_ttl')
+	token_ttl = get_setting('token_ttl')
 	cur_date_session = get_date.return_date('regular', timedelta=session_ttl)
 	cur_date_token = get_date.return_date('regular', timedelta=token_ttl)
 	cur_date = get_date.return_date('regular')
@@ -1021,6 +1015,13 @@ def update_ssh(cred_id, name, enable, group, username, password):
 		Cred.id == cred_id)
 	try:
 		cred_update.execute()
+	except Exception as e:
+		out_error(e)
+
+
+def update_ssh_passphrase(name: str, passphrase: str):
+	try:
+		Cred.update(passphrase=passphrase).where(Cred.name == name).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -2560,18 +2561,18 @@ def update_server_pos(pos, server_id) -> str:
 		return 'not_ok'
 
 
-def check_token_exists(token):
-	try:
-		import http.cookies
-		import os
-		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-		user_id = cookie.get('uuid')
-		if get_token(user_id.value) == token:
-			return True
-		else:
-			return False
-	except Exception:
-		return False
+# def check_token_exists(token):
+# 	try:
+# 		import http.cookies
+# 		import os
+# 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
+# 		user_id = cookie.get('uuid')
+# 		if get_token(user_id.value) == token:
+# 			return True
+# 		else:
+# 			return False
+# 	except Exception:
+# 		return False
 
 
 def insert_smon(name, enable, group, desc, telegram, slack, pd, user_group, check_type):
@@ -2984,7 +2985,7 @@ def smon_list(user_group):
 		return query_res
 
 
-def select_one_smon(smon_id: int, check_id: int) -> object:
+def select_one_smon(smon_id: int, check_id: int) -> tuple:
 	if check_id == 1:
 		query = SmonTcpCheck.select(SmonTcpCheck, SMON).join_from(SmonTcpCheck, SMON).where(SMON.id == smon_id)
 	elif check_id == 2:
@@ -3002,10 +3003,10 @@ def select_one_smon(smon_id: int, check_id: int) -> object:
 		return query_res
 
 
-def insert_smon_history(smon_id: int, response_time: float, status: int, check_id: int, mes='') -> None:
+def insert_smon_history(smon_id: int, resp_time: float, status: int, check_id: int, mes='') -> None:
 	cur_date = get_date.return_date('regular')
 	try:
-		SmonHistory.insert(smon_id=smon_id, response_time=response_time, status=status, date=cur_date,
+		SmonHistory.insert(smon_id=smon_id, response_time=resp_time, status=status, date=cur_date,
 						   check_id=check_id, mes=mes).execute()
 	except Exception as e:
 		out_error(e)
@@ -3043,7 +3044,7 @@ def get_last_smon_status_by_check(smon_id: int) -> object:
 			return ''
 
 
-def get_last_smon_res_time_by_check(smon_id: int, check_id: int) -> object:
+def get_last_smon_res_time_by_check(smon_id: int, check_id: int) -> int:
 	query = SmonHistory.select().where(
 		(SmonHistory.smon_id == smon_id) &
 		(SmonHistory.check_id == check_id)
@@ -3108,7 +3109,7 @@ def get_smon_service_name_by_id(smon_id: int) -> str:
 			return ''
 
 
-def get_avg_resp_time(smon_id: int, check_id: int) -> object:
+def get_avg_resp_time(smon_id: int, check_id: int) -> int:
 	try:
 		query_res = SmonHistory.select(fn.AVG(SmonHistory.response_time)).where(
 			(SmonHistory.smon_id == smon_id) &
@@ -3137,21 +3138,21 @@ def insert_alerts(user_group, level, ip, port, message, service):
 				conn.close()
 
 
-def select_alerts(user_group):
-	cursor = conn.cursor()
-	if mysql_enable == '1':
-		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` <= (now()+ INTERVAL 10 second) """ % (
-			user_group)
-	else:
-		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime')
-		and `date` <=  datetime('now', 'localtime') ; """ % (
-			user_group)
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		out_error(e)
-	else:
-		return cursor.fetchall()
+# def select_alerts(user_group):
+# 	cursor = conn.cursor()
+# 	if mysql_enable == '1':
+# 		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` <= (now()+ INTERVAL 10 second) """ % (
+# 			user_group)
+# 	else:
+# 		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime')
+# 		and `date` <=  datetime('now', 'localtime') ; """ % (
+# 			user_group)
+# 	try:
+# 		cursor.execute(sql)
+# 	except Exception as e:
+# 		out_error(e)
+# 	else:
+# 		return cursor.fetchall()
 
 
 def select_all_alerts_for_all():
@@ -3348,74 +3349,6 @@ def select_port_scanner_history(serv):
 		return query_res
 
 
-def add_provider_do(provider_name, provider_group, provider_token):
-	cur_date = get_date.return_date('regular')
-	try:
-		ProvidersCreds.insert(
-			name=provider_name, type='do', group=provider_group, key=provider_token,
-			create_date=cur_date, edit_date=cur_date
-		).execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def add_provider_aws(provider_name, provider_group, provider_key, provider_secret):
-	cur_date = get_date.return_date('regular')
-	try:
-		ProvidersCreds.insert(
-			name=provider_name, type='aws', group=provider_group, key=provider_key, secret=provider_secret,
-			create_date=cur_date, edit_date=cur_date
-		).execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def add_provider_gcore(provider_name, provider_group, provider_user, provider_pass):
-	cur_date = get_date.return_date('regular')
-	try:
-		ProvidersCreds.insert(
-			name=provider_name, type='gcore', group=provider_group, key=provider_user,
-			secret=provider_pass, create_date=cur_date, edit_date=cur_date
-		).execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def select_providers(user_group, **kwargs):
-	if user_group == 1:
-		query = ProvidersCreds.select()
-	else:
-		if kwargs.get('key'):
-			query = ProvidersCreds.select().where(
-				(ProvidersCreds.key == kwargs.get('key'))
-				& (ProvidersCreds.group == user_group)
-			)
-		else:
-			query = ProvidersCreds.select().where(ProvidersCreds.group == user_group)
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def delete_provider(provider_id):
-	query = ProvidersCreds.delete().where(ProvidersCreds.id == provider_id)
-	try:
-		query.execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
 def is_serv_protected(serv):
 	try:
 		query_res = Server.get(Server.ip == serv)
@@ -3528,7 +3461,7 @@ def select_service_setting(server_id: int, service: str, setting: str) -> int:
 			& (ServiceSetting.setting == setting)
 		).value
 	except Exception:
-		return 0
+		return '0'
 	else:
 		return result
 
@@ -3704,15 +3637,15 @@ def select_one_system_info(server_id: int):
 		return query_res
 
 
-def select_system_info():
-	query = SystemInfo.select()
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-		return
-	else:
-		return query_res
+# def select_system_info():
+# 	query = SystemInfo.select()
+# 	try:
+# 		query_res = query.execute()
+# 	except Exception as e:
+# 		out_error(e)
+# 		return
+# 	else:
+# 		return query_res
 
 
 def is_system_info(server_id):
@@ -3721,10 +3654,10 @@ def is_system_info(server_id):
 	except Exception:
 		return True
 	else:
-		if query_res != '':
-			return False
-		else:
+		if query_res:
 			return True
+		else:
+			return False
 
 
 def select_os_info(server_id):
@@ -4000,7 +3933,7 @@ def update_service_checker_settings(
 		return True
 
 
-def select_service(slug: str) -> str:
+def select_service(slug: str) -> object:
 	try:
 		query_res = Services.get(Services.slug == slug)
 	except Exception as e:
@@ -4050,9 +3983,7 @@ def select_checker_services_status() -> tuple:
 		return services_check_status
 
 
-def inset_or_update_service_status(
-		server_id: int, service_id: int, service_check: str, status: int
-) -> None:
+def inset_or_update_service_status(server_id: int, service_id: int, service_check: str, status: int) -> None:
 	query = ServiceStatus.insert(
 		server_id=server_id, service_id=service_id, service_check=service_check, status=status
 	).on_conflict('replace')
@@ -4063,20 +3994,19 @@ def inset_or_update_service_status(
 
 
 def update_smon_ssl_expire_date(smon_id: str, expire_date: str) -> None:
-	SMON_update = SMON.update(ssl_expire_date=expire_date).where(SMON.id == smon_id)
 	try:
-		SMON_update.execute()
+		SMON.update(ssl_expire_date=expire_date).where(SMON.id == smon_id)
 	except Exception as e:
 		out_error(e)
 
 
 def update_smon_alert_status(smon_id: str, alert_value: int, alert: str) -> None:
 	if alert == 'ssl_expire_warning_alert':
-		SMON_update = SMON.update(ssl_expire_warning_alert=alert_value).where(SMON.id == smon_id)
+		query = SMON.update(ssl_expire_warning_alert=alert_value).where(SMON.id == smon_id)
 	else:
-		SMON_update = SMON.update(ssl_expire_critical_alert=alert_value).where(SMON.id == smon_id)
+		query = SMON.update(ssl_expire_critical_alert=alert_value).where(SMON.id == smon_id)
 	try:
-		SMON_update.execute()
+		query.execute()
 	except Exception as e:
 		out_error(e)
 
@@ -4281,23 +4211,9 @@ def select_cluster_name(cluster_id: int) -> str:
 		out_error(e)
 
 
-def select_clusters_slaves():
-	try:
-		return HaClusterSlave.select().execute()
-	except Exception as e:
-		out_error(e)
-
-
 def select_clusters_virts():
 	try:
 		return HaClusterVirt.select().execute()
-	except Exception as e:
-		out_error(e)
-
-
-def select_clusters_vips():
-	try:
-		return HaClusterVip.select().execute()
 	except Exception as e:
 		out_error(e)
 
@@ -4389,13 +4305,6 @@ def delete_ha_cluster_delete_slave(server_id: int) -> None:
 		out_error(e)
 
 
-def delete_ha_cluster_delete_slaves(cluster_id: int) -> None:
-	try:
-		HaClusterSlave.delete().where(HaClusterSlave.cluster_id == cluster_id).execute()
-	except Exception as e:
-		out_error(e)
-
-
 def delete_master_from_slave(server_id: int) -> None:
 	try:
 		Server.update(master=0).where(Server.server_id == server_id).execute()
@@ -4403,17 +4312,13 @@ def delete_master_from_slave(server_id: int) -> None:
 		out_error(e)
 
 
-def ha_cluster_add_slave(server_id: int, master_id: int) -> None:
-	try:
-		HaClusterSlave.insert(
-			server_id=server_id,
-			cluster_id=HaCluster.get(HaCluster.master_id == master_id).id
-		).execute()
-	except Exception as e:
-		out_error(e)
-
-
 def select_ha_cluster_not_masters_not_slaves(group_id: int):
+	"""
+	Method for selecting HA clusters excluding masters and slaves.
+
+	:param group_id: The ID of the group.
+	:return: The query result.
+	"""
 	try:
 		query = Server.select().where(
 			(Server.type_ip == 0) &
@@ -4426,6 +4331,12 @@ def select_ha_cluster_not_masters_not_slaves(group_id: int):
 
 
 def get_router_id(cluster_id: int, default_router=0) -> int:
+	"""
+	:param cluster_id: The ID of the cluster to get the router ID from.
+	:param default_router: The default router ID to retrieve. Default value is 0.
+	:return: The ID of the router associated with the given cluster ID and default router ID.
+
+	"""
 	try:
 		return HaClusterRouter.get((HaClusterRouter.cluster_id == cluster_id) & (HaClusterRouter.default == default_router)).id
 	except Exception as e:
@@ -4433,6 +4344,18 @@ def get_router_id(cluster_id: int, default_router=0) -> int:
 
 
 def create_ha_router(cluster_id: int) -> int:
+	"""
+	Create HA Router
+
+	This method is used to create a HA (High Availability) router for a given cluster.
+
+	:param cluster_id: The ID of the cluster for which the HA router needs to be created.
+	:return: The ID of the created HA router.
+	:rtype: int
+
+	:raises Exception: If an error occurs while creating the HA router.
+
+	"""
 	try:
 		last_id = HaClusterRouter.insert(cluster_id=cluster_id).execute()
 		return last_id
@@ -4502,12 +4425,6 @@ def check_ha_virt(vip_id: int) -> bool:
 
 def select_ha_cluster_name_and_slaves() -> object:
 	try:
-		query = (
-			HaCluster.select(HaCluster.id, HaCluster.name, HaClusterSlave.server_id)
-				.join(HaClusterSlave)
-		)
-		result = query.execute()
+		return HaCluster.select(HaCluster.id, HaCluster.name, HaClusterSlave.server_id).join(HaClusterSlave).execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		return result

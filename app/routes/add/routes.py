@@ -21,7 +21,7 @@ get_date = roxy_wi_tools.GetDate(time_zone)
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 
@@ -37,7 +37,6 @@ def add(service):
     roxywi_auth.page_for_admin(level=3)
     kwargs = {
         'h2': 1,
-        'user_params': g.user_params,
         'add': request.form.get('add'),
         'conf_add': request.form.get('conf'),
         'lang': g.user_params['lang']

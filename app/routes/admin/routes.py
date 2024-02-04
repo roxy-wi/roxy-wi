@@ -20,7 +20,7 @@ import app.modules.tools.common as tools_common
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 
@@ -34,7 +34,6 @@ def admin():
         grafana = tools_common.is_tool_active('grafana-server')
 
     kwargs = {
-        'user_params': g.user_params,
         'lang': g.user_params['lang'],
         'users': sql.select_users(),
         'groups': sql.select_groups(),

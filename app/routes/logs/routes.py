@@ -17,7 +17,7 @@ get_config = roxy_wi_tools.GetConfigVar()
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 
@@ -39,7 +39,6 @@ def logs_internal():
         selects.append(['roxy-wi.access.log', 'access.log'])
 
     kwargs = {
-        'user_params': g.user_params,
         'autorefresh': 1,
         'selects': selects,
         'serv': 'viewlogs',
@@ -79,7 +78,6 @@ def logs(service, waf):
         return redirect(url_for('index'))
 
     kwargs = {
-        'user_params': g.user_params,
         'autorefresh': 1,
         'servers': servers,
         'serv': serv,

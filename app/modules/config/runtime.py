@@ -2,15 +2,14 @@ import json
 
 from flask import render_template
 
-import modules.db.sql as sql
-import modules.config.config as config_mod
-import modules.config.section as section_mod
-import modules.server.server as server_mod
-import modules.roxywi.common as roxywi_common
+import app.modules.db.sql as sql
+import app.modules.config.config as config_mod
+import app.modules.config.common as config_common
+import app.modules.config.section as section_mod
+import app.modules.server.server as server_mod
+import app.modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
 
-time_zone = sql.get_setting('time_zone')
-get_date = roxy_wi_tools.GetDate(time_zone)
 get_config_var = roxy_wi_tools.GetConfigVar()
 
 
@@ -85,17 +84,15 @@ def show_backends(server_ip, **kwargs):
 
 
 def get_backends_from_config(server_ip: str, backends='') -> str:
-	config_date = get_date.return_date('config')
 	configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-	format_cfg = 'cfg'
 	lines = ''
 
 	try:
-		cfg = configs_dir + roxywi_common.get_files(configs_dir, format_cfg)[0]
+		cfg = configs_dir + roxywi_common.get_files(configs_dir, 'cfg')[0]
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		try:
-			cfg = f'{configs_dir}{server_ip}-{config_date}.{format_cfg}'
+			cfg = config_common.generate_config_path('haproxy', server_ip)
 		except Exception as e:
 			roxywi_common.logging('Roxy-WI server', f'error: Cannot generate cfg path: {e}', roxywi=1)
 			return f'error: Cannot generate cfg path: {e}'
@@ -150,8 +147,7 @@ def change_ip_and_port(serv, backend_backend, backend_server, backend_ip, backen
 		return 'error: ' + stderr[0]
 
 	lines += output[0]
-	configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-	cfg = f"{configs_dir}{serv}-{get_date.return_date('config')}.cfg"
+	cfg = config_common.generate_config_path('haproxy', serv)
 
 	config_mod.get_config(serv, cfg)
 	cmd = 'string=`grep %s %s -n -A25 |grep "server %s" |head -1|awk -F"-" \'{print $1}\'` ' \
@@ -240,8 +236,7 @@ def add_server(
 	if check:
 		check_cfg = f'check port {port_check}'
 
-	configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-	cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
+	cfg = config_common.generate_config_path('haproxy', server_ip)
 	try:
 		config_mod.get_config(server_ip, cfg)
 	except Exception as e:
@@ -292,12 +287,10 @@ def delete_server(server_ip: str, backend: str, server: str) -> str:
 	if 'No such server' in lines:
 		return f'error: {lines}'
 
-	configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-	cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
+	cfg = config_common.generate_config_path('haproxy', server_ip)
 
 	config_mod.get_config(server_ip, cfg)
 	cmd = f'string=`grep {backend} {cfg} -n -A25 |grep "server {server}" |head -1|awk -F"-" \'{{print $1}}\'` && sed -i "$(echo $string)d" {cfg}'
-	print(cmd)
 	server_mod.subprocess_execute(cmd)
 	config_mod.master_slave_upload_and_restart(server_ip, cfg, 'save', 'haproxy')
 
@@ -324,8 +317,7 @@ def change_maxconn_global(serv: str, maxconn: int) -> str:
 	if stderr != '':
 		return stderr[0]
 	elif output[0] == '':
-		configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-		cfg = f"{configs_dir}{serv}-{get_date.return_date('config')}.cfg"
+		cfg = config_common.generate_config_path('haproxy', serv)
 
 		config_mod.get_config(serv, cfg)
 		cmd = 'string=`grep global %s -n -A5 |grep maxcon -n |awk -F":" \'{print $2}\'|awk -F"-" \'{print $1}\'` ' \
@@ -357,8 +349,7 @@ def change_maxconn_frontend(serv, maxconn, frontend) -> str:
 	if stderr != '':
 		return stderr[0]
 	elif output[0] == '':
-		configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-		cfg = f"{configs_dir}{serv}-{get_date.return_date('config')}.cfg"
+		cfg = config_common.generate_config_path('haproxy', serv)
 
 		config_mod.get_config(serv, cfg)
 		cmd = 'string=`grep %s %s -n -A5 |grep maxcon -n |awk -F":" \'{print $2}\'|awk -F"-" \'{print $1}\'` ' \
@@ -390,8 +381,7 @@ def change_maxconn_backend(serv, backend, backend_server, maxconn) -> str:
 	if stderr != '':
 		return stderr[0]
 	elif output[0] == '':
-		configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-		cfg = f"{configs_dir}{serv}-{get_date.return_date('config')}.cfg"
+		cfg = config_common.generate_config_path('haproxy', serv)
 
 		config_mod.get_config(serv, cfg)
 		cmd = 'string=`grep %s %s -n -A10 |grep maxcon -n|grep %s |awk -F":" \'{print $2}\'|awk -F"-" \'{print $1}\'` ' \
@@ -457,7 +447,7 @@ def list_of_lists(serv) -> str:
 		return '------'
 
 
-def show_lists(serv, list_id, color, list_name) -> None:
+def show_lists(serv, list_id, color, list_name) -> str:
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	cmd = f'echo "show acl #{list_id}"|nc {serv} {haproxy_sock_port}'
 	output, stderr = server_mod.subprocess_execute(cmd)

@@ -20,7 +20,7 @@
 				<tr>
 					<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 					<td class="addOption">
-						{{ select('serv', values=user_params['servers'], is_servers='true') }}
+						{{ select('serv', values=g.user_params['servers'], is_servers='true') }}
 						<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 					</td>
 					<td rowspan="5" class="add-note addName alert-info">
@@ -79,7 +79,7 @@
 	<div id="dialog-confirm-cert" title="View certificate " style="display: none;">
 		<pre id="dialog-confirm-body"></pre>
 	</div>
-	<input type="hidden" id="group_id" value="{{ user_params['group_id'] }}">
+	<input type="hidden" id="group_id" value="{{ g.user_params['group_id'] }}">
 </div>
 <script>
 $( function() {

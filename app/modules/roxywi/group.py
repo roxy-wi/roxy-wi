@@ -1,5 +1,5 @@
-import modules.db.sql as sql
-import modules.roxywi.common as roxywi_common
+import app.modules.db.sql as sql
+import app.modules.roxywi.common as roxywi_common
 
 
 def update_group(group_id: int, group_name: str, desc: str) -> str:

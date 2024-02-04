@@ -59,8 +59,6 @@ def login_page():
     next_url = request.args.get('next') or request.form.get('next')
     login = request.form.get('login')
     password = request.form.get('pass')
-    role = 5
-    user1 = ''
 
     if login and password:
         users = sql.select_users(user=login)
@@ -71,16 +69,12 @@ def login_page():
             if user.ldap_user == 1:
                 if login in user.username:
                     if roxywi_auth.check_in_ldap(login, password):
-                        role = int(user.role)
-                        user1 = user.username
                         user_uuid, user_token = roxywi_auth.create_uuid_and_token(login)
                         return roxywi_auth.do_login(user_uuid, str(user.groups), user, next_url)
 
             else:
                 hashed_password = roxy_wi_tools.Tools.get_hash(password)
                 if login in user.username and hashed_password == user.password:
-                    role = int(user.role)
-                    user1 = user.username
                     user_uuid, user_token = roxywi_auth.create_uuid_and_token(login)
                     return roxywi_auth.do_login(user_uuid, str(user.groups), user, next_url)
                 else:
@@ -93,7 +87,7 @@ def login_page():
     except Exception:
         lang = 'en'
 
-    return render_template('login.html', user_params='', role=role, user=user1, lang=lang)
+    return render_template('login.html', lang=lang)
 
 
 @app.route('/logout', methods=['GET', 'POST'])

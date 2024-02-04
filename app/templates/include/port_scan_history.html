@@ -2,7 +2,7 @@
 {% block title %}{{ lang.p_s_page.p_s_title_history }}{% endblock %}
 {% block h2 %}{{ lang.p_s_page.p_s_title_history }}{% endblock %}
 {% block content %}
-<link href="/inc/css/table-6.3.9.css" rel="stylesheet" type="text/css">
+<link href="{{ url_for('static', filename='css/table-6.3.9.css') }}" rel="stylesheet" type="text/css">
 <script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
 <style>
 @media (max-width: 1280px) {

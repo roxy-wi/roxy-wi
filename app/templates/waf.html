@@ -83,7 +83,7 @@
 				</div>
 				<p>
 					<a href="/app/waf/{{service}}/{{serv}}/rules" class="ui-button ui-widget ui-corner-all" title="Return to rules management">{{lang.words.back|title()}}</a>
-					{% if user_params['role'] <= 3 %}
+					{% if g.user_params['role'] <= 3 %}
 					<button type="submit" value="save" name="save" class="btn btn-default" title="{{lang.words.save|title()}} {{lang.words.without}} {{lang.words.reloading}}">{{lang.words.save|title()}}</button>
 					{% if service == 'haproxy' %}
 					<button type="submit" value="" name="" class="btn btn-default">{{lang.phrases.save_and_restart}}</button>
@@ -175,7 +175,7 @@
 		{% endfor %}
 	</table>
 	{% if service == 'haproxy' %}
-	<link href="/inc/css/chart.min.css" rel="stylesheet">
+	<link href="{{ url_for('static', filename='css/chart.min.css') }}" rel="stylesheet">
 	<script src="/inc/overview.js"></script>
 	<script src="/inc/metrics.js"></script>
 	<script src="/inc/chart.min-4.3.0.js"></script>

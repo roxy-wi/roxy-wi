@@ -1,11 +1,7 @@
-- hosts: "{{ variable_host }}"
+- hosts: all
   become: yes
   become_method: sudo
   tasks:
-  - name: Set SSH port
-    set_fact:
-      ansible_port: "{{SSH_PORT}}"
-
   - name: Open stat port for iptables
     iptables:
       chain: INPUT

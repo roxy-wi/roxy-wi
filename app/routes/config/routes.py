@@ -7,23 +7,19 @@ from app.routes.config import bp
 import app.modules.db.sql as sql
 from middleware import check_services, get_user_params
 import app.modules.common.common as common
-import app.modules.roxy_wi_tools as roxy_wi_tools
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.config.config as config_mod
+import app.modules.config.common as config_common
 import app.modules.config.section as section_mod
 import app.modules.service.haproxy as service_haproxy
 import app.modules.server.server as server_mod
-
-get_config = roxy_wi_tools.GetConfigVar()
-time_zone = sql.get_setting('time_zone')
-get_date = roxy_wi_tools.GetDate(time_zone)
 
 
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 
@@ -115,7 +111,6 @@ def config(service, serv, edit, config_file_name, new):
         config_read = ' '
 
     kwargs = {
-        'user_params': g.user_params,
         'serv': serv,
         'aftersave': '',
         'config': config_read,
@@ -180,16 +175,12 @@ def versions(service, server_ip):
     aftersave = ''
     file = set()
     stderr = ''
-
-    if service in ('haproxy', 'keepalived'):
-        conf_format = 'cfg'
-    else:
-        conf_format = 'conf'
+    file_fortmat = config_common.get_file_format(service)
 
     if request.form.get('del'):
         aftersave = 1
         for get in request.form.getlist('do_delete'):
-            if conf_format in get and server_ip in get:
+            if file_fortmat in get and server_ip in get:
                 try:
                     if sql.delete_config_version(service, get):
                         try:
@@ -198,8 +189,8 @@ def versions(service, server_ip):
                             if 'No such file or directory' in str(e):
                                 pass
                     else:
-                        configs_dir = get_config.get_config_var('configs', f'{service}_save_configs_dir')
-                        os.remove(os.path.join(configs_dir, get))
+                        config_dir = config_common.get_config_dir('haproxy')
+                        os.remove(os.path.join(config_dir, get))
                     try:
                         file.add(get + "\n")
                         roxywi_common.logging(
@@ -212,7 +203,6 @@ def versions(service, server_ip):
                     stderr = "Error: %s - %s." % (e.filename, e.strerror)
 
     kwargs = {
-        'user_params': g.user_params,
         'serv': server_ip,
         'aftersave': aftersave,
         'file': file,
@@ -240,8 +230,8 @@ def list_of_version(service):
 def show_version(service, server_ip, configver, save):
     roxywi_auth.page_for_admin(level=3)
     service_desc = sql.select_service(service)
-    configs_dir = get_config.get_config_var('configs', f'{service_desc.service}_save_configs_dir')
-    configver = configs_dir + configver
+    config_dir = config_common.get_config_dir('haproxy')
+    configver = config_dir + configver
     aftersave = 0
     stderr = ''
 
@@ -266,7 +256,6 @@ def show_version(service, server_ip, configver, save):
             stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service)
 
     kwargs = {
-        'user_params': g.user_params,
         'serv': server_ip,
         'aftersave': aftersave,
         'configver': configver,
@@ -281,11 +270,9 @@ def show_version(service, server_ip, configver, save):
 @bp.route('/section/haproxy/<server_ip>')
 @get_user_params()
 def haproxy_section(server_ip):
-    hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-    cfg = f"{hap_configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
+    cfg = config_common.generate_config_path('haproxy', server_ip)
     error = config_mod.get_config(server_ip, cfg)
     kwargs = {
-        'user_params': g.user_params,
         'is_restart': 0,
         'config': '',
         'serv': server_ip,
@@ -300,8 +287,7 @@ def haproxy_section(server_ip):
 @bp.route('/section/haproxy/<server_ip>/<section>')
 @get_user_params()
 def haproxy_section_show(server_ip, section):
-    hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-    cfg = f"{hap_configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
+    cfg = config_common.generate_config_path('haproxy', server_ip)
     error = config_mod.get_config(server_ip, cfg)
     start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section)
     server_id = sql.select_server_id_by_ip(server_ip)
@@ -315,7 +301,6 @@ def haproxy_section_show(server_ip, section):
         pass
 
     kwargs = {
-        'user_params': g.user_params,
         'is_restart': sql.select_service_setting(server_id, 'haproxy', 'restart'),
         'serv': server_ip,
         'sections': sections,
@@ -333,8 +318,8 @@ def haproxy_section_show(server_ip, section):
 
 @bp.route('/section/haproxy/<server_ip>/save', methods=['POST'])
 def haproxy_section_save(server_ip):
-    hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-    cfg = f"{hap_configs_dir}{server_ip}-{get_date.return_date('config')}.cfg"
+    hap_configs_dir = config_common.get_config_dir('haproxy')
+    cfg = config_common.generate_config_path('haproxy', server_ip)
     config_file = request.form.get('config')
     oldcfg = request.form.get('oldconfig')
     save = request.form.get('save')
@@ -357,7 +342,10 @@ def haproxy_section_save(server_ip):
 
     config_mod.diff_config(oldcfg, cfg)
 
-    os.system(f"/bin/rm -f {hap_configs_dir}*.old")
+    try:
+        os.remove(f"{hap_configs_dir}*.old")
+    except IOError:
+        pass
 
     return stderr
 
@@ -367,7 +355,6 @@ def haproxy_section_save(server_ip):
 @get_user_params()
 def show_compare_config(service, serv):
     kwargs = {
-        'user_params': g.user_params,
         'aftersave': '',
         'serv': serv,
         'cfg': '',

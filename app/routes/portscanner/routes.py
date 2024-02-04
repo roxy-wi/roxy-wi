@@ -33,7 +33,6 @@ def portscanner():
             count_ports.append(i)
 
     kwargs = {
-        'user_params': g.user_params,
         'servers': g.user_params['servers'],
         'port_scanner_settings': port_scanner_settings,
         'count_ports': count_ports,
@@ -50,7 +49,6 @@ def portscanner():
 def portscanner_history(server_ip):
     kwargs = {
         'h2': 1,
-        'user_params': g.user_params,
         'lang': g.user_params['lang'],
         'history': sql.select_port_scanner_history(server_ip),
         'user_subscription': roxywi_common.return_user_subscription()

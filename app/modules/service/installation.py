@@ -4,21 +4,21 @@ import json
 from flask import render_template
 import ansible_runner
 
-import modules.db.sql as sql
-import modules.service.common as service_common
-import modules.common.common as common
-import modules.server.server as server_mod
-import modules.roxywi.common as roxywi_common
-from modules.server.ssh import return_ssh_keys_path
+import app.modules.db.sql as sql
+import app.modules.service.common as service_common
+import app.modules.common.common as common
+import app.modules.server.server as server_mod
+import app.modules.roxywi.common as roxywi_common
+from app.modules.server.ssh import return_ssh_keys_path
 
 
-def show_installation_output(error: str, output: str, service: str, rc=0):
+def show_installation_output(error: str, output: list, service: str, rc=0):
 	if error and "WARNING" not in error:
 		roxywi_common.logging('Roxy-WI server', error, roxywi=1)
 		raise Exception('error: ' + error)
 	else:
 		if rc != 0:
-			for line in output.read():
+			for line in output:
 				if any(s in line for s in ("Traceback", "FAILED", "error", "ERROR", "UNREACHABLE")):
 					try:
 						correct_out = line.split('=>')
@@ -229,10 +229,10 @@ def generate_haproxy_inv(json_data: json, install_service: str) -> object:
 	server_ips = []
 	master_ip = 0
 	hap_sock_p = str(sql.get_setting('haproxy_sock_port'))
-	stats_port = str(sql.get_setting('stats_port'))
+	stats_port = str(sql.get_setting('haproxy_stats_port'))
 	server_state_file = sql.get_setting('server_state_file')
-	stats_user = sql.get_setting('stats_user')
-	stats_password = sql.get_setting('stats_password')
+	stats_user = sql.get_setting('haproxy_stats_user')
+	stats_password = sql.get_setting('haproxy_stats_password')
 	haproxy_dir = sql.get_setting('haproxy_dir')
 	container_name = sql.get_setting('haproxy_container_name')
 	haproxy_ver = ''
@@ -286,8 +286,7 @@ def generate_service_inv(json_data: json, install_service: str) -> object:
 	container_name = sql.get_setting(f'{install_service}_container_name')
 	is_docker = json_data['services'][install_service]['docker']
 
-	if install_service == 'nginx':
-		os.system('ansible-galaxy collection install community.general')
+	if install_service == 'nginx' and not os.path.isdir('/var/www/haproxy-wi/app/scripts/ansible/roles/nginxinc.nginx'):
 		os.system('ansible-galaxy install nginxinc.nginx,0.23.2 --roles-path /var/www/haproxy-wi/app/scripts/ansible/roles/')
 
 	for k, v in json_data['servers'].items():
@@ -316,19 +315,37 @@ def generate_service_inv(json_data: json, install_service: str) -> object:
 	return inv, server_ips
 
 
-def run_ansible(inv: object, server_ips: str, ansible_role: str) -> object:
+def run_ansible(inv: dict, server_ips: str, ansible_role: str) -> object:
 	inventory_path = '/var/www/haproxy-wi/app/scripts/ansible/inventory'
 	inventory = f'{inventory_path}/{ansible_role}.json'
 	proxy = sql.get_setting('proxy')
 	proxy_serv = ''
 	tags = ''
+	try:
+		agent_pid = server_mod.start_ssh_agent()
+	except Exception as e:
+		raise Exception(f'{e}')
+
+	try:
+		_install_ansible_collections()
+	except Exception as e:
+		raise Exception(f'{e}')
+
 	for server_ip in server_ips:
 		ssh_settings = return_ssh_keys_path(server_ip)
-		inv['server']['hosts'][server_ip]['ansible_ssh_private_key_file'] = ssh_settings['key']
+		if ssh_settings['enabled']:
+			inv['server']['hosts'][server_ip]['ansible_ssh_private_key_file'] = ssh_settings['key']
 		inv['server']['hosts'][server_ip]['ansible_password'] = ssh_settings['password']
 		inv['server']['hosts'][server_ip]['ansible_user'] = ssh_settings['user']
 		inv['server']['hosts'][server_ip]['ansible_port'] = ssh_settings['port']
 		inv['server']['hosts'][server_ip]['ansible_become'] = True
+
+		if ssh_settings['enabled']:
+			try:
+				server_mod.add_key_to_agent(ssh_settings, agent_pid)
+			except Exception as e:
+				server_mod.stop_ssh_agent(agent_pid)
+				raise Exception(f'{e}')
 
 		if proxy is not None and proxy != '' and proxy != 'None':
 			proxy_serv = proxy
@@ -351,8 +368,9 @@ def run_ansible(inv: object, server_ips: str, ansible_role: str) -> object:
 		'LOCALHOST_WARNING': "no",
 		'COMMAND_WARNINGS': "no",
 		'AWX_DISPLAY': False,
+		'SSH_AUTH_PID': agent_pid['pid'],
+		'SSH_AUTH_SOCK': agent_pid['socket'],
 	}
-
 	kwargs = {
 		'private_data_dir': '/var/www/haproxy-wi/app/scripts/ansible/',
 		'inventory': inventory,
@@ -371,16 +389,22 @@ def run_ansible(inv: object, server_ips: str, ansible_role: str) -> object:
 		with open(inventory, 'a') as invent:
 			invent.write(str(inv))
 	except Exception as e:
-		raise Exception(f'error: Cannot save inventory file: {e}')
+		server_mod.stop_ssh_agent(agent_pid)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'error: Cannot save inventory file', roxywi=1)
 
 	try:
 		result = ansible_runner.run(**kwargs)
 	except Exception as e:
-		raise Exception(f'error: Cannot install {ansible_role}: {e}')
-	stats = result.stats
+		server_mod.stop_ssh_agent(agent_pid)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'error: Cannot run Ansible', roxywi=1)
+
+	try:
+		server_mod.stop_ssh_agent(agent_pid)
+	except Exception as e:
+		roxywi_common.logging('Roxy-WI server', f'error: Cannot stop SSH agent {e}', roxywi=1)
 
 	os.remove(inventory)
-	return stats
+	return result.stats
 
 
 def service_actions_after_install(server_ips: str, service: str, json_data) -> None:
@@ -397,7 +421,7 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 		try:
 			update_functions[service](server_ip)
 		except Exception as e:
-			raise Exception(f'error: Cannot activate {service} on server {server_ip}: {e}')
+			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot activate {service} on server {server_ip}', roxywi=1)
 
 		if service != 'keepalived':
 			is_docker = json_data['services'][service]['docker']
@@ -411,7 +435,7 @@ def install_service(service: str, json_data: str) -> object:
 	try:
 		json_data = json.loads(json_data)
 	except Exception as e:
-		raise Exception(f'error: Cannot parse JSON: {e}')
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'error: Cannot parse JSON', roxywi=1)
 
 	generate_functions = {
 		'haproxy': generate_haproxy_inv,
@@ -425,4 +449,17 @@ def install_service(service: str, json_data: str) -> object:
 		service_actions_after_install(server_ips, service, json_data)
 		return run_ansible(inv, server_ips, service), 201
 	except Exception as e:
-		raise Exception(f'error: Cannot install {service}: {e}')
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot install {service}', roxywi=1)
+
+
+def _install_ansible_collections():
+	collections = ('community.general', 'ansible.posix', 'community.docker')
+	for collection in collections:
+		if not os.path.isdir(f'/usr/share/httpd/.ansible/collections/ansible_collections/{collection.replace(".", "/")}'):
+			try:
+				exit_code = os.system(f'ansible-galaxy collection install {collection}')
+			except Exception as e:
+				roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot install as collection', roxywi=1)
+			else:
+				if exit_code != 0:
+					raise Exception(f'error: Ansible collection installation was not successful: {exit_code}')

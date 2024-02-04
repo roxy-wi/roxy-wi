@@ -2,23 +2,22 @@ import os
 
 from flask import render_template, request
 
-import modules.db.sql as sql
-import modules.server.ssh as ssh_mod
-import modules.common.common as common
-import modules.config.config as config_mod
-import modules.server.server as server_mod
-import modules.roxywi.common as roxywi_common
+import app.modules.db.sql as sql
+import app.modules.server.ssh as ssh_mod
+import app.modules.common.common as common
+import app.modules.config.config as config_mod
+import app.modules.config.common as config_common
+import app.modules.server.server as server_mod
+import app.modules.roxywi.common as roxywi_common
+import app.modules.service.common as service_common
 import modules.roxy_wi_tools as roxy_wi_tools
 
-time_zone = sql.get_setting('time_zone')
-get_date = roxy_wi_tools.GetDate(time_zone)
 get_config = roxy_wi_tools.GetConfigVar()
 
 
 def save_to_haproxy_config(config: str, server_ip: str, name: str) -> str:
 	roxywi_common.check_is_server_in_group(server_ip)
-	hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-	cfg = hap_configs_dir + server_ip + "-" + get_date.return_date('config') + ".cfg"
+	cfg = config_common.generate_config_path('haproxy', server_ip)
 
 	config_mod.get_config(server_ip, cfg)
 
@@ -48,8 +47,7 @@ def save_nginx_config(config_add: str, server_ip: str, config_name: str) -> str:
 	roxywi_common.check_is_server_in_group(server_ip)
 	sub_folder = 'conf.d' if 'upstream' in config_name else 'sites-enabled'
 
-	service_configs_dir = get_config.get_config_var('configs', 'nginx_save_configs_dir')
-	cfg = f'{service_configs_dir}{server_ip}-{config_name}.conf'
+	cfg = config_common.generate_config_path('nginx', server_ip)
 	nginx_dir = common.return_nice_path(sql.get_setting('nginx_dir'))
 
 	config_file_name = f'{nginx_dir}{sub_folder}/{config_name}.conf'
@@ -93,7 +91,7 @@ def show_userlist(server_ip: str) -> str:
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		try:
-			cfg = f'{configs_dir}{server_ip}-{get_date.return_date("config")}.{format_file}'
+			cfg = config_common.generate_config_path('haproxy', server_ip)
 		except Exception as e:
 			roxywi_common.logging('Roxy-WI server', f' Cannot generate a cfg path {e}', roxywi=1)
 		try:
@@ -217,30 +215,23 @@ def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip
 		server_mod.ssh_command(serv, [f"sudo mkdir {path}"])
 		server_mod.ssh_command(serv, [f"sudo chown $(whoami) {path}"])
 		try:
-			error = config_mod.upload(serv, f'{path}/{list_name}', list_path)
+			config_mod.upload(serv, f'{path}/{list_name}', list_path)
 		except Exception as e:
-			error = f'{serv}: {e}'
+			output += f'error: Upload fail: to {serv}: {e} , '
 
-		if error:
-			output += f'error: Upload fail: {error} , '
-		else:
-			output += f'success: Edited {color} list was uploaded to {serv} , '
-			try:
-				roxywi_common.logging(serv, f'Has been edited the {color} list {list_name}', roxywi=1, login=1)
-			except Exception:
-				pass
+		output += f'success: Edited {color} list was uploaded to {serv} , '
+		try:
+			roxywi_common.logging(serv, f'Has been edited the {color} list {list_name}', roxywi=1, login=1)
+		except Exception:
+			pass
 
-			server_id = sql.select_server_id_by_ip(server_ip=serv)
-			haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
-			if haproxy_enterprise == '1':
-				haproxy_service_name = "hapee-2.0-lb"
-			else:
-				haproxy_service_name = "haproxy"
+		server_id = sql.select_server_id_by_ip(server_ip=serv)
+		haproxy_service_name = service_common.get_correct_service_name('haproxy', server_id)
 
-			if action == 'restart':
-				server_mod.ssh_command(serv, [f"sudo systemctl restart {haproxy_service_name}"])
-			elif action == 'reload':
-				server_mod.ssh_command(serv, [f"sudo systemctl reload {haproxy_service_name}"])
+		if action == 'restart':
+			server_mod.ssh_command(serv, [f"sudo systemctl restart {haproxy_service_name}"])
+		elif action == 'reload':
+			server_mod.ssh_command(serv, [f"sudo systemctl reload {haproxy_service_name}"])
 
 	return output
 
@@ -348,31 +339,24 @@ def save_map(map_name: str, list_con: str, group: str, server_ip: str, action: s
 		server_mod.ssh_command(serv, [f"sudo mkdir {path}"])
 		server_mod.ssh_command(serv, [f"sudo chown $(whoami) {path}"])
 		try:
-			error = config_mod.upload(serv, f'{path}/{map_name}', map_path)
+			config_mod.upload(serv, f'{path}/{map_name}', map_path)
 		except Exception as e:
-			error = f'{serv}: {e}'
+			output += f'error: Upload fail to: {serv}: {e} , '
 
-		if error:
-			output += f'error: Upload fail: {error} , '
-		else:
-			try:
-				roxywi_common.logging(serv, f'Has been edited the map {map_name}', roxywi=1, login=1)
-			except Exception:
-				pass
+		try:
+			roxywi_common.logging(serv, f'Has been edited the map {map_name}', roxywi=1, login=1)
+		except Exception:
+			pass
 
-			server_id = sql.select_server_id_by_ip(server_ip=serv)
-			haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
-			if haproxy_enterprise == '1':
-				haproxy_service_name = "hapee-2.0-lb"
-			else:
-				haproxy_service_name = "haproxy"
+		server_id = sql.select_server_id_by_ip(server_ip=serv)
+		haproxy_service_name = service_common.get_correct_service_name('haproxy', server_id)
 
-			if action == 'restart':
-				server_mod.ssh_command(serv, [f"sudo systemctl restart {haproxy_service_name}"])
-			elif action == 'reload':
-				server_mod.ssh_command(serv, [f"sudo systemctl reload {haproxy_service_name}"])
+		if action == 'restart':
+			server_mod.ssh_command(serv, [f"sudo systemctl restart {haproxy_service_name}"])
+		elif action == 'reload':
+			server_mod.ssh_command(serv, [f"sudo systemctl reload {haproxy_service_name}"])
 
-			output += f'success: Edited {map_name} map was uploaded to {serv} , '
+		output += f'success: Edited {map_name} map was uploaded to {serv} , '
 
 	return output
 

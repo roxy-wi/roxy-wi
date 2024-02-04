@@ -190,6 +190,7 @@ class Cred(BaseModel):
     username = CharField()
     password = CharField(null=True)
     groups = IntegerField(constraints=[SQL('DEFAULT 1')])
+    passphrase = CharField(null=True)
 
     class Meta:
         table_name = 'cred'

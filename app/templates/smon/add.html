@@ -68,13 +68,15 @@
 		</tr>
 	</thead>
 	<tbody>
-	{% for s_service in smon_tcp %}
-		{% for s in smon %}
-			{% if s.id|string() == s_service.smon_id|string() %}
-				<tr id="smon-tcp-{{s.id}}">
-					{% include 'include/smon/smon_tcp_server.html' %}
-			{% endif %}
-		{% endfor %}
+    {% for s in smon %}
+		{% if s.check_type == 'tcp' %}
+			{% for s_service in smon_tcp %}
+				{% if s_service.smon_id|string() == s.id|string() %}
+					<tr id="smon-tcp-{{s.id}}">
+						{% include 'include/smon/smon_tcp_server.html' %}
+				{% endif %}
+			{% endfor %}
+		{% endif %}
 	{% endfor %}
 	</tbody>
 </table>

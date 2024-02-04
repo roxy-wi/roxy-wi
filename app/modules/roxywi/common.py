@@ -1,9 +1,10 @@
 import os
 import glob
+from typing import Any
 
 from flask import request
 
-import modules.db.sql as sql
+import app.modules.db.sql as sql
 import modules.roxy_wi_tools as roxy_wi_tools
 
 time_zone = sql.get_setting('time_zone')
@@ -134,9 +135,6 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 		else:
 			mess = f"{cur_date_in_log} {action} from {ip}\n"
 		log_file = f"{log_path}/roxy-wi-{cur_date}.log"
-	elif kwargs.get('provisioning') == 1:
-		mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action}\n"
-		log_file = f"{log_path}/provisioning-{cur_date}.log"
 	else:
 		mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} on: {server_ip}\n"
 		log_file = f"{log_path}/config_edit-{cur_date}.log"
@@ -294,3 +292,16 @@ def return_user_subscription():
 		logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
 
 	return user_subscription
+
+
+def handle_exceptions(ex: Exception, server_ip: str, message: str, **kwargs: Any) -> None:
+	"""
+	:param server_ip:
+	:param ex: The exception that was caught
+	:param message: The error message to be logged and raised
+	:param kwargs: Additional keyword arguments to be passed to the logging function
+	:return: None
+
+	"""
+	logging(server_ip, f'{message}: {ex}', **kwargs)
+	raise Exception(f'{message}: {ex}')

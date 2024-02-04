@@ -1,6 +1,10 @@
-{% extends "base.html" %}
-{% block content %}
 {% from 'include/input_macros.html' import input %}
+<html lang="{{lang|default('en')}}">
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+<head>
+    {% include 'include/main_head.html' %}
+</head>
+<body>
 <style>
 body, .container {
 	background-color: #fff;
@@ -93,4 +97,5 @@ body, .container {
 		<br /><br />
 	</div>
 </div>
-{% endblock %}
+</body>
+</html>

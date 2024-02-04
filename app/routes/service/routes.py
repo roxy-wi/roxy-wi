@@ -18,7 +18,7 @@ import app.modules.roxywi.overview as roxy_overview
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 
@@ -158,7 +158,6 @@ def services(service, serv):
         servers_with_status1.append(servers_with_status)
 
     kwargs = {
-        'user_params': g.user_params,
         'clusters': sql.select_ha_cluster_name_and_slaves(),
         'master_slave': sql.is_master(0, master_slave=1),
         'user_subscription': roxywi_common.return_user_subscription(),
@@ -190,6 +189,7 @@ def check_service(service):
 
 
 @bp.route('/action/<service>/<server_ip>/<action>', methods=['GET'])
+@check_services
 def action_service(service, server_ip, action):
     server_ip = common.is_ip_or_dns(server_ip)
 
@@ -197,6 +197,7 @@ def action_service(service, server_ip, action):
 
 
 @bp.route('/<service>/<server_ip>/last-edit')
+@check_services
 def last_edit(service, server_ip):
     return service_common.get_overview_last_edit(server_ip, service)
 

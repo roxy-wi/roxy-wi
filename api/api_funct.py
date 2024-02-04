@@ -792,13 +792,14 @@ def upload_ssh_key():
 	json_loads = json.loads(body)
 	name = json_loads['name']
 	key = json_loads['key']
+	passphrase = json_loads['passphrase']
 	token = request.headers.get('token')
 	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
 	groups = sql.select_groups(id=group_id)
 	for group in groups:
 		user_group = group.name
 	try:
-		ssh_mod.upload_ssh_key(f'{name}_{user_group}', user_group, key)
+		ssh_mod.upload_ssh_key(f'{name}_{user_group}', user_group, key, passphrase)
 		data = {'status': 'done'}
 		return dict(data)
 	except Exception as e:

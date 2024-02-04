@@ -11,7 +11,7 @@ import app.modules.roxywi.overview as roxy_overview
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 
@@ -20,7 +20,6 @@ def before_request():
 @get_user_params()
 def index():
     kwargs = {
-        'user_params': g.user_params,
         'autorefresh': 1,
         'roles': sql.select_roles(),
         'groups': sql.select_groups(),

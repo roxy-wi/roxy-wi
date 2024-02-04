@@ -3,22 +3,18 @@ import requests
 
 from flask import request
 
-import modules.db.sql as sql
-import modules.server.server as server_mod
-import modules.config.config as config_mod
-import modules.roxywi.common as roxywi_common
-import modules.roxy_wi_tools as roxy_wi_tools
-
-time_zone = sql.get_setting('time_zone')
-get_date = roxy_wi_tools.GetDate(time_zone)
-get_config = roxy_wi_tools.GetConfigVar()
+import app.modules.db.sql as sql
+import app.modules.server.server as server_mod
+import app.modules.config.config as config_mod
+import app.modules.config.common as config_common
+import app.modules.roxywi.common as roxywi_common
 
 
-def stat_page_action(server_ip: str) -> None:
-    haproxy_user = sql.get_setting('stats_user')
-    haproxy_pass = sql.get_setting('stats_password')
-    stats_port = sql.get_setting('stats_port')
-    stats_page = sql.get_setting('stats_page')
+def stat_page_action(server_ip: str) -> bytes:
+    haproxy_user = sql.get_setting('haproxy_stats_user')
+    haproxy_pass = sql.get_setting('haproxy_stats_password')
+    stats_port = sql.get_setting('haproxy_stats_port')
+    stats_page = sql.get_setting('haproxy_stats_page')
 
     postdata = {
         'action': request.form.get('action'),
@@ -33,7 +29,7 @@ def stat_page_action(server_ip: str) -> None:
         'Accept-Encoding': 'gzip, deflate'
     }
 
-    data = requests.post(f'http://{server_ip}:{stats_port}/{stats_page}', headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass))
+    data = requests.post(f'http://{server_ip}:{stats_port}/{stats_page}', headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass), timeout=5)
     return data.content
 
 
@@ -44,13 +40,12 @@ def show_map(serv: str) -> str:
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
 
-    stats_port = sql.get_setting('stats_port')
-    hap_configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-    date = get_date.return_date('config')
-    cfg = f'{hap_configs_dir}{serv}-{date}.cfg'
+    service = 'haproxy'
+    stats_port = sql.get_setting(f'{service}_stats_port')
+    cfg = config_common.generate_config_path(service, serv)
     output = f'<center><h4 style="margin-bottom: 0;">Map from {serv}</h4>'
+    error = config_mod.get_config(serv, cfg, service=service)
 
-    error = config_mod.get_config(serv, cfg)
     if error:
         return f'error: Cannot read import config file {error}'
 
@@ -133,7 +128,7 @@ def show_map(serv: str) -> str:
                 i -= 750
                 G.add_node(k2, pos=(k, i), label_pos=(k, i + 250))
 
-                for k3, v3 in v2.items():
+                for _k3, v3 in v2.items():
                     for k4, v4 in v3.items():
                         """ Add backend servers of listens or backend from frontends """
                         i -= 300
@@ -157,7 +152,7 @@ def show_map(serv: str) -> str:
                         else:
                             G.add_edge(k2, k4, port='')
 
-                    for k4, v4 in v3.items():
+                    for k4, _v4 in v3.items():
                         """ Add servers from backends  """
                         i -= 300
                         j -= 1
@@ -205,7 +200,7 @@ def show_map(serv: str) -> str:
                     i -= 750
                     G.add_node(k2, pos=(k, i), label_pos=(k, i + 250))
 
-                for k3, v3 in v2.items():
+                for _k3, v3 in v2.items():
                     for k4, v4 in v3.items():
 
                         if k4 not in backends_servers:
@@ -266,7 +261,6 @@ def runtime_command(serv: str, enable: str, backend: str, save: str) -> str:
     else:
         if enable != "show":
             roxywi_common.logging(serv, f'Has been {enable}ed {backend}', login=1, keep_history=1, service='haproxy')
-            return f'<center><h3>You {enable} {backend} on HAProxy {serv}.</center>' \
-                   f'{output}'
+            return f'<center><h3>You {enable} {backend} on HAProxy {serv}.</center> {output}'
         else:
             return output

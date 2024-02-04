@@ -6,9 +6,9 @@
 <script src="/inc/users.js"></script>
 <script src="/inc/ha.js"></script>
 <script src="/inc/overview.js"></script>
-<link href="/inc/css/servers.css" rel="stylesheet"/>
-<link href="/inc/css/smon.css" rel="stylesheet">
-<link href="/inc/css/ha.css" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/servers.css') }}" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='css/smon.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/ha.css') }}" rel="stylesheet">
 {% if user_subscription.user_status == 0 or user_subscription.user_plan == 'user' %}
 	{% include 'include/no_sub.html' %}
 {% elif not is_needed_tool %}
@@ -20,7 +20,7 @@
         </h4>
     </div>
 {% else %}
-{% if user_params['role'] <= 2 %}
+{% if g.user_params['role'] <= 3 %}
 <div class="add-button add-button-big" title="{{lang.phrases.create_ha}}" onclick="createHaClusterStep1();">+ {{lang.ha_page.create_ha}}</div>
 {% endif %}
 <div class="up-pannel" class="sortable">

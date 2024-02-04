@@ -21,7 +21,7 @@ get_date = roxy_wi_tools.GetDate(time_zone)
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 
@@ -40,7 +40,6 @@ def waf(service):
         servers = g.user_params['servers']
 
     kwargs = {
-        'user_params': g.user_params,
         'title': 'Web application firewall',
         'autorefresh': 1,
         'serv': '',
@@ -68,7 +67,6 @@ def waf_rules(service, server_ip):
         abort(403, f'You do not have needed permissions to access to {service.title()} service')
 
     kwargs = {
-        'user_params': g.user_params,
         'title': 'Manage rules - Web application firewall',
         'serv': server_ip,
         'servers': sql.select_waf_servers_metrics(g.user_params['user_uuid']),
@@ -115,7 +113,6 @@ def waf_rule_edit(service, server_ip, rule_id):
         print('Cannot read imported config file')
 
     kwargs = {
-        'user_params': g.user_params,
         'title': 'Edit a WAF rule',
         'serv': server_ip,
         'servers': sql.select_waf_servers_metrics(g.user_params['user_uuid']),

@@ -1,11 +1,12 @@
 import os
+from cryptography.fernet import Fernet
 
 import paramiko
 from flask import render_template, request
 
 import modules.db.sql as sql
 import modules.common.common as common
-from modules.server import ssh_connection
+from app.modules.server import ssh_connection
 import modules.roxywi.common as roxywi_common
 import modules.roxy_wi_tools as roxy_wi_tools
 
@@ -22,11 +23,27 @@ def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
 		sshs = sql.select_ssh(serv=server_ip)
 
 	for ssh in sshs:
+		if ssh.password:
+			try:
+				password = decrypt_password(ssh.password)
+			except Exception as e:
+				raise Exception(e)
+		else:
+			password = ssh.password
+		if ssh.passphrase:
+			try:
+				passphrase = decrypt_password(ssh.passphrase)
+			except Exception as e:
+				raise Exception(e)
+		else:
+			passphrase = ssh.passphrase
+
 		ssh_settings.setdefault('enabled', ssh.enable)
 		ssh_settings.setdefault('user', ssh.username)
-		ssh_settings.setdefault('password', ssh.password)
+		ssh_settings.setdefault('password', password)
 		ssh_key = f'{lib_path}/keys/{ssh.name}.pem' if ssh.enable == 1 else ''
 		ssh_settings.setdefault('key', ssh_key)
+		ssh_settings.setdefault('passphrase', passphrase)
 
 	try:
 		ssh_port = [str(server[10]) for server in sql.select_servers(server=server_ip)]
@@ -39,13 +56,7 @@ def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
 
 def ssh_connect(server_ip):
 	ssh_settings = return_ssh_keys_path(server_ip)
-	ssh = ssh_connection.SshConnection(
-		server_ip, ssh_settings['port'],
-		ssh_settings['user'],
-		ssh_settings['password'],
-		ssh_settings['enabled'],
-		ssh_settings['key']
-	)
+	ssh = ssh_connection.SshConnection(server_ip, ssh_settings)
 
 	return ssh
 
@@ -62,6 +73,12 @@ def create_ssh_cred() -> str:
 	lang = roxywi_common.get_user_lang_for_flask()
 	name = f'{name}_{group_name}'
 
+	if password != '':
+		try:
+			password = crypt_password(password)
+		except Exception as e:
+			raise Exception(e)
+
 	if username is None or name is None:
 		return error_mess
 	else:
@@ -71,14 +88,18 @@ def create_ssh_cred() -> str:
 
 
 def create_ssh_cread_api(name: str, enable: str, group: str, username: str, password: str) -> bool:
-	groups = sql.select_groups(id=group)
-	for group in groups:
-		user_group = group.name
+	group_name = sql.get_group_name_by_id(group)
 	name = common.checkAjaxInput(name)
-	name = f'{name}_{user_group}'
+	name = f'{name}_{group_name}'
 	enable = common.checkAjaxInput(enable)
 	username = common.checkAjaxInput(username)
 	password = common.checkAjaxInput(password)
+
+	if password != '':
+		try:
+			password = crypt_password(password)
+		except Exception as e:
+			raise Exception(e)
 
 	if username is None or name is None:
 		return False
@@ -87,7 +108,7 @@ def create_ssh_cread_api(name: str, enable: str, group: str, username: str, pass
 			return True
 
 
-def upload_ssh_key(name: str, user_group: str, key: str) -> str:
+def upload_ssh_key(name: str, user_group: str, key: str, passphrase: str) -> str:
 	if '..' in name:
 		raise Exception('error: nice try')
 
@@ -95,7 +116,7 @@ def upload_ssh_key(name: str, user_group: str, key: str) -> str:
 		raise Exception('error: please select credentials first')
 
 	try:
-		key = paramiko.pkey.load_private_key(key)
+		key = paramiko.pkey.load_private_key(key, password=passphrase)
 	except Exception as e:
 		raise Exception(f'error: Cannot save SSH key file: {e}')
 
@@ -121,15 +142,25 @@ def upload_ssh_key(name: str, user_group: str, key: str) -> str:
 		key.write_private_key_file(ssh_keys)
 	except Exception as e:
 		raise Exception(f'error: Cannot save SSH key file: {e}')
-	else:
-		try:
-			os.chmod(ssh_keys, 0o600)
-		except IOError as e:
-			roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
-			raise Exception(f'error: something went wrong: {e}')
+	try:
+		os.chmod(ssh_keys, 0o600)
+	except IOError as e:
+		roxywi_common.logging('Roxy-WI server', e.args[0], roxywi=1)
+		raise Exception(f'error: something went wrong: {e}')
 
-		roxywi_common.logging("Roxy-WI server", f"A new SSH cert has been uploaded {ssh_keys}", roxywi=1, login=1)
-		return f'success: SSH key has been saved into: {ssh_keys}'
+	if passphrase != '':
+		try:
+			passphrase = crypt_password(passphrase)
+		except Exception as e:
+			raise Exception(e)
+
+	try:
+		sql.update_ssh_passphrase(name, passphrase)
+	except Exception as e:
+		raise Exception(e)
+
+	roxywi_common.logging("Roxy-WI server", f"A new SSH cert has been uploaded {ssh_keys}", roxywi=1, login=1)
+	return f'success: SSH key has been saved into: {ssh_keys}'
 
 
 def update_ssh_key() -> str:
@@ -140,25 +171,33 @@ def update_ssh_key() -> str:
 	username = common.checkAjaxInput(request.form.get('ssh_user'))
 	password = common.checkAjaxInput(request.form.get('ssh_pass'))
 	new_ssh_key_name = ''
+	ssh_key_name = ''
+	ssh_enable = 0
+
+	if password != '':
+		try:
+			password = crypt_password(password)
+		except Exception as e:
+			raise Exception(e)
 
 	if username is None:
 		return error_mess
-	else:
-		lib_path = get_config.get_config_var('main', 'lib_path')
 
-		for sshs in sql.select_ssh(id=ssh_id):
-			ssh_enable = sshs.enable
-			ssh_key_name = f'{lib_path}/keys/{sshs.name}.pem'
-			new_ssh_key_name = f'{lib_path}/keys/{name}.pem'
+	lib_path = get_config.get_config_var('main', 'lib_path')
 
-		if ssh_enable == 1:
-			os.rename(ssh_key_name, new_ssh_key_name)
-			os.chmod(new_ssh_key_name, 0o600)
+	for sshs in sql.select_ssh(id=ssh_id):
+		ssh_enable = sshs.enable
+		ssh_key_name = f'{lib_path}/keys/{sshs.name}.pem'
+		new_ssh_key_name = f'{lib_path}/keys/{name}.pem'
 
-		sql.update_ssh(ssh_id, name, enable, group, username, password)
-		roxywi_common.logging('Roxy-WI server', f'The SSH credentials {name} has been updated ', roxywi=1, login=1)
+	if ssh_enable == 1:
+		os.rename(ssh_key_name, new_ssh_key_name)
+		os.chmod(new_ssh_key_name, 0o600)
 
-		return 'ok'
+	sql.update_ssh(ssh_id, name, enable, group, username, password)
+	roxywi_common.logging('Roxy-WI server', f'The SSH credentials {name} has been updated ', roxywi=1, login=1)
+
+	return 'ok'
 
 
 def delete_ssh_key(ssh_id) -> str:
@@ -180,3 +219,33 @@ def delete_ssh_key(ssh_id) -> str:
 	if sql.delete_ssh(ssh_id):
 		roxywi_common.logging('Roxy-WI server', f'The SSH credentials {name} has deleted', roxywi=1, login=1)
 		return 'ok'
+
+
+def crypt_password(password: str) -> bytes:
+	"""
+	Crypt password
+	:param password: plain password
+	:return: crypted text
+	"""
+	salt = get_config.get_config_var('main', 'secret_phrase')
+	fernet = Fernet(salt.encode())
+	try:
+		crypted_pass = fernet.encrypt(password.encode())
+	except Exception as e:
+		raise Exception(f'error: Cannot crypt password: {e}')
+	return crypted_pass
+
+
+def decrypt_password(password: str) -> str:
+	"""
+	Decrypt password
+	:param password: crypted password
+	:return: plain text
+	"""
+	salt = get_config.get_config_var('main', 'secret_phrase')
+	fernet = Fernet(salt.encode())
+	try:
+		decryp_pass = fernet.decrypt(password.encode()).decode()
+	except Exception as e:
+		raise Exception(f'error: Cannot decrypt password: {e}')
+	return decryp_pass

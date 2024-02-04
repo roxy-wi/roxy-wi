@@ -1,8 +1,8 @@
 from flask import render_template, redirect, url_for
 
-import modules.db.sql as sql
-import modules.tools.common as tools_common
-import modules.roxywi.common as roxywi_common
+import app.modules.db.sql as sql
+import app.modules.tools.common as tools_common
+import app.modules.roxywi.common as roxywi_common
 
 
 def load_checker() -> str:

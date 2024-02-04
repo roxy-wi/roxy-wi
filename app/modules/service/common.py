@@ -1,17 +1,33 @@
 import requests
 from flask import render_template, request
 
-import modules.db.sql as sql
-import modules.server.ssh as mod_ssh
-import modules.common.common as common
-import modules.server.server as server_mod
-import modules.roxywi.common as roxywi_common
-import modules.roxy_wi_tools as roxy_wi_tools
-import modules.config.section as section_mod
+import app.modules.db.sql as sql
+import app.modules.server.ssh as mod_ssh
+import app.modules.common.common as common
+import app.modules.server.server as server_mod
+import app.modules.roxywi.common as roxywi_common
+import app.modules.config.section as section_mod
+import app.modules.config.common as config_common
 
-time_zone = sql.get_setting('time_zone')
-get_date = roxy_wi_tools.GetDate(time_zone)
-get_config = roxy_wi_tools.GetConfigVar()
+
+def get_correct_service_name(service: str, server_id: int) -> str:
+	"""
+	:param service: The name of the service.
+	:param server_id: The ID of the server.
+	:return: The correct service name based on the provided parameters.
+
+	This method takes a service name and server ID as input and returns the correct service name based on the given parameters. If the service name is 'haproxy', it checks if haproxy_enter
+	*prise is set to '1' in the database for the given server ID. If true, it returns "hapee-2.0-lb". If the service name is 'apache', it calls the get_correct_apache_service_name() method
+	* with parameters 0 and the server ID to get the correct apache service name. If none of the conditions match, it will return the original service name.
+	"""
+	if service == 'haproxy':
+		haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
+		if haproxy_enterprise == '1':
+			return "hapee-2.0-lb"
+	if service == 'apache':
+		return get_correct_apache_service_name(0, server_id)
+
+	return service
 
 
 def check_haproxy_version(server_ip):
@@ -25,24 +41,41 @@ def check_haproxy_version(server_ip):
 	return ver
 
 
-def is_restarted(server_ip: str, action: str) -> None:
+def is_protected(server_ip: str, action: str) -> None:
+	"""
+	Check if the server is protected and the user has the required role.
+
+	:param server_ip: The IP address of the server.
+	:param action: The action to be performed on the server.
+	:return: None
+	:raises: Exception if the server is protected and the user role is not high enough.
+	"""
 	user_uuid = request.cookies.get('uuid')
-	group_id = request.cookies.get('group')
-	group_id = int(group_id)
+	group_id = int(request.cookies.get('group'))
 	user_role = sql.get_user_role_by_uuid(user_uuid, group_id)
 
 	if sql.is_serv_protected(server_ip) and int(user_role) > 2:
 		raise Exception(f'error: This server is protected. You cannot {action} it')
 
 
-def is_not_allowed_to_restart(server_id: int, service: str) -> None:
-	if service != 'waf':
-		is_restart = sql.select_service_setting(server_id, service, 'restart')
-	else:
-		is_restart = 0
+def is_not_allowed_to_restart(server_id: int, service: str, action: str) -> int:
+	"""
+	:param server_id: The ID of the server.
+	:param service: The name of the service.
+	:param action: The action to perform on the service.
+	:return: An integer indicating whether the restart is allowed or not.
 
-	if int(is_restart) == 1:
-		raise Exception('warning: This service is not allowed to be restarted')
+	This method checks if the given service is not allowed to be restarted based on the provided server ID, service name, and action. It returns `0` if the restart is not allowed, otherwise
+	* it returns `1`.
+	"""
+	is_restart = 0
+	if service != 'waf' and action == 'restart':
+		try:
+			is_restart = sql.select_service_setting(server_id, service, 'restart')
+		except Exception as e:
+			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot get restart settings for service {service}: {e}')
+
+	return is_restart
 
 
 def get_exp_version(server_ip: str, service_name: str) -> str:
@@ -105,7 +138,7 @@ def check_haproxy_config(server_ip):
 		container_name = sql.get_setting('haproxy_container_name')
 		commands = [f"sudo docker exec -it {container_name} haproxy -q -c -f {config_path}"]
 	else:
-		commands = [f"haproxy  -q -c -f {config_path}"]
+		commands = [f"haproxy -q -c -f {config_path}"]
 
 	try:
 		with mod_ssh.ssh_connect(server_ip) as ssh:
@@ -119,54 +152,48 @@ def check_haproxy_config(server_ip):
 		print(f'error: {e}')
 
 
-def check_nginx_config(server_ip) -> bool:
-	commands = [f"nginx -q -t -p {sql.get_setting('nginx_dir')}"]
+def check_nginx_config(server_ip) -> str:
+	"""
+	Check the Nginx configuration on the specified server IP.
+
+	:param server_ip: The IP address of the server where Nginx is running.
+	:return: True if the Nginx configuration is valid, False otherwise.
+	"""
+	commands = [f"sudo nginx -q -t -p {sql.get_setting('nginx_dir')}"]
 
 	with mod_ssh.ssh_connect(server_ip) as ssh:
 		for command in commands:
 			stdin, stdout, stderr = ssh.run_command(command)
-			if not stderr.read():
-				return True
-			else:
-				return False
+			for line in stdout.readlines():
+				if 'emerg' in line or 'error' in line or 'faield' in line:
+					return line
+			return 'ok'
 
 
 def overview_backends(server_ip: str, service: str) -> str:
 	import modules.config.config as config_mod
 
 	lang = roxywi_common.get_user_lang_for_flask()
-	format_file = 'cfg'
-
-	if service == 'haproxy':
-		configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-		format_file = 'cfg'
-	elif service == 'keepalived':
-		configs_dir = get_config.get_config_var('configs', 'keepalived_save_configs_dir')
-		format_file = 'conf'
 
 	if service != 'nginx' and service != 'apache':
+		format_file = config_common.get_file_format(service)
+		config_dir = config_common.get_config_dir(service)
+		cfg = config_common.generate_config_path(service, server_ip)
+
 		try:
-			sections = section_mod.get_sections(configs_dir + roxywi_common.get_files(configs_dir, format_file)[0],
-												service=service)
+			sections = section_mod.get_sections(config_dir + roxywi_common.get_files(config_dir, format_file)[0], service=service)
 		except Exception as e:
 			roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 
 			try:
-				cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}.{format_file}"
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f' Cannot generate a cfg path {e}', roxywi=1)
-			try:
-				if service == 'keepalived':
-					config_mod.get_config(server_ip, cfg, keepalived=1)
-				else:
-					config_mod.get_config(server_ip, cfg)
+				config_mod.get_config(server_ip, cfg, service=service)
 			except Exception as e:
 				roxywi_common.logging('Roxy-WI server', f' Cannot download a config {e}', roxywi=1)
 			try:
 				sections = section_mod.get_sections(cfg, service=service)
 			except Exception as e:
 				roxywi_common.logging('Roxy-WI server', f' Cannot get sections from config file {e}', roxywi=1)
-				sections = 'Cannot get backends'
+				sections = f'error: Cannot get backends {e}'
 	else:
 		sections = section_mod.get_remote_sections(server_ip, service)
 
@@ -174,12 +201,7 @@ def overview_backends(server_ip: str, service: str) -> str:
 
 
 def get_overview_last_edit(server_ip: str, service: str) -> str:
-	if service == 'nginx':
-		config_path = sql.get_setting('nginx_config_path')
-	elif service == 'keepalived':
-		config_path = sql.get_setting('keepalived_config_path')
-	else:
-		config_path = sql.get_setting('haproxy_config_path')
+	config_path = sql.get_setting(f'{service}_config_path')
 	commands = ["ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % config_path]
 	try:
 		return server_mod.ssh_command(server_ip, commands)
@@ -212,7 +234,6 @@ def get_stat_page(server_ip: str, service: str) -> str:
 	if service == 'nginx':
 		lang = roxywi_common.get_user_lang_for_flask()
 		servers_with_status = list()
-		h = ()
 		out1 = []
 		for k in data.decode('utf-8').split():
 			out1.append(k)
@@ -229,18 +250,15 @@ def show_service_version(server_ip: str, service: str) -> str:
 		return check_haproxy_version(server_ip)
 
 	server_id = sql.select_server_id_by_ip(server_ip)
-	service_name = service
+	service_name = get_correct_service_name(service, server_id)
 	is_dockerized = sql.select_service_setting(server_id, service, 'dockerized')
-
-	if service == 'apache':
-		service_name = get_correct_apache_service_name(None, server_id)
 
 	if is_dockerized == '1':
 		container_name = sql.get_setting(f'{service}_container_name')
 		if service == 'apache':
-			cmd = [f'docker exec -it {container_name}  /usr/local/apache2/bin/httpd -v 2>&1|head -1|awk -F":" \'{{print $2}}\'']
+			cmd = [f'docker exec -it {container_name} /usr/local/apache2/bin/httpd -v 2>&1|head -1|awk -F":" \'{{print $2}}\'']
 		else:
-			cmd = [f'docker exec -it {container_name}  /usr/sbin/{service_name} -v 2>&1|head -1|awk -F":" \'{{print $2}}\'']
+			cmd = [f'docker exec -it {container_name} /usr/sbin/{service_name} -v 2>&1|head -1|awk -F":" \'{{print $2}}\'']
 	else:
 		cmd = [f'sudo /usr/sbin/{service_name} -v|head -1|awk -F":" \'{{print $2}}\'']
 

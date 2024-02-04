@@ -103,7 +103,6 @@ function deleteCluster(cluster_id) {
 	});
 }
 function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
-	var add_word = $('#translate').attr('data-next');
 	var cancel_word = $('#translate').attr('data-cancel');
 	var next_word = $('#translate').attr('data-next');
 	var tabel_title = $("#create-ha-cluster-step-1-overview").attr('title');
@@ -307,7 +306,7 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	let nginx = 0;
 	let nginx_docker = 0;
 	let apache = 0;
-	req_method = 'POST';
+	let req_method = 'POST';
 	if (edited) {
 		req_method = 'PUT';
 	}
@@ -438,7 +437,7 @@ function Reconfigure(jsonData, cluster_id) {
 	});
 }
 function installServiceCluster(jsonData, service, progress_step, cluster_id) {
-	servers = JSON.parse(JSON.stringify(jsonData));
+	let servers = JSON.parse(JSON.stringify(jsonData));
 	servers['cluster_id'] = cluster_id;
 	var li_id = 'creating-' + service + '-';
 	var install_mess = $('#translate').attr('data-installing');

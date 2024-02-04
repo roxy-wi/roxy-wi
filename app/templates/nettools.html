@@ -18,7 +18,7 @@
                 <select autofocus required name="server_from" id="nettools_icmp_server_from">
                     <option disabled selected>------</option>
                     <option value="localhost">Roxy-WI</option>
-                    {% for server in user_params['servers'] %}
+                    {% for server in g.user_params['servers'] %}
                     <option value="{{ server.2 }}">{{ server.1 }}</option>
                         {% endfor %}
                     </select>
@@ -50,7 +50,7 @@
                 <select autofocus required name="server_from" id="nettools_telnet_server_from">
                     <option disabled selected>------</option>
                     <option value="localhost">Roxy-WI</option>
-                    {% for server in user_params['servers'] %}
+                    {% for server in g.user_params['servers'] %}
                     <option value="{{ server.2 }}">{{ server.1 }}</option>
                     {% endfor %}
                 </select>
@@ -82,7 +82,7 @@
                 <select autofocus required name="server_from" id="nettools_nslookup_server_from">
                     <option disabled selected>------</option>
                     <option value="localhost">Roxy-WI</option>
-                    {% for server in user_params['servers'] %}
+                    {% for server in g.user_params['servers'] %}
                     <option value="{{ server.2 }}">{{ server.1 }}</option>
                     {% endfor %}
                 </select>

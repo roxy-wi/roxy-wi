@@ -4,8 +4,8 @@
 {% block content %}
 {% from 'include/input_macros.html' import input, select %}
 <script src="/inc/smon.js"></script>
-<link href="/inc/css/servers.css" rel="stylesheet"/>
-<link href="/inc/css/smon.css" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='css/servers.css') }}" rel="stylesheet"/>
+<link href="{{ url_for('static', filename='css/smon.css') }}" rel="stylesheet"/>
 
 {% if user_subscription['user_status'] == 0 or user_subscription['user_plan'] != 'support' %}
 	{% include 'include/no_sub.html' %}

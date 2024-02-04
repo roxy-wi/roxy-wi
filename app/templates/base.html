@@ -4,10 +4,6 @@
 {% from 'include/input_macros.html' import select, checkbox %}
 	<head>
 		<title>{% block title %}{% endblock %}</title>
-		<meta charset="UTF-8">
-		<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-		<meta http-equiv="Pragma" content="no-cache" />
-		<meta http-equiv="Expires" content="0" />
 		<meta id="translate" style="display: none;" data-delete="{{lang.words.delete|title()}}" data-cancel="{{lang.words.cancel|title()}}" data-add="{{lang.words.add|title()}}"
 			  data-superAdmin_pass="{{lang.phrases.superAdmin_pass}}" data-superAdmin_services="{{lang.phrases.superAdmin_services}}" data-change="{{lang.words.change|title()}}"
 			  data-change2="{{lang.words.change2|title()}}" data-password="{{lang.words.password}}" data-groups="{{lang.words.groups}}" data-save="{{lang.words.save|title()}}"
@@ -24,54 +20,11 @@
 			  data-installing="{{lang.words.installing|title()}}" data-creating="{{lang.words.creating|title()}}" data-roxywi_timeout="{{lang.ha_page.roxywi_timeout}}"
 			  data-check_apache_log="{{lang.ha_page.check_apache_log}}" data-was_installed="{{lang.ha_page.was_installed}}" data-start_enter="{{lang.ha_page.start_enter}}"
 			  data-apply="{{lang.words.apply|title()}}" />
-		{% if title == 'Login page' %}
-		<meta name="viewport" content="width=device-width, user-scalable=1">
-		{% endif %}
-		<link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon/favicon.ico') }}" />
-		<link rel="apple-touch-icon" sizes="57x57" href="{{ url_for('static', filename='images/favicon/apple-icon-57x57.png') }}">
-		<link rel="apple-touch-icon" sizes="60x60" href="{{ url_for('static', filename='images/favicon/apple-icon-60x60.png') }}">
-		<link rel="apple-touch-icon" sizes="72x72" href="{{ url_for('static', filename='images/favicon/apple-icon-72x72.png') }}">
-		<link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='images/favicon/apple-icon-76x76.png') }}">
-		<link rel="apple-touch-icon" sizes="114x114" href="{{ url_for('static', filename='images/favicon/apple-icon-114x114.png') }}">
-		<link rel="apple-touch-icon" sizes="120x120" href="{{ url_for('static', filename='images/favicon/apple-icon-120x120.png') }}">
-		<link rel="apple-touch-icon" sizes="144x144" href="{{ url_for('static', filename='images/favicon/apple-icon-144x144.png') }}">
-		<link rel="apple-touch-icon" sizes="152x152" href="{{ url_for('static', filename='images/favicon/apple-icon-152x152.png') }}">
-		<link rel="apple-touch-icon" sizes="180x180" href="{{ url_for('static', filename='images/favicon/apple-icon-180x180.png') }}">
-		<link rel="icon" type="image/png" sizes="192x192"  href="{{ url_for('static', filename='images/favicon/android-icon-192x192.png') }}">
-		<link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='images/favicon/favicon-32x32.png') }}">
-		<link rel="icon" type="image/png" sizes="96x96" href="{{ url_for('static', filename='images/favicon/favicon-96x96.png') }}">
-		<link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='images/favicon/favicon-16x16.png') }}">
-		<meta name="msapplication-TileColor" content="#ffffff">
-		<meta name="msapplication-TileImage" content="{{ url_for('static', filename='images/favicon/ms-icon-144x144.png') }}">
-		<meta name="theme-color" content="#ffffff">
-		<script defer src="/inc/fa-solid.min.js"></script>
-		<script defer src="/inc/fontawesome.min.js"></script>
-		<script src="https://use.fontawesome.com/releases/v5.15.4/js/all.js" data-auto-replace-svg="nest"></script>
-		<script>FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };</script>
-		<script defer src="/inc/ion.sound.min.js"></script>
-		<script defer src="/inc/intro/introjs.min.js"></script>
-		<link href="/inc/intro/introjs.min.css" rel="stylesheet">
-		<link href="/inc/intro/introjs-modern.css" rel="stylesheet">
-		<link href="/inc/css/awesome-6.3.9.css" rel="stylesheet">
-		<link href="/inc/css/style-6.3.9.css" rel="stylesheet">
-		<link href="/inc/css/nprogress.css" rel="stylesheet">
-		<link href="/inc/css/jquery-ui.min.css" rel="stylesheet">
-		<link href="/inc/css/jquery-ui.structure.min.css" rel="stylesheet">
-		<script src="/inc/jquery-3.6.0.min.js"></script>
-		<script src="/inc/jquery-ui.min.js"></script>
-		<script src="/inc/js.cookie.min.js"></script>
-		<script src="/inc/reconnecting-websocket.js"></script>
-		<script src="/inc/hotkeys.js"></script>
-		<link href="/inc/css/select2.css" rel="stylesheet" />
-		<script src="/inc/select2.js"></script>
-		<script src="/inc/script.js"></script>
-		<script src="/inc/nprogress.js"></script>
-		<link href="/inc/css/toastr-6.3.9.css" rel="stylesheet"/>
-		<script src="/inc/toastr.js"></script>
+        {% include 'include/main_head.html' %}
 	</head>
 	<body>
-		{% if user_params['user'] %}
-		<input type="hidden" id="token" value="{{ user_params['token'] }}">
+		{% if g.user_params['user'] %}
+		<input type="hidden" id="token" value="{{ g.user_params['token'] }}">
 		<script>show_version();</script>
 		{% include 'include/main_menu.html' %}
 		<div class="container">
@@ -97,8 +50,8 @@
 				{% include 'include/autorefresh_submenu.html' %}
 			{% endif %}
 			<ul id='browse_history'></ul>
-			{% if role %}
-				{% if role <= 2 %}
+			{% if g.user_params['role'] %}
+				{% if g.user_params['role'] <= 2 %}
 					<div id="apply" style="display: none;">
 						<div class="alert alert-warning" id="apply_div"></div>
 					</div>

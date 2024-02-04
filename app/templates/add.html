@@ -44,7 +44,7 @@
 				<tr>
 					<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 					<td class="addOption">
-						{{ select('serv', values=user_params['servers'], is_servers='true') }}
+						{{ select('serv', values=g.user_params['servers'], is_servers='true') }}
 						<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 					</td>
 					<td rowspan="5" class="add-note addName alert-info">
@@ -307,7 +307,7 @@
 			<tr>
 				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
-					{{ select('serv2', values=user_params['servers'], is_servers='true') }}
+					{{ select('serv2', values=g.user_params['servers'], is_servers='true') }}
 					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td rowspan="5" class="add-note addName alert-info">
@@ -498,7 +498,7 @@
 			<tr>
 				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
-					{{ select('serv3', values=user_params['servers'], is_servers='true') }}
+					{{ select('serv3', values=g.user_params['servers'], is_servers='true') }}
 					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td rowspan="4" class="add-note addName alert-info">
@@ -721,7 +721,7 @@
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
-					{{ select('serv5', values=user_params['servers'], is_servers='true') }}
+					{{ select('serv5', values=g.user_params['servers'], is_servers='true') }}
 					<button id="ssl_key_view" title="{{lang.words.view|title()}} {{lang.words.certs}}">{{lang.words.view|title()}}</button>
 				</td>
 				<td colspan="2" style="padding: 10px 0 10px 0;">
@@ -739,7 +739,7 @@
 			</tr>
 			<tr>
 				<td class="first-collumn padding10" valign="top" style="padding-top: 15px;">
-					{{ select('serv4', values=user_params['servers'], is_servers='true') }}
+					{{ select('serv4', values=g.user_params['servers'], is_servers='true') }}
 				</td>
 				<td valign="top" style="padding-top: 27px;">
 					{{ input('ssl_name') }}
@@ -760,7 +760,7 @@
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
-					{{ select('serv_for_lets', values=user_params['servers'], is_servers='true') }}
+					{{ select('serv_for_lets', values=g.user_params['servers'], is_servers='true') }}
 				</td>
 				<td>
 					{{ input('lets_domain', placeholder="example.com") }}
@@ -784,7 +784,7 @@
 			</tr>
 		{% for option in options %}
 			<tr id="option-{{ option.id }}" class="{{ loop.cycle('odd', 'even') }}">
-				{% if option.groups|string() == user_params['group_id']|string() or group|string() == '1' %}
+				{% if option.groups|string() == g.user_params['group_id']|string() or group|string() == '1' %}
 				<td class="padding10 first-collumn">
 					{{ option.id }}
 				</td>
@@ -833,7 +833,7 @@
 			</tr>
 		{% for s in saved_servers %}
 			<tr id="servers-saved-{{ s.id }}" class="{{ loop.cycle('odd', 'even') }}">
-				{% if s.groups|string() == user_params['group_id']|string() or group|string() == '1' %}
+				{% if s.groups|string() == g.user_params['group_id']|string() or group|string() == '1' %}
 				<td class="padding10 first-collumn">
 					<input type="text" id="servers-ip-{{ s.id }}" value="{{ s.server }}" size="15" class="form-control">
 				</td>
@@ -879,7 +879,7 @@
 			<tr>
 				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
-					{{ select('userlist_serv', name='serv', values=user_params['servers'], is_servers='true') }}
+					{{ select('userlist_serv', name='serv', values=g.user_params['servers'], is_servers='true') }}
 					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td rowspan="4" class="add-note addName alert-info">{{lang.add_page.desc.userlist_desc}}</td>
@@ -932,7 +932,7 @@
 			<tr>
 				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
-					{{ select('existing_userlist_serv', name='serv', values=user_params['servers'], is_servers='true') }}
+					{{ select('existing_userlist_serv', name='serv', values=g.user_params['servers'], is_servers='true') }}
 					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td>
@@ -962,7 +962,7 @@
 			<tr>
 				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
 				<td class="addOption">
-					{{ select('peers_serv', name='serv', values=user_params['servers'], is_servers='true') }}
+					{{ select('peers_serv', name='serv', values=g.user_params['servers'], is_servers='true') }}
 					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
 				</td>
 				<td rowspan="4" class="add-note addName alert-info">
@@ -1029,7 +1029,7 @@
 					<button onclick="createList('black')">{{lang.words.create|title()}}</button>
 				</td>
 				<td class="first-collumn">
-					{{ select('serv-black-list', values=user_params['servers'], is_servers='true') }}
+					{{ select('serv-black-list', values=g.user_params['servers'], is_servers='true') }}
 				</td>
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for list in black_lists %}
@@ -1054,7 +1054,7 @@
 					<button onclick="createList('white')">{{lang.words.create|title()}}</button>
 				</td>
 				<td class="first-collumn">
-					{{ select('serv-white-list', values=user_params['servers'], is_servers='true') }}
+					{{ select('serv-white-list', values=g.user_params['servers'], is_servers='true') }}
 				</td>
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for list in white_lists %}
@@ -1089,7 +1089,7 @@
 					<button onclick="createMap()">{{lang.words.create|title()}}</button>
 				</td>
 				<td class="first-collumn">
-					{{ select('serv-map', values=user_params['servers'], is_servers='true') }}
+					{{ select('serv-map', values=g.user_params['servers'], is_servers='true') }}
 				</td>
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for map in maps %}
@@ -1115,7 +1115,7 @@
 	<div id="dialog-confirm-cert" title="View certificate " style="display: none;">
 		<pre id="dialog-confirm-body"></pre>
 	</div>
-	<input type="hidden" id="group_id" value="{{ user_params['group_id']|string() }}">
+	<input type="hidden" id="group_id" value="{{ g.user_params['group_id']|string() }}">
 </div>
 </div>
 <script>

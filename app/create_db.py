@@ -24,10 +24,10 @@ def default_values():
 		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs', 'desc': 'Enable getting logs from a syslog server', 'group': '1'},
 		{'param': 'syslog_server', 'value': '', 'section': 'logs', 'desc': 'IP address of the syslog_server', 'group': '1'},
 		{'param': 'log_time_storage', 'value': '14', 'section': 'logs', 'desc': 'Retention period for user activity logs (in days)', 'group': '1'},
-		{'param': 'stats_user', 'value': 'admin', 'section': 'haproxy', 'desc': 'Username for accessing HAProxy stats page', 'group': '1'},
-		{'param': 'stats_password', 'value': 'password', 'section': 'haproxy', 'desc': 'Password for accessing HAProxy stats page', 'group': '1'},
-		{'param': 'stats_port', 'value': '8085', 'section': 'haproxy', 'desc': 'Port for HAProxy stats page', 'group': '1'},
-		{'param': 'stats_page', 'value': 'stats', 'section': 'haproxy', 'desc': 'URI for HAProxy stats page', 'group': '1'},
+		{'param': 'haproxy_stats_user', 'value': 'admin', 'section': 'haproxy', 'desc': 'Username for accessing HAProxy stats page', 'group': '1'},
+		{'param': 'haproxy_stats_password', 'value': 'password', 'section': 'haproxy', 'desc': 'Password for accessing HAProxy stats page', 'group': '1'},
+		{'param': 'haproxy_stats_port', 'value': '8085', 'section': 'haproxy', 'desc': 'Port for HAProxy stats page', 'group': '1'},
+		{'param': 'haproxy_stats_page', 'value': 'stats', 'section': 'haproxy', 'desc': 'URI for HAProxy stats page', 'group': '1'},
 		{'param': 'haproxy_dir', 'value': '/etc/haproxy', 'section': 'haproxy', 'desc': 'Path to the HAProxy directory', 'group': '1'},
 		{'param': 'haproxy_config_path', 'value': '/etc/haproxy/haproxy.cfg', 'section': 'haproxy', 'desc': 'Path to the HAProxy configuration file', 'group': '1'},
 		{'param': 'server_state_file', 'value': '/etc/haproxy/haproxy.state', 'section': 'haproxy', 'desc': 'Path to the HAProxy state file', 'group': '1'},
@@ -636,7 +636,7 @@ def update_db_v_6_3_13_4():
 def update_db_v_6_3_13_5():
 	try:
 		SMON.update(check_type='http').where(SMON.http != '').execute()
-	except Exception:
+	except Exception as e:
 		print("An error occurred:", e)
 
 
@@ -658,9 +658,33 @@ def update_db_v_6_3_18():
 		print("Updating... DB has been updated to version 6.3.18")
 
 
+def update_db_v_7_1_2():
+	try:
+		Setting.delete().where(Setting.param == 'stats_user').execute()
+		Setting.delete().where(Setting.param == 'stats_password').execute()
+		Setting.delete().where(Setting.param == 'stats_port').execute()
+		Setting.delete().where(Setting.param == 'stats_page').execute()
+	except Exception as e:
+		print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 7.1.2")
+
+
+def update_db_v_7_1_2_1():
+	try:
+		migrate(
+			migrator.add_column('cred', 'passphrase', CharField(null=True))
+		)
+	except Exception as e:
+		if e.args[0] == 'duplicate column name: passphrase' or str(e) == '(1060, "Duplicate column name \'passphrase\'")':
+			print('Updating... DB has been updated to version 7.1.2-1')
+		else:
+			print("An error occurred:", e)
+
+
 def update_ver():
 	try:
-		Version.update(version='7.1.1.0').execute()
+		Version.update(version='7.1.2.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -692,6 +716,8 @@ def update_all():
 	update_db_v_6_3_13_5()
 	update_db_v_6_3_17()
 	update_db_v_6_3_18()
+	update_db_v_7_1_2()
+	update_db_v_7_1_2_1()
 	update_ver()
 
 

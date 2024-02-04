@@ -52,7 +52,6 @@ def metrics(service):
         return f'error: on Metrics page: {e}', 500
 
     kwargs = {
-        'user_params': g.user_params,
         'autorefresh': 1,
         'servers': servers,
         'service': service,

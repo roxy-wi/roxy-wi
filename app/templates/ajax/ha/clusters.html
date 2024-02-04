@@ -8,7 +8,7 @@
             <span id="cluster-desc-{{cluster.id}}">{% if cluster.desc != '' %} ({{cluster.desc}}) {% endif %}</span>
         </a>
         <span class="server-action">
-            {% if user_params['role'] <= 3 %}
+            {% if g.user_params['role'] <= 3 %}
             <a class="plus" onclick="add_vip_ha_cluster('{{cluster.id}}', '{{cluster.name}}')"></a>
             <a class="edit" onclick="createHaClusterStep1(true, '{{cluster.id}}')"></a>
             <a class="delete" onclick="confirmDeleteCluster('{{cluster.id}}')"></a>
@@ -44,7 +44,7 @@
             VIP:
             <span id="cluster-vip">
             {%- for vip in vips %}
-                {% if user_params['role'] <= 2 %}
+                {% if g.user_params['role'] <= 2 %}
                     <a style="cursor: pointer;" onclick="add_vip_ha_cluster('{{vip.cluster_id}}', '{{cluster.name}}', '{{vip.router_id}}', '{{vip.vip}}', 1)" title="{{lang.words.edit|title()}} VIP">{{vip.vip}}</a>
                 {% else %}
                     {{vip.vip}}

@@ -2,12 +2,12 @@ import psutil
 import requests
 from flask import render_template, request
 
-import modules.db.sql as sql
-import modules.common.common as common
-import modules.tools.common as tools_common
-import modules.roxywi.common as roxywi_common
-import modules.server.server as server_mod
-import modules.service.common as service_common
+import app.modules.db.sql as sql
+import app.modules.common.common as common
+import app.modules.tools.common as tools_common
+import app.modules.roxywi.common as roxywi_common
+import app.modules.server.server as server_mod
+import app.modules.service.common as service_common
 
 
 def user_owv() -> str:
@@ -229,7 +229,7 @@ def show_services_overview():
     )
 
 
-def keepalived_became_master(server_ip) -> None:
+def keepalived_became_master(server_ip) -> str:
     commands = ["sudo kill -USR2 $(cat /var/run/keepalived.pid) && sudo grep 'Became master' /tmp/keepalived.stats |awk '{print $3}'"]
     became_master = server_mod.ssh_command(server_ip, commands)
     lang = roxywi_common.get_user_lang_for_flask()

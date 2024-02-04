@@ -2,11 +2,11 @@ import json
 
 from flask import render_template
 
-import modules.db.sql as sql
-import modules.server.ssh as mod_ssh
-import modules.common.common as common
-import modules.roxywi.auth as roxywi_auth
-import modules.roxywi.common as roxywi_common
+import app.modules.db.sql as sql
+import app.modules.server.ssh as mod_ssh
+import app.modules.common.common as common
+import app.modules.roxywi.auth as roxywi_auth
+import app.modules.roxywi.common as roxywi_common
 
 
 def ssh_command(server_ip: str, commands: list, **kwargs):
@@ -56,6 +56,13 @@ def subprocess_execute(cmd):
 	output = stdout.splitlines()
 
 	return output, stderr
+
+
+def subprocess_execute_stream(cmd):
+	import subprocess
+	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, universal_newlines=True)
+	for line in iter(p.stdout.readline, ''):
+		yield line
 
 
 def subprocess_execute_with_rc(cmd):
@@ -142,7 +149,8 @@ def get_system_info(server_ip: str) -> str:
 			network[i['logicalname']] = {
 				'description': i['description'],
 				'mac': i['serial'],
-				'ip': ip
+				'ip': ip,
+				'up': i['configuration']['link']
 			}
 		for k, j in i.items():
 			if isinstance(j, list):
@@ -162,8 +170,7 @@ def get_system_info(server_ip: str) -> str:
 					try:
 						if b['id'] == 'memory':
 							ram['size'] = round(b['size'] / 1073741824)
-							for memory in b['children']:
-								ram['slots'] += 1
+							ram['slots'] = len(b['children'])
 					except Exception:
 						pass
 
@@ -232,13 +239,15 @@ def get_system_info(server_ip: str) -> str:
 															network[q['logicalname']] = {
 																'description': q['description'],
 																'mac': q['serial'],
-																'ip': ip}
+																'ip': ip,
+										 						'up': q['configuration']['link']}
 													except Exception:
 														try:
 															network[y['logicalname']] = {
 																'description': y['description'],
 																'mac': y['serial'],
-																'ip': y['configuration']['ip']}
+																'ip': y['configuration']['ip'],
+										 						'up': y['configuration']['link']}
 														except Exception:
 															pass
 												if y['class'] == 'disk':
@@ -333,21 +342,19 @@ def get_system_info(server_ip: str) -> str:
 
 
 def show_system_info(server_ip: str, server_id: int) -> str:
-	if sql.is_system_info(server_id):
+	if not sql.is_system_info(server_id):
 		try:
 			get_system_info(server_ip)
 		except Exception as e:
-			return f'123 {e}'
+			return f'error: Cannot get system info: {e}'
 		try:
 			system_info = sql.select_one_system_info(server_id)
-
-			return render_template('ajax/show_system_info.html', system_info=system_info, server_ip=server_ip, server_id=server_id)
 		except Exception as e:
 			return f'Cannot update server info: {e}'
 	else:
 		system_info = sql.select_one_system_info(server_id)
 
-		return render_template('ajax/show_system_info.html', system_info=system_info, server_ip=server_ip, server_id=server_id)
+	return render_template('ajax/show_system_info.html', system_info=system_info, server_ip=server_ip, server_id=server_id)
 
 
 def update_system_info(server_ip: str, server_id: int) -> str:
@@ -469,13 +476,13 @@ def server_is_up(server_ip: str) -> str:
 	return server_status[0]
 
 
-def show_server_services(server_id: int) -> None:
+def show_server_services(server_id: int) -> str:
 	server = sql.select_servers(id=server_id)
 	lang = roxywi_common.get_user_lang_for_flask()
 	return render_template('ajax/show_server_services.html', server=server, lang=lang)
 
 
-def change_server_services(server_id: int, server_name: str, server_services: str) -> str:
+def change_server_services(server_id: int, server_name: str, server_services: dict) -> str:
 	services = sql.select_services()
 	services_status = {}
 
@@ -490,3 +497,51 @@ def change_server_services(server_id: int, server_name: str, server_services: st
 			return 'ok'
 	except Exception as e:
 		return f'error: {e}'
+
+
+def start_ssh_agent() -> dict:
+	"""
+	Start SSH agent
+	:return: Dict of SSH agent socket and pid
+	"""
+	agent_settings = {}
+	cmd = "ssh-agent -s"
+	output, stderr = subprocess_execute(cmd)
+
+	for out in output:
+		if 'SSH_AUTH_SOCK=' in out:
+			agent_settings.setdefault('socket', out.split('=')[1].split(';')[0])
+		if 'SSH_AGENT_PID=' in out:
+			agent_settings.setdefault('pid', out.split('=')[1].split(';')[0])
+	if 'error' in stderr:
+		raise Exception(f'error: Cannot start SSH agent: {stderr}')
+	return agent_settings
+
+
+def add_key_to_agent(ssh_settings: dict, agent_pid: dict) -> None:
+	"""
+	Add key to SSH agent
+	:return: None
+	"""
+	cmd = f'export SSH_AGENT_PID={agent_pid["pid"]} && export SSH_AUTH_SOCK={agent_pid["socket"]} && '
+
+	if ssh_settings['passphrase']:
+		cmd += f"{{ sleep .1; echo {ssh_settings['passphrase']}; }} | script -q /dev/null -c 'ssh-add {ssh_settings['key']}'"
+	else:
+		cmd += f'ssh-add {ssh_settings["key"]}'
+	output, stderr = subprocess_execute(cmd)
+	if 'error' in stderr:
+		raise Exception(f'error: Cannot add the key {ssh_settings["key"]} to SSH agent: {stderr}')
+
+
+def stop_ssh_agent(agent_pid: dict) -> None:
+	"""
+	Stop SSH agent
+	:return: None
+	"""
+
+	cmd = f'export SSH_AGENT_PID={agent_pid["pid"]} && ssh-agent -k'
+	output, stderr = subprocess_execute(cmd)
+
+	if 'error' in stderr:
+		raise Exception(f'error: Cannot stop SSH agent: {stderr}')
