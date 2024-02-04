@@ -1,24 +1,23 @@
 import os
 import sys
 import json
-import random
 
 from bottle import request
-sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
+sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/'))
 
-import modules.db.sql as sql
-import modules.server.ssh as ssh_mod
-import modules.server.server as server_mod
-import modules.config.section as section_mod
-import modules.config.config as config_mod
-import modules.config.runtime as runtime_mod
-import modules.roxy_wi_tools as roxy_wi_tools
-import modules.roxywi.logs as roxywi_logs
-import modules.roxywi.user as roxywi_user
-import modules.roxywi.common as roxywi_common
-import modules.service.common as service_common
-import modules.service.installation as service_mod
-import modules.service.ha_cluster as ha_cluster
+import app.modules.db.sql as sql
+import app.modules.server.ssh as ssh_mod
+import app.modules.server.server as server_mod
+import app.modules.config.section as section_mod
+import app.modules.config.config as config_mod
+import app.modules.config.runtime as runtime_mod
+import app.modules.roxy_wi_tools as roxy_wi_tools
+import app.modules.roxywi.logs as roxywi_logs
+import app.modules.roxywi.user as roxywi_user
+import app.modules.roxywi.common as roxywi_common
+import app.modules.service.common as service_common
+import app.modules.service.installation as service_mod
+import app.modules.service.ha_cluster as ha_cluster
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 

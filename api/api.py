@@ -2,17 +2,11 @@
 # -*- coding: utf-8 -*-
 import json
 import os
-import sys
 from bottle import route, run, hook, response, request, error
 
 import api_funct
-
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-os.chdir(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app/'))
-
-import modules.db.sql as sql
-import modules.roxywi.common as roxywi_common
+import app.modules.db.sql as sql
+import app.modules.roxywi.common as roxywi_common
 
 _error_auth = '403 Auth before'
 _allow_origin = '*'
