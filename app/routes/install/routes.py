@@ -3,19 +3,19 @@ from flask_login import login_required
 
 from app.routes.install import bp
 from middleware import get_user_params, check_services
-import modules.db.sql as sql
-import modules.common.common as common
-import modules.roxywi.auth as roxywi_auth
-import modules.server.server as server_mod
-import modules.service.common as service_common
+import app.modules.db.sql as sql
+import app.modules.common.common as common
+import app.modules.roxywi.auth as roxywi_auth
+import app.modules.server.server as server_mod
+import app.modules.service.common as service_common
 import app.modules.service.installation as service_mod
-import modules.service.exporter_installation as exp_installation
+import app.modules.service.exporter_installation as exp_installation
 
 
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 
@@ -35,7 +35,10 @@ def install_monitoring():
 @check_services
 def install_service(service):
     json_data = request.form.get('jsonData')
-    return service_mod.install_service(service, json_data)
+    try:
+        return service_mod.install_service(service, json_data)
+    except Exception as e:
+        return f'{e}'
 
 
 @bp.route('/<service>/version/<server_ip>')

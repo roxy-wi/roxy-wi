@@ -3,7 +3,7 @@
     name: epel-release
     state: latest
     disable_gpg_check: yes
-  when: ansible_os_family == "RedHat" and HAPVER|length > 0
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and HAPVER|length > 0
   ignore_errors: yes
   environment:
     http_proxy: "{{PROXY}}"
@@ -12,7 +12,7 @@
 - name: Set dist short name if EL
   set_fact:
     distr_short_name: "el"
-  when: ansible_os_family == "RedHat"
+  when: ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
 
 - name: Set dist short name if Amazon Linux
   set_fact:
@@ -27,7 +27,7 @@
       - rsyslog
     state: present
     disable_gpg_check: yes
-  when: ansible_os_family == "RedHat" and HAPVER|length > 0
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and HAPVER|length > 0
   ignore_errors: yes
   register: install_result
   retries: 5
@@ -45,7 +45,7 @@
       - rsyslog
       - bind-utils
     state: present
-  when: (ansible_os_family == "RedHat") and ("'timed out' in install_result.stderr")
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ("'timed out' in install_result.stderr")
   ignore_errors: yes
   register: install_result1
   retries: 5
@@ -59,7 +59,7 @@
 - name: set_fact from wi
   set_fact:
     haproxy_from_wi: "yes"
-  when: (ansible_os_family == "RedHat"' or ansible_distribution == 'Amazon') and HAPVER|length > 0
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS' or ansible_distribution == 'Amazon') and HAPVER|length > 0
 
 
 - name: install the latest version of HAProxy
@@ -69,7 +69,7 @@
       - socat
       - rsyslog
     state: latest
-  when: (ansible_os_family == "RedHat") and (install_result.rc != 0 and install_result1.rc != 0)
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and (install_result.rc != 0 and install_result1.rc != 0)
   register: install_result
   retries: 5
   until: install_result.rc == 0
@@ -86,7 +86,7 @@
       - socat
       - rsyslog
     state: present
-  when: ansible_os_family == "Debian"
+  when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
   environment:
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
