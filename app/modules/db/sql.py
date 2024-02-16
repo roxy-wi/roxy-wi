@@ -50,10 +50,9 @@ def get_setting(param, **kwargs):
 			for setting in query_res:
 				if param in (
 					'nginx_stats_port', 'session_ttl', 'token_ttl', 'haproxy_stats_port', 'haproxy_sock_port', 'ldap_type',
-					'ldap_port', 'ldap_enable', 'log_time_storage', 'syslog_server_enable', 'smon_check_interval',
-					'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range', 'checker_keep_history_range',
-					'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port', 'smon_ssl_expire_warning_alert',
-					'smon_ssl_expire_critical_alert', 'action_keep_history_range'
+					'ldap_port', 'ldap_enable', 'log_time_storage', 'syslog_server_enable', 'checker_check_interval', 'port_scan_interval',
+					'smon_keep_history_range', 'checker_keep_history_range', 'portscanner_keep_history_range', 'checker_maxconn_threshold',
+					'apache_stats_port', 'smon_ssl_expire_warning_alert', 'smon_ssl_expire_critical_alert', 'action_keep_history_range'
 				):
 					return int(setting.value)
 				else:
@@ -498,15 +497,6 @@ def get_group_id_by_name(group_name):
 		return group_id.group_id
 
 
-# def get_group_id_by_server_ip(server_ip):
-# 	try:
-# 		group_id = Server.get(Server.ip == server_ip)
-# 	except Exception as e:
-# 		out_error(e)
-# 	else:
-# 		return group_id.groups
-
-
 def get_cred_id_by_server_ip(server_ip):
 	try:
 		cred = Server.get(Server.ip == server_ip)
@@ -521,7 +511,6 @@ def get_hostname_by_server_ip(server_ip):
 		hostname = Server.get(Server.ip == server_ip)
 	except Exception as e:
 		return out_error(e)
-		# pass
 	else:
 		return hostname.hostname
 
@@ -544,24 +533,6 @@ def select_server_id_by_ip(server_ip):
 		return server_id
 
 
-# def select_server_name_by_ip(server_ip):
-# 	try:
-# 		server_name = Server.get(Server.ip == server_ip).hostname
-# 	except Exception:
-# 		return None
-# 	else:
-# 		return server_name
-#
-#
-# def select_server_group_by_ip(server_ip):
-# 	try:
-# 		groups = Server.get(Server.ip == server_ip).groups
-# 	except Exception as e:
-# 		return out_error(e)
-# 	else:
-# 		return groups
-
-
 def select_server_ip_by_id(server_id: int) -> str:
 	try:
 		server_ip = Server.get(Server.server_id == server_id).ip
@@ -575,7 +546,6 @@ def select_servers(**kwargs):
 	cursor = conn.cursor()
 
 	if mysql_enable == '1':
-
 		sql = """select * from `servers` where `enable` = 1 ORDER BY servers.groups """
 
 		if kwargs.get("server") is not None:
@@ -710,13 +680,13 @@ def get_token(uuid):
 		except Exception:
 			return ''
 
-
-def delete_uuid(uuid):
-	try:
-		query = UUID.delete().where(UUID.uuid == uuid)
-		query.execute()
-	except Exception:
-		pass
+#
+# def delete_uuid(uuid):
+# 	try:
+# 		query = UUID.delete().where(UUID.uuid == uuid)
+# 		query.execute()
+# 	except Exception:
+# 		pass
 
 
 def delete_old_uuid():
@@ -2561,241 +2531,6 @@ def update_server_pos(pos, server_id) -> str:
 		return 'not_ok'
 
 
-# def check_token_exists(token):
-# 	try:
-# 		import http.cookies
-# 		import os
-# 		cookie = http.cookies.SimpleCookie(os.environ.get("HTTP_COOKIE"))
-# 		user_id = cookie.get('uuid')
-# 		if get_token(user_id.value) == token:
-# 			return True
-# 		else:
-# 			return False
-# 	except Exception:
-# 		return False
-
-
-def insert_smon(name, enable, group, desc, telegram, slack, pd, user_group, check_type):
-	try:
-		last_id = SMON.insert(
-			name=name, en=enable, desc=desc, group=group, telegram_channel_id=telegram, slack_channel_id=slack,
-			pd_channel_id=pd, user_group=user_group, status='3', check_type=check_type
-		).execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return last_id
-
-
-def insert_smon_ping(smon_id, hostname, packet_size):
-	try:
-		SmonPingCheck.insert(smon_id=smon_id, ip=hostname, packet_size=packet_size).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def insert_smon_tcp(smon_id, hostname, port):
-	try:
-		SmonTcpCheck.insert(smon_id=smon_id, ip=hostname, port=port).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def insert_smon_dns(smon_id: int, hostname: str, port: int, resolver: str, record_type: str) -> None:
-	try:
-		SmonDnsCheck.insert(smon_id=smon_id, ip=hostname, port=port, resolver=resolver, record_type=record_type).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def insert_smon_http(smon_id, url, body, http_method):
-	try:
-		SmonHttpCheck.insert(smon_id=smon_id, url=url, body=body, method=http_method).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def select_smon(user_group):
-	if user_group == 1:
-		query = SMON.select()
-	else:
-		query = SMON.select().where(SMON.user_group == user_group)
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_smon_ping():
-	try:
-		query_res = SmonPingCheck.select().execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_en_smon_ping() -> object:
-	query = SmonPingCheck.select(SmonPingCheck, SMON).join_from(SmonPingCheck, SMON).where(SMON.en == '1')
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_en_smon_tcp() -> object:
-	query = SmonTcpCheck.select(SmonTcpCheck, SMON).join_from(SmonTcpCheck, SMON).where(SMON.en == '1')
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_en_smon_http() -> object:
-	query = SmonHttpCheck.select(SmonHttpCheck, SMON).join_from(SmonHttpCheck, SMON).where(SMON.en == '1')
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_en_smon_dns() -> object:
-	query = SmonDnsCheck.select(SmonDnsCheck, SMON).join_from(SmonDnsCheck, SMON).where(SMON.en == '1')
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_smon_tcp():
-	try:
-		query_res = SmonTcpCheck.select().execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_smon_http():
-	try:
-		query_res = SmonHttpCheck.select().execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_smon_dns():
-	try:
-		query_res = SmonDnsCheck.select().execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_smon_by_id(last_id):
-	query = SMON.select().where(SMON.id == last_id)
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_smon_check_by_id(last_id, check_type):
-	if check_type == 'ping':
-		query = SmonPingCheck.select().where(SmonPingCheck.smon_id == last_id)
-	elif check_type == 'tcp':
-		query = SmonTcpCheck.select().where(SmonTcpCheck.smon_id == last_id)
-	elif check_type == 'dns':
-		query = SmonDnsCheck.select().where(SmonDnsCheck.smon_id == last_id)
-	else:
-		query = SmonHttpCheck.select().where(SmonHttpCheck.smon_id == last_id)
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def delete_smon(smon_id, user_group):
-	query = SMON.delete().where((SMON.id == smon_id) & (SMON.user_group == user_group))
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def update_smonHttp(smon_id, url, body, method):
-	query = (SmonHttpCheck.update(url=url, body=body, method=method).where(SmonHttpCheck.smon_id == smon_id))
-	try:
-		query.execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def update_smonTcp(smon_id, ip, port):
-	query = (SmonTcpCheck.update(ip=ip, port=port).where(SmonTcpCheck.smon_id == smon_id))
-	try:
-		query.execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def update_smonPing(smon_id, ip, packet_size):
-	query = (SmonPingCheck.update(ip=ip, packet_size=packet_size).where(SmonPingCheck.smon_id == smon_id))
-	try:
-		query.execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def update_smonDns(smon_id: int, ip: str, port: int, resolver: str, record_type: str):
-	query = (SmonDnsCheck.update(ip=ip, port=port, resolver=resolver, record_type=record_type)
-			 .where(SmonDnsCheck.smon_id == smon_id))
-	try:
-		query.execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
-def update_smon(smon_id, name, telegram, slack, pd, group, desc, en):
-	query = (SMON.update(
-		name=name, telegram_channel_id=telegram, slack_channel_id=slack, pd_channel_id=pd, group=group, desc=desc, en=en
-	).where(SMON.id == smon_id))
-	try:
-		query.execute()
-		return True
-	except Exception as e:
-		out_error(e)
-		return False
-
-
 def alerts_history(service, user_group, **kwargs):
 	cursor = conn.cursor()
 	and_host = ''
@@ -2822,305 +2557,6 @@ def alerts_history(service, user_group, **kwargs):
 		return cursor.fetchall()
 
 
-def select_status(smon_id):
-	try:
-		query_res = SMON.get(SMON.id == smon_id).status
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-	finally:
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def select_http_status(smon_id):
-	try:
-		query_res = SMON.get(SMON.id == smon_id).http_status
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-	finally:
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def select_body_status(smon_id):
-	try:
-		query_res = SMON.get(SMON.id == smon_id).body_status
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-	finally:
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def select_script(smon_id):
-	try:
-		query_res = SMON.get(SMON.id == smon_id).script
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_http(smon_id):
-	try:
-		query_res = SMON.get(SMON.id == smon_id).http
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-	finally:
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def select_body(smon_id):
-	try:
-		query_res = SMON.get(SMON.id == smon_id).body
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-	finally:
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def change_status(status, smon_id):
-	query = SMON.update(status=status).where(SMON.id == smon_id)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-	finally:
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def change_body_status(status, smon_id):
-	query = SMON.update(body_status=status).where(SMON.id == smon_id)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-	finally:
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def add_sec_to_state_time(time, smon_id):
-	query = SMON.update(time_state=time).where(SMON.id == smon_id)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-	finally:
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def set_to_zero_time_state(smon_id):
-	query = SMON.update(time_state=0).where(SMON.id == smon_id)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-	finally:
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def response_time(time, smon_id):
-	query = SMON.update(response_time=time).where(SMON.id == smon_id)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-	finally:
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def smon_list(user_group):
-	if user_group == 1:
-		query = (SMON.select().order_by(SMON.group))
-	else:
-		query = (SMON.select().where(SMON.user_group == user_group).order_by(SMON.group))
-
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_one_smon(smon_id: int, check_id: int) -> tuple:
-	if check_id == 1:
-		query = SmonTcpCheck.select(SmonTcpCheck, SMON).join_from(SmonTcpCheck, SMON).where(SMON.id == smon_id)
-	elif check_id == 2:
-		query = SmonHttpCheck.select(SmonHttpCheck, SMON).join_from(SmonHttpCheck, SMON).where(SMON.id == smon_id)
-	elif check_id == 5:
-		query = SmonDnsCheck.select(SmonDnsCheck, SMON).join_from(SmonDnsCheck, SMON).where(SMON.id == smon_id)
-	else:
-		query = SmonPingCheck.select(SmonPingCheck, SMON).join_from(SmonPingCheck, SMON).where(SMON.id == smon_id)
-
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def insert_smon_history(smon_id: int, resp_time: float, status: int, check_id: int, mes='') -> None:
-	cur_date = get_date.return_date('regular')
-	try:
-		SmonHistory.insert(smon_id=smon_id, response_time=resp_time, status=status, date=cur_date,
-						   check_id=check_id, mes=mes).execute()
-	except Exception as e:
-		out_error(e)
-	finally:
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def select_smon_history(smon_id: int) -> object:
-	query = SmonHistory.select().where(
-		SmonHistory.smon_id == smon_id
-	).limit(40).order_by(SmonHistory.date.desc())
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def get_last_smon_status_by_check(smon_id: int) -> object:
-	query = SmonHistory.select().where(
-		SmonHistory.smon_id == smon_id
-	).limit(1).order_by(SmonHistory.date.desc())
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		try:
-			for i in query_res:
-				return i.status
-		except Exception:
-			return ''
-
-
-def get_last_smon_res_time_by_check(smon_id: int, check_id: int) -> int:
-	query = SmonHistory.select().where(
-		(SmonHistory.smon_id == smon_id) &
-		(SmonHistory.check_id == check_id)
-	).limit(1).order_by(SmonHistory.date.desc())
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		try:
-			for i in query_res:
-				return i.response_time
-		except Exception:
-			return ''
-
-
-def get_smon_history_count_checks(smon_id: int) -> dict:
-	count_checks = {}
-	query = SmonHistory.select(fn.Count(SmonHistory.status)).where(
-		SmonHistory.smon_id == smon_id
-	)
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		try:
-			for i in query_res:
-				count_checks['total'] = i.status
-		except Exception as e:
-			raise Exception(f'error: {e}')
-
-	query = SmonHistory.select(fn.Count(SmonHistory.status)).where(
-		(SmonHistory.smon_id == smon_id) &
-		(SmonHistory.status == 1)
-	)
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		try:
-			for i in query_res:
-				count_checks['up'] = i.status
-		except Exception as e:
-			raise Exception(f'error: {e}')
-
-	return count_checks
-
-
-def get_smon_service_name_by_id(smon_id: int) -> str:
-	query = SMON.select().join(SmonHistory, on=(SmonHistory.smon_id == SMON.id)).where(SmonHistory.smon_id == smon_id)
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		try:
-			for i in query_res:
-				return f'{i.name}'
-		except Exception:
-			return ''
-
-
-def get_avg_resp_time(smon_id: int, check_id: int) -> int:
-	try:
-		query_res = SmonHistory.select(fn.AVG(SmonHistory.response_time)).where(
-			(SmonHistory.smon_id == smon_id) &
-			(SmonHistory.check_id == check_id)
-		).scalar()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
 def insert_alerts(user_group, level, ip, port, message, service):
 	cur_date = get_date.return_date('regular')
 	try:
@@ -3136,23 +2572,6 @@ def insert_alerts(user_group, level, ip, port, message, service):
 		if type(conn) is not str:
 			if not conn.is_closed():
 				conn.close()
-
-
-# def select_alerts(user_group):
-# 	cursor = conn.cursor()
-# 	if mysql_enable == '1':
-# 		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` <= (now()+ INTERVAL 10 second) """ % (
-# 			user_group)
-# 	else:
-# 		sql = """ select level, message, `date` from alerts where user_group = '%s' and `date` >= datetime('now', '-20 second', 'localtime')
-# 		and `date` <=  datetime('now', 'localtime') ; """ % (
-# 			user_group)
-# 	try:
-# 		cursor.execute(sql)
-# 	except Exception as e:
-# 		out_error(e)
-# 	else:
-# 		return cursor.fetchall()
 
 
 def select_all_alerts_for_all():
@@ -3637,17 +3056,6 @@ def select_one_system_info(server_id: int):
 		return query_res
 
 
-# def select_system_info():
-# 	query = SystemInfo.select()
-# 	try:
-# 		query_res = query.execute()
-# 	except Exception as e:
-# 		out_error(e)
-# 		return
-# 	else:
-# 		return query_res
-
-
 def is_system_info(server_id):
 	try:
 		query_res = SystemInfo.get(SystemInfo.server_id == server_id).server_id
@@ -3760,14 +3168,14 @@ def select_user_status():
 	else:
 		return query_res
 
-
-def check_user_status():
-	try:
-		UserName.get().Status
-	except Exception as e:
-		raise Exception(str(e))
-	else:
-		return True
+#
+# def check_user_status():
+# 	try:
+# 		UserName.get().Status
+# 	except Exception as e:
+# 		raise Exception(str(e))
+# 	else:
+# 		return True
 
 
 def select_user_plan():
@@ -3993,36 +3401,6 @@ def inset_or_update_service_status(server_id: int, service_id: int, service_chec
 		out_error(e)
 
 
-def update_smon_ssl_expire_date(smon_id: str, expire_date: str) -> None:
-	try:
-		SMON.update(ssl_expire_date=expire_date).where(SMON.id == smon_id)
-	except Exception as e:
-		out_error(e)
-
-
-def update_smon_alert_status(smon_id: str, alert_value: int, alert: str) -> None:
-	if alert == 'ssl_expire_warning_alert':
-		query = SMON.update(ssl_expire_warning_alert=alert_value).where(SMON.id == smon_id)
-	else:
-		query = SMON.update(ssl_expire_critical_alert=alert_value).where(SMON.id == smon_id)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-
-
-def get_smon_alert_status(smon_id: str, alert: str) -> int:
-	try:
-		if alert == 'ssl_expire_warning_alert':
-			alert_value = SMON.get(SMON.id == smon_id).ssl_expire_warning_alert
-		else:
-			alert_value = SMON.get(SMON.id == smon_id).ssl_expire_critical_alert
-	except Exception as e:
-		out_error(e)
-	else:
-		return alert_value
-
-
 def update_user_role(user_id: int, group_id: int, role_id: int) -> None:
 	try:
 		UserGroups.insert(user_id=user_id, user_group_id=group_id, user_role_id=role_id).on_conflict('replace').execute()
@@ -4100,84 +3478,6 @@ def get_tool_cur_version(tool_name: str):
 		out_error(e)
 	else:
 		return query
-
-
-def add_status_page(name: str, slug: str, desc: str, group_id: int, checks: list) -> int:
-	try:
-		last_id = SmonStatusPage.insert(name=name, slug=slug, group_id=group_id, desc=desc).execute()
-	except Exception as e:
-		if 'Duplicate entry' in str(e):
-			raise Exception('error: The Slug is already taken, please enter another one')
-		else:
-			out_error(e)
-	else:
-		add_status_page_checks(last_id, checks)
-		return last_id
-
-
-def edit_status_page(page_id: int, name: str, slug: str, desc: str) -> None:
-	try:
-		SmonStatusPage.update(name=name, slug=slug, desc=desc).where(SmonStatusPage.id == page_id).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def add_status_page_checks(page_id: int, checks: list) -> None:
-	for check in checks:
-		try:
-			SmonStatusPageCheck.insert(page_id=page_id, check_id=int(check)).execute()
-		except Exception as e:
-			out_error(e)
-
-
-def delete_status_page_checks(page_id: int) -> None:
-	try:
-		SmonStatusPageCheck.delete().where(SmonStatusPageCheck.page_id == page_id).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def select_status_pages(group_id: int):
-	try:
-		query_res = SmonStatusPage.select().where(SmonStatusPage.group_id == group_id).execute()
-	except Exception as e:
-		return out_error(e)
-	else:
-		return query_res
-
-
-def select_status_page_by_id(page_id: int):
-	try:
-		query_res = SmonStatusPage.select().where(SmonStatusPage.id == page_id).execute()
-	except Exception as e:
-		return out_error(e)
-	else:
-		return query_res
-
-
-def select_status_page(slug: str):
-	try:
-		query_res = SmonStatusPage.select().where(SmonStatusPage.slug == slug).execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_status_page_checks(page_id: int):
-	try:
-		query_res = SmonStatusPageCheck.select().where(SmonStatusPageCheck.page_id == page_id).execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def delete_status_page(page_id):
-	try:
-		SmonStatusPage.delete().where(SmonStatusPage.id == page_id).execute()
-	except Exception as e:
-		out_error(e)
 
 
 def select_clusters(group_id: int):

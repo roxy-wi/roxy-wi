@@ -5,18 +5,25 @@ from datetime import datetime
 
 from app.routes.smon import bp
 from middleware import get_user_params
+from app.modules.db.db_model import conn
 import app.modules.db.sql as sql
+import app.modules.db.smon as smon_sql
 import app.modules.common.common as common
-import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.smon as smon_mod
 import app.modules.tools.common as tools_common
 
 
+@bp.teardown_request
+def _db_close(exc):
+    if not conn.is_closed():
+        conn.close()
+
+
 @bp.route('/dashboard')
 @login_required
 @get_user_params()
-def smon():
+def smon_main_dashboard():
     """
     Dashboard route for the smon tool.
 
@@ -24,14 +31,19 @@ def smon():
     :rtype: flask.Response
     """
     roxywi_common.check_user_group_for_flask()
+    group_id = g.user_params['group_id']
 
     kwargs = {
         'autorefresh': 1,
         'lang': g.user_params['lang'],
-        'smon': sql.smon_list(g.user_params['group_id']),
-        'group': g.user_params['group_id'],
+        'smon': smon_sql.smon_list(group_id),
+        'agents': smon_sql.get_agents(group_id),
+        'group': group_id,
         'smon_status': tools_common.is_tool_active('roxy-wi-smon'),
         'user_subscription': roxywi_common.return_user_subscription(),
+        'telegrams': sql.get_user_telegram_by_group(group_id),
+        'slacks': sql.get_user_pd_by_group(group_id),
+        'pds': sql.get_user_slack_by_group(group_id),
     }
 
     return render_template('smon/dashboard.html', **kwargs)
@@ -68,16 +80,16 @@ def smon_dashboard(smon_id, check_id):
     9. Renders the SMON history template ('include/smon/smon_history.html') using the `render_template` function from Flask, passing the `kwargs` dictionary as keyword arguments.
     """
     roxywi_common.check_user_group_for_flask()
-    smon = sql.select_one_smon(smon_id, check_id)
+    smon = smon_sql.select_one_smon(smon_id, check_id)
     present = common.get_present_time()
     cert_day_diff = 'N/A'
 
     try:
-        avg_res_time = round(sql.get_avg_resp_time(smon_id, check_id), 2)
+        avg_res_time = round(smon_sql.get_avg_resp_time(smon_id, check_id), 2)
     except Exception:
         avg_res_time = 0
     try:
-        last_resp_time = round(sql.get_last_smon_res_time_by_check(smon_id, check_id), 2)
+        last_resp_time = round(smon_sql.get_last_smon_res_time_by_check(smon_id, check_id), 2)
     except Exception:
         last_resp_time = 0
 
@@ -92,17 +104,111 @@ def smon_dashboard(smon_id, check_id):
         'smon': smon,
         'group': g.user_params['group_id'],
         'user_subscription': roxywi_common.return_user_subscription(),
-        'check_interval': sql.get_setting('smon_check_interval'),
         'uptime': smon_mod.check_uptime(smon_id),
         'avg_res_time': avg_res_time,
-        'smon_name': sql.get_smon_service_name_by_id(smon_id),
+        'smon_name': smon_sql.get_smon_service_name_by_id(smon_id),
         'cert_day_diff': cert_day_diff,
         'check_id': check_id,
         'dashboard_id': smon_id,
-        'last_resp_time': last_resp_time
+        'last_resp_time': last_resp_time,
+        'agents': smon_sql.get_agents(g.user_params['group_id'])
     }
 
     return render_template('include/smon/smon_history.html', **kwargs)
+
+
+@bp.route('/check', methods=['POST', 'PUT', 'DELETE'])
+@login_required
+def smon_add():
+    json_data = request.get_json()
+    if request.method == "POST":
+        user_group = roxywi_common.get_user_group(id=1)
+
+        try:
+            last_id = smon_mod.create_smon(json_data, user_group)
+        except Exception as e:
+            return str(e), 200
+        return str(last_id)
+    elif request.method == "PUT":
+        check_id = json_data['check_id']
+
+        if roxywi_common.check_user_group_for_flask():
+            try:
+                status = smon_mod.update_smon(check_id, json_data)
+            except Exception as e:
+                return f'{e}', 200
+            else:
+                return status, 201
+    elif request.method == "DELETE":
+        user_group = roxywi_common.get_user_group(id=1)
+        check_id = json_data['check_id']
+
+        if roxywi_common.check_user_group_for_flask():
+            try:
+                status = smon_mod.delete_smon(check_id, user_group)
+            except Exception as e:
+                return f'{e}', 200
+            else:
+                return status
+
+
+@bp.route('/check/settings/<int:smon_id>/<int:check_type_id>')
+@login_required
+def check(smon_id, check_type_id):
+    smon = smon_sql.select_one_smon(smon_id, check_type_id)
+    settings = {}
+    for s in smon:
+        settings = {
+            'id': s.smon_id.id,
+            'name': s.smon_id.name,
+            'interval': str(s.interval),
+            'agent_id': str(s.agent_id),
+            'enabled': s.smon_id.en,
+            'status': s.smon_id.status,
+            'http': s.smon_id.http,
+            'desc': s.smon_id.desc,
+            'tg': s.smon_id.telegram_channel_id,
+            'slack': s.smon_id.slack_channel_id,
+            'pd': s.smon_id.pd_channel_id,
+            'check_type': s.smon_id.check_type,
+            'group': s.smon_id.group,
+        }
+        if check_type_id in (1, 5):
+            settings.setdefault('port', s.port)
+
+        if check_type_id != 2:
+            settings.setdefault('server_ip', str(s.ip))
+        if check_type_id == 2:
+            settings.setdefault('url', s.url)
+            settings.setdefault('method', s.method)
+            settings.setdefault('body', s.body)
+        elif check_type_id == 4:
+            settings.setdefault('packet_size', s.packet_size)
+        elif check_type_id == 5:
+            settings.setdefault('resolver', s.resolver)
+            settings.setdefault('record_type', s.record_type)
+
+    return jsonify(settings)
+
+
+@bp.route('/check/<int:smon_id>/<int:check_type_id>')
+@login_required
+@get_user_params()
+def get_check(smon_id, check_type_id):
+    """
+    Get the check for the given SMON ID and check type ID.
+
+    Parameters:
+    - smon_id (int): The ID of the SMON.
+    - check_type_id (int): The ID of the check type.
+
+    Returns:
+    - flask.Response: The rendered template for the check page.
+    """
+    smon = smon_sql.select_one_smon(smon_id, check_type_id)
+    lang = roxywi_common.get_user_lang_for_flask()
+    agents = smon_sql.get_agents(g.user_params['group_id'])
+    return render_template('ajax/smon/check.html', smon=smon, lang=lang, check_type_id=check_type_id, agents=agents)
 
 
 @bp.route('/status-page', methods=['GET', 'POST', 'DELETE', 'PUT'])
@@ -146,8 +252,8 @@ def status_page():
     if request.method == 'GET':
         kwargs = {
             'lang': g.user_params['lang'],
-            'smon': sql.smon_list(g.user_params['group_id']),
-            'pages': sql.select_status_pages(g.user_params['group_id']),
+            'smon': smon_sql.smon_list(g.user_params['group_id']),
+            'pages': smon_sql.select_status_pages(g.user_params['group_id']),
             'smon_status': tools_common.is_tool_active('roxy-wi-smon'),
             'user_subscription': roxywi_common.return_user_subscription()
         }
@@ -183,7 +289,7 @@ def status_page():
     elif request.method == 'DELETE':
         page_id = int(request.form.get('page_id'))
         try:
-            sql.delete_status_page(page_id)
+            smon_sql.delete_status_page(page_id)
         except Exception as e:
             return f'{e}'
         else:
@@ -200,7 +306,7 @@ def get_checks(page_id):
     """
     returned_check = []
     try:
-        checks = sql.select_status_page_checks(page_id)
+        checks = smon_sql.select_status_page_checks(page_id)
     except Exception as e:
         return f'error: Cannot get checks: {e}'
 
@@ -273,120 +379,6 @@ def smon_history_statuses(dashboard_id):
 @login_required
 def smon_history_cur_status(dashboard_id, check_id):
     return smon_mod.history_cur_status(dashboard_id, check_id)
-
-
-@bp.route('/admin')
-@login_required
-@get_user_params()
-def smon_admin():
-    roxywi_auth.page_for_admin(level=3)
-    user_group = g.user_params['group_id']
-    kwargs = {
-        'lang': g.user_params['lang'],
-        'smon': sql.select_smon(user_group),
-        'smon_status': tools_common.is_tool_active('roxy-wi-smon'),
-        'user_subscription': roxywi_common.return_user_subscription(),
-        'telegrams': sql.get_user_telegram_by_group(user_group),
-        'slacks': sql.get_user_slack_by_group(user_group),
-        'pds': sql.get_user_pd_by_group(user_group),
-        'smon_tcp': sql.select_smon_tcp(),
-        'smon_ping': sql.select_smon_ping(),
-        'smon_http': sql.select_smon_http(),
-        'smon_dns': sql.select_smon_dns()
-    }
-
-    return render_template('smon/add.html', **kwargs)
-
-
-@bp.post('/add')
-@login_required
-def smon_add():
-    user_group = roxywi_common.get_user_group(id=1)
-    name = common.checkAjaxInput(request.form.get('newsmonname'))
-    hostname = common.checkAjaxInput(request.form.get('newsmon'))
-    port = common.checkAjaxInput(request.form.get('newsmonport'))
-    enable = common.checkAjaxInput(request.form.get('newsmonenable'))
-    url = common.checkAjaxInput(request.form.get('newsmonurl'))
-    body = common.checkAjaxInput(request.form.get('newsmonbody'))
-    group = common.checkAjaxInput(request.form.get('newsmongroup'))
-    desc = common.checkAjaxInput(request.form.get('newsmondescription'))
-    telegram = common.checkAjaxInput(request.form.get('newsmontelegram'))
-    slack = common.checkAjaxInput(request.form.get('newsmonslack'))
-    pd = common.checkAjaxInput(request.form.get('newsmonpd'))
-    check_type = common.checkAjaxInput(request.form.get('newsmonchecktype'))
-    resolver = common.checkAjaxInput(request.form.get('newsmonresserver'))
-    record_type = common.checkAjaxInput(request.form.get('newsmondns_record_type'))
-    packet_size = common.checkAjaxInput(request.form.get('newsmonpacket_size'))
-    http_method = common.checkAjaxInput(request.form.get('newsmon_http_method'))
-    lang = roxywi_common.get_user_lang_for_flask()
-
-    try:
-        last_id = smon_mod.create_smon(
-            name, hostname, port, enable, url, body, group, desc, telegram, slack, pd, packet_size, check_type,
-            resolver, record_type, user_group, http_method
-        )
-    except Exception as e:
-        return str(e), 200
-    else:
-        if last_id:
-            kwargs = {
-                'smon': sql.select_smon_by_id(last_id),
-                'pds': sql.get_user_pd_by_group(user_group),
-                'slacks': sql.get_user_slack_by_group(user_group),
-                'telegrams': sql.get_user_telegram_by_group(user_group),
-                'smon_service': sql.select_smon_check_by_id(last_id, check_type),
-                'check_type': check_type,
-                'lang': lang
-            }
-
-            return render_template('ajax/smon/show_new_smon.html', **kwargs)
-
-
-@bp.post('/update/<smon_id>')
-@login_required
-def smon_update(smon_id):
-    roxywi_common.check_user_group_for_flask()
-    name = common.checkAjaxInput(request.form.get('updateSmonName'))
-    ip = common.checkAjaxInput(request.form.get('updateSmonIp'))
-    port = common.checkAjaxInput(request.form.get('updateSmonPort'))
-    en = common.checkAjaxInput(request.form.get('updateSmonEn'))
-    url = common.checkAjaxInput(request.form.get('updateSmonUrl'))
-    body = common.checkAjaxInput(request.form.get('updateSmonBody'))
-    telegram = common.checkAjaxInput(request.form.get('updateSmonTelegram'))
-    slack = common.checkAjaxInput(request.form.get('updateSmonSlack'))
-    pd = common.checkAjaxInput(request.form.get('updateSmonPD'))
-    group = common.checkAjaxInput(request.form.get('updateSmonGroup'))
-    desc = common.checkAjaxInput(request.form.get('updateSmonDesc'))
-    check_type = common.checkAjaxInput(request.form.get('check_type'))
-    resolver = common.checkAjaxInput(request.form.get('updateSmonResServer'))
-    record_type = common.checkAjaxInput(request.form.get('updateSmonRecordType'))
-    packet_size = common.checkAjaxInput(request.form.get('updateSmonPacket_size'))
-    http_method = common.checkAjaxInput(request.form.get('updateSmon_http_method'))
-
-    if roxywi_common.check_user_group_for_flask():
-        try:
-            status = smon_mod.update_smon(
-                smon_id, name, ip, port, en, url, body, telegram, slack, pd, group, desc, check_type,
-                resolver, record_type, packet_size, http_method
-            )
-        except Exception as e:
-            return f'{e}', 200
-        else:
-            return status
-
-
-@bp.route('/delete/<smon_id>')
-@login_required
-def smon_delete(smon_id):
-    user_group = roxywi_common.get_user_group(id=1)
-
-    if roxywi_common.check_user_group_for_flask():
-        try:
-            status = smon_mod.delete_smon(smon_id, user_group)
-        except Exception as e:
-            return f'{e}', 200
-        else:
-            return status
 
 
 @bp.post('/refresh')

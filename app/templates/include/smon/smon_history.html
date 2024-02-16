@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+`{% extends "base.html" %}
 {% from 'include/input_macros.html' import select %}
 {% block title %}{{ lang.menu_links.history.title }} {{ smon_name }}{% endblock %}
 {% block h2 %}{{ lang.menu_links.history.title }} {{ smon_name }}{% endblock %}
@@ -25,17 +25,23 @@
         {{s.smon_id.name}}
     {% endif %}
     </div>
-{% endfor %}
 </div>
 <div class="row statuses wrap">
     <div class="col-md-8" style="transform: translateX(0px);">
         <div id="smon_history_statuses"></div>
-        <div id="check_interval">{{lang.words.checking|title()}} {{lang.words.every}} {{check_interval}} {{lang.words.minutes2}}</div>
+        <div id="check_interval">
+            {{lang.words.checking|title()}} {{lang.words.every}} {{s.interval}} {{lang.words.seconds2}},
+            {{ lang.words.agent|title() }}
+            {% for a in agents %}
+            {% if a.id|string() == s.agent_id|string() %}
+            {{ a.name }}
+            {% endif %}
+            {% endfor %}
+        </div>
     </div>
     <div class="col-md-4" id="cur_status"></div>
 </div>
 <div class="row statuses wrap">
-    {% for s in smon %}
     <div class="col">
         <h4>{{lang.words.checking|title()}}</h4>
         <p class="smon_stats">({{lang.words.type|title()}})</p>

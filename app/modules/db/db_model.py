@@ -573,10 +573,24 @@ class SmonHistory(BaseModel):
         primary_key = False
 
 
+class SmonAgent(BaseModel):
+    id = AutoField()
+    server_id = ForeignKeyField(Server, on_delete='Cascade')
+    name = CharField()
+    uuid = CharField()
+    enabled = IntegerField(constraints=[SQL('DEFAULT 1')])
+    desc = CharField()
+
+    class Meta:
+        table_name = 'smon_agents'
+
+
 class SmonTcpCheck(BaseModel):
     smon_id = ForeignKeyField(SMON, on_delete='Cascade', unique=True)
     ip = CharField()
     port = IntegerField()
+    interval = IntegerField(constraints=[SQL('DEFAULT 120')])
+    agent_id = IntegerField(constraints=[SQL('DEFAULT 1')])
 
     class Meta:
         table_name = 'smon_tcp_check'
@@ -589,6 +603,8 @@ class SmonHttpCheck(BaseModel):
     method = CharField(constraints=[SQL('DEFAULT "get"')])
     accepted_status_codes = CharField(constraints=[SQL('DEFAULT "200"')])
     body = CharField(null=True)
+    interval = IntegerField(constraints=[SQL('DEFAULT 120')])
+    agent_id = IntegerField(constraints=[SQL('DEFAULT 1')])
 
     class Meta:
         table_name = 'smon_http_check'
@@ -599,6 +615,8 @@ class SmonPingCheck(BaseModel):
     smon_id = ForeignKeyField(SMON, on_delete='Cascade', unique=True)
     ip = CharField()
     packet_size = IntegerField(constraints=[SQL('DEFAULT 56')])
+    interval = IntegerField(constraints=[SQL('DEFAULT 120')])
+    agent_id = IntegerField(constraints=[SQL('DEFAULT 1')])
 
     class Meta:
         table_name = 'smon_ping_check'
@@ -611,6 +629,8 @@ class SmonDnsCheck(BaseModel):
     port = IntegerField(constraints=[SQL('DEFAULT 53')])
     resolver = CharField()
     record_type = CharField()
+    interval = IntegerField(constraints=[SQL('DEFAULT 120')])
+    agent_id = IntegerField(constraints=[SQL('DEFAULT 1')])
 
     class Meta:
         table_name = 'smon_dns_check'
@@ -724,7 +744,7 @@ def create_tables():
              Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
              PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes,
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
-             KeepaliveRestart, PD, SmonHistory, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup, RoxyTool,
+             KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup, RoxyTool,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
              HaClusterRouter]
         )

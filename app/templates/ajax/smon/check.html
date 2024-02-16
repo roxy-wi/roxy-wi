@@ -1,0 +1,111 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+<script src="https://use.fontawesome.com/releases/v5.15.4/js/all.js" data-auto-replace-svg="nest"></script>
+<script>FontAwesomeConfig = { searchPseudoElements: true, observeMutations: false };</script>
+{%- for s in smon -%}
+    {% if s.smon_id.en == 1 %}
+        {% if s.smon_id.status == 1 and s.smon_id.body_status == 1 %}
+            {% set additional_classes = 'good div-server-head-up' %}
+            {% set uptime_desc = lang.words.uptime + ': <time class="timeago" datetime='+s.smon_id.time_state|string()+'>'+s.smon_id.time_state|string()+'</time>' %}
+        {% elif s.smon_id.status == 0 or s.smon_id.body_status == 0 %}
+            {% set additional_classes = 'err div-server-head-down' %}
+            {% set uptime_desc = lang.words.downtime + ': <time class="timeago" datetime='+s.smon_id.time_state|string()+'>'+s.smon_id.time_state|string()+'</time>' %}
+        {% else %}
+            {% set additional_classes = 'err div-server-head-down' %}
+            {% set uptime_desc = lang.words.uptime + ': N/A' %}
+        {% endif %}
+    {% else %}
+        {% set additional_classes = 'dis div-server-head-dis' %}
+        {% set uptime_desc = lang.words.uptime + ': N/A' %}
+    {% endif %}
+<div class="smon_services {{additional_classes}}" id="smon-{{ s.smon_id.id }}">
+<div class="ip server-name">
+    <a href="/app/smon/dashboard/{{s.smon_id.id}}/{{check_type_id}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{s.smon_id.name}} {{lang.words.host}}" class="link" id="smon-name-{{ s.smon_id.id }}">{{s.smon_id.name.strip("'")}}</a>
+    {% set agent_exist = [] %}
+    {% for a in agents %}
+        {% if a.id|string() == s.agent_id|string() %}
+        {% if agent_exist.append(1) %} {% endif %}
+        {% endif %}
+    {% endfor %}
+    {% if agent_exist|length == 0 %}
+        <span class="tooltip" style="color: var(--red-color); cursor: help" title="{{ lang.smon_page.desc.not_assign_to_agent }}">!</span>
+    {% endif %}
+    <span class="server-action">
+        <a class="edit" onclick="editSmon('{{s.smon_id.id}}', '{{ s.smon_id.check_type }}')"></a>
+        <a class="add" onclick="cloneSmom({{s.smon_id.id}}, '{{ s.smon_id.check_type }}')" id="clone-{{s.smon_id.id}}" title="{{lang.words.clone|title()}} {{s.smon_id.name}}" style="cursor: pointer; color: #000;"></a>
+        <a class="delete" onclick="confirmDeleteSmon({{s.smon_id.id}})" title="{{lang.words.delete|title()}} {{s.smon_id.name}}" style="cursor: pointer; color: #000;"></a>
+        <a href="/app/smon/history/host/{{s.smon_id.name}}" title="{{lang.words.view|title()}} {{lang.words.alerts}} {{lang.words.history}} {{lang.words.for}} {{s.smon_id.name}} {{lang.words.host}}" class="history"></a>
+    </span>
+</div>
+<div class="desc">
+    {% if s.smon_id.desc %}
+        <b>{{s.smon_id.desc.strip("'")}}</b>
+    {% else %}
+        {{lang.words.desc|title()}}: {{lang.words.none}}
+    {% endif %}
+</div>
+<div class="desc">
+    <b>{{uptime_desc|safe}}</b>
+</div>
+<div class="desc">
+    {% if s.smon_id.en == 1 %}
+        {% if s.smon_id.status == 1 %}
+            {{lang.smon_page.desc.resp_time}}:
+        {% else %}
+            {{lang.smon_page.desc.last_resp_time}}:
+        {% endif %}
+        {% if s.smon_id.response_time %}
+            <span title="{{s.smon_id.response_time}} ms">{{s.smon_id.response_time|truncate(9)}} ms</span>
+        {% else %}
+            N/A
+        {% endif %}
+    {% else %}
+        N/A
+    {% endif %}
+</div>
+<div class="res_time">
+    <b>{{ lang.smon_page.desc.enabled_checks }}</b> {{ s.smon_id.check_type|upper }}
+    <b>{{lang.words.agent|title()}}:</b>
+        {% for a in agents %}
+        {% if a.id|string() == s.agent_id|string() %}
+        {{ a.name }}
+        {% endif %}
+        {% endfor %}
+</div>
+    {% if s.smon_id.en == 1 and agent_exist|length > 0 %}
+     {% if s.smon_id.status == 1 and s.smon_id.body_status == 1 %}
+        <div class="up">
+            {{lang.smon_page.desc.UP}}
+        </div>
+     {% elif s.smon_id.status == 0 and s.smon_id.check_type == 'http' %}
+        <div class="down">
+            {{lang.smon_page.desc.HTTP_FAILURE}}
+        </div>
+     {% elif s.smon_id.body_status == 0 %}
+        <div class="down">
+            {{lang.smon_page.desc.BODY_FAILURE}}
+        </div>
+     {% elif s.smon_id.status == 3 %}
+        <div class="unknown">
+            {{lang.smon_page.desc.UNKNOWN}}
+        </div>
+     {% else %}
+        <div class="down">
+            {{lang.smon_page.desc.DOWN}}
+        </div>
+     {% endif %}
+    {% elif agent_exist|length == 0 %}
+        <div class="unknown">
+            {{lang.smon_page.desc.UNKNOWN}}
+        </div>
+    {% else %}
+    <div class="disable">
+        {{lang.smon_page.desc.DISABLED}}
+    </div>
+    {% endif %}
+<script>
+    $(document).ready(function() {
+        $("time.timeago").timeago();
+    })
+</script>
+</div>
+{%- endfor -%}

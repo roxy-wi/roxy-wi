@@ -404,6 +404,10 @@ def run_ansible(inv: dict, server_ips: str, ansible_role: str) -> object:
 		roxywi_common.logging('Roxy-WI server', f'error: Cannot stop SSH agent {e}', roxywi=1)
 
 	os.remove(inventory)
+
+	if result.rc != 0:
+		raise Exception('Something wrong with installation, check <a href="/app/logs/internal?log_file=roxy-wi.error.log" target="_blank" class="link">Apache logs</a> for details')
+
 	return result.stats
 
 

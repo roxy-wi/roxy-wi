@@ -9,6 +9,7 @@
     'monitoring': 'Monitoring',
     'logs': 'Logs',
     'ldap': 'LDAP',
+    'smon': 'SMON',
     }
 %}
 <script defer src="/inc/admin_settings.js"></script>
@@ -16,7 +17,7 @@
     <tbody>
         {% set section = namespace(section='') %}
         {% for set in settings %}
-        {% if page == "servers.py" and (set.section in ('monitoring', 'rabbitmq', 'mail')) %}
+        {% if page == "servers.py" and (set.section in ('monitoring', 'rabbitmq', 'mail', 'smon')) %}
         <!-- continue -->
         {% else %}
         {% if section.section|string() != set.section|string() %}
@@ -47,10 +48,9 @@
                         {{ input(set.param, size='25', type='password', style='width: 210px;', placeholder='******') }}
                     {% endif %}
                 {% elif set.param in ('nginx_stats_port', 'session_ttl', 'token_ttl', 'haproxy_stats_port', 'haproxy_sock_port',
-                    'ldap_port', 'log_time_storage', 'smon_check_interval', 'checker_check_interval', 'port_scan_interval',
-                    'smon_keep_history_range', 'checker_keep_history_range', 'portscanner_keep_history_range',
-                    'checker_maxconn_threshold', 'apache_stats_port', 'mail_smtp_port', 'rabbitmq_port', 'smon_ssl_expire_warning_alert',
-                    'smon_ssl_expire_critical_alert', 'action_keep_history_range') %}
+                    'ldap_port', 'log_time_storage', 'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range',
+                    'checker_keep_history_range', 'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port',
+                    'mail_smtp_port', 'rabbitmq_port', 'smon_ssl_expire_warning_alert', 'smon_ssl_expire_critical_alert', 'action_keep_history_range') %}
                     {{ input(set.param, value=set.value, style='width: 210px;', type='number') }}
                 {% elif set.param == 'time_zone' %}
                     <select name="{{set.param}}" id="{{set.param}}" style="width: 215px;">

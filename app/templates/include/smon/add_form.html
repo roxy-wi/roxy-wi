@@ -1,0 +1,162 @@
+<div id="smon-add-table" style="display: none;">
+	<table class="overview" id="smon-add-table-overview" title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.server}} {{lang.words.for}} {{lang.words.monitoring}}"
+    data-edit="{{lang.words.edit|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.server}} {{lang.words.for}} {{lang.words.monitoring}}">
+		{% include 'include/tr_validate_tips.html' %}
+		<tr>
+			<td class="padding20">
+				{{lang.words.name|title()}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('new-smon-name') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				Agent
+				<span class="need-field">*</span>
+			</td>
+			<td>
+                <select name="new-smon-agent-id" id="new-smon-agent-id">
+                    <option value="------" disabled selected>------</option>
+                    {% for agent in agents %}
+                        <option value="{{ agent.id }}">{{ agent.name }}</option>
+                    {% endfor %}
+                </select>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">
+				{{lang.words.checking|title()}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{% set check_types = {'dns': 'DNS', 'ping': 'Ping', 'tcp': 'TCP/UDP', 'http': 'HTTP(s)'} %}
+				{{ select('check_type', values=check_types, selected='http') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20" title="{{ lang.phrases.check_interval_title }}">
+				{{lang.phrases.check_interval}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('new-smon-interval', value='120', type='number', placeholder='120', title=lang.phrases.check_interval_title) }}
+			</td>
+		</tr>
+		<tr class="new_smon_hostname">
+			<td class="padding20">
+				{{lang.words.Hostname}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('new-smon-ip') }}
+			</td>
+		</tr>
+		<tr class="smon_ping_check">
+			<td class="padding20">
+				{{lang.smon_page.desc.packet_size}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('new-smon-packet_size', value='56', type='number', placeholder='56') }}
+			</td>
+		</tr>
+		<tr class="smon_dns_check">
+			<td class="padding20">
+				Resolver {{lang.words.server}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('new-smon-resolver-server', value='8.8.8.8') }}
+			</td>
+		</tr>
+		<tr class="smon_tcp_check smon_dns_check">
+			<td class="padding20">
+				{{lang.words.port|title()}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{{ input('new-smon-port', type='number', size='4') }}
+			</td>
+		</tr>
+		<tr class="smon_http_check">
+			<td class="padding20">
+				URL
+				<span class="need-field">*</span>
+			</td>
+			<td>{{ input('new-smon-url', value='https://', title='proto://url[:port]/', placeholder='proto://url[:port]/') }}</td>
+		</tr>
+		<tr class="smon_http_check">
+			<td class="padding20">{{lang.words.body|title()}}</td>
+			<td>{{ input('new-smon-body') }}</td>
+		</tr>
+		<tr class="smon_http_check">
+			<td class="padding20">HTTP {{lang.words.method}}</td>
+			<td>
+				{% set http_methods = {'get': 'GET', 'post': 'POST', 'put': 'PUT', 'patch': 'PATCH', 'delete': 'DELETE',
+				'head': 'HEAD', 'options': 'OPTIONS'} %}
+				{{ select('new-smon-method', values=http_methods, selected='get') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">{{lang.words.enable|title()}}</td>
+			<td>
+				{{ checkbox('new-smon-enable', checked='checked') }}
+			</td>
+		</tr>
+		<tr class="smon_dns_check">
+			<td class="padding20">
+				{{lang.phrases.resource_record_type}}
+				<span class="need-field">*</span>
+			</td>
+			<td>
+				{% set check_types = {'a': 'A', 'aaa': 'AAA', 'caa': 'CAA', 'cname': 'CNAME', 'mx': 'MX', 'ns': 'NS',
+				'ptr': 'PTR', 'sao': 'SAO', 'srv': 'SRV', 'txt': 'TXT'} %}
+				{{ select('new-smon-dns_record_type', values=check_types, selected='a') }}
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">Telegram</td>
+			<td>
+				<select id="new-smon-telegram">
+					<option value="0">{{lang.words.disabled|title()}}</option>
+				{% for t in telegrams %}
+					<option value="{{t.id}}">{{t.chanel_name}}</option>
+				{% endfor %}
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">Slack</td>
+			<td>
+				<select id="new-smon-slack">
+					<option value="0">{{lang.words.disabled|title()}}</option>
+				{% for t in slacks %}
+					<option value="{{t.id}}">{{t.chanel_name}}</option>
+				{% endfor %}
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">PagerDuty</td>
+			<td>
+				<select id="new-smon-pd">
+					<option value="0">{{lang.words.disabled|title()}}</option>
+				{% for t in pds %}
+					<option value="{{t.id}}">{{t.chanel_name}}</option>
+				{% endfor %}
+				</select>
+			</td>
+		</tr>
+		<tr>
+			<td class="padding20">{{lang.words.group|title()}}</td>
+			<td>{{ input('new-smon-group') }}</td>
+		</tr>
+		<tr>
+			<td class="padding20">{{lang.words.desc|title()}}</td>
+			<td>{{ input('new-smon-description') }}</td>
+		</tr>
+	</table>
+	{% include 'include/del_confirm.html' %}
+</div>

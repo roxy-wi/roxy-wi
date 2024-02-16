@@ -1974,8 +1974,8 @@ function removeServiceFromUser(service_id) {
 	$("#all_services tbody").append(html_tag);
 }
 function confirmAjaxServiceAction(action, service) {
-	var cancel_word = $('#translate').attr('data-cancel');
-	var action_word = $('#translate').attr('data-'+action);
+	let cancel_word = $('#translate').attr('data-cancel');
+	let action_word = $('#translate').attr('data-'+action);
 	$( "#dialog-confirm-services" ).dialog({
 		resizable: false,
 		height: "auto",
@@ -1986,7 +1986,7 @@ function confirmAjaxServiceAction(action, service) {
 			text: action_word,
 			click: function () {
 				$(this).dialog("close");
-				ajaxActionServies(action, service)
+				ajaxActionServices(action, service);
 			}
 		}, {
 			text: cancel_word,
@@ -1996,7 +1996,7 @@ function confirmAjaxServiceAction(action, service) {
 		}]
 	});
 }
-function ajaxActionServies(action, service) {
+function ajaxActionServices(action, service) {
 	$.ajax( {
 		url: "/app/admin/tools/action/" + service + "/" + action,
 		// data: {

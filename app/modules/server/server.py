@@ -21,32 +21,26 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 			for command in commands:
 				try:
 					stdin, stdout, stderr = ssh.run_command(command, timeout=timeout)
+					stdin.close()
 				except Exception as e:
-					roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
-					raise Exception(f'error: Something wrong with SSH connection. Probably sudo with password: {e}')
+					roxywi_common.handle_exceptions(e, server_ip, f'Something wrong with SSH connection. Probably sudo with password', roxywi=1)
 
 				if stderr:
 					for line in stderr.readlines():
 						if line:
-							roxywi_common.logging('Roxy-WI server', f' {line}', roxywi=1)
-							raise Exception(f'error: there is an error: {line}')
+							roxywi_common.handle_exceptions(e, server_ip, line, roxywi=1)
 
-				try:
-					if kwargs.get('raw'):
-						return stdout.readlines()
-					elif kwargs.get("show_log") == "1":
-						import modules.roxywi.logs as roxywi_logs
-						return roxywi_logs.show_log(stdout, grep=kwargs.get("grep"))
-					elif kwargs.get('return_err') == 1:
-						return stderr.read().decode(encoding='UTF-8')
-					else:
-						return stdout.read().decode(encoding='UTF-8')
-				except Exception as e:
-					roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection. Probably sudo with password {e}', roxywi=1)
-					raise Exception(f'error: Cannot run SSH: {e}')
+				if kwargs.get('raw'):
+					return stdout.readlines()
+				elif kwargs.get("show_log") == "1":
+					import modules.roxywi.logs as roxywi_logs
+					return roxywi_logs.show_log(stdout, grep=kwargs.get("grep"))
+				elif kwargs.get('return_err') == 1:
+					return stderr.read().decode(encoding='UTF-8')
+				else:
+					return stdout.read().decode(encoding='UTF-8')
 	except Exception as e:
-		roxywi_common.logging('Roxy-WI server', f' Something wrong with SSH connection: {e}', roxywi=1)
-		raise Exception(f'error: Cannot run SSH: {e}')
+		roxywi_common.handle_exceptions(e, server_ip, f'Something wrong with SSH connection. Probably sudo with password', roxywi=1)
 
 
 def subprocess_execute(cmd):
@@ -240,14 +234,14 @@ def get_system_info(server_ip: str) -> str:
 																'description': q['description'],
 																'mac': q['serial'],
 																'ip': ip,
-										 						'up': q['configuration']['link']}
+																'up': q['configuration']['link']}
 													except Exception:
 														try:
 															network[y['logicalname']] = {
 																'description': y['description'],
 																'mac': y['serial'],
 																'ip': y['configuration']['ip'],
-										 						'up': y['configuration']['link']}
+																'up': y['configuration']['link']}
 														except Exception:
 															pass
 												if y['class'] == 'disk':

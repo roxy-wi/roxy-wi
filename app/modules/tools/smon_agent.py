@@ -1,0 +1,210 @@
+import uuid
+
+import requests
+import app.modules.db.sql as sql
+import app.modules.db.smon as smon_sql
+import app.modules.common.common as common
+import app.modules.roxywi.common as common_roxywi
+from app.modules.service.installation import run_ansible
+
+
+def generate_agent_inc(server_ip: str, action: str, agent_uuid: uuid) -> object:
+    agent_port = sql.get_setting('agent_port')
+    master_port = sql.get_setting('master_port')
+    master_ip = sql.get_setting('master_ip')
+    if not master_ip: raise Exception('error: Master IP cannot be empty')
+    if master_port == '': raise Exception('error: Master port cannot be empty')
+    if agent_port == '': raise Exception('error: Agent port cannot be empty')
+    inv = {"server": {"hosts": {}}}
+    server_ips = [server_ip]
+    inv['server']['hosts'][server_ip] = {
+        'action': action,
+        'agent_port': agent_port,
+        'agent_uuid': agent_uuid,
+        'master_ip': master_ip,
+        'master_port': master_port
+    }
+
+    return inv, server_ips
+
+
+def add_agent(data) -> int:
+    name = common.checkAjaxInput(data.get("name"))
+    server_id = int(data.get("server_id"))
+    server_ip = sql.select_server_ip_by_id(server_id)
+    desc = common.checkAjaxInput(data.get("desc"))
+    enabled = int(data.get("enabled"))
+    agent_uuid = str(uuid.uuid4())
+
+    try:
+        inv, server_ips = generate_agent_inc(server_ip, 'install', agent_uuid)
+        run_ansible(inv, server_ips, f'smon_agent')
+    except Exception as e:
+        common_roxywi.handle_exceptions(e, server_ip, 'Cannot install SMON agent', roxywi=1, login=1)
+
+    try:
+        last_id = smon_sql.add_agent(name, server_id, desc, enabled, agent_uuid)
+        common_roxywi.logging(server_ip, 'A new SMON agent has been created', roxywi=1, login=1, keep_history=1, service='SMON')
+        return last_id
+    except Exception as e:
+        common_roxywi.handle_exceptions(e, 'Roxy-WI server', 'error: Cannot create Agent', roxywi=1, login=1)
+
+
+def delete_agent(agent_id: int):
+    server_ip = smon_sql.get_agent_ip_by_id(agent_id)
+    agent_uuid = ''
+    try:
+        inv, server_ips = generate_agent_inc(server_ip, 'uninstall', agent_uuid)
+        run_ansible(inv, server_ips, f'smon_agent')
+    except Exception as e:
+        common_roxywi.handle_exceptions(e, server_ip, 'error: Cannot uninstall SMON agent', roxywi=1, login=1)
+
+
+def update_agent(json_data):
+    agent_id = int(json_data.get("agent_id"))
+    name = common.checkAjaxInput(json_data.get("name"))
+    desc = common.checkAjaxInput(json_data.get("desc"))
+    enabled = int(json_data.get("enabled"))
+
+    try:
+        smon_sql.update_agent(agent_id, name, desc, enabled)
+    except Exception as e:
+        common_roxywi.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot update SMON agent: {agent_id}', roxywi=1, login=1)
+
+
+def get_agent_headers(agent_id: int) -> dict:
+    try:
+        agent_uuid = smon_sql.get_agent_uuid(agent_id)
+    except Exception as e:
+        if str(e).find("agent not found") != -1:
+            agent_uuid = None
+        else:
+            raise Exception(e)
+    return {'Agent-UUID': str(agent_uuid)}
+
+
+def send_get_request_to_agent(agent_id: int, server_ip: str, api_path: str) -> bytes:
+    headers = get_agent_headers(agent_id)
+    agent_port = sql.get_setting('agent_port')
+    try:
+        req = requests.get(f'http://{server_ip}:{agent_port}/{api_path}', headers=headers)
+        return req.content
+    except Exception as e:
+        raise Exception(f'error: Cannot get agent status: {e}')
+
+
+def send_post_request_to_agent(agent_id: int, server_ip: str, api_path: str, json_data: object) -> bytes:
+    headers = get_agent_headers(agent_id)
+    agent_port = sql.get_setting('agent_port')
+    try:
+        req = requests.post(f'http://{server_ip}:{agent_port}/{api_path}', headers=headers, json=json_data)
+        return req.content
+    except Exception as e:
+        raise Exception(f'error: Cannot get agent status: {e}')
+
+
+def delete_check(agent_id: int, server_ip: str, check_id: int) -> bytes:
+    headers = get_agent_headers(agent_id)
+    agent_port = sql.get_setting('agent_port')
+    try:
+        req = requests.delete(f'http://{server_ip}:{agent_port}/check/{check_id}', headers=headers)
+        return req.content
+    except requests.exceptions.HTTPError as e:
+        common_roxywi.logging(server_ip, f'error: Cannot delete check from agent: http error {e}', roxywi=1, login=1)
+    except requests.exceptions.ConnectTimeout:
+        common_roxywi.logging(server_ip, 'error: Cannot delete check from agent: connection timeout', roxywi=1, login=1)
+    except requests.exceptions.ConnectionError:
+        common_roxywi.logging(server_ip, 'error: Cannot delete check from agent: connection error', roxywi=1, login=1)
+    except Exception as e:
+        raise Exception(f'error: Cannot delete check from Agent {server_ip}: {e}')
+
+
+def send_tcp_checks(agent_id: int, server_ip: str) -> None:
+    checks = smon_sql.select_en_smon_tcp(agent_id)
+    for check in checks:
+        json_data = {
+            'check_type': 'tcp',
+            'name': check.smon_id.name,
+            'server_ip': check.ip,
+            'port': check.port,
+            'interval': check.interval
+        }
+        api_path = f'check/{check.smon_id}'
+        try:
+            send_post_request_to_agent(agent_id, server_ip, api_path, json_data)
+        except Exception as e:
+            raise Exception(f'{e}')
+
+
+def send_ping_checks(agent_id: int, server_ip: str) -> None:
+    checks = smon_sql.select_en_smon_ping(agent_id)
+    for check in checks:
+        json_data = {
+            'check_type': 'ping',
+            'name': check.smon_id.name,
+            'server_ip': check.ip,
+            'packet_size': check.packet_size,
+            'interval': check.interval
+        }
+        api_path = f'check/{check.smon_id}'
+        try:
+            send_post_request_to_agent(agent_id, server_ip, api_path, json_data)
+        except Exception as e:
+            raise Exception(f'{e}')
+
+
+def send_dns_checks(agent_id: int, server_ip: str) -> None:
+    checks = smon_sql.select_en_smon_dns(agent_id)
+    for check in checks:
+        json_data = {
+            'check_type': 'dns',
+            'name': check.smon_id.name,
+            'server_ip': check.ip,
+            'port': check.port,
+            'record_type': check.record_type,
+            'resolver': check.resolver,
+            'interval': check.interval
+        }
+        api_path = f'check/{check.smon_id}'
+        try:
+            send_post_request_to_agent(agent_id, server_ip, api_path, json_data)
+        except Exception as e:
+            raise Exception(f'{e}')
+
+
+def send_http_checks(agent_id: int, server_ip: str) -> None:
+    checks = smon_sql.select_en_smon_http(agent_id)
+    for check in checks:
+        json_data = {
+            'check_type': 'http',
+            'name': check.smon_id.name,
+            'url': check.url,
+            'http_method': check.method,
+            'body': check.body,
+            'interval': check.interval
+        }
+        api_path = f'check/{check.smon_id}'
+        try:
+            send_post_request_to_agent(agent_id, server_ip, api_path, json_data)
+        except Exception as e:
+            raise Exception(f'{e}')
+
+
+def send_checks(agent_id: int) -> None:
+    server_ip = smon_sql.select_server_ip_by_agent_id(agent_id)
+    try:
+        send_tcp_checks(agent_id, server_ip)
+    except Exception as e:
+        raise Exception(f'{e}')
+    try:
+        send_ping_checks(agent_id, server_ip)
+    except Exception as e:
+        raise Exception(f'{e}')
+    try:
+        send_dns_checks(agent_id, server_ip)
+    except Exception as e:
+        raise Exception(f'{e}')
+    try:
+        send_http_checks(agent_id, server_ip)
+    except Exception as e:
+        raise Exception(f'{e}')

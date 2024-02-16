@@ -99,7 +99,7 @@
             "dashboard": "SMON: tableau de bord",
             "status_page": "SMON: Page d'état",
             "history": "SMON: Historique",
-            "admin": "SMON: Panneau administrateur",
+            "agent": "SMON: Agent",
         },
         "checker_history": "Vérificateur: Historique",
         "port_scan": "Scanner de port",
@@ -153,17 +153,21 @@
         "nginx_container_name": "Nom du container Docker pour le service NGINX",
         },
     "monitoring": {
-        "smon_check_interval": "Interval de vérification pour SMON (en minutes)",
         "port_scan_interval": "Interval de vérification pour le scanner de Port (en minutes)",
         "portscanner_keep_history_range": "Période de rétention pour l\'historiques le scanner de Port",
-        "smon_keep_history_range": "Période de rétention pour l\'historiques de SMON",
         "checker_keep_history_range": "Période de rétention pour l\'historiques de Checker",
         "checker_maxconn_threshold": "Valeur du seuil pour les alertes maxconn, en %",
         "checker_check_interval": "Valeur du seuil pour les alertes maxconn, en %",
-        "smon_ssl_expire_warning_alert": "Alerte type warning dès qu'un certificat SSL expire (en jours)",
-        "smon_ssl_expire_critical_alert": "Alerte tpye critical dès qu'un certificat SSL expire (en jours)",
         "action_keep_history_range": "Période de conservation de l'historique des actions (en jours)",
         },
+    "smon": {
+        "master_ip": "IP ou nom pour se connecter au maître SMON",
+        "master_port": "Port de connexion au maître SMON",
+        "agent_port": "Port SMON de l'agent",
+        "smon_keep_history_range": "Période de rétention pour l\'historiques de SMON",
+        "smon_ssl_expire_warning_alert": "Alerte type warning dès qu'un certificat SSL expire (en jours)",
+        "smon_ssl_expire_critical_alert": "Alerte tpye critical dès qu'un certificat SSL expire (en jours)",
+    },
     "main": {
         "time_zone": "Fuseau horaire",
         "proxy": "Adresse IP et port du proxy server. format proto://ip:port",
@@ -323,6 +327,8 @@
     "create_page_status": "Créer une page de statut",
     "not_in_cluster": "Pas dans un cluster",
     "ssh_passphrase": "Phrase secrète de la clé SSH",
+    "check_interval": "Vérifiez l'intervalle",
+    "check_interval_title": "Vérifiez l'intervalle. En secondes.",
     }
 %}
 {% set roles = {
@@ -467,6 +473,9 @@
         "PORT_DOWN": "PORT DOWN",
         "DISABLED": "DÉSACTIVÉ",
         "packet_size": "Taille du paquet",
+        "add_agent": "Ajouter un agent",
+        "total_checks": "Chèques totaux",
+        "not_assign_to_agent": "Le chèque n'est attribué à aucun agent"
         }
     }
 %}
@@ -722,6 +731,7 @@
     "virt": "virt",
     "virtual": "virtuel",
     "check": "contrôler",
+    "check2": "contrôler",
     "checks": "vérifications",
     "checking": "vérifier",
     "protected": "protégé",
@@ -909,5 +919,7 @@
     "method": "méthode",
     "tools": "outils",
     "next": "suivante",
+    "agent": "agent",
+    "agent2": "agent",
     }
 %}

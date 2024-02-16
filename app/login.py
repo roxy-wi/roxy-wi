@@ -13,7 +13,7 @@ import app.modules.roxy_wi_tools as roxy_wi_tools
 def check_login():
     if request.endpoint not in (
             'login_page', 'static', 'main.show_roxywi_version', 'service.check_service', 'smon.show_smon_status_page',
-            'smon.smon_history_statuses'
+            'smon.smon_history_statuses', 'smon.agent_get_checks', 'smon.get_check_status'
     ):
         try:
             user_params = roxywi_common.get_users_params()

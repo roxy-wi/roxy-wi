@@ -833,7 +833,10 @@ label {
 .div-server-head-dis {
 	border-top: 3px solid #aaa !important;
 }
-.div-server-head-up, .div-server-head-down, .div-server-head-dis {
+.div-server-head-pause {
+	border-top: 3px solid orange !important;
+}
+.div-server-head-up, .div-server-head-down, .div-server-head-dis, .div-server-head-pause {
 	padding-top: 7px;
 }
 .add-proxy-listen-head {
@@ -980,14 +983,14 @@ label {
 }
 .group_name {
 	font-size: 18px;
-	padding: 10px 20px 0px 0px;
+	padding: 10px 20px 0 0;
 }
 .smon_services {
-	width: 192px;
-	height: 162px;
+	width: 300px;
+	height: 185px;
 	float: left;
 	background-color: #fbfbfb;;
-	margin: 10px 10px 10px 0px;
+	margin: 10px 10px 10px 0;
 	padding-left: var(--indent);
 	padding-top: 0;
 	border: 1px solid #A4C7F5;
@@ -1020,7 +1023,7 @@ label {
 }
 .up, .down, .disable, .unknown {
 	height: 45px;
-	width: 177px;
+	width: 281px;
 	font-size: 30px;
 	color: #fff;
 	text-align: center;
@@ -1034,15 +1037,11 @@ label {
 	color: var(--red-color);
 	background-color: #f2dede;
 	border-color: #ebccd1;
-	font-size: 22px;
-    padding-top: 7px;
-    height: 38px;
 }
 .unknown {
 	color: #856404;
 	background-color: #fff3cd;
 	border-color: #ffeeba;
-	font-size: 22px;
 }
 .disable {
 	background-color: grey;
@@ -1393,15 +1392,14 @@ label {
   }
 }
 .animated-background {
-  animation-duration: 2s;
-  animation-fill-mode: forwards;
-  animation-iteration-count: infinite;
-  animation-name: placeHolderShimmer;
-  animation-timing-function: linear;
-  background-color: #f6f7f8;
-  background: linear-gradient(to right, #eeeeee 8%, #bbbbbb 18%, #eeeeee 33%);
-  background-size: 800px 104px;
-  position: relative;
+	animation-duration: 2s;
+	animation-fill-mode: forwards;
+	animation-iteration-count: infinite;
+	animation-name: placeHolderShimmer;
+	animation-timing-function: linear;
+	background: #f6f7f8 linear-gradient(to right, #eeeeee 8%, #bbbbbb 18%, #eeeeee 33%);
+	background-size: 800px 104px;
+	position: relative;
 }
 .ping_pre {
 	padding: 10px;

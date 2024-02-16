@@ -10,7 +10,7 @@ def check_services(fn):
     @wraps(fn)
     def decorated_view(*args, **kwargs):
         service = kwargs['service']
-        if service not in ('haproxy', 'nginx', 'apache', 'keepalived', 'cluster'):
+        if service not in ('haproxy', 'nginx', 'apache', 'keepalived', 'cluster', 'waf'):
             abort(405, 'Wrong service')
         if not roxywi_auth.is_access_permit_to_service(service):
             abort(403, f'You do not have needed permissions to access to {service.title()} service')

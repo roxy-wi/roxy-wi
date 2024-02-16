@@ -125,7 +125,7 @@
 	<td>
 		{% if roxy_tools_status['roxy-wi-smon'] == 'active' %}
 			<span class="serverUp server-status-small" title="SMON {{lang.words.started}}"></span>
-			<a href="{{ url_for('smon.smon') }}" title="SMON Dashboard" class="logs_link">
+			<a href="{{ url_for('smon.smon_main_dashboard') }}" title="SMON Dashboard" class="logs_link">
 				SMON
 			</a>
 		{% else %}

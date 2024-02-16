@@ -99,7 +99,7 @@
             "dashboard": "SMON: Дашборд",
             "status_page": "SMON: Страница статуса",
             "history": "SMON: История",
-            "admin": "SMON: Админка",
+            "agent": "SMON: Агент",
         },
         "checker_history": "Checker: История",
         "port_scan": "Сканер портов",
@@ -153,17 +153,21 @@
         "nginx_container_name": "Имя Docker контейнера для сервиса NGINX",
         },
     "monitoring": {
-        "smon_check_interval": "Интервал проверки для SMON (в минутах)",
         "port_scan_interval": "Интервал проверки для Port scanner (в минутах)",
         "portscanner_keep_history_range": "Время хранения истории Port scanner",
-        "smon_keep_history_range": "Время хранения истории SMON",
         "checker_keep_history_range": "Время хранения истории Checker",
         "checker_maxconn_threshold": "Порог срабатывания уведомления по maxconn, в %",
         "checker_check_interval": "Интервал проверки для Checker (в минутах)",
-        "smon_ssl_expire_warning_alert": "Предупреждение о истечении SSL-сертификата (в днях)",
-        "smon_ssl_expire_critical_alert": "Критическое предупреждение о истечении SSL-сертификата (в днях)",
         "action_keep_history_range": "Время хранения истории действий (в днях)",
         },
+    "smon": {
+        "master_ip": "IP или имя для подключения к SMON мастеру",
+        "master_port": "Порт для подключения к SMON мастеру",
+        "agent_port": "Порт SMON агента",
+        "smon_keep_history_range": "Время хранения истории SMON",
+        "smon_ssl_expire_warning_alert": "Предупреждение о истечении SSL-сертификата (в днях)",
+        "smon_ssl_expire_critical_alert": "Критическое предупреждение о истечении SSL-сертификата (в днях)",
+    },
     "main": {
         "time_zone": "Временная зона",
         "proxy": "IP-адрес и порт прокси сервера. Формат: proto://ip:port",
@@ -323,6 +327,8 @@
     "create_page_status": "Создать страницу статуса",
     "not_in_cluster": "Не в кластере",
     "ssh_passphrase": "Ключевая фраза SSH",
+    "check_interval": "Интервал проверки",
+    "check_interval_title": "Интервал проверки. В секундах.",
     }
 %}
 {% set roles = {
@@ -467,6 +473,9 @@
         "PORT_DOWN": "ПОРТ НЕ ДОСТ.",
         "DISABLED": "ОТКЛ.",
         "packet_size": "Размер пакета",
+        "add_agent": "Добавить Агента",
+        "total_checks": "Всего проверок",
+        "not_assign_to_agent": "Чек не назначен ни одному агенту"
         }
     }
 %}
@@ -722,6 +731,7 @@
     "virt": "вирт",
     "virtual": "виртуальный",
     "check": "проверить",
+    "check2": "проверку",
     "checks": "проверки",
     "checking": "проверка",
     "protected": "защищенный",
@@ -909,5 +919,7 @@
     "method": "метод",
     "tools": "инструменты",
     "next": "дальше",
+    "agent": "агент",
+    "agent2": "агента",
     }
 %}

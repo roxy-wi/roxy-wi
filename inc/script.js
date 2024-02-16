@@ -96,13 +96,13 @@ $( function() {
 		   show_current_page($(this))
 	   } else if (full_uri == 'smon/dashboard' && full_uri1 == 'smon/dashboard') {
 		   show_current_page($(this))
-	   } else if (full_uri == 'smon/admin' && full_uri1 == 'smon/admin') {
+	   } else if (full_uri == 'smon/agent' && full_uri1 == 'smon/agent') {
 		   show_current_page($(this))
 	   } else if (full_uri == 'smon/history' && full_uri1 == 'smon/history') {
 		   show_current_page($(this))
 	   } else if (full_uri == 'smon/status-page' && full_uri1 == 'smon/status-page') {
 		   show_current_page($(this))
-	   } else if (full_uri == 'checker/settings' && full_uri1 == 'checker/settings') {
+	   } else if (full_uri === 'checker/settings' && full_uri1 === 'checker/settings') {
 		   show_current_page($(this))
 	   } else if (full_uri == 'checker/history' && full_uri1 == 'checker/history') {
 		   show_current_page($(this))
@@ -133,7 +133,7 @@ jQuery.expr[':'].regex = function(elem, index, match) {
     var matchParams = match[3].split(','),
         validLabels = /^(data|css):/,
         attr = {
-            method: matchParams[0].match(validLabels) ? 
+            method: matchParams[0].match(validLabels) ?
                         matchParams[0].split(':')[0] : 'attr',
             property: matchParams.shift().replace(validLabels,'')
         },
@@ -149,12 +149,12 @@ window.onblur= function() {
 			} else if (cur_url[0] == "stats") {
 				showStats()
 			} else if (cur_url[0] == "/") {
-				showOverview(); 
+				showOverview();
 			} else if (cur_url[0] == "internal") {
 				viewLogs();
 			} else if (cur_url[0] == "metrics") {
 				showMetrics();
-			} else if (cur_url[0] == "smon" && cur_url[1] == "dasboards") {
+			} else if (cur_url[0] == "smon" && cur_url[1] == "dashboard") {
 				showSmon('refresh')
 			}
 		}
@@ -277,7 +277,7 @@ function startSetInterval(interval) {
 			}
 			intervalId = setInterval('showMetrics()', interval);
 			showMetrics();
-		} else if (cur_url[0] == "smon" && cur_url[1] == "dashboards") {
+		} else if (cur_url[0] == "smon" && cur_url[1] == "dashboard") {
 			intervalId = setInterval("showSmon('refresh')", interval);
 			showSmon('refresh');
 		} else if (cur_url[0] == "smon" && cur_url[1] == "history") {
@@ -305,7 +305,7 @@ function pauseAutoResume(){
 function hideAutoRefreshDiv() {
 	$(function() {
 		$('.auto-refresh-div').hide("blind", "fast");
-		$('#1').css("display", "none");			
+		$('#1').css("display", "none");
 		$('#0').css("display", "inline");
 	});
 }

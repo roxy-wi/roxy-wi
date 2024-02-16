@@ -99,7 +99,7 @@
             "dashboard": "SMON: Painel",
             "history": "SMON: Histórico",
             "status_page": "SMON: Página de status",
-            "admin": "SMON: Painel de administrador"
+            "agent": "SMON: Agente",
         },
         "checker_history": "Checker: Histórico",
         "port_scan": "Port scanner",
@@ -153,17 +153,21 @@
         "nginx_container_name": "Nome do container Docker de NGINX",
         },
     "monitoring": {
-        "smon_check_interval": "Intervalo de verificação para o SMON (em minutos)",
         "port_scan_interval": "Intervalo de verificação para o Port scanner (em minutos)",
         "portscanner_keep_history_range": "Período de retenção de historico de Port scanner",
-        "smon_keep_history_range": "Período de retenção de historico de SMON",
         "checker_keep_history_range": "Período de retenção de historico de Checker",
         "checker_maxconn_threshold": "Valor limite para a notificação de maxconn, em %",
         "checker_check_interval": "Intervalo de verificação para o Checker (em minutos)",
-        "smon_ssl_expire_warning_alert": "Aviso de alerta sobre a expiração do certificado SSL (em dias)",
-        "smon_ssl_expire_critical_alert": "Alerta critico a expiração do certificado SSL (em dias)",
         "action_keep_history_range": "Período de retenção do histórico de ações (em dias)",
         },
+    "smon": {
+        "master_ip": "IP ou nome para conectar ao mestre SMON",
+        "master_port": "Porta para conexão ao mestre SMON",
+        "agent_port": "Porta SMON do agente",
+        "smon_keep_history_range": "Período de retenção de historico de SMON",
+        "smon_ssl_expire_warning_alert": "Aviso de alerta sobre a expiração do certificado SSL (em dias)",
+        "smon_ssl_expire_critical_alert": "Alerta critico a expiração do certificado SSL (em dias)",
+    },
     "main": {
         "time_zone": "Fuso horário.",
         "proxy": "Endereço e porta de prowy. Utiliza proto://ip:port",
@@ -323,6 +327,8 @@
     "create_page_status": "Criar página de status",
     "not_in_cluster": "Não em um cluster",
     "ssh_passphrase": "Senha da chave SSH",
+    "check_interval": "Verifique o intervalo",
+    "check_interval_title": "Verifique o intervalo. Em segundos.",
     }
 %}
 {% set roles = {
@@ -467,6 +473,9 @@
         "PORT_DOWN": "PORT DOWN",
         "DISABLED": "DESABIL.",
         "packet_size": "Tamanho do pacote",
+        "add_agent": "Adicionar agente",
+        "total_checks": "Cheques totais",
+        "not_assign_to_agent": "O cheque não é atribuído a nenhum agente"
         }
     }
 %}
@@ -722,6 +731,7 @@
     "virt": "virt",
     "virtual": "virtual",
     "check": "verificar",
+    "check2": "verificar",
     "checks": "verificações",
     "checking": "verificando",
     "protected": "protegido",
@@ -909,5 +919,7 @@
     "method": "método",
     "tools": "ferramentas",
     "next": "próxima",
+    "agent": "agente",
+    "agent2": "agente",
     }
 %}

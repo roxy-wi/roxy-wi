@@ -119,9 +119,11 @@ def add_haproxy():
     elif new_frontend is not None:
         name = f"frontend {new_frontend}"
         end_name = new_frontend
+        server_ip = request.form.get('serv2')
     elif new_backend is not None:
         name = f"backend {new_backend}"
         end_name = new_backend
+        server_ip = request.form.get('serv3')
     else:
         return 'error: The name cannot be empty'
 
@@ -333,6 +335,8 @@ def add_haproxy():
 
                 try:
                     port_check_val = port_check[i]
+                    if port_check_val == '':
+                        port_check_val = server_port[i]
                 except Exception:
                     port_check_val = server_port[i]
 

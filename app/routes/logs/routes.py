@@ -25,6 +25,7 @@ def before_request():
 @get_user_params()
 def logs_internal():
     log_type = request.args.get('type')
+    log_file = request.args.get('log_file')
     log_path = get_config.get_config_var('main', 'log_path')
     selects = roxywi_common.get_files(log_path, file_format="log")
 
@@ -41,7 +42,7 @@ def logs_internal():
     kwargs = {
         'autorefresh': 1,
         'selects': selects,
-        'serv': 'viewlogs',
+        'serv': log_file,
         'lang': g.user_params['lang']
     }
     return render_template('logs_internal.html', **kwargs)

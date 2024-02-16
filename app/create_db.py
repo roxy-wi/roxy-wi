@@ -54,16 +54,18 @@ def default_values():
 		{'param': 'ldap_user_attribute', 'value': 'userPrincipalName', 'section': 'ldap', 'desc': 'Attribute to search users by', 'group': '1'},
 		{'param': 'ldap_search_field', 'value': 'mail', 'section': 'ldap', 'desc': 'User\'s email address', 'group': '1'},
 		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS', 'group': '1'},
-		{'param': 'smon_check_interval', 'value': '1', 'section': 'monitoring', 'desc': 'Check interval for SMON (in minutes)', 'group': '1'},
 		{'param': 'port_scan_interval', 'value': '5', 'section': 'monitoring', 'desc': 'Check interval for Port scanner (in minutes)', 'group': '1'},
 		{'param': 'portscanner_keep_history_range', 'value': '14', 'section': 'monitoring', 'desc': 'Retention period for Port scanner history', 'group': '1'},
-		{'param': 'smon_keep_history_range', 'value': '14', 'section': 'monitoring', 'desc': 'Retention period for SMON history', 'group': '1'},
+		{'param': 'smon_keep_history_range', 'value': '14', 'section': 'smon', 'desc': 'Retention period for SMON history', 'group': '1'},
 		{'param': 'checker_keep_history_range', 'value': '14', 'section': 'monitoring', 'desc': 'Retention period for Checker history', 'group': '1'},
 		{'param': 'action_keep_history_range', 'value': '30', 'section': 'monitoring', 'desc': 'Retention period for Action history', 'group': '1'},
 		{'param': 'checker_maxconn_threshold', 'value': '90', 'section': 'monitoring', 'desc': 'Threshold value for alerting, in %', 'group': '1'},
 		{'param': 'checker_check_interval', 'value': '1', 'section': 'monitoring', 'desc': 'Check interval for Checker (in minutes)', 'group': '1'},
-		{'param': 'smon_ssl_expire_warning_alert', 'value': '14', 'section': 'monitoring', 'desc': 'Warning alert about a SSL certificate expiration (in days)', 'group': '1'},
-		{'param': 'smon_ssl_expire_critical_alert', 'value': '7', 'section': 'monitoring', 'desc': 'Critical alert about a SSL certificate expiration (in days)', 'group': '1'},
+		{'param': 'smon_ssl_expire_warning_alert', 'value': '14', 'section': 'smon', 'desc': 'Warning alert about a SSL certificate expiration (in days)', 'group': '1'},
+		{'param': 'smon_ssl_expire_critical_alert', 'value': '7', 'section': 'smon', 'desc': 'Critical alert about a SSL certificate expiration (in days)', 'group': '1'},
+		{'param': 'master_ip', 'value': '', 'section': 'smon', 'desc': '', 'group': '1'},
+		{'param': 'master_port', 'value': '5100', 'section': 'smon', 'desc': '', 'group': '1'},
+		{'param': 'agent_port', 'value': '5101', 'section': 'smon', 'desc': '', 'group': '1'},
 		{'param': 'rabbitmq_host', 'value': '127.0.0.1', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server host', 'group': '1'},
 		{'param': 'rabbitmq_port', 'value': '5672', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server port', 'group': '1'},
 		{'param': 'rabbitmq_port', 'value': '5672', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server port', 'group': '1'},
@@ -682,9 +684,54 @@ def update_db_v_7_1_2_1():
 			print("An error occurred:", e)
 
 
+def update_db_v_7_2_0():
+	try:
+		if mysql_enable:
+			migrate(
+				migrator.add_column('smon_ping_check', 'interval', IntegerField(default=120)),
+				migrator.add_column('smon_http_check', 'interval', IntegerField(default=120)),
+				migrator.add_column('smon_tcp_check', 'interval', IntegerField(default=120)),
+				migrator.add_column('smon_dns_check', 'interval', IntegerField(default=120)),
+				migrator.add_column('smon_ping_check', 'agent_id', IntegerField(default=1)),
+				migrator.add_column('smon_http_check', 'agent_id', IntegerField(default=1)),
+				migrator.add_column('smon_tcp_check', 'agent_id', IntegerField(default=1)),
+				migrator.add_column('smon_dns_check', 'agent_id', IntegerField(default=1))
+			)
+		else:
+			migrate(
+				migrator.add_column('smon_ping_check', 'interval', IntegerField(constraints=[SQL('DEFAULT 120')])),
+				migrator.add_column('smon_http_check', 'interval', IntegerField(constraints=[SQL('DEFAULT 120')])),
+				migrator.add_column('smon_tcp_check', 'interval', IntegerField(constraints=[SQL('DEFAULT 120')])),
+				migrator.add_column('smon_dns_check', 'interval', IntegerField(constraints=[SQL('DEFAULT 120')])),
+				migrator.add_column('smon_ping_check', 'agent_id', IntegerField(constraints=[SQL('DEFAULT 1')])),
+				migrator.add_column('smon_http_check', 'agent_id', IntegerField(constraints=[SQL('DEFAULT 1')])),
+				migrator.add_column('smon_tcp_check', 'agent_id', IntegerField(constraints=[SQL('DEFAULT 1')])),
+				migrator.add_column('smon_dns_check', 'agent_id', IntegerField(constraints=[SQL('DEFAULT 1')]))
+			)
+	except Exception as e:
+		if e.args[0] == 'duplicate column name: agent_id' or str(e) == '(1060, "Duplicate column name \'agent_id\'")':
+			print('Updating... DB has been updated to version 7.2.0')
+		elif e.args[0] == 'duplicate column name: interval' or str(e) == '(1060, "Duplicate column name \'interval\'")':
+			print('Updating... DB has been updated to version 7.2.0')
+		else:
+			print("An error occurred:", e)
+
+
+def update_db_v_7_2_0_1():
+	try:
+		Setting.delete().where(Setting.param == 'smon_check_interval').execute()
+		Setting.delete().where((Setting.param == 'smon_keep_history_range') & (Setting.section == 'monitoring')).execute()
+		Setting.delete().where((Setting.param == 'smon_ssl_expire_warning_alert') & (Setting.section == 'monitoring')).execute()
+		Setting.delete().where((Setting.param == 'smon_ssl_expire_critical_alert') & (Setting.section == 'monitoring')).execute()
+	except Exception as e:
+		print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 7.2.0-1")
+
+
 def update_ver():
 	try:
-		Version.update(version='7.1.2.0').execute()
+		Version.update(version='7.2.0.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -718,6 +765,8 @@ def update_all():
 	update_db_v_6_3_18()
 	update_db_v_7_1_2()
 	update_db_v_7_1_2_1()
+	update_db_v_7_2_0()
+	update_db_v_7_2_0_1()
 	update_ver()
 
 

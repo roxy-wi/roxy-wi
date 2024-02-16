@@ -99,7 +99,7 @@
             "dashboard": "SMON: Dashboard",
             "status_page": "SMON: Status page",
             "history": "SMON: History",
-            "admin": "SMON: Admin panel",
+            "agent": "SMON: Agent",
         },
         "checker_history": "Checker: History",
         "port_scan": "Port scanner",
@@ -153,17 +153,21 @@
         "nginx_container_name": "Docker container name for NGINX service",
         },
     "monitoring": {
-        "smon_check_interval": "Check interval for SMON (in minutes)",
         "port_scan_interval": "Check interval for Port scanner (in minutes)",
         "portscanner_keep_history_range": "Retention period for Port scanner history",
-        "smon_keep_history_range": "Retention period for SMON history",
         "checker_keep_history_range": "Retention period for Checker history",
         "checker_maxconn_threshold": "Threshold value for maxconn alerting, in %",
         "checker_check_interval": "Check interval for Checker (in minutes)",
-        "smon_ssl_expire_warning_alert": "Warning alert about a SSL certificate expiration (in days)",
-        "smon_ssl_expire_critical_alert": "Critical alert about a SSL certificate expiration (in days)",
         "action_keep_history_range": "Retention period for Action history (in days)",
         },
+    "smon": {
+        "master_ip": "IP or name to connect to the SMON master",
+        "master_port": "Port for connecting to the SMON master",
+        "agent_port": "Agent SMON port",
+        "smon_keep_history_range": "Retention period for SMON history",
+        "smon_ssl_expire_warning_alert": "Warning alert about a SSL certificate expiration (in days)",
+        "smon_ssl_expire_critical_alert": "Critical alert about a SSL certificate expiration (in days)",
+    },
     "main": {
         "time_zone": "Time Zone",
         "proxy": "IP address and port of the proxy server. Use proto://ip:port",
@@ -323,6 +327,8 @@
     "create_page_status": "Create status page",
     "not_in_cluster": "Not in a cluster",
     "ssh_passphrase": "SSH key passphrase",
+    "check_interval": "Check interval.",
+    "check_interval_title": "Check interval. In seconds.",
     }
 %}
 {% set roles = {
@@ -467,6 +473,9 @@
         "PORT_DOWN": "PORT DOWN",
         "DISABLED": "DISABLED",
         "packet_size": "Packet size",
+        "add_agent": "Add Agent",
+        "total_checks": "Total checks",
+        "not_assign_to_agent": "The check is not assigned to any agent"
         }
     }
 %}
@@ -722,6 +731,7 @@
     "virt": "virt",
     "virtual": "virtual",
     "check": "check",
+    "check2": "check",
     "checks": "checks",
     "checking": "checking",
     "protected": "protected",
@@ -909,5 +919,7 @@
     "method": "method",
     "tools": "tools",
     "next": "next",
+    "agent": "agent",
+    "agent2": "agent",
     }
 %}

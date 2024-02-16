@@ -29,6 +29,9 @@ $( function() {
 	$('#mail-section-head').click(function () {
 		hideAndShowSettings('mail');
 	});
+	$('#smon-section-head').click(function () {
+		hideAndShowSettings('smon');
+	});
 	$( "#settings select" ).on('select2:select',function() {
 		var id = $(this).attr('id');
 		var val = $(this).val();

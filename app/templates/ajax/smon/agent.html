@@ -1,0 +1,51 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
+{% for agent in agents %}
+<div id="agent-{{agent.id}}" class="div-server-hapwi">
+    <div class="server-name">
+        <a href="/app/ha/agent/{{agent.id}}" style="color: #5d9ceb" title="{{lang.words.open|title()}} {{lang.words.agent}}">
+            <span id="agent-name-{{agent.id}}">{{agent.name.replace("'","")}}</span>
+            <span id="agent-desc-{{agent.id}}">{% if agent.desc != '' %} ({{agent.desc.replace("'", "")}}) {% endif %}</span>
+        </a>
+        <span class="server-action">
+            {% if g.user_params['role'] <= 3 %}
+            <a id="start-{{ agent.id }}" class="start" title="{{lang.words.start|title()}}">
+                <span class="service-start" onclick="confirmAjaxAction('start', '{{agent.id}}', '{{ agent.ip }}')"></span>
+            </a>
+            <a id="reload-{{ agent.id }}" class="reload" title="{{lang.words.restart|title()}}">
+                <span class="service-reload" onclick="confirmAjaxAction('restart', '{{agent.id}}', '{{ agent.ip }}')"></span>
+            </a>
+            <a id="stop-{{ agent.id }}" class="stop" title="{{lang.words.stop|title()}}">
+                <span class="service-stop" onclick="confirmAjaxAction('stop', '{{agent.id}}', '{{ agent.ip }}', '{{ agent.ip }}')"></span>
+            </a>
+            {% endif %}
+            {% if g.user_params['role'] <= 2 %}
+            <a class="edit" onclick="addAgentDialog('{{agent.id}}', true)"></a>
+            <a class="delete" onclick="confirmDeleteAgent('{{agent.id}}')"></a>
+            {% endif %}
+        </span>
+    </div>
+    <div class="server-desc">
+        <div>
+        <b>{{ lang.words.server|title() }}</b>: {{ copy_to_clipboard(value=agent.hostname) }}
+        <b>{{ lang.words.server|title() }} IP</b>: {{ copy_to_clipboard(value=agent.ip) }}
+        </div>
+        <div>
+        <b>{{ lang.words.version|title() }}</b>: <span id="agent-version-{{ agent.id }}"></span>
+        </div>
+        <div>
+            <b>{{lang.smon_page.desc.total_checks}}</b>:
+            <span id="agent-total-checks-{{ agent.id }}"></span>
+        </div>
+        <div>
+            <b>{{lang.words.uptime|title()}}</b>: <time class="timeago" datetime="" id="agent-uptime-{{ agent.id }}" title="{{ lang.words.agent|title() }} {{ lang.words.uptime }}"></time>
+        </div>
+    </div>
+</div>
+    <script>
+        getAgentVersion('{{ agent.ip }}', '{{ agent.id }}');
+        getAgentStatus('{{ agent.ip }}', '{{ agent.id }}');
+        getAgentTotalChecks('{{ agent.ip }}', '{{ agent.id }}');
+        getAgentUptime('{{ agent.ip }}', '{{ agent.id }}');
+    </script>
+{% endfor %}
