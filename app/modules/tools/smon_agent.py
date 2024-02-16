@@ -38,7 +38,7 @@ def add_agent(data) -> int:
 
     try:
         inv, server_ips = generate_agent_inc(server_ip, 'install', agent_uuid)
-        run_ansible(inv, server_ips, f'smon_agent')
+        run_ansible(inv, server_ips, 'smon_agent')
     except Exception as e:
         common_roxywi.handle_exceptions(e, server_ip, 'Cannot install SMON agent', roxywi=1, login=1)
 
@@ -55,7 +55,7 @@ def delete_agent(agent_id: int):
     agent_uuid = ''
     try:
         inv, server_ips = generate_agent_inc(server_ip, 'uninstall', agent_uuid)
-        run_ansible(inv, server_ips, f'smon_agent')
+        run_ansible(inv, server_ips, 'smon_agent')
     except Exception as e:
         common_roxywi.handle_exceptions(e, server_ip, 'error: Cannot uninstall SMON agent', roxywi=1, login=1)
 
@@ -87,7 +87,7 @@ def send_get_request_to_agent(agent_id: int, server_ip: str, api_path: str) -> b
     headers = get_agent_headers(agent_id)
     agent_port = sql.get_setting('agent_port')
     try:
-        req = requests.get(f'http://{server_ip}:{agent_port}/{api_path}', headers=headers)
+        req = requests.get(f'http://{server_ip}:{agent_port}/{api_path}', headers=headers, timeout=5)
         return req.content
     except Exception as e:
         raise Exception(f'error: Cannot get agent status: {e}')
@@ -97,7 +97,7 @@ def send_post_request_to_agent(agent_id: int, server_ip: str, api_path: str, jso
     headers = get_agent_headers(agent_id)
     agent_port = sql.get_setting('agent_port')
     try:
-        req = requests.post(f'http://{server_ip}:{agent_port}/{api_path}', headers=headers, json=json_data)
+        req = requests.post(f'http://{server_ip}:{agent_port}/{api_path}', headers=headers, json=json_data, timeout=5)
         return req.content
     except Exception as e:
         raise Exception(f'error: Cannot get agent status: {e}')
@@ -107,7 +107,7 @@ def delete_check(agent_id: int, server_ip: str, check_id: int) -> bytes:
     headers = get_agent_headers(agent_id)
     agent_port = sql.get_setting('agent_port')
     try:
-        req = requests.delete(f'http://{server_ip}:{agent_port}/check/{check_id}', headers=headers)
+        req = requests.delete(f'http://{server_ip}:{agent_port}/check/{check_id}', headers=headers, timeout=5)
         return req.content
     except requests.exceptions.HTTPError as e:
         common_roxywi.logging(server_ip, f'error: Cannot delete check from agent: http error {e}', roxywi=1, login=1)

@@ -3,19 +3,17 @@
     src: haproxy.service.j2
     dest: /usr/lib/systemd/system/haproxy.service
     mode: 0644
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and haproxy_from_wi is defined
-
+  when: ansible_os_family == "RedHat" and haproxy_from_wi is defined
 
 - name: test to see if selinux is running
   command: getenforce
   register: sestatus
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
+  when: ansible_os_family == "RedHat"
   changed_when: false
   ignore_errors: yes
   debugger: never
 
-
-- name: Disble SELINUX in config
+- name: Disable SELINUX in config
   template:
    src: selinux.j2
    dest: /etc/selinux/config
@@ -24,8 +22,7 @@
     - sestatus.stdout is defined
     - '"Enforcing" in sestatus.stdout'
 
-
-- name: Disble SELINUX in env
+- name: Disable SELINUX in env
   shell: setenforce 0 &> /dev/null
   ignore_errors: yes
   debugger: never
@@ -44,7 +41,7 @@
   debugger: never
   when:
     - '"firewalld" in ansible_facts.packages'
-    - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+    - ansible_os_family == "RedHat"
     - ansible_facts.services["firewalld.service"]['state'] == "running"
   with_items:  [ "{{ STAT_PORT }}", "{{ SOCK_PORT }}", "10000" ]
 
@@ -69,6 +66,13 @@
   template:
     src: haproxy.cfg.j2
     dest: /etc/haproxy/haproxy.cfg
+    mode: 0644
+    force: no
+
+- name: Copy HAProxy state file in place.
+  template:
+    src: haproxy.state.j2
+    dest: /etc/haproxy/haproxy.state
     mode: 0644
     force: no
 

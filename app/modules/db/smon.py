@@ -1,4 +1,3 @@
-import logging
 import uuid
 
 from peewee import fn

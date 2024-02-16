@@ -23,12 +23,12 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 					stdin, stdout, stderr = ssh.run_command(command, timeout=timeout)
 					stdin.close()
 				except Exception as e:
-					roxywi_common.handle_exceptions(e, server_ip, f'Something wrong with SSH connection. Probably sudo with password', roxywi=1)
+					roxywi_common.handle_exceptions(e, server_ip, 'Something wrong with SSH connection. Probably sudo with password', roxywi=1)
 
 				if stderr:
 					for line in stderr.readlines():
 						if line:
-							roxywi_common.handle_exceptions(e, server_ip, line, roxywi=1)
+							roxywi_common.handle_exceptions(line, server_ip, line, roxywi=1)
 
 				if kwargs.get('raw'):
 					return stdout.readlines()
@@ -40,7 +40,7 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 				else:
 					return stdout.read().decode(encoding='UTF-8')
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, server_ip, f'Something wrong with SSH connection. Probably sudo with password', roxywi=1)
+		roxywi_common.handle_exceptions(e, server_ip, 'Something wrong with SSH connection. Probably sudo with password', roxywi=1)
 
 
 def subprocess_execute(cmd):
