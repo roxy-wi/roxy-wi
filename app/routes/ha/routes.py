@@ -5,18 +5,18 @@ from flask_login import login_required
 
 from app.routes.ha import bp
 from middleware import get_user_params, check_services
-import modules.db.sql as sql
-import modules.common.common as common
-import modules.server.server as server_mod
-import modules.roxywi.common as roxywi_common
-import modules.service.keepalived as keepalived
-import modules.service.ha_cluster as ha_cluster
+import app.modules.db.sql as sql
+import app.modules.common.common as common
+import app.modules.server.server as server_mod
+import app.modules.roxywi.common as roxywi_common
+import app.modules.service.keepalived as keepalived
+import app.modules.service.ha_cluster as ha_cluster
 
 
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 

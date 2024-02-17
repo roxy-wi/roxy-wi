@@ -1,12 +1,14 @@
-import modules.db.sql as sql
-from modules.db.db_model import HaCluster, HaClusterRouter, HaClusterVip, HaClusterVirt
-import modules.common.common as common
-import modules.server.server as server_mod
-import modules.roxywi.common as roxywi_common
-from modules.server.ssh import return_ssh_keys_path
+import json
+
+import app.modules.db.sql as sql
+from app.modules.db.db_model import HaCluster, HaClusterRouter, HaClusterVip, HaClusterVirt
+import app.modules.common.common as common
+import app.modules.server.server as server_mod
+import app.modules.roxywi.common as roxywi_common
+from app.modules.server.ssh import return_ssh_keys_path
 
 
-def create_cluster(cluster: object, group_id: int) -> str:
+def create_cluster(cluster: json, group_id: int) -> str:
     master_ip = None
     vip = common.is_ip_or_dns(cluster['vip'])
     syn_flood = int(cluster['syn_flood'])
@@ -68,7 +70,7 @@ def create_cluster(cluster: object, group_id: int) -> str:
     return str(cluster_id)
 
 
-def update_cluster(cluster: object, group_id: int) -> str:
+def update_cluster(cluster: json, group_id: int) -> str:
     cluster_id = int(cluster['cluster_id'])
     syn_flood = int(cluster['syn_flood'])
     cluster_name = common.checkAjaxInput(cluster['name'])
@@ -130,7 +132,7 @@ def delete_cluster(cluster_id: int) -> str:
     return 'ok'
 
 
-def update_vip(cluster_id: int, router_id: int, json_data: object, group_id: int) -> None:
+def update_vip(cluster_id: int, router_id: int, json_data: json, group_id: int) -> None:
     return_master = int(json_data['return_to_master'])
     vip = common.is_ip_or_dns(json_data['vip'])
     vip_id = sql.select_clusters_vip_id(cluster_id, router_id)
@@ -159,7 +161,7 @@ def update_vip(cluster_id: int, router_id: int, json_data: object, group_id: int
     roxywi_common.logging(cluster_id, f'Cluster VIP {vip} has been updated', keep_history=1, roxywi=1, service='HA cluster')
 
 
-def insert_vip(cluster_id: int, json_data: object, group_id: int) -> None:
+def insert_vip(cluster_id: int, json_data: json, group_id: int) -> None:
     vip = common.is_ip_or_dns(json_data['vip'])
     return_master = int(json_data['return_to_master'])
 
@@ -185,7 +187,7 @@ def insert_vip(cluster_id: int, json_data: object, group_id: int) -> None:
     roxywi_common.logging(cluster_id, f'New cluster VIP: {vip} has been created', keep_history=1, roxywi=1, service='HA cluster')
 
 
-def update_slaves(json_data: object, router_id: int) -> None:
+def update_slaves(json_data: json, router_id: int) -> None:
     master_ip = None
     cluster = json_data
     cluster_id = int(json_data['cluster_id'])
@@ -243,7 +245,7 @@ def update_slaves(json_data: object, router_id: int) -> None:
             raise Exception(f'error: Cannot update server {value["ip"]}: {e}')
 
 
-def add_or_update_virt(cluster: object, cluster_id: int, vip_id: int, group_id: int) -> None:
+def add_or_update_virt(cluster: json, cluster_id: int, vip_id: int, group_id: int) -> None:
     haproxy = 0
     nginx = 0
     apache = 0

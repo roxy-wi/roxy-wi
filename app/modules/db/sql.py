@@ -2872,7 +2872,7 @@ def select_restart_services_settings(service: str) -> str:
 		return query_res
 
 
-def select_service_setting(server_id: int, service: str, setting: str) -> int:
+def select_service_setting(server_id: int, service: str, setting: str) -> str:
 	try:
 		result = ServiceSetting.get(
 			(ServiceSetting.server_id == server_id)

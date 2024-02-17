@@ -149,7 +149,7 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 		with open(log_file, 'a') as log:
 			log.write(mess)
 	except IOError as e:
-		print(f'<center><div class="alert alert-danger">Cannot write log. Please check log_path in config {e}</div></center>')
+		print(f'Cannot write log. Please check log_path in config {e}')
 
 
 def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
@@ -161,8 +161,9 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 		user_ip = 'localhost'
 
 	if service == 'HA cluster':
-		cluster_name = sql.select_cluster_name(server_ip)
-		sql.insert_action_history(service, action, server_ip, user_id, user_ip, server_ip, cluster_name)
+		cluster_id = server_ip
+		cluster_name = sql.select_cluster_name(int(cluster_id))
+		sql.insert_action_history(service, action, int(cluster_id), user_id, user_ip, cluster_id, cluster_name)
 	else:
 		try:
 			server_id = sql.select_server_id_by_ip(server_ip=server_ip)
@@ -303,5 +304,5 @@ def handle_exceptions(ex: Exception, server_ip: str, message: str, **kwargs: Any
 	:return: None
 
 	"""
-	logging(server_ip, f'{message}: {ex}', **kwargs)
-	raise Exception(f'{message}: {ex}')
+	logging(server_ip, f'error: {message}: {ex}', **kwargs)
+	raise Exception(f'error: {message}: {ex}')

@@ -47,7 +47,7 @@ def add_agent(data) -> int:
         common_roxywi.logging(server_ip, 'A new SMON agent has been created', roxywi=1, login=1, keep_history=1, service='SMON')
         return last_id
     except Exception as e:
-        common_roxywi.handle_exceptions(e, 'Roxy-WI server', 'error: Cannot create Agent', roxywi=1, login=1)
+        common_roxywi.handle_exceptions(e, 'Roxy-WI server', 'Cannot create Agent', roxywi=1, login=1)
 
 
 def delete_agent(agent_id: int):
@@ -57,7 +57,7 @@ def delete_agent(agent_id: int):
         inv, server_ips = generate_agent_inc(server_ip, 'uninstall', agent_uuid)
         run_ansible(inv, server_ips, 'smon_agent')
     except Exception as e:
-        common_roxywi.handle_exceptions(e, server_ip, 'error: Cannot uninstall SMON agent', roxywi=1, login=1)
+        common_roxywi.handle_exceptions(e, server_ip, 'Cannot uninstall SMON agent', roxywi=1, login=1)
 
 
 def update_agent(json_data):
@@ -69,7 +69,7 @@ def update_agent(json_data):
     try:
         smon_sql.update_agent(agent_id, name, desc, enabled)
     except Exception as e:
-        common_roxywi.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot update SMON agent: {agent_id}', roxywi=1, login=1)
+        common_roxywi.handle_exceptions(e, 'Roxy-WI server', f'Cannot update SMON agent: {agent_id}', roxywi=1, login=1)
 
 
 def get_agent_headers(agent_id: int) -> dict:

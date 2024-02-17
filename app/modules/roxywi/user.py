@@ -28,7 +28,7 @@ def create_user(new_user: str, email: str, password: str, role: str, activeuser:
         except Exception as e:
             roxywi_common.logging('error: Cannot send email for a new user', e, roxywi=1, login=1)
     except Exception as e:
-        roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot create a new user: {e}', roxywi=1, login=1)
+        roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot create a new user', roxywi=1, login=1)
 
 
 def delete_user(user_id: int) -> str:
@@ -50,7 +50,7 @@ def update_user(email, new_user, user_id, enabled, group_id, role_id):
     try:
         sql.update_user(new_user, email, role_id, user_id, enabled)
     except Exception as e:
-        print(e)
+        roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot update user {new_user}', roxywi=1, login=1)
     sql.update_user_role(user_id, group_id, role_id)
     roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
 

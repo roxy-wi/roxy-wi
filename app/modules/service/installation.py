@@ -390,13 +390,13 @@ def run_ansible(inv: dict, server_ips: str, ansible_role: str) -> object:
 			invent.write(str(inv))
 	except Exception as e:
 		server_mod.stop_ssh_agent(agent_pid)
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'error: Cannot save inventory file', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot save inventory file', roxywi=1)
 
 	try:
 		result = ansible_runner.run(**kwargs)
 	except Exception as e:
 		server_mod.stop_ssh_agent(agent_pid)
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'error: Cannot run Ansible', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot run Ansible', roxywi=1)
 
 	try:
 		server_mod.stop_ssh_agent(agent_pid)
@@ -425,7 +425,7 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 		try:
 			update_functions[service](server_ip)
 		except Exception as e:
-			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot activate {service} on server {server_ip}', roxywi=1)
+			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot activate {service} on server {server_ip}', roxywi=1)
 
 		if service != 'keepalived':
 			is_docker = json_data['services'][service]['docker']
@@ -439,7 +439,7 @@ def install_service(service: str, json_data: str) -> object:
 	try:
 		json_data = json.loads(json_data)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'error: Cannot parse JSON', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot parse JSON', roxywi=1)
 
 	generate_functions = {
 		'haproxy': generate_haproxy_inv,
@@ -453,7 +453,7 @@ def install_service(service: str, json_data: str) -> object:
 		service_actions_after_install(server_ips, service, json_data)
 		return run_ansible(inv, server_ips, service), 201
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot install {service}', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot install {service}', roxywi=1)
 
 
 def _install_ansible_collections():

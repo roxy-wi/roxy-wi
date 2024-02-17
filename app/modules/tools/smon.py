@@ -175,7 +175,7 @@ def delete_smon(smon_id, user_group) -> str:
         server_ip = smon_sql.get_agent_ip_by_id(agent_id)
         smon_agent.delete_check(agent_id, server_ip, smon_id)
     except Exception as e:
-        roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot delete check: {e}', roxywi=1, login=1)
+        roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot delete check', roxywi=1, login=1)
     try:
         if smon_sql.delete_smon(smon_id, user_group):
             roxywi_common.logging('SMON', ' The server from SMON has been delete ', roxywi=1, login=1)
