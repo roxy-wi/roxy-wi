@@ -189,7 +189,6 @@ def check_service(service):
 
 
 @bp.route('/action/<service>/<server_ip>/<action>', methods=['GET'])
-@check_services
 def action_service(service, server_ip, action):
     server_ip = common.is_ip_or_dns(server_ip)
 
