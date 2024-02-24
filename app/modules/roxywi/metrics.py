@@ -1,7 +1,7 @@
 import psutil
 
-import modules.db.sql as sql
-import modules.server.server as server_mod
+import app.modules.db.sql as sql
+import app.modules.server.server as server_mod
 
 
 def show_ram_metrics(metrics_type: str) -> dict:

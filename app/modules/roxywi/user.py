@@ -28,7 +28,7 @@ def create_user(new_user: str, email: str, password: str, role: str, activeuser:
         except Exception as e:
             roxywi_common.logging('error: Cannot send email for a new user', e, roxywi=1, login=1)
     except Exception as e:
-        roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot create a new user', roxywi=1, login=1)
+        roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot create a new user', roxywi=1, login=1)
 
 
 def delete_user(user_id: int) -> str:

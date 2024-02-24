@@ -16,6 +16,7 @@ class SshConnection:
         self.ssh_key_name = ssh_settings['key']
         self.ssh_passphrase = ssh_settings['passphrase']
 
+    # noinspection PyExceptClausesOrder
     def __enter__(self):
         kwargs = {
             'hostname': self.server_ip,
@@ -112,7 +113,7 @@ class SshConnection:
             yield stdout.channel.recv(len(stdout.channel.in_buffer))
 
             # chunked read to prevent stalls
-            while (not channel.closed or channel.recv_ready() or channel.recv_stderr_ready()):
+            while not channel.closed or channel.recv_ready() or channel.recv_stderr_ready():
                 # stop if channel was closed prematurely,
                 # and there is no data in the buffers.
                 got_chunk = False

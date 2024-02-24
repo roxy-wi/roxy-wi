@@ -16,7 +16,7 @@ function sort_by_status() {
 	$(".dis").prependTo("#dis_services");
 	$('.group').remove();
 	$('.group_name').detach();
-	window.history.pushState("SMON Dashboard", "SMON Dashboard", cur_url[0]+"?action=view&sort=by_status");
+	window.history.pushState("SMON Dashboard", "SMON Dashboard", "?sort=by_status");
 }
 function showSmon(action) {
 	let sort = '';
@@ -29,6 +29,9 @@ function showSmon(action) {
 		} catch (e) {
 			sort = '';
 		}
+	}
+	if (action === 'not_sort') {
+		window.history.pushState("SMON Dashboard", "SMON Dashboard", "/app/smon/dashboard");
 	}
 	$.ajax({
 		url: "/app/smon/refresh",

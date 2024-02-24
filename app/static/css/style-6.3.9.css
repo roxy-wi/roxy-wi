@@ -63,7 +63,7 @@ ul#browse_history li:before {
 ul#browse_history li+li:before {
 	content: "->";
 	color: #767676;
-	margin: 0 5px 0px 5px;
+	margin: 0 5px 0 5px;
 }
 #browse_history a {
 	color: #767676;
@@ -669,9 +669,6 @@ ul{
 .ui-corner-all {
 	border-radius: 3px !important;
 }
-/*.ui-visual-focus {*/
-/*	box-shadow: none !important;*/
-/*}*/
 .ui-state-focus {
 	border: none !important;
 }
@@ -872,7 +869,7 @@ label {
 	width: 5px;
 	height: 5px;
 	display: inline-block;
-	margin-bottom: 0px;
+	margin-bottom: 0;
 }
 .server-action {
 	float: right;
@@ -965,6 +962,7 @@ label {
 	width: 48.8%;
 	float: left;
 	margin-left: var(--indent);
+	margin-bottom: var(--indent);
 }
 .chart-container_overview {
 	width: 93.3%;
@@ -1132,7 +1130,7 @@ label {
 	}
 	#logo_span img {
 		width: 250px;
-		margin: 35px 0px auto 120px;
+		margin: 35px 0 auto 120px;
 	}
 	.wrong-login {
 		margin-right: -150px;
@@ -1378,7 +1376,6 @@ label {
 }
 .portlet-header {
 	cursor: move;
-	margin-right: -10px;
     margin-left: 10px;
     position: relative;
     bottom: 3px;

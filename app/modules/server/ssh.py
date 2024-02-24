@@ -4,11 +4,11 @@ from cryptography.fernet import Fernet
 import paramiko
 from flask import render_template, request
 
-import modules.db.sql as sql
-import modules.common.common as common
+import app.modules.db.sql as sql
+import app.modules.common.common as common
 from app.modules.server import ssh_connection
-import modules.roxywi.common as roxywi_common
-import modules.roxy_wi_tools as roxy_wi_tools
+import app.modules.roxywi.common as roxywi_common
+import app.modules.roxy_wi_tools as roxy_wi_tools
 
 error_mess = common.error_mess
 get_config = roxy_wi_tools.GetConfigVar()
@@ -82,9 +82,12 @@ def create_ssh_cred() -> str:
 	if username is None or name is None:
 		return error_mess
 	else:
-		if sql.insert_new_ssh(name, enable, group, username, password):
-			roxywi_common.logging('Roxy-WI server', f'New SSH credentials {name} has been created', roxywi=1, login=1)
-			return render_template('ajax/new_ssh.html', groups=sql.select_groups(), sshs=sql.select_ssh(name=name), page=page, lang=lang)
+		try:
+			sql.insert_new_ssh(name, enable, group, username, password)
+		except Exception as e:
+			roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot create new SSH credentials', roxywi=1, login=1)
+		roxywi_common.logging('Roxy-WI server', f'New SSH credentials {name} has been created', roxywi=1, login=1)
+		return render_template('ajax/new_ssh.html', groups=sql.select_groups(), sshs=sql.select_ssh(name=name), page=page, lang=lang)
 
 
 def create_ssh_cread_api(name: str, enable: str, group: str, username: str, password: str) -> bool:

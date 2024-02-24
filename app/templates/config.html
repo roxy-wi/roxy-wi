@@ -76,12 +76,10 @@
 				</div>
 				<p>
 					<a href="/app/config/{{service}}/{{serv}}/show" class="ui-button ui-widget ui-corner-all" title="{{lang.phrases.return_to_config}}">{{lang.words.back|title()}}</a>
-					{% if service != 'keepalived' %}
 					<button type="submit" value="test" name="save" class="btn btn-default" title="{{lang.words.check|title()}} {{lang.words.config}} {{lang.words.without}} {{lang.words.saving}}">{{lang.phrases.check_config}}</button>
-					{% endif %}
 					<button type="submit" value="save" name="save" class="btn btn-default" title="{{lang.phrases.save_title}}">{{lang.words.save|title()}}</button>
 					{% if is_restart|int == 0 %}
-					<button type="submit" value="" name="" class="btn btn-default">{{lang.phrases.save_and_restart}}</button>
+					<button type="submit" value="restart" name="" class="btn btn-default">{{lang.phrases.save_and_restart}}</button>
 					{% endif %}
 					<button type="submit" value="reload" name="save" class="btn btn-default">{{lang.phrases.save_and_reload}}</button>
 					{% if service != 'keepalived' %}

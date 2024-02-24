@@ -20,9 +20,9 @@
 		{% endfor %}
 		<b>{{lang.smon_page.desc.status_summary}}: {{lang.smon_page.desc.UP}}: {{up|length}}, {{lang.smon_page.desc.DOWN}}: {{down|length}}, {{lang.words.disabled|title()}}: {{dis|length}}</b>
     </div>
-    <a title="{{lang.smon_page.desc.do_not_sort_by_status}}" onclick="showSmon('not_sort')">{{lang.smon_page.desc.do_not_sort}}</a> |
-    <a id="sort_by_status" title="{{lang.smon_page.desc.sort_status}}" onclick="sort_by_status()">{{lang.smon_page.desc.sort_status}}</a> |
-    <a title="SMOM: {{lang.words.dashboard|title()}} - Roxy-WI" onclick="showSmon('refresh');">{{lang.words.refresh|title()}}</a>
+    <a title="{{lang.smon_page.desc.do_not_sort_by_status}}" style="cursor: pointer" onclick="showSmon('not_sort')">{{lang.smon_page.desc.do_not_sort}}</a> |
+    <a id="sort_by_status" title="{{lang.smon_page.desc.sort_status}}" style="cursor: pointer" onclick="sort_by_status()">{{lang.smon_page.desc.sort_status}}</a> |
+    <a title="SMOM: {{lang.words.dashboard|title()}} - Roxy-WI" style="cursor: pointer" onclick="showSmon('refresh');">{{lang.words.refresh2|title()}}</a>
 </div>
 {% set group = [] %}
 {% set group_prev = [] %}

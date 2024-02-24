@@ -16,7 +16,7 @@ def return_error_message():
 	return 'error: All fields must be completed'
 
 
-def get_user_group(**kwargs) -> str:
+def get_user_group(**kwargs) -> int:
 	user_group = ''
 
 	try:
@@ -104,8 +104,6 @@ def get_files(folder, file_format, server_ip=None) -> list:
 
 
 def logging(server_ip: str, action: str, **kwargs) -> None:
-	login = ''
-	cur_date = get_date.return_date('logs')
 	cur_date_in_log = get_date.return_date('date_in_log')
 	log_path = get_config_var.get_config_var('main', 'log_path')
 
@@ -126,18 +124,17 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 		user_uuid = request.cookies.get('uuid')
 		login = sql.get_user_name_by_uuid(user_uuid)
 	except Exception:
-		if kwargs.get('login'):
-			login = kwargs.get('login')
+		login = ''
 
 	if kwargs.get('roxywi') == 1:
 		if kwargs.get('login'):
 			mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} on: {server_ip}\n"
 		else:
 			mess = f"{cur_date_in_log} {action} from {ip}\n"
-		log_file = f"{log_path}/roxy-wi-{cur_date}.log"
+		log_file = f"{log_path}/roxy-wi.log"
 	else:
-		mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} on: {server_ip}\n"
-		log_file = f"{log_path}/config_edit-{cur_date}.log"
+		mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} on: {server_ip} {kwargs.get('service')}\n"
+		log_file = f"{log_path}/config_edit.log"
 
 	if kwargs.get('keep_history'):
 		try:

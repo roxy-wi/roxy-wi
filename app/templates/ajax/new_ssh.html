@@ -11,7 +11,7 @@
 				<label for="ssh_enable-{{ssh.id}}">{{lang.words.enable|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="ssh_enable-{{ssh.id}}">
 			{% endif %}
 		</td>
-		{% if page != "servers.py" %}
+		{% if page != "servers" %}
 			<td>
 				<select id="sshgroup-{{ssh.id}}" name="sshgroup-{{ssh.id}}">
 					{% for group in groups %}

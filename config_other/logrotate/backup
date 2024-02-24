@@ -1,4 +1,4 @@
-/var/www/haproxy-wi/log/backup.log {
+/var/www/roxy-wi/log/backup.log {
     daily
     rotate 10
     missingok

@@ -962,9 +962,6 @@ def insert_new_ssh(name, enable, group, username, password):
 		Cred.insert(name=name, enable=enable, groups=group, username=username, password=password).execute()
 	except Exception as e:
 		out_error(e)
-		return False
-	else:
-		return True
 
 
 def delete_ssh(ssh_id):
@@ -3027,7 +3024,7 @@ def select_remote_path_from_version(server_ip: str, service: str, local_path: st
 
 
 def insert_system_info(
-	server_id: int, os_info: str, sys_info: str, cpu: str, ram: str, network: str, disks: str
+	server_id: int, os_info: str, sys_info: dict, cpu: dict, ram: dict, network: dict, disks: dict
 ):
 	try:
 		SystemInfo.insert(
@@ -3112,9 +3109,6 @@ def insert_user_name(user_name):
 		UserName.insert(UserName=user_name).execute()
 	except Exception as e:
 		out_error(e)
-		return False
-	else:
-		return True
 
 
 def select_user_name():

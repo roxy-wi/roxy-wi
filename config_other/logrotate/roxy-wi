@@ -1,0 +1,19 @@
+/var/www/roxy-wi/log/roxy-wi.log {
+    daily
+    rotate 10
+    missingok
+    notifempty
+	create 0644 apache apache
+	dateext
+    sharedscripts
+}
+
+/var/www/roxy-wi/log/config_edit.log {
+    daily
+    rotate 10
+    missingok
+    notifempty
+	create 0644 apache apache
+	dateext
+    sharedscripts
+}

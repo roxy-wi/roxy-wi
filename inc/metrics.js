@@ -85,10 +85,10 @@ function renderHttpChart(data, labels, server) {
                     font: {
                         size: 20,
                     },
-                    padding: {
-                        top: 0,
-                    },
                 },
+                legend: {
+                    position: 'bottom'
+                }
             },
             scales: {
                 y: {
@@ -211,9 +211,6 @@ function renderChart(data, labels, server) {
                     font: {
                         size: 20,
                     },
-                    padding: {
-                        top: 0,
-                    },
                 },
 				legend: {
 					display: true,
@@ -224,6 +221,7 @@ function renderChart(data, labels, server) {
                             family: 'BlinkMacSystemFont'
                         }
 					},
+                    position: 'bottom'
 				}
 			}
         }
@@ -281,9 +279,9 @@ function renderServiceChart(data, labels, server, service) {
                     font: {
                         size: 20
                     },
-                    padding: {
-                        top: 0
-                    }
+                     legend: {
+                         position: 'bottom'
+                     }
                 },
                 legend: {
                     display: true,
@@ -293,7 +291,8 @@ function renderServiceChart(data, labels, server, service) {
                             size: '10',
                             family: 'BlinkMacSystemFont'
                         }
-                    }
+                    },
+                    position: 'bottom'
                 }
             },
             scales: {
@@ -341,20 +340,20 @@ function getApacheChartData(server) {
 		},
 		type: "POST",
         success: function (result) {
-            var data = [];
+            let data = [];
             data.push(result.chartData.curr_con);
             data.push(result.chartData.server);
-            var labels = result.chartData.labels;
+            let labels = result.chartData.labels;
             renderServiceChart(data, labels, server, 'apache');
         }
     });
 }
 function loadMetrics() {
-    var service = $('#service').val();
+    let service = $('#service').val();
     $.ajax({
         url: "/app/metrics/" + service + "/table-metrics",
         beforeSend: function () {
-            $('#table_metrics').html('<img class="loading_full_page" src="/app/static/images/loading.gif" />')
+            $('#table_metrics').html('<img class="loading_full_page" src="/app/static/images/loading.gif"  alt="loading..."/>')
         },
         type: "GET",
         success: function (data) {
@@ -375,11 +374,11 @@ function getChartDataHapWiRam(ip) {
 			token: $('#token').val()
 		},
 		beforeSend: function() {
-			$('#ram').html('<img class="loading_hapwi_overview" src="/app/static/images/loading.gif" />')
+			$('#ram').html('<img class="loading_hapwi_overview" src="/app/static/images/loading.gif" alt="loading..." />')
 		},
 		type: "POST",
         success: function (result) {  
-            var data = [];
+            let data = [];
             data.push(result.chartData.rams);
             // Получение значений из строки и разделение их на массив
             const ramsData = data[0].trim().split(' ');
@@ -502,7 +501,6 @@ function renderChartHapWiCpu(data) {
 					labels: {
 						color: 'rgb(255, 99, 132)',
 						font: { size: 10, family: 'BlinkMacSystemFont' },
-						color: 'black',
 						boxWidth: 13,
 						padding: 5
 					},
@@ -559,7 +557,8 @@ $( function() {
     });
 });
 function removeData() {
-    for (i = 0; i < charts.length; i++) {
+    let chart;
+    for (let i = 0; i < charts.length; i++) {
         chart = charts[i];
         chart.destroy();
     }
@@ -571,9 +570,9 @@ function showOverviewHapWI() {
 	NProgress.configure({showSpinner: false});
 }
 function updatingCpuRamCharts() {
-	if (cur_url[0] == 'overview.py') {
+	if (cur_url[0] == 'overview') {
 		showOverviewHapWI();
-	} else if (cur_url[0] == 'hapservers.py' && cur_url[1].split('=')[0] == 'service') {
+	} else if (cur_url[0] == 'service' && cur_url[2]) {
 		NProgress.configure({showSpinner: false});
         showOverviewHapWI();
 		getChartData(server_ip);
@@ -644,7 +643,6 @@ function renderSMONChart(data, labels, server) {
 					labels: {
 						color: 'rgb(255, 99, 132)',
 						font: { size: 10, family: 'BlinkMacSystemFont' },
-						color: 'black',
 						boxWidth: 13,
 						padding: 5
 					},

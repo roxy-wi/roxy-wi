@@ -4,7 +4,7 @@ from flask_login import login_required
 
 from app.routes.metric import bp
 import app.modules.db.sql as sql
-from middleware import check_services, get_user_params
+from app.middleware import check_services, get_user_params
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.metrics as metric
@@ -14,7 +14,7 @@ import app.modules.roxywi.common as roxywi_common
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 
@@ -86,15 +86,14 @@ def table_metrics(service):
     group_id = roxywi_common.get_user_group(id=1)
 
     if service in ('nginx', 'apache'):
-        metrics = sql.select_service_table_metrics(service, group_id)
+        table_stat = sql.select_service_table_metrics(service, group_id)
     else:
-        metrics = sql.select_table_metrics(group_id)
+        table_stat = sql.select_table_metrics(group_id)
 
-    return render_template('ajax/table_metrics.html', table_stat=metrics, service=service, lang=lang)
+    return render_template('ajax/table_metrics.html', table_stat=table_stat, service=service, lang=lang)
 
 
 @bp.post('/<service>/<server_ip>')
-@check_services
 def show_metric(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
     hostname = sql.get_hostname_by_server_ip(server_ip)

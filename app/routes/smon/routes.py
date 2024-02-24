@@ -4,7 +4,7 @@ from flask_login import login_required
 from datetime import datetime
 
 from app.routes.smon import bp
-from middleware import get_user_params
+from app.middleware import get_user_params
 from app.modules.db.db_model import conn
 import app.modules.db.sql as sql
 import app.modules.db.smon as smon_sql
@@ -44,6 +44,7 @@ def smon_main_dashboard():
         'telegrams': sql.get_user_telegram_by_group(group_id),
         'slacks': sql.get_user_pd_by_group(group_id),
         'pds': sql.get_user_slack_by_group(group_id),
+        'sort': request.args.get('sort', None)
     }
 
     return render_template('smon/dashboard.html', **kwargs)

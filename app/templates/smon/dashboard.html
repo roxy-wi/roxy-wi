@@ -21,9 +21,6 @@
 </div>
 {% elif smon|length == 0 %}
 <div style="text-align: center;">
-    {% if g.user_params['role'] <= 3 %}
-        <div class="add-button add-button-big" title="{{lang.words.add|title()}} {{ lang.words.check2 }}" onclick="openSmonDialog('http')">+ {{lang.words.add|title()}} {{ lang.words.check2 }}</div>
-    {% endif %}
 	<br />
 	<h3>{{lang.smon_page.desc.not_added}}</h3>
 	<img src="{{ url_for('static', filename='images/no_servers.png')}}" alt="There is no server">
