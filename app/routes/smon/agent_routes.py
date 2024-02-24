@@ -2,8 +2,7 @@ from flask import render_template, request, jsonify, g
 from flask_login import login_required
 
 from app.routes.smon import bp
-
-from middleware import get_user_params
+from app.middleware import get_user_params
 import app.modules.db.smon as smon_sql
 import app.modules.common.common as common
 import app.modules.tools.smon_agent as smon_agent
@@ -72,6 +71,17 @@ def get_free_agents():
         servers.setdefault(s.server_id, s.hostname)
 
     return jsonify(servers)
+
+
+@bp.get('/agent/count')
+@login_required
+def get_agent_count():
+    try:
+        smon_agent.check_agent_limit()
+    except Exception as e:
+        return f'{e}'
+
+    return 'ok'
 
 
 @bp.get('/agent/<int:agent_id>')
