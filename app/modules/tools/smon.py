@@ -7,27 +7,32 @@ import app.modules.roxywi.common as roxywi_common
 
 
 def create_smon(json_data, user_group, show_new=1) -> bool:
-    name = common.checkAjaxInput(json_data['name'])
-    hostname = common.checkAjaxInput(json_data['ip'])
-    port = common.checkAjaxInput(json_data['port'])
-    enable = common.checkAjaxInput(json_data['enabled'])
-    url = common.checkAjaxInput(json_data['url'])
-    body = common.checkAjaxInput(json_data['body'])
-    group = common.checkAjaxInput(json_data['group'])
-    desc = common.checkAjaxInput(json_data['desc'])
-    telegram = common.checkAjaxInput(json_data['tg'])
-    slack = common.checkAjaxInput(json_data['slack'])
-    pd = common.checkAjaxInput(json_data['pd'])
-    resolver = common.checkAjaxInput(json_data['resolver'])
-    record_type = common.checkAjaxInput(json_data['record_type'])
-    packet_size = common.checkAjaxInput(json_data['packet_size'])
-    http_method = common.checkAjaxInput(json_data['http_method'])
-    interval = common.checkAjaxInput(json_data['interval'])
-    agent_id = common.checkAjaxInput(json_data['agent_id'])
-    check_type = common.checkAjaxInput(json_data['check_type'])
+    try:
+        name = common.checkAjaxInput(json_data['name'])
+        hostname = common.checkAjaxInput(json_data['ip'])
+        port = common.checkAjaxInput(json_data['port'])
+        enable = common.checkAjaxInput(json_data['enabled'])
+        url = common.checkAjaxInput(json_data['url'])
+        body = common.checkAjaxInput(json_data['body'])
+        group = common.checkAjaxInput(json_data['group'])
+        desc = common.checkAjaxInput(json_data['desc'])
+        telegram = common.checkAjaxInput(json_data['tg'])
+        slack = common.checkAjaxInput(json_data['slack'])
+        pd = common.checkAjaxInput(json_data['pd'])
+        resolver = common.checkAjaxInput(json_data['resolver'])
+        record_type = common.checkAjaxInput(json_data['record_type'])
+        packet_size = common.checkAjaxInput(json_data['packet_size'])
+        http_method = common.checkAjaxInput(json_data['http_method'])
+        interval = common.checkAjaxInput(json_data['interval'])
+        agent_id = common.checkAjaxInput(json_data['agent_id'])
+        check_type = common.checkAjaxInput(json_data['check_type'])
+    except Exception as e:
+        roxywi_common.handle_exceptions(e, 'SMON server', 'Cannot parse check parameters')
 
     if agent_id == '':
         raise Exception('warning: Select an Agent first')
+    else:
+        agent_ip = smon_sql.select_server_ip_by_agent_id(agent_id)
 
     if check_type == 'tcp':
         try:
@@ -53,15 +58,14 @@ def create_smon(json_data, user_group, show_new=1) -> bool:
         smon_sql.insert_smon_dns(last_id, hostname, port, resolver, record_type, interval, agent_id)
 
     if last_id:
-        roxywi_common.logging('SMON', f' A new server {name} to SMON has been add ', roxywi=1, login=1)
+        roxywi_common.logging('SMON', f'A new server {name} to SMON has been add', roxywi=1, login=1)
 
     try:
         api_path = f'check/{last_id}'
         check_json = create_check_json(json_data)
-        server_ip = smon_sql.select_server_ip_by_agent_id(agent_id)
-        smon_agent.send_post_request_to_agent(agent_id, server_ip, api_path, check_json)
+        smon_agent.send_post_request_to_agent(agent_id, agent_ip, api_path, check_json)
     except Exception as e:
-        roxywi_common.logging('SMON', f'Cannot add check to the agent {server_ip}: {e}', roxywi=1, login=1)
+        roxywi_common.logging('SMON', f'Cannot add check to the agent {agent_ip}: {e}', roxywi=1, login=1)
 
     if last_id and show_new:
         return last_id
@@ -124,7 +128,7 @@ def update_smon(smon_id, json_data) -> str:
                 is_edited = smon_sql.update_smonDns(smon_id, hostname, port, resolver, record_type, interval, agent_id)
 
             if is_edited:
-                roxywi_common.logging('SMON', f' The SMON server {name} has been update ', roxywi=1, login=1)
+                roxywi_common.logging('SMON', f'The SMON server {name} has been update', roxywi=1, login=1)
                 try:
                     api_path = f'check/{smon_id}'
                     check_json = create_check_json(json_data)
@@ -175,7 +179,7 @@ def delete_smon(smon_id, user_group) -> str:
         server_ip = smon_sql.get_agent_ip_by_id(agent_id)
         smon_agent.delete_check(agent_id, server_ip, smon_id)
     except Exception as e:
-        roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot delete check', roxywi=1, login=1)
+        roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot delete check', roxywi=1, login=1)
     try:
         if smon_sql.delete_smon(smon_id, user_group):
             roxywi_common.logging('SMON', ' The server from SMON has been delete ', roxywi=1, login=1)

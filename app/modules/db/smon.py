@@ -4,7 +4,7 @@ from peewee import fn
 
 from app.modules.db.db_model import SmonAgent, Server, SMON, SmonTcpCheck, SmonHttpCheck, SmonDnsCheck, SmonPingCheck, SmonHistory, SmonStatusPageCheck, SmonStatusPage
 from app.modules.db.sql import out_error, get_setting
-import modules.roxy_wi_tools as roxy_wi_tools
+import app.modules.roxy_wi_tools as roxy_wi_tools
 
 time_zone = get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
@@ -636,3 +636,10 @@ def select_body_status(smon_id):
 		out_error(e)
 	else:
 		return query_res
+
+
+def count_agents() -> int:
+	try:
+		return SmonAgent.select().count()
+	except Exception as e:
+		out_error(e)

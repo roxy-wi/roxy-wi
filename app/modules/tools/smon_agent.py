@@ -4,7 +4,7 @@ import requests
 import app.modules.db.sql as sql
 import app.modules.db.smon as smon_sql
 import app.modules.common.common as common
-import app.modules.roxywi.common as common_roxywi
+import app.modules.roxywi.common as roxywi_common
 from app.modules.service.installation import run_ansible
 
 
@@ -28,6 +28,15 @@ def generate_agent_inc(server_ip: str, action: str, agent_uuid: uuid) -> object:
     return inv, server_ips
 
 
+def check_agent_limit():
+    user_subscription = roxywi_common.return_user_subscription()
+    count_agents = smon_sql.count_agents()
+    if user_subscription['user_plan'] == 'user' and count_agents >= 1:
+        raise Exception('error: You have reached limit for Home plan')
+    elif user_subscription['user_plan'] == 'company' and count_agents >= 5:
+        raise Exception('error: You have reached limit for Enterprise plan')
+
+
 def add_agent(data) -> int:
     name = common.checkAjaxInput(data.get("name"))
     server_id = int(data.get("server_id"))
@@ -35,19 +44,20 @@ def add_agent(data) -> int:
     desc = common.checkAjaxInput(data.get("desc"))
     enabled = int(data.get("enabled"))
     agent_uuid = str(uuid.uuid4())
+    check_agent_limit()
 
     try:
         inv, server_ips = generate_agent_inc(server_ip, 'install', agent_uuid)
         run_ansible(inv, server_ips, 'smon_agent')
     except Exception as e:
-        common_roxywi.handle_exceptions(e, server_ip, 'Cannot install SMON agent', roxywi=1, login=1)
+        roxywi_common.handle_exceptions(e, server_ip, 'Cannot install SMON agent', roxywi=1, login=1)
 
     try:
         last_id = smon_sql.add_agent(name, server_id, desc, enabled, agent_uuid)
-        common_roxywi.logging(server_ip, 'A new SMON agent has been created', roxywi=1, login=1, keep_history=1, service='SMON')
+        roxywi_common.logging(server_ip, 'A new SMON agent has been created', roxywi=1, login=1, keep_history=1, service='SMON')
         return last_id
     except Exception as e:
-        common_roxywi.handle_exceptions(e, 'Roxy-WI server', 'Cannot create Agent', roxywi=1, login=1)
+        roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot create Agent', roxywi=1, login=1)
 
 
 def delete_agent(agent_id: int):
@@ -57,7 +67,7 @@ def delete_agent(agent_id: int):
         inv, server_ips = generate_agent_inc(server_ip, 'uninstall', agent_uuid)
         run_ansible(inv, server_ips, 'smon_agent')
     except Exception as e:
-        common_roxywi.handle_exceptions(e, server_ip, 'Cannot uninstall SMON agent', roxywi=1, login=1)
+        roxywi_common.handle_exceptions(e, server_ip, 'Cannot uninstall SMON agent', roxywi=1, login=1)
 
 
 def update_agent(json_data):
@@ -69,7 +79,7 @@ def update_agent(json_data):
     try:
         smon_sql.update_agent(agent_id, name, desc, enabled)
     except Exception as e:
-        common_roxywi.handle_exceptions(e, 'Roxy-WI server', f'Cannot update SMON agent: {agent_id}', roxywi=1, login=1)
+        roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot update SMON agent: {agent_id}', roxywi=1, login=1)
 
 
 def get_agent_headers(agent_id: int) -> dict:
@@ -110,11 +120,11 @@ def delete_check(agent_id: int, server_ip: str, check_id: int) -> bytes:
         req = requests.delete(f'http://{server_ip}:{agent_port}/check/{check_id}', headers=headers, timeout=5)
         return req.content
     except requests.exceptions.HTTPError as e:
-        common_roxywi.logging(server_ip, f'error: Cannot delete check from agent: http error {e}', roxywi=1, login=1)
+        roxywi_common.logging(server_ip, f'error: Cannot delete check from agent: http error {e}', roxywi=1, login=1)
     except requests.exceptions.ConnectTimeout:
-        common_roxywi.logging(server_ip, 'error: Cannot delete check from agent: connection timeout', roxywi=1, login=1)
+        roxywi_common.logging(server_ip, 'error: Cannot delete check from agent: connection timeout', roxywi=1, login=1)
     except requests.exceptions.ConnectionError:
-        common_roxywi.logging(server_ip, 'error: Cannot delete check from agent: connection error', roxywi=1, login=1)
+        roxywi_common.logging(server_ip, 'error: Cannot delete check from agent: connection error', roxywi=1, login=1)
     except Exception as e:
         raise Exception(f'error: Cannot delete check from Agent {server_ip}: {e}')
 
@@ -195,16 +205,16 @@ def send_checks(agent_id: int) -> None:
     try:
         send_tcp_checks(agent_id, server_ip)
     except Exception as e:
-        raise Exception(f'{e}')
+        roxywi_common.logging(f'Agent ID: {agent_id}', f'error: Cannot send TCP checks: {e}', roxywi=1)
     try:
         send_ping_checks(agent_id, server_ip)
     except Exception as e:
-        raise Exception(f'{e}')
+        roxywi_common.logging(f'Agent ID: {agent_id}', f'error: Cannot send Ping checks: {e}', roxywi=1)
     try:
         send_dns_checks(agent_id, server_ip)
     except Exception as e:
-        raise Exception(f'{e}')
+        roxywi_common.logging(f'Agent ID: {agent_id}', f'error: Cannot send DNS checks: {e}', roxywi=1)
     try:
         send_http_checks(agent_id, server_ip)
     except Exception as e:
-        raise Exception(f'{e}')
+        roxywi_common.logging(f'Agent ID: {agent_id}', f'error: Cannot send HTTP checks: {e}', roxywi=1)

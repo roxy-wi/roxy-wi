@@ -661,6 +661,22 @@ function deleteStatusPage(page_id) {
 		}
 	});
 }
+function checkAgentLimit() {
+	let return_value = false;
+	$.ajax({
+		url: '/app/smon/agent/count',
+		async: false,
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				return_value = true;
+			}
+		}
+	});
+	return return_value;
+}
 function addAgentDialog(agent_id=0, edit=false) {
 	cleanAgentAddForm();
 	let tabel_title = $("#add-agent-page-overview").attr('title');
@@ -669,6 +685,9 @@ function addAgentDialog(agent_id=0, edit=false) {
 		tabel_title = $("#add-agent-page-overview").attr('data-edit');
 		getAgentSettings(agent_id);
 	} else {
+		if (!checkAgentLimit()) {
+			return false;
+		}
 		getFreeServers();
 	}
 	let dialogTable = $("#add-agent-page").dialog({
