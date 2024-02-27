@@ -3,11 +3,8 @@ import uuid
 from peewee import fn
 
 from app.modules.db.db_model import SmonAgent, Server, SMON, SmonTcpCheck, SmonHttpCheck, SmonDnsCheck, SmonPingCheck, SmonHistory, SmonStatusPageCheck, SmonStatusPage
-from app.modules.db.sql import out_error, get_setting
-import app.modules.roxy_wi_tools as roxy_wi_tools
-
-time_zone = get_setting('time_zone')
-get_date = roxy_wi_tools.GetDate(time_zone)
+from app.modules.db.common import out_error
+from app.modules.common.common import get_date
 
 
 def get_agents(group_id: int):
@@ -641,5 +638,14 @@ def select_body_status(smon_id):
 def count_agents() -> int:
 	try:
 		return SmonAgent.select().count()
+	except Exception as e:
+		out_error(e)
+
+
+def delete_smon_history():
+	cur_date = get_date.return_date('regular', timedelta_minus=1)
+	query = SmonHistory.delete().where(SmonHistory.date < cur_date)
+	try:
+		query.execute()
 	except Exception as e:
 		out_error(e)

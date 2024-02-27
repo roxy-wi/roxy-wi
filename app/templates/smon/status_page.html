@@ -36,7 +36,7 @@
 		<script src="/inc/toastr.js"></script>
     </head>
     <body>
-        <h2>Status page - {{p.name}}</h2>
+        <h2>Status page - {{p.name|replace("'", "")}}</h2>
         <h3>{{p.desc|replace("'", "")}}</h3>
         <div id="page_status" class="page_cur_status"></div>
         {% for check, value in checks_status.items() %}
