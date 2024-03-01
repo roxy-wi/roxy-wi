@@ -7,6 +7,7 @@
 	--menu-color: #06212a;
 	--right-menu-blue-rolor: #5D9CEB;
 	--yellow-color: #ffcc00;
+	--unknown-color: #fff3cd;
 	--border-radius: 3px;
 	--indent: 15px;
 }
@@ -765,7 +766,7 @@ td,th {
 }
 .alert-warning {
     color: #856404;
-    background-color: #fff3cd;
+    background-color: var(--unknown-color);
     border-color: #ffeeba;
 }
 .wrong-login {
@@ -832,6 +833,9 @@ label {
 }
 .div-server-head-pause {
 	border-top: 3px solid orange !important;
+}
+.div-server-head-unknown {
+	border-top: 3px solid #efdb9d !important;
 }
 .div-server-head-up, .div-server-head-down, .div-server-head-dis, .div-server-head-pause {
 	padding-top: 7px;
@@ -1038,7 +1042,7 @@ label {
 }
 .unknown {
 	color: #856404;
-	background-color: #fff3cd;
+	background-color: var(--unknown-color);
 	border-color: #ffeeba;
 }
 .disable {

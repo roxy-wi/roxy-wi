@@ -1,4 +1,4 @@
-`{% extends "base.html" %}
+{% extends "base.html" %}
 {% from 'include/input_macros.html' import select %}
 {% block title %}{{ lang.menu_links.history.title }} {{ smon_name }}{% endblock %}
 {% block h2 %}{{ lang.menu_links.history.title }} {{ smon_name }}{% endblock %}
@@ -10,7 +10,6 @@
 <link href="{{ url_for('static', filename='css/chart.min.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/smon.css') }}" rel="stylesheet">
 <script src="/inc/chart.min-4.3.0.js"></script>
-<script src="/inc/metrics.js"></script>
 <script src="/inc/smon.js"></script>
 <div class="row wrap1">
 {% for s in smon %}

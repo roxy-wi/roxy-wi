@@ -270,6 +270,9 @@ function getSmonCheck(smon_id, check_id, dialog_id, new_check=false) {
 		type: "get",
 		success: function (data) {
 			if (new_check) {
+				if ( !$( "#dashboards" ).length ) {
+					location.reload();
+				}
 				$('#dashboards').prepend(data);
 			} else {
 				$('#smon-' + smon_id).replaceWith(data);
@@ -981,4 +984,98 @@ function agentAction(action, id, server_ip, dialog_id) {
 			}
 		}
 	});
+}
+var charts = []
+function getSmonHistoryCheckData(server) {
+    $.ajax({
+        url: "/app/smon/history/metric/" + server,
+        success: function (result) {
+            let data = [];
+            data.push(result.chartData.curr_con);
+            let labels = result.chartData.labels;
+            renderSMONChart(data[0], labels, '3');
+        }
+    });
+}
+function renderSMONChart(data, labels, server) {
+    const resp_time_word = $('#translate').attr('data-resp_time');
+    const ctx = document.getElementById('metrics_' + server);
+
+    // Преобразование данных в массивы
+    const labelArray = labels.split(',');
+    const dataArray = data.split(',');
+
+    // Удаление последнего пустого элемента в каждом массиве
+    labelArray.pop();
+    dataArray.pop();
+
+    // Создание объекта dataset
+    const dataset = {
+        label: resp_time_word + ' (ms)',
+        data: dataArray,
+        borderColor: 'rgba(92, 184, 92, 1)',
+        backgroundColor: 'rgba(92, 184, 92, 0.2)',
+        tension: 0.4,
+        pointRadius: 3,
+        borderWidth: 1,
+        fill: true
+    };
+
+    const config = {
+        type: 'line',
+        data: {
+            labels: labelArray,
+            datasets: [dataset]
+        },
+        options: {
+            animation: true,
+			maintainAspectRatio: false,
+			plugins: {
+				title: {
+					display: true,
+					font: { size: 15 },
+					padding: { top: 10 }
+				},
+				legend: {
+					display: false,
+					position: 'left',
+					align: 'end',
+					labels: {
+						color: 'rgb(255, 99, 132)',
+						font: { size: 10, family: 'BlinkMacSystemFont' },
+						boxWidth: 13,
+						padding: 5
+					},
+				}
+			},
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    },
+                    ticks: {
+                        source: 'data',
+                        autoSkip: true,
+                        autoSkipPadding: 45,
+                        maxRotation: 0
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: resp_time_word + ' (ms)'
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    const myChart = new Chart(ctx, config);
+    charts.push(myChart);
 }

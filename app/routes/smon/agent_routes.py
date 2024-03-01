@@ -2,7 +2,7 @@ from flask import render_template, request, jsonify, g
 from flask_login import login_required
 
 from app.routes.smon import bp
-from app.middleware import get_user_params
+from middleware import get_user_params
 import app.modules.db.smon as smon_sql
 import app.modules.common.common as common
 import app.modules.tools.smon_agent as smon_agent

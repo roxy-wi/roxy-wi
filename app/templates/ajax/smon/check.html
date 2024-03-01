@@ -10,7 +10,7 @@
             {% set additional_classes = 'err div-server-head-down' %}
             {% set uptime_desc = lang.words.downtime + ': <time class="timeago" datetime='+s.smon_id.time_state|string()+'>'+s.smon_id.time_state|string()+'</time>' %}
         {% else %}
-            {% set additional_classes = 'err div-server-head-down' %}
+            {% set additional_classes = 'err div-server-head-unknown' %}
             {% set uptime_desc = lang.words.uptime + ': N/A' %}
         {% endif %}
     {% else %}
@@ -63,7 +63,7 @@
     {% endif %}
 </div>
 <div class="res_time">
-    <b>{{ lang.smon_page.desc.enabled_checks }}</b> {{ s.smon_id.check_type|upper }}
+    <b>{{ lang.smon_page.desc.enabled_checks }}:</b> {{ s.smon_id.check_type|upper }}
     <b>{{lang.words.agent|title()}}:</b>
         {% for a in agents %}
         {% if a.id|string() == s.agent_id|string() %}
