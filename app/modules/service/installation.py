@@ -5,6 +5,10 @@ from flask import render_template
 import ansible_runner
 
 import app.modules.db.sql as sql
+import app.modules.db.waf as waf_sql
+import app.modules.db.ha_cluster as ha_sql
+import app.modules.db.server as server_sql
+import app.modules.db.service as service_sql
 import app.modules.service.common as service_common
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
@@ -64,8 +68,8 @@ def waf_install(server_ip: str):
 		raise Exception(e)
 
 	try:
-		sql.insert_waf_metrics_enable(server_ip, "0")
-		sql.insert_waf_rules(server_ip)
+		waf_sql.insert_waf_metrics_enable(server_ip, "0")
+		waf_sql.insert_waf_rules(server_ip)
 	except Exception as e:
 		return str(e)
 
@@ -101,8 +105,8 @@ def waf_nginx_install(server_ip: str):
 		raise Exception(e)
 
 	try:
-		sql.insert_nginx_waf_rules(server_ip)
-		sql.insert_waf_nginx_server(server_ip)
+		waf_sql.insert_nginx_waf_rules(server_ip)
+		waf_sql.insert_waf_nginx_server(server_ip)
 	except Exception as e:
 		return str(e)
 
@@ -193,16 +197,16 @@ def generate_kp_inv(json_data: json, install_service) -> object:
 	keepalived_path_logs = sql.get_setting('keepalived_path_logs')
 	syn_flood_protect = str(json_data['syn_flood'])
 	routers = {}
-	vips = sql.select_cluster_vips(cluster_id)
+	vips = ha_sql.select_cluster_vips(cluster_id)
 
 	for vip in vips:
 		router_id = str(vip.router_id)
 		routers[router_id] = {}
 		routers[router_id].setdefault('return_master', vip.return_master)
 		routers[router_id].setdefault('vip', vip.vip)
-		slaves = sql.select_cluster_slaves_for_inv(router_id)
+		slaves = ha_sql.select_cluster_slaves_for_inv(router_id)
 		for slave in slaves:
-			slave_ip = sql.select_server_ip_by_id(str(slave.server_id))
+			slave_ip = server_sql.select_server_ip_by_id(str(slave.server_id))
 			routers[router_id].setdefault(slave_ip, dict())
 			routers[router_id][slave_ip].setdefault('master', slave.master)
 			routers[router_id][slave_ip].setdefault('eth', slave.eth)
@@ -414,14 +418,14 @@ def run_ansible(inv: dict, server_ips: str, ansible_role: str) -> object:
 def service_actions_after_install(server_ips: str, service: str, json_data) -> None:
 	is_docker = None
 	update_functions = {
-		'haproxy': sql.update_haproxy,
-		'nginx': sql.update_nginx,
-		'apache': sql.update_apache,
-		'keepalived': sql.update_keepalived,
+		'haproxy': service_sql.update_haproxy,
+		'nginx': service_sql.update_nginx,
+		'apache': service_sql.update_apache,
+		'keepalived': service_sql.update_keepalived,
 	}
 
 	for server_ip in server_ips:
-		server_id = sql.select_server_id_by_ip(server_ip)
+		server_id = server_sql.select_server_id_by_ip(server_ip)
 		try:
 			update_functions[service](server_ip)
 		except Exception as e:
@@ -431,8 +435,8 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 			is_docker = json_data['services'][service]['docker']
 
 		if is_docker == '1' and service != 'keepalived':
-			sql.insert_or_update_service_setting(server_id, service, 'dockerized', '1')
-			sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
+			service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', '1')
+			service_sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
 
 
 def install_service(service: str, json_data: str) -> object:
@@ -458,12 +462,16 @@ def install_service(service: str, json_data: str) -> object:
 
 def _install_ansible_collections():
 	collections = ('community.general', 'ansible.posix', 'community.docker')
+	trouble_link = 'Read <a href="https://roxy-wi.org/troubleshooting#ansible_collection" target="_blank" class="link">troubleshooting</a>'
 	for collection in collections:
 		if not os.path.isdir(f'/usr/share/httpd/.ansible/collections/ansible_collections/{collection.replace(".", "/")}'):
 			try:
 				exit_code = os.system(f'ansible-galaxy collection install {collection}')
 			except Exception as e:
-				roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot install as collection', roxywi=1)
+				roxywi_common.handle_exceptions(e,
+												'Roxy-WI server',
+												f'Cannot install as collection. {trouble_link}',
+												roxywi=1)
 			else:
 				if exit_code != 0:
-					raise Exception(f'error: Ansible collection installation was not successful: {exit_code}')
+					raise Exception(f'error: Ansible collection installation was not successful: {exit_code}. {trouble_link}')

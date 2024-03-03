@@ -131,3 +131,24 @@ def is_tool(name):
 	is_tool_installed = which(name)
 
 	return True if is_tool_installed is not None else False
+
+
+def wrap_line(content: str, css_class: str="line") -> str:
+	"""
+	Wraps the provided content into a div HTML element with the given CSS class.
+	"""
+	return f'<div class="{css_class}">{content}</div>'
+
+
+def highlight_word(line: str, word: str) -> str:
+	"""
+	Highlights the word in the line by making it bold and colored red.
+	"""
+	return line.replace(word, f'<span style="color: red; font-weight: bold;">{word}</span>')
+
+
+def sanitize_input_word(word: str) -> str:
+	"""
+	Sanitizes the input word by removing certain characters.
+	"""
+	return re.sub(r'[?|$|!|^|*|\]|\[|,| |]', r'', word)

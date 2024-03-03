@@ -5,7 +5,12 @@ from flask_login import login_required
 from app import cache
 from app.routes.service import bp
 import app.modules.db.sql as sql
-from middleware import check_services, get_user_params
+import app.modules.db.waf as waf_sql
+import app.modules.db.user as user_sql
+import app.modules.db.ha_cluster as ha_sql
+import app.modules.db.server as server_sql
+import app.modules.db.service as service_sql
+from app.middleware import check_services, get_user_params
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.service.action as service_action
@@ -28,7 +33,7 @@ def before_request():
 @get_user_params()
 def services(service, serv):
     tools = []
-    service_desc = sql.select_service(service)
+    service_desc = service_sql.select_service(service)
     servers = roxywi_common.get_dick_permit(virt=1, service=service_desc.slug)
     servers_with_status1 = []
     autorefresh = 0
@@ -44,17 +49,17 @@ def services(service, serv):
 
     if serv:
         if roxywi_common.check_is_server_in_group(serv):
-            servers = sql.select_servers(server=serv)
+            servers = server_sql.select_servers(server=serv)
             autorefresh = 1
-            waf_server = sql.select_waf_servers(serv)
-            server_id = sql.select_server_id_by_ip(serv)
-            docker_settings = sql.select_docker_service_settings(server_id, service_desc.slug)
-            restart_settings = sql.select_restart_service_settings(server_id, service_desc.slug)
+            waf_server = waf_sql.select_waf_servers(serv)
+            server_id = server_sql.select_server_id_by_ip(serv)
+            docker_settings = service_sql.select_docker_service_settings(server_id, service_desc.slug)
+            restart_settings = service_sql.select_restart_service_settings(server_id, service_desc.slug)
         else:
             raise Exception('error: wrong group')
     else:
-        docker_settings = sql.select_docker_services_settings(service_desc.slug)
-        restart_settings = sql.select_restart_services_settings(service_desc.slug)
+        docker_settings = service_sql.select_docker_services_settings(service_desc.slug)
+        restart_settings = service_sql.select_restart_services_settings(service_desc.slug)
 
     for s, v in services_name.items():
         if distro.id() == 'ubuntu':
@@ -77,17 +82,13 @@ def services(service, serv):
         servers_with_status.append(s[11])
         if service == 'nginx':
             h = (['', ''],)
-            cmd = [
-                "/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' |awk "
-                "'{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"
-            ]
+            cmd = ("/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' |awk "
+                   "'{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l")
             for service_set in docker_settings:
                 if service_set.server_id == s[0] and service_set.setting == 'dockerized' and service_set.value == '1':
                     container_name = sql.get_setting('nginx_container_name')
-                    cmd = [
-                        "docker exec -it " + container_name + " /usr/sbin/nginx -v 2>&1|awk '{print $3}' && "
-                        "docker ps -a -f name=" + container_name + " --format '{{.Status}}'|tail -1 && ps ax |grep nginx:|grep -v grep |wc -l"
-                    ]
+                    cmd =  ("docker exec -it " + container_name + " /usr/sbin/nginx -v 2>&1|awk '{print $3}' "
+                            "&& docker ps -a -f name=" + container_name + " --format '{{.Status}}'|tail -1 && ps ax |grep nginx:|grep -v grep |wc -l")
             try:
                 out = server_mod.ssh_command(s[2], cmd)
                 h = ()
@@ -140,13 +141,13 @@ def services(service, serv):
 
             servers_with_status.append(s[12])
 
-        servers_with_status.append(sql.select_servers(server=s[2]))
-        is_keepalived = sql.select_keepalived(s[2])
+        servers_with_status.append(server_sql.select_servers(server=s[2]))
+        is_keepalived = service_sql.select_keepalived(s[2])
 
         if is_keepalived:
             try:
-                cmd = ['sudo kill -USR1 `cat /var/run/keepalived.pid` && sudo grep State /tmp/keepalived.data -m 1 |'
-                       'awk -F"=" \'{print $2}\'|tr -d \'[:space:]\' && sudo rm -f /tmp/keepalived.data']
+                cmd = ('sudo kill -USR1 `cat /var/run/keepalived.pid` && sudo grep State /tmp/keepalived.data -m 1 |'
+                       'awk -F"=" \'{print $2}\'|tr -d \'[:space:]\' && sudo rm -f /tmp/keepalived.data')
                 out = server_mod.ssh_command(s[2], cmd)
                 out1 = ('1', out)
                 servers_with_status.append(out1)
@@ -158,8 +159,8 @@ def services(service, serv):
         servers_with_status1.append(servers_with_status)
 
     kwargs = {
-        'clusters': sql.select_ha_cluster_name_and_slaves(),
-        'master_slave': sql.is_master(0, master_slave=1),
+        'clusters': ha_sql.select_ha_cluster_name_and_slaves(),
+        'master_slave': server_sql.is_master(0, master_slave=1),
         'user_subscription': roxywi_common.return_user_subscription(),
         'autorefresh': autorefresh,
         'servers': servers_with_status1,
@@ -225,7 +226,7 @@ def cpu_ram_metrics(server_ip, server_id, name, service):
     group_id = int(request.cookies.get('group'))
     kwargs = {
         'service_status': sorted(servers, key=common.get_key),
-        'role': sql.get_user_role_by_uuid(user_id, group_id),
+        'role': user_sql.get_user_role_by_uuid(user_id, group_id),
         'id': server_id,
         'service_page': service,
         'lang': g.user_params['lang']
@@ -273,7 +274,7 @@ def show_service_backends(service, server_ip):
 
 @bp.route('/position/<int:server_id>/<int:pos>')
 def change_pos(server_id, pos):
-    return sql.update_server_pos(pos, server_id)
+    return server_sql.update_server_pos(pos, server_id)
 
 
 @bp.route('/haproxy/version/<server_ip>')
@@ -286,7 +287,7 @@ def get_haproxy_v(server_ip):
 @bp.route('/settings/<service>/<int:server_id>')
 @check_services
 def show_service_settings(service, server_id):
-    settings = sql.select_service_settings(server_id, service)
+    settings = service_sql.select_service_settings(server_id, service)
     return render_template('ajax/service_settings.html', settings=settings, service=service)
 
 
@@ -297,14 +298,14 @@ def save_service_settings(service):
     haproxy_enterprise = common.checkAjaxInput(request.form.get('serverSettingsEnterprise'))
     service_dockerized = common.checkAjaxInput(request.form.get('serverSettingsDockerized'))
     service_restart = common.checkAjaxInput(request.form.get('serverSettingsRestart'))
-    server_ip = sql.select_server_ip_by_id(server_id)
+    server_ip = server_sql.select_server_ip_by_id(server_id)
     service_docker = f'Service {service.title()} has been flagged as a dockerized'
     service_systemd = f'Service {service.title()} has been flagged as a system service'
     disable_restart = f'Restart option is disabled for {service.title()} service'
     enable_restart = f'Restart option is disabled for {service.title()} service'
 
     if service == 'haproxy':
-        if sql.insert_or_update_service_setting(server_id, service, 'haproxy_enterprise', haproxy_enterprise):
+        if service_sql.insert_or_update_service_setting(server_id, service, 'haproxy_enterprise', haproxy_enterprise):
             if haproxy_enterprise == '1':
                 roxywi_common.logging(server_ip, 'Service has been flagged as an Enterprise version', roxywi=1, login=1,
                                       keep_history=1, service=service)
@@ -312,13 +313,13 @@ def save_service_settings(service):
                 roxywi_common.logging(server_ip, 'Service has been flagged as a community version', roxywi=1, login=1,
                                       keep_history=1, service=service)
 
-    if sql.insert_or_update_service_setting(server_id, service, 'dockerized', service_dockerized):
+    if service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', service_dockerized):
         if service_dockerized == '1':
             roxywi_common.logging(server_ip, service_docker, roxywi=1, login=1, keep_history=1, service=service)
         else:
             roxywi_common.logging(server_ip, service_systemd, roxywi=1, login=1, keep_history=1, service=service)
 
-    if sql.insert_or_update_service_setting(server_id, service, 'restart', service_restart):
+    if service_sql.insert_or_update_service_setting(server_id, service, 'restart', service_restart):
         if service_restart == '1':
             roxywi_common.logging(server_ip, disable_restart, roxywi=1, login=1, keep_history=1, service=service)
         else:
@@ -335,8 +336,8 @@ def update_tools_enable(service):
     name = request.form.get('name')
     alert = request.form.get('alert_en')
     metrics = request.form.get('metrics')
-    sql.update_hapwi_server(server_id, alert, metrics, active, service)
-    server_ip = sql.select_server_ip_by_id(server_id)
+    service_sql.update_hapwi_server(server_id, alert, metrics, active, service)
+    server_ip = server_sql.select_server_ip_by_id(server_id)
     roxywi_common.logging(server_ip, f'The server {name} has been updated ', roxywi=1, login=1, keep_history=1,
                           service=service)
 

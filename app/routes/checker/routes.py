@@ -2,8 +2,9 @@ from flask import render_template, request, g
 from flask_login import login_required
 
 from app.routes.checker import bp
-from middleware import get_user_params
+from app.middleware import get_user_params
 import app.modules.db.sql as sql
+import app.modules.db.history as history_sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.alerting as alerting
@@ -13,7 +14,7 @@ import app.modules.tools.checker as checker_mod
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 
@@ -60,8 +61,9 @@ def checker_history():
 
     kwargs = {
         'lang': g.user_params['lang'],
-        'smon': sql.alerts_history('Checker', g.user_params['group_id']),
+        'smon': history_sql.alerts_history('Checker', g.user_params['group_id']),
         'user_subscription': roxywi_common.return_user_subscription(),
+        'action': 'checker'
     }
 
     return render_template('smon/checker_history.html', **kwargs)

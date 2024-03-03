@@ -4,11 +4,15 @@ from typing import Any
 
 from flask import request
 
-import app.modules.db.sql as sql
-import modules.roxy_wi_tools as roxy_wi_tools
+from app.modules.db.sql import get_setting
+import app.modules.db.roxy as roxy_sql
+import app.modules.db.user as user_sql
+import app.modules.db.group as group_sql
+import app.modules.db.server as server_sql
+import app.modules.db.history as history_sql
+import app.modules.db.ha_cluster as ha_sql
+import app.modules.roxy_wi_tools as roxy_wi_tools
 
-time_zone = sql.get_setting('time_zone')
-get_date = roxy_wi_tools.GetDate(time_zone)
 get_config_var = roxy_wi_tools.GetConfigVar()
 
 
@@ -21,7 +25,7 @@ def get_user_group(**kwargs) -> int:
 
 	try:
 		user_group_id = request.cookies.get('group')
-		groups = sql.select_groups(id=user_group_id)
+		groups = group_sql.select_groups(id=user_group_id)
 		for g in groups:
 			if g.group_id == int(user_group_id):
 				if kwargs.get('id'):
@@ -40,13 +44,13 @@ def check_user_group_for_flask(**kwargs):
 	if kwargs.get('user_uuid'):
 		group_id = kwargs.get('user_group_id')
 		user_uuid = kwargs.get('user_uuid')
-		user_id = sql.get_user_id_by_uuid(user_uuid)
+		user_id = user_sql.get_user_id_by_uuid(user_uuid)
 	else:
 		user_uuid = request.cookies.get('uuid')
 		group_id = request.cookies.get('group')
-		user_id = sql.get_user_id_by_uuid(user_uuid)
+		user_id = user_sql.get_user_id_by_uuid(user_uuid)
 
-	if sql.check_user_group(user_id, group_id):
+	if user_sql.check_user_group(user_id, group_id):
 		return True
 	else:
 		logging('Roxy-WI server', ' has tried to actions in not his group ', roxywi=1, login=1)
@@ -55,19 +59,19 @@ def check_user_group_for_flask(**kwargs):
 
 def get_user_id(**kwargs):
 	if kwargs.get('login'):
-		return sql.get_user_id_by_username(kwargs.get('login'))
+		return user_sql.get_user_id_by_username(kwargs.get('login'))
 
 	user_uuid = request.cookies.get('uuid')
 
 	if user_uuid is not None:
-		user_id = sql.get_user_id_by_uuid(user_uuid)
+		user_id = user_sql.get_user_id_by_uuid(user_uuid)
 
 		return user_id
 
 
 def check_is_server_in_group(server_ip: str) -> bool:
 	group_id = get_user_group(id=1)
-	servers = sql.select_servers(server=server_ip)
+	servers = server_sql.select_servers(server=server_ip)
 	for s in servers:
 		if (s[2] == server_ip and int(s[3]) == int(group_id)) or group_id == 1:
 			return True
@@ -104,6 +108,7 @@ def get_files(folder, file_format, server_ip=None) -> list:
 
 
 def logging(server_ip: str, action: str, **kwargs) -> None:
+	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
 	cur_date_in_log = get_date.return_date('date_in_log')
 	log_path = get_config_var.get_config_var('main', 'log_path')
 
@@ -122,7 +127,7 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 
 	try:
 		user_uuid = request.cookies.get('uuid')
-		login = sql.get_user_name_by_uuid(user_uuid)
+		login = user_sql.get_user_name_by_uuid(user_uuid)
 	except Exception:
 		login = ''
 
@@ -151,7 +156,7 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 
 def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
 	if login != '':
-		user_id = sql.get_user_id_by_username(login)
+		user_id = user_sql.get_user_id_by_username(login)
 	else:
 		user_id = 0
 	if user_ip == '':
@@ -159,14 +164,14 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 
 	if service == 'HA cluster':
 		cluster_id = server_ip
-		cluster_name = sql.select_cluster_name(int(cluster_id))
-		sql.insert_action_history(service, action, int(cluster_id), user_id, user_ip, cluster_id, cluster_name)
+		cluster_name = ha_sql.select_cluster_name(int(cluster_id))
+		history_sql.insert_action_history(service, action, int(cluster_id), user_id, user_ip, cluster_id, cluster_name)
 	else:
 		try:
-			server_id = sql.select_server_id_by_ip(server_ip=server_ip)
-			hostname = sql.get_hostname_by_server_ip(server_ip)
+			server_id = server_sql.select_server_id_by_ip(server_ip=server_ip)
+			hostname = server_sql.get_hostname_by_server_ip(server_ip)
 
-			sql.insert_action_history(service, action, server_id, user_id, user_ip, server_ip, hostname)
+			history_sql.insert_action_history(service, action, server_id, user_id, user_ip, server_ip, hostname)
 		except Exception as e:
 			logging('Roxy-WI server', f'Cannot save a history: {e}', roxywi=1)
 
@@ -187,7 +192,7 @@ def get_dick_permit(**kwargs):
 
 	if check_user_group_for_flask(token=token):
 		try:
-			servers = sql.get_dick_permit(group_id, **kwargs)
+			servers = server_sql.get_dick_permit(group_id, **kwargs)
 		except Exception as e:
 			raise Exception(e)
 		else:
@@ -199,7 +204,7 @@ def get_dick_permit(**kwargs):
 def get_users_params(**kwargs):
 	try:
 		user_uuid = request.cookies.get('uuid')
-		user = sql.get_user_name_by_uuid(user_uuid)
+		user = user_sql.get_user_name_by_uuid(user_uuid)
 	except Exception:
 		raise Exception('error: Cannot get user UUID')
 
@@ -209,22 +214,22 @@ def get_users_params(**kwargs):
 		raise Exception(f'error: Cannot get user group: {e}')
 
 	try:
-		role = sql.get_user_role_by_uuid(user_uuid, group_id)
+		role = user_sql.get_user_role_by_uuid(user_uuid, group_id)
 	except Exception:
 		raise Exception('error: Cannot get user role')
 
 	try:
-		user_id = sql.get_user_id_by_uuid(user_uuid)
+		user_id = user_sql.get_user_id_by_uuid(user_uuid)
 	except Exception as e:
 		raise Exception(f'error: Cannot get user id {e}')
 
 	try:
-		user_services = sql.select_user_services(user_id)
+		user_services = user_sql.select_user_services(user_id)
 	except Exception as e:
 		raise Exception(f'error: Cannot get user services {e}')
 
 	try:
-		token = sql.get_token(user_uuid)
+		token = user_sql.get_token(user_uuid)
 	except Exception as e:
 		raise Exception(f'error: Cannot get user token {e}')
 
@@ -270,8 +275,8 @@ def get_user_lang_for_flask() -> str:
 
 def return_user_status() -> dict:
 	user_subscription = {}
-	user_subscription.setdefault('user_status', sql.select_user_status())
-	user_subscription.setdefault('user_plan', sql.select_user_plan())
+	user_subscription.setdefault('user_status', roxy_sql.select_user_status())
+	user_subscription.setdefault('user_plan', roxy_sql.select_user_plan())
 
 	return user_subscription
 

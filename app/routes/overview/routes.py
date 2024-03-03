@@ -2,8 +2,9 @@ from flask import render_template, g
 from flask_login import login_required
 
 from app.routes.overview import bp
-from middleware import get_user_params
+from app.middleware import get_user_params
 import app.modules.db.sql as sql
+import app.modules.db.group as group_sql
 import app.modules.roxywi.logs as roxy_logs
 import app.modules.roxywi.overview as roxy_overview
 
@@ -22,7 +23,7 @@ def index():
     kwargs = {
         'autorefresh': 1,
         'roles': sql.select_roles(),
-        'groups': sql.select_groups(),
+        'groups': group_sql.select_groups(),
         'guide_me': 1,
         'lang': g.user_params['lang']
     }

@@ -1,10 +1,9 @@
-import re
-
-import modules.db.sql as sql
-import modules.server.server as server_mod
-from modules.common.common import checkAjaxInput
-import modules.roxy_wi_tools as roxy_wi_tools
-import modules.roxywi.common as roxywi_common
+import app.modules.db.sql as sql
+import app.modules.common.common as common
+import app.modules.server.server as server_mod
+from app.modules.common.common import checkAjaxInput
+import app.modules.roxy_wi_tools as roxy_wi_tools
+import app.modules.roxywi.common as roxywi_common
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 
@@ -18,7 +17,7 @@ def roxy_wi_log() -> list:
 		group_grep = f'|grep "group: {user_group}"'
 	else:
 		group_grep = ''
-	cmd = f"find {log_path}/roxy-wi-* -type f -exec stat --format '%Y :%y %n' '{{}}' \; | sort -nr | cut -d: -f2- " \
+	cmd = f"find {log_path}/roxy-wi.log -type f -exec stat --format '%Y :%y %n' '{{}}' \; | sort -nr | cut -d: -f2- " \
 			f"| head -1 |awk '{{print $4}}' |xargs tail {group_grep}|sort -r"
 	try:
 		output, stderr = server_mod.subprocess_execute(cmd)
@@ -30,17 +29,16 @@ def roxy_wi_log() -> list:
 def show_log(stdout, **kwargs):
 	i = 0
 	out = ''
-	grep = ''
+	grep = kwargs.get('grep')
 
-	if kwargs.get('grep'):
-		grep = kwargs.get('grep')
-		grep = re.sub(r'[?|$|.|!|^|*|\]|\[|,| |]', r'', grep)
+	if grep:
+		grep = common.sanitize_input_word(grep)
 	for line in stdout:
 		i = i + 1
-		if kwargs.get('grep'):
-			line = line.replace(grep, f'<span style="color: red; font-weight: bold;">{grep}</span>')
+		if grep:
+			line = common.highlight_word(line, grep)
 		line_class = "line3" if i % 2 == 0 else "line"
-		out += f'<div class="{line_class}">{line}</div>'
+		out += common.wrap_line(line, line_class)
 
 	return out
 
@@ -75,28 +73,24 @@ def show_roxy_log(
 		if syslog_server_enable is None or syslog_server_enable == 0:
 			local_path_logs = sql.get_setting(f'{service}_path_logs')
 			if service == 'nginx':
-				commands = ["sudo cat %s/%s |tail -%s %s %s" % (local_path_logs, log_file, rows, grep_act, exgrep_act)]
+				commands = "sudo cat %s/%s |tail -%s %s %s" % (local_path_logs, log_file, rows, grep_act, exgrep_act)
 			elif service == 'apache':
-				commands = [
-					"sudo cat %s/%s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
-				]
+				commands = "sudo cat %s/%s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
 			elif service == 'keepalived':
-				commands = [
-					"sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
-				]
+				commands = "sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
 			else:
-				commands = ["sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)]
+				commands = "sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
 
 			syslog_server = serv
 		else:
 			if '..' in serv: raise Exception('error: nice try')
 
-			commands = ["sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s %s %s %s" % (serv, date, date1, rows, grep_act, grep, exgrep_act)]
+			commands = "sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s %s %s %s" % (serv, date, date1, rows, grep_act, grep, exgrep_act)
 			syslog_server = sql.get_setting('syslog_server')
 
 		if waf == "1":
 			local_path_logs = '/var/log/waf.log'
-			commands = ["sudo cat %s |tail -%s %s %s" % (local_path_logs, rows, grep_act, exgrep_act)]
+			commands = "sudo cat %s |tail -%s %s %s" % (local_path_logs, rows, grep_act, exgrep_act)
 
 		if kwargs.get('html') == 0:
 			a = server_mod.ssh_command(syslog_server, commands)

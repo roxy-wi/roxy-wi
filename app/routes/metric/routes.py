@@ -3,7 +3,9 @@ from flask import render_template, request, jsonify, g
 from flask_login import login_required
 
 from app.routes.metric import bp
-import app.modules.db.sql as sql
+import app.modules.db.server as server_sql
+import app.modules.db.metric as metric_sql
+import app.modules.db.service as service_sql
 from app.middleware import check_services, get_user_params
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
@@ -40,12 +42,12 @@ def metrics(service):
                 else:
                     services = '1'
                     if service == 'nginx':
-                        servers = sql.select_nginx_servers_metrics_for_master()
+                        servers = metric_sql.select_nginx_servers_metrics_for_master()
                     elif service == 'apache':
-                        servers = sql.select_apache_servers_metrics_for_master()
+                        servers = metric_sql.select_apache_servers_metrics_for_master()
                     else:
                         group_id = roxywi_common.get_user_group(id=1)
-                        servers = sql.select_servers_metrics(group_id)
+                        servers = metric_sql.select_servers_metrics(group_id)
             else:
                 servers = ''
     except Exception as e:
@@ -56,7 +58,7 @@ def metrics(service):
         'servers': servers,
         'service': service,
         'services': services,
-        'service_desc': sql.select_service(service),
+        'service_desc': service_sql.select_service(service),
         'user_subscription': roxywi_common.return_user_subscription(),
         'lang': g.user_params['lang']
     }
@@ -86,9 +88,9 @@ def table_metrics(service):
     group_id = roxywi_common.get_user_group(id=1)
 
     if service in ('nginx', 'apache'):
-        table_stat = sql.select_service_table_metrics(service, group_id)
+        table_stat = metric_sql.select_service_table_metrics(service, group_id)
     else:
-        table_stat = sql.select_table_metrics(group_id)
+        table_stat = metric_sql.select_table_metrics(group_id)
 
     return render_template('ajax/table_metrics.html', table_stat=table_stat, service=service, lang=lang)
 
@@ -96,7 +98,7 @@ def table_metrics(service):
 @bp.post('/<service>/<server_ip>')
 def show_metric(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
-    hostname = sql.get_hostname_by_server_ip(server_ip)
+    hostname = server_sql.get_hostname_by_server_ip(server_ip)
     time_range = common.checkAjaxInput(request.form.get('time_range'))
 
     if service in ('nginx', 'apache', 'waf'):
@@ -111,7 +113,7 @@ def show_metric(service, server_ip):
 @check_services
 def show_http_metric(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
-    hostname = sql.get_hostname_by_server_ip(server_ip)
+    hostname = server_sql.get_hostname_by_server_ip(server_ip)
     time_range = common.checkAjaxInput(request.form.get('time_range'))
 
     if service == 'haproxy':

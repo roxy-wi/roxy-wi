@@ -6,6 +6,11 @@ from bottle import request
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/'))
 
 import app.modules.db.sql as sql
+import app.modules.db.cred as cred_sql
+import app.modules.db.user as user_sql
+import app.modules.db.group as group_sql
+import app.modules.db.server as server_sql
+import app.modules.db.ha_cluster as ha_sql
 import app.modules.server.ssh as ssh_mod
 import app.modules.server.server as server_mod
 import app.modules.config.section as section_mod
@@ -45,11 +50,11 @@ def get_token():
 		return f'error getting credentials: {e}'
 	try:
 		group_name = login_pass['group']
-		group_id = sql.get_group_id_by_name(group_name)
+		group_id = group_sql.get_group_id_by_name(group_name)
 	except Exception as e:
 		return f'error getting group: {e}'
 	try:
-		users = sql.select_users(user=login)
+		users = user_sql.select_users(user=login)
 		password = roxy_wi_tools.Tools.get_hash(password_from_user)
 	except Exception as e:
 		return f'error one more: {e}'
@@ -60,8 +65,8 @@ def get_token():
 		if login in user.username and password == user.password:
 			import uuid
 			user_token = str(uuid.uuid4())
-			role_id = sql.get_role_id(user.user_id, group_id)
-			sql.write_api_token(user_token, group_id, role_id, user.username)
+			role_id = user_sql.get_role_id(user.user_id, group_id)
+			user_sql.write_api_token(user_token, group_id, role_id, user.username)
 			return user_token
 		else:
 			return False
@@ -82,11 +87,11 @@ def check_login(required_service=0) -> bool:
 		return False
 
 	token = request.headers.get('token')
-	if sql.get_api_token(token):
+	if user_sql.get_api_token(token):
 		if required_service != 0:
-			user_id = sql.get_user_id_by_api_token(token)
+			user_id = user_sql.get_user_id_by_api_token(token)
 			try:
-				user_services = sql.select_user_services(user_id)
+				user_services = user_sql.select_user_services(user_id)
 			except Exception:
 				return False
 
@@ -114,9 +119,9 @@ def return_dict_from_out(server_id, out):
 
 
 def check_permit_to_server(server_id, service='haproxy'):
-	servers = sql.select_servers(id_hostname=server_id)
+	servers = server_sql.select_servers(id_hostname=server_id)
 	token = request.headers.get('token')
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 
 	try:
 		for s in servers:
@@ -179,10 +184,7 @@ def get_status(server_id, service):
 				out = server_mod.subprocess_execute(cmd)
 				data = return_dict_from_out(server_id, out[0])
 			elif service == 'nginx':
-				cmd = [
-					"/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active' "
-					"|awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"
-				]
+				cmd = "/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active'|awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l"
 				try:
 					out = server_mod.ssh_command(s[2], cmd)
 					out1 = out.split()
@@ -224,9 +226,9 @@ def get_status(server_id, service):
 def get_all_statuses():
 	data = {}
 	try:
-		servers = sql.select_servers()
+		servers = server_sql.select_servers()
 		token = request.headers.get('token')
-		login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+		login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 		sock_port = sql.get_setting('haproxy_sock_port')
 
 		for _s in servers:
@@ -256,7 +258,7 @@ def actions(server_id, action, service):
 		for s in servers:
 			if service == 'apache':
 				service = service_common.get_correct_apache_service_name(server_ip=s[2])
-			cmd = ["sudo systemctl %s %s" % (action, service)]
+			cmd = "sudo systemctl %s %s" % (action, service)
 			error = server_mod.ssh_command(s[2], cmd)
 			done = error if error else 'done'
 			data = {'server_id': s[0], 'ip': s[2], 'action': action, 'hostname': s[1], 'status': done}
@@ -273,7 +275,7 @@ def runtime(server_id):
 		action = json_loads['command']
 		haproxy_sock = sql.get_setting('haproxy_sock')
 		servers = check_permit_to_server(server_id)
-		cmd = ['echo "%s" |sudo socat stdio %s' % (action, haproxy_sock)]
+		cmd = 'echo "%s" |sudo socat stdio %s' % (action, haproxy_sock)
 
 		for s in servers:
 			out = server_mod.ssh_command(s[2], cmd)
@@ -364,7 +366,7 @@ def edit_section(server_id, delete=0):
 	token = request.headers.get('token')
 	servers = check_permit_to_server(server_id)
 	hap_configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 
 	if save == '':
 		save = 'save'
@@ -426,7 +428,7 @@ def upload_config(server_id, **kwargs):
 	body = request.body.getvalue().decode('utf-8')
 	save = request.headers.get('action')
 	token = request.headers.get('token')
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 	nginx = ''
 	apache = ''
 
@@ -497,7 +499,7 @@ def add_to_config(server_id):
 	save = request.headers.get('action')
 	hap_configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
 	token = request.headers.get('token')
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 	time_zone = sql.get_setting('time_zone')
 	get_date = roxy_wi_tools.GetDate(time_zone)
 
@@ -721,8 +723,8 @@ def generate_acl(**kwargs):
 def user_list():
 	data = {}
 	token = request.headers.get('token')
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
-	users = sql.select_users(by_group_id=group_id)
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
+	users = user_sql.select_users(by_group_id=group_id)
 	for user in users:
 		data[user.user_id] = {
 			'login': user.username,
@@ -744,7 +746,7 @@ def create_user():
 	password = json_loads['password']
 	role = json_loads['role']
 	token = request.headers.get('token')
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 
 	if roxywi_user.create_user(name, email, password, role, 1, group_id, role_id=role_id, token=token):
 		data = {'status': 'done'}
@@ -757,8 +759,8 @@ def create_user():
 def ssh_list():
 	data = {}
 	token = request.headers.get('token')
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
-	sshs = sql.select_ssh(group=group_id)
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
+	sshs = cred_sql.select_ssh(group=group_id)
 	for ssh in sshs:
 		data[ssh.id] = {
 			'name': ssh.name,
@@ -777,13 +779,13 @@ def create_ssh():
 	username = json_loads['username']
 	password = json_loads['password']
 	token = request.headers.get('token')
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
-	if ssh_mod.create_ssh_cread_api(name, enable, group_id, username, password):
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
+	try:
+		ssh_mod.create_ssh_cread_api(name, enable, group_id, username, password)
 		data = {'status': 'done'}
-		return dict(data)
-	else:
-		data = {'status': 'error: check all fields'}
-		return dict(data)
+	except Exception as e:
+		data = {'status': f'error: {e}'}
+	return dict(data)
 
 
 def upload_ssh_key():
@@ -793,7 +795,7 @@ def upload_ssh_key():
 	key = json_loads['key']
 	passphrase = json_loads['passphrase']
 	token = request.headers.get('token')
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 	groups = sql.select_groups(id=group_id)
 	for group in groups:
 		user_group = group.name
@@ -817,7 +819,7 @@ def create_server():
 	cred_id = json_loads['cred_id']
 	desc = json_loads['description']
 	token = request.headers.get('token')
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 
 	try:
 		if server_mod.create_server(hostname, ip, group_id, virt, 1, master_id, cred_id, port, desc, 0, 0, 0, 0, role_id=role_id, token=token):
@@ -831,8 +833,8 @@ def create_server():
 
 def cluster_list():
 	token = request.headers.get('token')
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
-	clusters = sql.select_clusters(group_id)
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
+	clusters = ha_sql.select_clusters(group_id)
 	data = {}
 	for cluster in clusters:
 		data.setdefault(cluster.id, cluster.name)
@@ -844,7 +846,7 @@ def create_ha_cluster():
 	token = request.headers.get('token')
 	body = request.body.getvalue().decode('utf-8')
 	json_loads = json.loads(body)
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 	data = {'status': dict()}
 
 	try:
@@ -886,7 +888,7 @@ def update_cluster():
 	token = request.headers.get('token')
 	body = request.body.getvalue().decode('utf-8')
 	json_loads = json.loads(body)
-	login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 	data = {'status': dict()}
 
 	try:

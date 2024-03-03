@@ -3,6 +3,13 @@ import requests
 from flask import render_template, request
 
 import app.modules.db.sql as sql
+import app.modules.db.waf as waf_sql
+import app.modules.db.roxy as roxy_sql
+import app.modules.db.user as user_sql
+import app.modules.db.metric as metric_sql
+import app.modules.db.server as server_sql
+import app.modules.db.service as service_sql
+import app.modules.db.checker as checker_sql
 import app.modules.common.common as common
 import app.modules.tools.common as tools_common
 import app.modules.roxywi.common as roxywi_common
@@ -14,13 +21,13 @@ def user_owv() -> str:
     lang = roxywi_common.get_user_lang_for_flask()
     roles = sql.select_roles()
     user_params = roxywi_common.get_users_params()
-    users_groups = sql.select_user_groups_with_names(1, all=1)
+    users_groups = user_sql.select_user_groups_with_names(1, all=1)
     user_group = roxywi_common.get_user_group(id=1)
 
     if (user_params['role'] == 2 or user_params['role'] == 3) and int(user_group) != 1:
-        users = sql.select_users(group=user_group)
+        users = user_sql.select_users(group=user_group)
     else:
-        users = sql.select_users()
+        users = user_sql.select_users()
 
     return render_template('ajax/show_users_ovw.html', users=users, users_groups=users_groups, lang=lang, roles=roles)
 
@@ -28,7 +35,7 @@ def user_owv() -> str:
 def show_sub_ovw() -> str:
     lang = roxywi_common.get_user_lang_for_flask()
 
-    return render_template('ajax/show_sub_ovw.html', sub=sql.select_user_all(), lang=lang)
+    return render_template('ajax/show_sub_ovw.html', sub=roxy_sql.select_user_all(), lang=lang)
 
 
 def show_overview(serv) -> str:
@@ -36,17 +43,17 @@ def show_overview(serv) -> str:
     user_uuid = request.cookies.get('uuid')
     group_id = request.cookies.get('group')
     lang = roxywi_common.get_user_lang_for_flask()
-    role = sql.get_user_role_by_uuid(user_uuid, group_id)
-    server = [server for server in sql.select_servers(server=serv)]
-    user_id = sql.get_user_id_by_uuid(user_uuid)
-    user_services = sql.select_user_services(user_id)
+    role = user_sql.get_user_role_by_uuid(user_uuid, group_id)
+    server = [server for server in server_sql.select_servers(server=serv)]
+    user_id = user_sql.get_user_id_by_uuid(user_uuid)
+    user_services = user_sql.select_user_services(user_id)
 
-    haproxy = sql.select_haproxy(serv) if '1' in user_services else 0
-    nginx = sql.select_nginx(serv) if '2' in user_services else 0
-    keepalived = sql.select_keepalived(serv) if '3' in user_services else 0
-    apache = sql.select_apache(serv) if '4' in user_services else 0
+    haproxy = service_sql.select_haproxy(serv) if '1' in user_services else 0
+    nginx = service_sql.select_nginx(serv) if '2' in user_services else 0
+    keepalived = service_sql.select_keepalived(serv) if '3' in user_services else 0
+    apache = service_sql.select_apache(serv) if '4' in user_services else 0
 
-    waf = sql.select_waf_servers(server[0][2])
+    waf = waf_sql.select_waf_servers(server[0][2])
     haproxy_process = ''
     keepalived_process = ''
     nginx_process = ''
@@ -80,14 +87,14 @@ def show_overview(serv) -> str:
             return f'error: {e} for server {server[0][2]}'
 
     if keepalived:
-        command = ["ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"]
+        command = "ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"
         try:
             keepalived_process = server_mod.ssh_command(server[0][2], command)
         except Exception as e:
             return f'error: {e} for server {server[0][2]}'
 
     if waf_len >= 1:
-        command = ["ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"]
+        command = "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"
         try:
             waf_process = server_mod.ssh_command(server[0][2], command)
         except Exception as e:
@@ -186,8 +193,8 @@ def show_services_overview():
         for s in user_params['servers']:
             servers_group.append(s[2])
 
-    is_checker_worker = len(sql.select_all_alerts(group=user_group))
-    is_metrics_worker = len(sql.select_servers_metrics_for_master(group=user_group))
+    is_checker_worker = len(checker_sql.select_all_alerts(group=user_group))
+    is_metrics_worker = len(metric_sql.select_servers_metrics_for_master(group=user_group))
 
     for pids in psutil.pids():
         if pids < 300:
@@ -214,7 +221,7 @@ def show_services_overview():
         except psutil.NoSuchProcess:
             pass
 
-    roxy_tools = sql.get_roxy_tools()
+    roxy_tools = roxy_sql.get_roxy_tools()
     roxy_tools_status = {}
     for tool in roxy_tools:
         if tool == 'roxy-wi-prometheus-exporter':
@@ -230,7 +237,7 @@ def show_services_overview():
 
 
 def keepalived_became_master(server_ip) -> str:
-    commands = ["sudo kill -USR2 $(cat /var/run/keepalived.pid) && sudo grep 'Became master' /tmp/keepalived.stats |awk '{print $3}'"]
+    commands = "sudo kill -USR2 $(cat /var/run/keepalived.pid) && sudo grep 'Became master' /tmp/keepalived.stats |awk '{print $3}'"
     became_master = server_mod.ssh_command(server_ip, commands)
     lang = roxywi_common.get_user_lang_for_flask()
 

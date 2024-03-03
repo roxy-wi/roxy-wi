@@ -8,7 +8,13 @@ from flask_login import login_required
 from app import scheduler
 from app.routes.admin import bp
 import app.modules.db.sql as sql
-from middleware import get_user_params
+import app.modules.db.cred as cred_sql
+import app.modules.db.user as user_sql
+import app.modules.db.group as group_sql
+import app.modules.db.backup as backup_sql
+import app.modules.db.server as server_sql
+import app.modules.db.service as service_sql
+from app.middleware import get_user_params
 import app.modules.common.common as common
 import app.modules.roxywi.roxy as roxy
 import app.modules.roxywi.auth as roxywi_auth
@@ -35,21 +41,21 @@ def admin():
 
     kwargs = {
         'lang': g.user_params['lang'],
-        'users': sql.select_users(),
-        'groups': sql.select_groups(),
-        'sshs': sql.select_ssh(),
-        'servers': sql.select_servers(full=1),
+        'users': user_sql.select_users(),
+        'groups': group_sql.select_groups(),
+        'sshs': cred_sql.select_ssh(),
+        'servers': server_sql.select_servers(full=1),
         'roles': sql.select_roles(),
         'timezones': pytz.all_timezones,
         'settings': sql.get_setting('', all=1),
         'ldap_enable': sql.get_setting('ldap_enable'),
-        'services': sql.select_services(),
-        'gits': sql.select_gits(),
-        'masters': sql.select_servers(get_master_servers=1),
+        'services': service_sql.select_services(),
+        'gits': backup_sql.select_gits(),
+        'masters': server_sql.select_servers(get_master_servers=1),
         'is_needed_tool': common.is_tool('ansible'),
         'grafana': grafana,
-        'backups': sql.select_backups(),
-        's3_backups': sql.select_s3_backups(),
+        'backups': backup_sql.select_backups(),
+        's3_backups': backup_sql.select_s3_backups(),
         'guide_me': 1,
         'user_subscription': roxywi_common.return_user_subscription()
     }

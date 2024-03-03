@@ -4,6 +4,10 @@ import distro
 from modules.db.db_model import *
 
 
+conn = connect()
+migrator = connect(get_migrator=1)
+
+
 def default_values():
 	if distro.id() == 'ubuntu':
 		apache_dir = 'apache2'

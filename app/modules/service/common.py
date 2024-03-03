@@ -2,7 +2,9 @@ import requests
 from flask import render_template, request
 
 import app.modules.db.sql as sql
-import app.modules.server.ssh as mod_ssh
+import app.modules.db.user as user_sql
+import app.modules.db.server as server_sql
+import app.modules.db.service as service_sql
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
@@ -21,7 +23,7 @@ def get_correct_service_name(service: str, server_id: int) -> str:
 	* with parameters 0 and the server ID to get the correct apache service name. If none of the conditions match, it will return the original service name.
 	"""
 	if service == 'haproxy':
-		haproxy_enterprise = sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
+		haproxy_enterprise = service_sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
 		if haproxy_enterprise == '1':
 			return "hapee-2.0-lb"
 	if service == 'apache':
@@ -52,9 +54,9 @@ def is_protected(server_ip: str, action: str) -> None:
 	"""
 	user_uuid = request.cookies.get('uuid')
 	group_id = int(request.cookies.get('group'))
-	user_role = sql.get_user_role_by_uuid(user_uuid, group_id)
+	user_role = user_sql.get_user_role_by_uuid(user_uuid, group_id)
 
-	if sql.is_serv_protected(server_ip) and int(user_role) > 2:
+	if server_sql.is_serv_protected(server_ip) and int(user_role) > 2:
 		raise Exception(f'error: This server is protected. You cannot {action} it')
 
 
@@ -71,9 +73,9 @@ def is_not_allowed_to_restart(server_id: int, service: str, action: str) -> int:
 	is_restart = 0
 	if service != 'waf' and action == 'restart':
 		try:
-			is_restart = sql.select_service_setting(server_id, service, 'restart')
+			is_restart = int(service_sql.select_service_setting(server_id, service, 'restart'))
 		except Exception as e:
-			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot get restart settings for service {service}: {e}')
+			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot get restart settings for service {service}')
 
 	return is_restart
 
@@ -81,17 +83,17 @@ def is_not_allowed_to_restart(server_id: int, service: str, action: str) -> int:
 def get_exp_version(server_ip: str, service_name: str) -> str:
 	server_ip = common.is_ip_or_dns(server_ip)
 	if service_name == 'haproxy':
-		commands = ["/opt/prometheus/exporters/haproxy_exporter --version 2>&1 |head -1|awk '{print $3}'"]
+		command = "/opt/prometheus/exporters/haproxy_exporter --version 2>&1 |head -1|awk '{print $3}'"
 	elif service_name == 'nginx':
-		commands = ["/opt/prometheus/exporters/nginx_exporter --version 2>&1 |head -1 |awk -F\"version\" '{print $2}'|awk '{print $1}'"]
+		command = "/opt/prometheus/exporters/nginx_exporter --version 2>&1 |head -1 |awk -F\"version\" '{print $2}'|awk '{print $1}'"
 	elif service_name == 'node':
-		commands = ["node_exporter --version 2>&1 |head -1|awk '{print $3}'"]
+		command = "node_exporter --version 2>&1 |head -1|awk '{print $3}'"
 	elif service_name == 'apache':
-		commands = ["/opt/prometheus/exporters/apache_exporter --version 2>&1 |head -1|awk '{print $3}'"]
+		command = "/opt/prometheus/exporters/apache_exporter --version 2>&1 |head -1|awk '{print $3}'"
 	elif service_name == 'keepalived':
-		commands = ["keepalived_exporter --version 2>&1 |head -1|awk '{print $2}'"]
+		command = "keepalived_exporter --version 2>&1 |head -1|awk '{print $2}'"
 
-	ver = server_mod.ssh_command(server_ip, commands)
+	ver = server_mod.ssh_command(server_ip, command)
 
 	if ver != '':
 		return ver
@@ -101,10 +103,10 @@ def get_exp_version(server_ip: str, service_name: str) -> str:
 
 def get_correct_apache_service_name(server_ip=None, server_id=None) -> str:
 	if server_id is None:
-		server_id = sql.select_server_id_by_ip(server_ip)
+		server_id = server_sql.select_server_id_by_ip(server_ip)
 
 	try:
-		os_info = sql.select_os_info(server_id)
+		os_info = server_sql.select_os_info(server_id)
 	except Exception as e:
 		raise Exception(f'error: cannot get server info: {e}')
 
@@ -129,45 +131,59 @@ def server_status(stdout):
 	return proc_count
 
 
-def check_haproxy_config(server_ip):
-	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
-	is_dockerized = sql.select_service_setting(server_id, 'haproxy', 'dockerized')
-	config_path = sql.get_setting('haproxy_config_path')
+def check_service_config(server_ip: str, server_id: int, service: str) -> None:
+	"""
+	:param server_ip: The IP address of the server to check the service configuration for.
+	:param server_id: The unique identifier of the server.
+	:param service: The name of the service to check the configuration for.
+	:return: True if the service configuration is valid, False otherwise.
 
-	if is_dockerized == '1':
-		container_name = sql.get_setting('haproxy_container_name')
-		commands = [f"sudo docker exec -it {container_name} haproxy -q -c -f {config_path}"]
-	else:
-		commands = [f"haproxy -q -c -f {config_path}"]
+	This method checks the configuration of a given service on a server. It first retrieves the value of the "dockerized" setting for the service and the container name from the database
+	*. Then, it constructs the command to check the configuration based on the service type and dockerization status.
+
+	The command depends on the service type and can be one of the following:
+	- For haproxy:
+	    - If not dockerized: `haproxy -c -f {config_path}`
+	    - If dockerized: `sudo docker exec -it {container_name} haproxy -c -f {config_path}`
+	- For nginx:
+	    - If not dockerized: `sudo nginx -q -t -p {config_path}`
+	    - If dockerized: `sudo docker exec -it {container_name} nginx -t`
+	- For apache:
+	    - If not dockerized: `sudo apachectl -t`
+	    - If dockerized: `sudo docker exec -it {container_name} apachectl -t`
+	- For keepalived:
+	    - If not dockerized: `keepalived -t -f {config_path}`
+	    - If dockerized: empty string ` ` (no command needed)
+
+	The method then tries to execute the generated command on the server using the server_mod.ssh_command method. If any exception occurs during the process, it is re-ra
+	*ised with an appropriate error message.
+
+	"""
+	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
+	container_name = sql.get_setting(f'{service}_container_name')
+	command_for_docker = f'sudo docker exec -it {container_name}'
+	config_path = ''
+
+	if service in ('haproxy', 'keepalived'):
+		config_path = sql.get_setting(f'{service}_config_path')
+
+	command = {
+		'haproxy': {'0': f'haproxy -c -f {config_path} ', '1': f'{command_for_docker} haproxy -c -f {config_path} '},
+		'nginx': {'0': 'sudo nginx -q -t ', '1': f'{command_for_docker} nginx -t '},
+		'apache': {'0': 'sudo apachectl -t ', '1': f'{command_for_docker} apachectl -t '},
+		'keepalived': {'0': f'keepalived -t -f {config_path} ', '1': ' '}
+	}
 
 	try:
-		with mod_ssh.ssh_connect(server_ip) as ssh:
-			for command in commands:
-				stdin, stdout, stderr = ssh.run_command(command, timeout=5)
-				if not stderr.read():
-					return True
-				else:
-					return False
+		check_config = command[service][is_dockerized]
 	except Exception as e:
-		print(f'error: {e}')
+		raise Exception(f'error: Cannot generate command: {e}')
 
+	try:
+		server_mod.ssh_command(server_ip, check_config)
+	except Exception as e:
+		raise Exception(e)
 
-def check_nginx_config(server_ip) -> str:
-	"""
-	Check the Nginx configuration on the specified server IP.
-
-	:param server_ip: The IP address of the server where Nginx is running.
-	:return: True if the Nginx configuration is valid, False otherwise.
-	"""
-	commands = [f"sudo nginx -q -t -p {sql.get_setting('nginx_dir')}"]
-
-	with mod_ssh.ssh_connect(server_ip) as ssh:
-		for command in commands:
-			stdin, stdout, stderr = ssh.run_command(command)
-			for line in stdout.readlines():
-				if 'emerg' in line or 'error' in line or 'faield' in line:
-					return line
-			return 'ok'
 
 
 def overview_backends(server_ip: str, service: str) -> str:
@@ -202,9 +218,9 @@ def overview_backends(server_ip: str, service: str) -> str:
 
 def get_overview_last_edit(server_ip: str, service: str) -> str:
 	config_path = sql.get_setting(f'{service}_config_path')
-	commands = ["ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % config_path]
+	command = "ls -l %s |awk '{ print $6\" \"$7\" \"$8}'" % config_path
 	try:
-		return server_mod.ssh_command(server_ip, commands)
+		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
 		return f'error: Cannot get last date {e} for server {server_ip}'
 
@@ -249,16 +265,16 @@ def show_service_version(server_ip: str, service: str) -> str:
 	if service == 'haproxy':
 		return check_haproxy_version(server_ip)
 
-	server_id = sql.select_server_id_by_ip(server_ip)
+	server_id = server_sql.select_server_id_by_ip(server_ip)
 	service_name = get_correct_service_name(service, server_id)
-	is_dockerized = sql.select_service_setting(server_id, service, 'dockerized')
+	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
 
 	if is_dockerized == '1':
 		container_name = sql.get_setting(f'{service}_container_name')
 		if service == 'apache':
-			cmd = [f'docker exec -it {container_name} /usr/local/apache2/bin/httpd -v 2>&1|head -1|awk -F":" \'{{print $2}}\'']
+			cmd = f'docker exec -it {container_name} /usr/local/apache2/bin/httpd -v 2>&1|head -1|awk -F":" \'{{print $2}}\''
 		else:
-			cmd = [f'docker exec -it {container_name} /usr/sbin/{service_name} -v 2>&1|head -1|awk -F":" \'{{print $2}}\'']
+			cmd = f'docker exec -it {container_name} /usr/sbin/{service_name} -v 2>&1|head -1|awk -F":" \'{{print $2}}\''
 	else:
 		cmd = [f'sudo /usr/sbin/{service_name} -v|head -1|awk -F":" \'{{print $2}}\'']
 

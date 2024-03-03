@@ -5,6 +5,8 @@ from flask_login import login_required
 
 from app.routes.user import bp
 import app.modules.db.sql as sql
+import app.modules.db.user as user_sql
+import app.modules.db.group as group_sql
 import app.modules.common.common as common
 import app.modules.roxywi.user as roxywi_user
 import app.modules.roxywi.auth as roxywi_auth
@@ -14,7 +16,7 @@ import app.modules.roxywi.common as roxywi_common
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 
@@ -43,7 +45,7 @@ def create_user():
         return str(e)
     else:
         return render_template(
-            'ajax/new_user.html', users=sql.select_users(user=new_user), groups=sql.select_groups(), page=page,
+            'ajax/new_user.html', users=user_sql.select_users(user=new_user), groups=group_sql.select_groups(), page=page,
             roles=sql.select_roles(), adding=1, lang=lang
         )
 
@@ -67,7 +69,7 @@ def update_user():
                 return 'error: dalsd'
         else:
             try:
-                sql.update_user_from_admin_area(new_user, email, user_id, enabled)
+                user_sql.update_user_from_admin_area(new_user, email, user_id, enabled)
             except Exception as e:
                 return f'error: Cannot update user: {e}'
             roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
@@ -145,4 +147,4 @@ def change_user_groups_and_roles():
 
 @bp.route('/group/name/<int:group_id>')
 def get_group_name_by_id(group_id):
-    return sql.get_group_name_by_id(group_id)
+    return group_sql.get_group_name_by_id(group_id)

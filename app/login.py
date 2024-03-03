@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, make_response
 from flask_login import login_required, logout_user, current_user, login_url
 
 from app import app, login_manager, cache
-import app.modules.db.sql as sql
+import app.modules.db.user as user_sql
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.roxy as roxy
@@ -20,7 +20,7 @@ def check_login():
         except Exception:
             return redirect(login_url('login_page', next_url=request.url))
 
-        if not sql.is_user_active(user_params['user_id']):
+        if not user_sql.is_user_active(user_params['user_id']):
             return redirect(login_url('login_page', next_url=request.url))
 
         try:
@@ -35,7 +35,7 @@ def load_user(user_id):
     user_obj = cache.get(user)
 
     if user_obj is None:
-        query = sql.get_user_id(user_id)
+        query = user_sql.get_user_id(user_id)
         cache.set(user, query, timeout=360)
         return query
 
@@ -61,7 +61,7 @@ def login_page():
     password = request.form.get('pass')
 
     if login and password:
-        users = sql.select_users(user=login)
+        users = user_sql.select_users(user=login)
 
         for user in users:
             if user.activeuser == 0:

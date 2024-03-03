@@ -5,6 +5,9 @@ from flask_login import login_required
 
 from app.routes.config import bp
 import app.modules.db.sql as sql
+import app.modules.db.config as config_sql
+import app.modules.db.server as server_sql
+import app.modules.db.service as service_sql
 from middleware import check_services, get_user_params
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
@@ -49,7 +52,7 @@ def find_in_config(service):
     finding_words = request.form.get('words')
     log_path = sql.get_setting(service + '_dir')
     log_path = common.return_nice_path(log_path)
-    commands = [f'sudo grep "{finding_words}" {log_path}*/*.conf -C 2 -Rn']
+    commands = f'sudo grep "{finding_words}" {log_path}*/*.conf -C 2 -Rn'
     try:
         return_find = server_mod.ssh_command(server_ip, commands, raw=1)
         return_find = config_mod.show_finding_in_config(return_find, grep=finding_words)
@@ -84,9 +87,9 @@ def config(service, serv, edit, config_file_name, new):
 
     if serv and edit and new_config is None:
         roxywi_common.check_is_server_in_group(serv)
-        is_serv_protected = sql.is_serv_protected(serv)
-        server_id = sql.select_server_id_by_ip(serv)
-        is_restart = sql.select_service_setting(server_id, service, 'restart')
+        is_serv_protected = server_sql.is_serv_protected(serv)
+        server_id = server_sql.select_server_id_by_ip(serv)
+        is_restart = service_sql.select_service_setting(server_id, service, 'restart')
 
         try:
             error = config_mod.get_config(serv, cfg, service=service, config_file_name=config_file_name)
@@ -121,7 +124,7 @@ def config(service, serv, edit, config_file_name, new):
         'is_restart': is_restart,
         'config_file_name': config_file_name,
         'is_serv_protected': is_serv_protected,
-        'service_desc': sql.select_service(service),
+        'service_desc': service_sql.select_service(service),
         'lang': g.user_params['lang']
     }
 
@@ -182,7 +185,7 @@ def versions(service, server_ip):
         for get in request.form.getlist('do_delete'):
             if file_fortmat in get and server_ip in get:
                 try:
-                    if sql.delete_config_version(service, get):
+                    if config_sql.delete_config_version(service, get):
                         try:
                             os.remove(get)
                         except OSError as e:
@@ -229,7 +232,7 @@ def list_of_version(service):
 @get_user_params(disable=1)
 def show_version(service, server_ip, configver, save):
     roxywi_auth.page_for_admin(level=3)
-    service_desc = sql.select_service(service)
+    service_desc = service_sql.select_service(service)
     config_dir = config_common.get_config_dir('haproxy')
     configver = config_dir + configver
     aftersave = 0
@@ -248,10 +251,8 @@ def show_version(service, server_ip, configver, save):
         if service == 'keepalived':
             stderr = config_mod.upload_and_restart(server_ip, configver, save_action, service)
         elif service in ('nginx', 'apache'):
-            config_file_name = sql.select_remote_path_from_version(server_ip=server_ip, service=service,
-                                                                   local_path=configver)
-            stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service_desc.slug,
-                                                                config_file_name=config_file_name)
+            config_file_name = config_sql.select_remote_path_from_version(server_ip=server_ip, service=service, local_path=configver)
+            stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service_desc.slug, config_file_name=config_file_name)
         else:
             stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service)
 
@@ -290,7 +291,7 @@ def haproxy_section_show(server_ip, section):
     cfg = config_common.generate_config_path('haproxy', server_ip)
     error = config_mod.get_config(server_ip, cfg)
     start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section)
-    server_id = sql.select_server_id_by_ip(server_ip)
+    server_id = server_sql.select_server_id_by_ip(server_ip)
     sections = section_mod.get_sections(cfg)
 
     os.system(f"/bin/mv {cfg} {cfg}.old")
@@ -301,7 +302,7 @@ def haproxy_section_show(server_ip, section):
         pass
 
     kwargs = {
-        'is_restart': sql.select_service_setting(server_id, 'haproxy', 'restart'),
+        'is_restart': service_sql.select_service_setting(server_id, 'haproxy', 'restart'),
         'serv': server_ip,
         'sections': sections,
         'cfg': cfg,
@@ -365,7 +366,7 @@ def show_compare_config(service, serv):
         'service': service,
         'stderr': '',
         'error': '',
-        'service_desc': sql.select_service(service),
+        'service_desc': service_sql.select_service(service),
         'lang': g.user_params['lang']
     }
 

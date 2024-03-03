@@ -6,6 +6,9 @@ import distro
 
 from app import scheduler
 import app.modules.db.sql as sql
+import app.modules.db.user as user_sql
+import app.modules.db.roxy as roxy_sql
+import app.modules.db.history as history_sql
 import app.modules.roxywi.roxy as roxy
 import app.modules.tools.common as tools_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
@@ -24,10 +27,10 @@ def update_user_status():
 def check_new_version():
     app = scheduler.app
     with app.app_context():
-        tools = sql.get_roxy_tools()
+        tools = roxy_sql.get_roxy_tools()
         for tool in tools:
             ver = roxy.check_new_version(tool)
-            sql.update_tool_new_version(tool, ver)
+            roxy_sql.update_tool_new_version(tool, ver)
 
 
 @scheduler.task('interval', id='update_cur_tool_versions', days=1, misfire_grace_time=None)
@@ -41,14 +44,14 @@ def update_cur_tool_versions():
 def delete_old_uuid():
     app = scheduler.app
     with app.app_context():
-        sql.delete_old_uuid()
+        user_sql.delete_old_uuid()
 
 
 @scheduler.task('interval', id='delete_action_history_for_period', minutes=70, misfire_grace_time=None)
 def delete_action_history_for_period():
     app = scheduler.app
     with app.app_context():
-        sql.delete_action_history_for_period()
+        history_sql.delete_action_history_for_period()
 
 
 @scheduler.task('interval', id='delete_old_logs', hours=1, misfire_grace_time=None)

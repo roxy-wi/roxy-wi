@@ -13,6 +13,7 @@
             <a class="edit" onclick="createHaClusterStep1(true, '{{cluster.id}}')"></a>
             <a class="delete" onclick="confirmDeleteCluster('{{cluster.id}}')"></a>
             {% endif %}
+            <a href="{{ url_for('main.service_history', service='cluster', server_ip=cluster.id) }}" title="{{lang.words.view|title()}} {{lang.words.history3}} {{cluster.name}}" class="history" style="margin: 0 5px 0 10px;"></a>
         </span>
     </div>
     <div class="server-desc">

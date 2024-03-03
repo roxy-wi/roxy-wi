@@ -7,6 +7,7 @@ from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
 import app.modules.db.sql as sql
+import app.modules.db.roxy as roxy_sql
 import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
 
@@ -23,7 +24,7 @@ def is_docker() -> bool:
 
 
 def check_ver():
-	return sql.get_ver()
+	return roxy_sql.get_ver()
 
 
 def versions():
@@ -76,7 +77,7 @@ def update_user_status() -> None:
 	proxy_dict = {}
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxy_dict = {"https": proxy, "http": proxy}
-	user_name = sql.select_user_name()
+	user_name = roxy_sql.select_user_name()
 	retry_strategy = Retry(
 		total=3,
 		status_forcelist=[429, 500, 502, 503, 504],
@@ -89,7 +90,7 @@ def update_user_status() -> None:
 	try:
 		status = roxy_wi_get_plan.content.decode(encoding='UTF-8')
 		status = status.split(' ')
-		sql.update_user_status(status[0], status[1].strip(), status[2].strip())
+		roxy_sql.update_user_status(status[0], status[1].strip(), status[2].strip())
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', f'error: Cannot get user status {e}', roxywi=1)
 
@@ -99,7 +100,7 @@ def action_service(action: str, service: str) -> str:
 	cmd = f"sudo systemctl disable {service} --now"
 	if action in ("start", "restart"):
 		cmd = f"sudo systemctl {action} {service} --now"
-		if not sql.select_user_status():
+		if not roxy_sql.select_user_status():
 			return 'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing" ' \
 				   'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions'
 	if is_in_docker:
@@ -123,10 +124,10 @@ def update_plan():
 		else:
 			user_name = 'git'
 
-		if sql.select_user_name():
-			sql.update_user_name(user_name)
+		if roxy_sql.select_user_name():
+			roxy_sql.update_user_name(user_name)
 		else:
-			sql.insert_user_name(user_name)
+			roxy_sql.insert_user_name(user_name)
 	except Exception as e:
 		roxywi_common.logging('Cannot update subscription: ', str(e), roxywi=1)
 

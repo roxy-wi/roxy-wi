@@ -250,12 +250,10 @@ def runtime_command(serv: str, enable: str, backend: str, save: str) -> str:
 
     if save == "on":
         save_command = f'echo "show servers state" | sudo socat {haproxy_sock} stdio > {server_state_file}'
-        command = [cmd + ';' + save_command]
-    else:
-        command = [cmd]
+        cmd = cmd + ';' + save_command
 
     try:
-        output = server_mod.ssh_command(serv, command, show_log="1")
+        output = server_mod.ssh_command(serv, cmd, show_log="1")
     except Exception as e:
         return f'{e}'
     else:

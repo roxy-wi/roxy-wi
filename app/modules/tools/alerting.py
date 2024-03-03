@@ -3,9 +3,14 @@ import json
 import pika
 from flask import render_template, request
 
-import modules.db.sql as sql
-import modules.common.common as common
-import modules.roxywi.common as roxywi_common
+import app.modules.db.sql as sql
+import app.modules.db.user as user_sql
+import app.modules.db.group as group_sql
+import app.modules.db.server as server_sql
+import app.modules.db.channel as channel_sql
+import app.modules.db.checker as checker_sql
+import app.modules.common.common as common
+import app.modules.roxywi.common as roxywi_common
 
 error_mess = common.error_mess
 
@@ -41,8 +46,8 @@ def alert_routing(
 	server_ip: str, service_id: int, group_id: int, level: str, mes: str, alert_type: str
 ) -> None:
 	subject: str = level + ': ' + mes
-	server_id: int = sql.select_server_id_by_ip(server_ip)
-	checker_settings = sql.select_checker_settings_for_server(service_id, server_id)
+	server_id: int = server_sql.select_server_id_by_ip(server_ip)
+	checker_settings = checker_sql.select_checker_settings_for_server(service_id, server_id)
 
 	try:
 		json_for_sending = {"user_group": group_id, "message": subject}
@@ -105,7 +110,7 @@ def alert_routing(
 
 def send_email_to_server_group(subject: str, mes: str, level: str, group_id: int) -> None:
 	try:
-		users_email = sql.select_users_emails_by_group_id(group_id)
+		users_email = user_sql.select_users_emails_by_group_id(group_id)
 
 		for user_email in users_email:
 			send_email(user_email.email, subject, f'{level}: {mes}')
@@ -154,9 +159,9 @@ def telegram_send_mess(mess, level, **kwargs):
 		return
 
 	if kwargs.get('channel_id'):
-		telegrams = sql.get_telegram_by_id(kwargs.get('channel_id'))
+		telegrams = channel_sql.get_telegram_by_id(kwargs.get('channel_id'))
 	else:
-		telegrams = sql.get_telegram_by_ip(kwargs.get('ip'))
+		telegrams = channel_sql.get_telegram_by_ip(kwargs.get('ip'))
 
 	proxy = sql.get_setting('proxy')
 
@@ -189,9 +194,9 @@ def slack_send_mess(mess, level, **kwargs):
 		return
 
 	if kwargs.get('channel_id'):
-		slacks = sql.get_slack_by_id(kwargs.get('channel_id'))
+		slacks = channel_sql.get_slack_by_id(kwargs.get('channel_id'))
 	else:
-		slacks = sql.get_slack_by_ip(kwargs.get('ip'))
+		slacks = channel_sql.get_slack_by_ip(kwargs.get('ip'))
 
 	proxy = sql.get_setting('proxy')
 
@@ -223,12 +228,12 @@ def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 
 	if kwargs.get('channel_id'):
 		try:
-			pds = sql.get_pd_by_id(kwargs.get('channel_id'))
+			pds = channel_sql.get_pd_by_id(kwargs.get('channel_id'))
 		except Exception as e:
 			print(e)
 	else:
 		try:
-			pds = sql.get_pd_by_ip(kwargs.get('ip'))
+			pds = channel_sql.get_pd_by_ip(kwargs.get('ip'))
 		except Exception as e:
 			print(e)
 
@@ -283,7 +288,7 @@ def check_email_alert() -> str:
 		return f'error: Cannot send a message {e}'
 
 	try:
-		user_email = sql.select_user_email_by_uuid(user_uuid)
+		user_email = user_sql.select_user_email_by_uuid(user_uuid)
 	except Exception as e:
 		return f'error: Cannot get a user email: {e}'
 
@@ -299,10 +304,10 @@ def add_telegram_channel(token: str, channel: str, group: str, page: str) -> str
 	if token is None or channel is None or group is None:
 		return error_mess
 	else:
-		if sql.insert_new_telegram(token, channel, group):
+		if channel_sql.insert_new_telegram(token, channel, group):
 			lang = roxywi_common.get_user_lang_for_flask()
-			channels = sql.select_telegram(token=token)
-			groups = sql.select_groups()
+			channels = channel_sql.select_telegram(token=token)
+			groups = group_sql.select_groups()
 			roxywi_common.logging('Roxy-WI server', f'A new Telegram channel {channel} has been created ', roxywi=1, login=1)
 
 			return render_template('ajax/new_receiver.html', groups=groups, lang=lang, channels=channels, page=page, receiver='telegram')
@@ -312,10 +317,10 @@ def add_slack_channel(token: str, channel: str, group: str, page: str) -> str:
 	if token is None or channel is None or group is None:
 		return error_mess
 	else:
-		if sql.insert_new_slack(token, channel, group):
+		if channel_sql.insert_new_slack(token, channel, group):
 			lang = roxywi_common.get_user_lang_for_flask()
-			channels = sql.select_slack(token=token)
-			groups = sql.select_groups()
+			channels = channel_sql.select_slack(token=token)
+			groups = group_sql.select_groups()
 			roxywi_common.logging('Roxy-WI server', f'A new Slack channel {channel} has been created ', roxywi=1, login=1)
 			return render_template('ajax/new_receiver.html', groups=groups, lang=lang, channels=channels, page=page, receiver='slack')
 
@@ -324,58 +329,58 @@ def add_pd_channel(token: str, channel: str, group: str, page: str) -> str:
 	if token is None or channel is None or group is None:
 		return error_mess
 	else:
-		if sql.insert_new_pd(token, channel, group):
+		if channel_sql.insert_new_pd(token, channel, group):
 			lang = roxywi_common.get_user_lang_for_flask()
-			channels = sql.select_slack(token=token)
-			groups = sql.select_groups()
+			channels = channel_sql.select_slack(token=token)
+			groups = group_sql.select_groups()
 			roxywi_common.logging('Roxy-WI server', f'A new PagerDuty channel {channel} has been created ', roxywi=1, login=1)
 			return render_template('ajax/new_receiver.html', groups=groups, lang=lang, channels=channels, page=page, receiver='pd')
 
 
 def delete_telegram_channel(channel_id) -> str:
-	telegram = sql.select_telegram(id=channel_id)
+	telegram = channel_sql.select_telegram(id=channel_id)
 	channel_name = ''
 	for t in telegram:
 		channel_name = t.token
-	if sql.delete_telegram(channel_id):
+	if channel_sql.delete_telegram(channel_id):
 		roxywi_common.logging('Roxy-WI server', f'The Telegram channel {channel_name} has been deleted ', roxywi=1, login=1)
 		return 'ok'
 
 
 def delete_slack_channel(channel_id) -> str:
-	slack = sql.select_slack(id=channel_id)
+	slack = channel_sql.select_slack(id=channel_id)
 	channel_name = ''
 	for t in slack:
 		channel_name = t.chanel_name
-	if sql.delete_slack(channel_id):
+	if channel_sql.delete_slack(channel_id):
 		roxywi_common.logging('Roxy-WI server', f'The Slack channel {channel_name} has been deleted ', roxywi=1, login=1)
 		return 'ok'
 
 
 def delete_pd_channel(channel_id) -> str:
-	pd = sql.select_pd(id=channel_id)
+	pd = channel_sql.select_pd(id=channel_id)
 	channel_name = ''
 	for t in pd:
 		channel_name = t.chanel_name
-	if sql.delete_pd(channel_id):
+	if channel_sql.delete_pd(channel_id):
 		roxywi_common.logging('Roxy-WI server', f'The PageDuty channel {channel_name} has been deleted ', roxywi=1, login=1)
 		return 'ok'
 
 
 def update_telegram(token: str, channel: str, group: str, user_id: int) -> str:
-	sql.update_telegram(token, channel, group, user_id)
+	channel_sql.update_telegram(token, channel, group, user_id)
 	roxywi_common.logging('group ' + group, f'The Telegram token has been updated for channel: {channel}', roxywi=1, login=1)
 	return 'ok'
 
 
 def update_slack(token: str, channel: str, group: str, user_id: int) -> str:
-	sql.update_slack(token, channel, group, user_id)
+	channel_sql.update_slack(token, channel, group, user_id)
 	roxywi_common.logging(f'group {group}', f'The Slack token has been updated for channel: {channel}', roxywi=1, login=1)
 	return 'ok'
 
 
 def update_pd(token: str, channel: str, group: str, user_id: int) -> str:
-	sql.update_pd(token, channel, group, user_id)
+	channel_sql.update_pd(token, channel, group, user_id)
 	roxywi_common.logging(f'group {group}', f'The PagerDuty token has been updated for channel: {channel}', roxywi=1, login=1)
 	return 'ok'
 

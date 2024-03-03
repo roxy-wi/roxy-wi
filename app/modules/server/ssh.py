@@ -4,7 +4,9 @@ from cryptography.fernet import Fernet
 import paramiko
 from flask import render_template, request
 
-import app.modules.db.sql as sql
+import app.modules.db.cred as cred_sql
+import app.modules.db.group as group_sql
+import app.modules.db.server as server_sql
 import app.modules.common.common as common
 from app.modules.server import ssh_connection
 import app.modules.roxywi.common as roxywi_common
@@ -18,9 +20,9 @@ def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
 	lib_path = get_config.get_config_var('main', 'lib_path')
 	ssh_settings = {}
 	if kwargs.get('id'):
-		sshs = sql.select_ssh(id=kwargs.get('id'))
+		sshs = cred_sql.select_ssh(id=kwargs.get('id'))
 	else:
-		sshs = sql.select_ssh(serv=server_ip)
+		sshs = cred_sql.select_ssh(serv=server_ip)
 
 	for ssh in sshs:
 		if ssh.password:
@@ -46,7 +48,7 @@ def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
 		ssh_settings.setdefault('passphrase', passphrase)
 
 	try:
-		ssh_port = [str(server[10]) for server in sql.select_servers(server=server_ip)]
+		ssh_port = [str(server[10]) for server in server_sql.select_servers(server=server_ip)]
 		ssh_settings.setdefault('port', ssh_port[0])
 	except Exception as e:
 		raise Exception(f'error: Cannot get SSH settings: {e}')
@@ -65,7 +67,7 @@ def create_ssh_cred() -> str:
 	name = common.checkAjaxInput(request.form.get('new_ssh'))
 	enable = common.checkAjaxInput(request.form.get('ssh_enable'))
 	group = common.checkAjaxInput(request.form.get('new_group'))
-	group_name = sql.get_group_name_by_id(group)
+	group_name = group_sql.get_group_name_by_id(group)
 	username = common.checkAjaxInput(request.form.get('ssh_user'))
 	password = common.checkAjaxInput(request.form.get('ssh_pass'))
 	page = common.checkAjaxInput(request.form.get('page'))
@@ -83,15 +85,15 @@ def create_ssh_cred() -> str:
 		return error_mess
 	else:
 		try:
-			sql.insert_new_ssh(name, enable, group, username, password)
+			cred_sql.insert_new_ssh(name, enable, group, username, password)
 		except Exception as e:
 			roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot create new SSH credentials', roxywi=1, login=1)
 		roxywi_common.logging('Roxy-WI server', f'New SSH credentials {name} has been created', roxywi=1, login=1)
-		return render_template('ajax/new_ssh.html', groups=sql.select_groups(), sshs=sql.select_ssh(name=name), page=page, lang=lang)
+		return render_template('ajax/new_ssh.html', groups=group_sql.select_groups(), sshs=cred_sql.select_ssh(name=name), page=page, lang=lang)
 
 
 def create_ssh_cread_api(name: str, enable: str, group: str, username: str, password: str) -> bool:
-	group_name = sql.get_group_name_by_id(group)
+	group_name = group_sql.get_group_name_by_id(group)
 	name = common.checkAjaxInput(name)
 	name = f'{name}_{group_name}'
 	enable = common.checkAjaxInput(enable)
@@ -107,8 +109,12 @@ def create_ssh_cread_api(name: str, enable: str, group: str, username: str, pass
 	if username is None or name is None:
 		return False
 	else:
-		if sql.insert_new_ssh(name, enable, group, username, password):
+		try:
+			cred_sql.insert_new_ssh(name, enable, group, username, password)
+			roxywi_common.logging('Roxy-WI server', f'New SSH credentials {name} has been created', roxywi=1)
 			return True
+		except Exception as e:
+			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot create SSH credentials {name}', roxywi=1)
 
 
 def upload_ssh_key(name: str, user_group: str, key: str, passphrase: str) -> str:
@@ -158,7 +164,7 @@ def upload_ssh_key(name: str, user_group: str, key: str, passphrase: str) -> str
 			raise Exception(e)
 
 	try:
-		sql.update_ssh_passphrase(name, passphrase)
+		cred_sql.update_ssh_passphrase(name, passphrase)
 	except Exception as e:
 		raise Exception(e)
 
@@ -188,7 +194,7 @@ def update_ssh_key() -> str:
 
 	lib_path = get_config.get_config_var('main', 'lib_path')
 
-	for sshs in sql.select_ssh(id=ssh_id):
+	for sshs in cred_sql.select_ssh(id=ssh_id):
 		ssh_enable = sshs.enable
 		ssh_key_name = f'{lib_path}/keys/{sshs.name}.pem'
 		new_ssh_key_name = f'{lib_path}/keys/{name}.pem'
@@ -197,7 +203,7 @@ def update_ssh_key() -> str:
 		os.rename(ssh_key_name, new_ssh_key_name)
 		os.chmod(new_ssh_key_name, 0o600)
 
-	sql.update_ssh(ssh_id, name, enable, group, username, password)
+	cred_sql.update_ssh(ssh_id, name, enable, group, username, password)
 	roxywi_common.logging('Roxy-WI server', f'The SSH credentials {name} has been updated ', roxywi=1, login=1)
 
 	return 'ok'
@@ -209,7 +215,7 @@ def delete_ssh_key(ssh_id) -> str:
 	ssh_enable = 0
 	ssh_key_name = ''
 
-	for sshs in sql.select_ssh(id=ssh_id):
+	for sshs in cred_sql.select_ssh(id=ssh_id):
 		ssh_enable = sshs.enable
 		name = sshs.name
 		ssh_key_name = f'{lib_path}/keys/{sshs.name}.pem'
@@ -219,9 +225,12 @@ def delete_ssh_key(ssh_id) -> str:
 			os.remove(ssh_key_name)
 		except Exception:
 			pass
-	if sql.delete_ssh(ssh_id):
+	try:
+		cred_sql.delete_ssh(ssh_id)
 		roxywi_common.logging('Roxy-WI server', f'The SSH credentials {name} has deleted', roxywi=1, login=1)
 		return 'ok'
+	except Exception as e:
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot delete SSH credentials {name}', roxywi=1, login=1)
 
 
 def crypt_password(password: str) -> bytes:

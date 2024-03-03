@@ -3,6 +3,8 @@ import os
 from flask import render_template, request
 
 import app.modules.db.sql as sql
+import app.modules.db.add as add_sql
+import app.modules.db.server as server_sql
 import app.modules.server.ssh as ssh_mod
 import app.modules.common.common as common
 import app.modules.config.config as config_mod
@@ -10,7 +12,7 @@ import app.modules.config.common as config_common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
-import modules.roxy_wi_tools as roxy_wi_tools
+import app.modules.roxy_wi_tools as roxy_wi_tools
 
 get_config = roxy_wi_tools.GetConfigVar()
 
@@ -202,7 +204,7 @@ def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip
 	if server_ip != 'all':
 		servers.append(server_ip)
 
-		masters = sql.is_master(server_ip)
+		masters = server_sql.is_master(server_ip)
 		for master in masters:
 			if master[0] is not None:
 				servers.append(master[0])
@@ -212,8 +214,8 @@ def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip
 			servers.append(s[2])
 
 	for serv in servers:
-		server_mod.ssh_command(serv, [f"sudo mkdir {path}"])
-		server_mod.ssh_command(serv, [f"sudo chown $(whoami) {path}"])
+		server_mod.ssh_command(serv, f"sudo mkdir {path}")
+		server_mod.ssh_command(serv, f"sudo chown $(whoami) {path}")
 		try:
 			config_mod.upload(serv, f'{path}/{list_name}', list_path)
 		except Exception as e:
@@ -225,13 +227,13 @@ def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip
 		except Exception:
 			pass
 
-		server_id = sql.select_server_id_by_ip(server_ip=serv)
+		server_id = server_sql.select_server_id_by_ip(server_ip=serv)
 		haproxy_service_name = service_common.get_correct_service_name('haproxy', server_id)
 
 		if action == 'restart':
-			server_mod.ssh_command(serv, [f"sudo systemctl restart {haproxy_service_name}"])
+			server_mod.ssh_command(serv, f"sudo systemctl restart {haproxy_service_name}")
 		elif action == 'reload':
-			server_mod.ssh_command(serv, [f"sudo systemctl reload {haproxy_service_name}"])
+			server_mod.ssh_command(serv, f"sudo systemctl reload {haproxy_service_name}")
 
 	return output
 
@@ -251,7 +253,7 @@ def delete_bwlist(list_name: str, color: str, group: str, server_ip: str) -> str
 	if server_ip != 'all':
 		servers.append(server_ip)
 
-		masters = sql.is_master(server_ip)
+		masters = server_sql.is_master(server_ip)
 		for master in masters:
 			if master[0] is not None:
 				servers.append(master[0])
@@ -261,16 +263,13 @@ def delete_bwlist(list_name: str, color: str, group: str, server_ip: str) -> str
 			servers.append(s[2])
 
 	for serv in servers:
-		error = server_mod.ssh_command(serv, [f"sudo rm {path}/{list_name}"], return_err=1)
+		try:
+			server_mod.ssh_command(serv, f"sudo rm {path}/{list_name}")
+		except Exception as e:
+			return f'error: Deleting fail: {e} , '
 
-		if error:
-			return f'error: Deleting fail: {error} , '
-		else:
-			output += f'success: the {color} list has been deleted on {serv} , '
-			try:
-				roxywi_common.logging(serv, f'has been deleted the {color} list {list_name}', roxywi=1, login=1)
-			except Exception:
-				pass
+		output += f'success: the {color} list has been deleted on {serv} , '
+		roxywi_common.logging(serv, f'has been deleted the {color} list {list_name}', roxywi=1, login=1)
 	return output
 
 
@@ -326,7 +325,7 @@ def save_map(map_name: str, list_con: str, group: str, server_ip: str, action: s
 	if server_ip != 'all':
 		servers.append(server_ip)
 
-		masters = sql.is_master(server_ip)
+		masters = server_sql.is_master(server_ip)
 		for master in masters:
 			if master[0] is not None:
 				servers.append(master[0])
@@ -336,8 +335,8 @@ def save_map(map_name: str, list_con: str, group: str, server_ip: str, action: s
 			servers.append(s[2])
 
 	for serv in servers:
-		server_mod.ssh_command(serv, [f"sudo mkdir {path}"])
-		server_mod.ssh_command(serv, [f"sudo chown $(whoami) {path}"])
+		server_mod.ssh_command(serv, f"sudo mkdir {path}")
+		server_mod.ssh_command(serv, f"sudo chown $(whoami) {path}")
 		try:
 			config_mod.upload(serv, f'{path}/{map_name}', map_path)
 		except Exception as e:
@@ -348,13 +347,13 @@ def save_map(map_name: str, list_con: str, group: str, server_ip: str, action: s
 		except Exception:
 			pass
 
-		server_id = sql.select_server_id_by_ip(server_ip=serv)
+		server_id = server_sql.select_server_id_by_ip(server_ip=serv)
 		haproxy_service_name = service_common.get_correct_service_name('haproxy', server_id)
 
 		if action == 'restart':
-			server_mod.ssh_command(serv, [f"sudo systemctl restart {haproxy_service_name}"])
+			server_mod.ssh_command(serv, f"sudo systemctl restart {haproxy_service_name}")
 		elif action == 'reload':
-			server_mod.ssh_command(serv, [f"sudo systemctl reload {haproxy_service_name}"])
+			server_mod.ssh_command(serv, f"sudo systemctl reload {haproxy_service_name}")
 
 		output += f'success: Edited {map_name} map was uploaded to {serv} , '
 
@@ -376,7 +375,7 @@ def delete_map(map_name: str, group: str, server_ip: str) -> str:
 	if server_ip != 'all':
 		servers.append(server_ip)
 
-		masters = sql.is_master(server_ip)
+		masters = server_sql.is_master(server_ip)
 		for master in masters:
 			if master[0] is not None:
 				servers.append(master[0])
@@ -386,27 +385,24 @@ def delete_map(map_name: str, group: str, server_ip: str) -> str:
 			servers.append(s[2])
 
 	for serv in servers:
-		error = server_mod.ssh_command(serv, [f"sudo rm {path}/{map_name}"], return_err=1)
+		try:
+			server_mod.ssh_command(serv, f"sudo rm {path}/{map_name}")
+		except Exception as e:
+			return f'error: Deleting fail: {e} , '
 
-		if error:
-			return f'error: Deleting fail: {error} , '
-		else:
-			try:
-				roxywi_common.logging(serv, f'has been deleted the {map_name} map', roxywi=1, login=1)
-			except Exception:
-				pass
-			output += f'success: the {map_name} map has been deleted on {serv} , '
+		roxywi_common.logging(serv, f'has been deleted the {map_name} map', roxywi=1, login=1)
+		output += f'success: the {map_name} map has been deleted on {serv} , '
 
 	return output
 
 
 def create_saved_option(option: str, group: int) -> str:
-	if sql.insert_new_option(option, group):
-		return render_template('ajax/new_option.html', options=sql.select_options(option=option))
+	if add_sql.insert_new_option(option, group):
+		return render_template('ajax/new_option.html', options=add_sql.select_options(option=option))
 
 
 def get_saved_option(group: str, term: str) -> dict:
-	options = sql.select_options(group=group, term=term)
+	options = add_sql.select_options(group=group, term=term)
 	a = {}
 	v = 0
 
@@ -419,7 +415,7 @@ def get_saved_option(group: str, term: str) -> dict:
 
 def update_saved_option(option, option_id) -> bool:
 	try:
-		sql.update_options(option, option_id)
+		add_sql.update_options(option, option_id)
 	except Exception as e:
 		raise Exception(e)
 	else:
@@ -427,12 +423,12 @@ def update_saved_option(option, option_id) -> bool:
 
 
 def create_saved_server(server: str, group: str, desc: str) -> str:
-	if sql.insert_new_savedserver(server, desc, group):
-		return render_template('ajax/new_saved_servers.html', server=sql.select_saved_servers(server=server))
+	if add_sql.insert_new_saved_server(server, desc, group):
+		return render_template('ajax/new_saved_servers.html', server=add_sql.select_saved_servers(server=server))
 
 
 def get_saved_servers(group: str, term: str) -> dict:
-	servers = sql.select_saved_servers(group=group, term=term)
+	servers = add_sql.select_saved_servers(group=group, term=term)
 	a = {}
 	v = 0
 	for i in servers:
@@ -487,39 +483,39 @@ def get_le_cert(server_ip: str, lets_domain: str, lets_email: str) -> str:
 
 def get_ssl_cert(server_ip: str, cert_id: int) -> str:
 	cert_path = sql.get_setting('cert_path')
-	commands = [f"openssl x509 -in {cert_path}/{cert_id} -text"]
+	command = f"openssl x509 -in {cert_path}/{cert_id} -text"
 
 	try:
-		return server_mod.ssh_command(server_ip, commands)
+		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
 		return f'error: Cannot connect to the server {e.args[0]}'
 
 
 def get_ssl_raw_cert(server_ip: str, cert_id: int) -> str:
 	cert_path = sql.get_setting('cert_path')
-	commands = [f"cat {cert_path}/{cert_id}"]
+	command = f"cat {cert_path}/{cert_id}"
 
 	try:
-		return server_mod.ssh_command(server_ip, commands)
+		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
 		return f'error: Cannot connect to the server {e.args[0]}'
 
 
 def get_ssl_certs(server_ip: str) -> str:
 	cert_path = sql.get_setting('cert_path')
-	commands = [f"sudo ls -1t {cert_path} |grep -E 'pem|crt|key'"]
+	command = f"sudo ls -1t {cert_path} |grep -E 'pem|crt|key'"
 	try:
-		return server_mod.ssh_command(server_ip, commands)
+		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
 		return f'error: Cannot connect to the server: {e.args[0]}'
 
 
 def del_ssl_cert(server_ip: str, cert_id: str) -> str:
 	cert_path = sql.get_setting('cert_path')
-	commands = [f"sudo rm -f {cert_path}/{cert_id}"]
+	command = f"sudo rm -f {cert_path}/{cert_id}"
 
 	try:
-		return server_mod.ssh_command(server_ip, commands)
+		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
 		return f'error: Cannot delete the certificate {e.args[0]}'
 
@@ -541,19 +537,16 @@ def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str) -> str:
 	except IOError as e:
 		return f'error: Cannot save the SSL key file: {e}'
 
-	masters = sql.is_master(server_ip)
+	masters = server_sql.is_master(server_ip)
 	for master in masters:
 		if master[0] is not None:
-			error = config_mod.upload(master[0], f'{cert_path}/{name}', path_to_file)
-			if not error:
-				slave_output += f'success: the SSL file has been uploaded to {master[0]} into: {cert_path}/{name} \n'
+			config_mod.upload(master[0], f'{cert_path}/{name}', path_to_file)
+			slave_output += f'success: the SSL file has been uploaded to {master[0]} into: {cert_path}/{name} \n'
 	try:
-		error = config_mod.upload(server_ip, f'{cert_path}/{name}', path_to_file)
+		config_mod.upload(server_ip, f'{cert_path}/{name}', path_to_file)
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		return f'error: cannot upload SSL cert: {e}'
 
 	roxywi_common.logging(server_ip, f"add#ssl uploaded a new SSL cert {name}", roxywi=1, login=1)
-
-	if not error:
-		return f'success: the SSL file has been uploaded to {server_ip} into: {cert_path}/{name} \n {slave_output}'
+	return f'success: the SSL file has been uploaded to {server_ip} into: {cert_path}/{name} \n {slave_output}'

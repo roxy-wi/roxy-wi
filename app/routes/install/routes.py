@@ -46,7 +46,7 @@ def get_service_version(service, server_ip):
     if service in ('haproxy', 'nginx', 'apache'):
         return service_common.show_service_version(server_ip, service)
     elif service == 'keepalived':
-        cmd = ["sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}'"]
+        cmd = "sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}'"
         return server_mod.ssh_command(server_ip, cmd)
     else:
         return 'error: Wrong service'
@@ -119,5 +119,5 @@ def check_geoip(service, server_ip):
         return 'error: Wrong service'
 
     service_dir = common.return_nice_path(sql.get_setting(f'{service}_dir'))
-    cmd = [f"ls {service_dir}geoip/"]
+    cmd = f"ls {service_dir}geoip/"
     return server_mod.ssh_command(server_ip, cmd)

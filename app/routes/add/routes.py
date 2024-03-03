@@ -5,6 +5,7 @@ from flask_login import login_required
 
 from app.routes.add import bp
 import app.modules.db.sql as sql
+import app.modules.db.add as add_sql
 from middleware import check_services, get_user_params
 import app.modules.config.add as add_mod
 import app.modules.common.common as common
@@ -58,8 +59,8 @@ def add(service):
         if not os.path.exists(black_dir):
             os.makedirs(black_dir)
 
-        kwargs.setdefault('options', sql.select_options())
-        kwargs.setdefault('saved_servers', sql.select_saved_servers())
+        kwargs.setdefault('options', add_sql.select_options())
+        kwargs.setdefault('saved_servers', add_sql.select_saved_servers())
         kwargs.setdefault('white_lists', roxywi_common.get_files(folder=white_dir, file_format="lst"))
         kwargs.setdefault('black_lists', roxywi_common.get_files(folder=black_dir, file_format="lst"))
         kwargs.setdefault('maps', roxywi_common.get_files(folder=f'{lib_path}/maps/{user_group}', file_format="map"))
@@ -127,7 +128,7 @@ def add_haproxy():
     else:
         return 'error: The name cannot be empty'
 
-    if request.form.get('backends') is not None:
+    if request.form.get('backends') != '':
         backend = f"    default_backend {request.form.get('backends')}\n"
 
     if request.form.get('maxconn'):
@@ -496,7 +497,7 @@ def update_option():
     option_id = int(request.form.get('id'))
 
     try:
-        sql.update_options(option, option_id)
+        add_sql.update_options(option, option_id)
     except Exception as e:
         return str(e)
     else:
@@ -506,7 +507,7 @@ def update_option():
 @bp.route('/option/delete/<int:option_id>')
 def delete_option(option_id):
     try:
-        sql.delete_option(option_id)
+        add_sql.delete_option(option_id)
     except Exception as e:
         return str(e)
     else:
@@ -537,7 +538,7 @@ def update_saved_server():
     desc = common.checkAjaxInput(request.form.get('desc'))
 
     try:
-        sql.update_savedserver(server, desc, server_id)
+        add_sql.update_saved_server(server, desc, server_id)
     except Exception as e:
         return str(e)
     else:
@@ -547,7 +548,7 @@ def update_saved_server():
 @bp.route('/server/delete/<int:server_id>')
 def delete_saved_server(server_id):
     try:
-        sql.delete_savedserver(server_id)
+        add_sql.delete_saved_server(server_id)
     except Exception as e:
         return str(e)
     else:
@@ -676,6 +677,6 @@ def add_nginx_upstream():
 @bp.route('/show/ip/<server_ip>')
 def show_ip(server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
-    commands = ['sudo hostname -I | tr " " "\\n"|sed "/^$/d"']
+    commands = 'sudo hostname -I | tr " " "\\n"|sed "/^$/d"'
 
     return server_mod.ssh_command(server_ip, commands, ip="1")

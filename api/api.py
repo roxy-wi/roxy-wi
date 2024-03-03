@@ -5,7 +5,7 @@ import os
 from bottle import route, run, hook, response, request, error
 
 import api_funct
-import app.modules.db.sql as sql
+import app.modules.db.user as user_sql
 import app.modules.roxywi.common as roxywi_common
 
 _error_auth = '403 Auth before'
@@ -106,7 +106,7 @@ def get_servers():
 	data = {}
 	try:
 		token = request.headers.get('token')
-		login, group_id, role_id = sql.get_username_groupid_from_api_token(token)
+		login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 		servers = roxywi_common.get_dick_permit(username=login, group_id=group_id, token=token)
 
 		for s in servers:

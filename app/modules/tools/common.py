@@ -1,13 +1,13 @@
 import distro
 
-import modules.db.sql as sql
-import modules.roxywi.roxy as roxywi_mod
-import modules.server.server as server_mod
+import app.modules.db.roxy as roxy_sql
+import app.modules.roxywi.roxy as roxywi_mod
+import app.modules.server.server as server_mod
 
 
 def get_services_status(update_cur_ver=0):
     services = []
-    services_name = sql.get_all_tools()
+    services_name = roxy_sql.get_all_tools()
 
     if update_cur_ver:
         try:
@@ -27,7 +27,7 @@ def get_services_status(update_cur_ver=0):
 
 def update_roxy_wi(service: str) -> str:
     restart_service = ''
-    services = sql.get_roxy_tools()
+    services = roxy_sql.get_roxy_tools()
 
     if service not in services:
         raise Exception(f'error: {service} is not part of Roxy-WI')
@@ -63,7 +63,7 @@ def is_tool_active(tool_name: str) -> str:
 
 
 def update_cur_tool_versions() -> None:
-    tools = sql.get_all_tools()
+    tools = roxy_sql.get_all_tools()
     for s, _v in tools.items():
         update_cur_tool_version(s)
 
@@ -93,10 +93,10 @@ def update_cur_tool_version(tool_name: str) -> None:
         service_ver = 0
 
     try:
-        sql.update_tool_cur_version(tool_name, service_ver)
+        roxy_sql.update_tool_cur_version(tool_name, service_ver)
     except Exception:
         pass
 
 
 def get_cur_tool_version(tool_name: str) -> str:
-    return sql.get_tool_cur_version(tool_name)
+    return roxy_sql.get_tool_cur_version(tool_name)

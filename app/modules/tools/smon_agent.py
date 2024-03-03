@@ -3,6 +3,7 @@ import uuid
 import requests
 import app.modules.db.sql as sql
 import app.modules.db.smon as smon_sql
+import app.modules.db.server as server_sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 from app.modules.service.installation import run_ansible
@@ -40,7 +41,7 @@ def check_agent_limit():
 def add_agent(data) -> int:
     name = common.checkAjaxInput(data.get("name"))
     server_id = int(data.get("server_id"))
-    server_ip = sql.select_server_ip_by_id(server_id)
+    server_ip = server_sql.select_server_ip_by_id(server_id)
     desc = common.checkAjaxInput(data.get("desc"))
     enabled = int(data.get("enabled"))
     agent_uuid = str(uuid.uuid4())

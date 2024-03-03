@@ -2,8 +2,9 @@ from flask import render_template, request, redirect, url_for, g
 from flask_login import login_required
 
 from app.routes.logs import bp
-from middleware import check_services, get_user_params
+from app.middleware import check_services, get_user_params
 import app.modules.db.sql as sql
+import app.modules.db.service as service_sql
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.logs as roxy_logs
@@ -69,7 +70,7 @@ def logs(service, waf):
         grep = ''
 
     if service in ('haproxy', 'nginx', 'keepalived', 'apache') and not waf:
-        service_desc = sql.select_service(service)
+        service_desc = service_sql.select_service(service)
         service_name = service_desc.service
         servers = roxywi_common.get_dick_permit(service=service_desc.slug)
     elif waf:

@@ -10,8 +10,14 @@ sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
 from app import app, cache
 from app.routes.main import bp
 import app.modules.db.sql as sql
-from modules.db.db_model import conn
-from middleware import check_services, get_user_params
+import app.modules.db.cred as cred_sql
+import app.modules.db.user as user_sql
+import app.modules.db.group as group_sql
+import app.modules.db.backup as backup_sql
+import app.modules.db.server as server_sql
+import app.modules.db.service as service_sql
+import app.modules.db.history as history_sql
+from app.middleware import check_services, get_user_params
 import app.modules.common.common as common
 import app.modules.roxywi.roxy as roxy
 import app.modules.roxywi.auth as roxywi_auth
@@ -70,12 +76,6 @@ def make_session_permanent():
     session.permanent = True
 
 
-@app.teardown_request
-def _db_close(exc):
-    if not conn.is_closed():
-        conn.close()
-
-
 @bp.route('/stats/<service>/', defaults={'serv': None})
 @bp.route('/stats/<service>/<serv>')
 @login_required
@@ -86,7 +86,7 @@ def stats(service, serv):
         'autorefresh': 1,
         'serv': serv,
         'service': service,
-        'service_desc': sql.select_service(service),
+        'service_desc': service_sql.select_service(service),
         'lang': g.user_params['lang']
     }
     return render_template('statsview.html', **kwargs)
@@ -140,26 +140,26 @@ def service_history(service, server_ip):
     server_ip = common.checkAjaxInput(server_ip)
 
     if service in ('haproxy', 'nginx', 'keepalived', 'apache', 'cluster'):
-        service_desc = sql.select_service(service)
+        service_desc = service_sql.select_service(service)
         if not roxywi_auth.is_access_permit_to_service(service_desc.slug):
             abort(403, f'You do not have needed permissions to access to {service_desc.slug.title()} service')
         if service == 'cluster':
             server_id = server_ip
         else:
-            server_id = sql.select_server_id_by_ip(server_ip)
-        history = sql.select_action_history_by_server_id_and_service(server_id, service_desc.service)
+            server_id = server_sql.select_server_id_by_ip(server_ip)
+        history = history_sql.select_action_history_by_server_id_and_service(server_id, service_desc.service)
     elif service == 'server':
         if roxywi_common.check_is_server_in_group(server_ip):
-            server_id = sql.select_server_id_by_ip(server_ip)
-            history = sql.select_action_history_by_server_id(server_id)
+            server_id = server_sql.select_server_id_by_ip(server_ip)
+            history = history_sql.select_action_history_by_server_id(server_id)
     elif service == 'user':
-        history = sql.select_action_history_by_user_id(server_ip)
+        history = history_sql.select_action_history_by_user_id(server_ip)
     else:
         abort(404, f'History not found')
 
     kwargs = {
         'user_subscription': roxywi_common.return_user_subscription(),
-        'users': sql.select_users(),
+        'users': user_sql.select_users(),
         'serv': server_ip,
         'service': service,
         'history': history
@@ -177,24 +177,24 @@ def servers():
     user_group = roxywi_common.get_user_group(id=1)
     kwargs = {
         'h2': 1,
-        'users': sql.select_users(group=user_group),
-        'groups': sql.select_groups(),
+        'users': user_sql.select_users(group=user_group),
+        'groups': group_sql.select_groups(),
         'servers': roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1),
         'roles': sql.select_roles(),
-        'sshs': sql.select_ssh(group=user_group),
-        'masters': sql.select_servers(get_master_servers=1, uuid=g.user_params['user_uuid']),
+        'sshs': cred_sql.select_ssh(group=user_group),
+        'masters': server_sql.select_servers(get_master_servers=1, uuid=g.user_params['user_uuid']),
         'group': roxywi_common.get_user_group(id=1),
-        'services': sql.select_services(),
+        'services': service_sql.select_services(),
         'timezones': pytz.all_timezones,
         'guide_me': 1,
         'settings': sql.get_setting('', all=1),
-        'backups': sql.select_backups(),
-        's3_backups': sql.select_s3_backups(),
+        'backups': backup_sql.select_backups(),
+        's3_backups': backup_sql.select_s3_backups(),
         'page': 'servers.py',
         'ldap_enable': sql.get_setting('ldap_enable'),
-        'gits': sql.select_gits(),
+        'gits': backup_sql.select_gits(),
         'is_needed_tool': common.is_tool('ansible'),
-        'user_roles': sql.select_user_roles_by_group(user_group),
+        'user_roles': user_sql.select_user_roles_by_group(user_group),
         'user_subscription': roxywi_common.return_user_subscription(),
         'lang': g.user_params['lang']
     }

@@ -3,13 +3,20 @@ import json
 from flask import render_template
 
 import app.modules.db.sql as sql
+import app.modules.db.waf as waf_sql
+import app.modules.db.server as server_sql
+import app.modules.db.backup as backup_sql
+import app.modules.db.checker as checker_sql
+import app.modules.db.service as service_sql
+import app.modules.db.history as history_sql
+import app.modules.db.portscanner as ps_sql
 import app.modules.server.ssh as mod_ssh
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 
 
-def ssh_command(server_ip: str, commands: list, **kwargs):
+def ssh_command(server_ip: str, commands: str, **kwargs):
 	if server_ip == '':
 		raise Exception('error: IP cannot be empty')
 	if kwargs.get('timeout'):
@@ -18,29 +25,33 @@ def ssh_command(server_ip: str, commands: list, **kwargs):
 		timeout = 2
 	try:
 		with mod_ssh.ssh_connect(server_ip) as ssh:
-			for command in commands:
-				try:
-					stdin, stdout, stderr = ssh.run_command(command, timeout=timeout)
-					stdin.close()
-				except Exception as e:
-					roxywi_common.handle_exceptions(e, server_ip, 'Something wrong with SSH connection. Probably sudo with password', roxywi=1)
+			if isinstance(commands, list):
+				command = commands[0]
+			else:
+				command = commands
+			try:
+				stdin, stdout, stderr = ssh.run_command(command, timeout=timeout)
+				stdin.close()
+			except Exception as e:
+				roxywi_common.handle_exceptions(e, server_ip, 'Something wrong with SSH connection. Probably sudo with password', roxywi=1)
 
-				if stderr:
-					for line in stderr.readlines():
-						if line:
-							roxywi_common.handle_exceptions(line, server_ip, line, roxywi=1)
+			if stderr:
+				for line in stderr.readlines():
+					if line:
+						roxywi_common.handle_exceptions(line, server_ip, line, roxywi=1)
 
-				if kwargs.get('raw'):
-					return stdout.readlines()
-				elif kwargs.get("show_log") == "1":
-					import modules.roxywi.logs as roxywi_logs
-					return roxywi_logs.show_log(stdout, grep=kwargs.get("grep"))
-				elif kwargs.get('return_err') == 1:
-					return stderr.read().decode(encoding='UTF-8')
-				else:
-					return stdout.read().decode(encoding='UTF-8')
+			if stdout.channel.recv_exit_status() and kwargs.get('rc'):
+				roxywi_common.handle_exceptions(stdout.read().decode('utf-8'), server_ip, f'Cannot perform SSH command: {command} ', roxywi=1)
+
+			if kwargs.get('raw'):
+				return stdout.readlines()
+			elif kwargs.get("show_log") == "1":
+				import app.modules.roxywi.logs as roxywi_logs
+				return roxywi_logs.show_log(stdout, grep=kwargs.get("grep"))
+			else:
+				return stdout.read().decode(encoding='UTF-8')
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, server_ip, 'Something wrong with SSH connection. Probably sudo with password', roxywi=1)
+		roxywi_common.handle_exceptions(e, server_ip, '', roxywi=1)
 
 
 def subprocess_execute(cmd):
@@ -73,14 +84,14 @@ def subprocess_execute_with_rc(cmd):
 
 
 def is_file_exists(server_ip: str, file: str) -> bool:
-	cmd = [f'[ -f {file} ] && echo yes || echo no']
+	cmd = f'[ -f {file} ] && echo yes || echo no'
 
 	out = ssh_command(server_ip, cmd)
 	return True if 'yes' in out else False
 
 
 def is_service_active(server_ip: str, service_name: str) -> bool:
-	cmd = [f'systemctl is-active {service_name}']
+	cmd = f'systemctl is-active {service_name}'
 
 	out = ssh_command(server_ip, cmd)
 	out = out.strip()
@@ -90,10 +101,10 @@ def is_service_active(server_ip: str, service_name: str) -> bool:
 def get_remote_files(server_ip: str, config_dir: str, file_format: str):
 	config_dir = common.return_nice_path(config_dir)
 	if file_format == 'conf':
-		commands = [f'sudo ls {config_dir}*/*.{file_format}']
+		command = f'sudo ls {config_dir}*/*.{file_format}'
 	else:
-		commands = [f'sudo ls {config_dir}|grep {file_format}$']
-	config_files = ssh_command(server_ip, commands)
+		command = f'sudo ls {config_dir}|grep {file_format}$'
+	config_files = ssh_command(server_ip, command)
 
 	return config_files
 
@@ -103,9 +114,9 @@ def get_system_info(server_ip: str) -> str:
 	if server_ip == '':
 		return 'error: IP cannot be empty'
 
-	server_id = sql.select_server_id_by_ip(server_ip)
-	command = ["sudo lshw -quiet -json"]
-	command1 = ['sudo hostnamectl |grep "Operating System"|awk -F":" \'{print $2}\'']
+	server_id = server_sql.select_server_id_by_ip(server_ip)
+	command = "sudo lshw -quiet -json"
+	command1 = 'sudo hostnamectl |grep "Operating System"|awk -F":" \'{print $2}\''
 
 	try:
 		sys_info_returned = ssh_command(server_ip, command, timeout=5)
@@ -330,33 +341,33 @@ def get_system_info(server_ip: str) -> str:
 						pass
 
 	try:
-		sql.insert_system_info(server_id, os_info, sys_info, cpu, ram, network, disks)
+		server_sql.insert_system_info(server_id, os_info, sys_info, cpu, ram, network, disks)
 	except Exception as e:
 		raise e
 
 
 def show_system_info(server_ip: str, server_id: int) -> str:
-	if not sql.is_system_info(server_id):
+	if not server_sql.is_system_info(server_id):
 		try:
 			get_system_info(server_ip)
 		except Exception as e:
 			return f'error: Cannot get system info: {e}'
 		try:
-			system_info = sql.select_one_system_info(server_id)
+			system_info = server_sql.select_one_system_info(server_id)
 		except Exception as e:
 			return f'Cannot update server info: {e}'
 	else:
-		system_info = sql.select_one_system_info(server_id)
+		system_info = server_sql.select_one_system_info(server_id)
 
 	return render_template('ajax/show_system_info.html', system_info=system_info, server_ip=server_ip, server_id=server_id)
 
 
 def update_system_info(server_ip: str, server_id: int) -> str:
-	sql.delete_system_info(server_id)
+	server_sql.delete_system_info(server_id)
 
 	try:
 		get_system_info(server_ip)
-		system_info = sql.select_one_system_info(server_id)
+		system_info = server_sql.select_one_system_info(server_id)
 
 		return render_template('ajax/show_system_info.html', system_info=system_info, server_ip=server_ip, server_id=server_id)
 	except Exception as e:
@@ -365,20 +376,31 @@ def update_system_info(server_ip: str, server_id: int) -> str:
 
 def show_firewalld_rules(server_ip) -> str:
 	input_chain2 = []
-	cmd = ["sudo iptables -L INPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
-	cmd1 = ["sudo iptables -L IN_public_allow -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
-	cmd2 = ["sudo iptables -L OUTPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"]
+	cmd = "sudo iptables -L INPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"
+	cmd1 = "sudo iptables -L IN_public_allow -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"
+	cmd2 = "sudo iptables -L OUTPUT -n --line-numbers|sed 's/  */ /g'|grep -v -E 'Chain|target'"
 
-	input_chain = ssh_command(server_ip, cmd, raw=1)
+	try:
+		input_chain = ssh_command(server_ip, cmd, raw=1)
+	except Exception as e:
+		roxywi_common.logging(server_ip, f'error: Cannot get Iptables Input chain: {e}')
+		return 'error: Cannot get Iptables Input chain'
+
+	try:
+		in_public_allow = ssh_command(server_ip, cmd1, raw=1)
+	except Exception as e:
+		roxywi_common.logging(server_ip, f'error: Cannot get Iptables IN_public_allow chain: {e}')
+		return 'error: Cannot get Iptables IN_public_allow chain'
+
+	try:
+		output_chain = ssh_command(server_ip, cmd2, raw=1)
+	except Exception as e:
+		roxywi_common.logging(server_ip, f'error: Cannot get Iptables OUTPUT chain: {e}')
+		return 'error: Cannot get Iptables OUTPUT chain'
 
 	for each_line in input_chain:
 		input_chain2.append(each_line.strip('\n'))
 
-	if 'error:' in input_chain:
-		return input_chain
-
-	in_public_allow = ssh_command(server_ip, cmd1, raw=1)
-	output_chain = ssh_command(server_ip, cmd2, raw=1)
 	lang = roxywi_common.get_user_lang_for_flask()
 	return render_template('ajax/firewall_rules.html', input_chain=input_chain2, IN_public_allow=in_public_allow, output_chain=output_chain, lang=lang)
 
@@ -387,7 +409,7 @@ def create_server(hostname, ip, group, typeip, enable, master, cred, port, desc,
 	if not roxywi_auth.is_admin(level=2, role_id=kwargs.get('role_id')):
 		raise Exception('error: not enough permission')
 
-	if sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
+	if server_sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
 		return True
 	else:
 		return False
@@ -395,7 +417,7 @@ def create_server(hostname, ip, group, typeip, enable, master, cred, port, desc,
 
 def update_server_after_creating(hostname: str, ip: str, scan_server: int) -> str:
 	try:
-		sql.insert_new_checker_setting_for_server(ip)
+		checker_sql.insert_new_checker_setting_for_server(ip)
 	except Exception as e:
 		roxywi_common.logging(f'Cannot insert Checker settings for {hostname}', str(e), roxywi=1)
 		raise Exception(f'error: Cannot insert Checker settings for {hostname} {e}')
@@ -409,23 +431,23 @@ def update_server_after_creating(hostname: str, ip: str, scan_server: int) -> st
 			keepalived_config_path = sql.get_setting('keepalived_config_path')
 
 			if is_file_exists(ip, nginx_config_path):
-				sql.update_nginx(ip)
+				service_sql.update_nginx(ip)
 
 			if is_file_exists(ip, haproxy_config_path):
-				sql.update_haproxy(ip)
+				service_sql.update_haproxy(ip)
 
 			if is_file_exists(ip, keepalived_config_path):
-				sql.update_keepalived(ip)
+				service_sql.update_keepalived(ip)
 
 			if is_file_exists(ip, apache_config_path):
-				sql.update_apache(ip)
+				service_sql.update_apache(ip)
 
 			if is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
-				sql.insert_waf_metrics_enable(ip, "0")
-				sql.insert_waf_rules(ip)
+				waf_sql.insert_waf_metrics_enable(ip, "0")
+				waf_sql.insert_waf_rules(ip)
 
 			if is_service_active(ip, 'firewalld'):
-				sql.update_firewall(ip)
+				server_sql.update_firewall(ip)
 
 	except Exception as e:
 		roxywi_common.logging(f'Cannot scan a new server {hostname}', str(e), roxywi=1)
@@ -441,7 +463,7 @@ def update_server_after_creating(hostname: str, ip: str, scan_server: int) -> st
 
 
 def delete_server(server_id: int) -> str:
-	server = sql.select_servers(id=server_id)
+	server = server_sql.select_servers(id=server_id)
 	server_ip = ''
 	hostname = ''
 
@@ -449,35 +471,35 @@ def delete_server(server_id: int) -> str:
 		hostname = s[1]
 		server_ip = s[2]
 
-	if sql.check_exists_backup(server_ip):
+	if backup_sql.check_exists_backup(server_ip):
 		return 'warning: Delete the backup first'
-	if sql.check_exists_s3_backup(server_ip):
+	if backup_sql.check_exists_s3_backup(server_ip):
 		return 'warning: Delete the S3 backup first'
-	if sql.delete_server(server_id):
-		sql.delete_waf_server(server_id)
-		sql.delete_port_scanner_settings(server_id)
-		sql.delete_waf_rules(server_ip)
-		sql.delete_action_history(server_id)
-		sql.delete_system_info(server_id)
-		sql.delete_service_settings(server_id)
+	if server_sql.delete_server(server_id):
+		waf_sql.delete_waf_server(server_id)
+		ps_sql.delete_port_scanner_settings(server_id)
+		waf_sql.delete_waf_rules(server_ip)
+		history_sql.delete_action_history(server_id)
+		server_sql.delete_system_info(server_id)
+		service_sql.delete_service_settings(server_id)
 		roxywi_common.logging(server_ip, f'The server {hostname} has been deleted', roxywi=1, login=1)
 		return 'Ok'
 
 
 def server_is_up(server_ip: str) -> str:
-	cmd = [f'if ping -c 1 -W 1 {server_ip} >> /dev/null; then echo up; else echo down; fi']
+	cmd = f'if ping -c 1 -W 1 {server_ip} >> /dev/null; then echo up; else echo down; fi'
 	server_status, stderr = subprocess_execute(cmd)
 	return server_status[0]
 
 
 def show_server_services(server_id: int) -> str:
-	server = sql.select_servers(id=server_id)
+	server = server_sql.select_servers(id=server_id)
 	lang = roxywi_common.get_user_lang_for_flask()
 	return render_template('ajax/show_server_services.html', server=server, lang=lang)
 
 
 def change_server_services(server_id: int, server_name: str, server_services: dict) -> str:
-	services = sql.select_services()
+	services = service_sql.select_services()
 	services_status = {}
 
 	for k, v in server_services.items():
@@ -486,7 +508,7 @@ def change_server_services(server_id: int, server_name: str, server_services: di
 				services_status[service.service_id] = v
 
 	try:
-		if sql.update_server_services(server_id, services_status[1], services_status[2], services_status[4], services_status[3]):
+		if service_sql.update_server_services(server_id, services_status[1], services_status[2], services_status[4], services_status[3]):
 			roxywi_common.logging('Roxy-WI server', f'Active services have been updated for {server_name}', roxywi=1, login=1)
 			return 'ok'
 	except Exception as e:

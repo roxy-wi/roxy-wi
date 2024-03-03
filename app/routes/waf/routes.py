@@ -5,7 +5,8 @@ from flask_login import login_required
 
 from app.routes.waf import bp
 import app.modules.db.sql as sql
-from middleware import check_services, get_user_params
+import app.modules.db.waf as waf_sql
+from app.middleware import check_services, get_user_params
 import app.modules.common.common as common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 import app.modules.roxywi.waf as roxy_waf
@@ -43,7 +44,7 @@ def waf(service):
         'title': 'Web application firewall',
         'autorefresh': 1,
         'serv': '',
-        'servers': sql.select_waf_servers_metrics(g.user_params['user_uuid']),
+        'servers': waf_sql.select_waf_servers_metrics(g.user_params['group_id']),
         'servers_all': servers,
         'manage_rules': '',
         'rules': '',
@@ -69,10 +70,10 @@ def waf_rules(service, server_ip):
     kwargs = {
         'title': 'Manage rules - Web application firewall',
         'serv': server_ip,
-        'servers': sql.select_waf_servers_metrics(g.user_params['user_uuid']),
+        'servers': waf_sql.select_waf_servers_metrics(g.user_params['group_id']),
         'servers_all': '',
         'manage_rules': '1',
-        'rules': sql.select_waf_rules(server_ip, service),
+        'rules': waf_sql.select_waf_rules(server_ip, service),
         'waf_rule_file': '',
         'waf_rule_id': '',
         'config': '',
@@ -98,7 +99,7 @@ def waf_rule_edit(service, server_ip, rule_id):
     else:
         config_path = sql.get_setting('haproxy_dir')
 
-    waf_rule_file = sql.select_waf_rule_by_id(rule_id)
+    waf_rule_file = waf_sql.select_waf_rule_by_id(rule_id)
     configs_dir = sql.get_setting('tmp_config_path')
     cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}-{waf_rule_file}"
     error = config_mod.get_config(server_ip, cfg, waf=service, waf_rule_file=waf_rule_file)
@@ -115,11 +116,11 @@ def waf_rule_edit(service, server_ip, rule_id):
     kwargs = {
         'title': 'Edit a WAF rule',
         'serv': server_ip,
-        'servers': sql.select_waf_servers_metrics(g.user_params['user_uuid']),
+        'servers': waf_sql.select_waf_servers_metrics(g.user_params['group_id']),
         'servers_all': '',
         'manage_rules': '',
-        'rules': sql.select_waf_rules(server_ip, service),
-        'waf_rule_file': sql.select_waf_rule_by_id(rule_id),
+        'rules': waf_sql.select_waf_rules(server_ip, service),
+        'waf_rule_file': waf_sql.select_waf_rule_by_id(rule_id),
         'waf_rule_id': rule_id,
         'config': config_read,
         'cfg': cfg,
@@ -205,4 +206,4 @@ def overview_waf(service, server_ip):
 @bp.route('/metric/enable/<int:enable>/<server_name>')
 def enable_metric(enable, server_name):
     server_name = common.checkAjaxInput(server_name)
-    return sql.update_waf_metrics_enable(server_name, enable)
+    return waf_sql.update_waf_metrics_enable(server_name, enable)

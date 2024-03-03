@@ -3,12 +3,13 @@ import json
 from flask import render_template
 
 import app.modules.db.sql as sql
+import app.modules.db.server as server_sql
 import app.modules.config.config as config_mod
 import app.modules.config.common as config_common
 import app.modules.config.section as section_mod
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
-import modules.roxy_wi_tools as roxy_wi_tools
+import app.modules.roxy_wi_tools as roxy_wi_tools
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 
@@ -121,7 +122,7 @@ def change_ip_and_port(serv, backend_backend, backend_server, backend_ip, backen
 
 	lines = ''
 	sock_port = sql.get_setting('haproxy_sock_port')
-	masters = sql.is_master(serv)
+	masters = server_sql.is_master(serv)
 
 	for master in masters:
 		if master[0] is not None:
@@ -209,7 +210,7 @@ def add_server(
 	stderr = ''
 	check_cfg = ''
 	check = int(check)
-	masters = sql.is_master(server_ip)
+	masters = server_sql.is_master(server_ip)
 
 	for master in masters:
 		if master[0] is not None:
@@ -263,7 +264,7 @@ def add_server(
 def delete_server(server_ip: str, backend: str, server: str) -> str:
 	lines = ''
 	stderr = ''
-	masters = sql.is_master(server_ip)
+	masters = server_sql.is_master(server_ip)
 
 	for master in masters:
 		if master[0] is not None:
@@ -302,7 +303,7 @@ def change_maxconn_global(serv: str, maxconn: int) -> str:
 		return 'error: Maxconn must be integer and not 0'
 
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	masters = sql.is_master(serv)
+	masters = server_sql.is_master(serv)
 
 	for master in masters:
 		if master[0] is not None:
@@ -334,7 +335,7 @@ def change_maxconn_frontend(serv, maxconn, frontend) -> str:
 		return 'error: Maxconn must be integer and not 0'
 
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	masters = sql.is_master(serv)
+	masters = server_sql.is_master(serv)
 
 	for master in masters:
 		if master[0] is not None:
@@ -367,7 +368,7 @@ def change_maxconn_backend(serv, backend, backend_server, maxconn) -> str:
 
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 
-	masters = sql.is_master(serv)
+	masters = server_sql.is_master(serv)
 	for master in masters:
 		if master[0] is not None:
 			cmd = f'echo "set maxconn server {backend}/{backend_server} {maxconn}" |nc {master[0]} {haproxy_sock_port}'

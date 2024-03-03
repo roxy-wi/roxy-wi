@@ -1,16 +1,19 @@
 import os
-import re
 from pathlib import Path
 from typing import Any
 
 from flask import render_template, request
 
 import app.modules.db.sql as sql
+import app.modules.db.user as user_sql
+import app.modules.db.server as server_sql
+import app.modules.db.config as config_sql
+import app.modules.db.service as service_sql
 import app.modules.server.ssh as mod_ssh
 import app.modules.server.server as server_mod
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
-import modules.roxy_wi_tools as roxy_wi_tools
+import app.modules.roxy_wi_tools as roxy_wi_tools
 import app.modules.service.common as service_common
 import app.modules.service.action as service_action
 import app.modules.config.common as config_common
@@ -31,7 +34,7 @@ def _replace_config_path_to_correct(config_path: str) -> str:
 	try:
 		return config_path.replace('92', '/')
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot sanitize config file: {e}', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot sanitize config file', roxywi=1)
 
 
 def get_config(server_ip, cfg, service='haproxy', **kwargs):
@@ -77,7 +80,7 @@ def get_config(server_ip, cfg, service='haproxy', **kwargs):
 		with mod_ssh.ssh_connect(server_ip) as ssh:
 			ssh.get_sftp(config_path, cfg)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'error: Cannot get config', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot get config', roxywi=1)
 
 
 def upload(server_ip: str, path: str, file: str) -> None:
@@ -93,10 +96,10 @@ def upload(server_ip: str, path: str, file: str) -> None:
 		with mod_ssh.ssh_connect(server_ip) as ssh:
 			ssh.put_sftp(file, path)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot upload {file} to {path} to server: {server_ip}: {e}', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot upload {file} to {path} to server: {server_ip}', roxywi=1)
 
 
-def _generate_command(service: str, server_id: int, just_save: str, config_path: str, tmp_file: str, cfg: str, server_ip: str) -> list:
+def _generate_command(service: str, server_id: int, just_save: str, config_path: str, tmp_file: str, cfg: str, server_ip: str) -> str:
 	"""
 	:param service: The name of the service.
 	:param server_id: The ID of the server.
@@ -110,7 +113,7 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 	This method generates a list of commands based on the given parameters.
 	"""
 	container_name = sql.get_setting(f'{service}_container_name')
-	is_dockerized = sql.select_service_setting(server_id, service, 'dockerized')
+	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
 	reload_or_restart_command = f' && {service_action.get_action_command(service, just_save, server_id)}'
 	move_config = f" sudo mv -f {tmp_file} {config_path}"
 	command_for_docker = f'sudo docker exec -it {container_name}'
@@ -128,24 +131,23 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 		raise Exception(f'error: Cannot generate command: {e}')
 
 	if just_save == 'test':
-		return [f"{check_config} && sudo rm -f {tmp_file}"]
+		return f"{check_config} && sudo rm -f {tmp_file}"
 	elif just_save == 'save':
 		reload_or_restart_command = ''
 	else:
 		if service_common.is_not_allowed_to_restart(server_id, service, just_save):
 			raise Exception(f'error: This server is not allowed to be restarted')
 
-	if service in ('keepalived', 'waf'):
-		commands = [f'{move_config} {reload_or_restart_command}']
+	if service == 'waf':
+		commands = f'{move_config} {reload_or_restart_command}'
 	elif service in ('nginx', 'apache'):
-		commands = [f'{move_config} && {check_config} {reload_or_restart_command}']
+		commands = f'{move_config} && {check_config} {reload_or_restart_command}'
 	else:
-		commands = [f'{check_config} && {move_config} {reload_or_restart_command}']
+		commands = f'{check_config} && {move_config} {reload_or_restart_command}'
 
 	if service in ('haproxy', 'nginx'):
-		if sql.return_firewall(server_ip):
-			commands[0] += _open_port_firewalld(cfg, server_ip, service)
-
+		if server_sql.return_firewall(server_ip):
+			commands += _open_port_firewalld(cfg, server_ip, service)
 	return commands
 
 
@@ -185,7 +187,7 @@ def _create_config_version(server_id: int, server_ip: str, service: str, config_
 
 	try:
 		user_id = roxywi_common.get_user_id(login=login)
-		sql.insert_config_version(server_id, user_id, service, cfg, config_path, diff)
+		config_sql.insert_config_version(server_id, user_id, service, cfg, config_path, diff)
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', f'error: Cannot insert config version: {e}', roxywi=1)
 
@@ -204,7 +206,7 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	file_format = config_common.get_file_format(service)
 	config_path = kwargs.get('config_file_name')
 	config_date = get_date.return_date('config')
-	server_id = sql.select_server_id_by_ip(server_ip=server_ip)
+	server_id = server_sql.select_server_id_by_ip(server_ip=server_ip)
 
 	if config_path and config_path != 'undefined':
 		config_path = _replace_config_path_to_correct(kwargs.get('config_file_name'))
@@ -220,12 +222,12 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	try:
 		os.system(f"dos2unix -q {cfg}")
 	except OSError as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'error: There is no dos2unix')
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'There is no dos2unix')
 
 	try:
 		upload(server_ip, tmp_file, cfg)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'error: Cannot upload config: {e}', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot upload config', login=login)
 
 	try:
 		if just_save != 'test':
@@ -240,12 +242,12 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	try:
 		commands = _generate_command(service, server_id, just_save, config_path, tmp_file, cfg, server_ip)
 	except Exception as e:
-		return f'{e}'
+		return f'error: {e}'
 
 	try:
 		error = server_mod.ssh_command(server_ip, commands)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'{e}', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot {just_save} {service}', roxywi=1)
 
 	try:
 		if just_save in ('reload', 'restart'):
@@ -272,11 +274,11 @@ def master_slave_upload_and_restart(server_ip: str, cfg: str, just_save: str, se
 
 	"""
 	slave_output = ''
-	masters = sql.is_master(server_ip)
+	masters = server_sql.is_master(server_ip)
 	config_file_name = kwargs.get('config_file_name')
 	old_cfg = kwargs.get('oldcfg')
 	waf = kwargs.get('waf')
-	server_name = sql.get_hostname_by_server_ip(server_ip)
+	server_name = server_sql.get_hostname_by_server_ip(server_ip)
 
 	if kwargs.get('login'):
 		login = kwargs.get('login')
@@ -354,8 +356,8 @@ def _open_port_firewalld(cfg: str, server_ip: str, service: str) -> str:
 				except Exception:
 					pass
 
-	firewalld_commands += 'sudo firewall-cmd --reload -q'
-	roxywi_common.logging(server_ip, f' Next ports have been opened: {ports}')
+	firewalld_commands += ' sudo firewall-cmd --reload -q'
+	roxywi_common.logging(server_ip, f'Next ports have been opened: {ports}')
 	return firewalld_commands
 
 
@@ -386,7 +388,7 @@ def diff_config(old_cfg, cfg, **kwargs):
 
 	try:
 		user_uuid = request.cookies.get('uuid')
-		login = sql.get_user_name_by_uuid(user_uuid)
+		login = user_sql.get_user_name_by_uuid(user_uuid)
 	except Exception:
 		login = ''
 
@@ -400,32 +402,11 @@ def diff_config(old_cfg, cfg, **kwargs):
 		roxywi_common.logging('Roxy-WI server', f'error: Cannot write a diff config to the log file: {e}, {stderr}', login=login, roxywi=1)
 
 
-def _sanitize_input_word(word: str) -> str:
-	"""
-	Sanitizes the input word by removing certain characters.
-	"""
-	return re.sub(r'[?|$|!|^|*|\]|\[|,| |]', r'', word)
-
-
-def _highlight_word(line: str, word: str) -> str:
-	"""
-	Highlights the word in the line by making it bold and colored red.
-	"""
-	return line.replace(word, f'<span style="color: red; font-weight: bold;">{word}</span>')
-
-
 def _classify_line(line: str) -> str:
 	"""
 	Classifies the line as 'line' or 'line3' based on if it contains '--'.
 	"""
 	return "line" if '--' in line else "line3"
-
-
-def _wrap_line(content: str, css_class: str="line") -> str:
-	"""
-	Wraps the provided content into a div HTML element with the given CSS class.
-	"""
-	return f'<div class="{css_class}">{content}</div>'
 
 
 def show_finding_in_config(stdout: str, **kwargs) -> str:
@@ -440,18 +421,18 @@ def show_finding_in_config(stdout: str, **kwargs) -> str:
 	*.
 	The formatted output string is returned.
 	"""
-	css_class_divider = _wrap_line("--")
+	css_class_divider = common.wrap_line("--")
 	output = css_class_divider
 	word_to_find = kwargs.get('grep')
 
 	if word_to_find:
-		word_to_find = _sanitize_input_word(word_to_find)
+		word_to_find = common.sanitize_input_word(word_to_find)
 
 	for line in stdout:
 		if word_to_find:
-			line = _highlight_word(line, word_to_find)
+			line = common.highlight_word(line, word_to_find)
 		line_class = _classify_line(line)
-		output += _wrap_line(line, line_class)
+		output += common.wrap_line(line, line_class)
 
 	output += css_class_divider
 	return output
@@ -504,7 +485,7 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 	user_uuid = request.cookies.get('uuid')
 	group_id = int(request.cookies.get('group'))
 	configs_dir = config_common.get_config_dir(service)
-	server_id = sql.select_server_id_by_ip(server_ip)
+	server_id = server_sql.select_server_id_by_ip(server_ip)
 
 	try:
 		config_file_name = config_file_name.replace('/', '92')
@@ -536,13 +517,13 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 		'conf': conf,
 		'serv': server_ip,
 		'configver': configver,
-		'role': sql.get_user_role_by_uuid(user_uuid, group_id),
+		'role': user_sql.get_user_role_by_uuid(user_uuid, group_id),
 		'service': service,
 		'config_file_name': config_file_name,
-		'is_serv_protected': sql.is_serv_protected(server_ip),
-		'is_restart': sql.select_service_setting(server_id, service, 'restart'),
+		'is_serv_protected': server_sql.is_serv_protected(server_ip),
+		'is_restart': service_sql.select_service_setting(server_id, service, 'restart'),
 		'lang': roxywi_common.get_user_lang_for_flask(),
-		'hostname': sql.get_hostname_by_server_ip(server_ip)
+		'hostname': server_sql.get_hostname_by_server_ip(server_ip)
 	}
 
 	return render_template('ajax/config_show.html', **kwargs)
@@ -586,8 +567,8 @@ def list_of_versions(server_ip: str, service: str, configver: str, for_delver: i
 	:param for_delver: The delete version to use.
 	:return: The rendered HTML template with the list of versions.
 	"""
-	users = sql.select_users()
-	configs = sql.select_config_version(server_ip, service)
+	users = user_sql.select_users()
+	configs = config_sql.select_config_version(server_ip, service)
 	lang = roxywi_common.get_user_lang_for_flask()
 	action = f'/app/config/versions/{service}/{server_ip}'
 	config_dir = config_common.get_config_dir(service)

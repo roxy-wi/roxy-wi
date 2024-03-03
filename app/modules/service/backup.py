@@ -2,11 +2,15 @@ import os
 
 from flask import render_template
 
-import modules.db.sql as sql
-import modules.server.ssh as ssh_mod
-import modules.server.server as server_mod
-import modules.roxywi.common as roxywi_common
-import modules.service.installation as installation_mod
+import app.modules.db.sql as sql
+import app.modules.db.cred as cred_sql
+import app.modules.db.backup as backup_sql
+import app.modules.db.server as server_sql
+import app.modules.db.service as service_sql
+import app.modules.server.ssh as ssh_mod
+import app.modules.server.server as server_mod
+import app.modules.roxywi.common as roxywi_common
+import app.modules.service.installation as installation_mod
 
 
 def backup(serv, rpath, time, backup_type, rserver, cred, deljob, update, description) -> str:
@@ -22,7 +26,7 @@ def backup(serv, rpath, time, backup_type, rserver, cred, deljob, update, descri
         deljob = ''
     else:
         deljob = ''
-        if sql.check_exists_backup(serv):
+        if backup_sql.check_exists_backup(serv):
             return f'warning: Backup job for {serv} already exists'
 
     os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
@@ -47,21 +51,21 @@ def backup(serv, rpath, time, backup_type, rserver, cred, deljob, update, descri
                 return f'error: {output}'
     else:
         if not deljob and not update:
-            if sql.insert_backup_job(serv, rserver, rpath, backup_type, time, cred, description):
+            if backup_sql.insert_backup_job(serv, rserver, rpath, backup_type, time, cred, description):
                 roxywi_common.logging('backup ', f' a new backup job for server {serv} has been created', roxywi=1,
                                       login=1)
                 return render_template(
-                    'ajax/new_backup.html', backups=sql.select_backups(server=serv, rserver=rserver), sshs=sql.select_ssh()
+                    'ajax/new_backup.html', backups=backup_sql.select_backups(server=serv, rserver=rserver), sshs=cred_sql.select_ssh()
                 )
 
             else:
                 raise Exception('error: Cannot add the job into DB')
         elif deljob:
-            sql.delete_backups(deljob)
+            backup_sql.delete_backups(deljob)
             roxywi_common.logging('backup ', f' a backup job for server {serv} has been deleted', roxywi=1, login=1)
             return 'ok'
         elif update:
-            sql.update_backup(serv, rserver, rpath, backup_type, time, cred, description, update)
+            backup_sql.update_backup(serv, rserver, rpath, backup_type, time, cred, description, update)
             roxywi_common.logging('backup ', f' a backup job for server {serv} has been updated', roxywi=1, login=1)
             return 'ok'
 
@@ -77,7 +81,7 @@ def s3_backup(server, s3_server, bucket, secret_key, access_key, time, deljob, d
         access_key = ''
         tag = 'delete'
     else:
-        if sql.check_exists_s3_backup(server):
+        if backup_sql.check_exists_s3_backup(server):
             raise Exception(f'error: Backup job for {server} already exists')
 
     os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
@@ -98,15 +102,15 @@ def s3_backup(server, s3_server, bucket, secret_key, access_key, time, deljob, d
         try:
             if installation_mod.show_installation_output(return_out['error'], return_out['output'], 'S3 backup', rc=return_out['rc']):
                 try:
-                    sql.insert_s3_backup_job(server, s3_server, bucket, secret_key, access_key, time, description)
+                    backup_sql.insert_s3_backup_job(server, s3_server, bucket, secret_key, access_key, time, description)
                 except Exception as e:
                     raise Exception(f'error: {e}')
         except Exception as e:
             raise Exception(e)
         roxywi_common.logging('backup ', f' a new S3 backup job for server {server} has been created', roxywi=1, login=1)
-        return render_template('ajax/new_s3_backup.html', backups=sql.select_s3_backups(server=server, s3_server=s3_server, bucket=bucket))
+        return render_template('ajax/new_s3_backup.html', backups=backup_sql.select_s3_backups(server=server, s3_server=s3_server, bucket=bucket))
     elif deljob:
-        sql.delete_s3_backups(deljob)
+        backup_sql.delete_s3_backups(deljob)
         roxywi_common.logging('backup ', f' a S3 backup job for server {server} has been deleted', roxywi=1, login=1)
         return 'ok'
 
@@ -114,9 +118,9 @@ def s3_backup(server, s3_server, bucket, secret_key, access_key, time, deljob, d
 def git_backup(server_id, service_id, git_init, repo, branch, period, cred, deljob, description, backup_id) -> str:
     servers = roxywi_common.get_dick_permit()
     proxy = sql.get_setting('proxy')
-    services = sql.select_services()
-    server_ip = sql.select_server_ip_by_id(server_id)
-    service_name = sql.select_service_name_by_id(service_id).lower()
+    services = service_sql.select_services()
+    server_ip = server_sql.select_server_ip_by_id(server_id)
+    service_name = service_sql.select_service_name_by_id(service_id).lower()
     service_config_dir = sql.get_setting(service_name + '_dir')
     script = 'git_backup.sh'
     proxy_serv = ''
@@ -154,12 +158,12 @@ def git_backup(server_id, service_id, git_init, repo, branch, period, cred, delj
                 return 'error: ' + output
     else:
         if deljob == '0':
-            if sql.insert_new_git(
+            if backup_sql.insert_new_git(
                     server_id=server_id, service_id=service_id, repo=repo, branch=branch,
                     period=period, cred=cred, description=description
             ):
-                gits = sql.select_gits(server_id=server_id, service_id=service_id)
-                sshs = sql.select_ssh()
+                gits = backup_sql.select_gits(server_id=server_id, service_id=service_id)
+                sshs = cred_sql.select_ssh()
 
                 lang = roxywi_common.get_user_lang_for_flask()
                 roxywi_common.logging(
@@ -168,5 +172,5 @@ def git_backup(server_id, service_id, git_init, repo, branch, period, cred, delj
                 )
                 return render_template('ajax/new_git.html', gits=gits, sshs=sshs, servers=servers, services=services, new_add=1, lang=lang)
         else:
-            if sql.delete_git(backup_id):
+            if backup_sql.delete_git(backup_id):
                 return 'ok'

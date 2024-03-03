@@ -5,6 +5,9 @@ from flask_login import login_required
 
 from app.routes.server import bp
 import app.modules.db.sql as sql
+import app.modules.db.cred as cred_sql
+import app.modules.db.group as group_sql
+import app.modules.db.server as server_sql
 import app.modules.common.common as common
 import app.modules.roxywi.group as group_mod
 import app.modules.roxywi.auth as roxywi_auth
@@ -30,7 +33,7 @@ def check_ssh(server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
 
     try:
-        return server_mod.ssh_command(server_ip, ["ls -1t"])
+        return server_mod.ssh_command(server_ip, "ls -1t")
     except Exception as e:
         return str(e)
 
@@ -46,9 +49,9 @@ def check_server(server_ip):
 def show_if(server_ip):
     roxywi_auth.page_for_admin(level=2)
     server_ip = common.is_ip_or_dns(server_ip)
-    commands = ["sudo ip link|grep 'UP' |grep -v 'lo'| awk '{print $2}' |awk -F':' '{print $1}'"]
+    command = "sudo ip link|grep 'UP' |grep -v 'lo'| awk '{print $2}' |awk -F':' '{print $1}'"
 
-    return server_mod.ssh_command(server_ip, commands)
+    return server_mod.ssh_command(server_ip, command)
 
 
 @bp.route('/create', methods=['POST'])
@@ -113,8 +116,8 @@ def create_server():
             roxywi_common.logging(ip, f'A new server {hostname} has been created', roxywi=1, login=1, keep_history=1, service='server')
 
             return render_template(
-                'ajax/new_server.html', groups=sql.select_groups(), servers=sql.select_servers(server=ip), lang=lang,
-                masters=sql.select_servers(get_master_servers=1), sshs=sql.select_ssh(group=group), page=page,
+                'ajax/new_server.html', groups=group_sql.select_groups(), servers=server_sql.select_servers(server=ip), lang=lang,
+                masters=server_sql.select_servers(get_master_servers=1), sshs=cred_sql.select_ssh(group=group), page=page,
                 user_subscription=user_subscription, adding=1
             )
     except Exception as e:
@@ -151,8 +154,8 @@ def update_server():
     if name is None or port is None:
         return error_mess
     else:
-        sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, firewall, protected)
-        server_ip = sql.select_server_ip_by_id(serv_id)
+        server_sql.update_server(name, group, typeip, enable, master, serv_id, cred, port, desc, firewall, protected)
+        server_ip = server_sql.select_server_ip_by_id(serv_id)
         roxywi_common.logging(server_ip, f'The server {name} has been update', roxywi=1, login=1, keep_history=1, service='server')
 
     return 'ok'
@@ -173,9 +176,9 @@ def create_group():
         return error_mess
     else:
         try:
-            if sql.add_group(newgroup, desc):
+            if group_sql.add_group(newgroup, desc):
                 roxywi_common.logging('Roxy-WI server', f'A new group {newgroup} has been created', roxywi=1, login=1)
-                return render_template('ajax/new_group.html', groups=sql.select_groups(group=newgroup))
+                return render_template('ajax/new_group.html', groups=group_sql.select_groups(group=newgroup))
         except Exception as e:
             return str(e)
 

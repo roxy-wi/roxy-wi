@@ -5,19 +5,13 @@ from datetime import datetime
 
 from app.routes.smon import bp
 from app.middleware import get_user_params
-from app.modules.db.db_model import conn
-import app.modules.db.sql as sql
+import app.modules.db.history as history_sql
 import app.modules.db.smon as smon_sql
+import app.modules.db.channel as channel_sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.smon as smon_mod
 import app.modules.tools.common as tools_common
-
-
-@bp.teardown_request
-def _db_close(exc):
-    if not conn.is_closed():
-        conn.close()
 
 
 @bp.route('/dashboard')
@@ -41,9 +35,9 @@ def smon_main_dashboard():
         'group': group_id,
         'smon_status': tools_common.is_tool_active('roxy-wi-smon'),
         'user_subscription': roxywi_common.return_user_subscription(),
-        'telegrams': sql.get_user_telegram_by_group(group_id),
-        'slacks': sql.get_user_pd_by_group(group_id),
-        'pds': sql.get_user_slack_by_group(group_id),
+        'telegrams': channel_sql.get_user_telegram_by_group(group_id),
+        'slacks': channel_sql.get_user_pd_by_group(group_id),
+        'pds': channel_sql.get_user_slack_by_group(group_id),
         'sort': request.args.get('sort', None)
     }
 
@@ -337,9 +331,10 @@ def smon_history():
 
     kwargs = {
         'lang': g.user_params['lang'],
-        'smon': sql.alerts_history('SMON', g.user_params['group_id']),
+        'smon': history_sql.alerts_history('SMON', g.user_params['group_id']),
         'smon_status': tools_common.is_tool_active('roxy-wi-smon'),
-        'user_subscription': roxywi_common.return_user_subscription()
+        'user_subscription': roxywi_common.return_user_subscription(),
+        'action': 'smon'
     }
 
     return render_template('smon/history.html', **kwargs)
@@ -351,15 +346,16 @@ def smon_history():
 def smon_host_history(server_ip):
     roxywi_common.check_user_group_for_flask()
 
-    needed_host = common.is_ip_or_dns(server_ip)
+    needed_host = common.checkAjaxInput(server_ip)
     smon_status = tools_common.is_tool_active('roxy-wi-smon')
-    smon = sql.alerts_history('SMON', g.user_params['group_id'], host=needed_host)
+    smon = history_sql.alerts_history('SMON', g.user_params['group_id'], host=needed_host)
     user_subscription = roxywi_common.return_user_subscription()
     kwargs = {
         'lang': g.user_params['lang'],
         'smon': smon,
         'smon_status': smon_status,
-        'user_subscription': user_subscription
+        'user_subscription': user_subscription,
+        'action': 'smon'
     }
 
     return render_template('smon/history.html', **kwargs)

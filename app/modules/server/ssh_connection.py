@@ -58,7 +58,7 @@ class SshConnection:
         if kwargs.get('timeout'):
             timeout = kwargs.get('timeout')
         else:
-            timeout = 1
+            timeout = 5
         try:
             stdin, stdout, stderr = self.ssh.exec_command(command, get_pty=True, timeout=timeout)
         except Exception as e:

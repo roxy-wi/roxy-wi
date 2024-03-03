@@ -132,7 +132,7 @@ def get_remote_sections(server_ip: str, service: str) -> str:
 	if service == 'apache':
 		section_name = 'ServerName'
 
-	commands = [f"sudo grep {section_name} {config_dir}*/*.conf -R |grep -v '${{}}\|#'|awk '{{print $1, $3}}'"]
+	commands = f"sudo grep {section_name} {config_dir}*/*.conf -R |grep -v '${{}}\|#'|awk '{{print $1, $3}}'"
 
 	backends = server_mod.ssh_command(server_ip, commands)
 

@@ -1,6 +1,6 @@
 import psutil
 
-import app.modules.db.sql as sql
+import app.modules.db.metric as metric_sql
 import app.modules.server.server as server_mod
 
 
@@ -56,7 +56,7 @@ def show_cpu_metrics(metrics_type: str) -> dict:
 
 
 def haproxy_metrics(server_ip: str, hostname: str, time_range: str) -> dict:
-    metric = sql.select_metrics(server_ip, 'haproxy', time_range=time_range)
+    metric = metric_sql.select_metrics(server_ip, 'haproxy', time_range=time_range)
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}
     labels = ''
@@ -84,7 +84,7 @@ def haproxy_metrics(server_ip: str, hostname: str, time_range: str) -> dict:
 
 
 def haproxy_http_metrics(server_ip: str, hostname: str, time_range: str) -> dict:
-    metric = sql.select_metrics(server_ip, 'http_metrics', time_range=time_range)
+    metric = metric_sql.select_metrics(server_ip, 'http_metrics', time_range=time_range)
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}
     labels = ''
@@ -115,7 +115,7 @@ def haproxy_http_metrics(server_ip: str, hostname: str, time_range: str) -> dict
 
 
 def service_metrics(server_ip: str, hostname: str, service: str, time_range: str) -> dict:
-    metric = sql.select_metrics(server_ip, service, time_range=time_range)
+    metric = metric_sql.select_metrics(server_ip, service, time_range=time_range)
 
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}

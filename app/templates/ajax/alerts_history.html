@@ -1,15 +1,15 @@
 <link href="{{ url_for('static', filename='css/table-6.3.9.css') }}" rel="stylesheet" type="text/css">
 <script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
-{% if action == "history" %}
-    {% set column_for_sort = 4 %}
+{% if action == "checker" %}
+{% set column_for_sort = 3 %}
 {% else %}
-    {% set column_for_sort = 3 %}
+{% set column_for_sort = 4 %}
 {% endif %}
 <script>
     $(document).ready(function() {
         $('#alerts_table').on( 'page.dt' )
             .DataTable( {
-                "order": [[ {{column_for_sort}}, "desc" ]],
+                "order": [[ {{ column_for_sort }}, "desc" ]],
                 "pageLength": 25,
                 "columnDefs": [
                     {
@@ -25,8 +25,12 @@
     <thead>
         <tr class="overviewHead">
             <th class="padding10" style="width: 10%; padding-left: 10px;">{{lang.words.level|title()}}</th>
-            <th>{{lang.words.host|title()}}</th>
-            {% if action != "checker_history" %}
+            {% if action == 'smon' %}
+                <th>{{lang.words.check|title()}}</th>
+            {% else %}
+                <th>{{lang.words.host|title()}}</th>
+            {% endif %}
+            {% if action != "checker" %}
             <th>{{lang.words.port|title()}}</th>
             {% endif %}
             <th>{{lang.words.alert|title()}}</th>
@@ -49,8 +53,14 @@
             {% endif %}
             <span style="color: {{color}};"><b>{{t.1 |upper}}</b></span>
         </td>
-        <td><a href="/app/history/server/{{t.2}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2}}</a></td>
-        {% if action != "checker_history" %}
+        <td>
+            {% if action == 'smon' %}
+            <a href="/app/smon/history/host/{{t.2}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2}}</a>
+            {% else %}
+            <a href="/app/history/server/{{t.2}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2}}</a>
+            {% endif %}
+        </td>
+        {% if action != "checker" %}
         <td>{{t.3}}</td>
         {% endif %}
         <td>{{t.0}}</td>

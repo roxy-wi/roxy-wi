@@ -53,7 +53,7 @@ def telnet_from_server(server_from: str, server_to: str, port_to: str) -> str:
         action_for_sending = f'echo "exit"|nc {server_to} {port_to} -t -w 1s'
         output, stderr = server_mod.subprocess_execute(action_for_sending)
     else:
-        action_for_sending = [f'echo "exit"|nc {server_to} {port_to} -t -w 1s']
+        action_for_sending = f'echo "exit"|nc {server_to} {port_to} -t -w 1s'
         output = server_mod.ssh_command(server_from, action_for_sending, raw=1)
 
     if stderr != '':
@@ -85,7 +85,6 @@ def nslookup_from_server(server_from: str, dns_name: str, record_type: str) -> s
     if server_from == 'localhost':
         output, stderr = server_mod.subprocess_execute(action_for_sending)
     else:
-        action_for_sending = [action_for_sending]
         output = server_mod.ssh_command(server_from, action_for_sending, raw=1)
 
     if stderr != '':
