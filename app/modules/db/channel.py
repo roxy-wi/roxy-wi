@@ -51,13 +51,6 @@ def get_user_pd_by_group(group):
 		out_error(e)
 
 
-def get_user_pd_by_group(group):
-	try:
-		return PD.select().where(PD.groups == group).execute()
-	except Exception as e:
-		out_error(e)
-
-
 def get_pd_by_ip(ip):
 	query = PD.select().join(Server, on=(Server.groups == PD.groups)).where(Server.ip == ip)
 	try:

@@ -6,7 +6,7 @@ from flask_login import login_required
 from app.routes.add import bp
 import app.modules.db.sql as sql
 import app.modules.db.add as add_sql
-from middleware import check_services, get_user_params
+from app.middleware import check_services, get_user_params
 import app.modules.config.add as add_mod
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
@@ -128,7 +128,7 @@ def add_haproxy():
     else:
         return 'error: The name cannot be empty'
 
-    if request.form.get('backends') != '':
+    if request.form.get('backends') != '' and request.form.get('backends'):
         backend = f"    default_backend {request.form.get('backends')}\n"
 
     if request.form.get('maxconn'):

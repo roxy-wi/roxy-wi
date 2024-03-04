@@ -39,7 +39,7 @@ def service_action(server_ip: str, action: str, service: str) -> str:
     server_id = server_sql.select_server_id_by_ip(server_ip=server_ip)
 
     if service_common.is_not_allowed_to_restart(server_id, service, action):
-        return f'error: This server is not allowed to be restarted'
+        return 'error: This server is not allowed to be restarted'
 
     try:
         if service != 'keepalived':

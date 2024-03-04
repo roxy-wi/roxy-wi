@@ -645,6 +645,7 @@ def count_agents() -> int:
 
 
 def delete_smon_history():
+	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
 	cur_date = get_date.return_date('regular', timedelta_minus=1)
 	query = SmonHistory.delete().where(SmonHistory.date < cur_date)
 	try:

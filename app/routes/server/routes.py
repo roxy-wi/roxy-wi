@@ -4,7 +4,6 @@ from flask import render_template, request
 from flask_login import login_required
 
 from app.routes.server import bp
-import app.modules.db.sql as sql
 import app.modules.db.cred as cred_sql
 import app.modules.db.group as group_sql
 import app.modules.db.server as server_sql

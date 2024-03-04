@@ -3,7 +3,6 @@ from flask_login import login_required
 
 from app.routes.portscanner import bp
 from app.middleware import get_user_params
-import app.modules.db.sql as sql
 import app.modules.db.server as server_sql
 import app.modules.db.portscanner as ps_sql
 import app.modules.common.common as common

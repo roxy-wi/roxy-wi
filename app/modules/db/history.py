@@ -90,3 +90,30 @@ def delete_action_history_for_period():
 		query.execute()
 	except Exception as e:
 		out_error(e)
+
+
+def select_action_history_by_server_id(server_id: int):
+	try:
+		return ActionHistory.select().where(ActionHistory.server_id == server_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_action_history_by_user_id(user_id: int):
+	try:
+		return ActionHistory.select().where(ActionHistory.user_id == user_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_action_history_by_server_id_and_service(server_id: int, service: str):
+	query = ActionHistory.select().where(
+		(ActionHistory.server_id == server_id)
+		& (ActionHistory.service == service)
+	)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res

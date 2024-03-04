@@ -2,7 +2,7 @@ from flask import render_template, request, g
 from flask_login import login_required
 
 from app.routes.runtime import bp
-from middleware import get_user_params
+from app.middleware import get_user_params
 import app.modules.common.common as common
 import app.modules.config.runtime as runtime
 import app.modules.service.haproxy as service_haproxy
@@ -11,7 +11,7 @@ import app.modules.service.haproxy as service_haproxy
 @bp.before_request
 @login_required
 def before_request():
-    """ Protect all of the admin endpoints. """
+    """ Protect all the admin endpoints. """
     pass
 
 

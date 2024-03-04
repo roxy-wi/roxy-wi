@@ -4,8 +4,7 @@ from flask import render_template, g, request, jsonify
 from flask_login import login_required
 
 from app.routes.ha import bp
-from middleware import get_user_params, check_services
-import app.modules.db.sql as sql
+from app.middleware import get_user_params, check_services
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql

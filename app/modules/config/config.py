@@ -34,7 +34,7 @@ def _replace_config_path_to_correct(config_path: str) -> str:
 	try:
 		return config_path.replace('92', '/')
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot sanitize config file', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot sanitize config file', roxywi=1)
 
 
 def get_config(server_ip, cfg, service='haproxy', **kwargs):
@@ -136,7 +136,7 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 		reload_or_restart_command = ''
 	else:
 		if service_common.is_not_allowed_to_restart(server_id, service, just_save):
-			raise Exception(f'error: This server is not allowed to be restarted')
+			raise Exception('error: This server is not allowed to be restarted')
 
 	if service == 'waf':
 		commands = f'{move_config} {reload_or_restart_command}'
@@ -227,7 +227,7 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	try:
 		upload(server_ip, tmp_file, cfg)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot upload config', login=login)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot upload config', login=login)
 
 	try:
 		if just_save != 'test':
