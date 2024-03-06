@@ -87,7 +87,6 @@
     - sestatus.stdout is defined
     - '"Enforcing" in sestatus.stdout'
 
-
 - name: Enable and start service keepalived
   service:
     name: keepalived
@@ -95,7 +94,6 @@
     state: started
     enabled: yes
   ignore_errors: yes
-
 
 - name: Enable net.ipv4.ip_forward
   sysctl:
@@ -105,6 +103,32 @@
     state: present
     reload: yes
 
+- name: permit vrrp traffic
+  ansible.posix.firewalld:
+    protocol: vrrp
+    permanent: true
+    state: enabled
+  ignore_errors: yes
+  no_log: True
+  debugger: never
+  when:
+    - '"firewalld" in ansible_facts.packages'
+    - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+    - ansible_facts.services["firewalld.service"]['state'] == "running"
+
+- name: Open input vrrp port for iptables
+  iptables:
+    chain: INPUT
+    jump: ACCEPT
+    protocol: vrrp
+  ignore_errors: yes
+
+- name: Open output vrrp port for iptables
+  iptables:
+    chain: OUTPUT
+    jump: ACCEPT
+    protocol: vrrp
+  ignore_errors: yes
 
 - name: Add syn_flood tasks
   include_tasks: ../../haproxy/tasks/syn_flood.yml

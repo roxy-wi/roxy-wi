@@ -27,7 +27,6 @@ def alerts_history(service, user_group, **kwargs):
 	except Exception as e:
 		out_error(e)
 	else:
-		conn.close()
 		return cursor.fetchall()
 
 

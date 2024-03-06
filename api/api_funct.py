@@ -796,7 +796,7 @@ def upload_ssh_key():
 	passphrase = json_loads['passphrase']
 	token = request.headers.get('token')
 	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
-	groups = sql.select_groups(id=group_id)
+	groups = group_sql.select_groups(id=group_id)
 	for group in groups:
 		user_group = group.name
 	try:
