@@ -3,10 +3,8 @@
 {% for agent in agents %}
 <div id="agent-{{agent.id}}" class="div-server-hapwi">
     <div class="server-name">
-        <a href="/app/ha/agent/{{agent.id}}" style="color: #5d9ceb" title="{{lang.words.open|title()}} {{lang.words.agent}}">
-            <span id="agent-name-{{agent.id}}">{{agent.name.replace("'","")}}</span>
-            <span id="agent-desc-{{agent.id}}">{% if agent.desc != '' %} ({{agent.desc.replace("'", "")}}) {% endif %}</span>
-        </a>
+        <span id="agent-name-{{agent.id}}">{{agent.name.replace("'","")}}</span>
+        <span id="agent-desc-{{agent.id}}">{% if agent.desc != '' %} ({{agent.desc.replace("'", "")}}) {% endif %}</span>
         <span class="server-action">
             {% if g.user_params['role'] <= 3 %}
             <a id="start-{{ agent.id }}" class="start" title="{{lang.words.start|title()}}">

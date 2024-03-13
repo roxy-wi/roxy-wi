@@ -1,7 +1,10 @@
-from playhouse.migrate import *
 from datetime import datetime
+
+from playhouse.migrate import *
 from flask_login import UserMixin
 from playhouse.shortcuts import ReconnectMixin
+from playhouse.sqlite_ext import SqliteExtDatabase
+
 import modules.roxy_wi_tools as roxy_wi_tools
 
 get_config = roxy_wi_tools.GetConfigVar()
@@ -23,7 +26,11 @@ def connect(get_migrator=None):
         migrator = MySQLMigrator(conn)
     else:
         db = "/var/lib/roxy-wi/roxy-wi.db"
-        conn = SqliteDatabase(db, pragmas={'timeout': 1000, 'foreign_keys': 1})
+        conn = SqliteExtDatabase(db, pragmas=(
+            ('cache_size', -1024 * 64),  # 64MB page-cache.
+            ('journal_mode', 'wal'),
+            ('foreign_keys', 1)
+        ))
         migrator = SqliteMigrator(conn)
     if get_migrator:
         return migrator

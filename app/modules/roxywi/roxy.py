@@ -20,8 +20,10 @@ def is_docker() -> bool:
 		for line in f:
 			if re.match("\d+:[\w=]+:/docker(-[ce]e)?/\w+", line):
 				return True
-		return False
-
+	return_out = server_mod.subprocess_execute_with_rc('systemctl status sshd')
+	if return_out['rc']:
+		return True
+	return False
 
 def check_ver():
 	return roxy_sql.get_ver()

@@ -231,11 +231,15 @@ function getCheckSettings(smon_id, check_type) {
 			$('#new-smon-resolver-server').val(data['resolver']);
 			$('#new-smon-dns_record_typer').val(data['record_type']);
 			$('#new-smon-url').val(data['url']);
-			$('#new-smon-group').val(data['group']);
-			$('#new-smon-description').val(data['desc'])
+			$('#new-smon-group').val(data['group'].replaceAll("'", ""));
+			$('#new-smon-description').val(data['desc'].replaceAll("'", ""))
 			$('#new-smon-packet_size').val(data['packet_size'])
 			$('#new-smon-interval').val(data['interval'])
-			$('#new-smon-body').val(data['body'])
+			try {
+				$('#new-smon-body').val(data['body'].replaceAll("'", ""))
+			} catch (e) {
+				$('#new-smon-body').val(data['body'])
+			}
 			$('#new-smon-agent-id').val(data['agent_id']).change()
 			$('#new-smon-telegram').val(data['tg']).change()
 			$('#new-smon-slack').val(data['slack']).change()
