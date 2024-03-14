@@ -20,7 +20,7 @@ def is_docker() -> bool:
 		for line in f:
 			if re.match("\d+:[\w=]+:/docker(-[ce]e)?/\w+", line):
 				return True
-	return_out = server_mod.subprocess_execute_with_rc('systemctl status sshd')
+	return_out = server_mod.subprocess_execute_with_rc('systemctl status rsyslog')
 	if return_out['rc']:
 		return True
 	return False

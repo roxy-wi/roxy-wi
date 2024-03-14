@@ -17,8 +17,14 @@ def get_services_status(update_cur_ver=0):
 
     try:
         for s, v in services_name.items():
-            status = is_tool_active(s)
-            services.append([s, status, v])
+            try:
+                status = is_tool_active(s)
+            except Exception as e:
+                raise Exception(f'error: Cannot get status for tool {s}: {e}')
+            try:
+                services.append([s, status, v])
+            except Exception as e:
+                raise Exception(f'error: Cannot combine status for tool {s}: {e}')
     except Exception as e:
         raise Exception(f'error: Cannot get tools status: {e}')
 
@@ -55,7 +61,7 @@ def update_roxy_wi(service: str) -> str:
 def is_tool_active(tool_name: str) -> str:
     is_in_docker = roxywi_mod.is_docker()
     if is_in_docker:
-        cmd = f"sudo supervisorctl status {tool_name}|awk '{{print $2}}'"
+        cmd = f"supervisorctl status {tool_name}|awk '{{print $2}}'"
     else:
         cmd = f"systemctl is-active {tool_name}"
     status, stderr = server_mod.subprocess_execute(cmd)
