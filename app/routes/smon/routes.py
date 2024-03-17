@@ -347,6 +347,8 @@ def smon_host_history(server_ip):
     roxywi_common.check_user_group_for_flask()
 
     needed_host = common.checkAjaxInput(server_ip)
+    if ' ' in needed_host:
+        needed_host = f"'{needed_host}'"
     smon_status = tools_common.is_tool_active('roxy-wi-smon')
     smon = history_sql.alerts_history('SMON', g.user_params['group_id'], host=needed_host)
     user_subscription = roxywi_common.return_user_subscription()

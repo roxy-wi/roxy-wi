@@ -1,7 +1,9 @@
 import os
 import json
+from packaging import version
 
 from flask import render_template
+import ansible
 import ansible_runner
 
 import app.modules.db.sql as sql
@@ -374,6 +376,7 @@ def run_ansible(inv: dict, server_ips: str, ansible_role: str) -> object:
 		'AWX_DISPLAY': False,
 		'SSH_AUTH_PID': agent_pid['pid'],
 		'SSH_AUTH_SOCK': agent_pid['socket'],
+		'ANSIBLE_PYTHON_INTERPRETER': '/usr/bin/python3'
 	}
 	kwargs = {
 		'private_data_dir': '/var/www/haproxy-wi/app/scripts/ansible/',
@@ -461,12 +464,15 @@ def install_service(service: str, json_data: str) -> object:
 
 
 def _install_ansible_collections():
+	old_ansible_server = ''
 	collections = ('community.general', 'ansible.posix', 'community.docker')
 	trouble_link = 'Read <a href="https://roxy-wi.org/troubleshooting#ansible_collection" target="_blank" class="link">troubleshooting</a>'
 	for collection in collections:
 		if not os.path.isdir(f'/usr/share/httpd/.ansible/collections/ansible_collections/{collection.replace(".", "/")}'):
 			try:
-				exit_code = os.system(f'ansible-galaxy collection install {collection}')
+				if version.parse(ansible.__version__) < version.parse('2.13.9'):
+					old_ansible_server = '--server https://old-galaxy.ansible.com/'
+				exit_code = os.system(f'ansible-galaxy collection install {collection} {old_ansible_server}')
 			except Exception as e:
 				roxywi_common.handle_exceptions(e,
 												'Roxy-WI server',

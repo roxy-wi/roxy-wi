@@ -3,7 +3,7 @@
 {% block h2 %}{{lang.words.admin_area|title()}}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import select, checkbox %}
-<script src="/inc/users.js"></script>
+<script src="{{ url_for('static', filename='js/install.js') }}"></script>
 <script src="/inc/fontawesome.min.js"></script>
 <div id="tabs">
 	<ul id="admin-tabs">
@@ -39,8 +39,8 @@
 				</td>
 				<td class="padding10 first-collumn" style="width: 20%;">
 					{% set values = dict() %}
-					{% set values = {'2.4.23-1':'2.4.23-1','2.5.14-1':'2.5.14-1', '2.6.14-1':'2.6.14-1','2.7.9-1':'2.7.9-1','2.8.1-1':'2.8.1-1'} %}
-					{{ select('hapver',  values=values, selected='2.8.1-1', required='required') }}
+					{% set values = {'2.4.23-1':'2.4.23-1','2.5.14-1':'2.5.14-1', '2.6.14-1':'2.6.14-1','2.7.9-1':'2.7.9-1','2.8.1-1':'2.8.1-1','2.9.5-1':'2.9.5-1'} %}
+					{{ select('hapver',  values=values, selected='2.9.5-1', required='required') }}
 				</td>
 				<td class="padding10 first-collumn">
 					<select autofocus required name="haproxyaddserv" id="haproxyaddserv">

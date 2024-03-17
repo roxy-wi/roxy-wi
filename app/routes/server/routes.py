@@ -1,12 +1,13 @@
 import json
 
-from flask import render_template, request
+from flask import render_template, request, g
 from flask_login import login_required
 
 from app.routes.server import bp
 import app.modules.db.cred as cred_sql
 import app.modules.db.group as group_sql
 import app.modules.db.server as server_sql
+import app.modules.db.backup as backup_sql
 import app.modules.common.common as common
 import app.modules.roxywi.group as group_mod
 import app.modules.roxywi.auth as roxywi_auth
@@ -15,6 +16,7 @@ import app.modules.server.ssh as ssh_mod
 import app.modules.server.server as server_mod
 import app.modules.tools.smon as smon_mod
 import app.modules.service.backup as backup_mod
+from app.middleware import get_user_params
 
 error_mess = roxywi_common.return_error_message()
 
@@ -270,6 +272,22 @@ def show_firewall(server_ip):
 
     return server_mod.show_firewalld_rules(server_ip)
 
+
+@bp.route('/backup')
+@get_user_params()
+def load_backup():
+    user_group = g.user_params['group_id']
+    kwargs = {
+        'sshs': cred_sql.select_ssh(group=user_group),
+        'servers': roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1),
+        'backups': backup_sql.select_backups(),
+        's3_backups': backup_sql.select_s3_backups(),
+        'gits': backup_sql.select_gits(),
+        'lang': g.user_params['lang'],
+        'is_needed_tool': common.is_tool('ansible'),
+        'user_subscription': roxywi_common.return_user_subscription(),
+    }
+    return render_template('include/admin_backup.html', **kwargs)
 
 @bp.post('/backup/create')
 @bp.post('/backup/delete')

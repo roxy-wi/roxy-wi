@@ -174,7 +174,7 @@
                 {{ input('telegram-chanel-add') }}
             </td>
         </tr>
-        {% if page != "servers.py" %}
+        {% if g.user_params['role'] == 1 %}
         <tr>
             <td class="padding20">{{lang.words.group|title()}}</td>
             <td>
@@ -210,7 +210,7 @@
                 {{ input('slack-chanel-add') }}
             </td>
         </tr>
-        {% if page != "servers.py" %}
+        {% if g.user_params['role'] == 1 %}
         <tr>
             <td class="padding20">{{lang.words.group|title()}}</td>
             <td>
@@ -246,7 +246,7 @@
                 {{ input('pd-chanel-add') }}
             </td>
         </tr>
-        {% if page != "servers.py" %}
+        {% if g.user_params['role'] == 1 %}
         <tr>
             <td class="padding20">{{lang.words.group|title()}}</td>
             <td>

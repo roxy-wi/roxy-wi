@@ -1106,29 +1106,7 @@ $( function() {
 					$(this).children(".settings").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 					$(this).children(".settings").css('background-color', 'var(--right-menu-blue-rolor)');
 				});
-				$("#tabs").tabs("option", "active", 4);
-			});
-			$(".installproxy").on("click", function () {
-				$('.menu li ul li').each(function () {
-					$(this).find('a').css('padding-left', '20px');
-					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-					$(this).find('a').css('background-color', '#48505A');
-					$(this).children(".installproxy").css('padding-left', '30px');
-					$(this).children(".installproxy").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-					$(this).children(".installproxy").css('background-color', 'var(--right-menu-blue-rolor)');
-				});
-				$("#tabs").tabs("option", "active", 5);
-			});
-			$(".installmon").on("click", function () {
-				$('.menu li ul li').each(function () {
-					$(this).find('a').css('padding-left', '20px');
-					$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-					$(this).find('a').css('background-color', '#48505A');
-					$(this).children(".installmon").css('padding-left', '30px');
-					$(this).children(".installmon").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-					$(this).children(".installmon").css('background-color', 'var(--right-menu-blue-rolor)');
-				});
-				$("#tabs").tabs("option", "active", 6);
+				$("#tabs").tabs("option", "active", 3);
 			});
 			$(".backup").on("click", function () {
 				$('.menu li ul li').each(function () {
@@ -1139,7 +1117,8 @@ $( function() {
 					$(this).children(".backup").css('border-left', '4px solid var(--right-menu-blue-rolor)');
 					$(this).children(".backup").css('background-color', 'var(--right-menu-blue-rolor)');
 				});
-				$("#tabs").tabs("option", "active", 7);
+				$("#tabs").tabs("option", "active", 4);
+				loadBackup();
 			});
 		}
 	}

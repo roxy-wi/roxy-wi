@@ -4,6 +4,7 @@
 {% block content %}
 {% from 'include/input_macros.html' import input, select, copy_to_clipboard, checkbox %}
 <script src="/inc/users.js"></script>
+<script src="{{ url_for('static', filename='js/backup.js') }}"></script>
 <script src="/inc/fontawesome.min.js"></script>
 {% include 'include/del_confirm.html' %}
 <div id="tabs">
@@ -131,9 +132,7 @@
 		<div id="ajax-update"></div>
 	</div>
 
-	<div id="backup">
-		{% include 'include/admin_backup.html' %}
-	</div>
+	<div id="backup"></div>
 </div>
 {% include 'include/admins_dialogs.html' %}
 <script>

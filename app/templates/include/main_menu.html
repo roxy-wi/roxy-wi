@@ -90,6 +90,7 @@
 						<li><a href="{{ url_for('smon.smon_history') }}" title="{{lang.menu_links.monitoring.smon.history}}" class="lists head-submenu">{{lang.menu_links.monitoring.smon.history}}</a></li>
 						{% if g.user_params['role'] <= 3 %}
 						<li><a href="{{ url_for('smon.agent') }}" title="{{lang.menu_links.monitoring.smon.agent}}" class="admin head-submenu">{{lang.menu_links.monitoring.smon.agent}}</a></li>
+						<li><a href="{{ url_for('channel.channels') }}" title="{{lang.words.channels|title()}} {{ lang.words.for }} Checker {{ lang.words.and }} SMON" class="channel head-submenu">{{lang.words.channels|title}}</a></li>
 						<li><a href="{{ url_for('checker.checker_settings') }}" title="Checker: {{lang.words.settings}}" class="checker head-submenu">Checker: {{lang.words.settings|title()}}</a></li>
 						{% endif %}
 						<li><a href="{{ url_for('checker.checker_history') }}" title="{{lang.menu_links.monitoring.checker_history}}" class="lists head-submenu">{{lang.menu_links.monitoring.checker_history}}</a></li>

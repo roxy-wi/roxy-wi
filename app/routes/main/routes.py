@@ -13,7 +13,6 @@ import app.modules.db.sql as sql
 import app.modules.db.cred as cred_sql
 import app.modules.db.user as user_sql
 import app.modules.db.group as group_sql
-import app.modules.db.backup as backup_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
 import app.modules.db.history as history_sql
@@ -188,12 +187,8 @@ def servers():
         'timezones': pytz.all_timezones,
         'guide_me': 1,
         'settings': sql.get_setting('', all=1),
-        'backups': backup_sql.select_backups(),
-        's3_backups': backup_sql.select_s3_backups(),
         'page': 'servers.py',
         'ldap_enable': sql.get_setting('ldap_enable'),
-        'gits': backup_sql.select_gits(),
-        'is_needed_tool': common.is_tool('ansible'),
         'user_roles': user_sql.select_user_roles_by_group(user_group),
         'user_subscription': roxywi_common.return_user_subscription(),
         'lang': g.user_params['lang']

@@ -1,88 +1,10 @@
 var awesome = "/inc/fontawesome.min.js"
 var cur_url = window.location.href.split('/app/').pop();
 cur_url = cur_url.split('/');
+var add_word = $('#translate').attr('data-add');
+var delete_word = $('#translate').attr('data-delete');
+var cancel_word = $('#translate').attr('data-cancel');
 $( function() {
-	var add_word = $('#translate').attr('data-add');
-	var delete_word = $('#translate').attr('data-delete');
-	var cancel_word = $('#translate').attr('data-cancel');
-	$( "#backup_tabs" ).tabs();
-	$('#install').click(function() {
-		installService('haproxy')
-	});
-	$('#nginx_install').click(function() {
-		installService('nginx');
-	});
-	$('#apache_install').click(function() {
-		installService('apache');
-	});
-	$('#grafana_install').click(function() {
-		$("#ajaxmon").html('');
-		$("#ajaxmon").html(wait_mess);
-		$.ajax({
-			url: "/app/install/grafana",
-			// data: {
-			// 	token: $('#token').val()
-			// 	},
-			// type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				$("#ajaxmon").html('');
-				if (data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1' || data.indexOf('ERROR') != '-1') {
-					toastr.clear();
-					var p_err = show_pretty_ansible_error(data);
-					toastr.error(p_err);
-				} else if (data.indexOf('success') != '-1') {
-					toastr.clear();
-					toastr.success(data);
-				} else if (data.indexOf('Info') != '-1') {
-					toastr.clear();
-					toastr.info(data);
-				} else {
-					toastr.clear();
-					toastr.info(data);
-				}
-			}
-		});
-	});
-	$('#haproxy_exp_install').click(function() {
-		installExporter('haproxy');
-	});
-	$('#nginx_exp_install').click(function() {
-		installExporter('nginx');
-	});
-	$('#apache_exp_install').click(function() {
-		installExporter('apache');
-	});
-	$('#keepalived_exp_install').click(function() {
-		installExporter('keepalived');
-	});
-	$('#node_exp_install').click(function() {
-		installExporter('node');
-	});
-	$( "#haproxyaddserv" ).on('selectmenuchange',function() {
-		showServiceVersion('haproxy');
-	});
-	$( "#nginxaddserv" ).on('selectmenuchange',function() {
-		showServiceVersion('nginx');
-	});
-	$( "#apacheaddserv" ).on('selectmenuchange',function() {
-		showServiceVersion('apache');
-	});
-	$( "#haproxy_exp_addserv" ).on('selectmenuchange',function() {
-		showExporterVersion('haproxy');
-	});
-	$( "#nginx_exp_addserv" ).on('selectmenuchange',function() {
-		showExporterVersion('nginx');
-	});
-	$( "#apache_exp_addserv" ).on('selectmenuchange',function() {
-		showExporterVersion('apache');
-	});
-	$( "#keepalived_exp_addserv" ).on('selectmenuchange',function() {
-		showExporterVersion('keepalived');
-	});
-	$( "#node_exp_addserv" ).on('selectmenuchange',function() {
-		showExporterVersion('node');
-	});
 	$('#add-group-button').click(function() {
 		addGroupDialog.dialog('open');
 	});
@@ -116,8 +38,6 @@ $( function() {
 		addUserDialog.dialog('open');
 	});
 	var user_tabel_title = $( "#user-add-table-overview" ).attr('title');
-	var add_word = $('#translate').attr('data-add');
-	var canerl_word = $('#translate').attr('data-cancel');
 	var addUserDialog = $( "#user-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
@@ -210,196 +130,6 @@ $( function() {
 			}
 		}]
 	});
-	$('#add-telegram-button').click(function() {
-		addTelegramDialog.dialog('open');
-	});
-	$('#add-slack-button').click(function() {
-		addSlackDialog.dialog('open');
-	});
-	$('#add-pd-button').click(function() {
-		addPDDialog.dialog('open');
-	});
-	var telegram_tabel_title = $( "#telegram-add-table-overview" ).attr('title');
-	var addTelegramDialog = $( "#telegram-add-table" ).dialog({
-		autoOpen: false,
-		resizable: false,
-		height: "auto",
-		width: 600,
-		modal: true,
-		title: telegram_tabel_title,
-		show: {
-			effect: "fade",
-			duration: 200
-		},
-		hide: {
-			effect: "fade",
-			duration: 200
-		},
-		buttons: [{
-			text: add_word,
-			click: function () {
-				addRecevier(this, 'telegram');
-			}
-		}, {
-			text: cancel_word,
-			click: function () {
-				$(this).dialog("close");
-				clearTips();
-			}
-		}]
-	});
-	var slack_tabel_title = $( "#slack-add-table-overview" ).attr('title');
-	var addSlackDialog = $( "#slack-add-table" ).dialog({
-		autoOpen: false,
-		resizable: false,
-		height: "auto",
-		width: 600,
-		modal: true,
-		title: slack_tabel_title,
-		show: {
-			effect: "fade",
-			duration: 200
-		},
-		hide: {
-			effect: "fade",
-			duration: 200
-		},
-		buttons: [{
-			text: add_word,
-			click: function () {
-				addRecevier(this, 'slack');
-			}
-		}, {
-			text: cancel_word,
-			click: function () {
-				$(this).dialog("close");
-				clearTips();
-			}
-		}]
-	});
-	var pd_tabel_title = $( "#pd-add-table-overview" ).attr('title');
-	var addPDDialog = $( "#pd-add-table" ).dialog({
-		autoOpen: false,
-		resizable: false,
-		height: "auto",
-		width: 600,
-		modal: true,
-		title: pd_tabel_title,
-		show: {
-			effect: "fade",
-			duration: 200
-		},
-		hide: {
-			effect: "fade",
-			duration: 200
-		},
-		buttons: [{
-			text: add_word,
-			click: function () {
-				addRecevier(this, 'pd');
-			}
-		}, {
-			text: cancel_word,
-			click: function () {
-				$(this).dialog("close");
-				clearTips();
-			}
-		}]
-	});
-	$('#add-backup-button').click(function() {
-		addBackupDialog.dialog('open');
-	});
-	var backup_tabel_title = $( "#backup-add-table-overview" ).attr('title');
-	var addBackupDialog = $( "#backup-add-table" ).dialog({
-		autoOpen: false,
-		resizable: false,
-		height: "auto",
-		width: 600,
-		modal: true,
-		title: backup_tabel_title,
-		show: {
-			effect: "fade",
-			duration: 200
-		},
-		hide: {
-			effect: "fade",
-			duration: 200
-		},
-		buttons: {
-			"Add": function () {
-				addBackup(this);
-			},
-			Cancel: function () {
-				$(this).dialog("close");
-				clearTips();
-			}
-		}
-	});
-	$('#add-backup-s3-button').click(function() {
-		addS3BackupDialog.dialog('open');
-	});
-	var s3_backup_tabel_title = $( "#s3-backup-add-table-overview" ).attr('title');
-	var addS3BackupDialog = $( "#s3-backup-add-table" ).dialog({
-		autoOpen: false,
-		resizable: false,
-		height: "auto",
-		width: 600,
-		modal: true,
-		title: s3_backup_tabel_title,
-		show: {
-			effect: "fade",
-			duration: 200
-		},
-		hide: {
-			effect: "fade",
-			duration: 200
-		},
-		buttons: {
-			"Add": function () {
-				addS3Backup(this);
-			},
-			Cancel: function () {
-				$(this).dialog("close");
-				clearTips();
-			}
-		}
-	});
-	$('#add-git-button').click(function() {
-		addGitDialog.dialog('open');
-	});
-	var git_tabel_title = $( "#git-add-table-overview" ).attr('title');
-	var addGitDialog = $( "#git-add-table" ).dialog({
-		autoOpen: false,
-		resizable: false,
-		height: "auto",
-		width: 600,
-		modal: true,
-		title: git_tabel_title,
-		show: {
-			effect: "fade",
-			duration: 200
-		},
-		hide: {
-			effect: "fade",
-			duration: 200
-		},
-		buttons: {
-			"Add": function () {
-				addGit(this);
-			},
-			Cancel: function () {
-				$(this).dialog("close");
-				clearTips();
-			}
-		}
-	});
-	$('#git-init').click(function() {
-		if ($('#git-init').is(':checked')) {
-			$('.git-init-params').show();
-		} else {
-			$('.git-init-params').hide();
-		}
-	});
 	$( "#ajax-users input" ).change(function() {
 		var id = $(this).attr('id').split('-');
 		updateUser(id[1])
@@ -442,38 +172,6 @@ $( function() {
 	} else {
 		$('#ssh_pass').css('display', 'block');
 	}
-   $( "#checker_telegram_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
-		updateReceiver(id[2], 'telegram')
-	});
-	$( "#checker_telegram_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
-		updateReceiver(id[1], 'telegram')
-	});
-   $( "#checker_slack_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
-		updateReceiver(id[2], 'slack')
-	});
-	$( "#checker_slack_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
-		updateReceiver(id[1], 'slack')
-	});
-   $( "#checker_pd_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
-		updateReceiver(id[2], 'pd')
-	});
-	$( "#checker_pd_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
-		updateReceiver(id[1], 'pd')
-	});
-	$( "#ajax-backup-table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
-		updateBackup(id[2])
-	});
-	$( "#ajax-backup-table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
-		updateBackup(id[2])
-	});
 	$( "#scan_server" ).change(function() {
 		if ($('#scan_server').is(':checked')) {
 			$('.services_for_scan').hide();
@@ -549,53 +247,6 @@ $( function() {
 			clearTips();
 		}
 	});
-	$( "#geoipserv" ).on('selectmenuchange',function() {
-		if($('#geoip_service option:selected').val() != '------') {
-			checkGeoipInstallation();
-		}
-
-	});
-	$( "#geoip_service" ).on('selectmenuchange',function() {
-		if($('#geoipserv option:selected').val() != '------') {
-			checkGeoipInstallation();
-		}
-	});
-	$( "#geoip_install" ).click(function() {
-		var updating_geoip = 0;
-		if ($('#updating_geoip').is(':checked')) {
-			updating_geoip = '1';
-		}
-		$("#ajax-geoip").html(wait_mess);
-		$.ajax({
-			url: "/app/install/geoip",
-			data: {
-				server_ip: $('#geoipserv option:selected').val(),
-				service: $('#geoip_service option:selected').val(),
-				update: updating_geoip,
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/^\s+|\s+$/g, '');
-				$("#ajax-geoip").html('')
-				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
-					toastr.clear();
-					var p_err = show_pretty_ansible_error(data);
-					toastr.error(p_err);
-				} else if (data.indexOf('success:') != '-1') {
-					toastr.clear();
-					toastr.success(data);
-					$("#geoip_service").trigger("selectmenuchange");
-				} else if (data.indexOf('Info') != '-1') {
-					toastr.clear();
-					toastr.info(data);
-				} else {
-					toastr.clear();
-					toastr.info(data);
-				}
-			}
-		});
-	});
 	$("#tabs ul li").click(function() {
 		var activeTab = $(this).find("a").attr("href");
 		var activeTabClass = activeTab.replace('#', '');
@@ -613,15 +264,9 @@ $( function() {
 			loadupdatehapwi();
 		} else if (activeTab == '#openvpn'){
 			loadopenvpn();
+		} else if (activeTab == '#backup'){
+			loadBackup();
 		}
-	});
-	$("#backup_tabs ul li").click(function() {
-		$('.menu li ul li').each(function () {
-			$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-			$(this).find('a').css('padding-left', '20px')
-			$(this).children(".backup").css('padding-left', '30px');
-			$(this).children(".backup").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-		});
 	});
 } );
 window.onload = function() {
@@ -632,8 +277,14 @@ window.onload = function() {
 			loadServices();
 		} else if (activeTabIdx == 7) {
 			loadupdatehapwi();
+		} else if (activeTabIdx == 8) {
+			loadBackup();
 		} else if (activeTabIdx == 4) {
 			loadopenvpn();
+		}
+	} else if (cur_url[0].split('#')[0] == 'servers') {
+		if (activeTabIdx == 4) {
+			loadBackup();
 		}
 	}
 }
@@ -901,176 +552,6 @@ function getGroupNameById(group_id) {
 	});
 	return group_name;
 }
-function addRecevier(dialog_id, receiver_name) {
-	var valid = true;
-	toastr.clear();
-	let allFields = $([]).add($('#' + receiver_name + '-token-add')).add($('#' + receiver_name + '-chanel-add'));
-	allFields.removeClass("ui-state-error");
-	valid = valid && checkLength($('#' + receiver_name + '-token-add'), "token", 1);
-	valid = valid && checkLength($('#' + receiver_name + '-chanel-add'), "channel name", 1);
-	if (valid) {
-		toastr.clear();
-		$.ajax({
-			url: "/app/checker/receiver/" + receiver_name,
-			data: {
-				receiver: $('#' + receiver_name + '-token-add').val(),
-				channel: $('#' + receiver_name + '-chanel-add').val(),
-				group: $('#new-' + receiver_name + '-group-add').val(),
-				page: cur_url[0].split('#')[0],
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else {
-					var getId = new RegExp(receiver_name + '-table-[0-9]+');
-					var id = data.match(getId) + '';
-					id = id.split('-').pop();
-					$('select:regex(id, ' + receiver_name + '_channel)').append('<option value=' + id + '>' + $('#' + receiver_name + '-chanel-add').val() + '</option>').selectmenu("refresh");
-					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_' + receiver_name + '_table', data);
-					$("input[type=submit], button").button();
-					$("input[type=checkbox]").checkboxradio();
-					$("select").selectmenu();
-				}
-			}
-		});
-	}
-}
-function addBackup(dialog_id) {
-	var valid = true;
-	toastr.clear();
-	let allFields = $([]).add($('#backup-server')).add($('#rserver')).add($('#rpath')).add($('#backup-time')).add($('#backup-credentials'));
-	allFields.removeClass("ui-state-error");
-	valid = valid && checkLength($('#backup-server'), "backup server ", 1);
-	valid = valid && checkLength($('#rserver'), "remote server", 1);
-	valid = valid && checkLength($('#rpath'), "remote path", 1);
-	valid = valid && checkLength($('#backup-time'), "backup time", 1);
-	valid = valid && checkLength($('#backup-credentials'), "backup credentials", 1);
-	if (valid) {
-		$.ajax({
-			url: "/app/server/backup/create",
-			data: {
-				server: $('#backup-server').val(),
-				rserver: $('#rserver').val(),
-				rpath: $('#rpath').val(),
-				type: $('#backup-type').val(),
-				time: $('#backup-time').val(),
-				cred: $('#backup-credentials').val(),
-				description: $('#backup-description').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else if (data.indexOf('info: ') != '-1') {
-					toastr.clear();
-					toastr.info(data);
-				} else if (data.indexOf('warning: ') != '-1') {
-					toastr.clear();
-					toastr.warning(data);
-				} else {
-					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-table', data);
-					$("select").selectmenu();
-				}
-			}
-		});
-	}
-}
-function addS3Backup(dialog_id) {
-	var valid = true;
-	toastr.clear();
-	allFields = $([]).add($('#s3-backup-server')).add($('#s3_server')).add($('#s3_bucket')).add($('#s3_secret_key')).add($('#s3_access_key'))
-	allFields.removeClass("ui-state-error");
-	valid = valid && checkLength($('#s3-backup-server'), "backup server ", 1);
-	valid = valid && checkLength($('#s3_server'), "S3 server", 1);
-	valid = valid && checkLength($('#s3_bucket'), "S3 bucket", 1);
-	valid = valid && checkLength($('#s3_secret_key'), "S3 secret key", 1);
-	valid = valid && checkLength($('#s3_access_key'), "S3 access key", 1);
-	if (valid) {
-		$.ajax({
-			url: "/app/server/s3backup/create",
-			data: {
-				s3_backup_server: $('#s3-backup-server').val(),
-				s3_server: $('#s3_server').val(),
-				s3_bucket: $('#s3_bucket').val(),
-				s3_secret_key: $('#s3_secret_key').val(),
-				s3_access_key: $('#s3_access_key').val(),
-				time: $('#s3-backup-time').val(),
-				description: $('#s3-backup-description').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else if (data.indexOf('info: ') != '-1') {
-					toastr.clear();
-					toastr.info(data);
-				} else if (data.indexOf('warning: ') != '-1') {
-					toastr.clear();
-					toastr.warning(data);
-				} else if (data.indexOf('error: ') != '-1') {
-					toastr.clear();
-					toastr.error(data);
-				} else {
-					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-s3-table', data);
-					$("select").selectmenu();
-				}
-			}
-		});
-	}
-}
-function addGit(dialog_id) {
-	var valid = true;
-	toastr.clear();
-	allFields = $([]).add($('#git-server')).add($('#git-service')).add($('#git-time')).add($('#git-credentials')).add($('#git-branch'))
-	allFields.removeClass("ui-state-error");
-	valid = valid && checkLength($('#git-server'), "Server ", 1);
-	valid = valid && checkLength($('#git-service'), "Service", 1);
-	valid = valid && checkLength($('#git-credentials'), "Credentials", 1);
-	valid = valid && checkLength($('#git-branch'), "Branch name", 1);
-	var git_init = 0;
-	if ($('#git-init').is(':checked')) {
-		git_init = '1';
-	}
-	if (valid) {
-		$.ajax({
-			url: "/app/server/git/create",
-			data: {
-				server: $('#git-server').val(),
-				git_service: $('#git-service').val(),
-				git_init: git_init,
-				git_repo: $('#git-repo').val(),
-				git_branch: $('#git-branch').val(),
-				time: $('#git-time').val(),
-				cred: $('#git-credentials').val(),
-				description: $('#git-description').val(),
-				git_deljob: 0,
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else if (data.indexOf('success: ') != '-1') {
-					common_ajax_action_after_success(dialog_id, 'newgit', 'ajax-git-table', data);
-					$("select").selectmenu();
-				} else if (data.indexOf('info: ') != '-1') {
-					toastr.clear();
-					toastr.info(data);
-				} else if (data.indexOf('warning: ') != '-1') {
-					toastr.clear();
-					toastr.warning(data);
-				}
-			}
-		});
-	}
-}
 function sshKeyEnableShow(id) {
 	$('#ssh_enable-'+id).click(function() {
 		if ($('#ssh_enable-'+id).is(':checked')) {
@@ -1087,8 +568,6 @@ function sshKeyEnableShow(id) {
 }
 
 function confirmDeleteUser(id) {
-	var delete_word = $('#translate').attr('data-delete');
-	var cancel_word = $('#translate').attr('data-cancel');
 	 $( "#dialog-confirm" ).dialog({
       resizable: false,
       height: "auto",
@@ -1110,8 +589,6 @@ function confirmDeleteUser(id) {
     });
 }
 function confirmDeleteGroup(id) {
-	var delete_word = $('#translate').attr('data-delete');
-	var cancel_word = $('#translate').attr('data-cancel');
 	 $( "#dialog-confirm" ).dialog({
       resizable: false,
       height: "auto",
@@ -1133,8 +610,6 @@ function confirmDeleteGroup(id) {
     });
 }
 function confirmDeleteServer(id) {
-	var delete_word = $('#translate').attr('data-delete');
-	var cancel_word = $('#translate').attr('data-cancel');
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
 		height: "auto",
@@ -1156,8 +631,6 @@ function confirmDeleteServer(id) {
 	});
 }
 function confirmDeleteSsh(id) {
-	var delete_word = $('#translate').attr('data-delete');
-	var cancel_word = $('#translate').attr('data-cancel');
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
 		height: "auto",
@@ -1177,98 +650,6 @@ function confirmDeleteSsh(id) {
 			}
 		}]
 	});
-}
-function confirmDeleteReceiver(id, reciever_name) {
-	var delete_word = $('#translate').attr('data-delete');
-	var cancel_word = $('#translate').attr('data-cancel');
-	 $( "#dialog-confirm-services" ).dialog({
-		 resizable: false,
-		 height: "auto",
-		 width: 400,
-		 modal: true,
-		 title: delete_word + " " + $('#' + reciever_name + '-chanel-' + id).val() + "?",
-		 buttons: [{
-			 text: delete_word,
-			 click: function () {
-				 $(this).dialog("close");
-				 removeReciver(reciever_name, id);
-			 }
-		 }, {
-			 text: cancel_word,
-			 click: function () {
-				 $(this).dialog("close");
-			 }
-		 }]
-	 });
-}
-function confirmDeleteBackup(id) {
-	var delete_word = $('#translate').attr('data-delete');
-	var cancel_word = $('#translate').attr('data-cancel');
-	 $( "#dialog-confirm" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-	  title: delete_word + " " +$('#backup-server-'+id).val() + "?",
-      buttons: [{
-		  text: delete_word,
-		  click: function () {
-			  $(this).dialog("close");
-			  removeBackup(id);
-		  }
-	  }, {
-		  text: cancel_word,
-		  click: function () {
-			  $(this).dialog("close");
-		  }
-	  }]
-    });
-}
-function confirmDeleteS3Backup(id) {
-	var delete_word = $('#translate').attr('data-delete');
-	var cancel_word = $('#translate').attr('data-cancel');
-	 $( "#dialog-confirm" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-	  title: delete_word + " " +$('#backup-s3-server-'+id).val() + "?",
-      buttons: [{
-		  text: delete_word,
-		  click: function () {
-			  $(this).dialog("close");
-			  removeS3Backup(id);
-		  }
-	  }, {
-		  text: cancel_word,
-		  click: function () {
-			  $(this).dialog("close");
-		  }
-	  }]
-    });
-}
-function confirmDeleteGit(id) {
-	var delete_word = $('#translate').attr('data-delete');
-	var cancel_word = $('#translate').attr('data-cancel');
-	 $( "#dialog-confirm" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-	  title: delete_word + " " +$('#git-server-'+id).text() + "?",
-      buttons: [{
-		  text: delete_word,
-		  click: function () {
-			  $(this).dialog("close");
-			  removeGit(id);
-		  }
-	  },{
-		  text: cancel_word,
-		  click: function () {
-			  $(this).dialog("close");
-		  }
-	  }]
-    });
 }
 function cloneServer(id) {
 	$( "#add-server-button" ).trigger( "click" );
@@ -1308,22 +689,6 @@ function cloneServer(id) {
 		$('#new-server-group-add').val($('#servergroup-'+id+' option:selected').val()).change()
 		$('#new-server-group-add').selectmenu("refresh");
 	}
-}
-function cloneReceiver(id, reciever_name) {
-	$('#add-'+reciever_name+'-button').trigger( "click" );
-	$('#'+reciever_name+'-token-add').val($('#'+reciever_name+'-token-'+id).val());
-	$('#'+reciever_name+'-chanel-add').val($('#'+reciever_name+'-chanel-'+id).val());
-}
-function cloneBackup(id) {
-	$( "#add-backup-button" ).trigger( "click" );
-	$('#rserver').val($('#backup-rserver-'+id).val())
-	$('#rpath').val($('#backup-rpath-'+id).val())
-	$('#backup-type').val($('#backup-type-'+id+' option:selected').val()).change()
-	$('#backup-type').selectmenu("refresh");
-	$('#backup-time').val($('#backup-time-'+id+' option:selected').val()).change()
-	$('#backup-time').selectmenu("refresh");
-	$('#backup-credentials').val($('#backup-credentials-'+id+' option:selected').val()).change()
-	$('#backup-credentials').selectmenu("refresh");
 }
 function removeUser(id) {
 	$("#user-" + id).css("background-color", "#f2dede");
@@ -1403,95 +768,6 @@ function removeSsh(id) {
 			}
 		}
 	} );
-}
-function removeReciver(receiver_name, receiver_id) {
-	$("#" + receiver_name + "-table-" + receiver_id).css("background-color", "#f2dede");
-	$.ajax({
-		url: "/app/checker/receiver/" + receiver_name,
-		data: {
-			channel_id: receiver_id,
-			token: $('#token').val()
-		},
-		type: "DELETE",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data == "ok") {
-				$("#" + receiver_name + "-table-" + receiver_id).remove();
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			}
-		}
-	});
-}
-function removeBackup(id) {
-	$("#backup-table-" + id).css("background-color", "#f2dede");
-	$.ajax({
-		url: "/app/server/backup/delete",
-		data: {
-			deljob: id,
-			cred: $('#backup-credentials-' + id).val(),
-			server: $('#backup-server-' + id).text(),
-			rserver: $('#backup-rserver-' + id).val(),
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('ok') != '-1') {
-				$("#backup-table-" + id).remove();
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			}
-		}
-	});
-}
-function removeS3Backup(id) {
-	$("#backup-table-s3-" + id).css("background-color", "#f2dede");
-	$.ajax({
-		url: "/app/server/s3backup/delete",
-		data: {
-			dels3job: id,
-			s3_bucket: $('#bucket-' + id).text(),
-			s3_backup_server: $('#backup-s3-server-' + id).text(),
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('ok') != '-1') {
-				$("#s3-backup-table-" + id).remove();
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			}
-		}
-	});
-}
-function removeGit(id) {
-	$("#git-table-" + id).css("background-color", "#f2dede");
-	$.ajax({
-		url: "/app/server/git/delete",
-		data: {
-			git_backup: id,
-			git_deljob: 1,
-			git_init: 0,
-			repo: 0,
-			branch: 0,
-			time: 0,
-			cred: $('#git-credentials-id-' + id).text(),
-			server: $('#git-server-id-' + id).text(),
-			git_service: $('#git-service-id-' + id).text(),
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('ok') != '-1') {
-				$("#git-table-" + id).remove();
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			}
-		}
-	});
 }
 function updateUser(id) {
 	toastr.remove();
@@ -1680,71 +956,6 @@ function updateSSH(id) {
 			}
 		}
 	});
-}
-function updateReceiver(id, receiver_name) {
-	if (cur_url[0].indexOf('servers') != '-1') {
-		var group = $('#new-group').val();
-	} else {
-		var group = $('#' + receiver_name + 'group-' + id).val();
-	}
-	toastr.clear();
-	$.ajax({
-		url: "/app/checker/receiver/" + receiver_name,
-		data: {
-			receiver_token: $('#' + receiver_name + '-token-' + id).val(),
-			channel: $('#' + receiver_name + '-chanel-' + id).val(),
-			group: group,
-			id: id,
-			token: $('#token').val()
-		},
-		type: "PUT",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#" + receiver_name + "-table-" + id).addClass("update", 1000);
-				setTimeout(function () {
-					$("#" + receiver_name + "-table-" + id).removeClass("update");
-				}, 2500);
-			}
-		}
-	});
-}
-function updateBackup(id) {
-	toastr.clear();
-	if ($("#backup-type-" + id + " option:selected").val() == "-------" || $('#backup-rserver-' + id).val() == '' || $('#backup-rpath-' + id).val() == '') {
-		toastr.error('All fields must be completed');
-	} else {
-		$.ajax({
-			url: "/app/server/backup/update",
-			data: {
-				backupupdate: id,
-				server: $('#backup-server-' + id).text(),
-				rserver: $('#backup-rserver-' + id).val(),
-				rpath: $('#backup-rpath-' + id).val(),
-				type: $('#backup-type-' + id).val(),
-				time: $('#backup-time-' + id).val(),
-				cred: $('#backup-credentials-' + id).val(),
-				description: $('#backup-description-' + id).val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-					toastr.error(data);
-				} else {
-					toastr.clear();
-					$("#backup-table-" + id).addClass("update", 1000);
-					setTimeout(function () {
-						$("#backup-table-" + id).removeClass("update");
-					}, 2500);
-				}
-			}
-		});
-	}
 }
 function showApacheLog(serv) {
 	var rows = $('#rows').val();
@@ -1945,7 +1156,6 @@ function changeUserServices(user_id) {
 }
 function addServiceToUser(service_id) {
 	var service_name = $('#add_service-'+service_id).attr('data-service_name');
-	var delete_word = $('#translate').attr('data-delete');
 	var service_word = $('#translate').attr('data-service');
 	var length_tr = $('#checked_services tbody tr').length;
 	var tr_class = 'odd';
@@ -1960,7 +1170,6 @@ function addServiceToUser(service_id) {
 }
 function removeServiceFromUser(service_id) {
 	var service_name = $('#remove_service-'+service_id).attr('data-service_name');
-	var add_word = $('#translate').attr('data-add');
 	var service_word = $('#translate').attr('data-service');
 	var length_tr = $('#all_services tbody tr').length;
 	var tr_class = 'odd';
@@ -2278,23 +1487,6 @@ function loadopenvpn() {
 		}
 	} );
 }
-function checkReceiver(channel_id, receiver_name) {
-	$.ajax({
-		url: "/app/checker/check/" + channel_id + "/" + receiver_name,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.success('Test message has been sent');
-			}
-		}
-	});
-}
 function updateServerInfo(ip, id) {
 	$.ajax({
 		url: "/app/server/system_info/update/" + ip + "/" + id,
@@ -2474,204 +1666,6 @@ function updateServiceCheckerSettings(id, service_name) {
 		}
 	});
 }
-function checkWebPanel() {
-	$.ajax({
-		url: "/app/checker/check/rabbit",
-		// data: {
-		//   token: $('#token').val()
-		// },
-		// type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.success('Test message has been sent');
-			}
-		}
-	});
-}
-function checkEmail() {
-	$.ajax({
-		url: "/app/checker/check/email",
-		// data: {
-		//   token: $('#token').val()
-		// },
-		// type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.success('Test message has been sent');
-			}
-		}
-	});
-}
-function checkGeoipInstallation() {
-	$.ajax( {
-		url: "/app/install/geoip/" + $('#geoip_service option:selected').val() + "/" + $('#geoipserv option:selected').val(),
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
-		success: function( data ) {
-			data = data.replace(/^\s+|\s+$/g,'');
-			if(data.indexOf('No such file or directory') != '-1' || data.indexOf('cannot access') != '-1') {
-				$('#cur_geoip').html('<b style="color: var(--red-color)">GeoIPLite is not installed</b>');
-				$('#geoip_install').show();
-			} else {
-				$('#cur_geoip').html('<b style="color: var(--green-color)">GeoIPLite is installed<b>');
-				$('#geoip_install').hide();
-			}
-		}
-	} );
-}
-function installService(service) {
-	$("#ajax").html('')
-	var syn_flood = 0;
-	var docker = 0;
-	var select_id = '#' + service + 'addserv';
-	var nice_names = {'haproxy': 'HAProxy', 'nginx': 'NGINX', 'apache': 'Apache'};
-	if ($('#' + service + '_syn_flood').is(':checked')) {
-		syn_flood = '1';
-	}
-	if ($('#' + service + '_docker').is(':checked')) {
-		docker = '1';
-	}
-	if ($(select_id).val() == '------' || $(select_id).val() === null) {
-		var select_server = $('#translate').attr('data-select_server');
-		toastr.warning(select_server);
-		return false
-	}
-	var jsonData = {};
-	jsonData['servers'] = {'0': {}}
-	jsonData['services'] = {};
-	jsonData['services'][service] = {};
-	jsonData['syn_flood'] = syn_flood;
-	jsonData['servers']['0']['ip'] = $(select_id).val();
-	jsonData['servers']['0']['master'] = '0';
-	jsonData['servers']['0']['name'] = $(select_id + ' option:selected').text();
-	if (service == 'haproxy') {
-		jsonData['servers']['0']['version'] = $('#hapver option:selected').val();
-	}
-	jsonData['services'][service]['enabled'] = 1;
-	jsonData['services'][service]['docker'] = docker;
-	$("#ajax").html(wait_mess);
-	$.ajax({
-		url: "/app/install/" + service,
-		500: function () {
-			showErrorStatus(nice_names[service], $(select_id + ' option:selected').text());
-		},
-		504: function () {
-			showErrorStatus(nice_names[service], $(select_id + ' option:selected').text());
-		},
-		data: {
-			jsonData: JSON.stringify(jsonData),
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			try {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				}
-			} catch (e) {
-				parseAnsibleJsonOutput(data, nice_names[service], select_id);
-				$(select_id).trigger("selectmenuchange");
-			}
-		}
-	});
-}
-function installExporter(exporter) {
-	$("#ajaxmon").html('');
-	$("#ajaxmon").html(wait_mess);
-	var exporter_id = '#' + exporter + '_exp_addserv';
-	var ext_prom = 0;
-		if ($('#' + exporter + '_ext_prom').is(':checked')) {
-			ext_prom = '1';
-		}
-	var nice_names = {'haproxy': 'HAProxy exporter', 'nginx': 'NGINX exporter', 'apache': 'Apache exporter', 'node': 'Node exporter', 'keepalived': 'Keepalived exporter'};
-	$("#ajax").html(wait_mess);
-	$.ajax({
-		url: "/app/install/exporter/" + exporter,
-		500: function () {
-			showErrorStatus(nice_names[exporter], $(exporter_id + ' option:selected').text());
-		},
-		504: function () {
-			showErrorStatus(nice_names[exporter], $(exporter_id + ' option:selected').text());
-		},
-		data: {
-				server_ip: $(exporter_id).val(),
-				exporter_v: $('#' + exporter + 'expver').val(),
-				ext_prom: ext_prom,
-				token: $('#token').val()
-			},
-		type: "POST",
-		success: function (data) {
-			try {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				}
-			} catch (e) {
-				parseAnsibleJsonOutput(data, nice_names[exporter], exporter_id);
-				$(exporter_id).trigger("selectmenuchange");
-			}
-		}
-	});
-}
-function showExporterVersion(exporter) {
-	var nice_names = {'haproxy': 'HAProxy', 'nginx': 'NGINX', 'apache': 'Apache', 'node': 'Node', 'keepalived': 'Keepalived'};
-	$.ajax({
-			url: "/app/install/exporter/"+ exporter +"/version/" + $('#' + exporter + '_exp_addserv option:selected').val(),
-			// data: {
-			// 	token: $('#token').val()
-			// },
-			// type: "POST",
-			success: function (data) {
-				data = data.replace(/^\s+|\s+$/g, '');
-				if (data.indexOf('error:') != '-1') {
-					toastr.clear();
-					toastr.error(data);
-				} else if (data == 'no' || data.indexOf('command') != '-1' || data.indexOf('_exporter:') != '-1' || data == '') {
-					$('#cur_'+ exporter +'_exp_ver').text(nice_names[exporter]+' exporter has not been installed');
-				} else {
-					$('#cur_'+ exporter +'_exp_ver').text(data);
-				}
-			}
-		});
-}
-function showServiceVersion(service) {
-	$.ajax({
-		url: "/app/install/" + service + "/version/" + $('#' + service + 'addserv option:selected').val(),
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
-		success: function (data) {
-			data = data.replace(/^\s+|\s+$/g, '');
-			if (data.indexOf('error: ') != '-1') {
-				toastr.warning(data);
-				$('#cur_' + service + '_ver').text('');
-			} else if(data.indexOf('bash') != '-1' || data.indexOf('such') != '-1' || data.indexOf('command not found') != '-1' || data.indexOf('from') != '-1') {
-				$('#cur_' + service + '_ver').text(service + ' has not installed');
-				$('#' + service + '_install').text('Install');
-				$('#' + service + '_install').attr('title', 'Install');
-			} else if (data.indexOf('warning: ') != '-1') {
-				toastr.warning(data);
-			} else if (data == '') {
-				$('#cur_' + service + '_ver').text(service + ' has not installed');
-				$('#' + service + '_install').text('Install');
-				$('#' + service + '_install').attr('title', 'Install');
-			} else {
-				$('#cur_' + service + '_ver').text(data);
-				$('#cur_' + service + '_ver').css('font-weight', 'bold');
-				$('#' + service + '_install').text('Update');
-				$('#' + service + '_install').attr('title', 'Update');
-			}
-		}
-	});
-}
 function serverIsUp(server_ip, server_id) {
 	var cur_url = window.location.href.split('/').pop();
 	if (cur_url.split('#')[1] == 'servers') {
@@ -2740,7 +1734,6 @@ function confirmChangeGroupsAndRoles(user_id) {
 }
 function addGroupToUser(group_id) {
 	var group_name = $('#add_group-'+group_id).attr('data-group_name');
-	var delete_word = $('#translate').attr('data-delete');
 	var group2_word = $('#translate').attr('data-group2');
 	var length_tr = $('#all_groups tbody tr').length;
 	const roles = {1: 'superAdmin', 2: 'amdin', 3: 'user', 4: 'guest'};
@@ -2847,7 +1840,6 @@ function openChangeServerServiceDialog(server_id) {
 }
 function addServiceToServer(service_id) {
 	var service_name = $('#add_service-'+service_id).attr('data-service_name');
-	var delete_word = $('#translate').attr('data-delete');
 	var service_word = $('#translate').attr('data-service');
 	var length_tr = $('#checked_services tbody tr').length;
 	var tr_class = 'odd';
@@ -2862,7 +1854,6 @@ function addServiceToServer(service_id) {
 }
 function removeServiceFromServer(service_id) {
 	var service_name = $('#remove_service-'+service_id).attr('data-service_name');
-	var add_word = $('#translate').attr('data-add');
 	var service_word = $('#translate').attr('data-service');
 	var length_tr = $('#all_services tbody tr').length;
 	var tr_class = 'odd';
@@ -2904,25 +1895,4 @@ function changeServerServices(server_id) {
 			}
 		}
 	});
-}
-function showErrorStatus(service_name, server) {
-	var something_wrong = $('#translate').attr('data-something_wrong');
-	toastr.error(something_wrong + ' ' + service_name + ' ' + server);
-}
-function parseAnsibleJsonOutput(output, service_name, select_id) {
-	output = JSON.parse(JSON.stringify(output));
-	var check_apache_log = $('#translate').attr('data-check_apache_log');
-	var was_installed = $('#translate').attr('data-was_installed');
-	for (var k in output['ok']) {
-		var server_name = $(select_id + ' option[value="'+k+'"]').text();
-		toastr.success(service_name + ' ' + was_installed +' ' + server_name);
-	}
-	for (var k in output['failures']) {
-		var server_name = $(select_id + ' option[value="'+k+'"]').text();
-		showErrorStatus(service_name, server_name);
-	}
-	for (var k in output['dark']) {
-		var server_name = $(select_id + ' option[value="'+k+'"]').text();
-		showErrorStatus(service_name, server_name);
-	}
 }

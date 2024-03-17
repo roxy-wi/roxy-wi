@@ -11,7 +11,6 @@ import app.modules.db.sql as sql
 import app.modules.db.cred as cred_sql
 import app.modules.db.user as user_sql
 import app.modules.db.group as group_sql
-import app.modules.db.backup as backup_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
 from app.middleware import get_user_params
@@ -34,10 +33,6 @@ def before_request():
 @get_user_params()
 def admin():
     roxywi_auth.page_for_admin()
-    grafana = 0
-
-    if not roxy.is_docker():
-        grafana = tools_common.is_tool_active('grafana-server')
 
     kwargs = {
         'lang': g.user_params['lang'],
@@ -50,12 +45,7 @@ def admin():
         'settings': sql.get_setting('', all=1),
         'ldap_enable': sql.get_setting('ldap_enable'),
         'services': service_sql.select_services(),
-        'gits': backup_sql.select_gits(),
         'masters': server_sql.select_servers(get_master_servers=1),
-        'is_needed_tool': common.is_tool('ansible'),
-        'grafana': grafana,
-        'backups': backup_sql.select_backups(),
-        's3_backups': backup_sql.select_s3_backups(),
         'guide_me': 1,
         'user_subscription': roxywi_common.return_user_subscription()
     }

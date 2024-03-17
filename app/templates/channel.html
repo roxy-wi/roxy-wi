@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %} {{ lang.words.channels|title() }} {% endblock %}
+{% block h2 %} {{ lang.words.channels|title() }} {% endblock %}
+{% block content %}
+{% from 'include/input_macros.html' import input, select, copy_to_clipboard, checkbox %}
+<script src="{{ url_for('static', filename='js/channel.js') }}"></script>
+<script src="/inc/fontawesome.min.js"></script>
+<div id="checker"></div>
+<script>
+    loadChannel();
+</script>
+{% endblock %}

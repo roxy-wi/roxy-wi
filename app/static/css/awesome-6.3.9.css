@@ -466,3 +466,8 @@
 	margin: 8px 5px 10px var(--indent);
     font-size: 15px;
 }
+.channel::before {
+	display: none;
+	font-family: "Font Awesome 5 Regular";
+	content: "\f086";
+}

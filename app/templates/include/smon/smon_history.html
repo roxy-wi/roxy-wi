@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% from 'include/input_macros.html' import select %}
-{% block title %}{{ lang.menu_links.history.title }} {{ smon_name }}{% endblock %}
-{% block h2 %}{{ lang.menu_links.history.title }} {{ smon_name }}{% endblock %}
+{% block title %}{{ lang.menu_links.history.title }} {{ smon_name|replace("'","") }}{% endblock %}
+{% block h2 %}{{ lang.menu_links.history.title }} {{ smon_name|replace("'","") }}{% endblock %}
 {% block content %}
 {% set checking_types = {'1': 'TCP/UDP', '2': 'HTTP', '4': 'Ping', '5': 'DNS'} %}
 {% if user_subscription['user_status'] == 0 or user_subscription['user_plan'] == 'user' %}

@@ -55,9 +55,9 @@
         </td>
         <td>
             {% if action == 'smon' %}
-            <a href="/app/smon/history/host/{{t.2}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2}}</a>
+            <a href="/app/smon/history/host/{{t.2|replace("'","")}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2|replace("'","")}}</a>
             {% else %}
-            <a href="/app/history/server/{{t.2}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2}}</a>
+            <a href="/app/history/server/{{t.2|replace("'","")}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2|replace("'","")}}</a>
             {% endif %}
         </td>
         {% if action != "checker" %}

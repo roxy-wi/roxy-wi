@@ -28,6 +28,7 @@ from app.routes.metric import bp as metric_bp
 from app.routes.waf import bp as waf_bp
 from app.routes.runtime import bp as runtime_bp
 from app.routes.smon import bp as smon_bp
+from app.routes.channel import bp as channel_bp
 from app.routes.checker import bp as checker_bp
 from app.routes.portscanner import bp as portscanner_bp
 from app.routes.install import bp as install_bp
@@ -47,6 +48,7 @@ app.register_blueprint(waf_bp, url_prefix='/waf')
 app.register_blueprint(runtime_bp, url_prefix='/runtimeapi')
 app.register_blueprint(smon_bp, url_prefix='/smon')
 app.register_blueprint(checker_bp, url_prefix='/checker')
+app.register_blueprint(channel_bp, url_prefix='/channel')
 app.register_blueprint(portscanner_bp, url_prefix='/portscanner')
 app.register_blueprint(install_bp, url_prefix='/install')
 app.register_blueprint(user_bp, url_prefix='/user')

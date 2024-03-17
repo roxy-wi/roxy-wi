@@ -4,6 +4,7 @@
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
 <script src="/inc/users.js"></script>
+<script src="{{ url_for('static', filename='js/backup.js') }}"></script>
 {% include 'include/del_confirm.html' %}
 <input type="hidden" id="new-group" name="new-group" value="{{ group }}">
 <input type="hidden" id="new-server-group-add" name="new-server-group-add" value="{{ group }}" >
@@ -35,9 +36,7 @@
 		{% include 'include/admin_settings.html' %}
 	</div>
 
-	<div id="backup">
-		{% include 'include/admin_backup.html' %}
-	</div>
+	<div id="backup"></div>
 
 </div>
 {% include 'include/admins_dialogs.html' %}

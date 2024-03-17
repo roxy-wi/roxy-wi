@@ -225,7 +225,7 @@ function getCheckSettings(smon_id, check_type) {
 		async: false,
 		dataType: "json",
 		success: function( data ) {
-			$('#new-smon-name').val(data['name']);
+			$('#new-smon-name').val(data['name'].replaceAll("'", ""));
 			$('#new-smon-ip').val(data['server_ip']);
 			$('#new-smon-port').val(data['port']);
 			$('#new-smon-resolver-server').val(data['resolver']);
