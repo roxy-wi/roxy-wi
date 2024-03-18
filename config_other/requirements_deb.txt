@@ -16,4 +16,5 @@ python3-nmap<=1.5.1
 aio-pika>=7.1.0
 pika>=1.2.0
 websockets>=9.0
+ansible-core>=2.11.12
 ansible-runner==2.3.2

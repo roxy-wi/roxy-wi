@@ -21,4 +21,5 @@ Flask==2.2.5
 Flask-Login==0.6.2
 Flask-APScheduler==1.13.0
 Flask-Caching==2.1.0
+ansible-core>=2.11.12
 ansible-runner==2.3.1

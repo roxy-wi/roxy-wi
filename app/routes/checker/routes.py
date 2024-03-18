@@ -47,6 +47,7 @@ def update_settings():
 
 
 @bp.route('/settings/load')
+@get_user_params()
 def load_checker():
     return checker_mod.load_checker()
 
