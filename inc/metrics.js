@@ -574,4 +574,4 @@ function updatingCpuRamCharts() {
 	} else {
         removeData();
     }
-}Œ
+}

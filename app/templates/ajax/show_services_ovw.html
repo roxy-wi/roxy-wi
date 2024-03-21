@@ -1,7 +1,8 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 <tr class="odd">
 	<td class="padding10 first-collumn-wi">
-		{% if roxy_tools_status['roxy-wi-metrics'] == 'active' %}
+    {{ roxy_tools_status }}
+		{% if roxy_tools_status['roxy-wi-metrics'] == 'active' or roxy_tools_status['roxy-wi-metrics'] == 'RUNNING' %}
 			<span class="serverUp server-status-small" title="Metrics master {{lang.words.started}}"></span>
 			{% if role <= 1 %}
 				<a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.view|title()}} {{lang.words.logs2}}" class="logs_link">
@@ -11,7 +12,7 @@
 				Metrics master
 			{% endif %}
 		{% else %}
-			{% if roxy_tools_status['roxy-wi-metrics'] == 'inactive' or roxy_tools_status['roxy-wi-metrics'] == 'failed' %}
+			{% if roxy_tools_status['roxy-wi-metrics'] == 'inactive' or roxy_tools_status['roxy-wi-metrics'] == 'failed' or roxy_tools_status['roxy-wi-metrics'] == 'ERROR' %}
 				<span class="serverDown server-status-small" title="Metrics {{lang.words.stopped}}"></span>
 				{% if role <= 1 %}
 				<a href="{{ url_for('admin.admin') }}#tools" title="{{lang.words.start|title()}} Metrics" class="logs_link">
@@ -29,7 +30,7 @@
 		{% endif %}
 	</td>
 	<td class="third-collumn-wi">
-		{% if roxy_tools_status['roxy-wi-checker'] == 'active' %}
+		{% if roxy_tools_status['roxy-wi-checker'] == 'active' or roxy_tools_status['roxy-wi-checker'] == 'RUNNING' %}
 			<span class="serverUp server-status-small" title="Checker master {{lang.words.started}}"></span>
 			{% if role <= 1 %}
 			<a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.view|title()}} {{lang.words.logs2}}" class="logs_link">
@@ -57,7 +58,7 @@
 		{% endif %}
 	</td>
 	<td class="third-collumn-wi">
-		{% if roxy_tools_status['roxy-wi-keep_alive'] == 'active' %}
+		{% if roxy_tools_status['roxy-wi-keep_alive'] == 'active' or roxy_tools_status['roxy-wi-keep_alive'] == 'RUNNING' %}
 			<span class="serverUp server-status-small" title="Auto start {{lang.words.started}}"></span>
 			{% if role <= 1 %}
 				<a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.view|title()}} {{lang.words.logs2}}" class="logs_link">
@@ -67,7 +68,7 @@
 				Auto star
 			{% endif %}
 		{% else %}
-			{% if roxy_tools_status['roxy-wi-keep_alive'] == 'inactive' or roxy_tools_status['roxy-wi-keep_alive'] == 'failed' %}
+			{% if roxy_tools_status['roxy-wi-keep_alive'] == 'inactive' or roxy_tools_status['roxy-wi-keep_alive'] == 'failed' or roxy_tools_status['roxy-wi-keep_alive'] == 'ERROR' %}
 				<span class="serverDown server-status-small" title="Auto start {{lang.words.stopped}}"></span>
 				{% if role <= 1 %}
 					<a href="{{ url_for('admin.admin') }}#services" title="{{lang.words.start|title()}} Auto star {{lang.words.service}}" class="logs_link">
@@ -156,7 +157,7 @@
 	{% endif %}
 	</td>
 	<td {% if role != 1 %}class="padding10 first-collumn-wi"{%endif%}>
-		{% if roxy_tools_status['roxy-wi-socket'] == 'active' %}
+		{% if roxy_tools_status['roxy-wi-socket'] == 'active' or roxy_tools_status['roxy-wi-socket'] == 'RUNNING' %}
 			<span class="serverUp server-status-small" title="Socket {{lang.words.started}}"></span>
 			{% if role <= 1 %}
 				<a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.view|title()}} {{lang.words.logs2}}" class="logs_link">
@@ -166,7 +167,7 @@
 					Socket service
 			{% endif %}
 		{% else %}
-			{% if roxy_tools_status['roxy-wi-socket']  == 'inactive' or roxy_tools_status['roxy-wi-socket']  == 'failed' %}
+			{% if roxy_tools_status['roxy-wi-socket']  == 'inactive' or roxy_tools_status['roxy-wi-socket']  == 'failed' or roxy_tools_status['roxy-wi-socket']  == 'ERROR' %}
 				<span class="serverDown server-status-small" title="Socket {{lang.words.stopped}}"></span>
 				<a href="{{ url_for('admin.admin') }}#services" title="{{lang.words.start|title()}} Socket" class="logs_link">
 					Socket service
@@ -180,13 +181,13 @@
 		{% endif %}
 	</td>
 	<td>
-	{% if roxy_tools_status['roxy-wi-portscanner'] == 'active' %}
+	{% if roxy_tools_status['roxy-wi-portscanner'] == 'active' or roxy_tools_status['roxy-wi-portscanner'] == 'RUNNING' %}
 			<span class="serverUp server-status-small" title="Port scanner {{lang.words.started}}"></span>
 			<a href="{{ url_for('portscanner.portscanner') }}" title="Port scanner Dashboard" class="logs_link">
 				Port scanner
 			</a>
 		{% else %}
-			{% if roxy_tools_status['roxy-wi-portscanner'] == 'inactive' or roxy_tools_status['roxy-wi-portscanner'] == 'failed' %}
+			{% if roxy_tools_status['roxy-wi-portscanner'] == 'inactive' or roxy_tools_status['roxy-wi-portscanner'] == 'failed' or roxy_tools_status['roxy-wi-portscanner'] == 'ERROR' %}
 				<span class="serverDown server-status-small" title="Port scanner {{lang.words.stopped}}"></span>
 				<a href="{{ url_for('admin.admin') }}#services" title="{{lang.words.start|title()}} Port scanner" class="logs_link">
 					Port scanner

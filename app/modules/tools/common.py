@@ -61,7 +61,7 @@ def update_roxy_wi(service: str) -> str:
 def is_tool_active(tool_name: str) -> str:
     is_in_docker = roxywi_mod.is_docker()
     if is_in_docker:
-        cmd = f"supervisorctl status {tool_name}|awk '{{print $2}}'"
+        cmd = f"sudo supervisorctl status {tool_name}|awk '{{print $2}}'"
     else:
         cmd = f"systemctl is-active {tool_name}"
     status, stderr = server_mod.subprocess_execute(cmd)

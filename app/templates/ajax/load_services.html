@@ -13,60 +13,61 @@
     'rabbitmq-server': { 'name': 'RabbitMQ', 'desc': 'RabbitMQ server' },
     }
 %}
-{% for s in services %}
+{% for service in services %}
 {% set is_service_started_class = '' %}
 {% set is_service_stopped_class = '' %}
-{% set onclick_start_action = "confirmAjaxServiceAction('start', '"+s.0+"')" %}
-{% set onclick_stop_action = "confirmAjaxServiceAction('stop', '"+s.0+"')" %}
-{% set is_service_started_title = lang.words.start|title()+" "+lang.words.and+" "+lang.words.enable+" "+services_name[s.0]['name']+" "+lang.words.service %}
-{% set is_service_stopped_title = lang.words.stop|title()+" "+lang.words.and+" "+lang.words.disable+" "+services_name[s.0]['name']+" "+lang.words.service %}
-<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s.0}}">
+{% set onclick_start_action = "confirmAjaxServiceAction('start', '"+service.0+"')" %}
+{% set onclick_stop_action = "confirmAjaxServiceAction('stop', '"+service.0+"')" %}
+{% set is_service_started_title = lang.words.start|title()+" "+lang.words.and+" "+lang.words.enable+" "+services_name[service.0]['name']+" "+lang.words.service %}
+{% set is_service_stopped_title = lang.words.stop|title()+" "+lang.words.and+" "+lang.words.disable+" "+services_name[service.0]['name']+" "+lang.words.service %}
+<tr class="{{ loop.cycle('odd', 'even') }}" id="{{service.0}}">
     <td class="padding10 first-collumn">
-        {% if s.1 == 'active' or s.1 == 'RUNNING' %}
-            <span title="{{lang.words.service|title()}} {{services_name[s.0]['name']}} {{lang.words.started}}"><span class="serverUp server-status"></span></span>
+    {{ service }}
+        {% if service.1 == 'active' or service.1 == 'RUNNING' %}
+            <span title="{{lang.words.service|title()}} {{services_name[service.0]['name']}} {{lang.words.started}}"><span class="serverUp server-status"></span></span>
             {% set is_service_started_class = 'disabled-button' %}
             {% set onclick_start_action = "" %}
-            {% set is_service_started_title = lang.words.service|title()+" "+services_name[s.0]['name']+" "+lang.words.already+" "+lang.words.started %}
+            {% set is_service_started_title = lang.words.service|title()+" "+services_name[service.0]['name']+" "+lang.words.already+" "+lang.words.started %}
         {% else %}
-            {% if (s.1 == 'inactive' or s.1 == 'failed' or s.1 == 'activating' or s.1 == 'STOPPED') and 'is not installed' not in s.2['current_version'] %}
-                <span title="{{lang.words.service|title()}} {{services_name[s.0]['name']}} {{lang.words.stopped}}"><span class="serverDown server-status"></span></span>
+            {% if (service.1 == 'inactive' or service.1 == 'failed' or service.1 == 'activating' or service.1 == 'STOPPED') and 'is not installed' not in service.2['current_version'] %}
+                <span title="{{lang.words.service|title()}} {{services_name[service.0]['name']}} {{lang.words.stopped}}"><span class="serverDown server-status"></span></span>
                 {% set is_service_stopped_class = 'disabled-button' %}
                 {% set onclick_stop_action = "" %}
-                {% set is_service_stopped_title = lang.words.service|title()+" "+services_name[s.0]['name']+" "+lang.words.already+" "+lang.words.stopped %}
+                {% set is_service_stopped_title = lang.words.service|title()+" "+services_name[service.0]['name']+" "+lang.words.already+" "+lang.words.stopped %}
             {% else %}
-                <span title="{{lang.words.service|title()}} {{services_name[s.0]['name']}} {{lang.words.not}} {{lang.words.installed}}"><span class="serverNone server-status"></span></span>
+                <span title="{{lang.words.service|title()}} {{services_name[service.0]['name']}} {{lang.words.not}} {{lang.words.installed}}"><span class="serverNone server-status"></span></span>
             {% endif %}
         {% endif %}
-        {{services_name[s.0]['name']}}
+        {{services_name[service.0]['name']}}
     </td>
     <td class="padding10 first-collumn">
-        {% if 'is not installed' in s.2['current_version'] or not s.2['current_version'] or s.2['current_version'] == '0' %}
-            {% if s.0 in ('prometheus', 'grafana-server') %}
+        {% if 'is not installed' in service.2['current_version'] or not service.2['current_version'] or service.2['current_version'] == '0' %}
+            {% if service.0 in ('prometheus', 'grafana-server') %}
                 <a href="/app/install#monitoring" class="ui-button ui-widget ui-corner-all" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
-            {% elif s.0 in ('rabbitmq-server', 'fail2ban') %}
-                <a class="ui-button ui-widget ui-corner-all" href="https://roxy-wi.org/tools/{{s.0.split('-')[0]}}" title="{{lang.words.install|title()}} {{services_name[s.0]['name']}}" target="_blank">{{lang.words.install|title()}}</a>
+            {% elif service.0 in ('rabbitmq-server', 'fail2ban') %}
+                <a class="ui-button ui-widget ui-corner-all" href="https://roxy-wi.org/tools/{{service.0.split('-')[0]}}" title="{{lang.words.install|title()}} {{services_name[service.0]['name']}}" target="_blank">{{lang.words.install|title()}}</a>
             {% else %}
-                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{s.0}}', 'install')" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
+                <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{service.0}}', 'install')" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
             {% endif %}
         {% else %}
-        <a id="start-{{ s.0 }}" class="start" title="{{is_service_started_title}}">
+        <a id="start-{{ service.0 }}" class="start" title="{{is_service_started_title}}">
             <span class="service-start {{is_service_started_class}}" onclick="{{onclick_start_action}}"></span>
         </a>
-        <a id="restart-{{ s.2 }}" class="restart" title="{{lang.words.restart|title()}} {{services_name[s.0]['name']}} {{lang.words.service}}">
-            <span class="service-reload service-restart" onclick="confirmAjaxServiceAction('restart', '{{s.0}}')"></span>
+        <a id="restart-{{ service.2 }}" class="restart" title="{{lang.words.restart|title()}} {{services_name[service.0]['name']}} {{lang.words.service}}">
+            <span class="service-reload service-restart" onclick="confirmAjaxServiceAction('restart', '{{service.0}}')"></span>
         </a>
-        <a id="stop-{{ s.0 }}" class="stop" title="{{is_service_stopped_title}}">
+        <a id="stop-{{ service.0 }}" class="stop" title="{{is_service_stopped_title}}">
             <span class="service-stop {{is_service_stopped_class}}" onclick="{{onclick_stop_action}}"></span>
         </a>
         {% endif %}
     </td>
     <td>
-        {% if 'is not installed' not in s.2['current_version'] %}
-        {{s.2['current_version']}}
+        {% if 'is not installed' not in service.2['current_version'] %}
+        {{service.2['current_version']}}
         {% endif %}
     </td>
     <td colspan="2">
-        {{ services_name[s.0]['desc'] | safe }}
+        {{ services_name[service.0]['desc'] | safe }}
     </td>
 </tr>
 {% endfor %}
