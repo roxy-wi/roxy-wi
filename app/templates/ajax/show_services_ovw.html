@@ -1,7 +1,6 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 <tr class="odd">
 	<td class="padding10 first-collumn-wi">
-    {{ roxy_tools_status }}
 		{% if roxy_tools_status['roxy-wi-metrics'] == 'active' or roxy_tools_status['roxy-wi-metrics'] == 'RUNNING' %}
 			<span class="serverUp server-status-small" title="Metrics master {{lang.words.started}}"></span>
 			{% if role <= 1 %}
