@@ -35,7 +35,7 @@ def update_roxy_wi(service: str) -> str:
     restart_service = ''
     services = roxy_sql.get_roxy_tools()
 
-    if service not in services:
+    if service not in services and service != 'roxy-wi':
         raise Exception(f'error: {service} is not part of Roxy-WI')
 
     if service != 'roxy-wi':
