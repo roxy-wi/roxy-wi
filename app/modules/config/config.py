@@ -118,7 +118,7 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 	move_config = f" sudo mv -f {tmp_file} {config_path}"
 	command_for_docker = f'sudo docker exec -it {container_name}'
 	command = {
-		'haproxy': {'0': f'haproxy -c -f {tmp_file} ', '1': f'{command_for_docker} haproxy -c -f {tmp_file} '},
+		'haproxy': {'0': f'sudo haproxy -c -f {tmp_file} ', '1': f'{command_for_docker} haproxy -c -f {tmp_file} '},
 		'nginx': {'0': 'sudo nginx -t ', '1': f'{command_for_docker} nginx -t '},
 		'apache': {'0': 'sudo apachectl -t ', '1': f'{command_for_docker} apachectl -t '},
 		'keepalived': {'0': f'keepalived -t -f {tmp_file} ', '1': ' '},
