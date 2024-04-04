@@ -3,7 +3,7 @@ Description=HAProxy WAF
 After=syslog.target network.target
 
 [Service]
-ExecStart={{HAPROXY_PATH}}/waf/bin/modsecurity -n 4 -f {{HAPROXY_PATH}}/waf/modsecurity.conf
+ExecStart={{SERVICE_PATH}}/waf/bin/modsecurity -n 4 -f {{SERVICE_PATH}}/waf/modsecurity.conf
 ExecReload=/bin/kill -USR2 $MAINPID
 KillMode=mixed
 
