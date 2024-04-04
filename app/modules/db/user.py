@@ -256,7 +256,7 @@ def get_user_role_by_uuid(uuid, group_id):
 def write_user_uuid(login, user_uuid):
 	session_ttl = get_setting('session_ttl')
 	user_id = get_user_id_by_username(login)
-	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular', timedelta=session_ttl)
 
 	try:
@@ -268,7 +268,7 @@ def write_user_uuid(login, user_uuid):
 def write_user_token(login, user_token):
 	token_ttl = get_setting('token_ttl')
 	user_id = get_user_id_by_username(login)
-	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular', timedelta=token_ttl)
 
 	try:
@@ -368,7 +368,7 @@ def get_user_id_by_api_token(token):
 
 def write_api_token(user_token, group_id, user_role, user_name):
 	token_ttl = int(get_setting('token_ttl'))
-	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular', timedelta=token_ttl)
 	cur_date_token_ttl = get_date.return_date('regular', timedelta=token_ttl)
 
@@ -404,7 +404,7 @@ def get_token(uuid):
 
 
 def delete_old_uuid():
-	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular')
 	query = UUID.delete().where((UUID.exp < cur_date) | (UUID.exp.is_null(True)))
 	query1 = Token.delete().where((Token.exp < cur_date) | (Token.exp.is_null(True)))

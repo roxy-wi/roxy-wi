@@ -126,7 +126,7 @@
 				<td style="width: 15%">{{lang.words.period|title()}}</td>
 				<td style="width: 100%">{{lang.words.desc|title()}}</td>
 				<td style="margin-left: 5px;"></td>
-<!--				<td></td>-->
+				<td></td>
 			</tr>
 			</thead>
 			<tbody id="tbody-s3">
@@ -154,11 +154,11 @@
 						<span id="s3-backup-description-{{b.id}}"></span>
 						{% endif %}
 					</td>
-<!--					<td>-->
-<!--						<a class="add" onclick="cloneS3Backup({{b.id}})" id="clone-s3-backup{{b.id}}" title="Clone S3 {{b.server}}" style="cursor: pointer;"></a>-->
-<!--					</td>-->
 					<td>
-						<a class="delete" onclick="confirmDeleteS3Backup({{b.id}})" title="Delete S3 backup {{b.server}}" style="cursor: pointer;"></a>
+						<a class="add" onclick="cloneS3Backup({{b.id}})" id="clone-s3-backup{{b.id}}" title="{{lang.words.clone|title()}} S3 {{b.server}}" style="cursor: pointer;"></a>
+					</td>
+					<td>
+						<a class="delete" onclick="confirmDeleteS3Backup({{b.id}})" title="{{lang.words.delete|title()}} S3 {{lang.words.backup}} {{b.server}}" style="cursor: pointer;"></a>
 					</td>
 				</tr>
 			{% endif %}

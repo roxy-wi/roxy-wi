@@ -1,13 +1,9 @@
 ---
 - name: Installing WAF
   block:
-    - name: Set SSH port
-      set_fact:
-        ansible_port: "{{SSH_PORT}}"
-
     - name: Check that WAF has been installed
       stat:
-        path: "{{ NGINX_PATH }}/waf/modsecurity.conf"
+        path: "{{ SERVICE_PATH }}/waf/modsecurity.conf"
       register: stat_result
 
     - name: Fail if has been installed
@@ -149,7 +145,7 @@
 
     - name: Enable module for Ubuntu
       lineinfile:
-        path: "{{ NGINX_PATH }}/nginx.conf"
+        path: "{{ SERVICE_PATH }}/nginx.conf"
         line: load_module modules/ngx_http_modsecurity_module.so;
         insertbefore: BOF
       when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
@@ -157,29 +153,29 @@
     - name: Create WAF directory
       become: false
       file:
-        path: "{{ NGINX_PATH }}/waf/"
+        path: "{{ SERVICE_PATH }}/waf/"
         state: directory
 
     - name: Create WAF rules directory
       become: false
       file:
-        path: "{{ NGINX_PATH }}/waf/rules"
+        path: "{{ SERVICE_PATH }}/waf/rules"
         state: directory
 
     - name: Download modsecurity.conf
       ansible.builtin.get_url:
         url: https://raw.githubusercontent.com/SpiderLabs/ModSecurity/v3/master/modsecurity.conf-recommended
-        dest: "{{ NGINX_PATH }}/waf/modsecurity.conf"
+        dest: "{{ SERVICE_PATH }}/waf/modsecurity.conf"
 
     - name: Download unicode.mapping
       ansible.builtin.get_url:
         url: https://github.com/SpiderLabs/ModSecurity/blob/v3/master/unicode.mapping
-        dest: "{{ NGINX_PATH }}/waf/unicode.mapping"
+        dest: "{{ SERVICE_PATH }}/waf/unicode.mapping"
 
     - name: Create WAF config
       template:
         src: waf.conf.j2
-        dest: "{{ NGINX_PATH }}/waf/waf.conf"
+        dest: "{{ SERVICE_PATH }}/waf/waf.conf"
 
     - name: Download OWASP rules
       ansible.builtin.get_url:
@@ -196,16 +192,16 @@
     - name: Copy Modsec crs activated_rules files
       copy:
         src: "/tmp/coreruleset-{{ coreruleset_ver }}/rules/"
-        dest: "{{ NGINX_PATH }}/waf/rules/"
+        dest: "{{ SERVICE_PATH }}/waf/rules/"
         remote_src: yes
 
     - name: Copy module
       become: true
-      command: "chdir=/tmp/coreruleset-{{ coreruleset_ver }} cp crs-setup.conf.example {{ NGINX_PATH }}/waf/rulescrs-setup.conf"
+      command: "chdir=/tmp/coreruleset-{{ coreruleset_ver }} cp crs-setup.conf.example {{ SERVICE_PATH }}/waf/rulescrs-setup.conf"
 
     - name: Add waf Mod on
       ansible.builtin.blockinfile:
-        path: "{{ NGINX_PATH }}/nginx.conf"
+        path: "{{ SERVICE_PATH }}/nginx.conf"
         marker: "#-- {mark} WAF BLOCK --#"
         insertafter: "http {"
         block: |

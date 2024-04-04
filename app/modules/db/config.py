@@ -1,12 +1,11 @@
 from app.modules.db.db_model import ConfigVersion
-from app.modules.db.sql import get_setting
 from app.modules.db.server import select_server_id_by_ip
 from app.modules.db.common import out_error
 import app.modules.roxy_wi_tools as roxy_wi_tools
 
 
 def insert_config_version(server_id: int, user_id: int, service: str, local_path: str, remote_path: str, diff: str):
-	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular')
 	try:
 		ConfigVersion.insert(

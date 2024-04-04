@@ -2,8 +2,9 @@ from flask import render_template, request, g
 from flask_login import login_required
 
 from app.routes.install import bp
-from middleware import get_user_params, check_services
+from app.middleware import get_user_params, check_services
 import app.modules.db.sql as sql
+import app.modules.db.waf as waf_sql
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.server.server as server_mod
@@ -87,16 +88,30 @@ def install_waf(service, server_ip):
 
     if service == 'haproxy':
         try:
-            return service_mod.waf_install(server_ip)
+            inv, server_ips = service_mod.generate_waf_inv(server_ip, 'waf')
+            ansible_status = service_mod.run_ansible(inv, server_ips, 'waf'), 201
+        except Exception as e:
+            return str(e)
+        try:
+            waf_sql.insert_waf_metrics_enable(server_ip, "0")
+            waf_sql.insert_waf_rules(server_ip)
         except Exception as e:
             return str(e)
     elif service == 'nginx':
         try:
-            return service_mod.waf_nginx_install(server_ip)
+            inv, server_ips = service_mod.generate_waf_inv(server_ip, 'waf_nginx')
+            ansible_status = service_mod.run_ansible(inv, server_ips, 'waf_nginx'), 201
+        except Exception as e:
+            return str(e)
+        try:
+            waf_sql.insert_nginx_waf_rules(server_ip)
+            waf_sql.insert_waf_nginx_server(server_ip)
         except Exception as e:
             return str(e)
     else:
         return 'error: Wrong service'
+
+    return ansible_status
 
 
 @bp.post('/geoip')

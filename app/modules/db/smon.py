@@ -3,7 +3,6 @@ import uuid
 from peewee import fn
 
 from app.modules.db.db_model import SmonAgent, Server, SMON, SmonTcpCheck, SmonHttpCheck, SmonDnsCheck, SmonPingCheck, SmonHistory, SmonStatusPageCheck, SmonStatusPage
-from app.modules.db.sql import get_setting
 from app.modules.db.common import out_error
 import app.modules.roxy_wi_tools as roxy_wi_tools
 
@@ -187,7 +186,7 @@ def add_sec_to_state_time(time, smon_id):
 
 
 def insert_smon_history(smon_id: int, resp_time: float, status: int, check_id: int, mes='') -> None:
-	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular')
 	try:
 		SmonHistory.insert(smon_id=smon_id, response_time=resp_time, status=status, date=cur_date, check_id=check_id, mes=mes).execute()
@@ -645,7 +644,7 @@ def count_agents() -> int:
 
 
 def delete_smon_history():
-	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular', timedelta_minus=1)
 	query = SmonHistory.delete().where(SmonHistory.date < cur_date)
 	try:

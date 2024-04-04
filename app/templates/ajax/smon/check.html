@@ -5,10 +5,10 @@
     {% if s.smon_id.en == 1 %}
         {% if s.smon_id.status == 1 and s.smon_id.body_status == 1 %}
             {% set additional_classes = 'good div-server-head-up' %}
-            {% set uptime_desc = lang.words.uptime + ': <time class="timeago" datetime='+s.smon_id.time_state|string()+'>'+s.smon_id.time_state|string()+'</time>' %}
+            {% set uptime_desc = lang.words.uptime + ': <time class="timeago" datetime="'+s.smon_id.time_state|string()+'">'+s.smon_id.time_state|string()+'</time>' %}
         {% elif s.smon_id.status == 0 or s.smon_id.body_status == 0 %}
             {% set additional_classes = 'err div-server-head-down' %}
-            {% set uptime_desc = lang.words.downtime + ': <time class="timeago" datetime='+s.smon_id.time_state|string()+'>'+s.smon_id.time_state|string()+'</time>' %}
+            {% set uptime_desc = lang.words.downtime + ': <time class="timeago" datetime="'+s.smon_id.time_state|string()+'">'+s.smon_id.time_state|string()+'</time>' %}
         {% else %}
             {% set additional_classes = 'err div-server-head-unknown' %}
             {% set uptime_desc = lang.words.uptime + ': N/A' %}

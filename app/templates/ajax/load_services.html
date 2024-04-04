@@ -22,7 +22,6 @@
 {% set is_service_stopped_title = lang.words.stop|title()+" "+lang.words.and+" "+lang.words.disable+" "+services_name[service.0]['name']+" "+lang.words.service %}
 <tr class="{{ loop.cycle('odd', 'even') }}" id="{{service.0}}">
     <td class="padding10 first-collumn">
-    {{ service }}
         {% if service.1 == 'active' or service.1 == 'RUNNING' %}
             <span title="{{lang.words.service|title()}} {{services_name[service.0]['name']}} {{lang.words.started}}"><span class="serverUp server-status"></span></span>
             {% set is_service_started_class = 'disabled-button' %}

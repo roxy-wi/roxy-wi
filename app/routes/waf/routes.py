@@ -15,8 +15,6 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.config.config as config_mod
 
 get_config = roxy_wi_tools.GetConfigVar()
-time_zone = sql.get_setting('time_zone')
-get_date = roxy_wi_tools.GetDate(time_zone)
 
 
 @bp.before_request

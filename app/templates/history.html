@@ -21,7 +21,7 @@
                 dom: 'Blfrtip',
                 colReorder: true,
                 "pageLength": 25,
-                "order": [ 4, "desc" ],
+                "order": [ 5, "desc" ],
                 stateSave: true,
                 "lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]],
                 "columnDefs": [
@@ -47,6 +47,7 @@
             <th style="width: 100px">{%if service == 'cluster' %}{{lang.words.cluster|title()}} {%else%}{{lang.words.server|title()}}{% endif %}</th>
             <th>{{lang.words.action|title()}}</th>
             <th>{{lang.words.date|title()}}</th>
+            <th>{{lang.words.time|title()}}</th>
         </tr>
     </thead>
     <tbody>
@@ -71,7 +72,8 @@
             {% endif %}
         </td>
         <td>{{h.action}}</td>
-        <td>{{h.date}}</td>
+        <td>{{h.date|strftime('%Y %m %d')}}</td>
+        <td>{{h.date|strftime('%H:%M:%S')}}</td>
     </tr>
     {% endfor %}
     </tbody>

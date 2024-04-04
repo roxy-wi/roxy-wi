@@ -22,14 +22,14 @@ class GetConfigVar:
 
 
 class GetDate:
-    def __init__(self, time_zone):
+    def __init__(self, time_zone=None):
         self.time_zone = time_zone
         self.fmt = "%Y-%m-%d.%H:%M:%S"
 
     def return_date(self, log_type, **kwargs):
-        try:
+        if self.time_zone:
             cur_time_zone = timezone(self.time_zone)
-        except Exception:
+        else:
             cur_time_zone = timezone('UTC')
 
         if kwargs.get('timedelta'):

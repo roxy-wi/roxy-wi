@@ -1,6 +1,7 @@
 import psutil
 
 import app.modules.db.metric as metric_sql
+import app.modules.common.common as common
 import app.modules.server.server as server_mod
 
 
@@ -66,8 +67,9 @@ def haproxy_metrics(server_ip: str, hostname: str, time_range: str) -> dict:
     server = ''
 
     for i in metric:
-        label = str(i[5])
-        label = label.split(' ')[1]
+        label = i[5]
+        metric_time = common.get_time_zoned_date(label, '%H:%M:%S')
+        label = metric_time
         labels += label + ','
         curr_con += str(i[1]) + ','
         curr_ssl_con += str(i[2]) + ','
@@ -95,8 +97,9 @@ def haproxy_http_metrics(server_ip: str, hostname: str, time_range: str) -> dict
     server = ''
 
     for i in metric:
-        label = str(i[5])
-        label = label.split(' ')[1]
+        label = i[5]
+        metric_time = common.get_time_zoned_date(label, '%H:%M:%S')
+        label = metric_time
         labels += label + ','
         http_2xx += str(i[1]) + ','
         http_3xx += str(i[2]) + ','
@@ -123,8 +126,9 @@ def service_metrics(server_ip: str, hostname: str, service: str, time_range: str
     curr_con = ''
 
     for i in metric:
-        label = str(i[2])
-        label = label.split(' ')[1]
+        label = i[2]
+        metric_time = common.get_time_zoned_date(label, '%H:%M:%S')
+        label = metric_time
         labels += label + ','
         curr_con += str(i[1]) + ','
 

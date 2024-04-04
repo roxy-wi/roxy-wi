@@ -2,7 +2,7 @@ import os
 import sys
 import pytz
 
-from flask import render_template, request, session, g, abort
+from flask import render_template, request, session, g, abort, jsonify
 from flask_login import login_required
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
@@ -24,6 +24,11 @@ import app.modules.roxywi.nettools as nettools_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
 import app.modules.service.haproxy as service_haproxy
+
+
+@app.template_filter('strftime')
+def _jinja2_filter_datetime(date, fmt=None):
+    return common.get_time_zoned_date(date, fmt)
 
 
 @app.errorhandler(403)
@@ -110,9 +115,9 @@ def nettools():
     return render_template('nettools.html', lang=g.user_params['lang'])
 
 
-@bp.post('/nettols/<check>')
+@bp.post('/nettools/<check>')
 @login_required
-def nettols_check(check):
+def nettools_check(check):
     server_from = common.checkAjaxInput(request.form.get('server_from'))
     server_to = common.is_ip_or_dns(request.form.get('server_to'))
     action = common.checkAjaxInput(request.form.get('nettools_action'))
@@ -120,6 +125,7 @@ def nettols_check(check):
     dns_name = common.checkAjaxInput(request.form.get('nettools_nslookup_name'))
     dns_name = common.is_ip_or_dns(dns_name)
     record_type = common.checkAjaxInput(request.form.get('nettools_nslookup_record_type'))
+    domain_name = common.is_ip_or_dns(request.form.get('nettools_whois_name'))
 
     if check == 'icmp':
         return nettools_mod.ping_from_server(server_from, server_to, action)
@@ -127,6 +133,8 @@ def nettols_check(check):
         return nettools_mod.telnet_from_server(server_from, server_to, port_to)
     elif check == 'dns':
         return nettools_mod.nslookup_from_server(server_from, dns_name, record_type)
+    elif check == 'whois':
+        return jsonify(nettools_mod.whois_check(domain_name))
     else:
         return 'error: Wrong check'
 

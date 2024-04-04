@@ -5,5 +5,5 @@
     {% else %}
         {% set add_class = 'serverDown' %}
     {% endif %}
-    <div class="smon_server_statuses {{add_class}}" title="" data-help="{{s.date}} {{s.mes}}" style=""></div>
+    <div class="smon_server_statuses {{add_class}}" title="" data-help="{{s.date|strftime}} {{s.mes}}" style=""></div>
 {% endfor %}

@@ -1,5 +1,4 @@
 from app.modules.db.db_model import connect, fn, PortScannerPorts, PortScannerSettings, PortScannerHistory
-from app.modules.db.sql import get_setting
 from app.modules.db.common import out_error
 import app.modules.roxy_wi_tools as roxy_wi_tools
 
@@ -37,7 +36,7 @@ def select_port_scanner_settings_for_service():
 
 
 def insert_port_scanner_port(serv, user_group_id, port, service_name):
-	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular')
 	try:
 		PortScannerPorts.insert(
@@ -83,7 +82,7 @@ def delete_ports(serv):
 
 
 def insert_port_scanner_history(serv, port, port_status, service_name):
-	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular')
 	try:
 		PortScannerHistory.insert(
@@ -130,7 +129,7 @@ def select_count_opened_ports(serv):
 
 
 def delete_portscanner_history(keep_interval: int):
-	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular', timedelta_minus=keep_interval)
 	query = PortScannerHistory.delete().where(
 		PortScannerHistory.date < cur_date)

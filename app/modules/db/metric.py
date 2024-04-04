@@ -1,12 +1,10 @@
 from app.modules.db.db_model import connect, mysql_enable, Metrics, MetricsHttpStatus, Server, NginxMetrics, ApacheMetrics, WafMetrics
-from app.modules.db.sql import get_setting
 from app.modules.db.common import out_error
 import app.modules.roxy_wi_tools as roxy_wi_tools
 
 
 def insert_metrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
-	time_zone = get_setting('time_zone')
-	get_date = roxy_wi_tools.GetDate(time_zone)
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular')
 	try:
 		Metrics.insert(
@@ -23,8 +21,7 @@ def insert_metrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
 
 
 def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
-	time_zone = get_setting('time_zone')
-	get_date = roxy_wi_tools.GetDate(time_zone)
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular')
 	try:
 		MetricsHttpStatus.insert(
@@ -41,8 +38,7 @@ def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
 
 
 def insert_nginx_metrics(serv, connection):
-	time_zone = get_setting('time_zone')
-	get_date = roxy_wi_tools.GetDate(time_zone)
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular')
 	try:
 		NginxMetrics.insert(serv=serv, conn=connection, date=cur_date).execute()
@@ -56,8 +52,7 @@ def insert_nginx_metrics(serv, connection):
 
 
 def insert_apache_metrics(serv, connection):
-	time_zone = get_setting('time_zone')
-	get_date = roxy_wi_tools.GetDate(time_zone)
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular')
 	try:
 		ApacheMetrics.insert(serv=serv, conn=connection, date=cur_date).execute()
@@ -71,8 +66,7 @@ def insert_apache_metrics(serv, connection):
 
 
 def insert_waf_metrics(serv, connection):
-	time_zone = get_setting('time_zone')
-	get_date = roxy_wi_tools.GetDate(time_zone)
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular')
 	try:
 		WafMetrics.insert(serv=serv, conn=connection, date=cur_date).execute()
@@ -86,8 +80,7 @@ def insert_waf_metrics(serv, connection):
 
 
 def delete_waf_metrics():
-	time_zone = get_setting('time_zone')
-	get_date = roxy_wi_tools.GetDate(time_zone)
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular', timedelta_minus=3)
 	query = WafMetrics.delete().where(WafMetrics.date < cur_date)
 	try:
@@ -102,8 +95,7 @@ def delete_waf_metrics():
 
 
 def delete_metrics():
-	time_zone = get_setting('time_zone')
-	get_date = roxy_wi_tools.GetDate(time_zone)
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular', timedelta_minus=3)
 	query = Metrics.delete().where(Metrics.date < cur_date)
 	try:
@@ -118,8 +110,7 @@ def delete_metrics():
 
 
 def delete_http_metrics():
-	time_zone = get_setting('time_zone')
-	get_date = roxy_wi_tools.GetDate(time_zone)
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular', timedelta_minus=3)
 	query = MetricsHttpStatus.delete().where(MetricsHttpStatus.date < cur_date)
 	try:
@@ -134,8 +125,7 @@ def delete_http_metrics():
 
 
 def delete_nginx_metrics():
-	time_zone = get_setting('time_zone')
-	get_date = roxy_wi_tools.GetDate(time_zone)
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular', timedelta_minus=3)
 	query = NginxMetrics.delete().where(NginxMetrics.date < cur_date)
 	try:
@@ -150,7 +140,7 @@ def delete_nginx_metrics():
 
 
 def delete_apache_metrics():
-	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
+	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular', timedelta_minus=3)
 	query = ApacheMetrics.delete().where(ApacheMetrics.date < cur_date)
 	try:

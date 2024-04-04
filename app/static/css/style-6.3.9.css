@@ -109,6 +109,11 @@ pre {
 	font-size: 12px;
 	z-index: 99;
 }
+.menu-active {
+	padding-left: 30px;
+	background-color: var(--right-menu-blue-rolor) !important;
+	border-left: 4px solid var(--right-menu-blue-rolor);
+}
 .logoText {
 	color: #EBF1F1;
 	font-size: 25px;

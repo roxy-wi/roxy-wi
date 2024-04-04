@@ -101,7 +101,7 @@
                 </div>
                 {% endif %}
             </td>
-            <td>{{c.date}}</td>
+            <td>{{c.date|strftime}}</td>
             <td style="padding-top: 10px;">
                 <a href="/app/config/versions/{{service}}/{{server_ip}}/{{c.local_path.split('/')[-1]}}"
                    class="ui-button ui-widget ui-corner-all" title="{{lang1.phrases.view_and_upload}}" style="margin-top: -6px;">

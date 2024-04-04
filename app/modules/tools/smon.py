@@ -197,7 +197,8 @@ def history_metrics(server_id: int) -> dict:
     curr_con = ''
 
     for i in reversed(metric):
-        labels += f'{i.date.time()},'
+        metric_time = common.get_time_zoned_date(i.date, '%H:%M:%S')
+        labels += f'{metric_time},'
         curr_con += f'{i.response_time},'
 
     metrics['chartData']['labels'] = labels

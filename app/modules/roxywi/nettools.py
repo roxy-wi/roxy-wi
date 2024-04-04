@@ -1,7 +1,10 @@
+import json
+
+import whois
 from flask import Response, stream_with_context
 
 import app.modules.server.ssh as mod_ssh
-import modules.server.server as server_mod
+import app.modules.server.server as server_mod
 
 
 def ping_from_server(server_from: str, server_to: str, action: str) -> Response:
@@ -106,3 +109,24 @@ def nslookup_from_server(server_from: str, dns_name: str, record_type: str) -> s
         count_string += 1
 
     return output1
+
+
+def whois_check(domain_name: str) -> str:
+    try:
+        whois_data = json.loads(str(whois.whois(domain_name)))
+    except Exception as e:
+        return f'error: Cannot get whois from {domain_name}: {e}'
+
+    output = (f'<b>Domain name:</b> {whois_data["domain_name"]}<br />'
+              f'<b>Registrar:</b> {whois_data["registrar"]} <br />'
+              f'<b>Creation date:</b> {whois_data["creation_date"]} <br />'
+              f'<b>Expiration date:</b> {whois_data["expiration_date"]} <br />'
+              f'<b>Name servers:</b> {whois_data["name_servers"]} <br />'
+              f'<b>Status:</b> {whois_data["status"]} <br />')
+
+    if 'emails' in whois_data:
+        output += f'<b>Emails:</b> {whois_data["emails"]} <br />'
+    if 'org' in whois_data:
+        output += f'<b>Organization:</b> {whois_data["org"]} <br />'
+
+    return output

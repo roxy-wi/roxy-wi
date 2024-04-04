@@ -7,7 +7,6 @@ import ansible
 import ansible_runner
 
 import app.modules.db.sql as sql
-import app.modules.db.waf as waf_sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
@@ -39,82 +38,6 @@ def show_installation_output(error: str, output: list, service: str, rc=0):
 def show_success_installation(service):
 	lang = roxywi_common.get_user_lang_for_flask()
 	return render_template('include/show_success_installation.html', service=service, lang=lang)
-
-
-def waf_install(server_ip: str):
-	script = "waf.sh"
-	proxy = sql.get_setting('proxy')
-	haproxy_dir = sql.get_setting('haproxy_dir')
-	ver = service_common.check_haproxy_version(server_ip)
-	service = ' WAF'
-	proxy_serv = ''
-	ssh_settings = return_ssh_keys_path(server_ip)
-	full_path = '/var/www/haproxy-wi/app'
-
-	os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
-
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy
-
-	commands = [
-		f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv} HAPROXY_PATH={haproxy_dir} VERSION='{ver}' "
-		f"SSH_PORT={ssh_settings['port']} HOST={server_ip} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' "
-		f"KEY={ssh_settings['key']}"
-	]
-
-	return_out = server_mod.subprocess_execute_with_rc(commands[0])
-
-	try:
-		show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc'])
-	except Exception as e:
-		raise Exception(e)
-
-	try:
-		waf_sql.insert_waf_metrics_enable(server_ip, "0")
-		waf_sql.insert_waf_rules(server_ip)
-	except Exception as e:
-		return str(e)
-
-	os.remove(f'{full_path}/{script}')
-
-	return show_success_installation(service)
-
-
-def waf_nginx_install(server_ip: str):
-	script = "waf_nginx.sh"
-	proxy = sql.get_setting('proxy')
-	nginx_dir = sql.get_setting('nginx_dir')
-	service = ' WAF'
-	proxy_serv = ''
-	ssh_settings = return_ssh_keys_path(server_ip)
-	full_path = '/var/www/haproxy-wi/app'
-
-	os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
-
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy
-
-	commands = [
-		f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv} NGINX_PATH={nginx_dir} SSH_PORT={ssh_settings['port']} "
-		f"HOST={server_ip} USER={ssh_settings['user']} PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-	]
-
-	return_out = server_mod.subprocess_execute_with_rc(commands[0])
-
-	try:
-		show_installation_output(return_out['error'], return_out['output'], service, rc=return_out['rc'])
-	except Exception as e:
-		raise Exception(e)
-
-	try:
-		waf_sql.insert_nginx_waf_rules(server_ip)
-		waf_sql.insert_waf_nginx_server(server_ip)
-	except Exception as e:
-		return str(e)
-
-	os.remove(f'{full_path}/{script}')
-
-	return show_success_installation(service)
 
 
 def geoip_installation(serv, geoip_update, service):
@@ -189,7 +112,7 @@ def grafana_install():
 	return f'success: Grafana and Prometheus servers were installed. You can find Grafana on http://{host}:3000<br>'
 
 
-def generate_kp_inv(json_data: json, install_service) -> object:
+def generate_kp_inv(json_data: json, installed_service) -> object:
 	inv = {"server": {"hosts": {}}}
 	server_ips = []
 	cluster_id = int(json_data['cluster_id'])
@@ -229,7 +152,23 @@ def generate_kp_inv(json_data: json, install_service) -> object:
 	return inv, server_ips
 
 
-def generate_haproxy_inv(json_data: json, install_service: str) -> object:
+def generate_waf_inv(server_ip: str, installed_service: str) -> object:
+	inv = {"server": {"hosts": {}}}
+	server_ips = []
+	if installed_service == "waf":
+		service_dir = sql.get_setting('haproxy_dir')
+	else:
+		service_dir = sql.get_setting('nginx_dir')
+
+	inv['server']['hosts'][server_ip] = {
+		'SERVICE_PATH': service_dir
+	}
+	server_ips.append(server_ip)
+
+	return inv, server_ips
+
+
+def generate_haproxy_inv(json_data: json, installed_service: str) -> object:
 	inv = {"server": {"hosts": {}}}
 	slaves = []
 	server_ips = []
@@ -280,24 +219,24 @@ def generate_haproxy_inv(json_data: json, install_service: str) -> object:
 	return inv, server_ips
 
 
-def generate_service_inv(json_data: json, install_service: str) -> object:
+def generate_service_inv(json_data: json, installed_service: str) -> object:
 	inv = {"server": {"hosts": {}}}
 	server_ips = []
-	stats_user = sql.get_setting(f'{install_service}_stats_user')
-	stats_password = sql.get_setting(f'{install_service}_stats_password')
-	stats_port = str(sql.get_setting(f'{install_service}_stats_port'))
-	stats_page = sql.get_setting(f'{install_service}_stats_page')
-	config_path = sql.get_setting(f'{install_service}_config_path')
-	service_dir = sql.get_setting(f'{install_service}_dir')
-	container_name = sql.get_setting(f'{install_service}_container_name')
-	is_docker = json_data['services'][install_service]['docker']
+	stats_user = sql.get_setting(f'{installed_service}_stats_user')
+	stats_password = sql.get_setting(f'{installed_service}_stats_password')
+	stats_port = str(sql.get_setting(f'{installed_service}_stats_port'))
+	stats_page = sql.get_setting(f'{installed_service}_stats_page')
+	config_path = sql.get_setting(f'{installed_service}_config_path')
+	service_dir = sql.get_setting(f'{installed_service}_dir')
+	container_name = sql.get_setting(f'{installed_service}_container_name')
+	is_docker = json_data['services'][installed_service]['docker']
 
-	if install_service == 'nginx' and not os.path.isdir('/var/www/haproxy-wi/app/scripts/ansible/roles/nginxinc.nginx'):
+	if installed_service == 'nginx' and not os.path.isdir('/var/www/haproxy-wi/app/scripts/ansible/roles/nginxinc.nginx'):
 		os.system('ansible-galaxy install nginxinc.nginx,0.23.2 --roles-path /var/www/haproxy-wi/app/scripts/ansible/roles/')
 
 	for k, v in json_data['servers'].items():
 		server_ip = v['ip']
-		if install_service == 'apache':
+		if installed_service == 'apache':
 			correct_service_name = service_common.get_correct_apache_service_name(server_ip=server_ip, server_id=None)
 			if service_dir == '/etc/httpd' and correct_service_name == 'apache2':
 				service_dir = '/etc/apache2'
@@ -314,7 +253,7 @@ def generate_service_inv(json_data: json, install_service: str) -> object:
 			"SYN_FLOOD": "0",
 			"CONFIG_PATH": config_path,
 			"STAT_PAGE": stats_page,
-			"service": install_service,
+			"service": installed_service,
 		}
 		server_ips.append(server_ip)
 

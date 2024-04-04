@@ -335,6 +335,16 @@ function cloneBackup(id) {
 	$('#backup-credentials').val($('#backup-credentials-'+id+' option:selected').val()).change()
 	$('#backup-credentials').selectmenu("refresh");
 }
+function cloneS3Backup(id) {
+	$( "#add-backup-s3-button" ).trigger( "click" );
+	$('#s3_server').val($('#s3-server-'+id).text())
+	$('#s3_bucket').val($('#bucket-'+id).text())
+	$('#s3-backup-description').val($('#s3-backup-description--'+id).text())
+	$('#s3-backup-server').val($('#backup-s3-server-'+id).text()).change();
+	$('#s3-backup-server').selectmenu("refresh");
+	$('#s3-backup-time').val($('#s3-backup-time-'+id).text()).change();
+	$('#s3-backup-time').selectmenu("refresh");
+}
 function removeBackup(id) {
 	$("#backup-table-" + id).css("background-color", "#f2dede");
 	$.ajax({

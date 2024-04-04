@@ -143,4 +143,33 @@ $( function() {
         });
         event.preventDefault();
     });
+    $("#nettools_whois_form").on("click", ":submit", function (e) {
+        $('#ajax-nettools').html('');
+        var frm = $('#nettools_whois_form');
+        if ($('#nettools_whois_name').val() == '') {
+            toastr.warning('Enter a Domain name');
+            return false;
+        }
+        $.ajax({
+            url: frm.attr('action'),
+            data: frm.serialize() + "&nettools_action=" + $(this).val(),
+            type: frm.attr('method'),
+            dataType: 'text',
+            success: function (data) {
+                data = data.replaceAll('"', '');
+                if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1' || data.indexOf('Error(s)') != '-1') {
+                    toastr.clear();
+                    toastr.error(data);
+                } else if (data.indexOf('warning: ') != '-1') {
+                    toastr.clear();
+                    toastr.warning(data)
+                } else {
+                    toastr.clear();
+                    console.log(data)
+                    $('#ajax-nettools').html('<div class="ping_pre">' + data + '</div>');
+                }
+            }
+        });
+        event.preventDefault();
+    });
 });

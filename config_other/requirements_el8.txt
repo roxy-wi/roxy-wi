@@ -20,3 +20,4 @@ pika>=1.2.0
 websockets>=9.0
 ansible-core>=2.11.12
 ansible-runner==2.3.1
+python-whois>=0.8.0

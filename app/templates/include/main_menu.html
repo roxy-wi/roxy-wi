@@ -9,11 +9,11 @@
 	<div id="top-link" class="top-link">
 		<nav id="menu">
 			<ul class="menu">
-				<li><a href="{{ url_for('overview.index') }}" title="{{lang.menu_links.overview.title}}" class="overview-link ">{{lang.menu_links.overview.link}}</a></li>
+				<li><a href="{{ url_for('overview.index') }}" title="{{lang.menu_links.overview.title}}" class="overview-link {% if request.url_rule.endpoint == 'overview.index' %} menu-active{% endif %}">{{lang.menu_links.overview.link}}</a></li>
 				{% if '5' in g.user_params['user_services'] %}
 				{% if g.user_params['role'] <= 3 %}
 				{% endif %}
-				<li><a href="{{ url_for('ha.cluster_function', service='cluster') }}" title="{{lang.menu_links.ha.title}}" class="keepalived">HA {{lang.words.cluster}}</a></li>
+				<li><a href="{{ url_for('ha.cluster_function', service='cluster') }}" title="{{lang.menu_links.ha.title}}" class="keepalived {% if request.url_rule.endpoint == 'ha.cluster_function' %} menu-active{% endif %}">HA {{lang.words.cluster}}</a></li>
 				{% endif %}
 				{% if '1' in g.user_params['user_services'] %}
 				<li class="p_menu">
