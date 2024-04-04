@@ -1,5 +1,5 @@
 var awesome = "/inc/fontawesome.min.js"
-var waf = "/inc/waf.js"
+var waf = "/static/js/waf.js"
 var overview = "/inc/overview.js"
 function showOverviewWaf(serv, hostnamea) {
 	var service = cur_url[1];
@@ -23,7 +23,7 @@ function showOverviewWafCallBack(serv, hostnamea) {
 		// },
 		// type: "POST",
 		beforeSend: function () {
-			$("#" + hostnamea).html('<img class="loading_small" src="/app/static/images/loading.gif" />');
+			$("#" + hostnamea).html('<img class="loading_small" src="/static/images/loading.gif" />');
 		},
 		success: function (data) {
 			$("#" + hostnamea).empty();
@@ -72,9 +72,9 @@ function installWaf(ip1) {
 			} else if (data.indexOf('Info') != '-1') {
 				toastr.clear();
 				toastr.info(data);
-			} else if (data.indexOf('success') != '-1') {
+			} else {
 				toastr.clear();
-				toastr.success('WAF service has been installed');
+				parseAnsibleJsonOutput(data, `${service} WAF`, false);
 				showOverviewWaf(ip, hostnamea);
 				$("#ajax").html('');
 			}

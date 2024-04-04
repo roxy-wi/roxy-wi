@@ -2,7 +2,7 @@
 {% block title %}{{title}}{% endblock %}
 {% block h2 %}{{title}}{% endblock %}
 {% block content %}
-<script src="/inc/waf.js"></script>
+<script src="/app/static/js/waf.js"></script>
 {% if manage_rules == '1' %}
 	{% from 'include/input_macros.html' import input, checkbox %}
 	<table class="overview" id="waf_rules">

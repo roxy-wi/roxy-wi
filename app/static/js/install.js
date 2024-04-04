@@ -293,18 +293,24 @@ function showErrorStatus(service_name, server) {
 }
 function parseAnsibleJsonOutput(output, service_name, select_id) {
 	output = JSON.parse(JSON.stringify(output));
-	var check_apache_log = $('#translate').attr('data-check_apache_log');
-	var was_installed = $('#translate').attr('data-was_installed');
+	let was_installed = $('#translate').attr('data-was_installed');
+	let server_name = '';
 	for (var k in output['ok']) {
-		var server_name = $(select_id + ' option[value="'+k+'"]').text();
+		if (select_id) {
+			server_name = $(select_id + ' option[value="'+k+'"]').text();
+		}
 		toastr.success(service_name + ' ' + was_installed +' ' + server_name);
 	}
 	for (var k in output['failures']) {
-		var server_name = $(select_id + ' option[value="'+k+'"]').text();
+		if (select_id) {
+			server_name = $(select_id + ' option[value="'+k+'"]').text();
+		}
 		showErrorStatus(service_name, server_name);
 	}
 	for (var k in output['dark']) {
-		var server_name = $(select_id + ' option[value="'+k+'"]').text();
+		if (select_id) {
+			server_name = $(select_id + ' option[value="'+k+'"]').text();
+		}
 		showErrorStatus(service_name, server_name);
 	}
 }
