@@ -97,6 +97,7 @@ def waf_rule_edit(service, server_ip, rule_id):
     else:
         config_path = sql.get_setting('haproxy_dir')
 
+    get_date = roxy_wi_tools.GetDate(sql.get_setting('time_zone'))
     waf_rule_file = waf_sql.select_waf_rule_by_id(rule_id)
     configs_dir = sql.get_setting('tmp_config_path')
     cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}-{waf_rule_file}"
@@ -135,6 +136,7 @@ def waf_save_config(service, server_ip, rule_id):
     roxywi_auth.page_for_admin(level=2)
     roxywi_common.check_is_server_in_group(server_ip)
 
+    get_date = roxy_wi_tools.GetDate(sql.get_setting('time_zone'))
     configs_dir = sql.get_setting('tmp_config_path')
     cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}"
     config_file_name = request.form.get('config_file_name')
