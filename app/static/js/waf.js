@@ -1,5 +1,5 @@
 var awesome = "/inc/fontawesome.min.js"
-var waf = "/static/js/waf.js"
+var waf = "/app/static/js/waf.js"
 var overview = "/inc/overview.js"
 function showOverviewWaf(serv, hostnamea) {
 	var service = cur_url[1];
@@ -18,12 +18,8 @@ function showOverviewWafCallBack(serv, hostnamea) {
 	var service = cur_url[1];
 	$.ajax({
 		url: "/app/waf/overview/" + service + "/" + serv,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		beforeSend: function () {
-			$("#" + hostnamea).html('<img class="loading_small" src="/static/images/loading.gif" />');
+			$("#" + hostnamea).html('<img class="loading_small" src="/app/static/images/loading.gif" />');
 		},
 		success: function (data) {
 			$("#" + hostnamea).empty();
@@ -43,10 +39,6 @@ function metrics_waf(name) {
 	name = name.split('metrics')[1]
 	$.ajax( {
 		url: "/app/waf/metric/enable/" + enable + "/" + name,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function( data ) {
 			showOverviewWaf(ip, hostnamea);
 			setTimeout(function() {
@@ -61,12 +53,8 @@ function installWaf(ip1) {
 	var service = cur_url[1];
 	$.ajax({
 		url: "/app/install/waf/" + service + "/" + ip1,
-		// data: {
-		// 	token: $('#token').val()
-		// },
 		type: "POST",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('fatal') != '-1') {
 				toastr.error(data);
 			} else if (data.indexOf('Info') != '-1') {
