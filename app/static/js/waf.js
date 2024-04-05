@@ -55,12 +55,11 @@ function installWaf(ip1) {
 		url: "/app/install/waf/" + service + "/" + ip1,
 		type: "POST",
 		success: function (data) {
-			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('fatal') != '-1') {
-				toastr.error(data);
-			} else if (data.indexOf('Info') != '-1') {
-				toastr.clear();
-				toastr.info(data);
-			} else {
+			try {
+				if (data.indexOf('error:') != '-1') {
+					toastr.error(data);
+				}
+			} catch (e) {
 				toastr.clear();
 				parseAnsibleJsonOutput(data, `${service} WAF`, false);
 				showOverviewWaf(ip, hostnamea);
@@ -75,10 +74,6 @@ function changeWafMode(id) {
 	var service = cur_url[1];
 	$.ajax({
 		url: "/app/waf/" + service + "/mode/" + server_hostname + "/" + waf_mode,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			toastr.info('Do not forget restart WAF service');
 			$('#' + server_hostname + '-select-line').addClass("update", 1000);
