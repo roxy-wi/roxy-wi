@@ -167,29 +167,29 @@ def select_metrics(serv, service, **kwargs):
 
 	if mysql_enable == '1':
 		if kwargs.get('time_range') == '60':
-			date_from = "and date > now() - INTERVAL 60 minute group by `date` div 100"
+			date_from = "and date > CONVERT_TZ(NOW(),'SYSTEM','+0:00') - INTERVAL 60 minute group by `date` div 100"
 		elif kwargs.get('time_range') == '180':
-			date_from = "and date > now() - INTERVAL 180 minute group by `date` div 200"
+			date_from = "and date > CONVERT_TZ(NOW(),'SYSTEM','+0:00') - INTERVAL 180 minute group by `date` div 200"
 		elif kwargs.get('time_range') == '360':
-			date_from = "and date > now() - INTERVAL 360 minute group by `date` div 300"
+			date_from = "and date > CONVERT_TZ(NOW(),'SYSTEM','+0:00') - INTERVAL 360 minute group by `date` div 300"
 		elif kwargs.get('time_range') == '720':
-			date_from = "and date > now() - INTERVAL 720 minute group by `date` div 500"
+			date_from = "and date > CONVERT_TZ(NOW(),'SYSTEM','+0:00') - INTERVAL 720 minute group by `date` div 500"
 		else:
-			date_from = "and date > now() - INTERVAL 30 minute"
+			date_from = "and date > CONVERT_TZ(NOW(),'SYSTEM','+0:00') - INTERVAL 30 minute"
 		sql = """ select * from {metrics_table} where serv = '{serv}' {date_from} order by `date` asc """.format(
 			metrics_table=metrics_table, serv=serv, date_from=date_from
 		)
 	else:
 		if kwargs.get('time_range') == '60':
-			date_from = "and date > datetime('now', '-60 minutes', 'localtime') and rowid % 2 = 0"
+			date_from = "and date > datetime('now', '-60 minutes', 'UTC') and rowid % 2 = 0"
 		elif kwargs.get('time_range') == '180':
-			date_from = "and date > datetime('now', '-180 minutes', 'localtime') and rowid % 5 = 0"
+			date_from = "and date > datetime('now', '-180 minutes', 'UTC') and rowid % 5 = 0"
 		elif kwargs.get('time_range') == '360':
-			date_from = "and date > datetime('now', '-360 minutes', 'localtime') and rowid % 7 = 0"
+			date_from = "and date > datetime('now', '-360 minutes', 'UTC') and rowid % 7 = 0"
 		elif kwargs.get('time_range') == '720':
-			date_from = "and date > datetime('now', '-720 minutes', 'localtime') and rowid % 9 = 0"
+			date_from = "and date > datetime('now', '-720 minutes', 'UTC') and rowid % 9 = 0"
 		else:
-			date_from = "and date > datetime('now', '-30 minutes', 'localtime')"
+			date_from = "and date > datetime('now', '-30 minutes', 'UTC')"
 
 		sql = """ select * from (select * from {metrics_table} where serv = '{serv}' {date_from} order by `date`) order by `date` """.format(
 			metrics_table=metrics_table, serv=serv, date_from=date_from)

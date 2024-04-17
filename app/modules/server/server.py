@@ -357,7 +357,6 @@ def show_system_info(server_ip: str, server_id: int) -> str:
 			return f'Cannot update server info: {e}'
 	else:
 		system_info = server_sql.select_one_system_info(server_id)
-
 	return render_template('ajax/show_system_info.html', system_info=system_info, server_ip=server_ip, server_id=server_id)
 
 
