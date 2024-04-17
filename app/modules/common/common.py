@@ -26,7 +26,7 @@ def _convert_to_time_zone(date: datetime) -> datetime:
 	return native
 
 
-def get_time_zoned_date(date: datetime, fmt: str = None) -> str:
+def get_time_zoned_date(date: datetime, fmt: str = '%Y-%m-%d %H:%M:%S') -> str:
 	"""
 	Formats a given date and returns the formatted date in the specified or default format.
 
@@ -39,12 +39,11 @@ def get_time_zoned_date(date: datetime, fmt: str = None) -> str:
 	:return: The formatted date.
 	:rtype: str
 	"""
-	native = _convert_to_time_zone(date)
 	date_format = '%Y-%m-%d %H:%M:%S'
-	if fmt:
-		return native.strftime(fmt)
-	else:
-		return native.strftime(date_format)
+	if not isinstance(date, datetime):
+		date = datetime.strptime(date, date_format)
+	native = _convert_to_time_zone(date)
+	return native.strftime(fmt)
 
 
 def get_present_time():

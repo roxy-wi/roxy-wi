@@ -185,7 +185,7 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 			}
 		}
 	});
-	$.getScript('/inc/ha.js');
+	$.getScript('/app/static/js/ha.js');
 	var regx = /^[a-z0-9_-]+$/;
 	var dialog_div = $("#create-ha-cluster-step-1").dialog({
 		autoOpen: false,
@@ -614,7 +614,7 @@ function add_vip_ha_cluster(cluster_id, cluster_name, router_id='', vip='', edit
 			}
 		}
 	});
-	$.getScript('/inc/ha.js');
+	$.getScript('/app/static/js/ha.js');
 	var dialog_div = $("#add-vip").dialog({
 		autoOpen: false,
 		resizable: false,
@@ -739,7 +739,7 @@ function addCheckToStatus(server_id, server_ip) {
 		'</div>';
 	$('#add_check-' + server_id).remove();
 	$("#enabled-check").append(html_tag);
-	$.getScript('/inc/ha.js');
+	$.getScript('/app/static/js/ha.js');
 }
 function removeCheckFromStatus(server_id, server_ip) {
 	var hostname = $('#remove_check-' + server_id).attr('data-name');
