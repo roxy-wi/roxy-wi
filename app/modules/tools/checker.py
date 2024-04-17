@@ -30,6 +30,7 @@ def load_checker() -> str:
         kwargs.setdefault('services', tools_common.get_services_status())
         kwargs.setdefault('telegrams', channel_sql.get_user_telegram_by_group(user_group))
         kwargs.setdefault('pds', channel_sql.get_user_pd_by_group(user_group))
+        kwargs.setdefault('mms', channel_sql.get_user_mm_by_group(user_group))
         kwargs.setdefault('groups', group_sql.select_groups())
         kwargs.setdefault('slacks', channel_sql.get_user_slack_by_group(user_group))
         kwargs.setdefault('haproxy_servers', roxywi_common.get_dick_permit(haproxy=1, only_group=1))
@@ -47,24 +48,24 @@ def load_checker() -> str:
     return render_template('ajax/load_checker.html', **kwargs)
 
 
-def update_haproxy_settings(setting_id, email, service_alert, backend_alert, maxconn_alert, telegram_id, slack_id, pd_id) -> str:
-    if checker_sql.update_haproxy_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, backend_alert,
+def update_haproxy_settings(setting_id, email, service_alert, backend_alert, maxconn_alert, telegram_id, slack_id, pd_id, mm_id) -> str:
+    if checker_sql.update_haproxy_checker_settings(email, telegram_id, slack_id, pd_id, mm_id, service_alert, backend_alert,
                                            maxconn_alert, setting_id):
         return 'ok'
     else:
         return 'error: Cannot update Checker settings'
 
 
-def update_keepalived_settings(setting_id, email, service_alert, backend_alert, telegram_id, slack_id, pd_id) -> str:
-    if checker_sql.update_keepalived_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, backend_alert,
+def update_keepalived_settings(setting_id, email, service_alert, backend_alert, telegram_id, slack_id, pd_id, mm_id) -> str:
+    if checker_sql.update_keepalived_checker_settings(email, telegram_id, slack_id, pd_id, mm_id, service_alert, backend_alert,
                                               setting_id):
         return 'ok'
     else:
         return 'error: Cannot update Checker settings'
 
 
-def update_service_settings(setting_id, email, service_alert, telegram_id, slack_id, pd_id) -> str:
-    if checker_sql.update_service_checker_settings(email, telegram_id, slack_id, pd_id, service_alert, setting_id):
+def update_service_settings(setting_id, email, service_alert, telegram_id, slack_id, pd_id, mm_id) -> str:
+    if checker_sql.update_service_checker_settings(email, telegram_id, slack_id, pd_id, mm_id, service_alert, setting_id):
         return 'ok'
     else:
         return 'error: Cannot update Checker settings'

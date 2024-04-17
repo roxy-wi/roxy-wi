@@ -157,7 +157,59 @@
     </tr>
     {% endfor %}
 </table>
-<br /><span class="add-button" title="{{lang.words.add|title()}} PagerDuty {{lang.words.channel|title()}}" id="add-pd-button">+ {{lang.words.add|title()}}</span>
+<br /><span class="add-button" title="{{lang.words.add|title()}} PagerDuty {{lang.words.channel}}" id="add-pd-button">+ {{lang.words.add|title()}}</span>
+<br /><br />
+<table id="checker_mm_table" class="overview-overflow">
+    <caption><i class="fas fa-power-off caption-icon"></i><h3>Mattermost {{lang.words.channels|title()}}</h3></caption>
+    <tr class="overviewHead" style="width: 50%;">
+        <td class="padding10 first-collumn" style="width: 25%;">
+            {{lang.words.key|title()}}
+        </td>
+        <td style="width: 20%;">{{lang.words.name|title()}}</td>
+        {% if user_params['role']|int() == 1 %}
+        <td style="width: 25%;">{{lang.words.group|title()}}</td>
+        {% endif %}
+        <td style="width: 100%;"></td>
+        <td></td>
+        <td><span onclick="loadChannel()" class="refresh" title="{{lang.words.refresh2|title()}} Mattermost {{lang.words.channels}}"></span></td>
+    </tr>
+    {% for mm in mms %}
+    <tr id="mm-table-{{mm.id}}" class="{{ loop.cycle('odd', 'even') }}">
+        <td class="padding10 first-collumn">
+            {% set id = 'mm-token-' + mm.id|string() %}
+            {{ input(id, value=mm.token, size='30') }}
+        </td>
+        <td>
+            {% set id = 'mm-chanel-' + mm.id|string() %}
+            {{ input(id, value=mm.chanel_name, size='30') }}
+        </td>
+        {% if user_params['role']|int() == 1 %}
+        <td>
+            <select id="pdgroup-{{mm.id}}" name="pdgroup-{{mm.id}}">
+                <option disabled selected>------</option>
+                {% for group in groups %}
+                {% if mm.groups|string() == group.group_id|string() %}
+                <option value="{{ group.group_id }}" selected>{{ group.name }}</option>
+                {% else %}
+                <option value="{{ group.group_id }}">{{ group.name }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </td>
+        {% endif %}
+        <td>
+            <button title="{{lang.phrases.send_test_mes}}" onclick="checkReceiver({{mm.id}}, 'mm')">{{lang.words.test|title()}}</button>
+        </td>
+        <td>
+            <a class="add" onclick="cloneReceiver({{mm.id}}, 'mm')" id="clone-{{mm.id}}" title="{{lang.words.w_copy|title()}} {{lang.words.the}} {{lang.words.settings}} {{mm.chanel_name}}" style="cursor: pointer;"></a>
+        </td>
+        <td>
+            <a class="delete" onclick="confirmDeleteReceiver({{mm.id}}, 'mm')" title="{{lang.words.delete|title()}} {{lang.words.channel}} {{mm.chanel_name}}" style="cursor: pointer;"></a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+<br /><span class="add-button" title="{{lang.words.add|title()}} Mattermost {{lang.words.channel}}" id="add-mm-button">+ {{lang.words.add|title()}}</span>
 <br /><br />
 <table class="overflow">
     <caption><i class="fas fa-envelope-open-text caption-icon"></i><h3>{{lang.words.test2|title()}} {{lang.words.message}}</h3></caption>

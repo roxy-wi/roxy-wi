@@ -41,11 +41,11 @@ def insert_new_checker_setting_for_server(server_ip: str) -> None:
 
 
 def update_haproxy_checker_settings(
-	email: int, telegram_id: int, slack_id: int, pd_id: int, service_alert: int, backend_alert: int,
+	email: int, telegram_id: int, slack_id: int, pd_id: int, mm_id: int, service_alert: int, backend_alert: int,
 	maxconn_alert: int, setting_id: int
 ) -> bool:
 	settings_update = CheckerSetting.update(
-		email=email, telegram_id=telegram_id, slack_id=slack_id, pd_id=pd_id, service_alert=service_alert,
+		email=email, telegram_id=telegram_id, slack_id=slack_id, pd_id=pd_id, mm_id=mm_id, service_alert=service_alert,
 		backend_alert=backend_alert, maxconn_alert=maxconn_alert
 	).where(CheckerSetting.id == setting_id)
 	try:
@@ -57,11 +57,11 @@ def update_haproxy_checker_settings(
 
 
 def update_keepalived_checker_settings(
-	email: int, telegram_id: int, slack_id: int, pd_id: int, service_alert: int, backend_alert: int,
+	email: int, telegram_id: int, slack_id: int, pd_id: int, mm_id: int, service_alert: int, backend_alert: int,
 	setting_id: int
 ) -> bool:
 	settings_update = CheckerSetting.update(
-		email=email, telegram_id=telegram_id, slack_id=slack_id, pd_id=pd_id,
+		email=email, telegram_id=telegram_id, slack_id=slack_id, pd_id=pd_id, mm_id=mm_id,
 		service_alert=service_alert, backend_alert=backend_alert
 	).where(CheckerSetting.id == setting_id)
 	try:
@@ -73,10 +73,10 @@ def update_keepalived_checker_settings(
 
 
 def update_service_checker_settings(
-	email: int, telegram_id: int, slack_id: int, pd_id: int, service_alert: int, setting_id: int
+	email: int, telegram_id: int, slack_id: int, pd_id: int, mm_id: int, service_alert: int, setting_id: int
 ) -> bool:
 	settings_update = CheckerSetting.update(
-		email=email, telegram_id=telegram_id, slack_id=slack_id, pd_id=pd_id, service_alert=service_alert
+		email=email, telegram_id=telegram_id, slack_id=slack_id, pd_id=pd_id, mm_id=mm_id, service_alert=service_alert
 	).where(CheckerSetting.id == setting_id)
 	try:
 		settings_update.execute()

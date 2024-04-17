@@ -76,11 +76,21 @@ def update_agent(json_data):
     name = common.checkAjaxInput(json_data.get("name"))
     desc = common.checkAjaxInput(json_data.get("desc"))
     enabled = int(json_data.get("enabled"))
+    reconfigure = int(json_data.get("reconfigure"))
 
     try:
         smon_sql.update_agent(agent_id, name, desc, enabled)
     except Exception as e:
         roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot update SMON agent: {agent_id}', roxywi=1, login=1)
+
+    if reconfigure:
+        agent_uuid = smon_sql.get_agent_uuid(agent_id)
+        server_ip = smon_sql.select_server_ip_by_agent_id(agent_id)
+        try:
+            inv, server_ips = generate_agent_inc(server_ip, 'install', agent_uuid)
+            run_ansible(inv, server_ips, 'smon_agent')
+        except Exception as e:
+            roxywi_common.handle_exceptions(e, server_ip, 'Cannot reconfigure SMON agent', roxywi=1, login=1)
 
 
 def get_agent_headers(agent_id: int) -> dict:

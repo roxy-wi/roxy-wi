@@ -37,8 +37,9 @@ def smon_main_dashboard():
         'smon_status': tools_common.is_tool_active('roxy-wi-smon'),
         'user_subscription': roxywi_common.return_user_subscription(),
         'telegrams': channel_sql.get_user_telegram_by_group(group_id),
-        'slacks': channel_sql.get_user_pd_by_group(group_id),
-        'pds': channel_sql.get_user_slack_by_group(group_id),
+        'slacks': channel_sql.get_user_slack_by_group(group_id),
+        'pds': channel_sql.get_user_pd_by_group(group_id),
+        'mms': channel_sql.get_user_mm_by_group(group_id),
         'sort': request.args.get('sort', None)
     }
 
@@ -166,6 +167,7 @@ def check(smon_id, check_type_id):
             'tg': s.smon_id.telegram_channel_id,
             'slack': s.smon_id.slack_channel_id,
             'pd': s.smon_id.pd_channel_id,
+            'mm': s.smon_id.mm_channel_id,
             'check_type': s.smon_id.check_type,
             'group': s.smon_id.group,
         }

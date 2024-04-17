@@ -205,7 +205,6 @@ def haproxy_log(haproxy_id):
 def get_section(haproxy_id):
 	if not check_login(required_service=1):
 		return dict(error=_error_auth)
-	print(str(request.headers.get('section-name')))
 	return api_funct.get_section(haproxy_id)
 
 

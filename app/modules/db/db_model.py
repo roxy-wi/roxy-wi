@@ -123,6 +123,16 @@ class Slack(BaseModel):
         table_name = 'slack'
 
 
+class MM(BaseModel):
+    id = AutoField()
+    token = CharField()
+    chanel_name = CharField()
+    groups = IntegerField()
+
+    class Meta:
+        table_name = 'mattermost'
+
+
 class PD(BaseModel):
     id = AutoField()
     token = CharField()
@@ -406,6 +416,7 @@ class SMON(BaseModel):
     ssl_expire_date = CharField(null=True)
     pd_channel_id = IntegerField(null=True)
     check_type = CharField(constraints=[SQL('DEFAULT "tcp"')])
+    mm_channel_id = IntegerField(null=True)
 
     class Meta:
         table_name = 'smon'
@@ -540,6 +551,7 @@ class CheckerSetting(BaseModel):
     backend_alert = IntegerField(constraints=[SQL('DEFAULT 1')])
     maxconn_alert = IntegerField(constraints=[SQL('DEFAULT 1')])
     pd_id = IntegerField(constraints=[SQL('DEFAULT 0')])
+    mm_id = IntegerField(constraints=[SQL('DEFAULT 0')])
 
     class Meta:
         table_name = 'checker_setting'
@@ -763,5 +775,5 @@ def create_tables():
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
              KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup, RoxyTool,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
-             HaClusterRouter]
+             HaClusterRouter, MM]
         )

@@ -1,4 +1,4 @@
-from app.modules.db.db_model import Telegram, Slack, PD, Server
+from app.modules.db.db_model import Telegram, Slack, PD, Server, MM
 from app.modules.db.common import out_error
 
 
@@ -47,6 +47,13 @@ def get_slack_by_id(slack_id):
 def get_user_pd_by_group(group):
 	try:
 		return PD.select().where(PD.groups == group).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def get_user_mm_by_group(group):
+	try:
+		return MM.select().where(MM.groups == group).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -201,3 +208,65 @@ def update_pd(token, chanel, group, pd_id):
 		return False
 	else:
 		return True
+
+
+def insert_new_mm(token, chanel, group):
+	try:
+		MM.insert(token=token, chanel_name=chanel, groups=group).execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
+def update_mm(token, chanel, group, mm_id):
+	try:
+		MM.update(token=token, chanel_name=chanel, groups=group).where(MM.id == mm_id).execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
+def delete_mm(pd_id):
+	try:
+		MM.delete().where(MM.id == pd_id).execute()
+	except Exception as e:
+		out_error(e)
+		return False
+	else:
+		return True
+
+
+def select_mm(**kwargs):
+	if kwargs.get('token'):
+		query = MM.select().where(MM.token == kwargs.get('token'))
+	elif kwargs.get('id'):
+		query = MM.select().where(MM.id == kwargs.get('id'))
+	else:
+		query = MM.select()
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def get_mm_by_ip(ip):
+	query = MM.select().join(Server, on=(Server.groups == MM.groups)).where(Server.ip == ip)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
+def get_mm_by_id(pd_id):
+	try:
+		return MM.select().where(MM.id == pd_id).execute()
+	except Exception as e:
+		out_error(e)

@@ -261,6 +261,42 @@
         {% endif %}
     </table>
 </div>
+<div id="mm-add-table" style="display: none;">
+    <table class="overview" id="mm-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} Mattermost {{lang.words.channel}}">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td class="padding20">
+                <span title="Incoming Webhook">{{lang.words.token|title()}}</span>
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ input('mm-token-add', size='30') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
+                {{lang.words.channel|title()}}
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ input('mm-chanel-add') }}
+            </td>
+        </tr>
+        {% if g.user_params['role'] == 1 %}
+        <tr>
+            <td class="padding20">{{lang.words.group|title()}}</td>
+            <td>
+                <select id="new-mm-group-add" name="new-mm-group-add">
+                    <option disabled selected value="0">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.group2}}</option>
+                    {% for group in groups %}
+                    <option value="{{ group.group_id }}">{{ group.name }}</option>
+                    {% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
 <div id="backup-add-table" title="Add a new backup job " style="display: none;">
     <table class="overview" id="backup-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.backup}}">
         {% include 'include/tr_validate_tips.html' %}

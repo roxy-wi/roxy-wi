@@ -733,9 +733,29 @@ def update_db_v_7_2_0_1():
 		print("Updating... DB has been updated to version 7.2.0-1")
 
 
+
+def update_db_v_7_2_3():
+	try:
+		if mysql_enable:
+			migrate(
+				migrator.add_column('checker_setting', 'mm_id', IntegerField(default=0)),
+				migrator.add_column('smon', 'mm_channel_id', IntegerField(default=0)),
+			)
+		else:
+			migrate(
+				migrator.add_column('checker_setting', 'mm_id', IntegerField(constraints=[SQL('DEFAULT 0')])),
+				migrator.add_column('smon', 'mm_channel_id', IntegerField(constraints=[SQL('DEFAULT 0')])),
+			)
+	except Exception as e:
+		if e.args[0] == 'duplicate column name: mm_id' or str(e) == '(1060, "Duplicate column name \'mm_id\'")':
+			print('Updating... DB has been updated to version 7.2.3')
+		else:
+			print("An error occurred:", e)
+
+
 def update_ver():
 	try:
-		Version.update(version='7.2.2.0').execute()
+		Version.update(version='7.2.3.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -771,6 +791,7 @@ def update_all():
 	update_db_v_7_1_2_1()
 	update_db_v_7_2_0()
 	update_db_v_7_2_0_1()
+	update_db_v_7_2_3()
 	update_ver()
 
 

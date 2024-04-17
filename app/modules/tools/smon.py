@@ -2,6 +2,7 @@ from flask import render_template, abort
 
 import app.modules.db.smon as smon_sql
 import app.modules.common.common as common
+import app.modules.server.server as server_mod
 import app.modules.tools.smon_agent as smon_agent
 import app.modules.roxywi.common as roxywi_common
 
@@ -19,6 +20,7 @@ def create_smon(json_data, user_group, show_new=1) -> bool:
         telegram = common.checkAjaxInput(json_data['tg'])
         slack = common.checkAjaxInput(json_data['slack'])
         pd = common.checkAjaxInput(json_data['pd'])
+        mm = common.checkAjaxInput(json_data['mm'])
         resolver = common.checkAjaxInput(json_data['resolver'])
         record_type = common.checkAjaxInput(json_data['record_type'])
         packet_size = common.checkAjaxInput(json_data['packet_size'])
@@ -46,7 +48,7 @@ def create_smon(json_data, user_group, show_new=1) -> bool:
         if int(packet_size) < 16:
             raise Exception('SMON error: a packet size cannot be less than 16')
 
-    last_id = smon_sql.insert_smon(name, enable, group, desc, telegram, slack, pd, user_group, check_type)
+    last_id = smon_sql.insert_smon(name, enable, group, desc, telegram, slack, pd, mm, user_group, check_type)
 
     if check_type == 'ping':
         smon_sql.insert_smon_ping(last_id, hostname, packet_size, interval, agent_id)
@@ -85,6 +87,7 @@ def update_smon(smon_id, json_data) -> str:
     telegram = common.checkAjaxInput(json_data['tg'])
     slack = common.checkAjaxInput(json_data['slack'])
     pd = common.checkAjaxInput(json_data['pd'])
+    mm = common.checkAjaxInput(json_data['mm'])
     resolver = common.checkAjaxInput(json_data['resolver'])
     record_type = common.checkAjaxInput(json_data['record_type'])
     packet_size = common.checkAjaxInput(json_data['packet_size'])
@@ -117,7 +120,7 @@ def update_smon(smon_id, json_data) -> str:
         return f'{e}'
 
     try:
-        if smon_sql.update_smon(smon_id, name, telegram, slack, pd, group, desc, enabled):
+        if smon_sql.update_smon(smon_id, name, telegram, slack, pd, mm, group, desc, enabled):
             if check_type == 'http':
                 is_edited = smon_sql.update_smonHttp(smon_id, url, body, http_method, interval, agent_id)
             elif check_type == 'tcp':
@@ -300,3 +303,10 @@ def avg_status_page_status(page_id: int) -> str:
             return '0'
 
     return '1'
+
+
+def change_smon_port(new_port: int) -> None:
+    cmd = f"sudo sed -i 's/\(^ExecStart.*$\)/ExecStart=gunicorn --workers 1 --bind 0.0.0.0:{new_port} -m 007 smon:app/' /etc/systemd/system/roxy-wi-smon.service"
+    server_mod.subprocess_execute(cmd)
+    cmd = 'sudo systemctl daemon-reload && sudo systemctl restart roxy-wi-smon'
+    server_mod.subprocess_execute(cmd)

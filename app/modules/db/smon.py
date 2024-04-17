@@ -212,11 +212,11 @@ def select_one_smon(smon_id: int, check_id: int) -> tuple:
 		return query_res
 
 
-def insert_smon(name, enable, group, desc, telegram, slack, pd, user_group, check_type):
+def insert_smon(name, enable, group, desc, telegram, slack, pd, mm, user_group, check_type):
 	try:
 		last_id = SMON.insert(
 			name=name, en=enable, desc=desc, group=group, telegram_channel_id=telegram, slack_channel_id=slack,
-			pd_channel_id=pd, user_group=user_group, status='3', check_type=check_type
+			pd_channel_id=pd, mm_channel_id=mm, user_group=user_group, status='3', check_type=check_type
 		).execute()
 	except Exception as e:
 		out_error(e)
@@ -512,9 +512,9 @@ def select_smon_history(smon_id: int) -> object:
 		return query_res
 
 
-def update_smon(smon_id, name, telegram, slack, pd, group, desc, en):
+def update_smon(smon_id, name, telegram, slack, pd, mm, group, desc, en):
 	query = (SMON.update(
-		name=name, telegram_channel_id=telegram, slack_channel_id=slack, pd_channel_id=pd, group=group, desc=desc, en=en
+		name=name, telegram_channel_id=telegram, slack_channel_id=slack, pd_channel_id=pd, mm_channel_id=mm, group=group, desc=desc, en=en
 	).where(SMON.id == smon_id))
 	try:
 		query.execute()

@@ -32,18 +32,19 @@ def update_settings():
     telegram_id = int(request.form.get('telegram_id'))
     slack_id = int(request.form.get('slack_id'))
     pd_id = int(request.form.get('pd_id'))
+    mm_id = int(request.form.get('mm_id'))
 
     if service == 'haproxy':
         maxconn_alert = int(request.form.get('maxconn'))
         backend_alert = int(request.form.get('backend'))
         return checker_mod.update_haproxy_settings(
-            setting_id, email, service_alert, backend_alert, maxconn_alert, telegram_id, slack_id, pd_id
+            setting_id, email, service_alert, backend_alert, maxconn_alert, telegram_id, slack_id, pd_id, mm_id
         )
     elif service in ('nginx', 'apache'):
-        return checker_mod.update_service_settings(setting_id, email, service_alert, telegram_id, slack_id, pd_id)
+        return checker_mod.update_service_settings(setting_id, email, service_alert, telegram_id, slack_id, pd_id, mm_id)
     else:
         backend_alert = int(request.form.get('backend'))
-        return checker_mod.update_keepalived_settings(setting_id, email, service_alert, backend_alert, telegram_id, slack_id, pd_id)
+        return checker_mod.update_keepalived_settings(setting_id, email, service_alert, backend_alert, telegram_id, slack_id, pd_id, mm_id)
 
 
 @bp.route('/settings/load')

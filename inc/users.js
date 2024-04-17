@@ -1559,6 +1559,7 @@ function updateHaproxyCheckerSettings(id) {
 			telegram_id: $('#haproxy_server_telegram_channel-' + id + ' option:selected').val(),
 			slack_id: $('#haproxy_server_slack_channel-' + id + ' option:selected').val(),
 			pd_id: $('#haproxy_server_pd_channel-' + id + ' option:selected').val(),
+			mm_id: $('#haproxy_server_mm_channel-' + id + ' option:selected').val(),
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -1601,6 +1602,7 @@ function updateKeepalivedCheckerSettings(id) {
 			telegram_id: $('#keepalived_server_telegram_channel-' + id + ' option:selected').val(),
 			slack_id: $('#keepalived_server_slack_channel-' + id + ' option:selected').val(),
 			pd_id: $('#keepalived_server_pd_channel-' + id + ' option:selected').val(),
+			mm_id: $('#keepalived_server_mm_channel-' + id + ' option:selected').val(),
 			token: $('#token').val()
 		},
 		type: "POST",
@@ -1638,6 +1640,7 @@ function updateServiceCheckerSettings(id, service_name) {
 			telegram_id: $('#' + service_name + '_server_telegram_channel-' + id + ' option:selected').val(),
 			slack_id: $('#' + service_name + '_server_slack_channel-' + id + ' option:selected').val(),
 			pd_id: $('#' + service_name + '_server_pd_channel-' + id + ' option:selected').val(),
+			mm_id: $('#' + service_name + '_server_mm_channel-' + id + ' option:selected').val(),
 			token: $('#token').val()
 		},
 		type: "POST",

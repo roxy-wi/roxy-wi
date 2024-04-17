@@ -150,6 +150,17 @@
 			</td>
 		</tr>
 		<tr>
+			<td class="padding20">Mattermost</td>
+			<td>
+				<select id="new-smon-mm">
+					<option value="0">{{lang.words.disabled|title()}}</option>
+				{% for t in mms %}
+					<option value="{{t.id}}">{{t.chanel_name}}</option>
+				{% endfor %}
+				</select>
+			</td>
+		</tr>
+		<tr>
 			<td class="padding20">{{lang.words.group|title()}}</td>
 			<td>{{ input('new-smon-group') }}</td>
 		</tr>

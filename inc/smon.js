@@ -96,6 +96,7 @@ function addNewSmonServer(dialog_id, smon_id=0, edit=false) {
 		'tg': $('#new-smon-telegram').val(),
 		'slack': $('#new-smon-slack').val(),
 		'pd': $('#new-smon-pd').val(),
+		'mm': $('#new-smon-mm').val(),
 		'packet_size': $('#new-smon-packet_size').val(),
 		'http_method': $('#new-smon-method').val(),
 		'check_type': check_type,
@@ -244,9 +245,11 @@ function getCheckSettings(smon_id, check_type) {
 			$('#new-smon-telegram').val(data['tg']).change()
 			$('#new-smon-slack').val(data['slack']).change()
 			$('#new-smon-pd').val(data['pd']).change()
+			$('#new-smon-mm').val(data['mm']).change()
 			$('#new-smon-telegram').selectmenu("refresh");
 			$('#new-smon-slack').selectmenu("refresh");
 			$('#new-smon-pd').selectmenu("refresh");
+			$('#new-smon-mm').selectmenu("refresh");
 			$('#new-smon-agent-id').selectmenu("refresh");
 			if (data['enabled']) {
 				$('#new-smon-enable').prop('checked', true)
@@ -687,15 +690,50 @@ function checkAgentLimit() {
 function addAgentDialog(agent_id=0, edit=false) {
 	cleanAgentAddForm();
 	let tabel_title = $("#add-agent-page-overview").attr('title');
+	let buttons = [];
 	if (edit) {
 		add_word = $('#translate').attr('data-edit');
+		let reconfigure_word = $('#translate').attr('data-reconfigure');
 		tabel_title = $("#add-agent-page-overview").attr('data-edit');
 		getAgentSettings(agent_id);
+		buttons = [
+			{
+				text: reconfigure_word,
+				click: function () {
+					console.log('reconfigure');
+					addAgent($(this), agent_id, true, true);
+				}
+			}, {
+				text: add_word,
+				click: function () {
+					addAgent($(this), agent_id, true);
+				}
+			}, {
+				text: cancel_word,
+				click: function () {
+					$(this).dialog("close");
+				}
+			}
+		]
 	} else {
+		add_word = $('#translate').attr('data-add');
 		if (!checkAgentLimit()) {
 			return false;
 		}
 		getFreeServers();
+		buttons = [
+			{
+				text: add_word,
+				click: function () {
+					addAgent($(this));
+				}
+			}, {
+				text: cancel_word,
+				click: function () {
+					$(this).dialog("close");
+				}
+			}
+		]
 	}
 	let dialogTable = $("#add-agent-page").dialog({
 		autoOpen: false,
@@ -712,25 +750,11 @@ function addAgentDialog(agent_id=0, edit=false) {
 			effect: "fade",
 			duration: 200
 		},
-		buttons: [{
-			text: add_word,
-			click: function () {
-				if (edit) {
-					addAgent($(this), agent_id, true);
-				} else {
-					addAgent($(this));
-				}
-			}
-		}, {
-			text: cancel_word,
-			click: function () {
-				$(this).dialog("close");
-			}
-		}]
+		buttons: buttons
 	});
 	dialogTable.dialog('open');
 }
-function addAgent(dialog_id, agent_id=0, edit=false) {
+function addAgent(dialog_id, agent_id=0, edit=false, reconfigure=false) {
 	let valid = true;
 	allFields = $([]).add($('#new-agent-name'));
 	allFields.removeClass("ui-state-error");
@@ -749,6 +773,9 @@ function addAgent(dialog_id, agent_id=0, edit=false) {
 	if (edit) {
 		method = 'PUT'
 		agent_data['agent_id'] = agent_id;
+		if (reconfigure) {
+			agent_data['reconfigure'] = "1";
+		}
 	}
 	if (valid) {
 		$.ajax({

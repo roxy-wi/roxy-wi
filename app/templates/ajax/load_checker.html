@@ -26,9 +26,10 @@
             <caption><i class="fas fa-network-wired caption-icon"></i><h3>HAProxy {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 15%;">Telegram</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 15%;">Slack</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 15%;">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 10%;">Telegram</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 10%;">Slack</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 10%;">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Mattermost" style="width: 10%;">Mattermost</td>
                 <td class="checkbox-head" style="width: 10%;" title="{{lang.words.alert|title()}} {{lang.words.via}} {{lang.words.email}}">{{lang.words.email|title()}}</td>
                 <td class="checkbox-head" style="width: 10%;" title="{{lang.phrases.alert_service_change_status}}">{{lang.words.service|title()}}</td>
                 <td class="checkbox-head" style="width: 10%;" title="{{lang.phrases.alert_backend_change_status}}">{{lang.words.backend|title()}}</td>
@@ -69,6 +70,18 @@
                         <option value="0">{{lang.words.disabled|title()}}</option>
                     {% for t in pds %}
                         {% if h.pd_id|int() == t.id|int() %}
+                            <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
+                        {% else %}
+                            <option value="{{t.id}}">{{t.chanel_name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </td>
+                <td id="haproxy_server_mm-{{s.0}}" title="{{lang.words.alert|title()}} {{lang.words.via}} {{lang.words.this3}} {{lang.words.channel}}">
+                    <select id="haproxy_server_mm_channel-{{h.id}}">
+                        <option value="0">{{lang.words.disabled|title()}}</option>
+                    {% for t in mms %}
+                        {% if h.mm_id|int() == t.id|int() %}
                             <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
                         {% else %}
                             <option value="{{t.id}}">{{t.chanel_name}}</option>
@@ -118,9 +131,10 @@
             <caption><i class="fas fa-sitemap caption-icon"></i><h3>NGINX {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 15%;">Telegram</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 15%;">Slack</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 15%;">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 10%;">Telegram</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 10%;">Slack</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 10%;">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Mattermost" style="width: 10%;">Mattermost</td>
                 <td class="checkbox-head" style="width: 10%;" title="{{lang.words.alert|title()}} {{lang.words.via}} {{lang.words.email}}">{{lang.words.email|title()}}</td>
                 <td class="checkbox-head" style="width: 100%;" title={{lang.phrases.alert_service_change_status}}>{{lang.words.service|title()}}</td>
                 <td><span onclick="loadchecker(1)" class="refresh" title="{{lang.words.refresh2|title()}}"></span></td>
@@ -166,6 +180,18 @@
                     {% endfor %}
                     </select>
                 </td>
+                <td id="nginx_server_mm-{{h.id}}" title="{{lang.words.alert|title()}} {{lang.words.via}} {{lang.words.this3}} {{lang.words.channel}}">
+                    <select id="nginx_server_mm_channel-{{h.id}}">
+                        <option value="0">{{lang.words.disabled|title()}}</option>
+                    {% for t in mms %}
+                        {% if h.mm_id|int() == t.id|int() %}
+                            <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
+                        {% else %}
+                            <option value="{{t.id}}">{{t.chanel_name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </td>
                 <td class="checkbox">
                     {% set id = 'nginx_server_email-' + h.id|string() %}
                     {% if h.email == 1 %}
@@ -192,9 +218,10 @@
             <caption><i class="fas fa-feather-alt caption-icon"></i><h3>Apache {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 15%;">Telegram</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 15%;">Slack</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 15%;">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 10%;">Telegram</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 10%;">Slack</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 10%;">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Mattermost" style="width: 10%;">Mattermost</td>
                 <td class="checkbox-head" style="width: 10%;">{{lang.words.email|title()}}</td>
                 <td class="checkbox-head" style="width: 100%;" title="{{lang.phrases.alert_service_change_status}}">{{lang.words.service|title()}}</td>
                 <td><span onclick="loadchecker(1)" class="refresh" title="{{lang.words.refresh2|title()}}"></span></td>
@@ -240,6 +267,18 @@
                     {% endfor %}
                     </select>
                 </td>
+                <td id="apache_server_mm-{{h.id}}" title="{{lang.words.alert|title()}} {{lang.words.via}} {{lang.words.this3}} {{lang.words.channel}}">
+                    <select id="apache_server_mm_channel-{{h.id}}">
+                        <option value="0">{{lang.words.disabled|title()}}</option>
+                    {% for t in mms %}
+                        {% if h.mm_id|int() == t.id|int() %}
+                            <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
+                        {% else %}
+                            <option value="{{t.id}}">{{t.chanel_name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </td>
                 <td class="checkbox">
                     {% set id = 'apache_server_email-' + h.id|string() %}
                     {% if h.email == 1 %}
@@ -266,9 +305,10 @@
             <caption><i class="fas fa-cloud caption-icon"></i><h3>Keepalived {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 15%;">Telegram</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 15%;">Slack</td>
-                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 15%;">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 10%;">Telegram</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 10%;">Slack</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 10%;">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Mattermost" style="width: 10%;">Mattermost</td>
                 <td class="checkbox-head" style="width: 10%;">{{lang.words.email|title()}}</td>
                 <td class="checkbox-head" style="width: 10%;" title="{{lang.phrases.alert_service_change_status}}">{{lang.words.service|title()}}</td>
                 <td class="checkbox-head" style="width: 100%;" title="{{lang.phrases.alert_master_backup}}">{{lang.words.status|title()}}</td>
@@ -308,6 +348,18 @@
                         <option value="0">{{lang.words.disabled|title()}}</option>
                     {% for t in pds %}
                         {% if h.pd_id|int() == t.id|int() %}
+                            <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
+                        {% else %}
+                            <option value="{{t.id}}">{{t.chanel_name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </td>
+                <td id="keepalived_server_mm-{{h.id}}" title="{{lang.words.alert|title()}} {{lang.words.via}} {{lang.words.this3}} {{lang.words.channel}}">
+                    <select id="keepalived_server_mm_channel-{{h.id}}">
+                        <option value="0">{{lang.words.disabled|title()}}</option>
+                    {% for t in mms %}
+                        {% if h.mm_id|int() == t.id|int() %}
                             <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
                         {% else %}
                             <option value="{{t.id}}">{{t.chanel_name}}</option>

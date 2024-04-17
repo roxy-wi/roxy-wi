@@ -47,8 +47,8 @@
                     {% else %}
                         {{ input(set.param, size='25', type='password', style='width: 210px;', placeholder='******') }}
                     {% endif %}
-                {% elif set.param in ('nginx_stats_port', 'session_ttl', 'token_ttl', 'haproxy_stats_port', 'haproxy_sock_port',
-                    'ldap_port', 'log_time_storage', 'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range',
+                {% elif set.param in ('nginx_stats_port', 'session_ttl', 'token_ttl', 'haproxy_stats_port', 'haproxy_sock_port', 'master_port',
+                    'ldap_port', 'log_time_storage', 'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range', 'agent_port',
                     'checker_keep_history_range', 'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port',
                     'mail_smtp_port', 'rabbitmq_port', 'smon_ssl_expire_warning_alert', 'smon_ssl_expire_critical_alert', 'action_keep_history_range') %}
                     {{ input(set.param, value=set.value, style='width: 210px;', type='number') }}
