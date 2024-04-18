@@ -182,7 +182,7 @@ if(localStorage.getItem('restart')) {
 				} else {
 					$('#' + apply_div).html("You have made changes to the server: " + ip_for_restart + ". Changes will take effect only after restart. <a href='service' title='Overview'>Go to the HAProxy Overview page and restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
 				}
-				$.getScript('/inc/overview.js');
+				$.getScript('/app/static/js/overview.js');
 			}
 		}
 	});
@@ -436,7 +436,7 @@ function showRemoteLogFiles() {
 			} else {
 				toastr.clear();
 				$("#remote_log_files").html(data);
-				$.getScript('/inc/configshow.js');
+				$.getScript('/app/static/js/configshow.js');
 			}
 		}
 	} );
@@ -538,7 +538,7 @@ function showConfig() {
 			} else {
 				toastr.clear();
 				$("#ajax").html(data);
-				$.getScript('/inc/configshow.js');
+				$.getScript('/app/static/js/configshow.js');
 				window.history.pushState("Show config", "Show config", "/app/config/" + service + "/" + $("#serv").val() + "/show/" + config_file_name);
 			}
 		}
@@ -607,7 +607,7 @@ function showUploadConfig() {
 				toastr.clear();
 				$("#ajax").html(data);
 				window.history.pushState("Show config", "Show config", "/app/config/versions/" + service + "/" + serv + "/" + configver);
-				$.getScript('/inc/configshow.js');
+				$.getScript('/app/static/js/configshow.js');
 			}
 		}
 	} );

@@ -5,7 +5,7 @@
 {% from 'include/input_macros.html' import input, checkbox, select %}
 {% set balance_params = dict() %}
 {% set balance_params = {'ip_hash':'ip_hash','least_conn':'least_conn','random':'random', 'round_robin': 'round-robin'} %}
-<script src="/inc/add_nginx.js"></script>
+<script src="/app/static/js/add_nginx.js"></script>
 <div id="tabs">
 	<ul>
 		<li><a href="#create" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.add|title()}} {{lang.words.proxy}} - Roxy-WI">{{lang.words.add|title()}} {{lang.words.proxy}}</a></li>

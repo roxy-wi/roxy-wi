@@ -71,7 +71,7 @@
 		<script src="/inc/codemirror/mode/nginx.js"></script>
 		<script src="/inc/codemirror/mode/haproxy.js"></script>
 		<script src="/inc/codemirror/keymap/sublime.js"></script>
-		<script src="/inc/configshow.js"></script>
+		<script src="/app/static/js/configshow.js"></script>
 			<h4>{{lang.words.config|title()}} {{waf_rule_file}} {{lang.words.from|title()}} {{ serv }}</h4>
 			<form action="/app/waf/{{service}}/{{serv}}/rule/{{waf_rule_id}}/save" name="saveconfig" id="saveconfig" method="post">
 				<input type="hidden" value="{{ serv }}" name="serv">
@@ -177,8 +177,8 @@
 	</table>
 	{% if service == 'haproxy' %}
 	<link href="{{ url_for('static', filename='css/chart.min.css') }}" rel="stylesheet">
-	<script src="/inc/overview.js"></script>
-	<script src="/inc/metrics.js"></script>
+	<script src="/app/static/js/overview.js"></script>
+	<script src="/app/static/js/metrics.js"></script>
 	<script src="/inc/chart.min-4.3.0.js"></script>
 	<div id="table_metrics"></div>
 	<div class="metrics-time-range">

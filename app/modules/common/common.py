@@ -40,6 +40,8 @@ def get_time_zoned_date(date: datetime, fmt: str = '%Y-%m-%d %H:%M:%S') -> str:
 	:rtype: str
 	"""
 	date_format = '%Y-%m-%d %H:%M:%S'
+	if not fmt:
+		fmt = date_format
 	if not isinstance(date, datetime):
 		date = datetime.strptime(date, date_format)
 	native = _convert_to_time_zone(date)

@@ -1,6 +1,6 @@
 var awesome = "/inc/fontawesome.min.js"
 var waf = "/app/static/js/waf.js"
-var overview = "/inc/overview.js"
+var overview = "/app/static/js/overview.js"
 function showOverviewWaf(serv, hostnamea) {
 	var service = cur_url[1];
 	if (service == 'haproxy') {
