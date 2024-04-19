@@ -1276,7 +1276,7 @@ $(function () {
 			}
 		],
 		volume: 0.5,
-		path: "/inc/sounds/",
+		path: "/app/static/js/sounds/",
 		preload: true
 	});
 });

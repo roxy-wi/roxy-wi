@@ -1,4 +1,4 @@
-var awesome = "/inc/fontawesome.min.js";
+var awesome = "/app/static/js/fontawesome.min.js";
 var add_word = $('#translate').attr('data-add');
 var delete_word = $('#translate').attr('data-delete');
 var cancel_word = $('#translate').attr('data-cancel');
