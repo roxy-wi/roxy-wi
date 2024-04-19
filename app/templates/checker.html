@@ -3,8 +3,9 @@
 {% block h2 %} Checker {{ lang.words.settings }} {% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, select, copy_to_clipboard, checkbox %}
-<script src="/inc/users.js"></script>
-<script src="/inc/fontawesome.min.js"></script>
+<script src="/app/static/js/users.js"></script>
+<script src="/app/static/js/checker.js"></script>
+<script src="/app/static/js/fontawesome.min.js"></script>
 <div id="checker"></div>
 <script>
     loadchecker();

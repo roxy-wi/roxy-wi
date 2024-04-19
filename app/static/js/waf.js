@@ -1,10 +1,10 @@
-var awesome = "/inc/fontawesome.min.js"
+var awesome = "/app/static/js/fontawesome.min.js"
 var waf = "/app/static/js/waf.js"
 var overview = "/app/static/js/overview.js"
 function showOverviewWaf(serv, hostnamea) {
 	var service = cur_url[1];
 	if (service == 'haproxy') {
-		$.getScript('/inc/chart.min-4.3.0.js');
+		$.getScript('/app/static/js/chart.min-4.3.0.js');
 		showWafMetrics();
 	}
 	var i;

@@ -192,3 +192,10 @@ def sanitize_input_word(word: str) -> str:
 	Sanitizes the input word by removing certain characters.
 	"""
 	return re.sub(r'[?|$|!|^|*|\]|\[|,| |]', r'', word)
+
+
+def return_proxy_dict() -> dict:
+	proxy = sql.get_setting('proxy')
+	if proxy in {None, '', 'None'}:
+		return {}
+	return {"https": proxy, "http": proxy}

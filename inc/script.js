@@ -229,7 +229,7 @@ function setRefreshInterval(interval) {
 			$('#1').text(autorefresh_word);
 			$('.auto-refresh-resume').css('display', 'none');
 			$('.auto-refresh-pause').css('display', 'none');
-			$.getScript("/inc/fontawesome.min.js");
+			$.getScript("/app/static/js/overview.js");
 		}
 		hideAutoRefreshDiv();
 	} else {
@@ -1123,7 +1123,7 @@ $( function() {
 		}
 	}
 	$('.copyToClipboard').hover(function (){
-		$.getScript("/inc/fontawesome.min.js");
+		$.getScript("/app/static/js/overview.js");
 	});
 	$('.copyToClipboard').click(function () {
         let str = $(this).attr('data-copy');

@@ -47,7 +47,7 @@ function showProvisioningError(data, step_id, wait_mess, error_id) {
 	$(error_id).show();
 	$(step_id).removeClass('proccessing');
 	$(step_id).addClass('processing_error');
-	$.getScript("/inc/fontawesome.min.js");
+	$.getScript("/app/static/js/fontawesome.min.js");
 }
 function cleanProvisioningProccess(div_id, success_div, error_id, warning_id, progres_id) {
     $(div_id).empty();
@@ -61,7 +61,7 @@ function cleanProvisioningProccess(div_id, success_div, error_id, warning_id, pr
     $(div_id).each(function () {
         $(this).remove('');
     });
-    $.getScript("/inc/fontawesome.min.js");
+    $.getScript("/app/static/js/fontawesome.min.js");
 }
 function confirmDeleteCluster(cluster_id) {
 	var delete_word = $('#translate').attr('data-delete');
@@ -474,7 +474,7 @@ function showErrorStatus(service_name, server_name, li_id, server_id, progress_s
 	var check_apache_log = $('#translate').attr('data-check_apache_log');
 	$('#' + li_id + server_id).removeClass('proccessing');
 	$('#' + li_id + server_id).addClass('processing_error');
-	$.getScript("/inc/fontawesome.min.js");
+	$.getScript("/app/static/js/fontawesome.min.js");
 	$('#creating-error').show();
 	$('#creating-error').append('<div>' + message + ' ' + service_name + ' ' + server_name + '. '+check_apache_log+'</div>');
 	increaseProgressValue(progress_step);
@@ -497,7 +497,7 @@ function checkInstallResp(output, server_id, progress_step, name, li_id, service
 		showErrorStatus(service_name, k, li_id, server_id, progress_step, something_wrong);
 	}
 	increaseProgressValue(progress_step);
-	$.getScript("/inc/fontawesome.min.js");
+	$.getScript("/app/static/js/fontawesome.min.js");
 }
 function increaseProgressValue(progress_step) {
 	let progress_id = '#creating-progress';
@@ -846,7 +846,7 @@ function getHaCluster(cluster_id, new_cluster=false) {
 				} else {
 					$('#cluster-' + cluster_id).replaceWith(data);
 				}
-				$.getScript("/inc/fontawesome.min.js");
+				$.getScript("/app/static/js/fontawesome.min.js");
 				$('#cluster-'+cluster_id).removeClass('animated-background');
 			}
 		}

@@ -277,7 +277,6 @@ def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 
 
 def mm_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, **kwargs):
-	print('send mess to mm', kwargs.get('channel_id'))
 	token = ''
 
 	if kwargs.get('channel_id') == 0:
@@ -297,18 +296,6 @@ def mm_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 	for pd in mms:
 		token = pd.token
 		channel = pd.chanel_name
-
-	# try:
-	# 	proxy = sql.get_setting('proxy')
-	# 	session = pdpyras.EventsAPISession(token)
-	# 	dedup_key = f'{server_ip} {service_id} {alert_type}'
-	# except Exception as e:
-	# 	roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
-	# 	raise Exception(f'error: {e}')
-	#
-	# if proxy is not None and proxy != '' and proxy != 'None':
-	# 	proxies = dict(https=proxy, http=proxy)
-	# 	session.proxies.update(proxies)
 
 	headers = {'Content-Type': 'application/json'}
 	if level == "info":
@@ -336,8 +323,9 @@ def mm_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 	}
 	attach = str(json.dumps(attach))
 	values = f'{{"channel": "{channel}", "username": "Roxy-WI", "attachments": [{attach}]}}'
+	proxy_dict = common.return_proxy_dict()
 	try:
-		requests.post(token, headers=headers, data=str(values))
+		requests.post(token, headers=headers, data=str(values), proxies=proxy_dict)
 		return 'ok'
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)

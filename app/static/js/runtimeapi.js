@@ -335,7 +335,7 @@ function getTable() {
 				$("#ajaxtable").html(data);
 				$("input[type=submit], button").button();
 				$.getScript("/inc/script.js");
-				$.getScript("/inc/fontawesome.min.js");
+				$.getScript("/app/static/js/overview.js");
 				FontAwesomeConfig = {searchPseudoElements: true, observeMutations: false};
 			}
 		}
@@ -358,7 +358,7 @@ function getList() {
 				$("#ajaxlist").html(data);
 				$("input[type=submit], button").button();
 				$.getScript("/inc/script.js");
-				$.getScript("/inc/fontawesome.min.js");
+				$.getScript("/app/static/js/overview.js");
 				FontAwesomeConfig = {searchPseudoElements: true, observeMutations: false};
 			}
 		}
@@ -434,7 +434,7 @@ function getSessions() {
 				$("#ajaxsessions").html(data);
 				$("input[type=submit], button").button();
 				$.getScript("/inc/script.js");
-				$.getScript("/inc/fontawesome.min.js");
+				$.getScript("/app/static/js/overview.js");
 				FontAwesomeConfig = {searchPseudoElements: true, observeMutations: false};
 			}
 		}

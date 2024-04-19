@@ -8,7 +8,7 @@
 	<a style="color: #000; cursor: pointer;">
 	{%- if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
 		<span id="show-updates-button" class="new-version-exists">v{{current_ver}}</span>
-		<script defer src="/inc/fontawesome.min.js"></script>
+		<script defer src="/app/static/js/fontawesome.min.js"></script>
 	{%- else %}
 		<a href="/app/admin#updatehapwi" title="Update center" style="color: black;">v{{current_ver}}</a>
 	{%- endif %}

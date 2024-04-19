@@ -6,8 +6,8 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
-import app.modules.db.sql as sql
 import app.modules.db.roxy as roxy_sql
+import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
 
@@ -56,13 +56,10 @@ def versions():
 
 def check_new_version(service):
 	current_ver = check_ver()
-	proxy = sql.get_setting('proxy')
 	res = ''
-	proxy_dict = {}
+	proxy_dict = common.return_proxy_dict()
 
 	try:
-		if proxy is not None and proxy != '' and proxy != 'None':
-			proxy_dict = {"https": proxy, "http": proxy}
 		response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1, proxies=proxy_dict)
 		if service == 'roxy-wi':
 			requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1, proxies=proxy_dict)
@@ -75,10 +72,7 @@ def check_new_version(service):
 
 
 def update_user_status() -> None:
-	proxy = sql.get_setting('proxy')
-	proxy_dict = {}
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_dict = {"https": proxy, "http": proxy}
+	proxy_dict = common.return_proxy_dict()
 	user_name = roxy_sql.select_user_name()
 	retry_strategy = Retry(
 		total=3,

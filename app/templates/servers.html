@@ -3,7 +3,7 @@
 {% block h2 %}{{lang.menu_links.servers.title}}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
-<script src="/inc/users.js"></script>
+<script src="/app/static/js/users.js"></script>
 <script src="{{ url_for('static', filename='js/backup.js') }}"></script>
 {% include 'include/del_confirm.html' %}
 <input type="hidden" id="new-group" name="new-group" value="{{ group }}">

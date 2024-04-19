@@ -285,7 +285,7 @@ function getSmonCheck(smon_id, check_id, dialog_id, new_check=false) {
 				$('#smon-' + smon_id).replaceWith(data);
 			}
 			$(dialog_id).dialog("close");
-			// $.getScript("/inc/fontawesome.min.js");
+			// $.getScript("/app/static/js/fontawesome.min.js");
 		}
 	});
 }
@@ -564,7 +564,7 @@ function createStatusPage(dialog_id) {
 			} else {
 				clearStatusPageDialog(dialog_id);
 				$("#pages").append(data);
-				$.getScript("/inc/fontawesome.min.js");
+				$.getScript("/app/static/js/fontawesome.min.js");
 			}
 		}
 	});
@@ -600,7 +600,7 @@ function editStatusPage(dialog_id, page_id) {
 				setTimeout(function () {
 					$("#page_" + page_id).removeClass("update");
 				}, 2500);
-				$.getScript("/inc/fontawesome.min.js");
+				$.getScript("/app/static/js/fontawesome.min.js");
 			}
 		}
 	});
@@ -856,7 +856,7 @@ function getAgent(agent_id, new_agent=false) {
 				} else {
 					$('#agent-' + agent_id).replaceWith(data);
 				}
-				$.getScript("/inc/fontawesome.min.js");
+				$.getScript("/app/static/js/fontawesome.min.js");
 				$('#agent-' + agent_id).removeClass('animated-background');
 			}
 		}

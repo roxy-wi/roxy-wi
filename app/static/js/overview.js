@@ -10,7 +10,7 @@ function showHapserversCallBack(serv, hostnamea, service) {
 	$.ajax( {
 		url: "/app/service/" + service + "/" + serv + "/last-edit",
 		beforeSend: function() {
-			$("#edit_date_"+hostnamea).html('<img class="loading_small_haproxyservers" src="/images/loading.gif" />');
+			$("#edit_date_"+hostnamea).html('<img class="loading_small_haproxyservers" src="/app/static/images/loading.gif" />');
 		},
 		type: "GET",
 		success: function( data ) {
@@ -32,7 +32,7 @@ function overviewHapserverBackends(serv, hostnamea, service) {
 	$.ajax( {
 		url: "/app/service/" + service + "/backends/" + serv[0],
 		beforeSend: function() {
-			$("#top-"+hostnamea).html('<img class="loading_small" style="padding-left: 45%;" src="/images/loading.gif" />');
+			$("#top-"+hostnamea).html('<img class="loading_small" style="padding-left: 45%;" src="/app/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1') {
@@ -59,7 +59,7 @@ function showOverviewCallBack(serv, hostnamea) {
 	$.ajax( {
 		url: "/app/overview/server/"+serv,
 		beforeSend: function() {
-			$("#"+hostnamea).html('<img class="loading_small" src="/images/loading.gif" />');
+			$("#"+hostnamea).html('<img class="loading_small" src="/app/static/images/loading.gif" />');
 		},
 		type: "GET",
 		success: function( data ) {
@@ -77,7 +77,7 @@ function showServicesOverview() {
 	$.ajax( {
 		url: "/app/overview/services",
 		beforeSend: function() {
-			$("#services_ovw").html('<img class="loading_small_bin_bout" style="padding-left: 100%;padding-top: 40px;padding-bottom: 40px;" src="/images/loading.gif" />');
+			$("#services_ovw").html('<img class="loading_small_bin_bout" style="padding-left: 100%;padding-top: 40px;padding-bottom: 40px;" src="/app/static/images/loading.gif" />');
 
 		},
 		type: "GET",
@@ -110,7 +110,7 @@ function showOverviewServer(name, ip, id, service) {
 				$(".div-pannel").css('height', '70px');
 				$("#div-pannel-" + id).insertBefore('#up-pannel')
 				$("#ajax-server-" + id).html(data);
-				$.getScript("/inc/fontawesome.min.js")
+				$.getScript("/app/static/js/fontawesome.min.js")
 				getChartDataHapWiRam()
 				getChartDataHapWiCpu()
 			}
@@ -321,8 +321,8 @@ function showBytes(serv) {
 		},
 		type: "POST",
 		beforeSend: function() {
-			$("#show_bin_bout").html('<img class="loading_small_bin_bout" src="/images/loading.gif" />');
-			$("#sessions").html('<img class="loading_small_bin_bout" src="/images/loading.gif" />');
+			$("#show_bin_bout").html('<img class="loading_small_bin_bout" src="/app/static/images/loading.gif" />');
+			$("#sessions").html('<img class="loading_small_bin_bout" src="/app/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
@@ -330,7 +330,7 @@ function showBytes(serv) {
 				toastr.error(data);
 			} else {
 				$("#bin_bout").html(data);
-				$.getScript("/inc/fontawesome.min.js")
+				$.getScript("/app/static/js/fontawesome.min.js")
 			}
 		}
 	} );
@@ -343,7 +343,7 @@ function showNginxConnections(serv) {
 		},
 		type: "POST",
 		beforeSend: function() {
-			$("#sessions").html('<img class="loading_small_bin_bout" src="/images/loading.gif" />');
+			$("#sessions").html('<img class="loading_small_bin_bout" src="/app/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
@@ -351,7 +351,7 @@ function showNginxConnections(serv) {
 				toastr.error(data);
 			} else {
 				$("#bin_bout").html(data);
-				$.getScript("/inc/fontawesome.min.js")
+				$.getScript("/app/static/js/fontawesome.min.js")
 			}
 		}
 	} );
@@ -364,7 +364,7 @@ function showApachekBytes(serv) {
 		},
 		type: "POST",
 		beforeSend: function() {
-			$("#sessions").html('<img class="loading_small_bin_bout" src="/images/loading.gif" />');
+			$("#sessions").html('<img class="loading_small_bin_bout" src="/app/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
@@ -372,7 +372,7 @@ function showApachekBytes(serv) {
 				toastr.error(data);
 			} else {
 				$("#bin_bout").html(data);
-				$.getScript("/inc/fontawesome.min.js")
+				$.getScript("/app/static/js/fontawesome.min.js")
 			}
 		}
 	} );
@@ -385,7 +385,7 @@ function keepalivedBecameMaster(serv) {
 		},
 		type: "POST",
 		beforeSend: function() {
-			$("#bin_bout").html('<img class="loading_small_bin_bout" src="/images/loading.gif" />');
+			$("#bin_bout").html('<img class="loading_small_bin_bout" src="/app/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
@@ -393,7 +393,7 @@ function keepalivedBecameMaster(serv) {
 				toastr.error(data);
 			} else {
 				$("#bin_bout").html(data);
-				$.getScript("/inc/fontawesome.min.js")
+				$.getScript("/app/static/js/fontawesome.min.js")
 			}
 		}
 	} );
@@ -407,7 +407,7 @@ function showUsersOverview() {
 		// },
 		type: "GET",
 		beforeSend: function() {
-			$("#users-table").html('<img class="loading_small_bin_bout" style="padding-left: 100%;padding-top: 40px;padding-bottom: 40px;" src="/images/loading.gif" />');
+			$("#users-table").html('<img class="loading_small_bin_bout" style="padding-left: 100%;padding-top: 40px;padding-bottom: 40px;" src="/app/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
@@ -428,7 +428,7 @@ function showSubOverview() {
 		// },
 		type: "GET",
 		beforeSend: function() {
-			$("#sub-table").html('<img class="loading_small_bin_bout" style="padding-left: 40%;padding-top: 40px;padding-bottom: 40px;" src="/images/loading.gif" />');
+			$("#sub-table").html('<img class="loading_small_bin_bout" style="padding-left: 40%;padding-top: 40px;padding-bottom: 40px;" src="/app/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
@@ -576,12 +576,12 @@ function ShowOverviewLogs() {
 		url: "/app/overview/logs",
 		type: "GET",
 		beforeSend: function() {
-			$("#overview-logs").html('<img class="loading_small_bin_bout" style="padding-left: 40%;padding-top: 40px;padding-bottom: 40px;" src="/images/loading.gif" />');
+			$("#overview-logs").html('<img class="loading_small_bin_bout" style="padding-left: 40%;padding-top: 40px;padding-bottom: 40px;" src="/app/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			$("#overview-logs").html(data);
-			$.getScript("/inc/fontawesome.min.js")
+			$.getScript("/app/static/js/fontawesome.min.js")
 			$.getScript("/app/static/js/overview.js")
 		}
 	} );

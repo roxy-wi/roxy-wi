@@ -483,7 +483,7 @@ $( function() {
 					setTimeout(function () {
 						$(".newoption").removeClass("update");
 					}, 2500);
-					$.getScript("/inc/fontawesome.min.js");
+					$.getScript("/app/static/js/overview.js");
 				}
 			}
 		});
@@ -528,7 +528,7 @@ $( function() {
 					setTimeout(function () {
 						$(".newsavedserver").removeClass("update");
 					}, 2500);
-					$.getScript("/inc/fontawesome.min.js");
+					$.getScript("/app/static/js/overview.js");
 				}
 			}
 		});
@@ -2045,7 +2045,7 @@ function make_actions_for_adding_acl_rule(section_id) {
 	$('#new_acl_rule_minus').attr('id', '');
 	$('#new_acl_p').attr('id', random_id);
 	$('#new_acl_rule_minus').attr('id', '');
-	$.getScript("/inc/fontawesome.min.js");
+	$.getScript("/app/static/js/overview.js");
 	$( "select" ).selectmenu();
 	$('[name=acl_if]').selectmenu({width: 180});
 	$('[name=acl_then]').selectmenu({width: 180});
@@ -2075,7 +2075,7 @@ function make_actions_for_adding_header(section_id) {
 	$('#new_header_minus').attr('id', '');
 	$('#new_header_p').attr('id', random_id);
 	$('#new_header_minus').attr('id', '');
-	$.getScript("/inc/fontawesome.min.js");
+	$.getScript("/app/static/js/overview.js");
 	$( "select" ).selectmenu();
 	$('[name=headers_method]').selectmenu({width: 180});
 	// $('[name=acl_then]').selectmenu({width: 180});
@@ -2091,7 +2091,7 @@ function make_actions_for_adding_bind(section_id) {
 	$('#new_bind_minus').attr('id', '');
 	$('#new_bind_p').attr('id', random_id);
 	$('#new_bind_minus').attr('id', '');
-	$.getScript("/inc/fontawesome.min.js");
+	$.getScript("/app/static/js/overview.js");
 	$( "select" ).selectmenu();
 	var serv = 'serv2'
 	if(section_id == '#listener_bind') {

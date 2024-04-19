@@ -1,4 +1,4 @@
-var awesome = "/inc/fontawesome.min.js"
+var awesome = "/app/static/js/fontawesome.min.js"
 var cur_url = window.location.href.split('/app/').pop();
 cur_url = cur_url.split('/');
 var add_word = $('#translate').attr('data-add');
@@ -178,38 +178,6 @@ $( function() {
 		} else {
 			$('.services_for_scan').show();
 		}
-	});
-	$( "#checker_haproxy_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
-		updateHaproxyCheckerSettings(id[1])
-	});
-	$( "#checker_haproxy_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
-		updateHaproxyCheckerSettings(id[1])
-	});
-	$( "#checker_nginx_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
-		updateServiceCheckerSettings(id[1], 'nginx')
-	});
-	$( "#checker_nginx_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
-		updateServiceCheckerSettings(id[1], 'nginx')
-	});
-	$( "#checker_apache_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
-		updateServiceCheckerSettings(id[1], 'apache')
-	});
-	$( "#checker_apache_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
-		updateServiceCheckerSettings(id[1], 'apache')
-	});
-	$( "#checker_keepalived_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
-		updateKeepalivedCheckerSettings(id[1])
-	});
-	$( "#checker_keepalived_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
-		updateKeepalivedCheckerSettings(id[1])
 	});
 	$('#search_ldap_user').click(function() {
 		var valid = true;
@@ -527,10 +495,7 @@ function getGroupNameById(group_id) {
 	$.ajax({
 		url: "/app/user/group/name/" + group_id,
 		async: false,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
+
 		success: function (data) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
@@ -683,10 +648,7 @@ function removeUser(id) {
 	$("#user-" + id).css("background-color", "#f2dede");
 	$.ajax({
 		url: "/app/user/delete/" + id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
+
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data == "ok") {
@@ -701,10 +663,7 @@ function removeServer(id) {
 	$("#server-" + id).css("background-color", "#f2dede");
 	$.ajax({
 		url: "/app/server/delete/" + id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
+
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data == "Ok") {
@@ -722,10 +681,7 @@ function removeGroup(id) {
 	$("#group-" + id).css("background-color", "#f2dede");
 	$.ajax({
 		url: "/app/server/group/delete/" + id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
+
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data == "ok") {
@@ -742,10 +698,7 @@ function removeSsh(id) {
 	$("#ssh-table-"+id).css("background-color", "#f2dede");
 	$.ajax( {
 		url: "/app/server/ssh/delete/" + id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
+
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if(data == "ok") {
@@ -977,10 +930,7 @@ function showApacheLog(serv) {
 function checkSshConnect(ip) {
 	$.ajax({
 		url: "/app/server/check/ssh/" + ip,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
+
 		success: function (data) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data)
@@ -1083,10 +1033,7 @@ function changeUserServiceDialog(id) {
 	}
 	$.ajax({
 		url: "/app/user/services/" + id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
+
 		success: function (data) {
 			if (data.indexOf('danger') != '-1') {
 				toastr.error(data);
@@ -1197,10 +1144,6 @@ function confirmAjaxServiceAction(action, service) {
 function ajaxActionServices(action, service) {
 	$.ajax( {
 		url: "/app/admin/tools/action/" + service + "/" + action,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
@@ -1222,10 +1165,6 @@ function updateService(service, action='update') {
 	$("#ajax-update").html(wait_mess);
 	$.ajax({
 		url: "/app/admin/tools/update/" + service,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('Complete!') != '-1' || data.indexOf('Unpacking') != '-1') {
@@ -1291,7 +1230,6 @@ function confirmDeleteOpenVpnProfile(id) {
 		}
 	});
 }
-
 function removeOpenVpnProfile(id) {
 	$("#" + id).css("background-color", "#f2dede");
 	$.ajax({
@@ -1342,10 +1280,6 @@ function uploadOvpn() {
 function OpenVpnSess(id, action) {
 	$.ajax({
 		url: "/app/admin/openvpn/" + action + "/" + id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
@@ -1363,10 +1297,7 @@ function OpenVpnSess(id, action) {
 function viewFirewallRules(ip) {
 	$.ajax({
 		url: "/app/server/firewall/" + ip,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
+
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error: ') != '-1') {
@@ -1394,10 +1325,6 @@ function viewFirewallRules(ip) {
 function loadServices() {
 	$.ajax({
 		url: "/app/admin/tools",
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
@@ -1412,10 +1339,6 @@ function loadServices() {
 function loadupdatehapwi() {
 	$.ajax({
 		url: "/app/admin/update",
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
@@ -1429,42 +1352,14 @@ function loadupdatehapwi() {
 function checkUpdateRoxy() {
 	$.ajax({
 		url: "/app/admin/update/check",
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			loadupdatehapwi();
-		}
-	} );
-}
-function loadchecker() {
-	$.ajax({
-		url: "/app/checker/settings/load",
-		type: "GET",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('group_error') == '-1' && data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				$('#checker').html(data);
-				$( "select" ).selectmenu();
-				$("button").button();
-				$( "input[type=checkbox]" ).checkboxradio();
-				$.getScript('/inc/users.js');
-				$.getScript(awesome);
-				// $( "#checker_tabs" ).tabs( "option", "active", tab );
-			}
 		}
 	} );
 }
 function loadopenvpn() {
 	$.ajax({
 		url: "/app/admin/openvpn",
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('group_error') == '-1' && data.indexOf('error:') != '-1') {
@@ -1479,10 +1374,6 @@ function loadopenvpn() {
 function updateServerInfo(ip, id) {
 	$.ajax({
 		url: "/app/server/system_info/update/" + ip + "/" + id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
@@ -1501,10 +1392,6 @@ function showServerInfo(id, ip) {
 	var server_info = $('#translate').attr('data-server_info');
 	$.ajax({
 		url: "/app/server/system_info/get/" + ip + "/" +id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
@@ -1525,135 +1412,6 @@ function showServerInfo(id, ip) {
 					}]
 				});
 				$.getScript(awesome);
-			}
-		}
-	});
-}
-function updateHaproxyCheckerSettings(id) {
-	toastr.clear();
-	let email = 0;
-	let server = 0;
-	let backend = 0;
-	let maxconn = 0;
-	if ($('#haproxy_server_email-' + id).is(':checked')) {
-		email = '1';
-	}
-	if ($('#haproxy_server_status-' + id).is(':checked')) {
-		server = '1';
-	}
-	if ($('#haproxy_server_backend-' + id).is(':checked')) {
-		backend = '1';
-	}
-	if ($('#haproxy_server_maxconn-' + id).is(':checked')) {
-		maxconn = '1';
-	}
-	$.ajax({
-		url: "/app/checker/settings/update",
-		data: {
-			service: 'haproxy',
-			setting_id: id,
-			email: email,
-			server: server,
-			backend: backend,
-			maxconn: maxconn,
-			telegram_id: $('#haproxy_server_telegram_channel-' + id + ' option:selected').val(),
-			slack_id: $('#haproxy_server_slack_channel-' + id + ' option:selected').val(),
-			pd_id: $('#haproxy_server_pd_channel-' + id + ' option:selected').val(),
-			mm_id: $('#haproxy_server_mm_channel-' + id + ' option:selected').val(),
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			} else if (data.indexOf('ok') != '-1') {
-				toastr.clear();
-				$("#haproxy_server_tr_id-" + id).addClass("update", 1000);
-				setTimeout(function () {
-					$("#haproxy_server_tr_id-" + id).removeClass("update");
-				}, 2500);
-			}
-		}
-	});
-}
-function updateKeepalivedCheckerSettings(id) {
-	toastr.clear();
-	let email = 0;
-	let server = 0;
-	let backend = 0;
-	if ($('#keepalived_server_email-' + id).is(':checked')) {
-		email = '1';
-	}
-	if ($('#keepalived_server_status-' + id).is(':checked')) {
-		server = '1';
-	}
-	if ($('#keepalived_server_backend-' + id).is(':checked')) {
-		backend = '1';
-	}
-	$.ajax({
-		url: "/app/checker/settings/update",
-		data: {
-			service: 'keepavlied',
-			setting_id: id,
-			email: email,
-			server: server,
-			backend: backend,
-			telegram_id: $('#keepalived_server_telegram_channel-' + id + ' option:selected').val(),
-			slack_id: $('#keepalived_server_slack_channel-' + id + ' option:selected').val(),
-			pd_id: $('#keepalived_server_pd_channel-' + id + ' option:selected').val(),
-			mm_id: $('#keepalived_server_mm_channel-' + id + ' option:selected').val(),
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			} else if (data.indexOf('ok') != '-1') {
-				toastr.clear();
-				$("#keepalived_server_tr_id-" + id).addClass("update", 1000);
-				setTimeout(function () {
-					$("#keepalived_server_tr_id-" + id).removeClass("update");
-				}, 2500);
-			}
-		}
-	});
-}
-function updateServiceCheckerSettings(id, service_name) {
-	toastr.clear();
-	let email = 0;
-	let server = 0;
-	if ($('#' + service_name + '_server_email-' + id).is(':checked')) {
-		email = '1';
-	}
-	if ($('#' + service_name + '_server_status-' + id).is(':checked')) {
-		server = '1';
-	}
-	$.ajax({
-		url: "/app/checker/settings/update",
-		data: {
-			service: service_name,
-			setting_id: id,
-			email: email,
-			server: server,
-			telegram_id: $('#' + service_name + '_server_telegram_channel-' + id + ' option:selected').val(),
-			slack_id: $('#' + service_name + '_server_slack_channel-' + id + ' option:selected').val(),
-			pd_id: $('#' + service_name + '_server_pd_channel-' + id + ' option:selected').val(),
-			mm_id: $('#' + service_name + '_server_mm_channel-' + id + ' option:selected').val(),
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			} else if (data.indexOf('ok') != '-1') {
-				toastr.clear();
-				$('#' + service_name + '_server_tr_id-' + id).addClass("update", 1000);
-				setTimeout(function () {
-					$('#' + service_name + '_server_tr_id-' + id).removeClass("update");
-				}, 2500);
 			}
 		}
 	});
@@ -1696,10 +1454,7 @@ function confirmChangeGroupsAndRoles(user_id) {
 	var username = $('#login-' + user_id).val();
 	$.ajax({
 		url: "/app/user/groups/" + user_id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
+
 		success: function (data) {
 			$("#groups-roles").html(data);
 			$("#groups-roles").dialog({
