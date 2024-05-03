@@ -107,30 +107,22 @@
 						<li><a href="{{ url_for('install.install_monitoring') }}#geolite2" title="{{lang.words.installation|title()}} GeoLite2" class="hap-menu geolite2 installgeo head-submenu">GeoLite2</a> </li>
 					</ul>
 				</li>
-				<li class="p_menu">
-					<a href="{{ url_for('main.servers') }}#users" title="{{lang.menu_links.servers.title}}" class="runtime">{{lang.menu_links.servers.link}}</a>
-					<ul class="v_menu">
-						<li><a href="{{ url_for('main.servers') }}#users" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} {{lang.words.users2}}" class="users head-submenu">{{lang.words.users|title()}}</a></li>
-						<li><a href="{{ url_for('main.servers') }}#servers" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} {{lang.words.servers2}}" class="runtime servers head-submenu">{{lang.words.servers|title()}}</a></li>
-						<li><a href="{{ url_for('main.servers') }}#ssh" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} SSH {{lang.words.creds2}}" class="admin ssh head-submenu">SSH {{lang.words.creds|title()}}</a></li>
-						<li><a href="{{ url_for('main.servers') }}#settings" title="{{lang.words.servers|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.settings2}}" class="settings head-submenu">{{lang.words.settings|title()}}</a></li>
-						<li><a href="{{ url_for('main.servers') }}#backup" title="{{lang.words.servers|title()}}: {{lang.words.backup|title()}} {{lang.words.configs2}}" class="backup head-submenu">{{lang.words.backup|title()}}</a> </li>
-						<li><a href="{{ url_for('logs.logs_internal') }}?type=2" title="{{lang.words.servers|title()}}: {{lang.words.view|title()}} {{lang.words.internal2}} {{lang.words.logs2}}" class="logs head-submenu">{{lang.words.internal|title()}} {{lang.words.logs}}</a></li>
-					</ul>
-				</li>
 				{% endif %}
-				{% if g.user_params['role'] <= 1 %}
+				{% if g.user_params['role'] <= 2 %}
 				<li class="p_menu" id="admin-area">
 					<a href="{{ url_for('admin.admin') }}#users" title="{{lang.menu_links.admin_area.title}}" class="admin">{{lang.menu_links.admin_area.link}}</a>
 					<ul class="v_menu">
 						<li><a href="{{ url_for('admin.admin') }}#users" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.users2}}" class="users head-submenu" id="admin-area-users">{{lang.words.users|title()}}</a></li>
-						<li><a href="{{ url_for('admin.admin') }}#groups" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.groups3}}" class="group groups head-submenu" id="admin-area-groups">{{lang.words.groups|title()}}</a></li>
 						<li><a href="{{ url_for('admin.admin') }}#servers" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.servers2}}" class="runtime servers head-submenu" id="admin-area-servers">{{lang.words.servers|title()}}</a></li>
 						<li><a href="{{ url_for('admin.admin') }}#ssh" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} SSH {{lang.words.creds2}}" class="admin ssh head-submenu" id="admin-area-ssh">SSH {{lang.words.creds|title()}}</a></li>
 						<li><a href="{{ url_for('admin.admin') }}#settings" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.settings2}}" class="settings head-submenu" id="admin-area-settings">{{lang.words.settings|title()}}</a></li>
-						<li><a href="{{ url_for('admin.admin') }}#tools" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.tools}}" class="tools head-submenu" id="admin-area-services">{{lang.words.tools|title()}}</a></li>
-						<li><a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.admin_area|title()}}: {{lang.words.view|title()}} {{lang.words.internal2}} {{lang.words.logs2}}" class="logs head-submenu" id="admin-area-logs">{{lang.words.internal|title()}} {{lang.words.logs}}</a></li>
+                        <li><a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.admin_area|title()}}: {{lang.words.view|title()}} {{lang.words.internal2}} {{lang.words.logs2}}" class="logs head-submenu" id="admin-area-logs">{{lang.words.internal|title()}} {{lang.words.logs}}</a></li>
+                        <li><a href="{{ url_for('admin.admin') }}#backup" title="{{lang.words.servers|title()}}: {{lang.words.backup|title()}} {{lang.words.configs2}}" class="backup head-submenu">{{lang.words.backup|title()}}</a> </li>
+                        {% if g.user_params['role'] <= 1 %}
+                        <li><a href="{{ url_for('admin.admin') }}#groups" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.groups3}}" class="group groups head-submenu" id="admin-area-groups">{{lang.words.groups|title()}}</a></li>
+                        <li><a href="{{ url_for('admin.admin') }}#tools" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.tools}}" class="tools head-submenu" id="admin-area-services">{{lang.words.tools|title()}}</a></li>
 						<li><a href="{{ url_for('admin.admin') }}#updatehapwi" title="{{lang.words.admin_area|title()}}: {{lang.words.w_update|title()}} Roxy-WI" class="upload updatehapwi head-submenu" id="admin-area-update">{{lang.words.w_update|title()}}</a></li>
+                        {% endif %}
 					</ul>
 				</li>
 				{% endif %}

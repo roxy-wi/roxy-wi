@@ -59,9 +59,6 @@
 	</div>
 	{% endif %}
 	<div style="clear: both;"></div>
-	<div id="refresh" class="metrics-refresh" title="{{lang.words.refresh|title}} {{lang.words.metrics}}" onclick="showMetrics()">
-		<span  class="refresh"></span>
-	</div>
 {% for s in servers %}
 	{% if service == 'haproxy' %}
 	<div class="chart-container">

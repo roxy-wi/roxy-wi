@@ -6,7 +6,7 @@
         <td class="first-collumn" style="width: 25%;" class="help_cursor" id="ssh-key-enabled-td">
             <span title="If it is enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH {{lang.words.key}}</span>
         </td>
-        {% if page != "servers.py" %}
+        {% if g.user_params['role'] == 1 %}
         <td style="width: 25%;">{{lang.words.group|title()}}</td>
         {% endif %}
         <td style="width: 100%;" class="help_cursor" id="ssh-user-name-td">
@@ -27,7 +27,7 @@
             <label for="ssh_enable-{{ssh.id}}">{{lang.words.enable|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="ssh_enable-{{ssh.id}}">
             {% endif %}
         </td>
-        {% if page != "servers.py" %}
+        {% if g.user_params['role'] == 1 %}
         <td>
             <select id="sshgroup-{{ssh.id}}" name="sshgroup-{{ssh.id}}">
                 {% for group in groups %}

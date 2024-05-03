@@ -1,10 +1,97 @@
+function return_service_chart_config() {
+    var config = {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                {
+                    normalized: true,
+                    label: 'Connections',
+                    data: [],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            animation: false,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: '',
+                    font: {
+                        size: 20
+                    },
+                     legend: {
+                         position: 'bottom'
+                     }
+                },
+                legend: {
+                    display: true,
+                    labels: {
+                        color: 'rgb(255, 99, 132)',
+                        font: {
+                            size: '10',
+                            family: 'BlinkMacSystemFont'
+                        }
+                    },
+                    position: 'bottom'
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                },
+                x: {
+                    ticks: {
+                        major: {
+                            enabled: true,
+                            fontStyle: 'bold'
+                        },
+                        source: 'data',
+                        autoSkip: true,
+                        autoSkipPadding: 45,
+                        maxRotation: 0
+                    }
+                }
+            }
+        }
+    }
+    return config;
+}
+function stream_chart(chart_id, service, service_ip, is_http=0) {
+    let random_sleep = getRandomArbitrary(500, 2000);
+    console.log(`stream_chart ${random_sleep}`);
+    sleep(random_sleep);
+    console.log('stop sleep')
+    const source = new EventSource(`/app/metrics/${service}/${service_ip}/${is_http}/chart-stream`);
+    source.onmessage = function (event) {
+        const data = JSON.parse(event.data);
+        if (chart_id.data.labels.length >= 30) {
+            chart_id.data.labels.shift();
+            chart_id.data.datasets[0].data.shift();
+        }
+        chart_id.data.labels.push(data.time);
+        chart_id.data.datasets[0].data.push(data.value);
+        if (service == 'haproxy') {
+            chart_id.data.datasets[1].data.push(data.value1);
+            chart_id.data.datasets[2].data.push(data.value2);
+        }
+        if (is_http) {
+            chart_id.data.datasets[3].data.push(data.value3);
+        }
+        chart_id.update();
+    }
+}
 function getHttpChartData(server) {
     var hide_http_metrics = localStorage.getItem('hide_http_metrics');
     if (hide_http_metrics == 'disabled') {
         return false;
     }
     $.ajax({
-        url: "/app/metrics/haproxy/" + server + "/http",
+        url: `/app/metrics/haproxy/${server}/http`,
 		data: {
             time_range: $( "#time-range option:selected" ).val(),
 		},
@@ -122,7 +209,7 @@ function renderHttpChart(data, labels, server) {
             },
         },
     });
-    charts.push(myChart);
+    stream_chart(myChart, 'haproxy', server, 1);
 }
 function getChartData(server) {
     $.ajax({
@@ -226,7 +313,7 @@ function renderChart(data, labels, server) {
 			}
         }
     });
-    charts.push(myChart);
+    stream_chart(myChart, 'haproxy', server);
 }
 function getWafChartData(server) {
     $.ajax({
@@ -249,72 +336,24 @@ function renderServiceChart(data, labels, server, service) {
 
     // Удаление последнего пустого элемента в каждом массиве
     dataArray.pop();
+    dataArray.pop();
+    var label = labels.split(',');
+    label.pop();
+    label.pop();
     var ctx = document.getElementById(service + '_' + server).getContext('2d');
     var additional_title = '';
     if (service === 'waf') {
         additional_title = 'WAF ';
     }
-    var myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels.split(','),
-            datasets: [
-                {
-                    normalized: true,
-                    label: 'Connections',
-                    data: dataArray,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    fill: true
-                }
-            ]
-        },
-        options: {
-            animation: false,
-            maintainAspectRatio: false,
-            plugins: {
-                title: {
-                    display: true,
-                    text: additional_title + data[1],
-                    font: {
-                        size: 20
-                    },
-                     legend: {
-                         position: 'bottom'
-                     }
-                },
-                legend: {
-                    display: true,
-                    labels: {
-                        color: 'rgb(255, 99, 132)',
-                        font: {
-                            size: '10',
-                            family: 'BlinkMacSystemFont'
-                        }
-                    },
-                    position: 'bottom'
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true
-                },
-                x: {
-                    ticks: {
-                        major: {
-                            enabled: true,
-                            fontStyle: 'bold'
-                        },
-                        source: 'data',
-                        autoSkip: true,
-                        autoSkipPadding: 45,
-                        maxRotation: 0
-                    }
-                }
-            }
-        }
-    });
-    charts.push(myChart);
+    config = return_service_chart_config();
+    for (var i=0; i<label.length; i++) {
+        config.data.labels.push(label[i])
+        config.data.datasets[0].data.push(dataArray[i])
+    }
+    config.options.plugins.title.text = data[1] + ' ' + additional_title;
+    var myChart = new Chart(ctx, config);
+    myChart.update();
+    stream_chart(myChart, service, server);
 }
 function getNginxChartData(server) {
     $.ajax({
@@ -394,18 +433,18 @@ function renderChartHapWiRam(data) {
     var myChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['total','used','free','shared','buff','available'],
+            labels: ['used','free','shared','buff','available','total'],
             datasets: [
                 {
                     normalized: true,
                     data: data,
                     backgroundColor: [
-                        '#36a2eb',
                         '#ff6384',
                         '#33ff26',
                         '#ff9f40',
                         '#ffcd56',
                         '#4bc0c0',
+                        '#36a2eb',
                     ]
                 }
             ]
@@ -467,7 +506,7 @@ function renderChartHapWiCpu(data) {
     var myChart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['user','sys','nice','idle','wait','hi','si','steal'],
+            labels: ['user','sys','nice','idle','wait','hi','si','steal', 'total'],
             datasets: [
                 {
                     normalized: true,
@@ -480,6 +519,7 @@ function renderChartHapWiCpu(data) {
 						'#4bc0c0',
 						'#5d9ceb',
 						'#2c6969',
+						'#5e1313',
 					]
                 }
             ]
@@ -568,9 +608,6 @@ function updatingCpuRamCharts() {
 	} else if (cur_url[0] == 'service' && cur_url[2]) {
 		NProgress.configure({showSpinner: false});
         showOverviewHapWI();
-		getChartData(server_ip);
-		getHttpChartData(server_ip);
-		getWafChartData(server_ip);
 	} else {
         removeData();
     }

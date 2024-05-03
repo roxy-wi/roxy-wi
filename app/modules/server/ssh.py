@@ -2,6 +2,7 @@ import os
 from cryptography.fernet import Fernet
 
 import paramiko
+from paramiko import RSAKey, DSSKey, ECDSAKey, Ed25519Key, PKey
 from flask import render_template, request
 
 import app.modules.db.cred as cred_sql
@@ -117,7 +118,36 @@ def create_ssh_cread_api(name: str, enable: str, group: str, username: str, pass
 			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot create SSH credentials {name}', roxywi=1)
 
 
+def get_key_class_name(uploaded_key, passphrase):
+	for pkey_class in (ECDSAKey, RSAKey, DSSKey, Ed25519Key):
+		try:
+			key = pkey_class.from_private_key(uploaded_key, passphrase)
+			class_name = str(pkey_class).split('.')[-1].rstrip(">'")
+			print(class_name)
+
+			# return class_name
+			return key
+
+		except Exception as e:
+			print("An exception occurred: {}".format(e))
+			pass
+
+
+def proper_method_call(filepath, passphrase):
+	key_class_name = get_key_class_name(filepath, passphrase)
+	print('key_class_name',key_class_name)
+	key_class = getattr(paramiko, key_class_name)
+	key_method = getattr(key_class, "from_private_key")
+	print('filepath',filepath)
+	try:
+		key = key_method(filepath, passphrase)
+	except Exception as e:
+		raise Exception(f'something went wrong: {e}')
+	return key
+
+
 def upload_ssh_key(name: str, user_group: str, key: str, passphrase: str) -> str:
+	import io
 	if '..' in name:
 		raise Exception('error: nice try')
 
@@ -125,9 +155,15 @@ def upload_ssh_key(name: str, user_group: str, key: str, passphrase: str) -> str
 		raise Exception('error: please select credentials first')
 
 	try:
-		key = paramiko.pkey.load_private_key(key, password=passphrase)
+		print('key1',key)
+		key = io.StringIO(key)
+		print('key2',key)
+		# key = paramiko.pkey.load_private_key(key, password=passphrase)
+		key = paramiko.Ed25519Key.from_private_key(key, password=passphrase)
+		# key = get_key_class_name(key, passphrase)
+		# key = proper_method_call(key, passphrase)
 	except Exception as e:
-		raise Exception(f'error: Cannot save SSH key file: {e}')
+		raise Exception(f'error: Cannot read SSH key: {e}')
 
 	lib_path = get_config.get_config_var('main', 'lib_path')
 	full_dir = f'{lib_path}/keys/'

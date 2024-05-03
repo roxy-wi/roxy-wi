@@ -6,7 +6,7 @@
 			<th class="padding10 first-collumn" id="server-name-th">{{lang.words.name|title()}}</th>
 			<th class="ip-field" style="width: 10% " id="server-ip-th">IP</th>
 			<th style="width: 5%" class="help_cursor"><span title="SSH port">{{lang.words.port|title()}}</span></th>
-			{% if page != "servers.py" %}
+			{% if g.user_params['role'] == 1 %}
 			<th style="width: 10%">{{lang.words.group|title()}}</th>
 			{% endif %}
 			<th class="checkbox-head" style="min-width: 70px;">{{lang.words.enabled|title()}}</th>
@@ -33,7 +33,7 @@
 	</thead>
 	<tbody>
 {% endif %}
-		{% for server in servers %}
+    {% for server in servers %}
 		<tr id="server-{{server.0}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newserver{% endif %}">
 			<td class="padding10 first-collumn">
 				<span class="serverNone server-status-small" title="{{lang.phrases.server_unknown}}" id="server_status-{{server.0}}"></span>
@@ -48,7 +48,7 @@
 				{% set id = 'port-' + server.0|string() %}
 				{{ input(id, value=server.10, type='number', style='width: 50px;') }}
 			</td>
-			{% if page != "servers.py" %}
+			{% if g.user_params['role'] == 1 %}
 			<td>
 				<select id="servergroup-{{server.0}}" name="servergroup-{{server.0}}">
 					<option disabled selected>------</option>
@@ -152,7 +152,7 @@
 				<a class="delete" onclick="confirmDeleteServer({{server.0}})" title="{{lang.words.delete|title()}} {{lang.words.server}} {{server.1}}" style="cursor: pointer;"></a>
 			</td>
 		</tr>
-		{% endfor %}
+    {% endfor %}
 {% if not adding %}
 	</tbody>
 </table>

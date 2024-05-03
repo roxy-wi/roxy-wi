@@ -192,9 +192,6 @@
 		</select>
 	</div>
 	<div style="clear: both;"></div>
-	<div id="refresh" class="metrics-refresh" title="{{lang.words.refresh|title()}}" onclick="showWafMetrics()">
-		<span class="refresh"></span>
-	</div>
 	{% for s in servers %}
 	<div class="chart-container">
 		<canvas id="waf_{{s.server.ip}}" role="img"></canvas>

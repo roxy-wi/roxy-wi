@@ -406,14 +406,10 @@
 					<option value="720">12 {{lang.words.hours2}}</option>
 				</select>
 			</div>
-			<div style="clear: both;"></div>
-			<div id="refresh" class="metrics-refresh" style="margin-right: 140px;" title="{{lang.words.refresh|title()}}" onclick="showMetrics()">
-				<span class="refresh"></span>
-			</div>
 		{% endif %}
 	{% endif %}
 		 {% if service == 'haproxy' and s.7.0.9 %}
-		<div id="server_metrics_div" class="chart-container_overview">
+		<div id="server_metrics_div" class="chart-container_overview" style="margin-top: -35px;">
 			<canvas id="{{s.2}}" role="img"></canvas>
 		</div>
 		<div class="chart-container_overview http_metrics_div">
@@ -425,11 +421,11 @@
 		</div>
 		{% endif %}
 		{% elif service == 'nginx' and s.7.0.21 %}
-		<div id="nginx_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
+		<div id="nginx_metrics_div" class="chart-container_overview" style="margin-top: -35px;">
 			<canvas id="nginx_{{s.2}}" role="img"></canvas>
 		</div>
 		{% elif service == 'apache' and s.7.0.27 %}
-		<div id="apache_metrics_div" class="chart-container" style="display: block; width: 90%; height: 300px;">
+		<div id="apache_metrics_div" class="chart-container_overview" style="margin-top: -35px;">
 			<canvas id="apache_{{s.2}}" role="img"></canvas>
 		</div>
 		{% endif %}

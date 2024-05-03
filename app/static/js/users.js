@@ -189,10 +189,6 @@ $( function() {
 		if (valid) {
 			$.ajax({
 				url: "/app/user/ldap/" + $('#new-username').val(),
-				// data: {
-				// 	token: $('#token').val()
-				// },
-				// type: "POST",
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					if (data.indexOf('error:') != '-1') {
@@ -217,6 +213,7 @@ $( function() {
 	});
 	$("#tabs ul li").click(function() {
 		var activeTab = $(this).find("a").attr("href");
+		console.log(activeTab);
 		var activeTabClass = activeTab.replace('#', '');
 		$('.menu li ul li').each(function () {
 			$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
@@ -228,6 +225,8 @@ $( function() {
 		});
 		if (activeTab == '#tools') {
 			loadServices();
+		} else if (activeTab == '#settings') {
+			loadSettings();
 		} else if (activeTab == '#updatehapwi') {
 			loadupdatehapwi();
 		} else if (activeTab == '#openvpn'){
@@ -243,16 +242,14 @@ window.onload = function() {
 	if (cur_url[0].split('#')[0] == 'admin') {
 		if (activeTabIdx == 6) {
 			loadServices();
+		} else if (activeTabIdx == 3) {
+			loadSettings();
+		} else if (activeTabIdx == 4) {
+			loadBackup();
 		} else if (activeTabIdx == 7) {
 			loadupdatehapwi();
 		} else if (activeTabIdx == 8) {
-			loadBackup();
-		} else if (activeTabIdx == 4) {
 			loadopenvpn();
-		}
-	} else if (cur_url[0].split('#')[0] == 'servers') {
-		if (activeTabIdx == 4) {
-			loadBackup();
 		}
 	}
 }
@@ -1318,6 +1315,22 @@ function viewFirewallRules(ip) {
 						}
 					}
 				});
+			}
+		}
+	} );
+}
+function loadSettings() {
+	$.ajax({
+		url: "/app/admin/settings",
+		success: function (data) {
+			data = data.replace(/\s+/g, ' ');
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				$('#settings').html(data);
+				$.getScript(awesome);
+				$( "input[type=checkbox]" ).checkboxradio();
+				$( "select" ).selectmenu();
 			}
 		}
 	} );

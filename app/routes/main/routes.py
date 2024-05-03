@@ -1,6 +1,5 @@
 import os
 import sys
-import pytz
 
 from flask import render_template, request, session, g, abort, jsonify
 from flask_login import login_required
@@ -9,10 +8,7 @@ sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
 
 from app import app, cache
 from app.routes.main import bp
-import app.modules.db.sql as sql
-import app.modules.db.cred as cred_sql
 import app.modules.db.user as user_sql
-import app.modules.db.group as group_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
 import app.modules.db.history as history_sql
@@ -173,37 +169,6 @@ def service_history(service, server_ip):
     }
 
     return render_template('history.html', **kwargs)
-
-
-@bp.route('/servers')
-@login_required
-@get_user_params()
-def servers():
-    roxywi_auth.page_for_admin(level=2)
-
-    user_group = roxywi_common.get_user_group(id=1)
-    kwargs = {
-        'h2': 1,
-        'users': user_sql.select_users(group=user_group),
-        'groups': group_sql.select_groups(),
-        'servers': roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1),
-        'roles': sql.select_roles(),
-        'sshs': cred_sql.select_ssh(group=user_group),
-        'masters': server_sql.select_servers(get_master_servers=1, uuid=g.user_params['user_uuid']),
-        'group': roxywi_common.get_user_group(id=1),
-        'services': service_sql.select_services(),
-        'timezones': pytz.all_timezones,
-        'guide_me': 1,
-        'settings': sql.get_setting('', all=1),
-        'page': 'servers.py',
-        'ldap_enable': sql.get_setting('ldap_enable'),
-        'user_roles': user_sql.select_user_roles_by_group(user_group),
-        'user_subscription': roxywi_common.return_user_subscription(),
-        'lang': g.user_params['lang']
-    }
-
-    return render_template('servers.html', **kwargs)
-
 
 @bp.route('/internal/show_version')
 @cache.cached()

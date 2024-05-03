@@ -10,19 +10,21 @@
 <div id="tabs">
 	<ul id="admin-tabs">
 		<li><a href="#users" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.users}} - Roxy-WI">{{lang.words.users|title()}}</a></li>
-		<li><a href="#groups" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.groups}} - Roxy-WI">{{lang.words.groups|title()}}</a></li>
-		<li><a href="#servers" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.servers}} - Roxy-WI">{{lang.words.servers|title()}}</a></li>
+        <li><a href="#servers" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.servers}} - Roxy-WI">{{lang.words.servers|title()}}</a></li>
 		<li><a href="#ssh" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} SSH {{lang.words.creds}} - Roxy-WI">SSH {{lang.words.creds}}</a></li>
-		<li><a href="#openvpn" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} OpenVPN - Roxy-WI" id="admin-tabs-vpn">OpenVPN</a></li>
 		<li><a href="#settings" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.settings}} - Roxy-WI">{{lang.words.settings|title()}}</a></li>
+        <li><a href="#backup" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.backup|title()}} {{lang.words.configs}} - Roxy-WI" id="admin-tabs-backup">{{lang.words.backup|title()}}</a></li>
+        {% if g.user_params['role'] == 1 %}
+        <li><a href="#groups" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.groups}} - Roxy-WI">{{lang.words.groups|title()}}</a></li>
 		<li><a href="#tools" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} Roxy-WI {{lang.words.tools}} - Roxy-WI">{{lang.words.tools|title()}}</a></li>
 		<li><a href="#updatehapwi" title="{{lang.words.admin_area|title()}}: {{lang.words.w_update|title()}} Roxy-WI - Roxy-WI">{{lang.words.w_update|title()}}</a></li>
-		<li><a href="#backup" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} {{lang.words.backup|title()}} {{lang.words.configs}} - Roxy-WI" id="admin-tabs-backup">{{lang.words.backup|title()}}</a></li>
+        <li><a href="#openvpn" title="{{lang.words.admin_area|title()}}: {{lang.words.manage|title()}} OpenVPN - Roxy-WI" id="admin-tabs-vpn">OpenVPN</a></li>
+        {% endif %}
 	</ul>
 	<div id="users">
 		{% include 'include/admin_users.html' %}
 	</div>
-
+    {% if g.user_params['role'] == 1 %}
 	<div id="groups">
 		<table class="overview" id="ajax-group">
 			<thead>
@@ -68,6 +70,7 @@
 			{{lang.words.and}} {{lang.words.this2}} <a href="https://roxy-wi.org/howto/setup" title="How to setup servers, group and SSH credentials" target="_blank">{{lang.words.article}}</a>
 		</div>
 	</div>
+    {% endif %}
 	<div id="servers">
 		{% include 'include/admin_servers.html' %}
 	</div>
@@ -75,13 +78,11 @@
 	<div id="ssh">
 		{% include 'include/admin_ssh.html' %}
 	</div>
+	
+	<div id="settings"></div>
 
-	<div id="openvpn"></div>
-	
-	<div id="settings">
-		{% include 'include/admin_settings.html' %}
-	</div>
-	
+    <div id="backup"></div>
+    {% if g.user_params['role'] == 1 %}
 	<div id="tools">
 		<table id="services_table" class="overview">
 			<thead>
@@ -132,7 +133,8 @@
 		<div id="ajax-update"></div>
 	</div>
 
-	<div id="backup"></div>
+    <div id="openvpn"></div>
+    {% endif %}
 </div>
 {% include 'include/admins_dialogs.html' %}
 <script>
@@ -143,9 +145,11 @@
 			});
 		{% endfor %}
 		{% for server in servers %}
+            {% if g.user_params['role'] == 1 %}
 			$("#servergroup-{{ server.0}}" ).selectmenu({
 				width: 100
 			});
+            {% endif %}
 			$("#slavefor-{{server.0}}" ).selectmenu({
 				width: 115
 			});
@@ -174,6 +178,10 @@
 	});
 </script>
 <link href="{{ url_for('static', filename='css/servers.css') }}" rel="stylesheet"/>
-{% include 'include/intro/admin.html' %}
+{% if g.user_params['role'] == 1 %}
+    {% include 'include/intro/admin.html' %}
+{% else %}
+    {% include 'include/intro/servers.html' %}
+{% endif %}
 {% include 'include/intro/js_script.html' %}
 {% endblock %}

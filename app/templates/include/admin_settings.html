@@ -1,3 +1,5 @@
+{% from 'include/input_macros.html' import input, checkbox %}
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% set sections_name = {
     'rabbitmq': 'RabbitMQ',
     'nginx': 'NGINX',
@@ -17,7 +19,7 @@
     <tbody>
         {% set section = namespace(section='') %}
         {% for set in settings %}
-        {% if page == "servers.py" and (set.section in ('monitoring', 'rabbitmq', 'mail', 'smon')) %}
+        {% if g.user_params['role'] == 2 and (set.section in ('monitoring', 'rabbitmq', 'mail', 'smon')) %}
         <!-- continue -->
         {% else %}
         {% if section.section|string() != set.section|string() %}
@@ -33,7 +35,7 @@
         </tr>
         {% endif %}
         {% set section.section = set.section %}
-        {% if page == "servers.py" and (set.param == 'proxy') %}
+        {% if g.user_params['role'] == 2 and (set.param == 'proxy') %}
         <!-- continue -->
         {% else %}
         <tr class="{{ loop.cycle('odd', 'even') }} {{set.section}}-section" style="display: none">

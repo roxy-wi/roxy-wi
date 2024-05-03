@@ -1,5 +1,8 @@
+import json
+import time
+
 import distro
-from flask import render_template, request, jsonify, g
+from flask import render_template, request, jsonify, g, Response, stream_with_context
 from flask_login import login_required
 
 from app.routes.metric import bp
@@ -120,3 +123,38 @@ def show_http_metric(service, server_ip):
         return jsonify(metric.haproxy_http_metrics(server_ip, hostname, time_range))
 
     return 'error: Wrong service'
+
+
+@bp.route('/<service>/<server_ip>/<is_http>/chart-stream')
+@check_services
+def chart_data(service, server_ip, is_http):
+    def get_chart_data():
+        while True:
+            json_metric = {}
+            if service in ('nginx', 'apache', 'waf'):
+                chart_metrics = metric_sql.select_metrics(server_ip, service, time_range=1)
+                for i in chart_metrics:
+                    json_metric['time'] = common.get_time_zoned_date(i[2], '%H:%M:%S')
+                    json_metric['value'] = str(i[1])
+            elif service == 'haproxy' and not is_http:
+                chart_metrics = metric_sql.select_metrics(server_ip, 'haproxy', time_range=1)
+                for i in chart_metrics:
+                    json_metric['time'] = common.get_time_zoned_date(i[5], '%H:%M:%S')
+                    json_metric['value'] = str(i[1])
+                    json_metric['value1'] = str(i[2])
+                    json_metric['value2'] = str(i[3])
+            else:
+                chart_metrics = metric_sql.select_metrics(server_ip, 'http_metrics', time_range=1)
+                for i in chart_metrics:
+                    json_metric['time'] = common.get_time_zoned_date(i[5], '%H:%M:%S')
+                    json_metric['value'] = str(i[1])
+                    json_metric['value1'] = str(i[2])
+                    json_metric['value2'] = str(i[3])
+                    json_metric['value3'] = str(i[4])
+            yield f"data:{json.dumps(json_metric)}\n\n"
+            time.sleep(60)
+
+    response = Response(stream_with_context(get_chart_data()), mimetype="text/event-stream")
+    response.headers["Cache-Control"] = "no-cache"
+    response.headers["X-Accel-Buffering"] = "no"
+    return response

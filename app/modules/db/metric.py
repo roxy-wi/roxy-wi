@@ -174,6 +174,8 @@ def select_metrics(serv, service, **kwargs):
 			date_from = "and date > CONVERT_TZ(NOW(),'SYSTEM','+0:00') - INTERVAL 360 minute group by `date` div 300"
 		elif kwargs.get('time_range') == '720':
 			date_from = "and date > CONVERT_TZ(NOW(),'SYSTEM','+0:00') - INTERVAL 720 minute group by `date` div 500"
+		elif kwargs.get('time_range') == '1':
+			date_from = "and date > CONVERT_TZ(NOW(),'SYSTEM','+0:00') - INTERVAL 1 minute"
 		else:
 			date_from = "and date > CONVERT_TZ(NOW(),'SYSTEM','+0:00') - INTERVAL 30 minute"
 		sql = """ select * from {metrics_table} where serv = '{serv}' {date_from} order by `date` asc """.format(
@@ -188,6 +190,8 @@ def select_metrics(serv, service, **kwargs):
 			date_from = "and date > datetime('now', '-360 minutes', 'UTC') and rowid % 7 = 0"
 		elif kwargs.get('time_range') == '720':
 			date_from = "and date > datetime('now', '-720 minutes', 'UTC') and rowid % 9 = 0"
+		elif kwargs.get('time_range') == '1':
+			date_from = "and date > datetime('now', '-1 minutes', 'UTC')"
 		else:
 			date_from = "and date > datetime('now', '-30 minutes', 'UTC')"
 
