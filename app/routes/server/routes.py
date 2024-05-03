@@ -55,7 +55,8 @@ def show_if(server_ip):
     return server_mod.ssh_command(server_ip, command)
 
 
-@bp.route('/create', methods=['POST'])
+@bp.post('/create')
+@get_user_params()
 def create_server():
     roxywi_auth.page_for_admin(level=2)
     hostname = common.checkAjaxInput(request.form.get('servername'))

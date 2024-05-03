@@ -11,6 +11,7 @@ import app.modules.common.common as common
 import app.modules.roxywi.user as roxywi_user
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
+from app.middleware import get_user_params
 
 
 @bp.before_request
@@ -21,6 +22,7 @@ def before_request():
 
 
 @bp.post('/create')
+@get_user_params()
 def create_user():
     roxywi_auth.page_for_admin(level=2)
     email = common.checkAjaxInput(request.form.get('newemail'))
