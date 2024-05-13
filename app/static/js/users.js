@@ -718,7 +718,7 @@ function updateUser(id) {
 		activeuser = '1';
 	}
 	if (role == null && role !== undefined) {
-		toastr.warning('Please edit this user only on the Admin area');
+		toastr.warning('You cannot edit superAdmin user');
 		return false;
 	}
 	toastr.remove();
@@ -1496,7 +1496,7 @@ function addGroupToUser(group_id) {
 	var group_name = $('#add_group-'+group_id).attr('data-group_name');
 	var group2_word = $('#translate').attr('data-group2');
 	var length_tr = $('#all_groups tbody tr').length;
-	const roles = {1: 'superAdmin', 2: 'amdin', 3: 'user', 4: 'guest'};
+	const roles = {1: 'superAdmin', 2: 'admin', 3: 'user', 4: 'guest'};
 	var options_roles = '';
 	for (const [role_id, role_name] of Object.entries(roles)) {
 		options_roles += '<option value="'+role_id+'">'+role_name+'</option>';

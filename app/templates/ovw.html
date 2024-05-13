@@ -174,16 +174,16 @@
 			{% if counter <= 2 %}
 			<tr class="{{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn-wi"> 
-					{{ group.name }}
+					{{ group.name|replace("'", "") }}
 				</td>
-				<td class="third-collumn-wi" colspan="2">{{ group.description }}</td>
+				<td class="third-collumn-wi" colspan="2">{{ group.description|replace("'", "") }}</td>
 			</tr>
 			{% else %}
 			<tr style="display: none;" class="show-groups {{ loop.cycle('odd', 'even') }}">
 				<td class="padding10 first-collumn-wi">
-					{{ group.name }}
+					{{ group.name|replace("'", "") }}
 				</td>
-				<td class="third-collumn-wi" colspan="2">{{ group.description }}</td>
+				<td class="third-collumn-wi" colspan="2">{{ group.description|replace("'", "") }}</td>
 			</tr>
 			{% endif %}
 		{% endfor %}

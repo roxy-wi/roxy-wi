@@ -185,6 +185,15 @@ def select_user_roles_by_group(group_id: int):
 		return query_res
 
 
+def select_users_roles():
+	try:
+		query_res = UserGroups.select().execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
+
+
 def update_last_act_user(uuid: str, token: str, ip: str) -> None:
 	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
 	session_ttl = get_setting('session_ttl')

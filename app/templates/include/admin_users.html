@@ -20,20 +20,25 @@
 	<tbody>
 	{% endif %}
 	{% for user in users %}
-	{% if user.role == '1' and g.user_params['role'] == 2 %}
-	{% set disable_superAdmin = "disabled" %}
-	{% endif %}
+	    {% set disable_superAdmin = {'disabled': ''} %}
+        {% if g.user_params['role'] == 2 %}
+            {% for user_role in users_roles %}
+                {% if user_role.user_role_id == 1 and user.user_id == user_role.user_id %}
+                    {% if disable_superAdmin.update({'disabled': 'disabled'}) %} {% endif %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
 		<tr id="user-{{user.user_id}}" class="{{ loop.cycle('odd', 'even') }} {% if adding %}newuser{% endif %}">
 			<td class="padding10 first-collumn">
 				{% set login_id = 'login-' + user.user_id|string() %}
-				{% if user.6 == 1%}
-					{{ input(login_id, value=user.username, readonly='readonly') }}
+				{% if user.ldap_user == 1 %}
+					{{ input(login_id, value=user.username, readonly='readonly', disabled=disable_superAdmin['disabled']) }}
 				{% else %}
-					{{ input(login_id, value=user.username) }}
+					{{ input(login_id, value=user.username, disabled=disable_superAdmin['disabled']) }}
 				{% endif %}
 			</td>
 			<td>
-				{% if user.6 != 1%}
+				{% if user.ldap_user != 1 and not disable_superAdmin['disabled'] %}
 				<span title="{{lang.words.change|title()}} {{lang.words.password}}" style="cursor: pointer; margin-left: 15px;" class="div-pic" onclick="openChangeUserPasswordDialog('{{user.user_id}}')">
 				</span>
 				{% endif %}
@@ -41,22 +46,22 @@
 			<td class="checkbox">
 				{% set activeuser_id = 'activeuser-' + user.user_id|string() %}
 				{% if user.activeuser == 1 %}
-					{{ checkbox(activeuser_id, checked='checked', disabled=disable_superAdmin) }}
+					{{ checkbox(activeuser_id, checked='checked', disabled=disable_superAdmin['disabled']) }}
 				{% else %}
-					{{ checkbox(activeuser_id, disable_superAdmin) }}
+					{{ checkbox(activeuser_id, disabled=disable_superAdmin['disabled']) }}
 				{% endif %}
 			</td>
 			<td>
 				{% set email_id = 'email-' + user.user_id|string() %}
 				{% if user.ldap_user == 1%}
-					{{ input(email_id, value=user.email, readonly='readonly') }}
+					{{ input(email_id, value=user.email, readonly='readonly', disabled=disable_superAdmin['disabled']) }}
 				{% else %}
-					{{ input(email_id, value=user.email, type='email') }}
+					{{ input(email_id, value=user.email, type='email', disabled=disable_superAdmin['disabled']) }}
 				{% endif %}
 			</td>
 			<td>
                 {% if g.user_params['role'] == 2 %}
-				<select id="role-{{user.user_id}}" name="role-{{user.user_id}}" {{disable_superAdmin}}>
+				<select id="role-{{user.user_id}}" name="role-{{user.user_id}}" {{disable_superAdmin['disabled']}}>
 					<option disabled selected>Select a role</option>
 					{% for r in roles %}
 						{% for user_role in user_roles %}

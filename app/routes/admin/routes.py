@@ -61,6 +61,7 @@ def admin():
         'masters': masters,
         'guide_me': 1,
         'user_subscription': roxywi_common.return_user_subscription(),
+        'users_roles': user_sql.select_users_roles(),
         'user_roles': user_sql.select_user_roles_by_group(user_group),
     }
 

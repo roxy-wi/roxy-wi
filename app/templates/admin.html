@@ -45,12 +45,12 @@
 			{% else %}
 				<td class="padding10 first-collumn">
 					{% set id = 'name-' + group.group_id|string() %}
-					{{ input(id, value=group.name) }}
+					{{ input(id, value=group.name|replace("'", "")) }}
 				</td>
 				<td>
 					{% set id = 'descript-' + group.group_id|string() %}
 					{% if group.description is not none %}
-						{{ input(id, value=group.description, size='60') }}
+						{{ input(id, value=group.description|replace("'", ""), size='60') }}
 					{% else %}
 						{{ input(id, value='', size='60') }}
 					{% endif %}

@@ -113,7 +113,7 @@ def update_plan():
 			cmd = "grep login /etc/apt/auth.conf.d/roxy-wi.conf |awk '{print $2}'"
 		else:
 			path_to_repo = '/etc/yum.repos.d/roxy-wi.repo'
-			cmd = "grep base /etc/yum.repos.d/roxy-wi.repo |awk -F\":\" '{print $2}'|awk -F\"/\" '{print $3}'"
+			cmd = "grep base /etc/yum.repos.d/roxy-wi.repo |grep -v '#' |awk -F\":\" '{print $2}'|awk -F\"/\" '{print $3}'"
 		if os.path.exists(path_to_repo):
 			get_user_name, stderr = server_mod.subprocess_execute(cmd)
 			user_name = get_user_name[0]

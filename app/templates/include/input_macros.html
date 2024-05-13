@@ -1,11 +1,11 @@
-{% macro input(id, name='', value='', type='text', size='', readonly='', required='', placeholder='', autofocus='', title='', class='form-control', style='') -%}
+{% macro input(id, name='', value='', type='text', size='', readonly='', required='', placeholder='', autofocus='', title='', class='form-control', disabled='', style='') -%}
 	{% if name == '' %}
 		{% set name = id %}
 	{% endif %}
-	{# {% if readonly == '' %}
-		{% set readonly = 'readonly  onfocus=this.removeAttribute(\'readonly\');' %}
-	{% endif %} #}
-    <input type="{{ type }}" name="{{name}}" value="{{ value|e }}" id="{{ id }}" data-help="{{title}}" size="{{size}}" style="{{style}}" {{readonly}} {{required}} {{autofocus}} placeholder="{{placeholder}}" title="{{title}}" class="{{class}}" autocomplete="off" />
+	{% if disabled == 'true' %}
+		{% set disabled = 'disabled' %}
+	{% endif %}
+    <input type="{{ type }}" name="{{name}}" value="{{ value|e }}" id="{{ id }}" data-help="{{title}}" size="{{size}}" style="{{style}}" {{readonly}} {{disabled}} {{required}} {{autofocus}} placeholder="{{placeholder}}" title="{{title}}" class="{{class}}" autocomplete="off" />
 {%- endmacro %}
 
 {%- macro checkbox(id, name='', checked='', title='', value='', desc='', disabled='', style='') -%}
