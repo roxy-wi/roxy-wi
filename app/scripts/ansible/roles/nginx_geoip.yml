@@ -1,6 +1,6 @@
 ---
 - name: Install NGINX GeoIP
-  hosts: "{{ variable_host }}"
+  hosts: all
   become: yes
   become_method: sudo
   gather_facts: yes

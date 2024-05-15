@@ -2,7 +2,6 @@ import os
 import json
 from packaging import version
 
-from flask import render_template
 import ansible
 import ansible_runner
 
@@ -35,81 +34,28 @@ def show_installation_output(error: str, output: list, service: str, rc=0):
 	return True
 
 
-def show_success_installation(service):
-	lang = roxywi_common.get_user_lang_for_flask()
-	return render_template('include/show_success_installation.html', service=service, lang=lang)
+def generate_geoip_inv(server_ip: str, installed_service: str, geoip_update: int) -> object:
+	inv = {"server": {"hosts": {}}}
+	server_ips = []
+
+	inv['server']['hosts'][server_ip] = {
+		'service_dir': common.return_nice_path(sql.get_setting(f'{installed_service}_dir')),
+		'maxmind_key': sql.get_setting('maxmind_key'),
+		'UPDATE': geoip_update
+
+	}
+	server_ips.append(server_ip)
+
+	return inv, server_ips
 
 
-def geoip_installation(serv, geoip_update, service):
-	proxy = sql.get_setting('proxy')
-	maxmind_key = sql.get_setting('maxmind_key')
-	proxy_serv = ''
-	ssh_settings = return_ssh_keys_path(serv)
-	full_path = '/var/www/haproxy-wi/app'
+def generate_grafana_inv() -> object:
+	inv = {"server": {"hosts": {}}}
+	server_ips = []
+	inv['server']['hosts']['localhost'] = {}
+	server_ips.append('localhost')
 
-	if service in ('haproxy', 'nginx'):
-		service_dir = common.return_nice_path(sql.get_setting(f'{service}_dir'))
-		script = f'install_{service}_geoip.sh'
-	else:
-		raise Exception('warning: select a server and service first')
-
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy
-
-	try:
-		os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
-	except Exception as e:
-		raise Exception(f'error: {e}')
-
-	commands = [
-		f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv} SSH_PORT={ssh_settings['port']} UPDATE={geoip_update} "
-		f"maxmind_key={maxmind_key} service_dir={service_dir} HOST={serv} USER={ssh_settings['user']} "
-		f"PASS={ssh_settings['password']} KEY={ssh_settings['key']}"
-	]
-
-	return_out = server_mod.subprocess_execute_with_rc(commands[0])
-
-	try:
-		show_installation_output(return_out['error'], return_out['output'], 'GeoLite2 Database', rc=return_out['rc'])
-	except Exception as e:
-		raise Exception(e)
-
-	os.remove(f'{full_path}/{script}')
-
-	return show_success_installation('GeoLite2 Database')
-
-
-def grafana_install():
-	script = "install_grafana.sh"
-	proxy = sql.get_setting('proxy')
-	proxy_serv = ''
-	host = os.environ.get('HTTP_HOST', '')
-	full_path = '/var/www/haproxy-wi/app'
-
-	try:
-		os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
-	except Exception as e:
-		raise Exception(f'error: {e}')
-
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy
-
-	cmd = f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv}"
-	output, error = server_mod.subprocess_execute(cmd)
-
-	if error:
-		roxywi_common.logging('Roxy-WI server', error, roxywi=1)
-	else:
-		for line in output:
-			if any(s in line for s in ("Traceback", "FAILED")):
-				try:
-					return line
-				except Exception:
-					return output
-
-	os.remove(f'{full_path}/{script}')
-
-	return f'success: Grafana and Prometheus servers were installed. You can find Grafana on http://{host}:3000<br>'
+	return inv, server_ips
 
 
 def generate_kp_inv(json_data: json, installed_service) -> object:
@@ -155,13 +101,9 @@ def generate_kp_inv(json_data: json, installed_service) -> object:
 def generate_waf_inv(server_ip: str, installed_service: str) -> object:
 	inv = {"server": {"hosts": {}}}
 	server_ips = []
-	if installed_service == "waf":
-		service_dir = sql.get_setting('haproxy_dir')
-	else:
-		service_dir = sql.get_setting('nginx_dir')
 
 	inv['server']['hosts'][server_ip] = {
-		'SERVICE_PATH': service_dir
+		'SERVICE_PATH': common.return_nice_path(sql.get_setting(f'{installed_service}_dir'))
 	}
 	server_ips.append(server_ip)
 
@@ -404,7 +346,7 @@ def install_service(service: str, json_data: str) -> object:
 
 def _install_ansible_collections():
 	old_ansible_server = ''
-	collections = ('community.general', 'ansible.posix', 'community.docker')
+	collections = ('community.general', 'ansible.posix', 'community.docker', 'community.grafana')
 	trouble_link = 'Read <a href="https://roxy-wi.org/troubleshooting#ansible_collection" target="_blank" class="link">troubleshooting</a>'
 	for collection in collections:
 		if not os.path.isdir(f'/usr/share/httpd/.ansible/collections/ansible_collections/{collection.replace(".", "/")}'):

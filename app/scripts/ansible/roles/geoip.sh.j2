@@ -4,7 +4,7 @@ set -e -o pipefail
 
 country_location="GeoLite2-Country-CSV_*/GeoLite2-Country-Locations-en.csv"
 country_ip="GeoLite2-Country-CSV_*/GeoLite2-Country-Blocks-IPv4.csv"
-haproxy_dir="{{haproxy_dir}}"
+service_dir="{{service_dir}}"
 MAXMIND_LICENSE="{{maxmind_key}}"
 PROXY="{{PROXY}}"
 
@@ -45,10 +45,10 @@ while read line; do
 
 done < $country_location
 
-if [[ ! -d "$haproxy_dir"/geoip ]]; then
-	mkdir "$haproxy_dir"/geoip
+if [[ ! -d "$service_dir"/geoip ]]; then
+	mkdir "$service_dir"/geoip
 fi
 
-cp subnets/* "$haproxy_dir"/geoip
+cp subnets/* "$service_dir"/geoip
 
 systemctl reload haproxy

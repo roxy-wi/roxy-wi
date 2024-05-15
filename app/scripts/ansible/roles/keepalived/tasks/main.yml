@@ -69,7 +69,7 @@
   when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
 
 
-- name: Disble SELINUX in config
+- name: Disable SELINUX in config
   template:
    src: ../../haproxy/templates/selinux.j2
    dest: /etc/selinux/config
@@ -79,7 +79,7 @@
     - '"Enforcing" in sestatus.stdout'
 
 
-- name: Disble SELINUX in env
+- name: Disable SELINUX in env
   shell: setenforce 0 2> /dev/null
   ignore_errors: yes
   debugger: never

@@ -1,19 +1,15 @@
-- hosts: "{{ variable_host }}"
+- hosts: all
   become: yes
   become_method: sudo
   tasks:
-    - name: Set SSH port
-      set_fact:
-        ansible_port: "{{SSH_PORT}}"
-
     - name: Creates directory
       file:
-        path: "{{haproxy_dir}}/geoip"
+        path: "{{service_dir}}/geoip"
         state: directory
 
     - name: Creates directory
       file:
-        path: "{{haproxy_dir}}/scripts"
+        path: "{{service_dir}}/scripts"
         state: directory
 
     - name: Install wget
@@ -30,16 +26,16 @@
     - name: Copy GeoIP script in place.
       template:
         src: /var/www/haproxy-wi/app/scripts/ansible/roles/geoip.sh.j2
-        dest: "{{haproxy_dir}}/scripts/geoip.sh"
+        dest: "{{service_dir}}/scripts/geoip.sh"
         mode: 0777
 
     - name: Execute the script
-      command: "{{haproxy_dir}}/scripts/geoip.sh"
+      command: "{{service_dir}}/scripts/geoip.sh"
 
     - name: Update geoip every Wednesday
       cron:
-        name: "Update geoip"
+        name: "Update HAProxy geoip"
         minute: "0"
         hour: "01"
         weekday: "3"
-        job: "{{haproxy_dir}}/scripts/geoip.sh"
+        job: "{{service_dir}}/scripts/geoip.sh"

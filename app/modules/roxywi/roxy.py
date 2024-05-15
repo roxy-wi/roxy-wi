@@ -60,9 +60,9 @@ def check_new_version(service):
 	proxy_dict = common.return_proxy_dict()
 
 	try:
-		response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=1, proxies=proxy_dict)
+		response = requests.get(f'https://roxy-wi.org/version/get/{service}', timeout=5, proxies=proxy_dict)
 		if service == 'roxy-wi':
-			requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=1, proxies=proxy_dict)
+			requests.get(f'https://roxy-wi.org/version/send/{current_ver}', timeout=5, proxies=proxy_dict)
 
 		res = response.content.decode(encoding='UTF-8')
 	except requests.exceptions.RequestException as e:
@@ -82,7 +82,7 @@ def update_user_status() -> None:
 	adapter = HTTPAdapter(max_retries=retry_strategy)
 	roxy_wi_get_plan = requests.Session()
 	roxy_wi_get_plan.mount("https://", adapter)
-	roxy_wi_get_plan = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=1, proxies=proxy_dict)
+	roxy_wi_get_plan = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=5, proxies=proxy_dict)
 	try:
 		status = roxy_wi_get_plan.content.decode(encoding='UTF-8')
 		status = status.split(' ')

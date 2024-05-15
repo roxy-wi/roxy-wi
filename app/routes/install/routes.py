@@ -77,7 +77,8 @@ def get_exporter_version(exporter, server_ip):
 @bp.route('/grafana')
 def install_grafana():
     try:
-        return service_mod.grafana_install()
+        inv, server_ips = service_mod.generate_grafana_inv()
+        return service_mod.run_ansible(inv, server_ips, 'grafana'), 201
     except Exception as e:
         return f'{e}'
 
@@ -121,9 +122,10 @@ def install_geoip():
     service = request.form.get('service')
 
     try:
-        return service_mod.geoip_installation(server_ip, geoip_update, service)
+        inv, server_ips = service_mod.generate_geoip_inv(server_ip, service, geoip_update)
+        return service_mod.run_ansible(inv, server_ips, f'{service}_geoip'), 201
     except Exception as e:
-        return str(e)
+        return f'{e}'
 
 
 @bp.route('/geoip/<service>/<server_ip>')

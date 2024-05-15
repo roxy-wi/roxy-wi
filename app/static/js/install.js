@@ -1,123 +1,116 @@
 $( function() {
-    $('#install').click(function () {
-        installService('haproxy')
-    });
-    $('#nginx_install').click(function () {
-        installService('nginx');
-    });
-    $('#apache_install').click(function () {
-        installService('apache');
-    });
-    $('#grafana_install').click(function () {
-        $("#ajaxmon").html('');
-        $("#ajaxmon").html(wait_mess);
-        $.ajax({
-            url: "/app/install/grafana",
-            // data: {
-            // 	token: $('#token').val()
-            // 	},
-            // type: "POST",
-            success: function (data) {
-                data = data.replace(/\s+/g, ' ');
-                $("#ajaxmon").html('');
-                if (data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1' || data.indexOf('ERROR') != '-1') {
-                    toastr.clear();
-                    var p_err = show_pretty_ansible_error(data);
-                    toastr.error(p_err);
-                } else if (data.indexOf('success') != '-1') {
-                    toastr.clear();
-                    toastr.success(data);
-                } else if (data.indexOf('Info') != '-1') {
-                    toastr.clear();
-                    toastr.info(data);
-                } else {
-                    toastr.clear();
-                    toastr.info(data);
-                }
-            }
-        });
-    });
-    $('#haproxy_exp_install').click(function () {
-        installExporter('haproxy');
-    });
-    $('#nginx_exp_install').click(function () {
-        installExporter('nginx');
-    });
-    $('#apache_exp_install').click(function () {
-        installExporter('apache');
-    });
-    $('#keepalived_exp_install').click(function () {
-        installExporter('keepalived');
-    });
-    $('#node_exp_install').click(function () {
-        installExporter('node');
-    });
-    $("#haproxyaddserv").on('selectmenuchange', function () {
-        showServiceVersion('haproxy');
-    });
-    $("#nginxaddserv").on('selectmenuchange', function () {
-        showServiceVersion('nginx');
-    });
-    $("#apacheaddserv").on('selectmenuchange', function () {
-        showServiceVersion('apache');
-    });
-    $("#haproxy_exp_addserv").on('selectmenuchange', function () {
-        showExporterVersion('haproxy');
-    });
-    $("#nginx_exp_addserv").on('selectmenuchange', function () {
-        showExporterVersion('nginx');
-    });
-    $("#apache_exp_addserv").on('selectmenuchange', function () {
-        showExporterVersion('apache');
-    });
-    $("#keepalived_exp_addserv").on('selectmenuchange', function () {
-        showExporterVersion('keepalived');
-    });
-    $("#node_exp_addserv").on('selectmenuchange', function () {
-        showExporterVersion('node');
-    });
-    	$( "#geoipserv" ).on('selectmenuchange',function() {
-		if($('#geoip_service option:selected').val() != '------') {
-			checkGeoipInstallation();
-		}
+	$('#install').click(function () {
+		installService('haproxy')
 	});
-	$( "#geoip_service" ).on('selectmenuchange',function() {
-		if($('#geoipserv option:selected').val() != '------') {
-			checkGeoipInstallation();
-		}
+	$('#nginx_install').click(function () {
+		installService('nginx');
 	});
-	$( "#geoip_install" ).click(function() {
-		var updating_geoip = 0;
-		if ($('#updating_geoip').is(':checked')) {
-			updating_geoip = '1';
-		}
-		$("#ajax-geoip").html(wait_mess);
+	$('#apache_install').click(function () {
+		installService('apache');
+	});
+	$('#grafana_install').click(function () {
+		$("#ajaxmon").html('');
+		$("#ajaxmon").html(wait_mess);
 		$.ajax({
-			url: "/app/install/geoip",
-			data: {
-				server_ip: $('#geoipserv option:selected').val(),
-				service: $('#geoip_service option:selected').val(),
-				update: updating_geoip,
-				token: $('#token').val()
-			},
-			type: "POST",
+			url: "/app/install/grafana",
+			// data: {
+			// 	token: $('#token').val()
+			// 	},
+			// type: "POST",
 			success: function (data) {
-				data = data.replace(/^\s+|\s+$/g, '');
-				$("#ajax-geoip").html('')
-				if (data.indexOf('error:') != '-1' || data.indexOf('FAILED') != '-1') {
+				data = data.replace(/\s+/g, ' ');
+				$("#ajaxmon").html('');
+				if (data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1' || data.indexOf('ERROR') != '-1') {
 					toastr.clear();
 					var p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
-				} else if (data.indexOf('success:') != '-1') {
+				} else if (data.indexOf('success') != '-1') {
 					toastr.clear();
 					toastr.success(data);
-					$("#geoip_service").trigger("selectmenuchange");
 				} else if (data.indexOf('Info') != '-1') {
 					toastr.clear();
 					toastr.info(data);
 				} else {
 					toastr.clear();
 					toastr.info(data);
+				}
+			}
+		});
+	});
+	$('#haproxy_exp_install').click(function () {
+		installExporter('haproxy');
+	});
+	$('#nginx_exp_install').click(function () {
+		installExporter('nginx');
+	});
+	$('#apache_exp_install').click(function () {
+		installExporter('apache');
+	});
+	$('#keepalived_exp_install').click(function () {
+		installExporter('keepalived');
+	});
+	$('#node_exp_install').click(function () {
+		installExporter('node');
+	});
+	$("#haproxyaddserv").on('selectmenuchange', function () {
+		showServiceVersion('haproxy');
+	});
+	$("#nginxaddserv").on('selectmenuchange', function () {
+		showServiceVersion('nginx');
+	});
+	$("#apacheaddserv").on('selectmenuchange', function () {
+		showServiceVersion('apache');
+	});
+	$("#haproxy_exp_addserv").on('selectmenuchange', function () {
+		showExporterVersion('haproxy');
+	});
+	$("#nginx_exp_addserv").on('selectmenuchange', function () {
+		showExporterVersion('nginx');
+	});
+	$("#apache_exp_addserv").on('selectmenuchange', function () {
+		showExporterVersion('apache');
+	});
+	$("#keepalived_exp_addserv").on('selectmenuchange', function () {
+		showExporterVersion('keepalived');
+	});
+	$("#node_exp_addserv").on('selectmenuchange', function () {
+		showExporterVersion('node');
+	});
+	$("#geoipserv").on('selectmenuchange', function () {
+		if ($('#geoip_service option:selected').val() != '------') {
+			checkGeoipInstallation();
+		}
+	});
+	$("#geoip_service").on('selectmenuchange', function () {
+		if ($('#geoipserv option:selected').val() != '------') {
+			checkGeoipInstallation();
+		}
+	});
+	$("#geoip_install").click(function () {
+		var updating_geoip = 0;
+		if ($('#updating_geoip').is(':checked')) {
+			updating_geoip = '1';
+		}
+		$("#ajax-geoip").html(wait_mess);
+		let service = $('#geoip_service option:selected').val();
+		$.ajax({
+			url: "/app/install/geoip",
+			data: {
+				server_ip: $('#geoipserv option:selected').val(),
+				service: service,
+				update: updating_geoip,
+				token: $('#token').val()
+			},
+			type: "POST",
+			success: function (data) {
+				$("#ajax-geoip").html('');
+				try {
+					if (data.indexOf('error:') != '-1') {
+						toastr.error(data);
+					}
+				} catch (e) {
+					parseAnsibleJsonOutput(data, service + ' GeoIP', '#geoip_service');
+					$("#geoip_service").trigger("selectmenuchange");
 				}
 			}
 		});

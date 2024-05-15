@@ -245,21 +245,32 @@ def get_user_id_by_username(username: str):
 
 
 def get_user_role_by_uuid(uuid, group_id):
-	query = (
-		UserGroups.select(UserGroups.user_role_id).join(UUID, on=(UserGroups.user_id == UUID.user_id)
+	try:
+		query_res = UserGroups.select(UserGroups.user_role_id).join(
+			UUID, on=(UserGroups.user_id == UUID.user_id)
 		).where(
 			(UUID.uuid == uuid) &
 			(UserGroups.user_group_id == group_id)
-		)
-	)
-
-	try:
-		query_res = query.execute()
+		).execute()
 	except Exception as e:
 		out_error(e)
 	else:
 		for user_id in query_res:
 			return int(user_id.user_role_id)
+
+
+def get_user_current_group_by_uuid(uuid):
+	try:
+		query_res = User.select(User.groups).join(
+			UUID, on=(User.user_id == UUID.user_id)
+		).where(
+			(UUID.uuid == uuid)
+		).execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		for user_id in query_res:
+			return int(user_id.groups)
 
 
 def write_user_uuid(login, user_uuid):
