@@ -98,12 +98,10 @@ def change_user_services(user: str, user_id: int, user_services: str) -> str:
 
 def change_user_active_group(group_id: int, user_uuid: str) -> str:
     try:
-        if user_sql.update_user_current_groups(group_id, user_uuid):
-            return 'Ok'
-        else:
-            return 'error: Cannot change group'
+        user_sql.update_user_current_groups(group_id, user_uuid)
+        return 'Ok'
     except Exception as e:
-        return f'error: Cannot change the group: {e}'
+        roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot change the group', roxywi=1, login=1)
 
 
 def get_user_active_group(uuid: str, group: str) -> str:

@@ -941,7 +941,7 @@ $( function() {
 			$('#disable_alerting').prop('checked', true).checkboxradio('refresh');
 		}
 		$.ajax({
-			url: "/app/user/group/current",
+			url: "/app/user/group",
 			success: function (data) {
 				if (data.indexOf('danger') != '-1') {
 					$("#ajax").html(data);
@@ -1184,21 +1184,20 @@ createHistroy();
 listHistroy();
 
 function changeCurrentGroupF() {
-	Cookies.remove('group');
-	Cookies.set('group', $('#newCurrentGroup').val(), {expires: 365, path: '/', samesite: 'strict', secure: 'true'});
 	$.ajax({
-		url: "/app/user/group/change",
+		url: "/app/user/group",
 		data: {
-			changeUserCurrentGroupId: $('#newCurrentGroup').val(),
-			changeUserGroupsUser: Cookies.get('uuid'),
-			token: $('#token').val()
+			group: $('#newCurrentGroup').val(),
+			uuid: Cookies.get('uuid')
 		},
-		type: "POST",
+		type: "PUT",
 		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
+				Cookies.remove('group');
+				Cookies.set('group', $('#newCurrentGroup').val(), {expires: 365, path: '/', samesite: 'strict', secure: 'true'});
 				location.reload();
 			}
 		}

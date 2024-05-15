@@ -56,13 +56,9 @@ def delete_user_groups(user_id):
 def update_user_current_groups(groups, user_uuid):
 	user_id = get_user_id_by_uuid(user_uuid)
 	try:
-		user_update = User.update(groups=groups).where(User.user_id == user_id)
-		user_update.execute()
+		User.update(groups=groups).where(User.user_id == user_id).execute()
 	except Exception as e:
 		out_error(e)
-		return False
-	else:
-		return True
 
 
 def update_user_current_groups_by_id(groups, user_id):

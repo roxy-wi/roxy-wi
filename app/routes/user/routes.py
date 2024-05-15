@@ -115,20 +115,17 @@ def show_user_services(user_id):
         return roxywi_user.change_user_services(user, user_id, user_services)
 
 
-@bp.route('/group/current')
+@bp.route('/group', methods=['GET', 'PUT'])
 def get_current_group():
-    uuid = request.cookies.get('uuid')
-    group = request.cookies.get('group')
+    if request.method == 'GET':
+        uuid = common.checkAjaxInput(request.cookies.get('uuid'))
+        group = common.checkAjaxInput(request.cookies.get('group'))
+        return roxywi_user.get_user_active_group(uuid, group)
+    elif request.method == 'PUT':
+        group_id = common.checkAjaxInput(request.form.get('group'))
+        user_uuid = common.checkAjaxInput(request.form.get('uuid'))
 
-    return roxywi_user.get_user_active_group(uuid, group)
-
-
-@bp.post('/group/change')
-def change_current_group():
-    group_id = common.checkAjaxInput(request.form.get('changeUserCurrentGroupId'))
-    user_uuid = common.checkAjaxInput(request.form.get('changeUserGroupsUser'))
-
-    return roxywi_user.change_user_active_group(group_id, user_uuid)
+        return roxywi_user.change_user_active_group(group_id, user_uuid)
 
 
 @bp.route('/groups/<int:user_id>')
