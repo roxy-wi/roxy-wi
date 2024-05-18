@@ -87,23 +87,22 @@ def install_grafana():
 def install_waf(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
 
+    try:
+        inv, server_ips = service_mod.generate_waf_inv(server_ip, service)
+    except Exception as e:
+        return f'error: Cannot create inventory: {e}'
+    try:
+        ansible_status = service_mod.run_ansible(inv, server_ips, f'waf_service'), 201
+    except Exception as e:
+        return f'error: Cannot install WAF: {e}'
+
     if service == 'haproxy':
-        try:
-            inv, server_ips = service_mod.generate_waf_inv(server_ip, 'waf')
-            ansible_status = service_mod.run_ansible(inv, server_ips, 'waf'), 201
-        except Exception as e:
-            return str(e)
         try:
             waf_sql.insert_waf_metrics_enable(server_ip, "0")
             waf_sql.insert_waf_rules(server_ip)
         except Exception as e:
             return str(e)
     elif service == 'nginx':
-        try:
-            inv, server_ips = service_mod.generate_waf_inv(server_ip, 'waf_nginx')
-            ansible_status = service_mod.run_ansible(inv, server_ips, 'waf_nginx'), 201
-        except Exception as e:
-            return str(e)
         try:
             waf_sql.insert_nginx_waf_rules(server_ip)
             waf_sql.insert_waf_nginx_server(server_ip)
