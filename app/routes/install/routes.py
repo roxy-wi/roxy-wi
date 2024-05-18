@@ -92,7 +92,7 @@ def install_waf(service, server_ip):
     except Exception as e:
         return f'error: Cannot create inventory: {e}'
     try:
-        ansible_status = service_mod.run_ansible(inv, server_ips, f'waf_service'), 201
+        ansible_status = service_mod.run_ansible(inv, server_ips, f'waf_{service}'), 201
     except Exception as e:
         return f'error: Cannot install WAF: {e}'
 
