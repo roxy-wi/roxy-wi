@@ -136,8 +136,7 @@ def return_nice_path(return_path: str, is_service=1) -> str:
 	Formats the given return path to make it a nice path.
 
 	:param return_path: The return path that needs to be formatted.
-	:param is_service: A flag indicating whether the return path must contain the name of the service.
-	                   Defaults to 1.
+	:param is_service: A flag indicating whether the return path must contain the name of the service. Defaults to 1.
 	:return: The formatted nice path.
 
 	"""

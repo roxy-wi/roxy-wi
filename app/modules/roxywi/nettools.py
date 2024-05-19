@@ -9,6 +9,8 @@ import app.modules.server.server as server_mod
 
 def ping_from_server(server_from: str, server_to: str, action: str) -> Response:
     action_for_sending = ''
+    if server_to == '':
+        raise Exception('warning: Wrong IP address or name')
 
     def paint_output(generated):
         yield '<div class="ping_pre">'
@@ -112,6 +114,8 @@ def nslookup_from_server(server_from: str, dns_name: str, record_type: str) -> s
 
 
 def whois_check(domain_name: str) -> str:
+    if domain_name == '':
+        raise Exception('warning: Wrong DNS name')
     try:
         whois_data = json.loads(str(whois.whois(domain_name)))
     except Exception as e:

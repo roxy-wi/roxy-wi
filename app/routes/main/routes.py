@@ -124,13 +124,25 @@ def nettools_check(check):
     domain_name = common.is_ip_or_dns(request.form.get('nettools_whois_name'))
 
     if check == 'icmp':
-        return nettools_mod.ping_from_server(server_from, server_to, action)
+        try:
+            return nettools_mod.ping_from_server(server_from, server_to, action)
+        except Exception as e:
+            return str(e)
     elif check == 'tcp':
-        return nettools_mod.telnet_from_server(server_from, server_to, port_to)
+        try:
+            return nettools_mod.telnet_from_server(server_from, server_to, port_to)
+        except Exception as e:
+            return str(e)
     elif check == 'dns':
-        return nettools_mod.nslookup_from_server(server_from, dns_name, record_type)
+        try:
+            return nettools_mod.nslookup_from_server(server_from, dns_name, record_type)
+        except Exception as e:
+            return str(e)
     elif check == 'whois':
-        return jsonify(nettools_mod.whois_check(domain_name))
+        try:
+            return jsonify(nettools_mod.whois_check(domain_name))
+        except Exception as e:
+            return str(e)
     else:
         return 'error: Wrong check'
 

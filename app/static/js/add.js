@@ -265,10 +265,6 @@ $( function() {
 			}
 			$.ajax({
 				url: "/app/add/show/ip/" + $("#serv").val(),
-				// data: {
-				// 	show_ip: request.term,
-				// 	token: $('#token').val()
-				// },
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -289,10 +285,6 @@ $( function() {
 			}
 			$.ajax({
 				url: "/app/add/show/ip/" + $("#serv2").val(),
-				// data: {
-				// 	show_ip: request.term,
-				// 	token: $('#token').val()
-				// },
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -313,9 +305,6 @@ $( function() {
 			}
 			$.ajax({
 				url: "/app/runtimeapi/backends/" + $("#serv2").val(),
-				// data: {
-				// 	token: $('#token').val()
-				// },
 				success: function (data) {
 					response(data.split('<br>'));
 				}
@@ -1519,10 +1508,6 @@ function deleteSsl(id) {
 function change_select_acceleration(id) {
 	$.ajax({
 		url: "/app/service/haproxy/version/" + $('#serv' + id + ' option:selected').val(),
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (parseFloat(data) < parseFloat('1.8') || data == ' ') {
@@ -1536,10 +1521,6 @@ function change_select_acceleration(id) {
 function change_select_waf(id) {
 	$.ajax({
 		url: "/app/service/haproxy/version/" + $('#serv' + id + ' option:selected').val(),
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			if (parseFloat(data) < parseFloat('1.8')) {
 				$("#waf" + id).checkboxradio("disable");
@@ -2104,10 +2085,6 @@ function make_actions_for_adding_bind(section_id) {
 			}
 			$.ajax({
 				url: "/app/add/show/ip/" + $("#" + serv).val(),
-				// data: {
-				// 	show_ip: request.term,
-				// 	token: $('#token').val()
-				// },
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -2158,12 +2135,4 @@ function changePortCheckFromServerPort() {
 		var iNum = parseInt($($(this)).val());
 		$($(this)).next().val(iNum);
 	});
-}
-var select_server = $('#translate').attr('data-select_server');
-function checkIsServerFiled(select_id, message = select_server) {
-	if ($(select_id).val() == null || $(select_id).val() == '') {
-		toastr.warning(message);
-		return false;
-	}
-	return true;
 }
