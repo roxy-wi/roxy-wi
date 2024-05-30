@@ -131,7 +131,16 @@ def get_system_info(server_ip: str) -> str:
 		raise Exception(e)
 
 	os_info = os_info.strip()
-	system_info = json.loads(sys_info_returned)
+	try:
+		system_info = json.loads(sys_info_returned)
+		system_info['id']
+	except Exception:
+		sys_info_returned = json.loads(sys_info_returned)
+		try:
+			sys_info_returned = sys_info_returned[0]
+		except Exception as e:
+			raise Exception(f'error: Cannot parse output {e}')
+		system_info = sys_info_returned
 
 	sys_info = {'hostname': system_info['id'], 'family': ''}
 	cpu = {'cpu_model': '', 'cpu_core': 0, 'cpu_thread': 0, 'hz': 0}
@@ -342,7 +351,7 @@ def get_system_info(server_ip: str) -> str:
 	try:
 		server_sql.insert_system_info(server_id, os_info, sys_info, cpu, ram, network, disks)
 	except Exception as e:
-		raise e
+		raise f'error: Cannot get system info from server: {e}'
 
 
 def show_system_info(server_ip: str, server_id: int) -> str:
@@ -350,7 +359,7 @@ def show_system_info(server_ip: str, server_id: int) -> str:
 		try:
 			get_system_info(server_ip)
 		except Exception as e:
-			return f'error: Cannot get system info: {e}'
+			return f'{e}'
 		try:
 			system_info = server_sql.select_one_system_info(server_id)
 		except Exception as e:
@@ -365,8 +374,10 @@ def update_system_info(server_ip: str, server_id: int) -> str:
 
 	try:
 		get_system_info(server_ip)
+	except Exception as e:
+		return f'{e}'
+	try:
 		system_info = server_sql.select_one_system_info(server_id)
-
 		return render_template('ajax/show_system_info.html', system_info=system_info, server_ip=server_ip, server_id=server_id)
 	except Exception as e:
 		return f'error: Cannot update server info: {e}'

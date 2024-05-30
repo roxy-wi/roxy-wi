@@ -1392,9 +1392,8 @@ function updateServerInfo(ip, id) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
 				toastr.error(data);
 			} else {
-				$("#server_info-" + id).html(data);
-				$('#server_info-' + id).show();
-				$('#server_info_link-' + id).attr('title', 'Hide System info');
+				$("#server-info").html(data);
+				$('#server-info').show();
 				$.getScript(awesome);
 			}
 		}

@@ -6,6 +6,20 @@ function validateEmail(email) {
 	const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 	return re.test(email);
 }
+function ValidateIPaddress(ipaddress) {
+	if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress)) {
+		return (true)
+	}
+	return (false)
+}
+var select_server = $('#translate').attr('data-select_server');
+function checkIsServerFiled(select_id, message = select_server) {
+	if ($(select_id).val() == null || $(select_id).val() == '') {
+		toastr.warning(message);
+		return false;
+	}
+	return true;
+}
 function escapeHtml(unsafe) {
 	return unsafe
 		.replace(/&/g, "&amp;")
@@ -166,10 +180,6 @@ if(localStorage.getItem('restart')) {
 	var ip_for_restart = localStorage.getItem('restart');
 	$.ajax({
 		url: "/app/service/check-restart/" + ip_for_restart,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			if (data.indexOf('ok') != '-1') {
 				var apply_div = $.find("#apply_div");
@@ -320,10 +330,6 @@ $( document ).ajaxComplete(function( event, request, settings ) {
 function showStats() {
 	$.ajax({
 		url: "/app/stats/view/" + $("#service").val() + "/" + $("#serv").val(),
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			if (data.indexOf('error:') != '-1' && data.indexOf('Internal error:') == '-1') {
 				toastr.error(data);
@@ -399,7 +405,6 @@ function showLog() {
 			hour1: hour1,
 			minute1: minute1,
 			file: file,
-			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -429,7 +434,6 @@ function showRemoteLogFiles() {
 		url: "/app/logs/" + service + "/" + serv ,
 		data: {
 			serv: $("#serv").val(),
-			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -479,7 +483,6 @@ function showCompare() {
 		data: {
 			left: $('#left').val(),
 			right: $("#right").val(),
-			token: $('#token').val()
 		},
 		type: "POST",
 		success: function( data ) {
@@ -681,7 +684,6 @@ function viewLogs() {
 				minute: minute,
 				hour1: hour1,
 				minute1: minute1,
-				token: $('#token').val(),
 			},
 			type: "POST",
 			success: function (data) {
@@ -1334,7 +1336,6 @@ function changeUserPasswordItOwn(d) {
 			data: {
 				updatepassowrd: pass,
 				uuid: Cookies.get('uuid'),
-				token: $('#token').val()
 			},
 			type: "POST",
 			success: function (data) {
