@@ -235,7 +235,7 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 
-	# If master then save version of config in a new way
+	# If master then save a version of config in a new way
 	if not kwargs.get('slave') and service != 'waf':
 		_create_config_version(server_id, server_ip, service, config_path, kwargs.get('login'), cfg, kwargs.get('oldcfg'), tmp_file)
 

@@ -1,0 +1,104 @@
+---
+- name: check if Keepalived is installed
+  package_facts:
+    manager: "auto"
+
+- name: Creates log directory
+  file:
+    path: "{{keepalived_path_logs}}"
+    state: directory
+
+- name: Creates UDP check directory
+  file:
+    path: "{{service_dir}}/checks"
+    state: directory
+
+- name: Copy UDP check file
+  template:
+    src: udp_check.sh.j2
+    dest: "{{service_dir}}/checks/udp_check.sh"
+    mode: 0755
+
+- name: Copy keepalived configuration for rsyslog
+  template:
+    src: rsyslog.conf.j2
+    dest: /etc/rsyslog.d/51-keepalived-udp.conf
+    mode: 0644
+  notify: Restart rsyslog
+
+- name: Copy keepalived configuration for logrotate
+  template:
+    src: logrotate.conf.j2
+    dest: /etc/logrotate.d/keepalived-udp
+    mode: 0644
+
+- name: Install the latest version of Keepalived
+  package:
+    name:
+      - keepalived
+      - ipvsadm
+      - iptables
+    state: present
+  when: "'keepalived' not in ansible_facts.packages"
+  environment:
+    http_proxy: "{{PROXY}}"
+    https_proxy: "{{PROXY}}"
+
+- name: Copy keepalived configuration in place.
+  template:
+    src: keepalived-udp.conf.j2
+    dest: "{{ service_dir }}/keepalived-udp-{{ id }}.conf"
+    mode: 0644
+
+- name: Copy keepalived UPD service file in place.
+  template:
+    src: keepalived.service.j2
+    dest: "/etc/systemd/system/keepalived-udp-{{ id }}.service"
+    mode: 0644
+
+- name: Copy iptables restore service file in place.
+  template:
+    src: iptables-restore.service.j2
+    dest: /etc/systemd/system/iptables-restore.service
+    mode: 0644
+
+- name: Enable and start service keepalived
+  service:
+    name: "keepalived-udp-{{ id }}"
+    daemon_reload: yes
+    state: restarted
+    enabled: yes
+  ignore_errors: yes
+
+- name: Enable and start service iptables-restore
+  service:
+    name: iptables-restore
+    daemon_reload: yes
+    state: restarted
+    enabled: yes
+  ignore_errors: yes
+
+- name: Enable sysctl parameters
+  sysctl:
+    name: "{{ item }}"
+    value: '1'
+    sysctl_set: yes
+    state: present
+    reload: yes
+  with_items: ["net.ipv4.ip_forward", "net.ipv4.conf.all.arp_ignore", "net.ipv4.ip_nonlocal_bind", "net.ipv6.ip_nonlocal_bind"]
+
+- name: Enable arp_ignore
+  sysctl:
+    name: net.ipv4.conf.all.arp_announce
+    value: '2'
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: Create NAT in iptables
+  command: "/sbin/iptables -t nat -A POSTROUTING -m ipvs --vaddr {{ vip }} -j MASQUERADE"
+
+- name: Save current state of the firewall in system file
+  community.general.iptables_state:
+    state: saved
+    path: /etc/sysconfig/iptables

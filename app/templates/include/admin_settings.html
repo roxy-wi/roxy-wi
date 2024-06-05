@@ -43,8 +43,8 @@
                 {{set.param}}
             </td>
             <td class="addOption">
-                {% if set.param in ('ldap_password', 'haproxy_stats_password', 'nginx_stats_password', 'apache_stats_password', 'rabbitmq_password', 'mail_smtp_password') %}
-                    {% if set.value is none %}
+                {% if set.param in ('ldap_password', 'haproxy_stats_password', 'nginx_stats_password', 'apache_stats_password', 'rabbitmq_password', 'mail_smtp_password', 'license') %}
+                    {% if set.value == '' or set.value is none %}
                         {{ input(set.param, size='25', type='password', style='width: 210px;') }}
                     {% else %}
                         {{ input(set.param, size='25', type='password', style='width: 210px;', placeholder='******') }}

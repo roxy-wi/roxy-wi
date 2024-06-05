@@ -9,6 +9,7 @@ import app.modules.db.sql as sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
+import app.modules.service.udp as udp_mod
 import app.modules.service.common as service_common
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
@@ -32,6 +33,27 @@ def show_installation_output(error: str, output: list, service: str, rc=0):
 					else:
 						raise Exception(f'error: {correct_out["msg"]} for {service}')
 	return True
+
+
+def generate_udp_inv(listener_id: int, action: str) -> object:
+	inv = {"server": {"hosts": {}}}
+	server_ips = []
+	listener = udp_mod.get_listener_config(listener_id)
+	if listener['cluster_id']:
+		server_ips = udp_mod.get_slaves_for_udp_listener(listener['cluster_id'], listener['vip'])
+	elif listener['server_id']:
+		server = server_sql.get_server_by_id(listener['server_id'])
+		server_ips.append(server.ip)
+
+	for server_ip in server_ips:
+		inv['server']['hosts'][server_ip] = {
+			'action': action,
+			"vip": listener['vip'],
+			"port": listener['port'],
+			"id": listener['id'],
+			"config": listener['config'],
+		}
+	return inv, server_ips
 
 
 def generate_geoip_inv(server_ip: str, installed_service: str, geoip_update: int) -> object:

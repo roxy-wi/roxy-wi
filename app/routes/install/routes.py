@@ -137,3 +137,14 @@ def check_geoip(service, server_ip):
     service_dir = common.return_nice_path(sql.get_setting(f'{service}_dir'))
     cmd = f"ls {service_dir}geoip/"
     return server_mod.ssh_command(server_ip, cmd)
+
+
+@bp.post('/udp')
+def install_udp():
+    listener_id = int(request.form.get('listener_id'))
+    try:
+        inv, server_ips = service_mod.generate_udp_inv(listener_id, 'install')
+        return service_mod.run_ansible(inv, server_ips, f'udp'), 201
+    except Exception as e:
+        return f'{e}'
+

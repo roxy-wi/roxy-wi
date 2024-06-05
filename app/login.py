@@ -24,7 +24,7 @@ def check_login():
             return redirect(login_url('login_page', next_url=request.url))
 
         try:
-            roxywi_auth.check_login(user_params['user_uuid'], user_params['token'])
+            roxywi_auth.check_login(user_params['user_uuid'])
         except Exception:
             return redirect(login_url('login_page', next_url=request.url))
 
@@ -69,13 +69,13 @@ def login_page():
             if user.ldap_user == 1:
                 if login in user.username:
                     if roxywi_auth.check_in_ldap(login, password):
-                        user_uuid, user_token = roxywi_auth.create_uuid_and_token(login)
+                        user_uuid = roxywi_auth.create_uuid_and_token(login)
                         return roxywi_auth.do_login(user_uuid, str(user.groups), user, next_url)
 
             else:
                 hashed_password = roxy_wi_tools.Tools.get_hash(password)
                 if login in user.username and hashed_password == user.password:
-                    user_uuid, user_token = roxywi_auth.create_uuid_and_token(login)
+                    user_uuid = roxywi_auth.create_uuid_and_token(login)
                     return roxywi_auth.do_login(user_uuid, str(user.groups), user, next_url)
                 else:
                     return 'ban', 200

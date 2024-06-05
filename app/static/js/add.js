@@ -264,7 +264,7 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/add/show/ip/" + $("#serv").val(),
+				url: "/app/server/show/ip/" + $("#serv").val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -284,7 +284,7 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/add/show/ip/" + $("#serv2").val(),
+				url: "/app/server/show/ip/" + $("#serv2").val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -2059,7 +2059,6 @@ function make_actions_for_adding_header(section_id) {
 	$.getScript("/app/static/js/overview.js");
 	$( "select" ).selectmenu();
 	$('[name=headers_method]').selectmenu({width: 180});
-	// $('[name=acl_then]').selectmenu({width: 180});
 }
 var bind_option = '<p id="new_bind_p"><input type="text" name="ip" size="15" placeholder="Any" class="form-control ui-autocomplete-input" autocomplete="off">' +
 	'<b>:</b> ' +
@@ -2084,7 +2083,7 @@ function make_actions_for_adding_bind(section_id) {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/add/show/ip/" + $("#" + serv).val(),
+				url: "/app/server/show/ip/" + $("#" + serv).val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -2099,17 +2098,17 @@ function make_actions_for_adding_bind(section_id) {
 	});
 }
 function makeid(length) {
-   var result           = '';
-   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-   var charactersLength = characters.length;
-   for ( var i = 0; i < length; i++ ) {
+   let result           = '';
+   let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   let charactersLength = characters.length;
+   for ( let i = 0; i < length; i++ ) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
    }
    return result;
 }
 function showUserlists() {
-	var serv = $("#existing_userlist_serv option:selected").val();
-	var select_id = $("#existing_userlist_serv");
+	let serv = $("#existing_userlist_serv option:selected").val();
+	let select_id = $("#existing_userlist_serv");
 	if (!checkIsServerFiled(select_id)) return false;
 	$.ajax({
 		url: "/app/add/haproxy/userlist/" + serv,

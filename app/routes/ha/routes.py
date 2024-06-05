@@ -255,3 +255,14 @@ def ha_vip(service, cluster_id):
             return 'ok'
         except Exception as e:
             return f'error: Cannot delete VIP: {e}'
+
+
+@bp.route('/<service>/<int:cluster_id>/vips', methods=['GET'])
+@check_services
+@get_user_params()
+def get_vips(service, cluster_id):
+    from playhouse.shortcuts import model_to_dict
+    if request.method == 'GET':
+        vips = ha_sql.select_cluster_vips(cluster_id)
+        vips = [model_to_dict(vip) for vip in vips]
+        return jsonify(vips)

@@ -15,6 +15,7 @@ def default_values():
 		apache_dir = 'httpd'
 	data_source = [
 		{'param': 'time_zone', 'value': 'UTC', 'section': 'main', 'desc': 'Time Zone', 'group': '1'},
+		{'param': 'license', 'value': '', 'section': 'main', 'desc': 'License key', 'group': '1'},
 		{'param': 'proxy', 'value': '', 'section': 'main', 'desc': 'IP address and port of the proxy server. Use proto://ip:port', 'group': '1'},
 		{'param': 'session_ttl', 'value': '5', 'section': 'main', 'desc': 'TTL for a user session (in days)', 'group': '1'},
 		{'param': 'token_ttl', 'value': '5', 'section': 'main', 'desc': 'TTL for a user token (in days)', 'group': '1'},
@@ -154,6 +155,7 @@ def default_values():
 		{'service_id': 3, 'service': 'Keepalived', 'slug': 'keepalived'},
 		{'service_id': 4, 'service': 'Apache', 'slug': 'apache'},
 		{'service_id': 5, 'service': 'HA cluster', 'slug': 'cluster'},
+		{'service_id': 6, 'service': 'UDP balancing', 'slug': 'udp'},
 	]
 
 	try:
@@ -465,85 +467,6 @@ def update_db_v_4_3_0():
 			print("An error occurred:", e)
 
 
-def update_db_v_6_3_4():
-	cursor = conn.cursor()
-	sql = list()
-	sql.append("alter table smon add column ssl_expire_warning_alert integer default 0")
-	sql.append("alter table smon add column ssl_expire_critical_alert integer default 0")
-	for i in sql:
-		try:
-			cursor.execute(i)
-		except Exception:
-			pass
-	else:
-		print('Updating... DB has been updated to version 6.3.4.0')
-
-
-def update_db_v_6_3_5():
-	cursor = conn.cursor()
-	sql = list()
-	sql.append("ALTER TABLE `action_history` ADD COLUMN server_ip varchar(64);")
-	sql.append("ALTER TABLE `action_history` ADD COLUMN hostname varchar(64);")
-	for i in sql:
-		try:
-			cursor.execute(i)
-		except Exception:
-			pass
-	else:
-		print("Updating... DB has been updated to version 6.3.5.0")
-
-
-def update_db_v_6_3_6():
-	cursor = conn.cursor()
-	sql = list()
-	sql.append("ALTER TABLE `user_groups` ADD COLUMN user_role_id integer;")
-	if mysql_enable == '1':
-		sql.append("update user_groups u_g  inner join user as u on u_g.user_id = u.id inner join role as r on r.name = u.role set user_role_id = r.id where u_g.user_role_id is NULL;")
-		sql.append("update user u inner join role as r on r.name = u.role set u.role = r.id;")
-	else:
-		sql.append("update user_groups as u_g set user_role_id = (select r.id from role as r inner join user as u on u.role = r.name where u_g.user_id = u.id) where user_role_id is null;")
-		sql.append("update user as u set role = (select r.id from role as r where r.name = u.role);")
-	for i in sql:
-		try:
-			cursor.execute(i)
-		except Exception:
-			pass
-	else:
-		print("Updating... DB has been updated to version 6.3.6.0")
-
-
-def update_db_v_6_3_8():
-	cursor = conn.cursor()
-	sql = """
-	ALTER TABLE `smon` ADD COLUMN ssl_expire_date varchar(64);
-	"""
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		if e.args[0] == 'duplicate column name: ssl_expire_date' or str(e) == '(1060, "Duplicate column name \'ssl_expire_date\'")':
-			print('Updating... DB has been updated to version 6.3.8')
-		else:
-			print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 6.3.8")
-
-
-def update_db_v_6_3_9():
-	cursor = conn.cursor()
-	sql = """
-	ALTER TABLE `checker_setting` ADD COLUMN pd_id integer default 0;
-	"""
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		if e.args[0] == 'duplicate column name: pd_id' or str(e) == '(1060, "Duplicate column name \'pd_id\'")':
-			print('Updating... DB has been updated to version 6.3.9')
-		else:
-			print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 6.3.9")
-
-
 def update_db_v_6_3_11():
 	cursor = conn.cursor()
 	sql = """
@@ -755,7 +678,7 @@ def update_db_v_7_2_3():
 
 def update_ver():
 	try:
-		Version.update(version='7.2.6.0').execute()
+		Version.update(version='7.3.0.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -773,11 +696,6 @@ def update_all():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4_3_0()
-	update_db_v_6_3_4()
-	update_db_v_6_3_5()
-	update_db_v_6_3_6()
-	update_db_v_6_3_8()
-	update_db_v_6_3_9()
 	update_db_v_6_3_11()
 	update_db_v_6_3_13()
 	update_db_v_6_3_13_1()

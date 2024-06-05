@@ -1,0 +1,10 @@
+- name: "UDP balancer"
+  hosts: all
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+  roles:
+    - role: udp
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"

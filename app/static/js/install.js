@@ -175,8 +175,7 @@ function installService(service) {
 			showErrorStatus(nice_names[service], $(select_id + ' option:selected').text());
 		},
 		data: {
-			jsonData: JSON.stringify(jsonData),
-			token: $('#token').val()
+			jsonData: JSON.stringify(jsonData)
 		},
 		type: "POST",
 		success: function (data) {
@@ -232,10 +231,6 @@ function showExporterVersion(exporter) {
 	var nice_names = {'haproxy': 'HAProxy', 'nginx': 'NGINX', 'apache': 'Apache', 'node': 'Node', 'keepalived': 'Keepalived'};
 	$.ajax({
 			url: "/app/install/exporter/"+ exporter +"/version/" + $('#' + exporter + '_exp_addserv option:selected').val(),
-			// data: {
-			// 	token: $('#token').val()
-			// },
-			// type: "POST",
 			success: function (data) {
 				data = data.replace(/^\s+|\s+$/g, '');
 				if (data.indexOf('error:') != '-1') {
@@ -252,10 +247,6 @@ function showExporterVersion(exporter) {
 function showServiceVersion(service) {
 	$.ajax({
 		url: "/app/install/" + service + "/version/" + $('#' + service + 'addserv option:selected').val(),
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			data = data.replace(/^\s+|\s+$/g, '');
 			if (data.indexOf('error: ') != '-1') {

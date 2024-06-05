@@ -1,0 +1,10 @@
+{{ keepalived_path_logs }}/*.log {
+    daily
+    rotate 10
+    missingok
+    notifempty
+	create 0644 root root
+	dateext
+    sharedscripts
+    copytruncate
+}

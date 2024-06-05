@@ -115,6 +115,9 @@
     },
     "history": {
         "title": "Histórico de"
+    },
+    "udp": {
+        "title": "Balanceadores UDP"
     }
 }
 %}
@@ -170,6 +173,7 @@
     },
     "main": {
         "time_zone": "Fuso horário.",
+        "license": "Chave de licença",
         "proxy": "Endereço e porta de prowy. Utiliza proto://ip:port",
         "session_ttl": "TTL de sessão de usuario (em dias)",
         "token_ttl": "TTL de token de usuario (em dias)",
@@ -506,6 +510,12 @@
     "was_installed": "foi instalado em",
     "start_enter": "Comece a digitar na interface de rede para adicionar VIP",
     "save_apply": "<b>Salvar</b> - significa salvar as configurações do cluster HA para Roxy-WI, sem alterar as configurações do componente nos membros do cluster. <br /> <b>Aplicar</b> – recrie a configuração do cluster HA nos servidores membros do cluster e instale serviços adicionais.",
+    }
+%}
+{% set udp_page = {
+    "save_apply": "<b>Salvar</b> - significa salvar as configurações do Ouvinte UDP para Roxy-WI, sem alterar as configurações do componente nos membros do cluster ou servidor independente. <br /> <b>Aplicar</b> – recrie a configuração do Ouvinte UDP nos servidores membros do cluster e instale serviços adicionais ou servidor independente.",
+    "listener_ip": "IP para vincular o ouvinte UDP. Começe a digitar",
+    "listener_port": "Porta para ligação do ouvinte UDP",
     }
 %}
 {% set nettools_page = {
@@ -928,5 +938,9 @@
     "agent": "agente",
     "agent2": "agente",
     "reconfigure": "reconfigurar",
+    "listener": "ouvinte",
+    "listeners": "ouvintes",
+    "weight": "peso",
+    "where": "onde",
     }
 %}

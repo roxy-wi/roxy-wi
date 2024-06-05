@@ -115,6 +115,9 @@
     },
     "history": {
         "title": "Historique de"
+    },
+    "udp": {
+        "title": "Équilibreurs UDP"
     }
 }
 %}
@@ -170,6 +173,7 @@
     },
     "main": {
         "time_zone": "Fuseau horaire",
+        "license": "Clé de licence",
         "proxy": "Adresse IP et port du proxy server. format proto://ip:port",
         "session_ttl": "TTL pour la session utilisateur (en jours)",
         "token_ttl": "TTL pour le jeton de l\'utilisateur (en jours)",
@@ -506,6 +510,12 @@
     "was_installed": "a été installé sur",
     "start_enter": "Commencez à taper dans l'interface réseau pour ajouter VIP",
     "save_apply": "<b>Enregistrer</b> - signifie enregistrer les paramètres du cluster HA pour Roxy-WI, sans modifier les paramètres des composants sur les membres du cluster. <br /> <b>Appliquer </b>: recréez la configuration du cluster HA sur les serveurs membres du cluster et installez des services supplémentaires.",
+    }
+%}
+{% set udp_page = {
+    "save_apply": "<b>Enregistrer</b> - signifie enregistrer les paramètres du Écouteur UDP pour Roxy-WI, sans modifier les paramètres des composants sur les membres du cluster ou serveur autonome. <br /> <b>Appliquer </b>: recréez la configuration du Écouteur UDP sur les serveurs membres du cluster et installez des services supplémentaires ou serveur autonome.",
+    "listener_ip": "IP pour lier l’écouteur UDP. Commencer à écrire",
+    "listener_port": "Port pour lier l'écouteur UDP",
     }
 %}
 {% set nettools_page = {
@@ -928,5 +938,9 @@
     "agent": "agent",
     "agent2": "agent",
     "reconfigure": "reconfigurer",
+    "listener": "auditeur",
+    "listeners": "les auditeurs",
+    "weight": "poids",
+    "where": "où",
     }
 %}

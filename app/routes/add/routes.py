@@ -12,7 +12,6 @@ import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
-import app.modules.server.server as server_mod
 
 get_config = roxy_wi_tools.GetConfigVar()
 
@@ -670,11 +669,3 @@ def add_nginx_upstream():
             return add_mod.save_nginx_config(config_add, server_ip, config_name)
         except Exception as e:
             return str(e)
-
-
-@bp.route('/show/ip/<server_ip>')
-def show_ip(server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
-    commands = 'sudo hostname -I | tr " " "\\n"|sed "/^$/d"'
-
-    return server_mod.ssh_command(server_ip, commands, ip="1")

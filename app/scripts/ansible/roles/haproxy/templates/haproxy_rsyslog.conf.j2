@@ -4,12 +4,17 @@ $UDPServerRun 514
 module(load="builtin:omfile")
 
 
-if $programname startswith 'haproxy' then {
-  if $syslogseverity == 6 then
-      action(type="omfile" file="/var/log/haproxy/access.log")
-  if $syslogseverity <= 3 then
-      action(type="omfile" file="/var/log/haproxy/error.log")
-  if $syslogseverity <= 5 then
-      action(type="omfile" file="/var/log/haproxy/status.log")
-      stop
+if ($programname startswith 'haproxy' and $inputname == 'imudp') then {
+    if $syslogseverity == 6 then {
+        action(type="omfile" file="/var/log/haproxy/access.log")
+        stop
+    }
+    if $syslogseverity <= 3 then {
+        action(type="omfile" file="/var/log/haproxy/error.log")
+        stop
+    }
+    if $syslogseverity <= 5 then {
+        action(type="omfile" file="/var/log/haproxy/status.log"])
+        stop
+    }
 }

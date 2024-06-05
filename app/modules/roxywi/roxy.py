@@ -6,6 +6,7 @@ import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
 
+import app.modules.db.sql as sql
 import app.modules.db.roxy as roxy_sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
@@ -72,21 +73,20 @@ def check_new_version(service):
 
 
 def update_user_status() -> None:
+	user_license = sql.get_setting('license')
 	proxy_dict = common.return_proxy_dict()
-	user_name = roxy_sql.select_user_name()
 	retry_strategy = Retry(
 		total=3,
-		status_forcelist=[429, 500, 502, 503, 504],
-		method_whitelist=["HEAD", "GET", "OPTIONS"]
+		status_forcelist=[429, 500, 502, 503, 504]
 	)
 	adapter = HTTPAdapter(max_retries=retry_strategy)
 	roxy_wi_get_plan = requests.Session()
 	roxy_wi_get_plan.mount("https://", adapter)
-	roxy_wi_get_plan = requests.get(f'https://roxy-wi.org/user-name/{user_name}', timeout=5, proxies=proxy_dict)
+	json_body = {'license': user_license}
+	roxy_wi_get_plan = requests.post(f'https://roxy-wi.org/user/license', timeout=5, proxies=proxy_dict, json=json_body)
 	try:
-		status = roxy_wi_get_plan.content.decode(encoding='UTF-8')
-		status = status.split(' ')
-		roxy_sql.update_user_status(status[0], status[1].strip(), status[2].strip())
+		status = roxy_wi_get_plan.json()
+		roxy_sql.update_user_status(status['status'], status['plan'], status['method'])
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', f'error: Cannot get user status {e}', roxywi=1)
 
@@ -111,12 +111,24 @@ def update_plan():
 		if distro.id() == 'ubuntu':
 			path_to_repo = '/etc/apt/auth.conf.d/roxy-wi.conf'
 			cmd = "grep login /etc/apt/auth.conf.d/roxy-wi.conf |awk '{print $2}'"
+			cmd2 = "grep password /etc/apt/auth.conf.d/roxy-wi.conf |awk '{print $2}'"
 		else:
 			path_to_repo = '/etc/yum.repos.d/roxy-wi.repo'
 			cmd = "grep base /etc/yum.repos.d/roxy-wi.repo |grep -v '#' |awk -F\":\" '{print $2}'|awk -F\"/\" '{print $3}'"
+			cmd2 = "grep base /etc/yum.repos.d/roxy-wi.repo |grep -v '#' |awk -F\":\" '{print $3}'|awk -F\"@\" '{print $1}'"
 		if os.path.exists(path_to_repo):
 			get_user_name, stderr = server_mod.subprocess_execute(cmd)
 			user_name = get_user_name[0]
+			cur_license = sql.get_setting('license')
+			if not cur_license:
+				get_license, stderr = server_mod.subprocess_execute(cmd2)
+				user_license = get_license[0]
+
+				if user_license:
+					try:
+						sql.update_setting('license', user_license, 1)
+					except Exception as e:
+						roxywi_common.logging('Roxy-WI server', f'error: Cannot update license {e}', roxywi=1)
 		else:
 			user_name = 'git'
 

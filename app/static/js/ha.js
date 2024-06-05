@@ -1,9 +1,3 @@
-function ValidateIPaddress(ipaddress) {
-	if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress)) {
-		return (true)
-	}
-	return (false)
-}
 $( function() {
 	$("select").selectmenu({
 		width: 180
@@ -244,9 +238,7 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 	dialog_div.dialog('open');
 }
 function createHaClusterStep2(edited=false, cluster_id=0, jsonData='') {
-	var add_word = $('#translate').attr('data-next');
 	var cancel_word = $('#translate').attr('data-cancel');
-	var next_word = $('#translate').attr('data-next');
 	var back_word = $('#translate').attr('data-back');
 	var save_word = $('#translate').attr('data-save');
 	var apply_word = $('#translate').attr('data-apply');

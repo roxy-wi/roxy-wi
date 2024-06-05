@@ -69,6 +69,11 @@
 					</ul>
 				</li>
 				{% endif %}
+                {% if '6' in g.user_params['user_services'] %}
+				{% if g.user_params['role'] <= 2 %}
+                    <li><a href="{{ url_for('udp.listener_funct', service='udp') }}" title="{{lang.menu_links.udp.title}}" class="balance {% if request.url_rule.endpoint == 'udp.listener_funct' %} menu-active{% endif %}">{{lang.menu_links.udp.title}}</a></li>
+				{% endif %}
+				{% endif %}
 				{% if '3' in g.user_params['user_services'] %}
 				{% if g.user_params['role'] <= 2 %}
 				<li class="p_menu">

@@ -471,3 +471,8 @@
 	font-family: "Font Awesome 5 Regular";
 	content: "\f086";
 }
+.balance::before {
+	display: none;
+	font-family: "Font Awesome 5 Solid";
+	content: "\f516";
+}

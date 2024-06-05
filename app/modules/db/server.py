@@ -44,6 +44,13 @@ def get_hostname_by_server_ip(server_ip):
 		return hostname.hostname
 
 
+def get_server_by_id(server_id):
+	try:
+		return Server.get(Server.server_id == server_id)
+	except Exception as e:
+		return out_error(e)
+
+
 def select_server_by_name(name):
 	try:
 		ip = Server.get(Server.hostname == name)

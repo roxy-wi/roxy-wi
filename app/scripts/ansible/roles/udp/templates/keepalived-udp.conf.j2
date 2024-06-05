@@ -1,0 +1,19 @@
+virtual_server {{ vip }} {{ port }} {
+    lb_algo rr
+    lb_kind NAT
+    protocol UDP
+    delay_loop 10
+    delay_before_retry 10
+    retry 3
+
+
+{% for server, value in config.items() %}
+    real_server {{ server }} {{ value.port }} {
+        weight {{ value.weight }}
+        MISC_CHECK {
+            misc_path "{{ service_dir }}/checks/udp_check.sh {{ server }} {{ value.port }}"
+            misc_timeout 5
+        }
+    }
+{% endfor %}
+}

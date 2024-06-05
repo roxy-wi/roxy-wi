@@ -1,0 +1,2 @@
+keepalived_path_logs: "/var/log/keepalived-udp"
+service_dir: "/etc/keepalived"

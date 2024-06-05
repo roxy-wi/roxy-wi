@@ -1,0 +1,19 @@
+[Unit]
+Description=LVS and VRRP High Availability Monitor
+After=network-online.target syslog.target
+Wants=network-online.target
+
+[Service]
+SELinuxContext=system_u:system_r:keepalived_t:s0
+Type=forking
+PIDFile=/var/run/keepalived-udp-{{ id }}.pid
+KillMode=process
+ExecStart=/usr/sbin/keepalived --log-facility=1 -f /etc/keepalived/keepalived-udp-{{ id }}.conf -p /var/run/keepalived-udp-{{ id }}.pid -r /var/run/keepalived-udp-vrrp-{{ id }}.pid -c /var/run/keepalived-udp-check-{{ id }}.pid
+ExecReload=/bin/kill -HUP $MAINPID
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=roxy-wi-udp
+
+[Install]
+WantedBy=multi-user.target

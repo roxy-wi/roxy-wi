@@ -52,7 +52,7 @@ class User(BaseModel, UserMixin):
     groups = CharField()
     ldap_user = IntegerField(constraints=[SQL('DEFAULT "0"')])
     activeuser = IntegerField(constraints=[SQL('DEFAULT "1"')])
-    user_services = CharField(constraints=[SQL('DEFAULT "1 2 3 4 5"')])
+    user_services = CharField(constraints=[SQL('DEFAULT "1 2 3 4 5 6"')])
     last_login_date = DateTimeField(constraints=[SQL('DEFAULT "0000-00-00 00:00:00"')])
     last_login_ip = CharField(null=True)
 
@@ -150,16 +150,6 @@ class UUID(BaseModel):
 
     class Meta:
         table_name = 'uuid'
-        primary_key = False
-
-
-class Token(BaseModel):
-    user_id = IntegerField()
-    token = CharField()
-    exp = DateTimeField(default=datetime.now)
-
-    class Meta:
-        table_name = 'token'
         primary_key = False
 
 
@@ -765,15 +755,36 @@ class HaClusterService(BaseModel):
         constraints = [SQL('UNIQUE (cluster_id, service_id)')]
 
 
+class UDPBalancer(BaseModel):
+    id = AutoField()
+    name = CharField()
+    cluster_id = IntegerField(null=True)
+    server_id = IntegerField(null=True)
+    vip = CharField()
+    port = IntegerField()
+    group_id = ForeignKeyField(Groups)
+    config = CharField()
+    desc = CharField()
+    lb_algo = CharField(constraints=[SQL('DEFAULT "rr"')])
+    check_enabled = IntegerField(constraints=[SQL('DEFAULT "1"')])
+    delay_loop = IntegerField(constraints=[SQL('DEFAULT "10"')])
+    delay_before_retry = IntegerField(constraints=[SQL('DEFAULT "10"')])
+    retry = IntegerField(constraints=[SQL('DEFAULT "3"')])
+
+    class Meta:
+        table_name = 'udp_balancers'
+        constraints = [SQL('UNIQUE (vip, port)')]
+
+
 def create_tables():
     conn = connect()
     with conn:
         conn.create_tables(
-            [User, Server, Role, Telegram, Slack, UUID, Token, ApiToken, Groups, UserGroups, ConfigVersion, Setting,
+            [User, Server, Role, Telegram, Slack, UUID, ApiToken, Groups, UserGroups, ConfigVersion, Setting,
              Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
              PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes,
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
              KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup, RoxyTool,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
-             HaClusterRouter, MM]
+             HaClusterRouter, MM, UDPBalancer]
         )

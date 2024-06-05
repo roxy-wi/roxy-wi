@@ -5,6 +5,7 @@ from typing import Any
 from flask import request
 
 from app.modules.db.sql import get_setting
+import app.modules.db.udp as udp_sql
 import app.modules.db.roxy as roxy_sql
 import app.modules.db.user as user_sql
 import app.modules.db.group as group_sql
@@ -37,18 +38,10 @@ def get_user_group(**kwargs) -> int:
 	return user_group
 
 
-def check_user_group_for_flask(**kwargs):
-	if kwargs.get('token') is not None:
-		return True
-
-	if kwargs.get('user_uuid'):
-		group_id = kwargs.get('user_group_id')
-		user_uuid = kwargs.get('user_uuid')
-		user_id = user_sql.get_user_id_by_uuid(user_uuid)
-	else:
-		user_uuid = request.cookies.get('uuid')
-		group_id = request.cookies.get('group')
-		user_id = user_sql.get_user_id_by_uuid(user_uuid)
+def check_user_group_for_flask():
+	user_uuid = request.cookies.get('uuid')
+	group_id = request.cookies.get('group')
+	user_id = user_sql.get_user_id_by_uuid(user_uuid)
 
 	if user_sql.check_user_group(user_id, group_id):
 		return True
@@ -163,25 +156,32 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 		user_ip = 'localhost'
 
 	if service == 'HA cluster':
-		cluster_id = server_ip
-		cluster_name = ha_sql.select_cluster_name(int(cluster_id))
-		history_sql.insert_action_history(service, action, int(cluster_id), user_id, user_ip, cluster_id, cluster_name)
+		try:
+			server_id = server_ip
+			hostname = ha_sql.select_cluster_name(int(server_id))
+		except Exception as e:
+			logging('Roxy-WI server', f'Cannot get info about cluster {server_ip} for history: {e}', roxywi=1)
+	elif service == 'UDP Listener':
+		try:
+			server_id = int(server_ip)
+			listener = udp_sql.get_listener(server_id)
+			hostname = listener.name
+		except Exception as e:
+			logging('Roxy-WI server', f'Cannot get info about Listener {server_ip} for history: {e}', roxywi=1)
 	else:
 		try:
 			server_id = server_sql.select_server_id_by_ip(server_ip=server_ip)
 			hostname = server_sql.get_hostname_by_server_ip(server_ip)
-
-			history_sql.insert_action_history(service, action, server_id, user_id, user_ip, server_ip, hostname)
 		except Exception as e:
-			logging('Roxy-WI server', f'Cannot save a history: {e}', roxywi=1)
+			logging('Roxy-WI server', f'Cannot get info about {server_ip} for history: {e}', roxywi=1)
+
+	try:
+		history_sql.insert_action_history(service, action, server_id, user_id, user_ip, server_ip, hostname)
+	except Exception as e:
+		logging('Roxy-WI server', f'Cannot save a history: {e}', roxywi=1)
 
 
 def get_dick_permit(**kwargs):
-	if kwargs.get('token'):
-		token = kwargs.get('token')
-	else:
-		token = ''
-
 	if not kwargs.get('group_id'):
 		try:
 			group_id = get_user_group(id=1)
@@ -190,7 +190,7 @@ def get_dick_permit(**kwargs):
 	else:
 		group_id = kwargs.pop('group_id')
 
-	if check_user_group_for_flask(token=token):
+	if check_user_group_for_flask():
 		try:
 			servers = server_sql.get_dick_permit(group_id, **kwargs)
 		except Exception as e:
@@ -236,11 +236,6 @@ def get_users_params(**kwargs):
 	except Exception as e:
 		raise Exception(f'error: Cannot get user services {e}')
 
-	try:
-		token = user_sql.get_token(user_uuid)
-	except Exception as e:
-		raise Exception(f'error: Cannot get user token {e}')
-
 	if kwargs.get('virt') and kwargs.get('service') == 'haproxy':
 		servers = get_dick_permit(virt=1, haproxy=1)
 	elif kwargs.get('virt'):
@@ -258,7 +253,6 @@ def get_users_params(**kwargs):
 		'user': user,
 		'user_uuid': user_uuid,
 		'role': role,
-		'token': token,
 		'servers': servers,
 		'user_services': user_services,
 		'lang': user_lang,

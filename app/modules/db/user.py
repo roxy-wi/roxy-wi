@@ -1,6 +1,6 @@
 from peewee import Case, JOIN
 
-from app.modules.db.db_model import User, UserGroups, Groups, UUID, Token, ApiToken
+from app.modules.db.db_model import User, UserGroups, Groups, UUID, ApiToken
 from app.modules.db.sql import get_setting
 from app.modules.db.common import out_error
 import app.modules.roxy_wi_tools as roxy_wi_tools
@@ -190,21 +190,15 @@ def select_users_roles():
 		return query_res
 
 
-def update_last_act_user(uuid: str, token: str, ip: str) -> None:
+def update_last_act_user(uuid: str,ip: str) -> None:
 	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
 	session_ttl = get_setting('session_ttl')
-	token_ttl = get_setting('token_ttl')
 	cur_date_session = get_date.return_date('regular', timedelta=session_ttl)
-	cur_date_token = get_date.return_date('regular', timedelta=token_ttl)
 	cur_date = get_date.return_date('regular')
 	user_id = get_user_id_by_uuid(uuid)
-	query = UUID.update(exp=cur_date_session).where(UUID.uuid == uuid)
-	query1 = Token.update(exp=cur_date_token).where(Token.token == token)
-	query2 = User.update(last_login_date=cur_date, last_login_ip=ip).where(User.user_id == user_id)
 	try:
-		query.execute()
-		query1.execute()
-		query2.execute()
+		UUID.update(exp=cur_date_session).where(UUID.uuid == uuid).execute()
+		User.update(last_login_date=cur_date, last_login_ip=ip).where(User.user_id == user_id).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -277,18 +271,6 @@ def write_user_uuid(login, user_uuid):
 
 	try:
 		UUID.insert(user_id=user_id, uuid=user_uuid, exp=cur_date).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def write_user_token(login, user_token):
-	token_ttl = get_setting('token_ttl')
-	user_id = get_user_id_by_username(login)
-	get_date = roxy_wi_tools.GetDate()
-	cur_date = get_date.return_date('regular', timedelta=token_ttl)
-
-	try:
-		Token.insert(user_id=user_id, token=user_token, exp=cur_date).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -405,28 +387,11 @@ def get_username_group_id_from_api_token(token):
 		return user_name.user_name, user_name.user_group_id, user_name.user_role
 
 
-def get_token(uuid):
-	query = Token.select().join(UUID, on=(Token.user_id == UUID.user_id)).where(UUID.uuid == uuid).limit(1)
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		try:
-			for i in query_res:
-				return i.token
-		except Exception:
-			return ''
-
-
 def delete_old_uuid():
 	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular')
-	query = UUID.delete().where((UUID.exp < cur_date) | (UUID.exp.is_null(True)))
-	query1 = Token.delete().where((Token.exp < cur_date) | (Token.exp.is_null(True)))
 	try:
-		query.execute()
-		query1.execute()
+		UUID.delete().where((UUID.exp < cur_date) | (UUID.exp.is_null(True))).execute()
 	except Exception as e:
 		out_error(e)
 

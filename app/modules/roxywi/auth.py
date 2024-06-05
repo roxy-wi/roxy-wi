@@ -11,7 +11,7 @@ import app.modules.db.service as service_sql
 import app.modules.roxywi.common as roxywi_common
 
 
-def check_login(user_uuid, token) -> str:
+def check_login(user_uuid) -> str:
     if user_uuid is None:
         return 'login_page'
 
@@ -24,7 +24,7 @@ def check_login(user_uuid, token) -> str:
             except Exception:
                 ip = ''
 
-            user_sql.update_last_act_user(user_uuid, token, ip)
+            user_sql.update_last_act_user(user_uuid, ip)
 
             return 'ok'
     return 'login_page'
@@ -106,11 +106,9 @@ def check_in_ldap(user, password):
 
 def create_uuid_and_token(login: str):
     user_uuid = str(uuid.uuid4())
-    user_token = str(uuid.uuid4())
     user_sql.write_user_uuid(login, user_uuid)
-    user_sql.write_user_token(login, user_token)
 
-    return user_uuid, user_token
+    return user_uuid
 
 
 def do_login(user_uuid: str, user_group: str, user: str, next_url: str):

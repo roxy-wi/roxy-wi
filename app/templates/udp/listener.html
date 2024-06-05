@@ -1,0 +1,41 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
+<div id="listener-{{listener.id}}" class="div-server-hapwi">
+    <div class="server-name">
+        <span id="listener-name-{{listener.id}}">{{listener.name|replace("'", "")}}</span>
+        <span id="listener-desc-{{listener.id}}">{% if listener.desc != '' %} ({{listener.desc|replace("'", "")}}) {% endif %}</span>
+        <span class="server-action">
+            {% if g.user_params['role'] <= 3 %}
+            <span class="service-start" onclick="confirmUdpBalancerAction('start', '{{listener.id}}')"></span>
+            <span class="service-reload" onclick="confirmUdpBalancerAction('restart', '{{listener.id}}')"></span>
+            <span class="service-stop" onclick="confirmUdpBalancerAction('stop', '{{listener.id}}')"></span>
+            <a class="edit" onclick="createUDPListener(true, '{{listener.id}}')"></a>
+            <a class="delete" onclick="confirmDeleteListener('{{listener.id}}')"></a>
+            {% endif %}
+{#            <a href="{{ url_for('main.service_history', service='cluster', server_ip=listener.id) }}" title="{{lang.words.view|title()}} {{lang.words.history3}} {{listener.name}}" class="history" style="margin: 0 5px 0 10px;"></a>#}
+        </span>
+    </div>
+    <div class="server-desc">
+        {% if listener.cluster_id %}
+            {% for cluster in clusters %}
+                {% if listener.cluster_id == cluster.id %}
+                    {{ input('listener-type-'+listener.id|string(), value='cluster', type='hidden') }}
+                    <b>{{lang.words.cluster|title}} {{ lang.words.name }}</b>:
+                    <a href="/app/ha/cluster/{{ cluster.id }}" title="{{lang.words.open|title()}} {{lang.words.cluster|replace("'", "")}}"> {{ cluster.name }}</a>
+                {% endif %}
+            {% endfor %}
+            <b>VIP</b>:
+        {% else %}
+            {{ input('listener-type-'+listener.id|string(), value='server', type='hidden') }}
+            <b>{{ lang.words.server|title() }}</b>: {{ server.hostname }}
+            <b>IP</b>:
+        {% endif %}
+        {{ copy_to_clipboard(value=listener.vip) }}<br />
+        <b>{{lang.words.port|title()}}</b>: {{ listener.port }} <br />
+        <b>{{ lang.words.backend|title() }} {{ lang.words.servers }}</b>: <br />
+        {% set config = listener.config|string_to_dict %}
+        {% for c, v in config.items() %}
+        {{ lang.words.server|title() }}: {{ copy_to_clipboard(value=c) }}, {{ lang.words.port }}: {{ v.port }}, {{ lang.words.weight }}: {{ v.weight }} <br />
+        {% endfor %}
+    </div>
+</div>

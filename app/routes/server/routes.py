@@ -55,6 +55,24 @@ def show_if(server_ip):
     return server_mod.ssh_command(server_ip, command)
 
 
+@bp.route('/show/ip/<server_ip>')
+def show_ip_by_id(server_ip):
+    server_ip = common.is_ip_or_dns(server_ip)
+    if server_ip == '':
+        raise Exception('error: Cannot find server ip')
+    commands = 'sudo hostname -I | tr " " "\\n"|sed "/^$/d"'
+
+    return server_mod.ssh_command(server_ip, commands, ip="1")
+
+
+@bp.route('/show/ip/<int:server_id>')
+def show_ip(server_id):
+    server_ip = server_sql.get_server_by_id(server_id)
+    commands = 'sudo hostname -I | tr " " "\\n"|sed "/^$/d"'
+
+    return server_mod.ssh_command(server_ip.ip, commands, ip="1")
+
+
 @bp.post('/create')
 @get_user_params()
 def create_server():

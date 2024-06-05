@@ -1,0 +1,29 @@
+---
+- name: Delete NAT in iptables
+  shell: "/sbin/iptables -t nat -D POSTROUTING -m ipvs --vaddr {{ vip }} -j MASQUERADE"
+  ignore_errors: yes
+
+- name: Save current state of the firewall in system file
+  community.general.iptables_state:
+    state: saved
+    path: /etc/sysconfig/iptables
+
+- name: Delete keepalived configuration in place.
+  file:
+    path: "{{ service_dir }}/keepalived-udp-{{ id }}.conf"
+    state: absent
+  ignore_errors: yes
+
+- name: Disable and start service keepalived
+  service:
+    name: "keepalived-udp-{{ id }}"
+    daemon_reload: yes
+    state: stopped
+    enabled: no
+  ignore_errors: yes
+
+- name: Delete keepalived UPD service file.
+  file:
+    path: "/etc/systemd/system/keepalived-udp-{{ id }}.service"
+    state: absent
+  ignore_errors: yes

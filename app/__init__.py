@@ -36,6 +36,7 @@ from app.routes.user import bp as user_bp
 from app.routes.server import bp as server_bp
 from app.routes.admin import bp as admin_bp
 from app.routes.ha import bp as ha_bp
+from app.routes.udp import bp as udp_bp
 
 app.register_blueprint(main_bp)
 app.register_blueprint(overview_bp)
@@ -55,6 +56,7 @@ app.register_blueprint(user_bp, url_prefix='/user')
 app.register_blueprint(server_bp, url_prefix='/server')
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(ha_bp, url_prefix='/ha')
+app.register_blueprint(udp_bp)
 
 from app import login
 from app import jobs

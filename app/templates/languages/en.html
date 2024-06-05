@@ -115,6 +115,9 @@
     },
     "history": {
         "title": "History of"
+    },
+    "udp": {
+        "title": "UDP balancers"
     }
 }
 %}
@@ -170,6 +173,7 @@
     },
     "main": {
         "time_zone": "Time Zone",
+        "license": "License key",
         "proxy": "IP address and port of the proxy server. Use proto://ip:port",
         "session_ttl": "TTL for a user session (in days)",
         "token_ttl": "TTL for a user token (in days)",
@@ -506,6 +510,12 @@
     "was_installed": "was installed on",
     "start_enter": "Start typing into the network interface to add VIP",
     "save_apply": "<b>Save</b> - means saving the HA cluster settings for Roxy-WI, without changing the component settings on the cluster members. <br /> <b>Apply</b> - recreate the HA cluster configuration on the cluster member servers and install additional services.",
+    }
+%}
+{% set udp_page = {
+    "save_apply": "<b>Save</b> - means saving the UDP listener settings for Roxy-WI, without changing the component settings on the cluster members or standalone server. <br /> <b>Apply</b> - recreate the UDP listener configuration on the cluster member servers or standalone server.",
+    "listener_ip": "IP for binding UDP Listener. Start typing",
+    "listener_port": "Port for binding UDP Listener",
     }
 %}
 {% set nettools_page = {
@@ -928,5 +938,9 @@
     "agent": "agent",
     "agent2": "agent",
     "reconfigure": "reconfigure",
+    "listener": "listener",
+    "listeners": "listeners",
+    "weight": "weight",
+    "where": "where",
     }
 %}

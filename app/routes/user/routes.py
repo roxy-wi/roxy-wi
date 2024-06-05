@@ -32,10 +32,9 @@ def create_user():
     page = common.checkAjaxInput(request.form.get('page'))
     activeuser = common.checkAjaxInput(request.form.get('activeuser'))
     group = common.checkAjaxInput(request.form.get('newgroupuser'))
-    token = common.checkAjaxInput(request.form.get('token'))
     lang = roxywi_common.get_user_lang_for_flask()
 
-    if not roxywi_common.check_user_group_for_flask(token=token):
+    if not roxywi_common.check_user_group_for_flask():
         return 'error: Wrong group'
     if page == 'servers':
         if roxywi_auth.is_admin(level=2, role_id=role):
