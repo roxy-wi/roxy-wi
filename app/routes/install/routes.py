@@ -147,4 +147,3 @@ def install_udp():
         return service_mod.run_ansible(inv, server_ips, f'udp'), 201
     except Exception as e:
         return f'{e}'
-

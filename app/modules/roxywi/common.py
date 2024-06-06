@@ -38,7 +38,9 @@ def get_user_group(**kwargs) -> int:
 	return user_group
 
 
-def check_user_group_for_flask():
+def check_user_group_for_flask(**kwargs) -> bool:
+	if kwargs.get('api_token') is not None:
+		return True
 	user_uuid = request.cookies.get('uuid')
 	group_id = request.cookies.get('group')
 	user_id = user_sql.get_user_id_by_uuid(user_uuid)
@@ -182,6 +184,7 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 
 
 def get_dick_permit(**kwargs):
+	api_token = kwargs.get('token')
 	if not kwargs.get('group_id'):
 		try:
 			group_id = get_user_group(id=1)
@@ -190,7 +193,7 @@ def get_dick_permit(**kwargs):
 	else:
 		group_id = kwargs.pop('group_id')
 
-	if check_user_group_for_flask():
+	if check_user_group_for_flask(api_token=api_token):
 		try:
 			servers = server_sql.get_dick_permit(group_id, **kwargs)
 		except Exception as e:

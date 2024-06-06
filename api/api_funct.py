@@ -226,21 +226,25 @@ def get_status(server_id, service):
 def get_all_statuses():
 	data = {}
 	try:
-		servers = server_sql.select_servers()
 		token = request.headers.get('token')
 		login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 		sock_port = sql.get_setting('haproxy_sock_port')
-
-		for _s in servers:
-			servers = roxywi_common.get_dick_permit(username=login, group_id=group_id, token=token)
-
+	except Exception as e:
+		data = {"error": f"Cannot parameters: {e}"}
+		return dict(error=data)
+	try:
+		servers = roxywi_common.get_dick_permit(username=login, group_id=group_id, token=token)
+	except Exception as e:
+		data = {"error": f"Cannot get the server: {e}"}
+		return dict(error=data)
+	try:
 		for s in servers:
 			cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (s[2], sock_port)
 			data[s[2]] = {}
 			out = server_mod.subprocess_execute(cmd)
 			data[s[2]] = return_dict_from_out(s[1], out[0])
-	except Exception:
-		data = {"error": "Cannot find the server"}
+	except Exception as e:
+		data = {"error": f"Cannot find the server: {e}"}
 		return dict(error=data)
 
 	return dict(status=data)
