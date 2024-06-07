@@ -41,10 +41,14 @@ def get_user_group(**kwargs) -> int:
 def check_user_group_for_flask(**kwargs) -> bool:
 	if kwargs.get('api_token') is not None:
 		return True
-	user_uuid = request.cookies.get('uuid')
-	group_id = request.cookies.get('group')
-	user_id = user_sql.get_user_id_by_uuid(user_uuid)
+	if kwargs.get('user_uuid'):
+		group_id = kwargs.get('user_group_id')
+		user_uuid = kwargs.get('user_uuid')
+	else:
+		user_uuid = request.cookies.get('uuid')
+		group_id = request.cookies.get('group')
 
+	user_id = user_sql.get_user_id_by_uuid(user_uuid)
 	if user_sql.check_user_group(user_id, group_id):
 		return True
 	else:
