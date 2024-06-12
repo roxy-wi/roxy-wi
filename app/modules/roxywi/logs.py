@@ -87,6 +87,8 @@ def show_roxy_log(
 
 			commands = "sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s %s %s %s" % (serv, date, date1, rows, grep_act, grep, exgrep_act)
 			syslog_server = sql.get_setting('syslog_server')
+			if syslog_server is None or syslog_server == '':
+				raise Exception('error: Syslog server is enabled, but there is no IP for syslog server')
 
 		if waf == "1":
 			local_path_logs = '/var/log/waf.log'

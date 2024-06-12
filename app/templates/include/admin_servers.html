@@ -5,19 +5,19 @@
 		<tr class="overviewHead">
 			<th class="padding10 first-collumn" id="server-name-th">{{lang.words.name|title()}}</th>
 			<th class="ip-field" style="width: 10% " id="server-ip-th">IP</th>
-			<th style="width: 5%" class="help_cursor"><span title="SSH port">{{lang.words.port|title()}}</span></th>
+			<th style="min-width: 50px" class="help_cursor"><span title="SSH port">{{lang.words.port|title()}}</span></th>
 			{% if g.user_params['role'] == 1 %}
 			<th style="width: 10%">{{lang.words.group|title()}}</th>
 			{% endif %}
-			<th class="checkbox-head" style="min-width: 70px;">{{lang.words.enabled|title()}}</th>
-			<th style="min-width: 60px; padding-left: 17px;" class="help_cursor">
+			<th class="checkbox-head" style="min-width: 50px;">{{lang.words.enabled|title()}}</th>
+			<th style="min-width: 40px; padding-left: 17px;" class="help_cursor">
 				<span title="{{lang.words.virtual|title()}} IP, something like VRRP">{{lang.words.virt|title()}}</span>
 			</th>
-			<th class="checkbox-head" style="min-width: 75px" id="server-haproxy-th">{{lang.words.services|title()}}</th>
-			<th style="min-width: 120px;" class="help_cursor" id="server-firewalld-th">
+			<th class="checkbox-head" style="min-width: 60px" id="server-haproxy-th">{{lang.words.services|title()}}</th>
+			<th style="min-width: 105px;" class="help_cursor" id="server-firewalld-th">
 				<span title="If the server has a firewall enabled, enable this option">Firewalld</span>
 			</th>
-			<th class="checkbox-head help_cursor" style="min-width: 120px;" class="help_cursor" id="server-protected-th">
+			<th class="checkbox-head help_cursor" style="min-width: 70px;" class="help_cursor" id="server-protected-th">
 				<span title="{{lang.phrases.protected_title}}">{{lang.words.protected|title()}}</span>
 			</th>
 			<th style="width: 10%" class="help_cursor" id="server-slave-th">
@@ -46,7 +46,7 @@
 			</td>
 			<td>
 				{% set id = 'port-' + server.0|string() %}
-				{{ input(id, value=server.10, type='number', style='width: 50px;') }}
+				{{ input(id, value=server.10, type='number', style='width: 40px;') }}
 			</td>
 			{% if g.user_params['role'] == 1 %}
 			<td>

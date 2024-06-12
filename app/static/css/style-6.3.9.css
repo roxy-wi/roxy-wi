@@ -162,7 +162,7 @@ pre {
 }
 #logo_footer {
     float: left;
-    margin-left: 41%;
+    margin-left: 43%;
 }
 #logo_footer_img {
     width: 35px;
@@ -173,9 +173,9 @@ pre {
     padding-top: 11px;
     text-align: right;
     margin-right: 20px;
-    width: 368px;
+    width: 380px;
     float: left;
-    margin-left: 26%;
+    margin-left: 16%;
 }
 .footer-link, .footer-copyright {
 	color: var(--blue-color);

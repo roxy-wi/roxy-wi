@@ -11,6 +11,10 @@
         msg="info NGINX WAF has already installed"
       when: stat_result.stat.exists
 
+    - name: Gather Installed Packages Facts
+      package_facts:
+        manager: "auto"
+
     - name: install the common RPMS for NGINX
       yum:
         name:
@@ -81,9 +85,8 @@
         dest: /usr/local/
         remote_src: true
 
-    - name: Get NGINX version
-      shell: /usr/sbin/nginx -v
-      register: nginx_version
+    - set_fact:
+        nginx_version: "{{ ansible_facts.packages['nginx'][0].version.split('-')[0] }}"
 
     - name: Get NGINX parameters
       shell: /usr/sbin/nginx -V 2>&1 |grep configu |awk -F":" '{print $2}'
@@ -94,7 +97,7 @@
 
     - name: Download NGINX
       ansible.builtin.get_url:
-        url: "http://nginx.org/download/nginx-{{ nginx_version.stderr.split('/')[1] }}.tar.gz"
+        url: "http://nginx.org/download/nginx-{{ nginx_version }}.tar.gz"
         dest: /tmp/nginx_src.tar.gz
 
     - name: Create nginx_src directory
@@ -112,23 +115,23 @@
 
     - name: Configure NGINX
       become: true
-      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version.stderr.split('/')[1] }} ./configure {{ nginx_params.stdout }} --add-dynamic-module=../../nginx-connector"
+      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version }} ./configure {{ nginx_params.stdout }} --add-dynamic-module=../../nginx-connector"
       environment:
         CFLAGS: -Wno-error
 
     - name: Make NGINX modules
       become: true
-      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version.stderr.split('/')[1] }} make modules"
+      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version }} make modules"
 
     - name: Copy module for CentOS
       become: true
-      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version.stderr.split('/')[1] }} cp objs/ngx_http_modsecurity_module.so /usr/lib64/nginx/modules/"
+      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version }} cp objs/ngx_http_modsecurity_module.so /usr/lib64/nginx/modules/"
       when:
         - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
 
     - name: Copy module for Ubuntu
       become: true
-      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version.stderr.split('/')[1] }} cp objs/ngx_http_modsecurity_module.so /usr/lib/nginx/modules/"
+      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version }} cp objs/ngx_http_modsecurity_module.so /usr/lib/nginx/modules/"
       when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
 
     - name: Create modules directory
