@@ -1,7 +1,6 @@
-import json
-
 from flask import render_template, g, request, jsonify
 from flask_login import login_required
+from playhouse.shortcuts import model_to_dict
 
 from app.routes.ha import bp
 from app.middleware import get_user_params, check_services
@@ -36,25 +35,27 @@ def cluster_function(service):
 
         return render_template('ha_cluster.html', **kwargs)
     elif request.method == 'PUT':
-        cluster = json.loads(request.form.get('jsonData'))
+        cluster = request.get_json()
 
         try:
-            return ha_cluster.update_cluster(cluster, group_id)
+            ha_cluster.update_cluster(cluster, group_id)
+            return jsonify({'status': 'updated'})
         except Exception as e:
-            return f'{e}'
+            return jsonify({'status': 'failed', 'error': f'Cannot update the cluster: {e}'})
     elif request.method == 'POST':
-        cluster = json.loads(request.form.get('jsonData'))
+        cluster = request.get_json()
 
         try:
-            return ha_cluster.create_cluster(cluster, group_id)
+            cluster_id = ha_cluster.create_cluster(cluster, group_id)
+            return jsonify({'status': 'created', 'cluster_id': cluster_id})
         except Exception as e:
-            return f'{e}'
+            return jsonify({'status': 'failed', 'error': f'Cannot create a cluster: {e}'})
     elif request.method == 'DELETE':
         cluster_id = int(request.form.get('cluster_id'))
         try:
             return ha_cluster.delete_cluster(cluster_id)
         except Exception as e:
-            return f'{e}'
+            return jsonify({'status': 'failed', 'error': f'Cannot delete the cluster: {e}'})
 
 
 @bp.route('/<service>/get/<int:cluster_id>')
@@ -87,17 +88,16 @@ def get_cluster_settings(service, cluster_id):
     router_id = ha_sql.get_router_id(cluster_id, default_router=1)
     slaves = ha_sql.select_cluster_slaves(cluster_id, router_id)
     cluster_services = ha_sql.select_cluster_services(cluster_id)
-    vip = ha_sql.select_clusters_vip(cluster_id, router_id)
-    return_master = ha_sql.select_clusters_vip_return_master(cluster_id, router_id)
-    vip_id = ha_sql.select_clusters_vip_id(cluster_id, router_id)
-    is_virt = ha_sql.check_ha_virt(vip_id)
+    vip = ha_sql.select_cluster_vip(cluster_id, router_id)
+    is_virt = ha_sql.check_ha_virt(vip.id)
     for cluster in clusters:
         settings.setdefault('name', cluster.name)
         settings.setdefault('desc', cluster.desc)
-        settings.setdefault('return_to_master', return_master)
+        settings.setdefault('return_to_master', vip.return_master)
         settings.setdefault('syn_flood', cluster.syn_flood)
-        settings.setdefault('vip', vip)
+        settings.setdefault('vip', vip.vip)
         settings.setdefault('virt_server', is_virt)
+        settings.setdefault('use_src', vip.use_src)
 
     for slave in slaves:
         if slave[31]:
@@ -219,10 +219,10 @@ def get_masters(service):
 @check_services
 def get_vip_settings(service, cluster_id, router_id):
     settings = {}
-    return_master = ha_sql.select_clusters_vip_return_master(cluster_id, router_id)
-    vip_id = ha_sql.select_clusters_vip_id(cluster_id, router_id)
-    is_virt = ha_sql.check_ha_virt(vip_id)
-    settings.setdefault('return_to_master', return_master)
+    vip = ha_sql.select_cluster_vip(cluster_id, router_id)
+    is_virt = ha_sql.check_ha_virt(vip.id)
+    settings.setdefault('return_to_master', vip.return_master)
+    settings.setdefault('use_src', vip.use_src)
     settings.setdefault('virt_server', is_virt)
     return jsonify(settings)
 
@@ -233,35 +233,37 @@ def get_vip_settings(service, cluster_id, router_id):
 def ha_vip(service, cluster_id):
     user_params = g.user_params
     group_id = user_params['group_id']
-    json_data = json.loads(request.form.get('jsonData'))
+    json_data = request.get_json()
     if request.method == 'PUT':
         router_id = int(json_data['router_id'])
         try:
             ha_cluster.update_vip(cluster_id, router_id, json_data, group_id)
         except Exception as e:
-            return f'{e}'
-        return 'ok'
+            return jsonify({'status': 'failed', 'error': f'Cannot update VIP: {e}'})
+        return jsonify({'status': 'updated'})
     elif request.method == 'POST':
         try:
             ha_cluster.insert_vip(cluster_id, json_data, group_id)
         except Exception as e:
-            return f'{e}'
+            return jsonify({'status': 'failed', 'error': f'Cannot create VIP: {e}'})
 
-        return 'ok'
+        return jsonify({'status': 'created'})
     elif request.method == 'DELETE':
         router_id = int(json_data['router_id'])
+        router = ha_sql.get_router(router_id)
+        if router.default:
+            return jsonify({'status': 'failed', 'error': 'You cannot delete default VIP'})
         try:
             ha_sql.delete_ha_router(router_id)
-            return 'ok'
+            return jsonify({'status': 'deleted'})
         except Exception as e:
-            return f'error: Cannot delete VIP: {e}'
+            return jsonify({'status': 'failed', 'error': f'Cannot delete VIP: {e}'})
 
 
 @bp.route('/<service>/<int:cluster_id>/vips', methods=['GET'])
 @check_services
 @get_user_params()
 def get_vips(service, cluster_id):
-    from playhouse.shortcuts import model_to_dict
     if request.method == 'GET':
         vips = ha_sql.select_cluster_vips(cluster_id)
         vips = [model_to_dict(vip) for vip in vips]

@@ -86,8 +86,8 @@ def index():
 		'keepalived/<id,hostname,ip>/config': 'get Keepalived config from a server by id or hostname or ip. METHOD: GET',
 		'keepalived/<id,hostname,ip>/config': 'upload Keepalived config to a server by id or hostname or ip. Headers: action: save/reload/restart. Body must consist a whole Keepalived config. METHOD: POST',
 		'ha': 'HA clusters list. METHOD: GET',
-		'ha': 'Create HA cluster. Body must be JSON: name: str, desc: str, cluster_id: 0, router_id: "", vip: str, servers: {server_id: dict:{eth: str, ip: str, name: str, master: int}}, service: dict: {{haproxy: int, docker: int}, {nginx: int, docker: int}}, virt_server: int, syn_flood: int, return_to_master: int. METHOD: POST',
-		'ha': 'Edit HA cluster. Body must be JSON: name: str, desc: str, cluster_id: int, router_id: "", vip: str, servers: {server_id: dict:{eth: str, ip: str, name: str, master: int}}, service: dict: {{haproxy: int, docker: int}, {nginx: int, docker: int}}, virt_server: int, syn_flood: int, return_to_master: int. METHOD: PUT',
+		'ha': 'Create HA cluster. Body must be JSON: name: str, desc: str, cluster_id: 0, router_id: "", vip: str, servers: {server_id: dict:{eth: str, ip: str, name: str, master: int}}, service: dict: {{haproxy: int, docker: int}, {nginx: int, docker: int}}, virt_server: int, syn_flood: int, return_to_master: int, use_src: int. METHOD: POST',
+		'ha': 'Edit HA cluster. Body must be JSON: name: str, desc: str, cluster_id: int, router_id: "", vip: str, servers: {server_id: dict:{eth: str, ip: str, name: str, master: int}}, service: dict: {{haproxy: int, docker: int}, {nginx: int, docker: int}}, virt_server: int, syn_flood: int, return_to_master: int, use_src: int. METHOD: PUT',
 		'ha': 'Delete HA cluster. Body must be JSON: cluster_id: int. METHOD: DELETE',
 	}
 	return dict(help=data)

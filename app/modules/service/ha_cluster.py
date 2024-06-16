@@ -72,7 +72,7 @@ def create_cluster(cluster: json, group_id: int) -> str:
     return str(cluster_id)
 
 
-def update_cluster(cluster: json, group_id: int) -> str:
+def update_cluster(cluster: json, group_id: int) -> None:
     cluster_id = int(cluster['cluster_id'])
     syn_flood = int(cluster['syn_flood'])
     cluster_name = common.checkAjaxInput(cluster['name'])
@@ -114,8 +114,6 @@ def update_cluster(cluster: json, group_id: int) -> str:
 
     roxywi_common.logging(cluster_id, f'Cluster {cluster_name} has been updated', keep_history=1, roxywi=1, service='HA cluster')
 
-    return 'ok'
-
 
 def delete_cluster(cluster_id: int) -> str:
     router_id = ha_sql.get_router_id(cluster_id, default_router=1)
@@ -136,11 +134,12 @@ def delete_cluster(cluster_id: int) -> str:
 
 def update_vip(cluster_id: int, router_id: int, json_data: json, group_id: int) -> None:
     return_master = int(json_data['return_to_master'])
+    use_src = int(json_data['use_src'])
     vip = common.is_ip_or_dns(json_data['vip'])
     vip_id = ha_sql.select_clusters_vip_id(cluster_id, router_id)
 
     try:
-        ha_sql.update_ha_cluster_vip(cluster_id, router_id, vip, return_master)
+        ha_sql.update_ha_cluster_vip(cluster_id, router_id, vip, return_master, use_src)
     except Exception as e:
         raise Exception(f'error: Cannot update VIP: {e}')
 

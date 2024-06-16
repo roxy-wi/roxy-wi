@@ -40,23 +40,16 @@ def select_clusters_virts():
 		out_error(e)
 
 
-def select_cluster_vips(cluster_id: int) -> object:
+def select_cluster_vips(cluster_id: int) -> HaClusterVip:
 	try:
 		return HaClusterVip.select().where(HaClusterVip.cluster_id == cluster_id).execute()
 	except Exception as e:
 		out_error(e)
 
 
-def select_clusters_vip(cluster_id: int, router_id: int):
+def select_cluster_vip(cluster_id: int, router_id: int) -> HaClusterVip:
 	try:
-		return HaClusterVip.get((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.router_id == router_id)).vip
-	except Exception as e:
-		out_error(e)
-
-
-def select_clusters_vip_return_master(cluster_id: int, router_id: int):
-	try:
-		return HaClusterVip.get((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.router_id == router_id)).return_master
+		return HaClusterVip.get((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.router_id == router_id))
 	except Exception as e:
 		out_error(e)
 
@@ -160,6 +153,13 @@ def get_router_id(cluster_id: int, default_router=0) -> int:
 		out_error(e)
 
 
+def get_router(router_id: int) -> HaClusterRouter:
+	try:
+		return HaClusterRouter.get(HaClusterRouter.id == router_id)
+	except Exception as e:
+		out_error(e)
+
+
 def create_ha_router(cluster_id: int) -> int:
 	"""
 	Create HA Router
@@ -211,9 +211,9 @@ def update_cluster(cluster_id: int, name: str, desc: str, syn_flood: int) -> Non
 		out_error(e)
 
 
-def update_ha_cluster_vip(cluster_id: int, router_id: int, vip: str, return_master: int) -> None:
+def update_ha_cluster_vip(cluster_id: int, router_id: int, vip: str, return_master: int, use_src: int) -> None:
 	try:
-		HaClusterVip.update(vip=vip, return_master=return_master).where((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.router_id == router_id)).execute()
+		HaClusterVip.update(vip=vip, return_master=return_master, use_src=use_src).where((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.router_id == router_id)).execute()
 	except Exception as e:
 		out_error(e)
 

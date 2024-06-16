@@ -1,4 +1,4 @@
-var url = "/inc/script.js";
+var url = "/app/static/js/script.js";
 var cur_url = window.location.href.split('/app/').pop();
 cur_url = cur_url.split('/');
 var intervalId;

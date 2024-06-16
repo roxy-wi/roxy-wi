@@ -1,7 +1,7 @@
 {% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
 <script>
     $(document).ready(function() {
-        $('#{{list_id}}').on( 'page.dt',   function () { $.getScript("/inc/fontawesome.min.js"); } )
+        $('#{{list_id}}').on( 'page.dt',   function () { $.getScript("/app/static/js/fontawesome.min.js"); } )
             .DataTable( {
                 "order": [[ 0, "desc" ]],
                 "pageLength": 25,
@@ -76,7 +76,7 @@
     $( function() {
         $('#list_add_ip').click(function () {
             addListIp.dialog('open');
-            $.getScript("/inc/runtumeapi.js");
+            $.getScript("/app/static/js/runtumeapi.js");
         });
         var addListIp = $("#list_add_ip_form").dialog({
             autoOpen: false,

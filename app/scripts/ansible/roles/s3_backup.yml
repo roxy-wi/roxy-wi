@@ -1,4 +1,4 @@
-- hosts: 127.0.0.1
+- hosts: localhost
   connection: local
   become: yes
   become_method: sudo
@@ -34,6 +34,7 @@
           - hap_config
           - nginx_config
           - apache_config
+    when: action == "add"
 
   - name: Delete S3 Job
     tags: delete
@@ -47,3 +48,4 @@
           - hap_config
           - nginx_config
           - apache_config
+    when: action == "delete"

@@ -195,7 +195,7 @@ function addS3Backup(dialog_id) {
 			type: "POST",
 			success: function (data) {
 				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1') {
+				if (data.indexOf('error: ') != '-1') {
 					toastr.error(data);
 				} else if (data.indexOf('info: ') != '-1') {
 					toastr.clear();
@@ -203,9 +203,6 @@ function addS3Backup(dialog_id) {
 				} else if (data.indexOf('warning: ') != '-1') {
 					toastr.clear();
 					toastr.warning(data);
-				} else if (data.indexOf('error: ') != '-1') {
-					toastr.clear();
-					toastr.error(data);
 				} else {
 					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-s3-table', data);
 					$("select").selectmenu();

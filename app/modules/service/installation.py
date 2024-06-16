@@ -17,24 +17,6 @@ import app.modules.roxywi.common as roxywi_common
 from app.modules.server.ssh import return_ssh_keys_path
 
 
-def show_installation_output(error: str, output: list, service: str, rc=0):
-	if error and "WARNING" not in error:
-		roxywi_common.logging('Roxy-WI server', error, roxywi=1)
-		raise Exception('error: ' + error)
-	else:
-		if rc != 0:
-			for line in output:
-				if any(s in line for s in ("Traceback", "FAILED", "error", "ERROR", "UNREACHABLE")):
-					try:
-						correct_out = line.split('=>')
-						correct_out = json.loads(correct_out[1])
-					except Exception:
-						raise Exception(f'error: {output} for {service}')
-					else:
-						raise Exception(f'error: {correct_out["msg"]} for {service}')
-	return True
-
-
 def generate_udp_inv(listener_id: int, action: str) -> object:
 	inv = {"server": {"hosts": {}}}
 	server_ips = []
@@ -97,6 +79,7 @@ def generate_kp_inv(json_data: json, installed_service) -> object:
 		routers[router_id] = {}
 		routers[router_id].setdefault('return_master', vip.return_master)
 		routers[router_id].setdefault('vip', vip.vip)
+		routers[router_id].setdefault('use_src', vip.use_src)
 		slaves = ha_sql.select_cluster_slaves_for_inv(router_id)
 		for slave in slaves:
 			slave_ip = server_sql.select_server_ip_by_id(str(slave.server_id))
@@ -144,11 +127,8 @@ def generate_haproxy_inv(json_data: json, installed_service: str) -> object:
 	stats_password = sql.get_setting('haproxy_stats_password')
 	haproxy_dir = sql.get_setting('haproxy_dir')
 	container_name = sql.get_setting('haproxy_container_name')
-	haproxy_ver = ''
+	haproxy_ver = '2.9.6-1'
 	is_docker = json_data['services']['haproxy']['docker']
-
-	if haproxy_ver == '':
-		haproxy_ver = '2.8.1-1'
 
 	for k, v in json_data['servers'].items():
 		if not v['master']:
@@ -346,10 +326,10 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 
 
 def install_service(service: str, json_data: str) -> object:
-	try:
-		json_data = json.loads(json_data)
-	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot parse JSON', roxywi=1)
+	# try:
+	# 	json_data = json.loads(json_data)
+	# except Exception as e:
+	# 	roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot parse JSON', roxywi=1)
 
 	generate_functions = {
 		'haproxy': generate_haproxy_inv,
@@ -368,7 +348,7 @@ def install_service(service: str, json_data: str) -> object:
 
 def _install_ansible_collections():
 	old_ansible_server = ''
-	collections = ('community.general', 'ansible.posix', 'community.docker', 'community.grafana')
+	collections = ('community.general', 'ansible.posix', 'community.docker', 'community.grafana', 'ansible.netcommon')
 	trouble_link = 'Read <a href="https://roxy-wi.org/troubleshooting#ansible_collection" target="_blank" class="link">troubleshooting</a>'
 	for collection in collections:
 		if not os.path.isdir(f'/usr/share/httpd/.ansible/collections/ansible_collections/{collection.replace(".", "/")}'):

@@ -43,7 +43,6 @@ function getHAClusterVIPS(cluster_id) {
 				clearUdpVip();
 				$('#new-udp-vip').append('<option value="------" selected>------</option>')
 				data.forEach(function (obj) {
-					console.log(obj.vip);
 					$('#new-udp-vip').append('<option value="' + obj.id + '">' + obj.vip + '</option>')
 				});
 				$('#new-udp-vip').selectmenu("refresh");
@@ -320,7 +319,8 @@ function saveUdpListener(jsonData, dialog_id, listener_id=0, edited=0, reconfigu
 function Reconfigure(listener_id) {
 	return $.ajax({
 		url: "/app/install/udp",
-		data: {listener_id: listener_id},
+		data: JSON.stringify({listener_id: listener_id}),
+		contentType: "application/json; charset=utf-8",
 		async: false,
 		type: "POST",
 		success: function (data) {

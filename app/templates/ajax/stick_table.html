@@ -5,7 +5,7 @@
 	{% set headers = headers.split(' ') %}
 <script>
 	$(document).ready(function() {
-		$('#{{tables_head.0.strip()}}').on( 'page.dt',   function () { $.getScript("/inc/fontawesome.min.js"); } )
+		$('#{{tables_head.0.strip()}}').on( 'page.dt',   function () { $.getScript("/app/static/js/fontawesome.min.js"); } )
 		.DataTable( {
 			"pageLength": 25,
 			"columnDefs": [

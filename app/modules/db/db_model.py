@@ -728,6 +728,7 @@ class HaClusterVip(BaseModel):
     router_id = ForeignKeyField(HaClusterRouter, on_delete='Cascade')
     return_master = IntegerField(constraints=[SQL('DEFAULT "0"')])
     vip = CharField()
+    use_src = IntegerField(constraints=[SQL('DEFAULT "0"')])
 
     class Meta:
         table_name = 'ha_cluster_vips'

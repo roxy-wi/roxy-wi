@@ -2,7 +2,7 @@
 {% from 'include/input_macros.html' import copy_to_clipboard %}
 <script>
     $(document).ready(function() {
-        $('#sessions_table').on( 'page.dt',   function () { $.getScript("/inc/fontawesome.min.js"); } )
+        $('#sessions_table').on( 'page.dt',   function () { $.getScript("/app/static/js/fontawesome.min.js"); } )
             .DataTable( {
                 "order": [[ 5, "desc" ]],
                 "pageLength": 25,

@@ -6,7 +6,7 @@
 	{% include 'include/getstarted.html' %}
 {% else %}
 <link href="{{ url_for('static', filename='css/table-6.3.9.css') }}" rel="stylesheet" type="text/css">
-<script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables.min.js"></script>
 	<p>
 		<form action="{{ action }}" method="post" class="left-space">
 			<input type="hidden" value="{{service}}" name="service" id="service">

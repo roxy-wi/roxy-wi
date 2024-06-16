@@ -1,3 +1,10 @@
+let nice_names = {
+	'haproxy': 'HAProxy',
+	'nginx': 'NGINX',
+	'apache': 'Apache',
+	'node': 'Node',
+	'keepalived': 'Keepalived'
+};
 $( function() {
 	$('#install').click(function () {
 		installService('haproxy')
@@ -13,16 +20,12 @@ $( function() {
 		$("#ajaxmon").html(wait_mess);
 		$.ajax({
 			url: "/app/install/grafana",
-			// data: {
-			// 	token: $('#token').val()
-			// 	},
-			// type: "POST",
 			success: function (data) {
 				data = data.replace(/\s+/g, ' ');
 				$("#ajaxmon").html('');
 				if (data.indexOf('FAILED') != '-1' || data.indexOf('UNREACHABLE') != '-1' || data.indexOf('ERROR') != '-1') {
 					toastr.clear();
-					var p_err = show_pretty_ansible_error(data);
+					let p_err = show_pretty_ansible_error(data);
 					toastr.error(p_err);
 				} else if (data.indexOf('success') != '-1') {
 					toastr.clear();
@@ -87,28 +90,27 @@ $( function() {
 		}
 	});
 	$("#geoip_install").click(function () {
-		var updating_geoip = 0;
+		let updating_geoip = 0;
 		if ($('#updating_geoip').is(':checked')) {
 			updating_geoip = '1';
 		}
 		$("#ajax-geoip").html(wait_mess);
 		let service = $('#geoip_service option:selected').val();
+		let jsonData = {
+			"server_ip": $('#geoipserv option:selected').val(),
+			"service": service,
+			"update": updating_geoip
+		}
 		$.ajax({
 			url: "/app/install/geoip",
-			data: {
-				server_ip: $('#geoipserv option:selected').val(),
-				service: service,
-				update: updating_geoip,
-				token: $('#token').val()
-			},
+			data: JSON.stringify(jsonData),
+			contentType: "application/json; charset=utf-8",
 			type: "POST",
 			success: function (data) {
 				$("#ajax-geoip").html('');
-				try {
-					if (data.indexOf('error:') != '-1') {
-						toastr.error(data);
-					}
-				} catch (e) {
+				if (data.status === 'failed') {
+					toastr.error(data.error);
+				} else {
 					parseAnsibleJsonOutput(data, service + ' GeoIP', '#geoip_service');
 					$("#geoip_service").trigger("selectmenuchange");
 				}
@@ -117,15 +119,11 @@ $( function() {
 	});
 });
 function checkGeoipInstallation() {
-	$.ajax( {
+	$.ajax({
 		url: "/app/install/geoip/" + $('#geoip_service option:selected').val() + "/" + $('#geoipserv option:selected').val(),
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
-		success: function( data ) {
-			data = data.replace(/^\s+|\s+$/g,'');
-			if(data.indexOf('No such file or directory') != '-1' || data.indexOf('cannot access') != '-1') {
+		success: function (data) {
+			data = data.replace(/^\s+|\s+$/g, '');
+			if (data.indexOf('No such file or directory') != '-1' || data.indexOf('cannot access') != '-1') {
 				$('#cur_geoip').html('<b style="color: var(--red-color)">GeoIPLite is not installed</b>');
 				$('#geoip_install').show();
 			} else {
@@ -133,14 +131,13 @@ function checkGeoipInstallation() {
 				$('#geoip_install').hide();
 			}
 		}
-	} );
+	});
 }
 function installService(service) {
 	$("#ajax").html('')
-	var syn_flood = 0;
-	var docker = 0;
-	var select_id = '#' + service + 'addserv';
-	var nice_names = {'haproxy': 'HAProxy', 'nginx': 'NGINX', 'apache': 'Apache'};
+	let syn_flood = 0;
+	let docker = 0;
+	let select_id = '#' + service + 'addserv';
 	if ($('#' + service + '_syn_flood').is(':checked')) {
 		syn_flood = '1';
 	}
@@ -148,11 +145,11 @@ function installService(service) {
 		docker = '1';
 	}
 	if ($(select_id).val() == '------' || $(select_id).val() === null) {
-		var select_server = $('#translate').attr('data-select_server');
+		let select_server = $('#translate').attr('data-select_server');
 		toastr.warning(select_server);
 		return false
 	}
-	var jsonData = {};
+	let jsonData = {};
 	jsonData['servers'] = {'0': {}}
 	jsonData['services'] = {};
 	jsonData['services'][service] = {};
@@ -174,16 +171,13 @@ function installService(service) {
 		504: function () {
 			showErrorStatus(nice_names[service], $(select_id + ' option:selected').text());
 		},
-		data: {
-			jsonData: JSON.stringify(jsonData)
-		},
+		data: JSON.stringify(jsonData),
+		contentType: "application/json; charset=utf-8",
 		type: "POST",
 		success: function (data) {
-			try {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				}
-			} catch (e) {
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+			} else {
 				parseAnsibleJsonOutput(data, nice_names[service], select_id);
 				$(select_id).trigger("selectmenuchange");
 			}
@@ -193,56 +187,54 @@ function installService(service) {
 function installExporter(exporter) {
 	$("#ajaxmon").html('');
 	$("#ajaxmon").html(wait_mess);
-	var exporter_id = '#' + exporter + '_exp_addserv';
-	var ext_prom = 0;
-		if ($('#' + exporter + '_ext_prom').is(':checked')) {
-			ext_prom = '1';
-		}
-	var nice_names = {'haproxy': 'HAProxy exporter', 'nginx': 'NGINX exporter', 'apache': 'Apache exporter', 'node': 'Node exporter', 'keepalived': 'Keepalived exporter'};
+	let exporter_id = '#' + exporter + '_exp_addserv';
+	let ext_prom = 0;
+	let nice_exporter_name = nice_names[exporter] + ' exporter';
+	if ($('#' + exporter + '_ext_prom').is(':checked')) {
+		ext_prom = '1';
+	}
+	let jsonData = {
+		"server_ip": $(exporter_id).val(),
+		"exporter_v": $('#' + exporter + 'expver').val(),
+		"ext_prom": ext_prom,
+	}
 	$("#ajax").html(wait_mess);
 	$.ajax({
 		url: "/app/install/exporter/" + exporter,
 		500: function () {
-			showErrorStatus(nice_names[exporter], $(exporter_id + ' option:selected').text());
+			showErrorStatus(nice_exporter_name, $(exporter_id + ' option:selected').text());
 		},
 		504: function () {
-			showErrorStatus(nice_names[exporter], $(exporter_id + ' option:selected').text());
+			showErrorStatus(nice_exporter_name, $(exporter_id + ' option:selected').text());
 		},
-		data: {
-				server_ip: $(exporter_id).val(),
-				exporter_v: $('#' + exporter + 'expver').val(),
-				ext_prom: ext_prom,
-				token: $('#token').val()
-			},
+		data: JSON.stringify(jsonData),
+		contentType: "application/json; charset=utf-8",
 		type: "POST",
 		success: function (data) {
-			try {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				}
-			} catch (e) {
-				parseAnsibleJsonOutput(data, nice_names[exporter], exporter_id);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+			} else {
+				parseAnsibleJsonOutput(data, nice_exporter_name, exporter_id);
 				$(exporter_id).trigger("selectmenuchange");
 			}
 		}
 	});
 }
 function showExporterVersion(exporter) {
-	var nice_names = {'haproxy': 'HAProxy', 'nginx': 'NGINX', 'apache': 'Apache', 'node': 'Node', 'keepalived': 'Keepalived'};
 	$.ajax({
-			url: "/app/install/exporter/"+ exporter +"/version/" + $('#' + exporter + '_exp_addserv option:selected').val(),
-			success: function (data) {
-				data = data.replace(/^\s+|\s+$/g, '');
-				if (data.indexOf('error:') != '-1') {
-					toastr.clear();
-					toastr.error(data);
-				} else if (data == 'no' || data.indexOf('command') != '-1' || data.indexOf('_exporter:') != '-1' || data == '') {
-					$('#cur_'+ exporter +'_exp_ver').text(nice_names[exporter]+' exporter has not been installed');
-				} else {
-					$('#cur_'+ exporter +'_exp_ver').text(data);
-				}
+		url: "/app/install/exporter/" + exporter + "/version/" + $('#' + exporter + '_exp_addserv option:selected').val(),
+		success: function (data) {
+			data = data.replace(/^\s+|\s+$/g, '');
+			if (data.indexOf('error:') != '-1') {
+				toastr.clear();
+				toastr.error(data);
+			} else if (data == 'no' || data.indexOf('command') != '-1' || data.indexOf('_exporter:') != '-1' || data == '') {
+				$('#cur_' + exporter + '_exp_ver').text(nice_names[exporter] + ' exporter has not been installed');
+			} else {
+				$('#cur_' + exporter + '_exp_ver').text(data);
 			}
-		});
+		}
+	});
 }
 function showServiceVersion(service) {
 	$.ajax({
@@ -272,26 +264,25 @@ function showServiceVersion(service) {
 	});
 }
 function showErrorStatus(service_name, server) {
-	var something_wrong = $('#translate').attr('data-something_wrong');
+	let something_wrong = $('#translate').attr('data-something_wrong');
 	toastr.error(something_wrong + ' ' + service_name + ' ' + server);
 }
 function parseAnsibleJsonOutput(output, service_name, select_id) {
-	output = JSON.parse(JSON.stringify(output));
 	let was_installed = $('#translate').attr('data-was_installed');
 	let server_name = '';
-	for (var k in output['ok']) {
+	for (let k in output['ok']) {
 		if (select_id) {
 			server_name = $(select_id + ' option[value="'+k+'"]').text();
 		}
 		toastr.success(service_name + ' ' + was_installed +' ' + server_name);
 	}
-	for (var k in output['failures']) {
+	for (let k in output['failures']) {
 		if (select_id) {
 			server_name = $(select_id + ' option[value="'+k+'"]').text();
 		}
 		showErrorStatus(service_name, server_name);
 	}
-	for (var k in output['dark']) {
+	for (let k in output['dark']) {
 		if (select_id) {
 			server_name = $(select_id + ' option[value="'+k+'"]').text();
 		}

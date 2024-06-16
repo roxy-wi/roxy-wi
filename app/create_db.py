@@ -467,38 +467,6 @@ def update_db_v_4_3_0():
 			print("An error occurred:", e)
 
 
-def update_db_v_6_3_11():
-	cursor = conn.cursor()
-	sql = """
-	ALTER TABLE `smon` ADD COLUMN pd_channel_id integer default 0;
-	"""
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		if e.args[0] == 'duplicate column name: pd_channel_id' or str(e) == '(1060, "Duplicate column name \'pd_channel_id\'")':
-			print('Updating... DB has been updated to version 6.3.11')
-		else:
-			print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 6.3.11")
-
-
-def update_db_v_6_3_13():
-	cursor = conn.cursor()
-	sql = """
-	ALTER TABLE `smon` ADD COLUMN check_type VARCHAR ( 64 ) DEFAULT 'tcp';
-	"""
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		if e.args[0] == 'duplicate column name: check_type' or str(e) == '(1060, "Duplicate column name \'check_type\'")':
-			print('Updating... DB has been updated to version 6.3.13')
-		else:
-			print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 6.3.13")
-
-
 def update_db_v_6_3_13_1():
 	try:
 		SmonTcpCheck.insert_from(
@@ -656,7 +624,6 @@ def update_db_v_7_2_0_1():
 		print("Updating... DB has been updated to version 7.2.0-1")
 
 
-
 def update_db_v_7_2_3():
 	try:
 		if mysql_enable:
@@ -676,9 +643,26 @@ def update_db_v_7_2_3():
 			print("An error occurred:", e)
 
 
+def update_db_v_7_3_1():
+	try:
+		if mysql_enable:
+			migrate(
+				migrator.add_column('ha_cluster_vips', 'use_src', IntegerField(default=0)),
+			)
+		else:
+			migrate(
+				migrator.add_column('ha_cluster_vips', 'use_src', IntegerField(constraints=[SQL('DEFAULT 0')])),
+			)
+	except Exception as e:
+		if e.args[0] == 'duplicate column name: use_src' or str(e) == '(1060, "Duplicate column name \'use_src\'")':
+			print('Updating... DB has been updated to version 7.3.1')
+		else:
+			print("An error occurred:", e)
+
+
 def update_ver():
 	try:
-		Version.update(version='7.3.0.0').execute()
+		Version.update(version='7.3.1.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -696,8 +680,6 @@ def update_all():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4_3_0()
-	update_db_v_6_3_11()
-	update_db_v_6_3_13()
 	update_db_v_6_3_13_1()
 	update_db_v_6_3_13_2()
 	update_db_v_6_3_13_3()
@@ -710,6 +692,7 @@ def update_all():
 	update_db_v_7_2_0()
 	update_db_v_7_2_0_1()
 	update_db_v_7_2_3()
+	update_db_v_7_3_1()
 	update_ver()
 
 

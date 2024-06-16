@@ -1,4 +1,4 @@
-from flask import render_template, request, g
+from flask import render_template, request, g, jsonify
 from flask_login import login_required
 
 from app.routes.install import bp
@@ -35,11 +35,11 @@ def install_monitoring():
 @bp.post('/<service>')
 @check_services
 def install_service(service):
-    json_data = request.form.get('jsonData')
+    json_data = request.get_json()
     try:
         return service_mod.install_service(service, json_data)
     except Exception as e:
-        return f'{e}'
+        return jsonify({'status': 'failed', 'error': f'{e}'})
 
 
 @bp.route('/<service>/version/<server_ip>')
@@ -55,17 +55,18 @@ def get_service_version(service, server_ip):
 
 @bp.post('/exporter/<exporter>')
 def install_exporter(exporter):
-    server_ip = common.is_ip_or_dns(request.form.get('server_ip'))
-    ver = common.checkAjaxInput(request.form.get('exporter_v'))
-    ext_prom = common.checkAjaxInput(request.form.get('ext_prom'))
+    json_data = request.get_json()
+    server_ip = common.is_ip_or_dns(json_data['server_ip'])
+    ver = common.checkAjaxInput(json_data['exporter_v'])
+    ext_prom = common.checkAjaxInput(json_data['ext_prom'])
 
     if exporter not in ('haproxy', 'nginx', 'apache', 'keepalived', 'node'):
-        return 'error: Wrong exporter'
+        return jsonify({'status': 'failed', 'error': 'Wrong exporter'})
 
     try:
         return exp_installation.install_exporter(server_ip, ver, ext_prom, exporter)
     except Exception as e:
-        return f'{e}'
+        return jsonify({'status': 'failed', 'error': f'Cannot install {exporter.title()} exporter: {e}'})
 
 
 @bp.route('/exporter/<exporter>/version/<server_ip>')
@@ -90,41 +91,42 @@ def install_waf(service, server_ip):
     try:
         inv, server_ips = service_mod.generate_waf_inv(server_ip, service)
     except Exception as e:
-        return f'error: Cannot create inventory: {e}'
+        return jsonify({'status': 'failed', 'error': f'Cannot create inventory: {e}'})
     try:
         ansible_status = service_mod.run_ansible(inv, server_ips, f'waf_{service}'), 201
     except Exception as e:
-        return f'error: Cannot install WAF: {e}'
+        return jsonify({'status': 'failed', 'error': f'Cannot install WAF: {e}'})
 
     if service == 'haproxy':
         try:
             waf_sql.insert_waf_metrics_enable(server_ip, "0")
             waf_sql.insert_waf_rules(server_ip)
         except Exception as e:
-            return str(e)
+            return jsonify({'status': 'failed', 'error': f'Cannot enable WAF: {e}'})
     elif service == 'nginx':
         try:
             waf_sql.insert_nginx_waf_rules(server_ip)
             waf_sql.insert_waf_nginx_server(server_ip)
         except Exception as e:
-            return str(e)
+            return jsonify({'status': 'failed', 'error': f'Cannot enable WAF: {e}'})
     else:
-        return 'error: Wrong service'
+        return jsonify({'status': 'failed', 'error': 'Wrong service'})
 
     return ansible_status
 
 
 @bp.post('/geoip')
 def install_geoip():
-    server_ip = common.is_ip_or_dns(request.form.get('server_ip'))
-    geoip_update = common.checkAjaxInput(request.form.get('update'))
-    service = request.form.get('service')
+    json_data = request.get_json()
+    server_ip = common.is_ip_or_dns(json_data['server_ip'])
+    geoip_update = common.checkAjaxInput(json_data['update'])
+    service = common.checkAjaxInput(json_data['service'])
 
     try:
         inv, server_ips = service_mod.generate_geoip_inv(server_ip, service, geoip_update)
         return service_mod.run_ansible(inv, server_ips, f'{service}_geoip'), 201
     except Exception as e:
-        return f'{e}'
+        return jsonify({'status': 'failed', 'error': f'Cannot install GeoIP: {e}'})
 
 
 @bp.route('/geoip/<service>/<server_ip>')
@@ -141,9 +143,10 @@ def check_geoip(service, server_ip):
 
 @bp.post('/udp')
 def install_udp():
-    listener_id = int(request.form.get('listener_id'))
+    json_data = request.get_json()
+    listener_id = int(json_data['listener_id'])
     try:
         inv, server_ips = service_mod.generate_udp_inv(listener_id, 'install')
         return service_mod.run_ansible(inv, server_ips, f'udp'), 201
     except Exception as e:
-        return f'{e}'
+        return jsonify({'status': 'failed', 'error': f'Cannot create listener: {e}'})

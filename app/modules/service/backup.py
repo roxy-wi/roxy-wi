@@ -71,40 +71,35 @@ def backup(serv, rpath, time, backup_type, rserver, cred, deljob, update, descri
 
 
 def s3_backup(server, s3_server, bucket, secret_key, access_key, time, deljob, description) -> str:
-    script = 's3_backup.sh'
-    tag = 'add'
-    full_path = '/var/www/haproxy-wi/app'
-
     if deljob:
         time = ''
         secret_key = ''
         access_key = ''
         tag = 'delete'
     else:
+        tag = 'add'
         if backup_sql.check_exists_s3_backup(server):
             raise Exception(f'error: Backup job for {server} already exists')
 
-    os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
-
-    commands = [
-        f"chmod +x {full_path}/{script} && {full_path}/{script} SERVER={server} S3_SERVER={s3_server} BUCKET={bucket} "
-        f"SECRET_KEY={secret_key} ACCESS_KEY={access_key} TIME={time} TAG={tag}"
-    ]
-
-    return_out = server_mod.subprocess_execute_with_rc(commands[0])
+    inv = {"server": {"hosts": {}}}
+    inv["server"]["hosts"]["localhost"] = {
+        "SERVER": server,
+        "S3_SERVER": s3_server,
+        "BUCKET": bucket,
+        "SECRET_KEY": secret_key,
+        "ACCESS_KEY": access_key,
+        "TIME": time,
+        "action": tag
+    }
 
     try:
-        os.remove(f'{full_path}/{script}')
-    except Exception:
-        pass
+        installation_mod.run_ansible(inv, [], 's3_backup')
+    except Exception as e:
+        raise Exception(f'error: {e}')
 
     if not deljob:
         try:
-            if installation_mod.show_installation_output(return_out['error'], return_out['output'], 'S3 backup', rc=return_out['rc']):
-                try:
-                    backup_sql.insert_s3_backup_job(server, s3_server, bucket, secret_key, access_key, time, description)
-                except Exception as e:
-                    raise Exception(f'error: {e}')
+            backup_sql.insert_s3_backup_job(server, s3_server, bucket, secret_key, access_key, time, description)
         except Exception as e:
             raise Exception(e)
         roxywi_common.logging('backup ', f' a new S3 backup job for server {server} has been created', roxywi=1, login=1)

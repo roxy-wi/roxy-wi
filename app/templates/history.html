@@ -7,13 +7,13 @@
 	{% include 'include/no_sub.html' %}
 {% else %}
 <link href="{{ url_for('static', filename='css/table-6.3.9.css') }}" rel="stylesheet" type="text/css">
-<link href="/inc/dataTables/buttons.dataTables.min.css" rel="stylesheet" type="text/css">
-<script type="text/javascript" charset="utf8" src="/inc/dataTables.min.js"></script>
-<script type="text/javascript" charset="utf8" src="/inc/dataTables/dataTables.buttons.min.js"></script>
-<script type="text/javascript" charset="utf8" src="/inc/dataTables/jszip.min.js"></script>
-<script type="text/javascript" charset="utf8" src="/inc/dataTables/pdfmake.min.js"></script>
-<script type="text/javascript" charset="utf8" src="/inc/dataTables/vfs_fonts.js"></script>
-<script type="text/javascript" charset="utf8" src="/inc/dataTables/buttons.html5.min.js"></script>
+<link href="/app/static/js/dataTables/buttons.dataTables.min.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables/dataTables.buttons.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables/jszip.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables/pdfmake.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables/vfs_fonts.js"></script>
+<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables/buttons.html5.min.js"></script>
 <script>
     $(document).ready(function() {
         $('#table_history').on('page.dt')

@@ -91,7 +91,7 @@
   service:
     name: keepalived
     daemon_reload: yes
-    state: started
+    state: restarted
     enabled: yes
   ignore_errors: yes
 
