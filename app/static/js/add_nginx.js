@@ -7,7 +7,7 @@ $( function() {
     $( "#serv" ).on('selectmenuchange',function() {
 		$('#name').focus();
 	});
-    var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server" style="margin: 2px 0 4px 0;">: ' +
+    let add_server_let = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server" style="margin: 2px 0 4px 0;">: ' +
 		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number"> ' +
 		'max_fails: <input name="max_fails" required title="By default, the number of unsuccessful attempts is set to 1" size=5 value="1" class="form-control add_server_number" type="number">' +
 		' fail_timeout: <input name="fail_timeout" required title="By default, the number of unsuccessful attempts is set to 1" size=5 value="1" class="form-control add_server_number" type="number">s'
@@ -48,14 +48,14 @@ function checkIsServerFiled(select_id, message = 'Select a server first') {
 	return true;
 }
 function generateConfig(form_name) {
-	var frm = $('#' + form_name);
+	let frm = $('#' + form_name);
 	if (form_name == 'add-upstream') {
 		serv = '#serv'
 		name_id = '#name'
 	}
 	if (!checkIsServerFiled(serv)) return false;
 	if (!checkIsServerFiled(name_id, 'The name cannot be empty')) return false;
-	var input = $("<input>")
+	let input = $("<input>")
 		.attr("name", "generateconfig").val("1").attr("type", "hidden").attr("id", "generateconfig");
 	$('#' + form_name + ' input[name=acl_then_value]').each(function () {
 		if (!$(this).val()) {
@@ -73,7 +73,7 @@ function generateConfig(form_name) {
 		}
 	});
 	frm.append(input);
-	var generated_title = $('#translate').attr('data-generated_config');
+	let generated_title = translate_div.attr('data-generated_config');
 	$.ajax({
 		url: frm.attr('action'),
 		data: frm.serialize(),
@@ -112,7 +112,7 @@ function generateConfig(form_name) {
 	});
 }
 function addProxy(form_name) {
-	var frm = $('#'+form_name);
+	let frm = $('#'+form_name);
 	if (form_name == 'add-upstream') {
 		serv = '#serv'
 		name_id = '#name'

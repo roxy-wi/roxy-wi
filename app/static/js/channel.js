@@ -1,8 +1,4 @@
-var awesome = "/app/static/js/fontawesome.min.js";
-var add_word = $('#translate').attr('data-add');
-var delete_word = $('#translate').attr('data-delete');
-var cancel_word = $('#translate').attr('data-cancel');
-var cur_url = window.location.href.split('/app/').pop();
+let cur_url = window.location.href.split('/app/').pop();
 cur_url = cur_url.split('/');
 $( function() {
    	$('#add-telegram-button').click(function() {
@@ -17,8 +13,8 @@ $( function() {
 	$('#add-mm-button').click(function() {
 		addMMDialog.dialog('open');
 	});
-	var telegram_tabel_title = $( "#telegram-add-table-overview" ).attr('title');
-	var addTelegramDialog = $( "#telegram-add-table" ).dialog({
+	let telegram_tabel_title = $( "#telegram-add-table-overview" ).attr('title');
+	let addTelegramDialog = $( "#telegram-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -46,8 +42,8 @@ $( function() {
 			}
 		}]
 	});
-	var slack_tabel_title = $( "#slack-add-table-overview" ).attr('title');
-	var addSlackDialog = $( "#slack-add-table" ).dialog({
+	let slack_tabel_title = $( "#slack-add-table-overview" ).attr('title');
+	let addSlackDialog = $( "#slack-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -75,8 +71,8 @@ $( function() {
 			}
 		}]
 	});
-	var pd_tabel_title = $( "#pd-add-table-overview" ).attr('title');
-	var addPDDialog = $( "#pd-add-table" ).dialog({
+	let pd_tabel_title = $( "#pd-add-table-overview" ).attr('title');
+	let addPDDialog = $( "#pd-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -104,8 +100,8 @@ $( function() {
 			}
 		}]
 	});
-	var mm_tabel_title = $( "#mm-add-table-overview" ).attr('title');
-	var addMMDialog = $( "#mm-add-table" ).dialog({
+	let mm_tabel_title = $( "#mm-add-table-overview" ).attr('title');
+	let addMMDialog = $( "#mm-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -134,27 +130,27 @@ $( function() {
 		}]
 	});
 	$( "#checker_telegram_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateReceiver(id[2], 'telegram')
 	});
 	$( "#checker_telegram_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateReceiver(id[1], 'telegram')
 	});
    $( "#checker_slack_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateReceiver(id[2], 'slack')
 	});
 	$( "#checker_slack_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateReceiver(id[1], 'slack')
 	});
    $( "#checker_pd_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateReceiver(id[2], 'pd')
 	});
 	$( "#checker_pd_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateReceiver(id[1], 'pd')
 	});
 });
@@ -179,9 +175,9 @@ function loadChannel() {
 }
 function updateReceiver(id, receiver_name) {
 	if (cur_url[0].indexOf('servers') != '-1') {
-		var group = $('#new-group').val();
+		let group = $('#new-group').val();
 	} else {
-		var group = $('#' + receiver_name + 'group-' + id).val();
+		let group = $('#' + receiver_name + 'group-' + id).val();
 	}
 	toastr.clear();
 	$.ajax({
@@ -226,7 +222,7 @@ function checkReceiver(channel_id, receiver_name) {
 	});
 }
 function addRecevier(dialog_id, receiver_name) {
-	var valid = true;
+	let valid = true;
 	toastr.clear();
 	let allFields = $([]).add($('#' + receiver_name + '-token-add')).add($('#' + receiver_name + '-chanel-add'));
 	allFields.removeClass("ui-state-error");
@@ -248,8 +244,8 @@ function addRecevier(dialog_id, receiver_name) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
-					var getId = new RegExp(receiver_name + '-table-[0-9]+');
-					var id = data.match(getId) + '';
+					let getId = new RegExp(receiver_name + '-table-[0-9]+');
+					let id = data.match(getId) + '';
 					id = id.split('-').pop();
 					$('select:regex(id, ' + receiver_name + '_channel)').append('<option value=' + id + '>' + $('#' + receiver_name + '-chanel-add').val() + '</option>').selectmenu("refresh");
 					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_' + receiver_name + '_table', data);

@@ -1,6 +1,3 @@
-let add_word = $('#translate').attr('data-add');
-const delete_word = $('#translate').attr('data-delete');
-const cancel_word = $('#translate').attr('data-cancel');
 const check_types = {'tcp': 1, 'http': 2, 'ping': 4, 'dns': 5};
 $(function () {
 	$( "#check_type" ).on('selectmenuchange',function() {
@@ -176,7 +173,7 @@ function openSmonDialog(check_type, smon_id=0, edit=false) {
 	check_and_clear_check_type(check_type);
 	let smon_add_tabel_title = $("#smon-add-table-overview").attr('title');
 	if (edit) {
-		add_word = $('#translate').attr('data-edit');
+		add_word = translate_div.attr('data-edit');
 		smon_add_tabel_title = $("#smon-add-table-overview").attr('data-edit');
 		$('#check_type').attr('disabled', 'disabled');
 		$('#check_type').selectmenu("refresh");
@@ -285,7 +282,6 @@ function getSmonCheck(smon_id, check_id, dialog_id, new_check=false) {
 				$('#smon-' + smon_id).replaceWith(data);
 			}
 			$(dialog_id).dialog("close");
-			// $.getScript("/app/static/js/fontawesome.min.js");
 		}
 	});
 }
@@ -409,7 +405,7 @@ function smon_manage_status_page_avg_status(page_id) {
 	});
 }
 function createStatusPageStep1(edited=false, page_id=0) {
-	var next_word = $('#translate').attr('data-next');
+	var next_word = translate_div.attr('data-next');
 	var smon_add_tabel_title = $("#create-status-page-step-1-overview").attr('title');
 	if (edited) {
 		smon_add_tabel_title = $("#create-status-page-step-1-overview").attr('data-edit');
@@ -466,11 +462,10 @@ function createStatusPageStep1(edited=false, page_id=0) {
 	addSmonStatus.dialog('open');
 }
 function createStatusPageStep2(edited, page_id) {
-	var back_word = $('#translate').attr('data-back');
 	var smon_add_tabel_title = $("#create-status-page-step-2-overview").attr('title');
 	if (edited) {
 		smon_add_tabel_title = $("#create-status-page-step-2-overview").attr('data-edit');
-		add_word = $('#translate').attr('data-edit');
+		add_word = translate_div.attr('data-edit');
 		if ($("#enabled-check > div").length == 0) {
 			$.ajax({
 				url: "/app/smon/status/checks/" + page_id,
@@ -564,7 +559,7 @@ function createStatusPage(dialog_id) {
 			} else {
 				clearStatusPageDialog(dialog_id);
 				$("#pages").append(data);
-				$.getScript("/app/static/js/fontawesome.min.js");
+				$.getScript(awesome);
 			}
 		}
 	});
@@ -600,14 +595,13 @@ function editStatusPage(dialog_id, page_id) {
 				setTimeout(function () {
 					$("#page_" + page_id).removeClass("update");
 				}, 2500);
-				$.getScript("/app/static/js/fontawesome.min.js");
+				$.getScript(awesome);
 			}
 		}
 	});
 }
 function addCheckToStatus(service_id) {
 	var service_name = $('#add_check-' + service_id).attr('data-service_name');
-	var service_word = $('#translate').attr('data-service');
 	var length_tr = $('#all-checks').length;
 	var tr_class = 'odd';
 	if (length_tr % 2 != 0) {
@@ -621,7 +615,6 @@ function addCheckToStatus(service_id) {
 }
 function removeCheckFromStatus(service_id) {
 	var service_name = $('#remove_check-' + service_id).attr('data-service_name');
-	var service_word = $('#translate').attr('data-service');
 	var length_tr = $('#all_services tbody tr').length;
 	var tr_class = 'odd';
 	if (length_tr % 2 != 0) {
@@ -692,8 +685,8 @@ function addAgentDialog(agent_id=0, edit=false) {
 	let tabel_title = $("#add-agent-page-overview").attr('title');
 	let buttons = [];
 	if (edit) {
-		add_word = $('#translate').attr('data-edit');
-		let reconfigure_word = $('#translate').attr('data-reconfigure');
+		add_word = translate_div.attr('data-edit');
+		let reconfigure_word = translate_div.attr('data-reconfigure');
 		tabel_title = $("#add-agent-page-overview").attr('data-edit');
 		getAgentSettings(agent_id);
 		buttons = [
@@ -716,7 +709,7 @@ function addAgentDialog(agent_id=0, edit=false) {
 			}
 		]
 	} else {
-		add_word = $('#translate').attr('data-add');
+		add_word = translate_div.attr('data-add');
 		if (!checkAgentLimit()) {
 			return false;
 		}
@@ -856,7 +849,7 @@ function getAgent(agent_id, new_agent=false) {
 				} else {
 					$('#agent-' + agent_id).replaceWith(data);
 				}
-				$.getScript("/app/static/js/fontawesome.min.js");
+				$.getScript(awesome);
 				$('#agent-' + agent_id).removeClass('animated-background');
 			}
 		}
@@ -979,7 +972,7 @@ function removeAgent(id, dialog_id) {
     });
 }
 function confirmAjaxAction(action, id, server_ip) {
-	let action_word = $('#translate').attr('data-'+action);
+	let action_word = translate_div.attr('data-'+action);
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
 		height: "auto",
@@ -1029,7 +1022,7 @@ function getSmonHistoryCheckData(server) {
     });
 }
 function renderSMONChart(data, labels, server) {
-    const resp_time_word = $('#translate').attr('data-resp_time');
+    const resp_time_word = translate_div.attr('data-resp_time');
     const ctx = document.getElementById('metrics_' + server);
 
     // Преобразование данных в массивы

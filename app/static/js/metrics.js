@@ -1,5 +1,5 @@
 function return_service_chart_config() {
-    var config = {
+    let config = {
         type: 'line',
         data: {
             labels: [],
@@ -63,9 +63,7 @@ function return_service_chart_config() {
 }
 function stream_chart(chart_id, service, service_ip, is_http=0) {
     let random_sleep = getRandomArbitrary(500, 2000);
-    console.log(`stream_chart ${random_sleep}`);
     sleep(random_sleep);
-    console.log('stop sleep')
     const source = new EventSource(`/app/metrics/${service}/${service_ip}/${is_http}/chart-stream`);
     source.onmessage = function (event) {
         const data = JSON.parse(event.data);
@@ -86,7 +84,7 @@ function stream_chart(chart_id, service, service_ip, is_http=0) {
     }
 }
 function getHttpChartData(server) {
-    var hide_http_metrics = localStorage.getItem('hide_http_metrics');
+    let hide_http_metrics = localStorage.getItem('hide_http_metrics');
     if (hide_http_metrics == 'disabled') {
         return false;
     }
@@ -97,19 +95,19 @@ function getHttpChartData(server) {
 		},
 		type: "POST",
         success: function (result) {    
-            var data = [];
+            let data = [];
             data.push(result.chartData.http_2xx);
             data.push(result.chartData.http_3xx);
             data.push(result.chartData.http_4xx);
             data.push(result.chartData.http_5xx);
             data.push('HTTP statuses for '+result.chartData.server);
 
-            var labels = result.chartData.labels;
+            let labels = result.chartData.labels;
             renderHttpChart(data, labels, server);
         }
     });
 }
-var charts = []
+let charts = []
 function renderHttpChart(data, labels, server) {
     // Преобразование данных в массивы
     const dataArray0 = data[0].split(',');
@@ -123,8 +121,8 @@ function renderHttpChart(data, labels, server) {
     dataArray2.pop();
     dataArray3.pop();
 
-    var ctx = document.getElementById('http_' + server).getContext('2d');
-    var myChart = new Chart(ctx, {
+    let ctx = document.getElementById('http_' + server).getContext('2d');
+    let myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels.split(','),
@@ -219,13 +217,13 @@ function getChartData(server) {
 		},
 		type: "POST",
         success: function (result) {
-            var data = [];
+            let data = [];
             data.push(result.chartData.curr_con);
             data.push(result.chartData.curr_ssl_con);
             data.push(result.chartData.sess_rate);
             data.push(result.chartData.server);
 
-            var labels = result.chartData.labels;
+            let labels = result.chartData.labels;
             renderChart(data, labels, server);
         }
     });
@@ -240,8 +238,8 @@ function renderChart(data, labels, server) {
     dataArray0.pop();
     dataArray1.pop();
     dataArray2.pop();
-    var ctx = document.getElementById(server);
-    var myChart = new Chart(ctx, {
+    let ctx = document.getElementById(server);
+    let myChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels.split(','),
@@ -323,10 +321,10 @@ function getWafChartData(server) {
 		},
 		type: "POST",
         success: function (result) {   
-            var data = [];
+            let data = [];
             data.push(result.chartData.curr_con);
             data.push(result.chartData.server);
-            var labels = result.chartData.labels;
+            let labels = result.chartData.labels;
             renderServiceChart(data, labels, server, 'waf');
         }
     });
@@ -337,21 +335,21 @@ function renderServiceChart(data, labels, server, service) {
     // Удаление последнего пустого элемента в каждом массиве
     dataArray.pop();
     dataArray.pop();
-    var label = labels.split(',');
+    let label = labels.split(',');
     label.pop();
     label.pop();
-    var ctx = document.getElementById(service + '_' + server).getContext('2d');
-    var additional_title = '';
+    let ctx = document.getElementById(service + '_' + server).getContext('2d');
+    let additional_title = '';
     if (service === 'waf') {
         additional_title = 'WAF ';
     }
     config = return_service_chart_config();
-    for (var i=0; i<label.length; i++) {
+    for (let i=0; i<label.length; i++) {
         config.data.labels.push(label[i])
         config.data.datasets[0].data.push(dataArray[i])
     }
     config.options.plugins.title.text = data[1] + ' ' + additional_title;
-    var myChart = new Chart(ctx, config);
+    let myChart = new Chart(ctx, config);
     myChart.update();
     stream_chart(myChart, service, server);
 }
@@ -363,10 +361,10 @@ function getNginxChartData(server) {
 		},
 		type: "POST",
         success: function (result) {
-            var data = [];
+            let data = [];
             data.push(result.chartData.curr_con);
             data.push(result.chartData.server);
-            var labels = result.chartData.labels;
+            let labels = result.chartData.labels;
             renderServiceChart(data, labels, server, 'nginx');
         }
     });
@@ -429,8 +427,8 @@ function getChartDataHapWiRam(ip) {
     });
 }
 function renderChartHapWiRam(data) {
-    var ctx = document.getElementById('ram').getContext('2d');
-    var myChart = new Chart(ctx, {
+    let ctx = document.getElementById('ram').getContext('2d');
+    let myChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: ['used','free','shared','buff','available','total'],
@@ -502,8 +500,8 @@ function getChartDataHapWiCpu(ip) {
     });
 }
 function renderChartHapWiCpu(data) {
-    var ctx = document.getElementById('cpu').getContext('2d');
-    var myChart = new Chart(ctx, {
+    let ctx = document.getElementById('cpu').getContext('2d');
+    let myChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: ['user','sys','nice','idle','wait','hi','si','steal', 'total'],
@@ -573,7 +571,7 @@ $( function() {
     });
 
     // Check is showing http metrics enabled
-    var hide_http_metrics = localStorage.getItem('hide_http_metrics');
+    let hide_http_metrics = localStorage.getItem('hide_http_metrics');
     if(hide_http_metrics === null) {
         $('#hide_http_metrics').prop('checked', false);
         $('#hide_http_metrics').checkboxradio('refresh');

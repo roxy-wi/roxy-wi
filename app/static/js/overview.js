@@ -1,7 +1,7 @@
-var cur_url = window.location.href.split('/app/').pop();
+let cur_url = window.location.href.split('/app/').pop();
 cur_url = cur_url.split('/');
 function showHapservers(serv, hostnamea, service) {
-	var i;
+	let i;
 	for (i = 0; i < serv.length; i++) {
 		showHapserversCallBack(serv[i], hostnamea[i], service)
 	}
@@ -47,7 +47,7 @@ function overviewHapserverBackends(serv, hostnamea, service) {
 function showOverview(serv, hostnamea) {
 	showOverviewHapWI();
 	showUsersOverview();
-	var i;
+	let i;
 	for (i = 0; i < serv.length; i++) {
 		showOverviewCallBack(serv[i], hostnamea[i])
 	}
@@ -110,7 +110,7 @@ function showOverviewServer(name, ip, id, service) {
 				$(".div-pannel").css('height', '70px');
 				$("#div-pannel-" + id).insertBefore('#up-pannel')
 				$("#ajax-server-" + id).html(data);
-				$.getScript("/app/static/js/fontawesome.min.js")
+				$.getScript(awesome)
 				getChartDataHapWiRam()
 				getChartDataHapWiCpu()
 			}
@@ -209,13 +209,13 @@ $( function() {
 		localStorage.removeItem('restart');
 	});
 	$( ".server-act-links" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 
 		if (cur_url[0] != 'portscanner') {
 			try {
-				var service_name = id[2]
+				let service_name = id[2]
 			} catch (err) {
-				var service_name = 'haproxy'
+				let service_name = 'haproxy'
 			}
 
 			updateHapWIServer(id[1], service_name)
@@ -223,8 +223,7 @@ $( function() {
 	});
 });
 function confirmAjaxAction(action, service, id) {
-	var cancel_word = $('#translate').attr('data-cancel');
-	var action_word = $('#translate').attr('data-'+action);
+	let action_word = translate_div.attr('data-'+action);
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
 		height: "auto",
@@ -264,9 +263,9 @@ function confirmAjaxAction(action, service, id) {
 	});
 }
 function updateHapWIServer(id, service_name) {
-	var alert_en = 0;
-	var metrics = 0;
-	var active = 0;
+	let alert_en = 0;
+	let metrics = 0;
+	let active = 0;
 	if ($('#alert-' + id).is(':checked')) {
 		alert_en = '1';
 	}
@@ -330,7 +329,7 @@ function showBytes(serv) {
 				toastr.error(data);
 			} else {
 				$("#bin_bout").html(data);
-				$.getScript("/app/static/js/fontawesome.min.js")
+				$.getScript(awesome)
 			}
 		}
 	} );
@@ -351,7 +350,7 @@ function showNginxConnections(serv) {
 				toastr.error(data);
 			} else {
 				$("#bin_bout").html(data);
-				$.getScript("/app/static/js/fontawesome.min.js")
+				$.getScript(awesome)
 			}
 		}
 	} );
@@ -372,7 +371,7 @@ function showApachekBytes(serv) {
 				toastr.error(data);
 			} else {
 				$("#bin_bout").html(data);
-				$.getScript("/app/static/js/fontawesome.min.js")
+				$.getScript(awesome)
 			}
 		}
 	} );
@@ -393,7 +392,7 @@ function keepalivedBecameMaster(serv) {
 				toastr.error(data);
 			} else {
 				$("#bin_bout").html(data);
-				$.getScript("/app/static/js/fontawesome.min.js")
+				$.getScript(awesome)
 			}
 		}
 	} );
@@ -441,17 +440,11 @@ function showSubOverview() {
 	} );
 }
 function serverSettings(id, name) {
-	var cancel_word = $('#translate').attr('data-cancel');
-	var save_word = $('#translate').attr('data-save');
-	var settings_word = $('#translate').attr('data-settings');
-	var for_word = $('#translate').attr('data-for');
-	var service = $('#service').val();
+	let settings_word = translate_div.attr('data-settings');
+	let for_word = translate_div.attr('data-for');
+	let service = $('#service').val();
 	$.ajax({
 		url: "/app/service/settings/" + service + "/" + id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1') {
@@ -483,9 +476,9 @@ function serverSettings(id, name) {
 	});
 }
 function serverSettingsSave(id, name, service, dialog_id) {
-	var haproxy_enterprise = 0;
-	var service_dockerized = 0;
-	var service_restart = 0;
+	let haproxy_enterprise = 0;
+	let service_dockerized = 0;
+	let service_restart = 0;
 	if ($('#haproxy_enterprise').is(':checked')) {
 		haproxy_enterprise = '1';
 	}
@@ -581,8 +574,8 @@ function ShowOverviewLogs() {
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			$("#overview-logs").html(data);
-			$.getScript("/app/static/js/fontawesome.min.js")
-			$.getScript("/app/static/js/overview.js")
+			$.getScript(awesome)
+			$.getScript(overview)
 		}
 	} );
 }

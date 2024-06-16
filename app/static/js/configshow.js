@@ -23,10 +23,10 @@ $( function() {
 		$('#according').css('display', 'none');
 		$('.accordion-expand-all').css('display', 'inline-block');
 	});
-	var headers = $('.configShow .accordion-header');
-	var contentAreas = $('.configShow .ui-accordion-content ').hide()
+	let headers = $('.configShow .accordion-header');
+	let contentAreas = $('.configShow .ui-accordion-content ').hide()
 	.first().show().end();
-	var expandLink = $('.accordion-expand-all');
+	let expandLink = $('.accordion-expand-all');
 	headers.click(function() {
 		// close all panels
 		contentAreas.slideUp();
@@ -40,7 +40,7 @@ $( function() {
 		});
 	// hook up the expand/collapse all
 	expandLink.click(function(){
-		var isAllOpen = !$(this).data('isAllOpen');
+		let isAllOpen = !$(this).data('isAllOpen');
 		console.log({isAllOpen: isAllOpen, contentAreas: contentAreas})
 		contentAreas[isAllOpen? 'slideDown': 'slideUp']();
 			
@@ -53,8 +53,8 @@ $( function() {
 	 });
 
 	$( "#saveconfig" ).on("click", ":submit", function(e){
-		var frm = $('#saveconfig');
-		var service = $('#service').val();
+		let frm = $('#saveconfig');
+		let service = $('#service').val();
 		myCodeMirror.save();
 		$.ajax({
 			url: frm.attr('action'),

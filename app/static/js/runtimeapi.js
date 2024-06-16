@@ -10,7 +10,6 @@ function showRuntime() {
 			servaction: $('#servaction').val(),
 			servbackend: $("#servbackend").val(),
 			save: saveCheck,
-			token: $('#token').val()
 		},
 		type: "POST",
 		success: function (data) {
@@ -51,7 +50,6 @@ $( function() {
 			url: "/app/runtimeapi/maxconn/global/" + $('#maxconn_global_select').val(),
 			data: {
 				maxconn: $('#maxconnintglobal').val(),
-				token: $('#token').val()
 			},
 			type: "POST",
 			success: function (data) {
@@ -71,7 +69,6 @@ $( function() {
 			data: {
 				maxconn_frontend: $('#maxconnfront').val(),
 				maxconn: $('#maxconnint').val(),
-				token: $('#token').val()
 			},
 			type: "POST",
 			success: function (data) {
@@ -92,7 +89,6 @@ $( function() {
 				maxconn_backend: $('#maxconnbackend').val(),
 				maxconn_backend_server: $('#maxconn_backend_server').val(),
 				maxconn: $('#maxconn_backend_int').val(),
-				token: $('#token').val()
 			},
 			type: "POST",
 			success: function (data) {
@@ -129,7 +125,7 @@ $( function() {
 		get_backend_servers(server_ip, backend, '#backend_server_delete', 0);
 	});
 	$('#backend_port_server').on('input', function () {
-		var iNum = parseInt($('#backend_port_server').val());
+		let iNum = parseInt($('#backend_port_server').val());
 		$('#backend_port_server_check').val(iNum);
 	});
 	$("#backend_server").on('selectmenuchange', function () {
@@ -142,8 +138,8 @@ $( function() {
 				if (data.indexOf('error: ') != '-1') {
 					toastr.error(data);
 				} else {
-					var server = data.split(':')[0]
-					var port = data.split(':')[1]
+					let server = data.split(':')[0]
+					let port = data.split(':')[1]
 					port = port.replace(/\s+/g, '');
 					server = server.replace(/\s+/g, '');
 					$('#backend_port').val(port);
@@ -161,7 +157,6 @@ $( function() {
 				backend_server: $('#backend_server').val(),
 				backend_ip: $('#backend_ip').val(),
 				backend_port: $('#backend_port').val(),
-				token: $('#token').val()
 			},
 			type: "PUT",
 			success: function (data) {
@@ -190,7 +185,6 @@ $( function() {
 				backend_port: $('#backend_port_server').val(),
 				check: check,
 				port_check: $('#backend_port_server_check').val(),
-				token: $('#token').val()
 			},
 			type: "POST",
 			success: function (data) {
@@ -211,7 +205,6 @@ $( function() {
 				serv: $('#ip_select_delete').val(),
 				backend_backend: $('#ipbackend_delete').val(),
 				backend_server: $('#backend_server_delete').val(),
-				token: $('#token').val()
 			},
 			type: "DELETE",
 			success: function (data) {
@@ -262,16 +255,12 @@ $( function() {
 	$("#list_serv_select").on('selectmenuchange', function () {
 		$.ajax({
 			url: "/app/runtimeapi/list/" + $('#list_serv_select').val(),
-			// data: {
-			// 	token: $('#token').val()
-			// },
-			// type: "POST",
 			success: function (data) {
 				data = data.replace(/, /g, ',');
 				if (data.indexOf('error: ') != '-1') {
 					toastr.error(data);
 				} else {
-					var value = data.split(',');
+					let value = data.split(',');
 					$('#list_select').find('option').remove();
 
 					for (let i = 0; i < data.split(',').length; i++) {
@@ -334,8 +323,8 @@ function getTable() {
 			} else {
 				$("#ajaxtable").html(data);
 				$("input[type=submit], button").button();
-				$.getScript("/app/static/js/script.js");
-				$.getScript("/app/static/js/overview.js");
+				$.getScript(script);
+				$.getScript(overview);
 				FontAwesomeConfig = {searchPseudoElements: true, observeMutations: false};
 			}
 		}
@@ -347,18 +336,14 @@ function getList() {
 	console.log(list_name)
 	$.ajax({
 		url: "/app/runtimeapi/list/" + $('#list_serv_select').val() + "/" + $('#list_select').val() + "/" + color + "/" + list_name,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#ajaxlist").html(data);
 				$("input[type=submit], button").button();
-				$.getScript("/app/static/js/script.js");
-				$.getScript("/app/static/js/overview.js");
+				$.getScript(script);
+				$.getScript(overview);
 				FontAwesomeConfig = {searchPseudoElements: true, observeMutations: false};
 			}
 		}
@@ -375,7 +360,6 @@ function deleteListIp(id, list_id, ip_id, ip) {
 			list_ip_id_for_delete: ip_id,
 			list_ip_for_delete: ip,
 			list_name: $('#list_add_ip').data("list-name"),
-			token: $('#token').val()
 		},
 		type: "POST",
 		success: function (data) {
@@ -391,11 +375,11 @@ function deleteListIp(id, list_id, ip_id, ip) {
 }
 function addNewIp() {
 	toastr.clear();
-	var valid = true;
+	let valid = true;
 	allFields = $([]).add($('#list_add_ip_new_ip'));
 	allFields.removeClass("ui-state-error");
 	valid = valid && checkLength($('#list_add_ip_new_ip'), "IP", 1);
-	var ip = $('#list_add_ip_new_ip').val();
+	let ip = $('#list_add_ip_new_ip').val();
 	if (valid) {
 		$.ajax({
 			url: "/app/runtimeapi/list/add",
@@ -404,7 +388,6 @@ function addNewIp() {
 				list_ip_for_add: ip,
 				list_id_for_add: $('#list_add_ip').data("list-id"),
 				list_name: $('#list_add_ip').data("list-name"),
-				token: $('#token').val()
 			},
 			type: "POST",
 			success: function (data) {
@@ -423,18 +406,14 @@ function addNewIp() {
 function getSessions() {
 	$.ajax({
 		url: "/app/runtimeapi/session/" + $('#sessions_serv_select').val(),
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#ajaxsessions").html(data);
 				$("input[type=submit], button").button();
-				$.getScript("/app/static/js/script.js");
-				$.getScript("/app/static/js/overview.js");
+				$.getScript(script);
+				$.getScript(overview);
 				FontAwesomeConfig = {searchPseudoElements: true, observeMutations: false};
 			}
 		}
@@ -443,10 +422,6 @@ function getSessions() {
 function getSessionInfo(sess_id) {
 	$.ajax({
 		url: "/app/runtimeapi/session/" + $('#sessions_serv_select').val() + "/" + sess_id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			if (data.indexOf('danger') != '-1') {
 				toastr.error(data);
@@ -475,10 +450,6 @@ function deleteSession(id, sess_id) {
 	$(id).parent().parent().css("background-color", "#f2dede !important");
 	$.ajax({
 		url: "/app/runtimeapi/session/delete/" +$('#sessions_serv_select').val() + "/" + sess_id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
@@ -527,7 +498,7 @@ function get_backend_servers(server_ip, backend, servers_select_tag, ip_and_port
 	} );
 }
 function generate_select(values, select_tag, custom_value=0, separator='<br>') {
-	var value = values.split(separator)
+	let value = values.split(separator)
 	$(select_tag).find('option').remove();
 	$(select_tag).append($("<option></option>").attr("value", "disabled").text("------"));
 	if (custom_value) {

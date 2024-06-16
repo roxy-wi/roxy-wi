@@ -1,6 +1,4 @@
-var awesome = "/app/static/js/fontawesome.min.js"
 var waf = "/app/static/js/waf.js"
-var overview = "/app/static/js/overview.js"
 function showOverviewWaf(serv, hostnamea) {
 	let service = cur_url[1];
 	if (service == 'haproxy') {
@@ -150,8 +148,7 @@ function addNewConfig() {
 						data: {
 							new_waf_rule: new_rule_name,
 							new_rule_description: new_rule_description,
-							new_rule_file: new_rule_file,
-							token: $('#token').val()
+							new_rule_file: new_rule_file
 						},
 						type: "POST",
 						success: function (data) {

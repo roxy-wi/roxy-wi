@@ -239,21 +239,30 @@ def cpu_ram_metrics(server_ip, server_id, name, service):
 def show_haproxy_bytes():
     server_ip = common.is_ip_or_dns(request.form.get('showBytes'))
 
-    return roxy_overview.show_haproxy_binout(server_ip)
+    try:
+        return roxy_overview.show_haproxy_binout(server_ip)
+    except Exception as e:
+        return f'error: {e}'
 
 
 @bp.post('/nginx/connections')
 def show_nginx_connections():
     server_ip = common.is_ip_or_dns(request.form.get('nginxConnections'))
 
-    return roxy_overview.show_nginx_connections(server_ip)
+    try:
+        return roxy_overview.show_nginx_connections(server_ip)
+    except Exception as e:
+        return f'error: {e}'
 
 
 @bp.post('/apache/bytes')
 def show_apache_bytes():
     server_ip = common.is_ip_or_dns(request.form.get('apachekBytes'))
 
-    return roxy_overview.show_apache_bytes(server_ip)
+    try:
+        return roxy_overview.show_apache_bytes(server_ip)
+    except Exception as e:
+        return f'error: {e}'
 
 
 @bp.post('/keepalived/become-master')

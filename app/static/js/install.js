@@ -145,7 +145,7 @@ function installService(service) {
 		docker = '1';
 	}
 	if ($(select_id).val() == '------' || $(select_id).val() === null) {
-		let select_server = $('#translate').attr('data-select_server');
+		let select_server = translate_div.attr('data-select_server');
 		toastr.warning(select_server);
 		return false
 	}
@@ -264,11 +264,11 @@ function showServiceVersion(service) {
 	});
 }
 function showErrorStatus(service_name, server) {
-	let something_wrong = $('#translate').attr('data-something_wrong');
+	let something_wrong = translate_div.attr('data-something_wrong');
 	toastr.error(something_wrong + ' ' + service_name + ' ' + server);
 }
 function parseAnsibleJsonOutput(output, service_name, select_id) {
-	let was_installed = $('#translate').attr('data-was_installed');
+	let was_installed = translate_div.attr('data-was_installed');
 	let server_name = '';
 	for (let k in output['ok']) {
 		if (select_id) {

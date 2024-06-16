@@ -1,4 +1,3 @@
-var url = "/app/static/js/script.js";
 var cur_url = window.location.href.split('/app/').pop();
 cur_url = cur_url.split('/');
 var intervalId;
@@ -12,7 +11,7 @@ function ValidateIPaddress(ipaddress) {
 	}
 	return (false)
 }
-var select_server = $('#translate').attr('data-select_server');
+var select_server = translate_div.attr('data-select_server');
 function checkIsServerFiled(select_id, message = select_server) {
 	if ($(select_id).val() == null || $(select_id).val() == '') {
 		toastr.warning(message);
@@ -28,7 +27,7 @@ function escapeHtml(unsafe) {
 		.replace(/"/g, "&quot;")
 		.replace(/'/g, "&#039;");
 }
-var wait_mess_word = $('#translate').attr('data-wait_mess');
+var wait_mess_word = translate_div.attr('data-wait_mess');
 var wait_mess = '<div class="alert alert-warning">'+wait_mess_word+'</div>'
 function show_current_page(id) {
 	id.parent().css('display', 'contents');
@@ -194,7 +193,7 @@ if(localStorage.getItem('restart')) {
 				} else {
 					$('#' + apply_div).html("You have made changes to the server: " + ip_for_restart + ". Changes will take effect only after restart. <a href='service' title='Overview'>Go to the HAProxy Overview page and restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
 				}
-				$.getScript('/app/static/js/overview.js');
+				$.getScript(overview);
 			}
 		}
 	});
@@ -232,7 +231,7 @@ function setRefreshInterval(interval) {
 	if (interval == "0") {
 		var autoRefresh = sessionStorage.getItem('auto-refresh');
 		if (autoRefresh !== undefined) {
-			var autorefresh_word = $('#translate').attr('data-autorefresh');
+			var autorefresh_word = translate_div.attr('data-autorefresh');
 			sessionStorage.removeItem('auto-refresh');
 			pauseAutoRefresh();
 			$('#0').html('<span class="auto-refresh-reload auto-refresh-reload-icon"></span> '+autorefresh_word);
@@ -241,7 +240,7 @@ function setRefreshInterval(interval) {
 			$('#1').text(autorefresh_word);
 			$('.auto-refresh-resume').css('display', 'none');
 			$('.auto-refresh-pause').css('display', 'none');
-			$.getScript("/app/static/js/overview.js");
+			$.getScript(overview);
 		}
 		hideAutoRefreshDiv();
 	} else {
@@ -442,7 +441,7 @@ function showRemoteLogFiles() {
 			} else {
 				toastr.clear();
 				$("#remote_log_files").html(data);
-				$.getScript('/app/static/js/configshow.js');
+				$.getScript(configShow);
 			}
 		}
 	} );
@@ -543,7 +542,7 @@ function showConfig() {
 			} else {
 				toastr.clear();
 				$("#ajax").html(data);
-				$.getScript('/app/static/js/configshow.js');
+				$.getScript(configShow);
 				window.history.pushState("Show config", "Show config", "/app/config/" + service + "/" + $("#serv").val() + "/show/" + config_file_name);
 			}
 		}
@@ -612,7 +611,7 @@ function showUploadConfig() {
 				toastr.clear();
 				$("#ajax").html(data);
 				window.history.pushState("Show config", "Show config", "/app/config/versions/" + service + "/" + serv + "/" + configver);
-				$.getScript('/app/static/js/configshow.js');
+				$.getScript(configShow);
 			}
 		}
 	} );
@@ -906,10 +905,8 @@ $( function() {
 	});
 
 	var user_settings_tabel_title = $( "#show-user-settings-table" ).attr('title');
-	var cancel_word = $('#translate').attr('data-cancel');
-	var save_word = $('#translate').attr('data-save');
-	var change_word = $('#translate').attr('data-change');
-	var password_word = $('#translate').attr('data-password');
+	var change_word = translate_div.attr('data-change');
+	var password_word = translate_div.attr('data-password');
 	var change_pass_word = change_word + ' ' + password_word
 	var showUserSettings = $( "#show-user-settings" ).dialog({
 		autoOpen: false,
@@ -1087,7 +1084,7 @@ $( function() {
 		});
 	}
 	$('.copyToClipboard').hover(function (){
-		$.getScript("/app/static/js/overview.js");
+		$.getScript(overview);
 	});
 	$('.copyToClipboard').click(function () {
         let str = $(this).attr('data-copy');

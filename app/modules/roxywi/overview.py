@@ -142,7 +142,10 @@ def show_nginx_connections(server_ip: str) -> str:
     page = sql.get_setting('nginx_stats_page')
     url = f'http://{server_ip}:{port}/{page}'
 
-    r = requests.get(url, auth=(user, password), timeout=5)
+    try:
+        r = requests.get(url, auth=(user, password), timeout=5)
+    except Exception as e:
+        raise Exception(e)
 
     if r.status_code == 200:
         bin_bout = [0, 0]
@@ -155,7 +158,7 @@ def show_nginx_connections(server_ip: str) -> str:
         lang = roxywi_common.get_user_lang_for_flask()
         return render_template('ajax/bin_bout.html', bin_bout=bin_bout, serv=server_ip, service='nginx', lang=lang)
     else:
-        return 'error: cannot connect to NGINX stat page'
+        raise Exception('Cannot connect to NGINX stat page')
 
 
 def show_apache_bytes(server_ip: str) -> str:
@@ -166,7 +169,10 @@ def show_apache_bytes(server_ip: str) -> str:
     bin_bout = []
     url = f'http://{server_ip}:{port}/{page}?auto'
 
-    r = requests.get(url, auth=(user, password), timeout=5)
+    try:
+        r = requests.get(url, auth=(user, password), timeout=5)
+    except Exception as e:
+        raise Exception(e)
 
     if r.status_code == 200:
         for line in r.text.split('\n'):
@@ -176,7 +182,7 @@ def show_apache_bytes(server_ip: str) -> str:
         lang = roxywi_common.get_user_lang_for_flask()
         return render_template('ajax/bin_bout.html', bin_bout=bin_bout, serv=server_ip, service='apache', lang=lang)
     else:
-        return 'error: cannot connect to Apache stat page'
+        raise Exception('Cannot connect to Apache stat page')
 
 
 def show_services_overview():

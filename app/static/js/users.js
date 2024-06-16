@@ -1,15 +1,11 @@
-var awesome = "/app/static/js/fontawesome.min.js"
 var cur_url = window.location.href.split('/app/').pop();
 cur_url = cur_url.split('/');
-var add_word = $('#translate').attr('data-add');
-var delete_word = $('#translate').attr('data-delete');
-var cancel_word = $('#translate').attr('data-cancel');
 $( function() {
 	$('#add-group-button').click(function() {
 		addGroupDialog.dialog('open');
 	});
-	var group_tabel_title = $( "#group-add-table-overview" ).attr('title');
-	var addGroupDialog = $( "#group-add-table" ).dialog({
+	let group_tabel_title = $( "#group-add-table-overview" ).attr('title');
+	let addGroupDialog = $( "#group-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -37,8 +33,8 @@ $( function() {
 	$('#add-user-button').click(function() {
 		addUserDialog.dialog('open');
 	});
-	var user_tabel_title = $( "#user-add-table-overview" ).attr('title');
-	var addUserDialog = $( "#user-add-table" ).dialog({
+	let user_tabel_title = $( "#user-add-table-overview" ).attr('title');
+	let addUserDialog = $( "#user-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -69,8 +65,8 @@ $( function() {
 	$('#add-server-button').click(function() {
 		addServerDialog.dialog('open');
 	});
-	var server_tabel_title = $( "#server-add-table-overview" ).attr('title');
-	var addServerDialog = $( "#server-add-table" ).dialog({
+	let server_tabel_title = $( "#server-add-table-overview" ).attr('title');
+	let addServerDialog = $( "#server-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -101,8 +97,8 @@ $( function() {
 	$('#add-ssh-button').click(function() {
 		addCredsDialog.dialog('open');
 	});
-	var ssh_tabel_title = $( "#ssh-add-table-overview" ).attr('title');
-	var addCredsDialog = $( "#ssh-add-table" ).dialog({
+	let ssh_tabel_title = $( "#ssh-add-table-overview" ).attr('title');
+	let addCredsDialog = $( "#ssh-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -131,32 +127,32 @@ $( function() {
 		}]
 	});
 	$( "#ajax-users input" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateUser(id[1])
 	});
 	$( "#ajax-users select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateUser(id[1])
 	});
 	$( "#ajax-group input" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateGroup(id[1])
 	});
 	$( "#ajax-servers input" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateServer(id[1])
 	});
 	$( "#ajax-servers select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateServer(id[1])
 	});
 	$( "#ssh_enable_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateSSH(id[1])
 		sshKeyEnableShow(id[1])
 	});
 	$( "#ssh_enable_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateSSH(id[1])
 		sshKeyEnableShow(id[1])
 	});
@@ -180,7 +176,7 @@ $( function() {
 		}
 	});
 	$('#search_ldap_user').click(function() {
-		var valid = true;
+		let valid = true;
 		toastr.clear();
 		allFields = $([]).add($('#new-username'));
 		allFields.removeClass("ui-state-error");
@@ -197,7 +193,7 @@ $( function() {
 						$('#new-password').attr('readonly', false);
 						$('#new-password').val('');
 					} else {
-						var json = $.parseJSON(data);
+						let json = $.parseJSON(data);
 						toastr.clear();
 						if (!$('#new-username').val().includes('@')) {
 							$('#new-username').val(user + '@' + json[1]);
@@ -212,9 +208,9 @@ $( function() {
 		}
 	});
 	$("#tabs ul li").click(function() {
-		var activeTab = $(this).find("a").attr("href");
+		let activeTab = $(this).find("a").attr("href");
 		console.log(activeTab);
-		var activeTabClass = activeTab.replace('#', '');
+		let activeTabClass = activeTab.replace('#', '');
 		$('.menu li ul li').each(function () {
 			$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
 			$(this).find('a').css('padding-left', '20px')
@@ -238,7 +234,7 @@ $( function() {
 } );
 window.onload = function() {
 	$('#tabs').tabs();
-	var activeTabIdx = $('#tabs').tabs('option','active')
+	let activeTabIdx = $('#tabs').tabs('option','active')
 	if (cur_url[0].split('#')[0] == 'admin') {
 		if (activeTabIdx == 6) {
 			loadServices();
@@ -254,14 +250,14 @@ window.onload = function() {
 	}
 }
 function addUser(dialog_id) {
-	var valid = true;
+	let valid = true;
 	toastr.clear();
 	allFields = $([]).add($('#new-username')).add($('#new-password')).add($('#new-email'))
 	allFields.removeClass("ui-state-error");
 	valid = valid && checkLength($('#new-username'), "user name", 1);
 	valid = valid && checkLength($('#new-password'), "password", 1);
 	valid = valid && checkLength($('#new-email'), "Email", 1);
-	var activeuser = 0;
+	let activeuser = 0;
 	if ($('#activeuser').is(':checked')) {
 		activeuser = '1';
 	}
@@ -284,8 +280,8 @@ function addUser(dialog_id) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
-					var getId = new RegExp('[0-9]+');
-					var id = data.match(getId);
+					let getId = new RegExp('[0-9]+');
+					let id = data.match(getId);
 					common_ajax_action_after_success(dialog_id, 'user-' + id, 'ajax-users', data);
 				}
 			}
@@ -294,7 +290,7 @@ function addUser(dialog_id) {
 }
 function addGroup(dialog_id) {
 	toastr.clear();
-	var valid = true;
+	let valid = true;
 	allFields = $([]).add($('#new-group-add'));
 	allFields.removeClass("ui-state-error");
 	valid = valid && checkLength($('#new-group-add'), "new group name", 1);
@@ -311,8 +307,8 @@ function addGroup(dialog_id) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
-					var getId = new RegExp('[0-9]+');
-					var id = data.match(getId);
+					let getId = new RegExp('[0-9]+');
+					let id = data.match(getId);
 					$('select:regex(id, group)').append('<option value=' + id + '>' + $('#new-group-add').val() + '</option>').selectmenu("refresh");
 					common_ajax_action_after_success(dialog_id, 'newgroup', 'ajax-group', data);
 				}
@@ -322,19 +318,19 @@ function addGroup(dialog_id) {
 }
 function addServer(dialog_id) {
 	toastr.clear()
-	var valid = true;
-	var servername = $('#new-server-add').val();
-	var newip = $('#new-ip').val();
-	var newservergroup = $('#new-server-group-add').val();
-	var cred = $('#credentials').val();
-	var scan_server = 0;
-	var typeip = 0;
-	var enable = 0;
-	var haproxy = 0;
-	var nginx = 0;
-	var apache = 0;
-	var firewall = 0;
-	var add_to_smon = 0;
+	let valid = true;
+	let servername = $('#new-server-add').val();
+	let newip = $('#new-ip').val();
+	let newservergroup = $('#new-server-group-add').val();
+	let cred = $('#credentials').val();
+	let scan_server = 0;
+	let typeip = 0;
+	let enable = 0;
+	let haproxy = 0;
+	let nginx = 0;
+	let apache = 0;
+	let firewall = 0;
+	let add_to_smon = 0;
 	if ($('#scan_server').is(':checked')) {
 		scan_server = '1';
 	}
@@ -404,8 +400,8 @@ function addServer(dialog_id) {
 					$("input[type=checkbox]").checkboxradio();
 					$(".controlgroup").controlgroup();
 					$("select").selectmenu();
-					var getId = new RegExp('server-[0-9]+');
-					var id = data.match(getId) + '';
+					let getId = new RegExp('server-[0-9]+');
+					let id = data.match(getId) + '';
 					id = id.split('-').pop();
 					$('select:regex(id, git-server)').append('<option value=' + id + '>' + $('#hostname-' + id).val() + '</option>').selectmenu("refresh");
 					$('select:regex(id, backup-server)').append('<option value=' + $('#ip-' + id).text() + '>' + $('#hostname-' + id).val() + '</option>').selectmenu("refresh");
@@ -446,11 +442,11 @@ function after_server_creating(servername, newip, scan_server) {
 }
 function addCreds(dialog_id) {
 	toastr.clear();
-	var ssh_enable = 0;
+	let ssh_enable = 0;
 	if ($('#new-ssh_enable').is(':checked')) {
 		ssh_enable = '1';
 	}
-	var valid = true;
+	let valid = true;
 	allFields = $([]).add($('#new-ssh-add')).add($('#ssh_user'))
 	allFields.removeClass("ui-state-error");
 	valid = valid && checkLength($('#new-ssh-add'), "Name", 1);
@@ -472,9 +468,9 @@ function addCreds(dialog_id) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
-					var group_name = getGroupNameById($('#new-sshgroup').val());
-					var getId = new RegExp('ssh-table-[0-9]+');
-					var id = data.match(getId) + '';
+					let group_name = getGroupNameById($('#new-sshgroup').val());
+					let getId = new RegExp('ssh-table-[0-9]+');
+					let id = data.match(getId) + '';
 					id = id.split('-').pop();
 					common_ajax_action_after_success(dialog_id, 'ssh-table-' + id, 'ssh_enable_table', data);
 					$('select:regex(id, credentials)').append('<option value=' + id + '>' + $('#new-ssh-add').val() + '</option>').selectmenu("refresh");
@@ -488,7 +484,7 @@ function addCreds(dialog_id) {
 	}
 }
 function getGroupNameById(group_id) {
-	var group_name = ''
+	let group_name = ''
 	$.ajax({
 		url: "/app/user/group/name/" + group_id,
 		async: false,
@@ -711,9 +707,9 @@ function removeSsh(id) {
 function updateUser(id) {
 	toastr.remove();
 	cur_url[0] = cur_url[0].split('#')[0]
-	var usergroup = Cookies.get('group');
-	var role = $('#role-' + id).val();
-	var activeuser = 0;
+	let usergroup = Cookies.get('group');
+	let role = $('#role-' + id).val();
+	let activeuser = 0;
 	if ($('#activeuser-' + id).is(':checked')) {
 		activeuser = '1';
 	}
@@ -793,7 +789,7 @@ function updateServer(id) {
 	if ($('#protected-' + id).is(':checked')) {
 		protected_serv = '1';
 	}
-	var servergroup = $('#servergroup-' + id + ' option:selected').val();
+	let servergroup = $('#servergroup-' + id + ' option:selected').val();
 	if (cur_url[0].indexOf('servers#') != '-1') {
 		servergroup = $('#new-server-group-add').val();
 	}
@@ -858,11 +854,11 @@ function uploadSsh() {
 }
 function updateSSH(id) {
 	toastr.clear();
-	var ssh_enable = 0;
+	let ssh_enable = 0;
 	if ($('#ssh_enable-' + id).is(':checked')) {
 		ssh_enable = '1';
 	}
-	var group = $('#sshgroup-' + id).val();
+	let group = $('#sshgroup-' + id).val();
 	if (cur_url[0].indexOf('servers') != '-1') {
 		group = $('#new-server-group-add').val();
 	}
@@ -897,14 +893,14 @@ function updateSSH(id) {
 	});
 }
 function showApacheLog(serv) {
-	var rows = $('#rows').val();
-	var grep = $('#grep').val();
-	var exgrep = $('#exgrep').val();
-	var hour = $('#time_range_out_hour').val();
-	var minute = $('#time_range_out_minut').val();
-	var hour1 = $('#time_range_out_hour1').val();
-	var minute1 = $('#time_range_out_minut1').val();
-	var url = "/app/logs/apache_internal/" + serv + "/" + rows;
+	let rows = $('#rows').val();
+	let grep = $('#grep').val();
+	let exgrep = $('#exgrep').val();
+	let hour = $('#time_range_out_hour').val();
+	let minute = $('#time_range_out_minut').val();
+	let hour1 = $('#time_range_out_hour1').val();
+	let minute1 = $('#time_range_out_minut1').val();
+	let url = "/app/logs/apache_internal/" + serv + "/" + rows;
 	$.ajax( {
 		url: url,
 		data: {
@@ -949,10 +945,9 @@ function openChangeUserServiceDialog(id) {
 	changeUserServiceDialog(id);
 }
 function changeUserPasswordDialog(id) {
-	var cancel_word = $('#translate').attr('data-cancel');
-	var superAdmin_pass = $('#translate').attr('data-superAdmin_pass');
-	var change_word = $('#translate').attr('data-change2');
-	var password_word = $('#translate').attr('data-password');
+	let superAdmin_pass = translate_div.attr('data-superAdmin_pass');
+	let change_word = translate_div.attr('data-change2');
+	let password_word = translate_div.attr('data-password');
 	if ($('#role-'+id + ' option:selected' ).val() == 'Select a role') {
 		toastr.warning(superAdmin_pass);
 		return false;
@@ -987,8 +982,8 @@ function changeUserPasswordDialog(id) {
 	});
 }
 function changeUserPassword(id, d) {
-	var pass = $('#change-password').val();
-	var pass2 = $('#change2-password').val();
+	let pass = $('#change-password').val();
+	let pass2 = $('#change2-password').val();
 	if (pass != pass2) {
 		$('#missmatchpass').show();
 	} else {
@@ -1019,11 +1014,10 @@ function changeUserPassword(id, d) {
 	}
 }
 function changeUserServiceDialog(id) {
-	var cancel_word = $('#translate').attr('data-cancel');
-	var manage_word = $('#translate').attr('data-manage');
-	var services_word = $('#translate').attr('data-services3');
-	var save_word = $('#translate').attr('data-save');
-	var superAdmin_services = $('#translate').attr('data-superAdmin_services');
+	let manage_word = translate_div.attr('data-manage');
+	let services_word = translate_div.attr('data-services3');
+	let save_word = translate_div.attr('data-save');
+	let superAdmin_services = translate_div.attr('data-superAdmin_services');
 	if ($('#role-' + id + ' option:selected').val() == 'Select a role') {
 		toastr.warning(superAdmin_services);
 		return false;
@@ -1061,10 +1055,10 @@ function changeUserServiceDialog(id) {
 	});
 }
 function changeUserServices(user_id) {
-	var jsonData = {};
+	let jsonData = {};
 	jsonData[user_id] = {};
 	$('#checked_services tbody tr').each(function () {
-		var this_id = $(this).attr('id').split('-')[1];
+		let this_id = $(this).attr('id').split('-')[1];
 		jsonData[user_id][this_id] = {}
 	});
 	$.ajax( {
@@ -1088,36 +1082,33 @@ function changeUserServices(user_id) {
 	} );
 }
 function addServiceToUser(service_id) {
-	var service_name = $('#add_service-'+service_id).attr('data-service_name');
-	var service_word = $('#translate').attr('data-service');
-	var length_tr = $('#checked_services tbody tr').length;
-	var tr_class = 'odd';
+	let service_name = $('#add_service-'+service_id).attr('data-service_name');
+	let length_tr = $('#checked_services tbody tr').length;
+	let tr_class = 'odd';
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	var html_tag = '<tr class="'+tr_class+'" id="remove_service-'+service_id+'" data-service_name="'+service_name+'">' +
+	let html_tag = '<tr class="'+tr_class+'" id="remove_service-'+service_id+'" data-service_name="'+service_name+'">' +
 		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
 		'<td><span class="add_user_group" onclick="removeServiceFromUser('+service_id+')" title="'+delete_word+' '+service_word+'">-</span></td></tr>';
 	$('#add_service-'+service_id).remove();
 	$("#checked_services tbody").append(html_tag);
 }
 function removeServiceFromUser(service_id) {
-	var service_name = $('#remove_service-'+service_id).attr('data-service_name');
-	var service_word = $('#translate').attr('data-service');
-	var length_tr = $('#all_services tbody tr').length;
-	var tr_class = 'odd';
+	let service_name = $('#remove_service-'+service_id).attr('data-service_name');
+	let length_tr = $('#all_services tbody tr').length;
+	let tr_class = 'odd';
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	var html_tag = '<tr class="'+tr_class+'" id="add_service-'+service_id+'" data-service_name="'+service_name+'">' +
+	let html_tag = '<tr class="'+tr_class+'" id="add_service-'+service_id+'" data-service_name="'+service_name+'">' +
 		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
 		'<td><span class="add_user_group" onclick="addServiceToUser('+service_id+')" title="'+add_word+' '+service_word+'">+</span></td></tr>';
 	$('#remove_service-'+service_id).remove();
 	$("#all_services tbody").append(html_tag);
 }
 function confirmAjaxServiceAction(action, service) {
-	let cancel_word = $('#translate').attr('data-cancel');
-	let action_word = $('#translate').attr('data-'+action);
+	let action_word = translate_div.attr('data-'+action);
 	$( "#dialog-confirm-services" ).dialog({
 		resizable: false,
 		height: "auto",
@@ -1400,8 +1391,7 @@ function updateServerInfo(ip, id) {
 	});
 }
 function showServerInfo(id, ip) {
-	var close_word = $('#translate').attr('data-close');
-	var server_info = $('#translate').attr('data-server_info');
+	let server_info = translate_div.attr('data-server_info');
 	$.ajax({
 		url: "/app/server/system_info/get/" + ip + "/" +id,
 		success: function (data) {
@@ -1429,7 +1419,7 @@ function showServerInfo(id, ip) {
 	});
 }
 function serverIsUp(server_ip, server_id) {
-	var cur_url = window.location.href.split('/').pop();
+	let cur_url = window.location.href.split('/').pop();
 	if (cur_url.split('#')[1] == 'servers') {
 		$.ajax({
 			url: "/app/server/check/server/" + server_ip,
@@ -1460,10 +1450,8 @@ function serverIsUp(server_ip, server_id) {
 	}
 }
 function confirmChangeGroupsAndRoles(user_id) {
-	var cancel_word = $('#translate').attr('data-cancel');
-	var action_word = $('#translate').attr('data-save');
-	var user_groups_word = $('#translate').attr('data-user_groups');
-	var username = $('#login-' + user_id).val();
+	let user_groups_word = translate_div.attr('data-user_groups');
+	let username = $('#login-' + user_id).val();
 	$.ajax({
 		url: "/app/user/groups/" + user_id,
 
@@ -1476,7 +1464,7 @@ function confirmChangeGroupsAndRoles(user_id) {
 				modal: true,
 				title: user_groups_word + ' ' + username,
 				buttons: [{
-					text: action_word,
+					text: save_word,
 					click: function () {
 						saveGroupsAndRoles(user_id);
 						$(this).dialog("close");
@@ -1492,19 +1480,19 @@ function confirmChangeGroupsAndRoles(user_id) {
 	});
 }
 function addGroupToUser(group_id) {
-	var group_name = $('#add_group-'+group_id).attr('data-group_name');
-	var group2_word = $('#translate').attr('data-group2');
-	var length_tr = $('#all_groups tbody tr').length;
+	let group_name = $('#add_group-'+group_id).attr('data-group_name');
+	let group2_word = translate_div.attr('data-group2');
+	let length_tr = $('#all_groups tbody tr').length;
 	const roles = {1: 'superAdmin', 2: 'admin', 3: 'user', 4: 'guest'};
-	var options_roles = '';
+	let options_roles = '';
 	for (const [role_id, role_name] of Object.entries(roles)) {
 		options_roles += '<option value="'+role_id+'">'+role_name+'</option>';
 	}
-	var tr_class = 'odd';
+	let tr_class = 'odd';
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	var html_tag = '<tr class="'+tr_class+'" id="remove_group-'+group_id+'" data-group_name="'+group_name+'">\n' +
+	let html_tag = '<tr class="'+tr_class+'" id="remove_group-'+group_id+'" data-group_name="'+group_name+'">\n' +
 		'        <td class="padding20" style="width: 50%;">'+group_name+'</td>\n' +
 		'        <td style="width: 50%;">\n' +
 		'            <select id="add_role-'+group_id+'">'+options_roles+'</select></td>\n' +
@@ -1513,27 +1501,26 @@ function addGroupToUser(group_id) {
 	$("#checked_groups tbody").append(html_tag);
 }
 function removeGroupFromUser(group_id) {
-	var group_name = $('#remove_group-'+group_id).attr('data-group_name');
-	var add_word = $('#translate').attr('data-add');
-	var group2_word = $('#translate').attr('data-group2');
-	var length_tr = $('#all_groups tbody tr').length;
-	var tr_class = 'odd';
+	let group_name = $('#remove_group-'+group_id).attr('data-group_name');
+	let group2_word = translate_div.attr('data-group2');
+	let length_tr = $('#all_groups tbody tr').length;
+	let tr_class = 'odd';
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	var html_tag = '<tr class="'+tr_class+'" id="add_group-'+group_id+'" data-group_name='+group_name+'>\n' +
+	let html_tag = '<tr class="'+tr_class+'" id="add_group-'+group_id+'" data-group_name='+group_name+'>\n' +
 		'    <td class="padding20" style="width: 100%">'+group_name+'</td>\n' +
 		'    <td><span class="add_user_group" title="'+add_word+' '+group2_word+'" onclick="addGroupToUser('+group_id+')">+</span></td></tr>'
 	$('#remove_group-'+group_id).remove();
 	$("#all_groups tbody").append(html_tag);
 }
 function saveGroupsAndRoles(user_id) {
-	var length_tr = $('#checked_groups tbody tr').length;
-	var jsonData = {};
+	let length_tr = $('#checked_groups tbody tr').length;
+	let jsonData = {};
 	jsonData[user_id] = {};
 	$('#checked_groups tbody tr').each(function () {
-		var this_id = $(this).attr('id').split('-')[1];
-		var role_id = $('#add_role-' + this_id).val();
+		let this_id = $(this).attr('id').split('-')[1];
+		let role_id = $('#add_role-' + this_id).val();
 		jsonData[user_id][this_id] = {'role_id': role_id};
 	});
 	for (const [key, value] of Object.entries(jsonData)) {
@@ -1563,10 +1550,8 @@ function saveGroupsAndRoles(user_id) {
 	});
 }
 function openChangeServerServiceDialog(server_id) {
-	var cancel_word = $('#translate').attr('data-cancel');
-	var action_word = $('#translate').attr('data-save');
-	var user_groups_word = $('#translate').attr('data-user_groups');
-	var hostname = $('#hostname-' + server_id).val();
+	let user_groups_word = translate_div.attr('data-user_groups');
+	let hostname = $('#hostname-' + server_id).val();
 	$.ajax({
 		url: "/app/server/services/" + server_id,
 		// data: {
@@ -1582,7 +1567,7 @@ function openChangeServerServiceDialog(server_id) {
 				modal: true,
 				title: user_groups_word + ' ' + hostname,
 				buttons: [{
-					text: action_word,
+					text: save_word,
 					click: function () {
 						changeServerServices(server_id);
 						$(this).dialog("close");
@@ -1598,41 +1583,39 @@ function openChangeServerServiceDialog(server_id) {
 	});
 }
 function addServiceToServer(service_id) {
-	var service_name = $('#add_service-'+service_id).attr('data-service_name');
-	var service_word = $('#translate').attr('data-service');
-	var length_tr = $('#checked_services tbody tr').length;
-	var tr_class = 'odd';
+	let service_name = $('#add_service-'+service_id).attr('data-service_name');
+	let length_tr = $('#checked_services tbody tr').length;
+	let tr_class = 'odd';
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	var html_tag = '<tr class="'+tr_class+'" id="remove_service-'+service_id+'" data-service_name="'+service_name+'">' +
+	let html_tag = '<tr class="'+tr_class+'" id="remove_service-'+service_id+'" data-service_name="'+service_name+'">' +
 		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
 		'<td><span class="add_user_group" onclick="removeServiceFromUser('+service_id+')" title="'+delete_word+' '+service_word+'">-</span></td></tr>';
 	$('#add_service-'+service_id).remove();
 	$("#checked_services tbody").append(html_tag);
 }
 function removeServiceFromServer(service_id) {
-	var service_name = $('#remove_service-'+service_id).attr('data-service_name');
-	var service_word = $('#translate').attr('data-service');
-	var length_tr = $('#all_services tbody tr').length;
-	var tr_class = 'odd';
+	let service_name = $('#remove_service-'+service_id).attr('data-service_name');
+	let length_tr = $('#all_services tbody tr').length;
+	let tr_class = 'odd';
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	var html_tag = '<tr class="'+tr_class+'" id="add_service-'+service_id+'" data-service_name="'+service_name+'">' +
+	let html_tag = '<tr class="'+tr_class+'" id="add_service-'+service_id+'" data-service_name="'+service_name+'">' +
 		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
 		'<td><span class="add_user_group" onclick="addServiceToUser('+service_id+')" title="'+add_word+' '+service_word+'">+</span></td></tr>';
 	$('#remove_service-'+service_id).remove();
 	$("#all_services tbody").append(html_tag);
 }
 function changeServerServices(server_id) {
-	var jsonData = {};
+	let jsonData = {};
 	$('#checked_services tbody tr').each(function () {
-		var this_id = $(this).attr('id').split('-')[1];
+		let this_id = $(this).attr('id').split('-')[1];
 		jsonData[this_id] = 1
 	});
 	$('#all_services tbody tr').each(function () {
-		var this_id = $(this).attr('id').split('-')[1];
+		let this_id = $(this).attr('id').split('-')[1];
 		jsonData[this_id] = 0
 	});
 	$.ajax({

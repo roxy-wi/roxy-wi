@@ -3,8 +3,8 @@ $( function() {
     $('#add-backup-button').click(function() {
 		addBackupDialog.dialog('open');
 	});
-	var backup_tabel_title = $( "#backup-add-table-overview" ).attr('title');
-	var addBackupDialog = $( "#backup-add-table" ).dialog({
+	let backup_tabel_title = $( "#backup-add-table-overview" ).attr('title');
+	let addBackupDialog = $( "#backup-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -32,8 +32,8 @@ $( function() {
 	$('#add-backup-s3-button').click(function() {
 		addS3BackupDialog.dialog('open');
 	});
-	var s3_backup_tabel_title = $( "#s3-backup-add-table-overview" ).attr('title');
-	var addS3BackupDialog = $( "#s3-backup-add-table" ).dialog({
+	let s3_backup_tabel_title = $( "#s3-backup-add-table-overview" ).attr('title');
+	let addS3BackupDialog = $( "#s3-backup-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -61,8 +61,8 @@ $( function() {
 	$('#add-git-button').click(function() {
 		addGitDialog.dialog('open');
 	});
-	var git_tabel_title = $( "#git-add-table-overview" ).attr('title');
-	var addGitDialog = $( "#git-add-table" ).dialog({
+	let git_tabel_title = $( "#git-add-table-overview" ).attr('title');
+	let addGitDialog = $( "#git-add-table" ).dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -95,11 +95,11 @@ $( function() {
 		}
 	});
 	$( "#ajax-backup-table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateBackup(id[2])
 	});
 	$( "#ajax-backup-table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateBackup(id[2])
 	});
 	$("#backup_tabs ul li").click(function() {
@@ -128,7 +128,7 @@ function loadBackup() {
 	});
 }
 function addBackup(dialog_id) {
-	var valid = true;
+	let valid = true;
 	toastr.clear();
 	let allFields = $([]).add($('#backup-server')).add($('#rserver')).add($('#rpath')).add($('#backup-time')).add($('#backup-credentials'));
 	allFields.removeClass("ui-state-error");
@@ -170,7 +170,7 @@ function addBackup(dialog_id) {
 	}
 }
 function addS3Backup(dialog_id) {
-	var valid = true;
+	let valid = true;
 	toastr.clear();
 	allFields = $([]).add($('#s3-backup-server')).add($('#s3_server')).add($('#s3_bucket')).add($('#s3_secret_key')).add($('#s3_access_key'))
 	allFields.removeClass("ui-state-error");
@@ -212,7 +212,7 @@ function addS3Backup(dialog_id) {
 	}
 }
 function addGit(dialog_id) {
-	var valid = true;
+	let valid = true;
 	toastr.clear();
 	allFields = $([]).add($('#git-server')).add($('#git-service')).add($('#git-time')).add($('#git-credentials')).add($('#git-branch'))
 	allFields.removeClass("ui-state-error");
@@ -220,7 +220,7 @@ function addGit(dialog_id) {
 	valid = valid && checkLength($('#git-service'), "Service", 1);
 	valid = valid && checkLength($('#git-credentials'), "Credentials", 1);
 	valid = valid && checkLength($('#git-branch'), "Branch name", 1);
-	var git_init = 0;
+	let git_init = 0;
 	if ($('#git-init').is(':checked')) {
 		git_init = '1';
 	}

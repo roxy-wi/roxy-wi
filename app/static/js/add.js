@@ -1,8 +1,6 @@
-var ssl_offloading_var = "http-request set-header X-Forwarded-Port %[dst_port] \n"+
+let ssl_offloading_var = "http-request set-header X-Forwarded-Port %[dst_port] \n"+
 						"http-request add-header X-Forwarded-Proto https if { ssl_fc } \n"+
 						"redirect scheme https if !{ ssl_fc } \n"
-var delete_word = $('#translate').attr('data-delete');
-var cancel_word = $('#translate').attr('data-cancel');
 $( function() {
 	$("#listen-mode-select").on('selectmenuchange', function () {
 		if ($("#listen-mode-select option:selected").val() == "tcp") {
@@ -253,7 +251,7 @@ $( function() {
 		}
 	});
 
-	var availableTags = [
+	let availableTags = [
 		"acl", "hdr(host)", "hdr_beg(host)", "hdr_dom(host)", "http-request", "http-response", "set-uri", "set-url", "set-header", "add-header", "del-header", "replace-header", "path_beg", "url_beg()", "urlp_sub()", "set cookie", "dynamic-cookie-key", "mysql-check", "tcpka", "tcplog", "forwardfor", "option"
 	];
 
@@ -386,7 +384,7 @@ $( function() {
 		}
 	});
 	$("#option_table input").change(function () {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateOptions(id[2])
 	});
 	$("#options").autocomplete({
@@ -472,13 +470,13 @@ $( function() {
 					setTimeout(function () {
 						$(".newoption").removeClass("update");
 					}, 2500);
-					$.getScript("/app/static/js/overview.js");
+					$.getScript(overview);
 				}
 			}
 		});
 	});
 	$("#servers_table input").change(function () {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateSavedServer(id[2])
 
 	});
@@ -517,12 +515,12 @@ $( function() {
 					setTimeout(function () {
 						$(".newsavedserver").removeClass("update");
 					}, 2500);
-					$.getScript("/app/static/js/overview.js");
+					$.getScript(overview);
 				}
 			}
 		});
 	});
-	var forward_for_var = "option forwardfor if-none\n";
+	let forward_for_var = "option forwardfor if-none\n";
 	$('#forward_for').click(function () {
 		if ($('#optionsInput').val().indexOf(forward_for_var) == '-1') {
 			$("#optionsInput").append(forward_for_var)
@@ -544,7 +542,7 @@ $( function() {
 			replace_text("#optionsInput2", forward_for_var);
 		}
 	});
-	var redispatch_var = "option redispatch\n";
+	let redispatch_var = "option redispatch\n";
 	$('#redispatch').click(function () {
 		if ($('#optionsInput').val().indexOf(redispatch_var) == '-1') {
 			$("#optionsInput").append(redispatch_var)
@@ -559,7 +557,7 @@ $( function() {
 			replace_text("#optionsInput2", redispatch_var);
 		}
 	});
-	var slow_atack = "option http-buffer-request\ntimeout http-request 10s\n"
+	let slow_atack = "option http-buffer-request\ntimeout http-request 10s\n"
 	$('#slow_atack').click(function () {
 		if ($('#optionsInput').val().indexOf(slow_atack) == '-1') {
 			$("#optionsInput").append(slow_atack)
@@ -600,7 +598,7 @@ $( function() {
 		if ($('#name').val() == "") {
 			$("#optionsInput").append(ddos_var)
 		}
-		var ddos_var = "#Start config for DDOS atack protect\n" +
+		let ddos_var = "#Start config for DDOS atack protect\n" +
 			"stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n" +
 			"tcp-request connection track-sc1 src\n" +
 			"tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n" +
@@ -625,7 +623,7 @@ $( function() {
 		if ($('#new_frontend').val() == "") {
 			$("#optionsInput1").append(ddos_var)
 		}
-		var ddos_var = "#Start config for DDOS atack protect\n" +
+		let ddos_var = "#Start config for DDOS atack protect\n" +
 			"stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n" +
 			"tcp-request connection track-sc1 src\n" +
 			"tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n" +
@@ -644,7 +642,7 @@ $( function() {
 			replace_text("#optionsInput1", ddos_var);
 		}
 	});
-	var antibot_var = "#Start config for Antibot protection\n" +
+	let antibot_var = "#Start config for Antibot protection\n" +
 		"http-request track-sc0 src table per_ip_rates\n" +
 		"http-request track-sc1 url32+src table per_ip_and_url_rates unless { path_end .css .js .png .jpeg .gif }\n" +
 		"acl exceeds_limit sc_gpc0_rate(0) gt 15 \n" +
@@ -724,7 +722,7 @@ $( function() {
 			$("[name=port_check_text]").show("fast");
 		}
 	});
-	var cur_url = window.location.href.split('/app/').pop();
+	let cur_url = window.location.href.split('/app/').pop();
 	cur_url = cur_url.split('/');
 	if (cur_url[0] == "add") {
 		$("#cache").checkboxradio("disable");
@@ -900,10 +898,10 @@ $( function() {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
 				} else {
-					var i;
-					var new_data = "";
+					let i;
+					let new_data = "";
 					data = data.split("\n");
-					var j = 1
+					let j = 1
 					for (i = 0; i < data.length; i++) {
 						data[i] = data[i].replace(/\s+/g, ' ');
 						if (data[i] != '') {
@@ -926,8 +924,8 @@ $( function() {
 		});
 	});
 	$('#lets_button').click(function () {
-		var lets_domain = $('#lets_domain').val();
-		var lets_email = $('#lets_email').val();
+		let lets_domain = $('#lets_domain').val();
+		let lets_email = $('#lets_email').val();
 		if (lets_email == '' || lets_domain == '') {
 			toastr.error('Fields cannot be empty');
 		} else if (validateEmail(lets_email)) {
@@ -935,7 +933,7 @@ $( function() {
 			$.ajax({
 				url: "/app/add/lets",
 				data: {
-					serv: $('#serv_for_lets').val(),
+					serv: $('#serv_for_vars').val(),
 					lets_domain: lets_domain,
 					lets_email: lets_email
 				},
@@ -959,7 +957,7 @@ $( function() {
 			toastr.error('Wrong e-mail format');
 		}
 	});
-	var add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server" style="margin: 2px 0 4px 0;">: ' +
+	let add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server" style="margin: 2px 0 4px 0;">: ' +
 		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number"> ' +
 		'port check: <input name="port_check" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">' +
 		' maxconn: <input name="server_maxconn" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">'
@@ -968,20 +966,20 @@ $( function() {
 		changePortCheckFromServerPort();
 	});
 	$('[name=port]').on('input', function () {
-		var iNum = parseInt($('[name=port]').val());
+		let iNum = parseInt($('[name=port]').val());
 		$('[name=port_check]').val(iNum);
 		$('[name=server_port]').val(iNum);
 	});
 	changePortCheckFromServerPort();
-	var add_userlist_var = '<br /><input name="userlist-user" title="User name" placeholder="user_name" class="form-control"> <input name="userlist-password" required title="User password. By default it insecure-password" placeholder="password" class="form-control"> <input name="userlist-user-group" title="User`s group" placeholder="user`s group" class="form-control">'
+	let add_userlist_var = '<br /><input name="userlist-user" title="User name" placeholder="user_name" class="form-control"> <input name="userlist-password" required title="User password. By default it insecure-password" placeholder="password" class="form-control"> <input name="userlist-user-group" title="User`s group" placeholder="user`s group" class="form-control">'
 	$('#add-userlist-user').click(function () {
 		$('#userlist-users').append(add_userlist_var);
 	});
-	var add_userlist_group_var = '<br /><input name="userlist-group" title="User`s group" placeholder="group_name" class="form-control">'
+	let add_userlist_group_var = '<br /><input name="userlist-group" title="User`s group" placeholder="group_name" class="form-control">'
 	$('#add-userlist-group').click(function () {
 		$('#userlist-groups').append(add_userlist_group_var);
 	});
-	var add_peer_var = '<br /><input name="servers_name" required title="Peer name" size=14 placeholder="haproxyN" class="form-control">: ' +
+	let add_peer_var = '<br /><input name="servers_name" required title="Peer name" size=14 placeholder="haproxyN" class="form-control">: ' +
 		'<input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server">: ' +
 		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">'
 	$('[name=add-peer-input]').click(function () {
@@ -1027,13 +1025,13 @@ $( function() {
 	});
 	$(".redirectFrontend").on("click", function () {
 		resetProxySettings();
-		var TabId = 2;
+		let TabId = 2;
 		$("#tabs").tabs("option", "active", TabId);
 		$("#serv" + TabId).selectmenu("open");
 	});
 	$(".redirectBackend").on("click", function () {
 		resetProxySettings();
-		var TabId = 3;
+		let TabId = 3;
 		$("#tabs").tabs("option", "active", TabId);
 		$("#serv" + TabId).selectmenu("open");
 	});
@@ -1077,17 +1075,17 @@ $( function() {
 		resetProxySettings();
 		createHttps(3, 'backend');
 	});
-	var tcp_note = 'The check is valid when the server answers with a <b>SYN/ACK</b> packet'
-	var ssl_note = 'The check is valid if the server answers with a valid SSL server <b>hello</b> message'
-	var httpchk_note = 'The check is valid if the server answers with a status code of <b>2xx</b> or <b>3xx</b>. You can ' +
+	let tcp_note = 'The check is valid when the server answers with a <b>SYN/ACK</b> packet'
+	let ssl_note = 'The check is valid if the server answers with a valid SSL server <b>hello</b> message'
+	let httpchk_note = 'The check is valid if the server answers with a status code of <b>2xx</b> or <b>3xx</b>. You can ' +
 		'add a page for checking and Domain name'
-	var ldap_note = 'The check is valid if the server response contains a successful <b>resultCode</b>.\n' +
+	let ldap_note = 'The check is valid if the server response contains a successful <b>resultCode</b>.\n' +
 		'<p>You must configure the LDAP servers according to this check to allow anonymous binding. ' +
 		'You can do this with an IP alias on the server side that allows only HAProxy IP addresses to bind to it.</p>'
-	var mysql_note = 'The check is valid if the server response contains a successful <b>Authentication</b> request'
-	var pgsql_note = 'The check is valid if the server response contains a successful <b>Authentication</b> request'
-	var redis_note = 'The check is valid if the server response contains the string <b>+PONG</b>'
-	var smtpchk_note = 'The check is valid if the server response code starts with <b>\'2\'</b>'
+	let mysql_note = 'The check is valid if the server response contains a successful <b>Authentication</b> request'
+	let pgsql_note = 'The check is valid if the server response contains a successful <b>Authentication</b> request'
+	let redis_note = 'The check is valid if the server response contains the string <b>+PONG</b>'
+	let smtpchk_note = 'The check is valid if the server response code starts with <b>\'2\'</b>'
 	$("#listener_checks").on('selectmenuchange', function () {
 		if ($("#listener_checks option:selected").val() == "option tcp-check") {
 			$("#listener_checks_note").html(tcp_note)
@@ -1416,7 +1414,7 @@ function updateSavedServer(id) {
 	} );
 }
 function view_ssl(id) {
-	var raw_word = $('#translate').attr('data-raw');
+	let raw_word = translate_div.attr('data-raw');
 	if(!checkIsServerFiled('#serv5')) return false;
 	$.ajax( {
 		url: "/app/add/cert/" + $('#serv5').val() + '/' + id,
@@ -1567,10 +1565,6 @@ function editList(list, color) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
-				var save_word = $('#translate').attr('data-just_save');
-				var upload_and_reload = $('#translate').attr('data-upload_and_reload');
-				var upload_and_restart = $('#translate').attr('data-upload_and_restart');
-				var edit_word = $('#translate').attr('data-edit');
 				$('#edit_lists').text(data);
 				$( "#dialog-confirm-cert-edit" ).dialog({
 					resizable: false,
@@ -1585,7 +1579,7 @@ function editList(list, color) {
 							confirmDeleting('list', list, $(this), color);
 						}
 					}, {
-						text: save_word,
+						text: just_save_word,
 						click: function () {
 							$(this).dialog("close");
 							saveList('save', list, color);
@@ -1614,7 +1608,7 @@ function editList(list, color) {
 	} );
 }
 function saveList(action, list, color) {
-	var serv = $("#serv-" + color + "-list option:selected").val();
+	let serv = $("#serv-" + color + "-list option:selected").val();
 	if (!checkIsServerFiled($("#serv-" + color + "-list"))) return false;
 	$.ajax({
 		url: "/app/add/haproxy/bwlist/save",
@@ -1643,7 +1637,7 @@ function saveList(action, list, color) {
 	});
 }
 function deleteList(list, color) {
-	var serv = $( "#serv-"+color+"-list option:selected" ).val();
+	let serv = $( "#serv-"+color+"-list option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-"+color+"-list"))) return false;
 	$.ajax({
 		url: "/app/add/haproxy/bwlist/delete/" + serv + "/" + color + "/" + list + "/" + $('#group_id').val(),
@@ -1697,10 +1691,6 @@ function editMap(map) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
-				var save_word = $('#translate').attr('data-just_save');
-				var upload_and_reload = $('#translate').attr('data-upload_and_reload');
-				var upload_and_restart = $('#translate').attr('data-upload_and_restart');
-				var edit_word = $('#translate').attr('data-edit');
 				$('#edit_map').text(data);
 				$("#dialog-confirm-map-edit").dialog({
 					resizable: false,
@@ -1715,7 +1705,7 @@ function editMap(map) {
 							confirmDeleting('map', map, $(this));
 						}
 					}, {
-						text: save_word,
+						text: just_save_word,
 						click: function () {
 							$(this).dialog("close");
 							saveMap('save', map);
@@ -1744,7 +1734,7 @@ function editMap(map) {
 	});
 }
 function saveMap(action, map) {
-	var serv = $( "#serv-map option:selected" ).val();
+	let serv = $( "#serv-map option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-map"))) return false;
 	$.ajax({
 		url: "/app/add/map",
@@ -1772,7 +1762,7 @@ function saveMap(action, map) {
 	});
 }
 function deleteMap(map) {
-	var serv = $( "#serv-map option:selected" ).val();
+	let serv = $( "#serv-map option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-map"))) return false;
 	$.ajax({
 		url: "/app/add/map",
@@ -1796,7 +1786,7 @@ function deleteMap(map) {
 	});
 }
 function generateConfig(form_name) {
-	var frm = $('#'+form_name);
+	let frm = $('#'+form_name);
 	if (form_name == 'add-listener') {
 		serv = '#serv'
 		name_id = '#name'
@@ -1814,10 +1804,10 @@ function generateConfig(form_name) {
 		name_id = '#peers-name'
 	}
 	if(!checkIsServerFiled(serv)) return false;
-	var empty_name = $('#translate').attr('data-empty_name');
-	var generated_title = $('#translate').attr('data-generated_config');
+	let empty_name = translate_div.attr('data-empty_name');
+	let generated_title = translate_div.attr('data-generated_config');
 	if(!checkIsServerFiled(name_id, empty_name)) return false;
-	var input = $("<input>")
+	let input = $("<input>")
 		.attr("name", "generateconfig").val("1").attr("type", "hidden").attr("id", "generateconfig");
 	$('#'+form_name +' input[name=acl_then_value]').each(function(){
 		if (!$(this).val()){
@@ -1878,7 +1868,7 @@ function generateConfig(form_name) {
 	});
 }
 function addProxy(form_name) {
-	var frm = $('#'+form_name);
+	let frm = $('#'+form_name);
 	if (form_name == 'add-listener') {
 		serv = '#serv'
 		name_id = '#name'
@@ -1927,7 +1917,7 @@ function addProxy(form_name) {
 				toastr.clear();
 				returnNiceCheckingConfig(data);
 				toastr.info('Section has been added. Do not forget to restart the server');
-				var ip = frm.find('select[name=serv]').val();
+				let ip = frm.find('select[name=serv]').val();
 				localStorage.setItem('restart', ip);
 				resetProxySettings();
 			}
@@ -1989,11 +1979,11 @@ function deleteId(id) {
 		$('#frontend_bind').hide();
 	}
 }
-var if_word = $('#translate').attr('data-if-title');
-var then_word = $('#translate').attr('data-then');
-var value_word = $('#translate').attr('data-value');
-var name_word = $('#translate').attr('data-name');
-var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">\n' +
+let if_word = translate_div.attr('data-if-title');
+let then_word = translate_div.attr('data-then');
+let value_word = translate_div.attr('data-value');
+let name_word = translate_div.attr('data-name');
+let acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">\n' +
 		'<b class="padding10">'+if_word+'</b>\n' +
 		'<select name="acl_if">\n' +
 		'\t<option selected>Select if</option>\n' +
@@ -2020,20 +2010,18 @@ var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; paddin
 		'<span class="minus minus-style" id="new_acl_rule_minus" title="Delete this ACL"></span>' +
 		'</p>'
 function make_actions_for_adding_acl_rule(section_id) {
-	var random_id = makeid(3);
+	let random_id = makeid(3);
 	$(section_id).append(acl_option);
 	$('#new_acl_rule_minus').attr('onclick', 'deleteId(\''+random_id+'\')');
 	$('#new_acl_rule_minus').attr('id', '');
 	$('#new_acl_p').attr('id', random_id);
 	$('#new_acl_rule_minus').attr('id', '');
-	$.getScript("/app/static/js/overview.js");
+	$.getScript(overview);
 	$( "select" ).selectmenu();
 	$('[name=acl_if]').selectmenu({width: 180});
 	$('[name=acl_then]').selectmenu({width: 180});
 }
-var value_word = $('#translate').attr('data-value');
-var name_word = $('#translate').attr('data-name');
-var header_option = '<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="new_header_p">\n' +
+let header_option = '<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="new_header_p">\n' +
 	'<select name="headers_res">' +
 	'<option value="http-response">response</option>' +
 	'<option value="http-request">request</option>' +
@@ -2050,30 +2038,30 @@ var header_option = '<p style="border-bottom: 1px solid #ddd; padding-bottom: 10
 	'\t<span class="minus minus-style" id="new_header_minus" title="Delete this header"></span>' +
 	'</p>'
 function make_actions_for_adding_header(section_id) {
-	var random_id = makeid(3);
+	let random_id = makeid(3);
 	$(section_id).append(header_option);
 	$('#new_header_minus').attr('onclick', 'deleteId(\''+random_id+'\')');
 	$('#new_header_minus').attr('id', '');
 	$('#new_header_p').attr('id', random_id);
 	$('#new_header_minus').attr('id', '');
-	$.getScript("/app/static/js/overview.js");
+	$.getScript(overview);
 	$( "select" ).selectmenu();
 	$('[name=headers_method]').selectmenu({width: 180});
 }
-var bind_option = '<p id="new_bind_p"><input type="text" name="ip" size="15" placeholder="Any" class="form-control ui-autocomplete-input" autocomplete="off">' +
+let bind_option = '<p id="new_bind_p"><input type="text" name="ip" size="15" placeholder="Any" class="form-control ui-autocomplete-input" autocomplete="off">' +
 	'<b>:</b> ' +
 	'<input type="text" name="port" size="5" style="" required="" placeholder="8080" title="Port for bind listen" class="form-control" autocomplete="off"> ' +
 	'<span class="minus minus-style" id="new_bind_minus" title="Remove the IP-port pair"></span>'
 function make_actions_for_adding_bind(section_id) {
-	var random_id = makeid(3);
+	let random_id = makeid(3);
 	$(section_id).append(bind_option);
 	$('#new_bind_minus').attr('onclick', 'deleteId(\''+random_id+'\')');
 	$('#new_bind_minus').attr('id', '');
 	$('#new_bind_p').attr('id', random_id);
 	$('#new_bind_minus').attr('id', '');
-	$.getScript("/app/static/js/overview.js");
+	$.getScript(overview);
 	$( "select" ).selectmenu();
-	var serv = 'serv2'
+	let serv = 'serv2'
 	if(section_id == '#listener_bind') {
 		serv = 'serv'
 	}
@@ -2120,7 +2108,7 @@ function showUserlists() {
 				$('#existing_userlist_ajax').text('');
 				data = data.split(",");
 				for (i = 0; i < data.length; i++) {
-					var existing_userlist_ajax = $.find("#existing_userlist_ajax");
+					let existing_userlist_ajax = $.find("#existing_userlist_ajax");
 					existing_userlist_ajax = existing_userlist_ajax[0].id;
 					data[i] = escapeHtml(data[i]);
 					$('#' + existing_userlist_ajax).append('<a href="/app/config/section/haproxy/' + serv + '/' + data[i] + '" title="Edit/Delete this userlist" target="_blank">' + data[i] + '</a> ');
@@ -2131,7 +2119,7 @@ function showUserlists() {
 }
 function changePortCheckFromServerPort() {
 	$('[name=server_port]').on('input', function () {
-		var iNum = parseInt($($(this)).val());
+		let iNum = parseInt($($(this)).val());
 		$($(this)).next().val(iNum);
 	});
 }

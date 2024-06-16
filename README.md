@@ -1,5 +1,5 @@
 # ![alt text](https://roxy-wi.org/static/images/logo_menu.png "Logo")
-Web interface(user-friendly web GUI, alerting, monitoring and secure) for managing HAProxy, Nginx and Keepalived servers. Leave your [feedback](https://github.com/hap-wi/roxy-wi/issues)
+Web interface (user-friendly web GUI, alerting, monitoring and secure) for managing HAProxy, Nginx and Keepalived servers. Leave your [feedback](https://github.com/hap-wi/roxy-wi/issues)
 
 # Get involved
 * [Telegram Channel](https://t.me/roxy_wi_channel) about Roxy-WI, talks and questions are welcome
@@ -24,8 +24,8 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 13. Pushing Your changes to your HAProxy, Nginx, Apache and Keepalived servers with a single click via the web interface
 14. Getting info on past changes, evaluating your config files and restoring the previous stable config at any time with a single click right from Web interface
 15. Adding/Editing Frontend or backend servers via the web interface with a click
-16. Editing the config of HAProxy, Nginx, Apache and Keepalived and push ingchanges to All Master/Slave servers by a single click
-17. Adding Multiple server to ensure the Config Sync between servers
+16. Editing the config of HAProxy, Nginx, Apache and Keepalived and push interchanges to All Master/Slave servers by a single click
+17. Adding Multiple servers to ensure the Config Sync between servers
 18. Managing the ports assigned to Frontend automatically
 19. Evaluating the changes of recent configs pushed to HAProxy, Nginx, Apache and Keepalived instances right from the Web UI
 20. Multiple User Roles support for privileged based Viewing and editing of Config
@@ -50,7 +50,7 @@ Web interface(user-friendly web GUI, alerting, monitoring and secure) for managi
 
 
 
-![alt text](https://Roxy-WI.org/static/images/roxy-wi-metrics.png "Merics")
+![alt text](https://roxy-wi.org/static/images/roxy-wi-metrics.png "Merics")
 
 # Install
 
@@ -72,7 +72,7 @@ Roxy-WI supports the following OSes:
 2. EL8(RPM installation and manual installation). It must be "Infrastructure Server" at least. x86_64 only
 3. EL9(RPM installation and manual installation). It must be "Infrastructure Server" at least. x86_64 only
 4. Amazon Linux 2(RPM installation and manual installation). x86_64 only
-5. Ubuntu(DEB installation and manual installation). x86_64 only
+5. Ubuntu (DEB installation and manual installation). x86_64 only
 6. Other Linux distributions (manual installation only). x86_64 only
 
 ![alt text](https://roxy-wi.org/static/images/smon_dashboard.png "SMON area")
@@ -90,27 +90,19 @@ Default Roxy-WI use Sqlite, if you want use MySQL enable in config, and create d
 # Settings
 
 
-Login https://roxy-wi-server/users.py, and add: users, groups and servers. Default: admin/admin
+Login https://roxy-wi-server/admin, and add: users, groups, and servers. Default: admin/admin
 
 ### Read instruction on the official [site](https://roxy-wi.org/settings)
 
 ![alt text](https://roxy-wi.org/static/images/hapwi_overview.webp "HAProxy server overview page")
 
 
-![alt text](https://roxy-wi.org/static/images/add.png "Add proxy page")
+![alt text](https://roxy-wi.org/static/images/add.webp "Add proxy page")
 
 
 
 # Troubleshooting
 If you have error:
-```
-Forbidden
-You don't have permission to access /app/overview.py on this server.
-```
-
-Check owner(must be apache, or another user for apache)
-
-If at first login you have:
 ```
 Internal Server Error
 ```
@@ -120,8 +112,5 @@ Do this:
 $ cd /var/www/haproxy-wi/app
 $ ./create_db.py
 ```
-and check executable .py files
-
-If you see plain text, check section "Directory" in httpd conf
 
 [Read more](https://roxy-wi.org/troubleshooting)

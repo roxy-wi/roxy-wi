@@ -326,11 +326,6 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 
 
 def install_service(service: str, json_data: str) -> object:
-	# try:
-	# 	json_data = json.loads(json_data)
-	# except Exception as e:
-	# 	roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot parse JSON', roxywi=1)
-
 	generate_functions = {
 		'haproxy': generate_haproxy_inv,
 		'nginx': generate_service_inv,

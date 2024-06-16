@@ -4,7 +4,7 @@ $( function() {
     });
     $("#nettools_telnet_form").on("click", ":submit", function (e) {
         $('#ajax-nettools').html('');
-        var frm = $('#nettools_telnet_form');
+        let frm = $('#nettools_telnet_form');
         if ($('#nettools_telnet_server_from option:selected').val() == '------') {
             toastr.warning('Choose a server From');
             return false;
@@ -42,7 +42,7 @@ $( function() {
     });
     $("#nettools_nslookup_form").on("click", ":submit", function (e) {
         $('#ajax-nettools').html('');
-        var frm = $('#nettools_nslookup_form');
+        let frm = $('#nettools_nslookup_form');
         if ($('#nettools_nslookup_server_from option:selected').val() == '------') {
             toastr.warning('Choose a server From');
             return false;
@@ -73,7 +73,7 @@ $( function() {
     });
     $("#nettools_icmp_form").on("click", ":submit", function (e) {
         $('#ajax-nettools').html('');
-        var frm = $('#nettools_icmp_form');
+        let frm = $('#nettools_icmp_form');
         if ($('#nettools_icmp_server_from option:selected').val() == '------') {
             toastr.warning('Choose a server From');
             return false;
@@ -123,7 +123,6 @@ $( function() {
                 } else {
                     toastr.clear();
                     $("#show_scans_ports_body").html(data);
-                    var close_word = $('#translate').attr('data-close');
                     $("#show_scans_ports").dialog({
                         resizable: false,
                         height: "auto",
@@ -145,7 +144,7 @@ $( function() {
     });
     $("#nettools_whois_form").on("click", ":submit", function (e) {
         $('#ajax-nettools').html('');
-        var frm = $('#nettools_whois_form');
+        let frm = $('#nettools_whois_form');
         if ($('#nettools_whois_name').val() == '') {
             toastr.warning('Enter a Domain name');
             return false;

@@ -1,34 +1,34 @@
 $( function() {
     $( "#checker_haproxy_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateHaproxyCheckerSettings(id[1])
 	});
 	$( "#checker_haproxy_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateHaproxyCheckerSettings(id[1])
 	});
 	$( "#checker_nginx_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateServiceCheckerSettings(id[1], 'nginx')
 	});
 	$( "#checker_nginx_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateServiceCheckerSettings(id[1], 'nginx')
 	});
 	$( "#checker_apache_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateServiceCheckerSettings(id[1], 'apache')
 	});
 	$( "#checker_apache_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateServiceCheckerSettings(id[1], 'apache')
 	});
 	$( "#checker_keepalived_table select" ).on('selectmenuchange',function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateKeepalivedCheckerSettings(id[1])
 	});
 	$( "#checker_keepalived_table input" ).change(function() {
-		var id = $(this).attr('id').split('-');
+		let id = $(this).attr('id').split('-');
 		updateKeepalivedCheckerSettings(id[1])
 	});
 });

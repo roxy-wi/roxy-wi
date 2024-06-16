@@ -99,9 +99,15 @@ def show_stats(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
 
     if service in ('nginx', 'apache'):
-        return service_common.get_stat_page(server_ip, service)
+        try:
+            return service_common.get_stat_page(server_ip, service)
+        except Exception as e:
+            return f'error: {e}'
     else:
-        return service_haproxy.stat_page_action(server_ip)
+        try:
+            return service_haproxy.stat_page_action(server_ip)
+        except Exception as e:
+            return f'error: {e}'
 
 
 @bp.route('/nettools')

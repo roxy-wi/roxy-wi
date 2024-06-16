@@ -1,4 +1,3 @@
-var cancel_word = $('#translate').attr('data-cancel');
 $( function() {
 	$("select").selectmenu({
 		width: 180
@@ -22,17 +21,17 @@ $( function() {
 		}
 	});
 	$("#ha-cluster-master").on('selectmenuchange', function () {
-		var server_ip = $('#ha-cluster-master option:selected').val();
-		var div_id = $('#cur_master_ver');
+		let server_ip = $('#ha-cluster-master option:selected').val();
+		let div_id = $('#cur_master_ver');
 		get_keepalived_ver(div_id, server_ip);
 	});
 	$("#ha-cluster-master-interface").on('input', function () {
-		var server_ip = $('#ha-cluster-master option:selected').val();
+		let server_ip = $('#ha-cluster-master option:selected').val();
 		get_interface($(this), server_ip);
 	});
 	$(".slave_int input").on('input', function () {
-		var id = $(this).attr('id').split('-');
-		var server_ip = $('#slave_int_div-' + id[1]).attr('data-ip');
+		let id = $(this).attr('id').split('-');
+		let server_ip = $('#slave_int_div-' + id[1]).attr('data-ip');
 		get_interface($(this), server_ip);
 	});
 });
@@ -48,10 +47,9 @@ function cleanProvisioningProccess(div_id, success_div, error_id, warning_id, pr
     $(div_id).each(function () {
         $(this).remove('');
     });
-    $.getScript("/app/static/js/fontawesome.min.js");
+    $.getScript(awesome);
 }
 function confirmDeleteCluster(cluster_id) {
-	var delete_word = $('#translate').attr('data-delete');
 	$("#dialog-confirm").dialog({
 		resizable: false,
 		height: "auto",
@@ -89,7 +87,7 @@ function deleteCluster(cluster_id) {
 	});
 }
 function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
-	let next_word = $('#translate').attr('data-next');
+	let next_word = translate_div.attr('data-next');
 	let tabel_title = $("#create-ha-cluster-step-1-overview").attr('title');
 	if (clean) {
 		clearClusterDialog(edited);
@@ -111,8 +109,8 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 		tabel_title = $("#create-ha-cluster-step-1-overview").attr('data-edit');
 	}
 	if (edited && clean) {
-		var master_name = $('#master-server-'+cluster_id).text();
-		var master_ip = $('#master-ip-'+cluster_id).text();
+		let master_name = $('#master-server-'+cluster_id).text();
+		let master_ip = $('#master-ip-'+cluster_id).text();
 		$("#ha-cluster-master option").not(master_name).each(function (index) {
 			$(this).prop('disabled', true);
 		});
@@ -175,9 +173,9 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 			}
 		}
 	});
-	$.getScript('/app/static/js/ha.js');
-	var regx = /^[a-z0-9_-]+$/;
-	var dialog_div = $("#create-ha-cluster-step-1").dialog({
+	$.getScript(ha);
+	let regx = /^[a-z0-9_-]+$/;
+	let dialog_div = $("#create-ha-cluster-step-1").dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -234,14 +232,12 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 	dialog_div.dialog('open');
 }
 function createHaClusterStep2(edited=false, cluster_id=0, jsonData='') {
-	var back_word = $('#translate').attr('data-back');
-	var save_word = $('#translate').attr('data-save');
-	var apply_word = $('#translate').attr('data-apply');
-	var tabel_title = $("#create-ha-cluster-step-2-overview").attr('title');
+	let apply_word = translate_div.attr('data-apply');
+	let tabel_title = $("#create-ha-cluster-step-2-overview").attr('title');
 	if (edited) {
 		tabel_title = $("#create-ha-cluster-step-2-overview").attr('data-edit');
 	}
-	var dialog_div = $("#create-ha-cluster-step-2").dialog({
+	let dialog_div = $("#create-ha-cluster-step-2").dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -365,7 +361,7 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	}
 }
 function Reconfigure(jsonData, cluster_id) {
-	servers = JSON.parse(JSON.stringify(jsonData));
+	let servers = JSON.parse(JSON.stringify(jsonData));
 	$("#wait-mess").html(wait_mess);
 	$("#wait-mess").show();
 	let total_installation = 1;
@@ -378,8 +374,8 @@ function Reconfigure(jsonData, cluster_id) {
 	if (servers['services']['apache']['enabled']) {
 		total_installation = total_installation + 1;
 	}
-	var server_creating_title = $("#server_creating1").attr('title');
-	var server_creating = $("#server_creating1").dialog({
+	let server_creating_title = $("#server_creating1").attr('title');
+	let server_creating = $("#server_creating1").dialog({
 		autoOpen: false,
 		width: 574,
 		modal: true,
@@ -429,15 +425,17 @@ function Reconfigure(jsonData, cluster_id) {
 function installServiceCluster(jsonData, service, progress_step, cluster_id) {
 	let servers = JSON.parse(JSON.stringify(jsonData));
 	servers['cluster_id'] = cluster_id;
-	var li_id = 'creating-' + service + '-';
-	var install_mess = $('#translate').attr('data-installing');
-	var timeout_mess = $('#translate').attr('data-roxywi_timeout');
-	var something_wrong = $('#translate').attr('data-something_wrong');
-	var nice_service_name = {'keepalived': 'HA Custer', 'haproxy': 'HAProxy', 'nginx': 'NGINX', 'apache': 'Apache'};
+	let li_id = 'creating-' + service + '-';
+	let install_mess = translate_div.attr('data-installing');
+	let timeout_mess = translate_div.attr('data-roxywi_timeout');
+	let something_wrong = translate_div.attr('data-something_wrong');
+	let nice_service_name = {'keepalived': 'HA Custer', 'haproxy': 'HAProxy', 'nginx': 'NGINX', 'apache': 'Apache'};
 	$('#server_creating_list').append('<li id="' + li_id + servers['cluster_id'] + '" class="server-creating proccessing">' + install_mess + ' ' + nice_service_name[service] + '</li>');
 	return $.ajax({
 		url: "/app/install/" + service,
 		type: "POST",
+		data: JSON.stringify(servers),
+		contentType: "application/json; charset=utf-8",
 		statusCode: {
 			500: function () {
 				showErrorStatus(nice_service_name[service], servers["name"], li_id, servers['cluster_id'], progress_step, something_wrong);
@@ -445,9 +443,6 @@ function installServiceCluster(jsonData, service, progress_step, cluster_id) {
 			504: function () {
 				showErrorStatus(nice_service_name[service], servers["name"], li_id, servers['cluster_id'], progress_step, timeout_mess);
 			},
-		},
-		data: {
-			jsonData: JSON.stringify(servers),
 		},
 		success: function (data) {
 			if (data.status === 'failed') {
@@ -460,40 +455,40 @@ function installServiceCluster(jsonData, service, progress_step, cluster_id) {
 	});
 }
 function showErrorStatus(service_name, server_name, li_id, server_id, progress_step, message) {
-	var check_apache_log = $('#translate').attr('data-check_apache_log');
+	let check_apache_log = translate_div.attr('data-check_apache_log');
 	$('#' + li_id + server_id).removeClass('proccessing');
 	$('#' + li_id + server_id).addClass('processing_error');
-	$.getScript("/app/static/js/fontawesome.min.js");
+	$.getScript(awesome);
 	$('#creating-error').show();
 	$('#creating-error').append('<div>' + message + ' ' + service_name + ' ' + server_name + '. '+check_apache_log+'</div>');
 	increaseProgressValue(progress_step);
 }
 function checkInstallResp(output, server_id, progress_step, name, li_id, service_name) {
 	output = JSON.parse(JSON.stringify(output));
-	var was_installed = $('#translate').attr('data-was_installed');
-	var something_wrong = $('#translate').attr('data-something_wrong');
-	var check_apache_log = $('#translate').attr('data-check_apache_log');
-	for (var k in output['ok']) {
+	let was_installed = translate_div.attr('data-was_installed');
+	let something_wrong = translate_div.attr('data-something_wrong');
+	// let check_apache_log = translate_div.attr('data-check_apache_log');
+	for (let k in output['ok']) {
 		$('#' + li_id + server_id).removeClass('proccessing');
 		$('#' + li_id + server_id).addClass('proccessing_done');
 		$('#created-mess').show();
 		$('#created-mess').append('<div>' + service_name + ' ' + was_installed +' ' + k + '</div>');
 	}
-	for (var k in output['failures']) {
+	for (let k in output['failures']) {
 		showErrorStatus(service_name, k, li_id, server_id, progress_step, something_wrong);
 	}
-	for (var k in output['dark']) {
+	for (let k in output['dark']) {
 		showErrorStatus(service_name, k, li_id, server_id, progress_step, something_wrong);
 	}
 	increaseProgressValue(progress_step);
-	$.getScript("/app/static/js/fontawesome.min.js");
+	$.getScript(awesome);
 }
 function increaseProgressValue(progress_step) {
 	let progress_id = '#creating-progress';
 	let waid_id = '#wait-mess';
 	progress_step = Math.ceil(parseFloat(progress_step));
-	var cur_proggres_value = $(progress_id).css('width').split('px')[0] / $(progress_id).parent().width() * 100;
-	var new_progress = Math.ceil(parseFloat(cur_proggres_value)) + progress_step;
+	let cur_proggres_value = $(progress_id).css('width').split('px')[0] / $(progress_id).parent().width() * 100;
+	let new_progress = Math.ceil(parseFloat(cur_proggres_value)) + progress_step;
 	new_progress = Math.ceil(parseFloat(new_progress));
 	if (parseFloat(new_progress) > 90) {
 		$(waid_id).hide();
@@ -503,11 +498,10 @@ function increaseProgressValue(progress_step) {
 	$(progress_id).css('width', new_progress+'%');
 }
 function add_vip_ha_cluster(cluster_id, cluster_name, router_id='', vip='', edited=0) {
-	var save_word = $('#translate').attr('data-save');
-	var delete_word = $('#translate').attr('data-delete');
-	var tabel_title = $("#add-vip-table").attr('title');
-	var buttons = [];
-	var req_method = 'GET';
+	let save_word = translate_div.attr('data-save');
+	let tabel_title = $("#add-vip-table").attr('title');
+	let buttons = [];
+	let req_method = 'GET';
 	if (edited) {
 		$.ajax({
 			url: "/app/ha/cluster/settings/" + cluster_id + "/vip/" + router_id,
@@ -607,8 +601,8 @@ function add_vip_ha_cluster(cluster_id, cluster_name, router_id='', vip='', edit
 			}
 		}
 	});
-	$.getScript('/app/static/js/ha.js');
-	var dialog_div = $("#add-vip").dialog({
+	$.getScript(ha);
+	let dialog_div = $("#add-vip").dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -698,7 +692,7 @@ function get_keepalived_ver(div_id, server_ip) {
 		success: function (data) {
 			data = data.replace(/^\s+|\s+$/g, '');
 			if (data.indexOf('error:') != '-1') {
-				var p_err = show_pretty_ansible_error(data);
+				let p_err = show_pretty_ansible_error(data);
 				toastr.error(p_err);
 			} else if (data.indexOf('keepalived:') != '-1') {
 				div_id.text('Keepalived has not installed');
@@ -710,16 +704,15 @@ function get_keepalived_ver(div_id, server_ip) {
 	});
 }
 function addCheckToStatus(server_id, server_ip) {
-	var hostname = $('#add_check-' + server_id).attr('data-name');
-	var delete_word = $('#translate').attr('data-delete');
-	var service_word = $('#translate').attr('data-service');
-	var start_enter = $('#translate').attr('data-start_enter');
-	var length_tr = $('#all-checks').length;
-	var tr_class = 'odd';
+	let hostname = $('#add_check-' + server_id).attr('data-name');
+	let service_word = translate_div.attr('data-service');
+	let start_enter = translate_div.attr('data-start_enter');
+	let length_tr = $('#all-checks').length;
+	let tr_class = 'odd';
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	var html_tag = '<div class="' + tr_class + '" id="remove_check-' + server_id + '" data-name="' + hostname + '">' +
+	let html_tag = '<div class="' + tr_class + '" id="remove_check-' + server_id + '" data-name="' + hostname + '">' +
 		'<div class="check-name"><div style="display: inline-block; width: 150px;">' + hostname + '</div>' +
 		'<span class="slave_int" id="slave_int_div-' + server_id + '" data-ip="' + server_ip + '">' +
 		'<input id="slave_int-' + server_id + '" title="'+start_enter+'" placeholder="eth0" size="7" class="form-control"></span></div>' +
@@ -728,12 +721,12 @@ function addCheckToStatus(server_id, server_ip) {
 		'</div>';
 	$('#add_check-' + server_id).remove();
 	$("#enabled-check").append(html_tag);
-	$.getScript('/app/static/js/ha.js');
+	$.getScript(ha);
 }
 function removeCheckFromStatus(server_id, server_ip) {
 	let hostname = $('#remove_check-' + server_id).attr('data-name');
-	let add_word = $('#translate').attr('data-add');
-	let service_word = $('#translate').attr('data-service');
+	let add_word = translate_div.attr('data-add');
+	let service_word = translate_div.attr('data-service');
 	let length_tr = $('#all_services tbody tr').length;
 	let tr_class = 'odd';
 	if (length_tr % 2 != 0) {
@@ -836,7 +829,7 @@ function getHaCluster(cluster_id, new_cluster=false) {
 				} else {
 					$('#cluster-' + cluster_id).replaceWith(data);
 				}
-				$.getScript("/app/static/js/fontawesome.min.js");
+				$.getScript(awesome);
 				$('#cluster-' + cluster_id).removeClass('animated-background');
 			}
 		}

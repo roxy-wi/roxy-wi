@@ -234,9 +234,9 @@ def get_stat_page(server_ip: str, service: str) -> str:
 	try:
 		response = requests.get(f'http://{server_ip}:{stats_port}/{stats_page}', auth=(stats_user, stats_pass), timeout=5)
 	except requests.exceptions.ConnectTimeout:
-		return 'error: Oops. Connection timeout occurred!'
+		return 'error: Connection timeout occurred!'
 	except requests.exceptions.ReadTimeout:
-		return 'error: Oops. Read timeout occurred'
+		return 'error: Read timeout occurred'
 	except requests.exceptions.HTTPError as errh:
 		return f'error: Http Error: {errh}'
 	except requests.exceptions.ConnectionError as errc:
@@ -244,7 +244,7 @@ def get_stat_page(server_ip: str, service: str) -> str:
 	except requests.exceptions.Timeout as errt:
 		return f'error: Timeout Error: {errt}'
 	except requests.exceptions.RequestException as err:
-		return f'error: OOps: Something Else {err}'
+		return f'error: Something Else {err}'
 
 	data = response.content
 	if service == 'nginx':
