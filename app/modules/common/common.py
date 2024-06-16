@@ -1,7 +1,9 @@
 import re
+import os
 import dateutil
 from datetime import datetime
 
+import distro
 from shlex import quote
 from shutil import which
 from pytz import timezone
@@ -194,7 +196,30 @@ def sanitize_input_word(word: str) -> str:
 
 
 def return_proxy_dict() -> dict:
+	"""
+	Return a dictionary containing proxy information for HTTP and HTTPS.
+
+	:return: A dictionary with the following key-value pairs:
+	         - "https": The proxy setting for HTTPS.
+	         - "http": The proxy setting for HTTP.
+	         If the proxy setting is None, an empty string, or "None", an empty dictionary is returned.
+	"""
 	proxy = sql.get_setting('proxy')
 	if proxy in {None, '', 'None'}:
 		return {}
 	return {"https": proxy, "http": proxy}
+
+
+def set_correct_owner(path: str) -> None:
+	"""
+	Sets the correct owner of the specified path.
+
+	:param path: The path for which to set the correct owner.
+	:type path: str
+	:return: None
+	:rtype: None
+	"""
+	if distro.id() == 'ubuntu':
+		os.system(f'sudo chown www-data:www-data -R {path}')
+	else:
+		os.system(f'sudo chown apache:apache -R {path}')

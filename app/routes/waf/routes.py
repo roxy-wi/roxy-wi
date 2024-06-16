@@ -113,7 +113,7 @@ def waf_rule_edit(service, server_ip, rule_id):
         conf = open(cfg, "r")
         config_read = conf.read()
         conf.close()
-    except IOError:
+    except IOError as e:
         return f'error: Cannot read imported config file: {e}'
 
     kwargs = {

@@ -147,6 +147,6 @@ def install_udp():
     listener_id = int(json_data['listener_id'])
     try:
         inv, server_ips = service_mod.generate_udp_inv(listener_id, 'install')
-        return service_mod.run_ansible(inv, server_ips, f'udp'), 201
+        return service_mod.run_ansible(inv, server_ips, 'udp'), 201
     except Exception as e:
         return jsonify({'status': 'failed', 'error': f'Cannot create listener: {e}'})

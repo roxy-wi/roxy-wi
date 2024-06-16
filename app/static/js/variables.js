@@ -18,4 +18,4 @@ const script = `${scriptPath}/script.js`;
 const overview = `${scriptPath}/overview.js`;
 const configShow = `${scriptPath}/configshow.js`;
 const awesome = `${scriptPath}/fontawesome.min.js`;
-const ha = `${scriptPath}/js/ha.js`;
+const ha = `${scriptPath}/ha.js`;

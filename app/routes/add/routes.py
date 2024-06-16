@@ -577,9 +577,10 @@ def upload_cert():
     return add_mod.upload_ssl_cert(server_ip, ssl_name, ssl_cont)
 
 
-@bp.route('/cert/get/raw/<server_ip>/<int:cert_id>')
+@bp.route('/cert/get/raw/<server_ip>/<cert_id>')
 def get_cert_raw(server_ip, cert_id):
     server_ip = common.is_ip_or_dns(server_ip)
+    cert_id = common.checkAjaxInput(cert_id)
     return add_mod.get_ssl_raw_cert(server_ip, cert_id)
 
 

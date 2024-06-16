@@ -61,7 +61,7 @@ def listener_funct(service):
         listener_id = int(kwargs['listener_id'])
         try:
             inv, server_ips = service_mod.generate_udp_inv(listener_id, 'uninstall')
-            service_mod.run_ansible(inv, server_ips, f'udp'), 201
+            service_mod.run_ansible(inv, server_ips, 'udp'), 201
             roxywi_common.logging(listener_id, f'UDP listener has been deleted {listener_id}', roxywi=1, keep_history=1, login=1, service='UDP listener')
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server',f'Cannot create inventory for UDP listener deleting {listener_id}')

@@ -83,7 +83,7 @@ def update_user_status() -> None:
 	roxy_wi_get_plan = requests.Session()
 	roxy_wi_get_plan.mount("https://", adapter)
 	json_body = {'license': user_license}
-	roxy_wi_get_plan = requests.post(f'https://roxy-wi.org/user/license', timeout=5, proxies=proxy_dict, json=json_body)
+	roxy_wi_get_plan = requests.post('https://roxy-wi.org/user/license', timeout=5, proxies=proxy_dict, json=json_body)
 	try:
 		status = roxy_wi_get_plan.json()
 		roxy_sql.update_user_status(status['status'], status['plan'], status['method'])

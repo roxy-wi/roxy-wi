@@ -290,20 +290,18 @@ def create_map(server_ip: str, map_name: str, group: str) -> str:
 	lib_path = get_config.get_config_var('main', 'lib_path')
 	map_name = f"{map_name.split('.')[0]}.map"
 	map_path = f'{lib_path}/maps/{group}/'
-	full_path = f'{map_path}/{map_name}'
+	full_path = f'{map_path}{map_name}'
 
 	try:
-		server_mod.subprocess_execute(f'mkdir -p {map_path}')
+		server_mod.subprocess_execute(f'sudo mkdir -p {map_path}')
+		common.set_correct_owner(lib_path)
 	except Exception as e:
 		raise Exception(f'error: cannot create a local folder for maps: {e}')
 	try:
-		open(full_path, 'a').close()
-		try:
-			roxywi_common.logging(server_ip, f'A new map {map_name} has been created', roxywi=1, login=1)
-		except Exception:
-			pass
+		os.mknod(full_path)
+		roxywi_common.logging(server_ip, f'A new map {map_name} has been created', roxywi=1, login=1)
 	except IOError as e:
-		raise Exception(f'error: Cannot create a new {map_name} map. {e}, ')
+		raise Exception(f'error: Cannot create a new {map_name} map. {e}')
 	else:
 		return 'success: '
 
@@ -488,17 +486,17 @@ def get_ssl_cert(server_ip: str, cert_id: int) -> str:
 	try:
 		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
-		return f'error: Cannot connect to the server {e.args[0]}'
+		return f'error: Cannot connect to the server {e}'
 
 
-def get_ssl_raw_cert(server_ip: str, cert_id: int) -> str:
+def get_ssl_raw_cert(server_ip: str, cert_id: str) -> str:
 	cert_path = sql.get_setting('cert_path')
 	command = f"cat {cert_path}/{cert_id}"
 
 	try:
 		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
-		return f'error: Cannot connect to the server {e.args[0]}'
+		return f'error: Cannot connect to the server {e}'
 
 
 def get_ssl_certs(server_ip: str) -> str:
@@ -507,7 +505,7 @@ def get_ssl_certs(server_ip: str) -> str:
 	try:
 		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
-		return f'error: Cannot connect to the server: {e.args[0]}'
+		return f'error: Cannot connect to the server: {e}'
 
 
 def del_ssl_cert(server_ip: str, cert_id: str) -> str:
@@ -517,7 +515,7 @@ def del_ssl_cert(server_ip: str, cert_id: str) -> str:
 	try:
 		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
-		return f'error: Cannot delete the certificate {e.args[0]}'
+		return f'error: Cannot delete the certificate {e}'
 
 
 def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str) -> str:

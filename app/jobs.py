@@ -2,14 +2,13 @@ import os
 import shutil
 import datetime
 
-import distro
-
 from app import scheduler
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
 import app.modules.db.roxy as roxy_sql
 import app.modules.db.history as history_sql
 import app.modules.roxywi.roxy as roxy
+import app.modules.common.common as common
 import app.modules.tools.common as tools_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 
@@ -76,10 +75,7 @@ def delete_old_logs():
 def update_owner_on_log():
     log_path = get_config.get_config_var('main', 'log_path')
     try:
-        if distro.id() == 'ubuntu':
-            os.system(f'sudo chown www-data:www-data -R {log_path}')
-        else:
-            os.system(f'sudo chown apache:apache -R {log_path}')
+        common.set_correct_owner(log_path)
     except Exception:
         pass
 

@@ -414,25 +414,22 @@ def show_firewalld_rules(server_ip) -> str:
 	return render_template('ajax/firewall_rules.html', input_chain=input_chain2, IN_public_allow=in_public_allow, output_chain=output_chain, lang=lang)
 
 
-def create_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall, **kwargs) -> bool:
+def create_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall, **kwargs) -> int:
 	if not roxywi_auth.is_admin(level=2, role_id=kwargs.get('role_id')):
 		raise Exception('error: not enough permission')
 
-	if server_sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
-		return True
-	else:
-		return False
+	last_id = server_sql.add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall)
+	return last_id
 
 
-def update_server_after_creating(hostname: str, ip: str, scan_server: int) -> str:
+def update_server_after_creating(hostname: str, ip: str, scan_server: int) -> None:
 	try:
 		checker_sql.insert_new_checker_setting_for_server(ip)
 	except Exception as e:
-		roxywi_common.logging(f'Cannot insert Checker settings for {hostname}', str(e), roxywi=1)
-		raise Exception(f'error: Cannot insert Checker settings for {hostname} {e}')
+		roxywi_common.handle_exceptions(e, ip, f'Cannot insert Checker settings for {hostname}', roxywi=1, login=1)
 
 	try:
-		if scan_server == '1':
+		if scan_server:
 			nginx_config_path = sql.get_setting('nginx_config_path')
 			haproxy_config_path = sql.get_setting('haproxy_config_path')
 			haproxy_dir = sql.get_setting('haproxy_dir')
@@ -459,19 +456,15 @@ def update_server_after_creating(hostname: str, ip: str, scan_server: int) -> st
 				server_sql.update_firewall(ip)
 
 	except Exception as e:
-		roxywi_common.logging(f'Cannot scan a new server {hostname}', str(e), roxywi=1)
-		raise Exception(f'error: Cannot scan a new server {hostname} {e}')
+		roxywi_common.handle_exceptions(e, ip, f'Cannot get scan the server {hostname}', roxywi=1, login=1)
 
 	try:
 		get_system_info(ip)
 	except Exception as e:
-		roxywi_common.logging(f'Cannot get information from {hostname}', str(e), roxywi=1, login=1)
-		raise Exception(f'error: Cannot get information from {hostname} {e}')
-
-	return 'ok'
+		roxywi_common.handle_exceptions(e, ip, f'Cannot get information from {hostname}', roxywi=1, login=1)
 
 
-def delete_server(server_id: int) -> str:
+def delete_server(server_id: int) -> None:
 	server = server_sql.select_servers(id=server_id)
 	server_ip = ''
 	hostname = ''
@@ -481,9 +474,9 @@ def delete_server(server_id: int) -> str:
 		server_ip = s[2]
 
 	if backup_sql.check_exists_backup(server_ip):
-		return 'warning: Delete the backup first'
+		raise 'warning: Delete the backup first'
 	if backup_sql.check_exists_s3_backup(server_ip):
-		return 'warning: Delete the S3 backup first'
+		raise 'warning: Delete the S3 backup first'
 	if server_sql.delete_server(server_id):
 		waf_sql.delete_waf_server(server_id)
 		ps_sql.delete_port_scanner_settings(server_id)
@@ -492,7 +485,6 @@ def delete_server(server_id: int) -> str:
 		server_sql.delete_system_info(server_id)
 		service_sql.delete_service_settings(server_id)
 		roxywi_common.logging(server_ip, f'The server {hostname} has been deleted', roxywi=1, login=1)
-		return 'Ok'
 
 
 def server_is_up(server_ip: str) -> str:

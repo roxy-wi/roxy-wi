@@ -118,7 +118,6 @@ function updateSSH(id) {
 		ssh_enable = '1';
 	}
 	let group = $('#sshgroup-' + id).val();
-	console.log('group' + group)
 	if (group === undefined || group === null) {
 		group = $('#new-sshgroup').val();
 	}

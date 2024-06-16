@@ -3,11 +3,13 @@
 {% block h2 %}{{lang.words.admin_area|title()}}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, select, copy_to_clipboard, checkbox %}
+<script src="{{ url_for('static', filename='js/admin/common.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin/group.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin/server.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin/ssh.js') }}"></script>
-<script src="{{ url_for('static', filename='js/users.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin/user.js') }}"></script>
 <script src="{{ url_for('static', filename='js/backup.js') }}"></script>
-<script src="/app/static/js/fontawesome.min.js"></script>
+<script src="{{ url_for('static', filename='js/fontawesome.min.js') }}"></script>
 {% include 'include/del_confirm.html' %}
 <div id="tabs">
 	<ul id="admin-tabs">

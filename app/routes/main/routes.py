@@ -176,7 +176,7 @@ def service_history(service, server_ip):
     elif service == 'user':
         history = history_sql.select_action_history_by_user_id(server_ip)
     else:
-        abort(404, f'History not found')
+        abort(404, 'History not found')
 
     kwargs = {
         'user_subscription': roxywi_common.return_user_subscription(),
