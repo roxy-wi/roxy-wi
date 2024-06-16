@@ -1,6 +1,6 @@
 import os
 
-from flask import render_template, request, g, abort
+from flask import render_template, request, g, abort, jsonify
 from flask_login import login_required
 
 from app.routes.waf import bp
@@ -87,6 +87,8 @@ def waf_rules(service, server_ip):
 @bp.route('/<service>/<server_ip>/rule/<int:rule_id>')
 @get_user_params()
 def waf_rule_edit(service, server_ip, rule_id):
+    if service not in ('haproxy', 'nginx'):
+        abort(404)
     roxywi_auth.page_for_admin(level=2)
     if not roxywi_auth.is_access_permit_to_service(service):
         abort(403, f'You do not have needed permissions to access to {service.title()} service')
@@ -100,17 +102,19 @@ def waf_rule_edit(service, server_ip, rule_id):
     get_date = roxy_wi_tools.GetDate(sql.get_setting('time_zone'))
     waf_rule_file = waf_sql.select_waf_rule_by_id(rule_id)
     configs_dir = sql.get_setting('tmp_config_path')
-    cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}-{waf_rule_file}"
-    error = config_mod.get_config(server_ip, cfg, waf=service, waf_rule_file=waf_rule_file)
+    try:
+        cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}-{waf_rule_file}"
+        config_mod.get_config(server_ip, cfg, waf=service, waf_rule_file=waf_rule_file)
+    except Exception as e:
+        pass
     config_file_name = common.return_nice_path(config_path) + 'waf/rules/' + waf_rule_file
-    config_read = ''
 
     try:
         conf = open(cfg, "r")
         config_read = conf.read()
         conf.close()
     except IOError:
-        print('Cannot read imported config file')
+        return f'error: Cannot read imported config file: {e}'
 
     kwargs = {
         'title': 'Edit a WAF rule',
@@ -147,8 +151,8 @@ def waf_save_config(service, server_ip, rule_id):
     try:
         with open(cfg, "a") as conf:
             conf.write(config)
-    except IOError:
-        print("error: Cannot read imported config file")
+    except IOError as e:
+        return f"error: Cannot read imported config file: {e}"
 
     stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, 'waf', oldcfg=oldcfg, config_file_name=config_file_name)
 
@@ -169,32 +173,46 @@ def waf_save_config(service, server_ip, rule_id):
 def enable_rule(server_ip, rule_id, enable):
     server_ip = common.is_ip_or_dns(server_ip)
 
-    return roxy_waf.switch_waf_rule(server_ip, enable, rule_id)
+    try:
+        roxy_waf.switch_waf_rule(server_ip, enable, rule_id)
+        return jsonify({'status': 'updated'})
+    except Exception as e:
+        return roxywi_common.handle_json_exceptions(e, server_ip, f'Cannot enable WAF rule {rule_id} on server {server_ip}')
 
 
 @bp.route('/<service>/<server_ip>/rule/create', methods=['POST'])
 def create_rule(service, server_ip):
-    if service not in ('haproxy', 'nginx'):
-        return 'error: Wrong service'
-
     server_ip = common.is_ip_or_dns(server_ip)
+    json_data = request.get_json()
+    if service not in ('haproxy', 'nginx'):
+        return roxywi_common.handle_json_exceptions('Wrong service', server_ip, '')
 
-    return roxy_waf.create_waf_rule(server_ip, service)
+    try:
+        last_id = roxy_waf.create_waf_rule(server_ip, service, json_data)
+        return jsonify({'status': 'created', 'id': last_id})
+    except Exception as e:
+        return roxywi_common.handle_json_exceptions(e, server_ip, 'Cannot create WAF rule')
 
 
 @bp.route('/<service>/mode/<server_name>/<waf_mode>')
 def change_waf_mode(service, server_name, waf_mode):
     if service not in ('haproxy', 'nginx'):
-        return 'error: Wrong service'
+        return roxywi_common.handle_json_exceptions('Wrong service', server_name, '')
 
     server_name = common.checkAjaxInput(server_name)
     waf_mode = common.checkAjaxInput(waf_mode)
 
-    return roxy_waf.change_waf_mode(waf_mode, server_name, service)
+    try:
+        roxy_waf.change_waf_mode(waf_mode, server_name, service)
+        return jsonify({'status': 'updated'})
+    except Exception as e:
+        return roxywi_common.handle_json_exceptions(e, server_name, 'Cannot change WAF mode')
 
 
 @bp.route('/overview/<service>/<server_ip>')
 def overview_waf(service, server_ip):
+    if service not in ('haproxy', 'nginx'):
+        abort(404)
     server_ip = common.is_ip_or_dns(server_ip)
 
     if service not in ('haproxy', 'nginx'):
@@ -206,4 +224,8 @@ def overview_waf(service, server_ip):
 @bp.route('/metric/enable/<int:enable>/<server_name>')
 def enable_metric(enable, server_name):
     server_name = common.checkAjaxInput(server_name)
-    return waf_sql.update_waf_metrics_enable(server_name, enable)
+    try:
+        waf_sql.update_waf_metrics_enable(server_name, enable)
+        return jsonify({'status': 'updated'})
+    except Exception as e:
+        return roxywi_common.handle_json_exceptions(e, server_name, 'Cannot enable WAF metrics')

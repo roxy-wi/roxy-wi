@@ -9,10 +9,9 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.alerting as alerting
 
 
-def create_user(new_user: str, email: str, password: str, role: int, activeuser: int, group: int) -> None:
+def create_user(new_user: str, email: str, password: str, role: int, enabled: int, group: int) -> int:
     try:
-        user_id = user_sql.add_user(new_user, email, password, role, activeuser, group)
-        # user_sql.update_user_role(user_id, group, role)
+        user_id = user_sql.add_user(new_user, email, password, role, enabled, group)
         roxywi_common.logging(f'a new user {new_user}', 'has been created', roxywi=1, login=1)
         try:
             user_sql.update_user_role(user_id, group, role)
@@ -32,8 +31,10 @@ def create_user(new_user: str, email: str, password: str, role: int, activeuser:
     except Exception as e:
         roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot create a new user', roxywi=1, login=1)
 
+    return user_id
 
-def delete_user(user_id: int) -> str:
+
+def delete_user(user_id: int):
     if user_sql.is_user_super_admin(user_id):
         count_super_admin_users = user_sql.get_super_admin_count()
         if count_super_admin_users < 2:
@@ -45,7 +46,6 @@ def delete_user(user_id: int) -> str:
     if user_sql.delete_user(user_id):
         user_sql.delete_user_groups(user_id)
         roxywi_common.logging(username, ' has been deleted user ', roxywi=1, login=1)
-        return "ok"
 
 
 def update_user(email, new_user, user_id, enabled, group_id, role_id):
@@ -81,7 +81,7 @@ def get_user_services(user_id: int) -> str:
     )
 
 
-def change_user_services(user: str, user_id: int, user_services: str) -> str:
+def change_user_services(user: str, user_id: int, user_services: dict):
     services = ''
 
     for _k, v in user_services.items():
@@ -91,9 +91,8 @@ def change_user_services(user: str, user_id: int, user_services: str) -> str:
     try:
         user_sql.update_user_services(services=services, user_id=user_id)
     except Exception as e:
-        return f'error: Cannot save: {e}'
+        raise Exception(f'error: Cannot save: {e}')
     roxywi_common.logging('Roxy-WI server', f'Access to the services has been updated for user: {user}', roxywi=1, login=1)
-    return 'ok'
 
 
 def change_user_active_group(group_id: int, user_uuid: str) -> str:

@@ -155,7 +155,7 @@ def default_values():
 		{'service_id': 3, 'service': 'Keepalived', 'slug': 'keepalived'},
 		{'service_id': 4, 'service': 'Apache', 'slug': 'apache'},
 		{'service_id': 5, 'service': 'HA cluster', 'slug': 'cluster'},
-		{'service_id': 6, 'service': 'UDP balancing', 'slug': 'udp'},
+		{'service_id': 6, 'service': 'UDP listener', 'slug': 'udp'},
 	]
 
 	try:

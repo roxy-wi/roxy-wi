@@ -167,7 +167,7 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 			hostname = ha_sql.select_cluster_name(int(server_id))
 		except Exception as e:
 			logging('Roxy-WI server', f'Cannot get info about cluster {server_ip} for history: {e}', roxywi=1)
-	elif service == 'UDP Listener':
+	elif service == 'UDP listener':
 		try:
 			server_id = int(server_ip)
 			listener = udp_sql.get_listener(server_id)
@@ -317,3 +317,8 @@ def handle_exceptions(ex: Exception, server_ip: str, message: str, **kwargs: Any
 	"""
 	logging(server_ip, f'error: {message}: {ex}', **kwargs)
 	raise Exception(f'error: {message}: {ex}')
+
+
+def handle_json_exceptions(ex: Exception, server_ip: str, message: str, **kwargs: Any) -> dict:
+	logging(server_ip, f'error: {message}: {ex}', roxywi=1, login=1, **kwargs)
+	return {'status': 'failed', 'error': f'{message}: {ex}'}

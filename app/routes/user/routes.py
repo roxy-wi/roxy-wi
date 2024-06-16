@@ -1,6 +1,6 @@
 import json
 
-from flask import render_template, request
+from flask import render_template, request, jsonify, g, abort
 from flask_login import login_required
 
 from app.routes.user import bp
@@ -21,70 +21,56 @@ def before_request():
     pass
 
 
-@bp.post('/create')
+@bp.route('', methods=['POST', 'PUT', 'DELETE'])
 @get_user_params()
 def create_user():
     roxywi_auth.page_for_admin(level=2)
-    email = common.checkAjaxInput(request.form.get('newemail'))
-    password = common.checkAjaxInput(request.form.get('newpassword'))
-    role = common.checkAjaxInput(request.form.get('newrole'))
-    new_user = common.checkAjaxInput(request.form.get('newusername'))
-    page = common.checkAjaxInput(request.form.get('page'))
-    activeuser = common.checkAjaxInput(request.form.get('activeuser'))
-    group = common.checkAjaxInput(request.form.get('newgroupuser'))
-    lang = roxywi_common.get_user_lang_for_flask()
+    json_data = request.get_json()
 
-    if not roxywi_common.check_user_group_for_flask():
-        return 'error: Wrong group'
-    if page == 'servers':
-        if roxywi_auth.is_admin(level=2, role_id=role):
-            roxywi_common.logging(new_user, ' tried to privilege escalation: user creation', roxywi=1, login=1)
-            return 'error: Wrong role'
-    try:
-        roxywi_user.create_user(new_user, email, password, role, activeuser, group)
-    except Exception as e:
-        return str(e)
-    else:
-        return render_template(
-            'ajax/new_user.html', users=user_sql.select_users(user=new_user), groups=group_sql.select_groups(), page=page,
-            roles=sql.select_roles(), adding=1, lang=lang
-        )
-
-
-@bp.post('/update')
-def update_user():
-    roxywi_auth.page_for_admin(level=2)
-    email = request.form.get('email')
-    new_user = request.form.get('updateuser')
-    user_id = request.form.get('id')
-    enabled = request.form.get('activeuser')
-    group_id = int(request.form.get('usergroup'))
-
-    if roxywi_common.check_user_group_for_flask():
-        if request.form.get('role'):
-            role_id = int(request.form.get('role'))
-            if roxywi_auth.is_admin(level=role_id):
-                roxywi_user.update_user(email, new_user, user_id, enabled, group_id, role_id)
-            else:
-                roxywi_common.logging(new_user, ' tried to privilege escalation', roxywi=1, login=1)
-                return 'error: dalsd'
+    if request.method == 'POST':
+        email = common.checkAjaxInput(json_data['email'])
+        password = common.checkAjaxInput(json_data['password'])
+        role = int(json_data['role'])
+        new_user = common.checkAjaxInput(json_data['username'])
+        enabled = int(json_data['enabled'])
+        group_id = int(json_data['user_group'])
+        lang = roxywi_common.get_user_lang_for_flask()
+        current_user_role_id = g.user_params['role']
+        if not roxywi_common.check_user_group_for_flask():
+            return roxywi_common.handle_json_exceptions('Wrong group', 'Roxy-WI server', '')
+        if current_user_role_id < role:
+            return roxywi_common.handle_json_exceptions('Wrong role', 'Roxy-WI server', '')
+        try:
+            user_id = roxywi_user.create_user(new_user, email, password, role, enabled, group_id)
+        except Exception as e:
+            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', 'Cannot create a new user')
         else:
+            return jsonify({'status': 'created', 'id': user_id, 'data': render_template(
+                'ajax/new_user.html', users=user_sql.select_users(user=new_user), groups=group_sql.select_groups(),
+                roles=sql.select_roles(), adding=1, lang=lang
+            )})
+    elif request.method == 'PUT':
+        user_id = int(json_data['user_id'])
+        user_name = common.checkAjaxInput(json_data['username'])
+        email = common.checkAjaxInput(json_data['email'])
+        enabled = int(json_data['enabled'])
+        if roxywi_common.check_user_group_for_flask():
             try:
-                user_sql.update_user_from_admin_area(new_user, email, user_id, enabled)
+                user_sql.update_user_from_admin_area(user_name, email, user_id, enabled)
             except Exception as e:
-                return f'error: Cannot update user: {e}'
-            roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
-
-        return 'ok'
-
-
-@bp.route('/delete/<int:user_id>')
-def delete_user(user_id):
-    roxywi_auth.page_for_admin(level=2)
-    try:
-        return roxywi_user.delete_user(user_id)
-    except Exception as e:
-        return f'error: {e}'
+                return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', 'Cannot update user')
+            roxywi_common.logging(user_name, ' has been updated user ', roxywi=1, login=1)
+            return jsonify({'status': 'updated'})
+    elif request.method == 'DELETE':
+        roxywi_auth.page_for_admin(level=2)
+        user_id = int(json_data['user_id'])
+        try:
+            roxywi_user.delete_user(user_id)
+            return jsonify({'status': 'deleted'})
+        except Exception as e:
+            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', f'Cannot delete the user {user_id}')
+    else:
+        abort(405)
 
 
 @bp.route('/ldap/<username>')
@@ -108,10 +94,14 @@ def show_user_services(user_id):
     if request.method == 'GET':
         return roxywi_user.get_user_services(user_id)
     else:
-        user = common.checkAjaxInput(request.form.get('changeUserServicesUser'))
-        user_services = json.loads(request.form.get('jsonDatas'))
-
-        return roxywi_user.change_user_services(user, user_id, user_services)
+        json_data = request.get_json()
+        user = json_data['username']
+        user_services = json_data['services']
+        try:
+            roxywi_user.change_user_services(user, user_id, user_services)
+            return jsonify({'status': 'updated'})
+        except Exception as e:
+            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', 'Cannot change user services')
 
 
 @bp.route('/group', methods=['GET', 'PUT'])

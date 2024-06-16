@@ -66,7 +66,7 @@ def get_config(server_ip, cfg, service='haproxy', **kwargs):
 	"""
 	config_path = ''
 
-	if service in ('keepalived', 'haproxy'):
+	if service in ('keepalived', 'haproxy') and not kwargs.get("waf"):
 		config_path = sql.get_setting(f'{service}_config_path')
 	elif service in ('nginx', 'apache'):
 		config_path = _replace_config_path_to_correct(kwargs.get('config_file_name'))

@@ -11,7 +11,7 @@
 				<label for="ssh_enable-{{ssh.id}}">{{lang.words.enable|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="ssh_enable-{{ssh.id}}">
 			{% endif %}
 		</td>
-		{% if page != "servers" %}
+		{% if g.user_params['role'] == 1 %}
 			<td>
 				<select id="sshgroup-{{ssh.id}}" name="sshgroup-{{ssh.id}}">
 					{% for group in groups %}
@@ -26,7 +26,7 @@
 		{% endif %}
 		<td style="padding-top: 15px;">
 			<p>
-				<input type="text" id="ssh_user-{{ssh.id}}" class="form-control" value="{{ssh.username}}">
+				<input type="text" id="ssh_user-{{ssh.id}}" class="form-control" value="{{ssh.username.replace("'", "")}}">
 			</p>
 			{% if ssh.enable == 1 %}
 				<input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" placeholder="*****" style="display: none;">
@@ -36,7 +36,7 @@
 			<br>
 		</td>
 		<td>
-			<a class="delete" onclick="confirmDeleteSsh({{ssh.id}})" title="{{lang.words.delete|title()}} {{ssh.name}}"  style="cursor: pointer;"></a>
+			<a class="delete" onclick="confirmDeleteSsh({{ssh.id}})" title="{{lang.words.delete|title()}} {{ssh.name}}" style="cursor: pointer;"></a>
 		</td>
 	</tr>
 {% endfor %}

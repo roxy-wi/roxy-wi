@@ -1,6 +1,6 @@
 import json
 
-from flask import render_template, request, g
+from flask import render_template, request, g, jsonify, abort
 from flask_login import login_required
 
 from app.routes.server import bp
@@ -187,67 +187,80 @@ def delete_server(server_id):
     return server_mod.delete_server(server_id)
 
 
-@bp.route('/group/create', methods=['POST'])
+@bp.route('/group', methods=['POST', 'PUT', 'DELETE'])
 def create_group():
     roxywi_auth.page_for_admin()
-    newgroup = common.checkAjaxInput(request.form.get('groupname'))
-    desc = common.checkAjaxInput(request.form.get('newdesc'))
-    if newgroup == '':
-        return error_mess
-    else:
+    json_data = request.get_json()
+    if request.method == 'POST':
+        name = json_data.get('name')
+        desc = json_data.get('desc')
+        if name == '':
+            return error_mess
         try:
-            if group_sql.add_group(newgroup, desc):
-                roxywi_common.logging('Roxy-WI server', f'A new group {newgroup} has been created', roxywi=1, login=1)
-                return render_template('ajax/new_group.html', groups=group_sql.select_groups(group=newgroup))
+            last_id = group_sql.add_group(name, desc)
+            roxywi_common.logging('Roxy-WI server', f'A new group {name} has been created', roxywi=1, login=1)
+            return jsonify({
+                'status': 'created',
+                'id': last_id,
+                'data': render_template('ajax/new_group.html', groups=group_sql.select_groups(group=name))}
+            )
         except Exception as e:
-            return str(e)
+            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', 'Cannot create a new group')
+    elif request.method == 'PUT':
+        name = json_data.get('name')
+        desc = json_data.get('desc')
+        group_id = json_data.get('group_id')
+        try:
+            group_mod.update_group(group_id, name, desc)
+            return jsonify({'status': 'updated'})
+        except Exception as e:
+            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', f'Cannot update group {name}')
+    elif request.method == 'DELETE':
+        group_id = json_data.get('group_id')
+        try:
+            group_mod.delete_group(group_id)
+            return jsonify({'status': 'deleted'})
+        except Exception as e:
+            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', f'Cannot delete {group_id}')
+    else:
+        abort(405)
 
 
-@bp.route('/group/update', methods=['POST'])
-def update_group():
-    roxywi_auth.page_for_admin()
-    name = common.checkAjaxInput(request.form.get('updategroup'))
-    desc = common.checkAjaxInput(request.form.get('descript'))
-    group_id = common.checkAjaxInput(request.form.get('id'))
-
-    return group_mod.update_group(group_id, name, desc)
-
-
-@bp.route('/group/delete/<int:group_id>')
-def delete_group(group_id):
-    roxywi_auth.page_for_admin()
-    return group_mod.delete_group(group_id)
-
-
-@bp.route('/ssh/create', methods=['POST'])
+@bp.route('/ssh', methods=['POST', 'PUT', 'DELETE', 'PATCH'])
+@get_user_params()
 def create_ssh():
     roxywi_auth.page_for_admin(level=2)
-    return ssh_mod.create_ssh_cred()
+    json_data = request.get_json()
+    if request.method == 'POST':
+        try:
+            data = ssh_mod.create_ssh_cred(json_data)
+            return jsonify({'status': 'created', 'id': data['id'], 'data': data['template']})
+        except Exception as e:
+            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', f'Cannot create SSH')
+    elif request.method == 'PUT':
+        try:
+            ssh_mod.update_ssh_key(json_data)
+            return jsonify({'status': 'updated'})
+        except Exception as e:
+            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', f'Cannot update SSH')
+    elif request.method == 'DELETE':
+        ssh_id = int(json_data.get('id'))
+        try:
+            ssh_mod.delete_ssh_key(ssh_id)
+            return jsonify({'status': 'deleted'})
+        except Exception as e:
+            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', f'Cannot delete SSH')
+    elif request.method == 'PATCH':
+        user_group = roxywi_common.get_user_group()
+        name = common.checkAjaxInput(json_data['name'])
+        passphrase = common.checkAjaxInput(json_data['pass'])
+        key = json_data['ssh_cert']
 
-
-@bp.route('/ssh/delete/<int:ssh_id>')
-def delete_ssh(ssh_id):
-    roxywi_auth.page_for_admin(level=2)
-    return ssh_mod.delete_ssh_key(ssh_id)
-
-
-@bp.route('/ssh/update', methods=['POST'])
-def update_ssh():
-    roxywi_auth.page_for_admin(level=2)
-    return ssh_mod.update_ssh_key()
-
-
-@bp.route('/ssh/upload', methods=['POST'])
-def upload_ssh_key():
-    user_group = roxywi_common.get_user_group()
-    name = common.checkAjaxInput(request.form.get('name'))
-    passphrase = common.checkAjaxInput(request.form.get('pass'))
-    key = request.form.get('ssh_cert')
-
-    try:
-        return ssh_mod.upload_ssh_key(name, user_group, key, passphrase)
-    except Exception as e:
-        return str(e)
+        try:
+            saved_path = ssh_mod.upload_ssh_key(name, user_group, key, passphrase)
+            return jsonify({'status': 'uploaded', 'message': saved_path})
+        except Exception as e:
+            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', f'Cannot upload ssh')
 
 
 @bp.app_template_filter('string_to_dict')

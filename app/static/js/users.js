@@ -1,35 +1,6 @@
 var cur_url = window.location.href.split('/app/').pop();
 cur_url = cur_url.split('/');
 $( function() {
-	$('#add-group-button').click(function() {
-		addGroupDialog.dialog('open');
-	});
-	let group_tabel_title = $( "#group-add-table-overview" ).attr('title');
-	let addGroupDialog = $( "#group-add-table" ).dialog({
-		autoOpen: false,
-		resizable: false,
-		height: "auto",
-		width: 600,
-		modal: true,
-		title: group_tabel_title,
-		show: {
-			effect: "fade",
-			duration: 200
-		},
-		hide: {
-			effect: "fade",
-			duration: 200
-		},
-		buttons: {
-			"Add": function() {
-				addGroup(this);
-			},
-			Cancel: function() {
-				$( this ).dialog( "close" );
-				clearTips();
-			}
-		}
-	});
 	$('#add-user-button').click(function() {
 		addUserDialog.dialog('open');
 	});
@@ -94,38 +65,6 @@ $( function() {
 			}
 		}]
 	});
-	$('#add-ssh-button').click(function() {
-		addCredsDialog.dialog('open');
-	});
-	let ssh_tabel_title = $( "#ssh-add-table-overview" ).attr('title');
-	let addCredsDialog = $( "#ssh-add-table" ).dialog({
-		autoOpen: false,
-		resizable: false,
-		height: "auto",
-		width: 600,
-		modal: true,
-		title: ssh_tabel_title,
-		show: {
-			effect: "fade",
-			duration: 200
-		},
-		hide: {
-			effect: "fade",
-			duration: 200
-		},
-		buttons: [{
-			text: add_word,
-			click: function () {
-				addCreds(this);
-			}
-		}, {
-			text: cancel_word,
-			click: function () {
-				$(this).dialog("close");
-				clearTips();
-			}
-		}]
-	});
 	$( "#ajax-users input" ).change(function() {
 		let id = $(this).attr('id').split('-');
 		updateUser(id[1])
@@ -133,10 +72,6 @@ $( function() {
 	$( "#ajax-users select" ).on('selectmenuchange',function() {
 		let id = $(this).attr('id').split('-');
 		updateUser(id[1])
-	});
-	$( "#ajax-group input" ).change(function() {
-		let id = $(this).attr('id').split('-');
-		updateGroup(id[1])
 	});
 	$( "#ajax-servers input" ).change(function() {
 		let id = $(this).attr('id').split('-');
@@ -146,28 +81,6 @@ $( function() {
 		let id = $(this).attr('id').split('-');
 		updateServer(id[1])
 	});
-	$( "#ssh_enable_table input" ).change(function() {
-		let id = $(this).attr('id').split('-');
-		updateSSH(id[1])
-		sshKeyEnableShow(id[1])
-	});
-	$( "#ssh_enable_table select" ).on('selectmenuchange',function() {
-		let id = $(this).attr('id').split('-');
-		updateSSH(id[1])
-		sshKeyEnableShow(id[1])
-	});
-	$('#new-ssh_enable').click(function() {
-		if ($('#new-ssh_enable').is(':checked')) {
-			$('#ssh_pass').css('display', 'none');
-		} else {
-			$('#ssh_pass').css('display', 'block');
-		}
-	});
-	if ($('#new-ssh_enable').is(':checked')) {
-		$('#ssh_pass').css('display', 'none');
-	} else {
-		$('#ssh_pass').css('display', 'block');
-	}
 	$( "#scan_server" ).change(function() {
 		if ($('#scan_server').is(':checked')) {
 			$('.services_for_scan').hide();
@@ -176,27 +89,28 @@ $( function() {
 		}
 	});
 	$('#search_ldap_user').click(function() {
-		let valid = true;
 		toastr.clear();
-		allFields = $([]).add($('#new-username'));
+		let username_div = $('#new-username')
+		let valid = true;
+		let allFields = $([]).add(username_div);
 		allFields.removeClass("ui-state-error");
-		valid = valid && checkLength($('#new-username'), "user name", 1);
-		user = $('#new-username').val()
+		valid = valid && checkLength(username_div, "user name", 1);
+		let user = username_div.val()
 		if (valid) {
 			$.ajax({
-				url: "/app/user/ldap/" + $('#new-username').val(),
+				url: "/app/user/ldap/" + user,
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					if (data.indexOf('error:') != '-1') {
 						toastr.error(data);
 						$('#new-email').val('');
-						$('#new-password').attr('readonly', false);
-						$('#new-password').val('');
+						username_div.attr('readonly', false);
+						username_div.val('');
 					} else {
 						let json = $.parseJSON(data);
 						toastr.clear();
-						if (!$('#new-username').val().includes('@')) {
-							$('#new-username').val(user + '@' + json[1]);
+						if (!user.includes('@')) {
+							username_div.val(user + '@' + json[1]);
 						}
 						$('#new-email').val(json[0]);
 						$('#new-password').val('aduser');
@@ -209,7 +123,6 @@ $( function() {
 	});
 	$("#tabs ul li").click(function() {
 		let activeTab = $(this).find("a").attr("href");
-		console.log(activeTab);
 		let activeTabClass = activeTab.replace('#', '');
 		$('.menu li ul li').each(function () {
 			$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
@@ -252,65 +165,35 @@ window.onload = function() {
 function addUser(dialog_id) {
 	let valid = true;
 	toastr.clear();
-	allFields = $([]).add($('#new-username')).add($('#new-password')).add($('#new-email'))
+	let allFields = $([]).add($('#new-username')).add($('#new-password')).add($('#new-email'))
 	allFields.removeClass("ui-state-error");
 	valid = valid && checkLength($('#new-username'), "user name", 1);
 	valid = valid && checkLength($('#new-password'), "password", 1);
 	valid = valid && checkLength($('#new-email'), "Email", 1);
-	let activeuser = 0;
+	let enabled = 0;
 	if ($('#activeuser').is(':checked')) {
-		activeuser = '1';
+		enabled = '1';
 	}
 	if (valid) {
+		let jsonData = {
+			"username": $('#new-username').val(),
+			"password": $('#new-password').val(),
+			"email": $('#new-email').val(),
+			"role": $('#new-role').val(),
+			"enabled": enabled,
+			"user_group": $('#new-group').val(),
+		}
 		$.ajax({
-			url: "/app/user/create",
-			data: {
-				newusername: $('#new-username').val(),
-				newpassword: $('#new-password').val(),
-				newemail: $('#new-email').val(),
-				newrole: $('#new-role').val(),
-				activeuser: activeuser,
-				page: cur_url[0].split('#')[0],
-				newgroupuser: $('#new-group').val(),
-				token: $('#token').val()
-			},
+			url: "/app/user",
 			type: "POST",
+			data: JSON.stringify(jsonData),
+			contentType: "application/json; charset=utf-8",
 			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
+				if (data.status === 'failed') {
+					toastr.error(data.error);
 				} else {
-					let getId = new RegExp('[0-9]+');
-					let id = data.match(getId);
-					common_ajax_action_after_success(dialog_id, 'user-' + id, 'ajax-users', data);
-				}
-			}
-		});
-	}
-}
-function addGroup(dialog_id) {
-	toastr.clear();
-	let valid = true;
-	allFields = $([]).add($('#new-group-add'));
-	allFields.removeClass("ui-state-error");
-	valid = valid && checkLength($('#new-group-add'), "new group name", 1);
-	if (valid) {
-		$.ajax({
-			url: "/app/server/group/create",
-			data: {
-				groupname: $('#new-group-add').val(),
-				newdesc: $('#new-desc').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else {
-					let getId = new RegExp('[0-9]+');
-					let id = data.match(getId);
-					$('select:regex(id, group)').append('<option value=' + id + '>' + $('#new-group-add').val() + '</option>').selectmenu("refresh");
-					common_ajax_action_after_success(dialog_id, 'newgroup', 'ajax-group', data);
+					let user_id = data.id;
+					common_ajax_action_after_success(dialog_id, 'user-' + user_id, 'ajax-users', data.data);
 				}
 			}
 		});
@@ -386,8 +269,7 @@ function addServer(dialog_id) {
 				slave: $('#slavefor').val(),
 				cred: cred,
 				page: cur_url[0].split('#')[0],
-				desc: $('#desc').val(),
-				token: $('#token').val()
+				desc: $('#desc').val()
 			},
 			type: "POST",
 			success: function (data) {
@@ -426,8 +308,7 @@ function after_server_creating(servername, newip, scan_server) {
 			act: 'after_adding',
 			servername: servername,
 			newip: newip,
-			scan_server: scan_server,
-			token: $('#token').val()
+			scan_server: scan_server
 		},
 		type: "POST",
 		success: function (data) {
@@ -440,80 +321,6 @@ function after_server_creating(servername, newip, scan_server) {
 		}
 	});
 }
-function addCreds(dialog_id) {
-	toastr.clear();
-	let ssh_enable = 0;
-	if ($('#new-ssh_enable').is(':checked')) {
-		ssh_enable = '1';
-	}
-	let valid = true;
-	allFields = $([]).add($('#new-ssh-add')).add($('#ssh_user'))
-	allFields.removeClass("ui-state-error");
-	valid = valid && checkLength($('#new-ssh-add'), "Name", 1);
-	valid = valid && checkLength($('#ssh_user'), "Credentials", 1);
-	if (valid) {
-		$.ajax({
-			url: "/app/server/ssh/create",
-			data: {
-				new_ssh: $('#new-ssh-add').val(),
-				new_group: $('#new-sshgroup').val(),
-				ssh_user: $('#ssh_user').val(),
-				ssh_pass: $('#ssh_pass').val(),
-				ssh_enable: ssh_enable,
-				page: cur_url[0].split('#')[0],
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else {
-					let group_name = getGroupNameById($('#new-sshgroup').val());
-					let getId = new RegExp('ssh-table-[0-9]+');
-					let id = data.match(getId) + '';
-					id = id.split('-').pop();
-					common_ajax_action_after_success(dialog_id, 'ssh-table-' + id, 'ssh_enable_table', data);
-					$('select:regex(id, credentials)').append('<option value=' + id + '>' + $('#new-ssh-add').val() + '</option>').selectmenu("refresh");
-					$('select:regex(id, ssh-key-name)').append('<option value=' + $('#new-ssh-add').val() + '_' + group_name + '>' + $('#new-ssh-add').val() + '_' + group_name + '</option>').selectmenu("refresh");
-					$("input[type=submit], button").button();
-					$("input[type=checkbox]").checkboxradio();
-					$("select").selectmenu();
-				}
-			}
-		});
-	}
-}
-function getGroupNameById(group_id) {
-	let group_name = ''
-	$.ajax({
-		url: "/app/user/group/name/" + group_id,
-		async: false,
-
-		success: function (data) {
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				group_name = data;
-			}
-		}
-	});
-	return group_name;
-}
-function sshKeyEnableShow(id) {
-	$('#ssh_enable-'+id).click(function() {
-		if ($('#ssh_enable-'+id).is(':checked')) {
-			$('#ssh_pass-'+id).css('display', 'none');
-		} else {
-			$('#ssh_pass-'+id).css('display', 'block');
-		}
-	});
-	if ($('#ssh_enable-'+id).is(':checked')) {
-		$('#ssh_pass-'+id).css('display', 'none');
-	} else {
-		$('#ssh_pass-'+id).css('display', 'block');
-	}
-}
-
 function confirmDeleteUser(id) {
 	 $( "#dialog-confirm" ).dialog({
       resizable: false,
@@ -535,27 +342,7 @@ function confirmDeleteUser(id) {
 	  }]
     });
 }
-function confirmDeleteGroup(id) {
-	 $( "#dialog-confirm" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-	  title: delete_word+ " " +$('#name-'+id).val() + "?",
-      buttons:  [{
-		  text: delete_word,
-		  click: function() {
-			  $(this).dialog("close");
-			  removeGroup(id);
-		  }
-        }, {
-		  text: cancel_word,
-		  click: function () {
-			  $(this).dialog("close");
-		  }
-	  }]
-    });
-}
+
 function confirmDeleteServer(id) {
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
@@ -568,27 +355,6 @@ function confirmDeleteServer(id) {
 			click: function () {
 				$(this).dialog("close");
 				removeServer(id);
-			}
-		},{
-			text: cancel_word,
-			click: function () {
-				$(this).dialog("close");
-			}
-		}]
-	});
-}
-function confirmDeleteSsh(id) {
-	$( "#dialog-confirm" ).dialog({
-		resizable: false,
-		height: "auto",
-		width: 400,
-		modal: true,
-		title: delete_word +" " + $('#ssh_name-' + id).val() + "?",
-		buttons: [{
-			text: delete_word,
-			click: function () {
-				$(this).dialog("close");
-				removeSsh(id);
 			}
 		},{
 			text: cancel_word,
@@ -640,14 +406,15 @@ function cloneServer(id) {
 function removeUser(id) {
 	$("#user-" + id).css("background-color", "#f2dede");
 	$.ajax({
-		url: "/app/user/delete/" + id,
-
+		url: "/app/user",
+		data: JSON.stringify({'user_id': id}),
+		contentType: "application/json; charset=utf-8",
+		type: "DELETE",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data == "ok") {
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+			} else {
 				$("#user-" + id).remove();
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
 			}
 		}
 	});
@@ -670,103 +437,33 @@ function removeServer(id) {
 		}
 	});
 }
-function removeGroup(id) {
-	$("#group-" + id).css("background-color", "#f2dede");
-	$.ajax({
-		url: "/app/server/group/delete/" + id,
-
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data == "ok") {
-				$("#group-" + id).remove();
-				$('select:regex(id, group) option[value=' + id + ']').remove();
-				$('select:regex(id, group)').selectmenu("refresh");
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			}
-		}
-	});
-}
-function removeSsh(id) {
-	$("#ssh-table-"+id).css("background-color", "#f2dede");
-	$.ajax( {
-		url: "/app/server/ssh/delete/" + id,
-
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(data == "ok") {
-				$("#ssh-table-"+id).remove();
-				$('select:regex(id, credentials) option[value='+id+']').remove();
-				$('select:regex(id, credentials)').selectmenu("refresh");
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			}
-		}
-	} );
-}
 function updateUser(id) {
 	toastr.remove();
-	cur_url[0] = cur_url[0].split('#')[0]
-	let usergroup = Cookies.get('group');
-	let role = $('#role-' + id).val();
-	let activeuser = 0;
+	let enabled = 0;
 	if ($('#activeuser-' + id).is(':checked')) {
-		activeuser = '1';
-	}
-	if (role == null && role !== undefined) {
-		toastr.warning('You cannot edit superAdmin user');
-		return false;
+		enabled = '1';
 	}
 	toastr.remove();
+	let jsonData = {
+		"username": $('#login-' + id).val(),
+		"email": $('#email-' + id).val(),
+		"enabled": enabled,
+		"user_id": id
+	}
 	$.ajax({
-		url: "/app/user/update",
-		data: {
-			updateuser: $('#login-' + id).val(),
-			email: $('#email-' + id).val(),
-			role: role,
-			usergroup: usergroup,
-			activeuser: activeuser,
-			id: id,
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/user",
+		type: "PUT",
+		data: JSON.stringify(jsonData),
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
 			} else {
 				toastr.remove();
 				$("#user-" + id).addClass("update", 1000);
 				setTimeout(function () {
 					$("#user-" + id).removeClass("update");
 				}, 2500);
-			}
-		}
-	});
-}
-function updateGroup(id) {
-	toastr.clear();
-	$.ajax({
-		url: "/app/server/group/update",
-		data: {
-			updategroup: $('#name-' + id).val(),
-			descript: $('#descript-' + id).val(),
-			id: id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#group-" + id).addClass("update", 1000);
-				setTimeout(function () {
-					$("#group-" + id).removeClass("update");
-				}, 2500);
-				$('select:regex(id, group) option[value=' + id + ']').remove();
-				$('select:regex(id, group)').append('<option value=' + id + '>' + $('#name-' + id).val() + '</option>').selectmenu("refresh");
 			}
 		}
 	});
@@ -806,8 +503,7 @@ function updateServer(id) {
 			cred: $('#credentials-' + id + ' option:selected').val(),
 			id: id,
 			desc: $('#desc-' + id).val(),
-			protected: protected_serv,
-			token: $('#token').val()
+			protected: protected_serv
 		},
 		type: "POST",
 		success: function (data) {
@@ -820,74 +516,6 @@ function updateServer(id) {
 				setTimeout(function () {
 					$("#server-" + id).removeClass("update");
 				}, 2500);
-			}
-		}
-	});
-}
-function uploadSsh() {
-	toastr.clear();
-	if ($("#ssh-key-name option:selected").val() == "------" || $('#ssh_cert').val() == '') {
-		toastr.error('All fields must be completed');
-	} else {
-		$.ajax({
-			url: "/app/server/ssh/upload",
-			data: {
-				ssh_cert: $('#ssh_cert').val(),
-				name: $('#ssh-key-name').val(),
-				pass: $('#ssh-key-pass').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else if (data.indexOf('success') != '-1') {
-					toastr.clear();
-					toastr.success(data)
-				} else {
-					toastr.error('Something wrong, check and try again');
-				}
-			}
-		});
-	}
-}
-function updateSSH(id) {
-	toastr.clear();
-	let ssh_enable = 0;
-	if ($('#ssh_enable-' + id).is(':checked')) {
-		ssh_enable = '1';
-	}
-	let group = $('#sshgroup-' + id).val();
-	if (cur_url[0].indexOf('servers') != '-1') {
-		group = $('#new-server-group-add').val();
-	}
-	$.ajax({
-		url: "/app/server/ssh/update",
-		data: {
-			name: $('#ssh_name-' + id).val(),
-			group: group,
-			ssh_enable: ssh_enable,
-			ssh_user: $('#ssh_user-' + id).val(),
-			ssh_pass: $('#ssh_pass-' + id).val(),
-			id: id,
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#ssh-table-" + id).addClass("update", 1000);
-				setTimeout(function () {
-					$("#ssh-table-" + id).removeClass("update");
-				}, 2500);
-				$('select:regex(id, credentials) option[value=' + id + ']').remove();
-				$('select:regex(id, ssh-key-name) option[value=' + $('#ssh_name-' + id).val() + ']').remove();
-				$('select:regex(id, credentials)').append('<option value=' + id + '>' + $('#ssh_name-' + id).val() + '</option>').selectmenu("refresh");
-				$('select:regex(id, ssh-key-name)').append('<option value=' + $('#ssh_name-' + id).val() + '>' + $('#ssh_name-' + id).val() + '</option>').selectmenu("refresh");
 			}
 		}
 	});
@@ -911,32 +539,13 @@ function showApacheLog(serv) {
 			hour: hour,
 			minute: minute,
 			hour1: hour1,
-			minute1: minute1,
-			token: $('#token').val()
+			minute1: minute1
 		},
 		type: "POST",
 		success: function( data ) {
 			$("#ajax").html(data);
 		}
 	} );
-}
-function checkSshConnect(ip) {
-	$.ajax({
-		url: "/app/server/check/ssh/" + ip,
-
-		success: function (data) {
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data)
-			} else if (data.indexOf('failed') != '-1') {
-				toastr.error(data)
-			} else if (data.indexOf('Errno') != '-1') {
-				toastr.error(data)
-			} else {
-				toastr.clear();
-				toastr.success('Connect is accepted');
-			}
-		}
-	});
 }
 function openChangeUserPasswordDialog(id) {
 	changeUserPasswordDialog(id);
@@ -993,8 +602,7 @@ function changeUserPassword(id, d) {
 			url: "/app/user/password",
 			data: {
 				updatepassowrd: pass,
-				id: id,
-				token: $('#token').val()
+				id: id
 			},
 			type: "POST",
 			success: function (data) {
@@ -1024,7 +632,6 @@ function changeUserServiceDialog(id) {
 	}
 	$.ajax({
 		url: "/app/user/services/" + id,
-
 		success: function (data) {
 			if (data.indexOf('danger') != '-1') {
 				toastr.error(data);
@@ -1056,21 +663,20 @@ function changeUserServiceDialog(id) {
 }
 function changeUserServices(user_id) {
 	let jsonData = {};
-	jsonData[user_id] = {};
+	jsonData['services'] = {};
+	jsonData['services'][user_id] = {};
+	jsonData['username'] = $('#login-'+user_id).val();
 	$('#checked_services tbody tr').each(function () {
 		let this_id = $(this).attr('id').split('-')[1];
-		jsonData[user_id][this_id] = {}
+		jsonData['services'][user_id][this_id] = {}
 	});
 	$.ajax( {
 		url: "/app/user/services/" + user_id,
-		data: {
-			jsonDatas: JSON.stringify(jsonData),
-			changeUserServicesUser: $('#login-'+user_id).val(),
-			token: $('#token').val()
-		},
+		data: JSON.stringify(jsonData),
+		contentType: "application/json; charset=utf-8",
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
+			if (data.status === 'failed') {
 				toastr.error(data);
 			} else {
 				$("#user-" + user_id).addClass("update", 1000);
@@ -1223,8 +829,7 @@ function removeOpenVpnProfile(id) {
 	$.ajax({
 		url: "/app/admin/openvpn/delete",
 		data: {
-			openvpndel: id,
-			token: $('#token').val()
+			openvpndel: id
 		},
 		type: "POST",
 		success: function (data) {
@@ -1246,8 +851,7 @@ function uploadOvpn() {
 			url: "/app/admin/openvpn/upload",
 			data: {
 				uploadovpn: $('#ovpn_upload_file').val(),
-				ovpnname: $('#ovpn_upload_name').val(),
-				token: $('#token').val()
+				ovpnname: $('#ovpn_upload_name').val()
 			},
 			type: "POST",
 			success: function (data) {
@@ -1423,10 +1027,6 @@ function serverIsUp(server_ip, server_id) {
 	if (cur_url.split('#')[1] == 'servers') {
 		$.ajax({
 			url: "/app/server/check/server/" + server_ip,
-			// data: {
-			// 	token: $('#token').val()
-			// },
-			// type: "POST",
 			success: function (data) {
 				data = data.replace(/^\s+|\s+$/g, '');
 				if (data.indexOf('up') != '-1') {
@@ -1533,8 +1133,7 @@ function saveGroupsAndRoles(user_id) {
 		url: "/app/user/groups/save",
 		data: {
 			changeUserGroupsUser: $('#login-' + user_id).val(),
-			jsonDatas: JSON.stringify(jsonData),
-			token: $('#token').val()
+			jsonDatas: JSON.stringify(jsonData)
 		},
 		type: "POST",
 		success: function (data) {
@@ -1554,10 +1153,6 @@ function openChangeServerServiceDialog(server_id) {
 	let hostname = $('#hostname-' + server_id).val();
 	$.ajax({
 		url: "/app/server/services/" + server_id,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "GET",
 		success: function (data) {
 			$("#groups-roles").html(data);
 			$("#groups-roles").dialog({
@@ -1623,7 +1218,6 @@ function changeServerServices(server_id) {
 		data: {
 			jsonDatas: JSON.stringify(jsonData),
 			changeServerServicesServer: $('#hostname-' + server_id).val(),
-			token: $('#token').val()
 		},
 		type: "POST",
 		success: function (data) {

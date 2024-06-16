@@ -416,7 +416,6 @@ function clearUdpVip() {
 }
 function confirmUdpBalancerAction(action, listener_id) {
 	let action_word = translate_div.attr('data-'+action);
-	console.log('#litener-name-'+listener_id);
 	let l_name = $('#listener-name-'+listener_id).text();
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,

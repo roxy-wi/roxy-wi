@@ -63,15 +63,13 @@ def ssh_connect(server_ip):
 	return ssh
 
 
-def create_ssh_cred() -> str:
-	name = common.checkAjaxInput(request.form.get('new_ssh'))
-	enable = common.checkAjaxInput(request.form.get('ssh_enable'))
-	group = common.checkAjaxInput(request.form.get('new_group'))
+def create_ssh_cred(json_data: dict) -> dict:
+	name = common.checkAjaxInput(json_data['ssh'])
+	enable = int(json_data['enabled'])
+	group = common.checkAjaxInput(json_data['group'])
 	group_name = group_sql.get_group_name_by_id(group)
-	username = common.checkAjaxInput(request.form.get('ssh_user'))
-	password = common.checkAjaxInput(request.form.get('ssh_pass'))
-	page = common.checkAjaxInput(request.form.get('page'))
-	page = page.split("#")[0]
+	username = common.checkAjaxInput(json_data['user'])
+	password = common.checkAjaxInput(json_data['pass'])
 	lang = roxywi_common.get_user_lang_for_flask()
 	name = f'{name}_{group_name}'
 
@@ -83,16 +81,17 @@ def create_ssh_cred() -> str:
 
 	if username is None or name is None:
 		return error_mess
-	else:
-		try:
-			cred_sql.insert_new_ssh(name, enable, group, username, password)
-		except Exception as e:
-			roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot create new SSH credentials', roxywi=1, login=1)
-		roxywi_common.logging('Roxy-WI server', f'New SSH credentials {name} has been created', roxywi=1, login=1)
-		return render_template('ajax/new_ssh.html', groups=group_sql.select_groups(), sshs=cred_sql.select_ssh(name=name), page=page, lang=lang)
+
+	try:
+		last_id = cred_sql.insert_new_ssh(name, enable, group, username, password)
+	except Exception as e:
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot create new SSH credentials', roxywi=1, login=1)
+	roxywi_common.logging('Roxy-WI server', f'New SSH credentials {name} has been created', roxywi=1, login=1)
+	rendered_template = render_template('ajax/new_ssh.html', groups=group_sql.select_groups(), sshs=cred_sql.select_ssh(name=name), lang=lang)
+	return {'id': last_id, 'template': rendered_template}
 
 
-def create_ssh_cread_api(name: str, enable: str, group: str, username: str, password: str) -> bool:
+def create_ssh_cred_api(name: str, enable: str, group: str, username: str, password: str) -> bool:
 	group_name = group_sql.get_group_name_by_id(group)
 	name = common.checkAjaxInput(name)
 	name = f'{name}_{group_name}'
@@ -117,7 +116,7 @@ def create_ssh_cread_api(name: str, enable: str, group: str, username: str, pass
 			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot create SSH credentials {name}', roxywi=1)
 
 
-def upload_ssh_key(name: str, user_group: str, key: str, passphrase: str) -> str:
+def upload_ssh_key(name: str, user_group: int, key: str, passphrase: str) -> str:
 	if '..' in name:
 		raise Exception('error: nice try')
 
@@ -172,13 +171,13 @@ def upload_ssh_key(name: str, user_group: str, key: str, passphrase: str) -> str
 	return f'success: SSH key has been saved into: {ssh_keys}'
 
 
-def update_ssh_key() -> str:
-	ssh_id = common.checkAjaxInput(request.form.get('id'))
-	name = common.checkAjaxInput(request.form.get('name'))
-	enable = common.checkAjaxInput(request.form.get('ssh_enable'))
-	group = common.checkAjaxInput(request.form.get('group'))
-	username = common.checkAjaxInput(request.form.get('ssh_user'))
-	password = common.checkAjaxInput(request.form.get('ssh_pass'))
+def update_ssh_key(json_data: dict):
+	ssh_id = int(json_data['id'])
+	name = common.checkAjaxInput(json_data['name'])
+	enable = common.checkAjaxInput(json_data['ssh_enable'])
+	group = int(json_data['group'])
+	username = common.checkAjaxInput(json_data['ssh_user'])
+	password = common.checkAjaxInput(json_data['ssh_pass'])
 	new_ssh_key_name = ''
 	ssh_key_name = ''
 	ssh_enable = 0
@@ -205,8 +204,6 @@ def update_ssh_key() -> str:
 
 	cred_sql.update_ssh(ssh_id, name, enable, group, username, password)
 	roxywi_common.logging('Roxy-WI server', f'The SSH credentials {name} has been updated ', roxywi=1, login=1)
-
-	return 'ok'
 
 
 def delete_ssh_key(ssh_id) -> str:

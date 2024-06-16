@@ -785,7 +785,7 @@ def create_ssh():
 	token = request.headers.get('token')
 	login, group_id, role_id = user_sql.get_username_group_id_from_api_token(token)
 	try:
-		ssh_mod.create_ssh_cread_api(name, enable, group_id, username, password)
+		ssh_mod.create_ssh_cred_api(name, enable, group_id, username, password)
 		data = {'status': 'done'}
 	except Exception as e:
 		data = {'status': f'error: {e}'}

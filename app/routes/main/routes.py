@@ -160,11 +160,11 @@ def service_history(service, server_ip):
     history = ''
     server_ip = common.checkAjaxInput(server_ip)
 
-    if service in ('haproxy', 'nginx', 'keepalived', 'apache', 'cluster'):
+    if service in ('haproxy', 'nginx', 'keepalived', 'apache', 'cluster', 'udp'):
         service_desc = service_sql.select_service(service)
         if not roxywi_auth.is_access_permit_to_service(service_desc.slug):
             abort(403, f'You do not have needed permissions to access to {service_desc.slug.title()} service')
-        if service == 'cluster':
+        if service in ('cluster', 'udp'):
             server_id = server_ip
         else:
             server_id = server_sql.select_server_id_by_ip(server_ip)

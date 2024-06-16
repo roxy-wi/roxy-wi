@@ -37,11 +37,16 @@ function metrics_waf(name) {
 	name = name.split('metrics')[1]
 	$.ajax({
 		url: "/app/waf/metric/enable/" + enable + "/" + name,
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			showOverviewWaf(ip, hostnamea);
-			setTimeout(function () {
-				$("#" + name).parent().parent().removeClass("update");
-			}, 2500);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+			} else {
+				showOverviewWaf(ip, hostnamea);
+				setTimeout(function () {
+					$("#" + name).parent().parent().removeClass("update");
+				}, 2500);
+			}
 		}
 	});
 }
@@ -71,17 +76,22 @@ function changeWafMode(id) {
 	let service = cur_url[1];
 	$.ajax({
 		url: "/app/waf/" + service + "/mode/" + server_hostname + "/" + waf_mode,
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			toastr.info('Do not forget restart WAF service');
-			$('#' + server_hostname + '-select-line').addClass("update", 1000);
-			setTimeout(function () {
-				$('#' + server_hostname + '-select-line').removeClass("update");
-			}, 2500);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+			} else {
+				toastr.info('Do not forget restart WAF service');
+				$('#' + server_hostname + '-select-line').addClass("update", 1000);
+				setTimeout(function () {
+					$('#' + server_hostname + '-select-line').removeClass("update");
+				}, 2500);
+			}
 		}
 	});
 }
 $( function() {
-	$( "#waf_rules input" ).change(function() {
+	$("#waf_rules input").change(function () {
 		let id = $(this).attr('id').split('-');
 		waf_rules_en(id[1])
 	});
@@ -94,9 +104,10 @@ function waf_rules_en(id) {
 	let serv = cur_url[2];
 	$.ajax({
 		url: "/app/waf/" + serv + "/rule/" + id + "/" + enable,
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			if (data.indexOf('sed:') != '-1' || data.indexOf('error: ') != '-1') {
-				toastr.error(data);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
 			} else {
 				toastr.info('Do not forget restart WAF service');
 				$('#rule-' + id).addClass("update", 1000);
@@ -143,21 +154,21 @@ function addNewConfig() {
 					new_rule_description = escapeHtml(new_rule_description);
 					new_rule_file = escapeHtml(new_rule_file);
 					serv = escapeHtml(serv);
+					jsonData = {
+						"new_waf_rule": new_rule_name,
+						"new_rule_description": new_rule_description,
+						"new_rule_file": new_rule_file
+					}
 					$.ajax({
 						url: "/app/waf/" + service + "/" + serv + "/rule/create",
-						data: {
-							new_waf_rule: new_rule_name,
-							new_rule_description: new_rule_description,
-							new_rule_file: new_rule_file
-						},
+						data: JSON.stringify(jsonData),
+						contentType: "application/json; charset=utf-8",
 						type: "POST",
 						success: function (data) {
-							if (data.indexOf('error:') != '-1') {
-								toastr.error(data);
+							if (data.status === 'failed') {
+								toastr.error(data.error);
 							} else {
-								let getId = new RegExp('[0-9]+');
-								let id = data.match(getId) + '';
-								window.location.replace('waf.py?service=' + service + '&waf_rule_id=' + id + '&serv=' + serv);
+								window.location.replace("/app/waf/" + service + "/" + serv + "/rule/" + data.id);
 							}
 						}
 					});

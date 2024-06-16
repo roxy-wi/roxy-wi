@@ -6,12 +6,12 @@ from app.modules.db.common import out_error
 import app.modules.roxy_wi_tools as roxy_wi_tools
 
 
-def add_user(user, email, password, role, activeuser, group):
+def add_user(user, email, password, role, enabled, group):
 	if password != 'aduser':
 		try:
 			hashed_pass = roxy_wi_tools.Tools.get_hash(password)
 			last_id = User.insert(
-				username=user, email=email, password=hashed_pass, role=role, activeuser=activeuser, groups=group
+				username=user, email=email, password=hashed_pass, role=role, activeuser=enabled, groups=group
 			).execute()
 		except Exception as e:
 			out_error(e)
@@ -20,7 +20,7 @@ def add_user(user, email, password, role, activeuser, group):
 	else:
 		try:
 			last_id = User.insert(
-				username=user, email=email, role=role, ldap_user=1, activeuser=activeuser, groups=group
+				username=user, email=email, role=role, ldap_user=1, activeuser=enabled, groups=group
 			).execute()
 		except Exception as e:
 			out_error(e)

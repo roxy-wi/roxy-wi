@@ -71,7 +71,7 @@ def waf_overview(serv, waf_service) -> str:
     return render_template('ajax/overviewWaf.html', service_status=servers_sorted, role=role, waf_service=waf_service, lang=lang)
 
 
-def change_waf_mode(waf_mode: str, server_hostname: str, service: str) -> str:
+def change_waf_mode(waf_mode: str, server_hostname: str, service: str):
     serv = server_sql.select_server_by_name(server_hostname)
 
     if service == 'haproxy':
@@ -88,10 +88,8 @@ def change_waf_mode(waf_mode: str, server_hostname: str, service: str) -> str:
 
     roxywi_common.logging(serv, f'Has been changed WAF mod to {waf_mode}', roxywi=1, login=1)
 
-    return 'ok'
 
-
-def switch_waf_rule(serv: str, enable: int, rule_id: int) -> str:
+def switch_waf_rule(serv: str, enable: int, rule_id: int):
     haproxy_path = sql.get_setting('haproxy_dir')
     rule_file = waf_sql.select_waf_rule_by_id(rule_id)
     conf_file_path = haproxy_path + '/waf/modsecurity.conf'
@@ -111,13 +109,13 @@ def switch_waf_rule(serv: str, enable: int, rule_id: int) -> str:
         pass
 
     waf_sql.update_enable_waf_rules(rule_id, serv, enable)
-    return server_mod.ssh_command(serv, cmd)
+    server_mod.ssh_command(serv, cmd)
 
 
-def create_waf_rule(serv, service) -> str:
-    new_waf_rule = common.checkAjaxInput(request.form.get('new_waf_rule'))
-    new_rule_desc = common.checkAjaxInput(request.form.get('new_rule_description'))
-    rule_file = common.checkAjaxInput(request.form.get('new_rule_file'))
+def create_waf_rule(serv: str, service: str, json_data: dict) -> int:
+    new_waf_rule = common.checkAjaxInput(json_data['new_waf_rule'])
+    new_rule_desc = common.checkAjaxInput(json_data['new_rule_description'])
+    rule_file = common.checkAjaxInput(json_data['new_rule_file'])
     rule_file = f'{rule_file}.conf'
     waf_path = ''
 
@@ -131,7 +129,7 @@ def create_waf_rule(serv, service) -> str:
 
     cmd = f"sudo echo Include {rule_file_path} >> {conf_file_path} && sudo touch {rule_file_path}"
     server_mod.ssh_command(serv, cmd)
-    waf_sql.insert_new_waf_rule(new_waf_rule, rule_file, new_rule_desc, service, serv)
+    last_id = waf_sql.insert_new_waf_rule(new_waf_rule, rule_file, new_rule_desc, service, serv)
 
     try:
         roxywi_common.logging('WAF', f' A new rule has been created {rule_file} on the server {serv}',
@@ -139,4 +137,4 @@ def create_waf_rule(serv, service) -> str:
     except Exception:
         pass
 
-    return 'ok'
+    return last_id

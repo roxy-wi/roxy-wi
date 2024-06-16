@@ -1,10 +1,12 @@
 <table id="ssh_enable_table" class="overview">
     <tr class="overviewHead" style="width: 50%;">
-        <td class="padding10 first-collumn" style="width: 15%;" class="help_cursor">
-					<span title="It's just name alias. This alias will be use in 'Servers' page for choose credentials">{{lang.words.name|title()}}<span>
+        <td class="padding10 first-collumn help_cursor" style="width: 15%;">
+            <span title="It's just name alias. This alias will be use in 'Servers' page for choose credentials">{{lang.words.name|title()}}</span>
         </td>
-        <td class="first-collumn" style="width: 25%;" class="help_cursor" id="ssh-key-enabled-td">
-            <span title="If it is enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">SSH {{lang.words.key}}</span>
+        <td class="first-collumn help_cursor" style="width: 25%;" id="ssh-key-enabled-td">
+            <span title="If it is enabled, the key will be used, if turned off - the password. Do not forget to download the keys to all servers or install the sudo without a password">
+                SSH {{lang.words.key}}
+            </span>
         </td>
         {% if g.user_params['role'] == 1 %}
         <td style="width: 25%;">{{lang.words.group|title()}}</td>

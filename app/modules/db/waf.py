@@ -318,5 +318,3 @@ def update_waf_metrics_enable(name, enable):
 		Waf.update(metrics=enable).where(Waf.server_id == server_id).execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		return 'ok'

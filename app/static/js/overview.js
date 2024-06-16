@@ -1,4 +1,4 @@
-let cur_url = window.location.href.split('/app/').pop();
+var cur_url = window.location.href.split('/app/').pop();
 cur_url = cur_url.split('/');
 function showHapservers(serv, hostnamea, service) {
 	let i;
@@ -213,9 +213,9 @@ $( function() {
 
 		if (cur_url[0] != 'portscanner') {
 			try {
-				let service_name = id[2]
+				var service_name = id[2]
 			} catch (err) {
-				let service_name = 'haproxy'
+				var service_name = 'haproxy'
 			}
 
 			updateHapWIServer(id[1], service_name)
@@ -282,8 +282,7 @@ function updateHapWIServer(id, service_name) {
 			name: $('#server-name-' + id).val(),
 			metrics: metrics,
 			alert_en: alert_en,
-			active: active,
-			token: $('#token').val()
+			active: active
 		},
 		type: "POST",
 		success: function (data) {
