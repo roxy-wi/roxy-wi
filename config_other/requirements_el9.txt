@@ -21,5 +21,5 @@ tzlocal==2.0.0
 ansible-core>=2.11.12
 ansible-runner==2.3.1
 python-whois>=0.8.0
-requests==2.27.1
+requests==2.32.2
 netaddr>=0.10.1
