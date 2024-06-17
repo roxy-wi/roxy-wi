@@ -25,7 +25,7 @@ def insert_new_ssh(name, enable, group, username, password):
 	if password is None:
 		password = 'None'
 	try:
-		Cred.insert(name=name, enable=enable, groups=group, username=username, password=password).execute()
+		return Cred.insert(name=name, enable=enable, groups=group, username=username, password=password).execute()
 	except Exception as e:
 		out_error(e)
 
