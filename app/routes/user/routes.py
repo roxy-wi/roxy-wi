@@ -38,7 +38,7 @@ def create_user():
         current_user_role_id = g.user_params['role']
         if not roxywi_common.check_user_group_for_flask():
             return roxywi_common.handle_json_exceptions('Wrong group', 'Roxy-WI server', '')
-        if current_user_role_id < role:
+        if current_user_role_id > role:
             return roxywi_common.handle_json_exceptions('Wrong role', 'Roxy-WI server', '')
         try:
             user_id = roxywi_user.create_user(new_user, email, password, role, enabled, group_id)

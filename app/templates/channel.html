@@ -9,4 +9,7 @@
 <script>
     loadChannel();
 </script>
+{% if g.user_params['role'] > 1 %}
+    {{ input('channel-group', type='hidden', value=g.user_params['group_id']) }}
+{% endif %}
 {% endblock %}

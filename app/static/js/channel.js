@@ -1,20 +1,18 @@
-let cur_url = window.location.href.split('/app/').pop();
-cur_url = cur_url.split('/');
 $( function() {
-   	$('#add-telegram-button').click(function() {
+	$('#add-telegram-button').click(function () {
 		addTelegramDialog.dialog('open');
 	});
-	$('#add-slack-button').click(function() {
+	$('#add-slack-button').click(function () {
 		addSlackDialog.dialog('open');
 	});
-	$('#add-pd-button').click(function() {
+	$('#add-pd-button').click(function () {
 		addPDDialog.dialog('open');
 	});
-	$('#add-mm-button').click(function() {
+	$('#add-mm-button').click(function () {
 		addMMDialog.dialog('open');
 	});
-	let telegram_tabel_title = $( "#telegram-add-table-overview" ).attr('title');
-	let addTelegramDialog = $( "#telegram-add-table" ).dialog({
+	let telegram_tabel_title = $("#telegram-add-table-overview").attr('title');
+	let addTelegramDialog = $("#telegram-add-table").dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -42,8 +40,8 @@ $( function() {
 			}
 		}]
 	});
-	let slack_tabel_title = $( "#slack-add-table-overview" ).attr('title');
-	let addSlackDialog = $( "#slack-add-table" ).dialog({
+	let slack_tabel_title = $("#slack-add-table-overview").attr('title');
+	let addSlackDialog = $("#slack-add-table").dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -71,8 +69,8 @@ $( function() {
 			}
 		}]
 	});
-	let pd_tabel_title = $( "#pd-add-table-overview" ).attr('title');
-	let addPDDialog = $( "#pd-add-table" ).dialog({
+	let pd_tabel_title = $("#pd-add-table-overview").attr('title');
+	let addPDDialog = $("#pd-add-table").dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -100,8 +98,8 @@ $( function() {
 			}
 		}]
 	});
-	let mm_tabel_title = $( "#mm-add-table-overview" ).attr('title');
-	let addMMDialog = $( "#mm-add-table" ).dialog({
+	let mm_tabel_title = $("#mm-add-table-overview").attr('title');
+	let addMMDialog = $("#mm-add-table").dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -129,27 +127,27 @@ $( function() {
 			}
 		}]
 	});
-	$( "#checker_telegram_table input" ).change(function() {
+	$("#checker_telegram_table input").change(function () {
 		let id = $(this).attr('id').split('-');
 		updateReceiver(id[2], 'telegram')
 	});
-	$( "#checker_telegram_table select" ).on('selectmenuchange',function() {
+	$("#checker_telegram_table select").on('selectmenuchange', function () {
 		let id = $(this).attr('id').split('-');
 		updateReceiver(id[1], 'telegram')
 	});
-   $( "#checker_slack_table input" ).change(function() {
+	$("#checker_slack_table input").change(function () {
 		let id = $(this).attr('id').split('-');
 		updateReceiver(id[2], 'slack')
 	});
-	$( "#checker_slack_table select" ).on('selectmenuchange',function() {
+	$("#checker_slack_table select").on('selectmenuchange', function () {
 		let id = $(this).attr('id').split('-');
 		updateReceiver(id[1], 'slack')
 	});
-   $( "#checker_pd_table input" ).change(function() {
+	$("#checker_pd_table input").change(function () {
 		let id = $(this).attr('id').split('-');
 		updateReceiver(id[2], 'pd')
 	});
-	$( "#checker_pd_table select" ).on('selectmenuchange',function() {
+	$("#checker_pd_table select").on('selectmenuchange', function () {
 		let id = $(this).attr('id').split('-');
 		updateReceiver(id[1], 'pd')
 	});
@@ -164,36 +162,35 @@ function loadChannel() {
 				toastr.error(data);
 			} else {
 				$('#checker').html(data);
-				$( "select" ).selectmenu();
+				$("select").selectmenu();
 				$("button").button();
-				$( "input[type=checkbox]" ).checkboxradio();
+				$("input[type=checkbox]").checkboxradio();
 				$.getScript('/app/static/js/channel.js');
 				$.getScript(awesome);
 			}
 		}
-	} );
+	});
 }
 function updateReceiver(id, receiver_name) {
-	if (cur_url[0].indexOf('servers') != '-1') {
-		let group = $('#new-group').val();
-	} else {
-		let group = $('#' + receiver_name + 'group-' + id).val();
+	let group = $('#' + receiver_name + 'group-' + id).val();
+	if (group === undefined || group === null) {
+		group = $('#channel-group').val();
 	}
 	toastr.clear();
+	let json_data = {
+		"receiver_token": $('#' + receiver_name + '-token-' + id).val(),
+		"channel": $('#' + receiver_name + '-chanel-' + id).val(),
+		"group": group,
+		"id": id
+	}
 	$.ajax({
 		url: "/app/channel/receiver/" + receiver_name,
-		data: {
-			receiver_token: $('#' + receiver_name + '-token-' + id).val(),
-			channel: $('#' + receiver_name + '-chanel-' + id).val(),
-			group: group,
-			id: id,
-			token: $('#token').val()
-		},
+		data: JSON.stringify(json_data),
+		contentType: "application/json; charset=utf-8",
 		type: "PUT",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
 			} else {
 				toastr.clear();
 				$("#" + receiver_name + "-table-" + id).addClass("update", 1000);
@@ -207,14 +204,10 @@ function updateReceiver(id, receiver_name) {
 function checkReceiver(channel_id, receiver_name) {
 	$.ajax({
 		url: "/app/channel/check/" + channel_id + "/" + receiver_name,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
-				toastr.error(data);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
 			} else {
 				toastr.success('Test message has been sent');
 			}
@@ -222,35 +215,35 @@ function checkReceiver(channel_id, receiver_name) {
 	});
 }
 function addRecevier(dialog_id, receiver_name) {
-	let valid = true;
 	toastr.clear();
-	let allFields = $([]).add($('#' + receiver_name + '-token-add')).add($('#' + receiver_name + '-chanel-add'));
+	let valid = true;
+	let receiver_name_div = $('#' + receiver_name + '-token-add');
+	let channel_div = $('#' + receiver_name + '-chanel-add');
+	let group = $('#new-' + receiver_name + '-group-add').val();
+	let allFields = $([]).add(receiver_name_div).add(channel_div);
 	allFields.removeClass("ui-state-error");
-	valid = valid && checkLength($('#' + receiver_name + '-token-add'), "token", 1);
-	valid = valid && checkLength($('#' + receiver_name + '-chanel-add'), "channel name", 1);
+	valid = valid && checkLength(receiver_name_div, "token", 1);
+	valid = valid && checkLength(channel_div, "channel name", 1);
+	if (group === undefined || group === null) {
+		group = $('#channel-group').val();
+	}
 	if (valid) {
+		let jsonData = {
+			"receiver": receiver_name_div.val(),
+			"channel": channel_div.val(),
+			"group": group,
+		}
 		toastr.clear();
 		$.ajax({
 			url: "/app/channel/receiver/" + receiver_name,
-			data: {
-				receiver: $('#' + receiver_name + '-token-add').val(),
-				channel: $('#' + receiver_name + '-chanel-add').val(),
-				group: $('#new-' + receiver_name + '-group-add').val(),
-				page: cur_url[0].split('#')[0],
-				token: $('#token').val()
-			},
+			data: JSON.stringify(jsonData),
+			contentType: "application/json; charset=utf-8",
 			type: "POST",
 			success: function (data) {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
+				if (data.status === 'failed') {
+					toastr.error(data.error);
 				} else {
-					let getId = new RegExp(receiver_name + '-table-[0-9]+');
-					let id = data.match(getId) + '';
-					id = id.split('-').pop();
-					$('select:regex(id, ' + receiver_name + '_channel)').append('<option value=' + id + '>' + $('#' + receiver_name + '-chanel-add').val() + '</option>').selectmenu("refresh");
-					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_' + receiver_name + '_table', data);
-					$("input[type=submit], button").button();
-					$("input[type=checkbox]").checkboxradio();
+					common_ajax_action_after_success(dialog_id, 'newgroup', 'checker_' + receiver_name + '_table', data.data);
 					$("select").selectmenu();
 				}
 			}
@@ -258,25 +251,25 @@ function addRecevier(dialog_id, receiver_name) {
 	}
 }
 function confirmDeleteReceiver(id, receiver_name) {
-	 $( "#dialog-confirm-services" ).dialog({
-		 resizable: false,
-		 height: "auto",
-		 width: 400,
-		 modal: true,
-		 title: delete_word + " " + $('#' + receiver_name + '-chanel-' + id).val() + "?",
-		 buttons: [{
-			 text: delete_word,
-			 click: function () {
-				 $(this).dialog("close");
-				 removeReceiver(receiver_name, id);
-			 }
-		 }, {
-			 text: cancel_word,
-			 click: function () {
-				 $(this).dialog("close");
-			 }
-		 }]
-	 });
+	$("#dialog-confirm-services").dialog({
+		resizable: false,
+		height: "auto",
+		width: 400,
+		modal: true,
+		title: delete_word + " " + $('#' + receiver_name + '-chanel-' + id).val() + "?",
+		buttons: [{
+			text: delete_word,
+			click: function () {
+				$(this).dialog("close");
+				removeReceiver(receiver_name, id);
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
+				$(this).dialog("close");
+			}
+		}]
+	});
 }
 function cloneReceiver(id, receiver_name) {
 	$('#add-'+receiver_name+'-button').trigger( "click" );
@@ -287,17 +280,14 @@ function removeReceiver(receiver_name, receiver_id) {
 	$("#" + receiver_name + "-table-" + receiver_id).css("background-color", "#f2dede");
 	$.ajax({
 		url: "/app/channel/receiver/" + receiver_name,
-		data: {
-			channel_id: receiver_id,
-			token: $('#token').val()
-		},
+		data: JSON.stringify({"channel_id": receiver_id}),
+		contentType: "application/json; charset=utf-8",
 		type: "DELETE",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data == "ok") {
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+			} else {
 				$("#" + receiver_name + "-table-" + receiver_id).remove();
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
 			}
 		}
 	});
@@ -305,14 +295,10 @@ function removeReceiver(receiver_name, receiver_id) {
 function checkWebPanel() {
 	$.ajax({
 		url: "/app/channel/check/rabbit",
-		// data: {
-		//   token: $('#token').val()
-		// },
-		// type: "POST",
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
-				toastr.error(data);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
 			} else {
 				toastr.success('Test message has been sent');
 			}
@@ -322,10 +308,6 @@ function checkWebPanel() {
 function checkEmail() {
 	$.ajax({
 		url: "/app/channel/check/email",
-		// data: {
-		//   token: $('#token').val()
-		// },
-		// type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {

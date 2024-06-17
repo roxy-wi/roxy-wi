@@ -16,8 +16,6 @@ $( function() {
             loadSettings();
         } else if (activeTab == '#updatehapwi') {
             loadupdatehapwi();
-        } else if (activeTab == '#openvpn') {
-            loadopenvpn();
         } else if (activeTab == '#backup') {
             loadBackup();
         }
@@ -35,8 +33,6 @@ window.onload = function() {
 			loadBackup();
 		} else if (activeTabIdx == 7) {
 			loadupdatehapwi();
-		} else if (activeTabIdx == 8) {
-			loadopenvpn();
 		}
 	}
 }
@@ -92,86 +88,6 @@ function updateService(service, action='update') {
 		}
 	});
 }
-function confirmDeleteOpenVpnProfile(id) {
-	$( "#dialog-confirm" ).dialog({
-		resizable: false,
-		height: "auto",
-		width: 400,
-		modal: true,
-		title: "Are you sure you want to delete profile " +id+ "?",
-		buttons: {
-			"Delete": function() {
-				$( this ).dialog( "close" );
-				removeOpenVpnProfile(id);
-			},
-			Cancel: function() {
-				$( this ).dialog( "close" );
-			}
-		}
-	});
-}
-function removeOpenVpnProfile(id) {
-	$("#" + id).css("background-color", "#f2dede");
-	$.ajax({
-		url: "/app/admin/openvpn/delete",
-		data: {
-			openvpndel: id
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data == "ok") {
-				$("#" + id).remove();
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
-			}
-		}
-	});
-}
-function uploadOvpn() {
-	toastr.clear();
-	if ($("#ovpn_upload_name").val() == '' || $('#ovpn_upload_file').val() == '') {
-		toastr.error('All fields must be completed');
-	} else {
-		$.ajax({
-			url: "/app/admin/openvpn/upload",
-			data: {
-				uploadovpn: $('#ovpn_upload_file').val(),
-				ovpnname: $('#ovpn_upload_name').val()
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else if (data.indexOf('success') != '-1') {
-					toastr.clear();
-					toastr.success(data);
-					location.reload();
-				} else {
-					toastr.error('Something wrong, check and try again');
-				}
-			}
-		});
-	}
-}
-function OpenVpnSess(id, action) {
-	$.ajax({
-		url: "/app/admin/openvpn/" + action + "/" + id,
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else if (data.indexOf('success') != '-1') {
-				toastr.clear();
-				toastr.success(data)
-				location.reload()
-			} else {
-				toastr.error('Something wrong, check and try again');
-			}
-		}
-	});
-}
 function loadSettings() {
 	$.ajax({
 		url: "/app/admin/settings",
@@ -220,20 +136,6 @@ function checkUpdateRoxy() {
 		url: "/app/admin/update/check",
 		success: function (data) {
 			loadupdatehapwi();
-		}
-	} );
-}
-function loadopenvpn() {
-	$.ajax({
-		url: "/app/admin/openvpn",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('group_error') == '-1' && data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				$('#openvpn').html(data);
-				$.getScript(awesome);
-			}
 		}
 	} );
 }

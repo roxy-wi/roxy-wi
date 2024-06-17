@@ -1,7 +1,10 @@
 import json
 
 import pika
+import pdpyras
 import requests
+import telebot
+from telebot import apihelper
 from flask import render_template, request, abort
 
 import app.modules.db.sql as sql
@@ -163,8 +166,6 @@ def send_email(email_to: str, subject: str, message: str) -> None:
 
 
 def telegram_send_mess(mess, level, **kwargs):
-	import telebot
-	from telebot import apihelper
 	token_bot = ''
 	channel_name = ''
 
@@ -191,10 +192,9 @@ def telegram_send_mess(mess, level, **kwargs):
 	try:
 		bot = telebot.TeleBot(token=token_bot)
 		bot.send_message(chat_id=channel_name, text=f'{level}: {mess}')
-		return 'ok'
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
-		raise Exception(f'error: {e}')
+		raise Exception(e)
 
 
 def slack_send_mess(mess, level, **kwargs):
@@ -225,15 +225,12 @@ def slack_send_mess(mess, level, **kwargs):
 
 	try:
 		client.chat_postMessage(channel=f'#{channel_name}', text=f'{level}: {mess}')
-		return 'ok'
 	except SlackApiError as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
-		raise Exception(f'error: {e}')
+		raise Exception(e)
 
 
 def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, **kwargs):
-	import pdpyras
-
 	token = ''
 
 	if kwargs.get('channel_id') == 0:
@@ -259,7 +256,7 @@ def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 		dedup_key = f'{server_ip} {service_id} {alert_type}'
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
-		raise Exception(f'error: {e}')
+		raise Exception(e)
 
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxies = dict(https=proxy, http=proxy)
@@ -270,10 +267,9 @@ def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 			session.resolve(dedup_key)
 		else:
 			session.trigger(mess, 'Roxy-WI', dedup_key=dedup_key, severity=level, custom_details={'server': server_ip, 'alert': mess})
-		return 'ok'
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
-		raise Exception(f'error: {e}')
+		raise Exception(e)
 
 
 def mm_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, **kwargs):
@@ -326,25 +322,22 @@ def mm_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 	proxy_dict = common.return_proxy_dict()
 	try:
 		requests.post(token, headers=headers, data=str(values), proxies=proxy_dict)
-		return 'ok'
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
-		raise Exception(f'error: {e}')
+		raise Exception(e)
 
 
-def check_rabbit_alert() -> str:
+def check_rabbit_alert() -> None:
 	try:
 		user_group_id = request.cookies.get('group')
 	except Exception as e:
-		return f'error: Cannot send a message {e}'
+		raise Exception(f'Cannot get user group {e}')
 
 	try:
 		json_for_sending = {"user_group": user_group_id, "message": 'info: Test message'}
 		send_message_to_rabbit(json.dumps(json_for_sending))
 	except Exception as e:
-		return f'error: Cannot send a message {e}'
-	else:
-		return 'ok'
+		raise Exception(e)
 
 
 def check_email_alert() -> str:
@@ -369,7 +362,7 @@ def check_email_alert() -> str:
 	return 'ok'
 
 
-def add_telegram_channel(token: str, channel: str, group: str, page: str) -> str:
+def add_telegram_channel(token: str, channel: str, group: str) -> str:
 	if token is None or channel is None or group is None:
 		return error_mess
 	else:
@@ -379,10 +372,10 @@ def add_telegram_channel(token: str, channel: str, group: str, page: str) -> str
 			groups = group_sql.select_groups()
 			roxywi_common.logging('Roxy-WI server', f'A new Telegram channel {channel} has been created ', roxywi=1, login=1)
 
-			return render_template('ajax/new_receiver.html', groups=groups, lang=lang, channels=channels, page=page, receiver='telegram')
+			return render_template('ajax/new_receiver.html', groups=groups, lang=lang, channels=channels, receiver='telegram')
 
 
-def add_slack_channel(token: str, channel: str, group: str, page: str) -> str:
+def add_slack_channel(token: str, channel: str, group: str) -> str:
 	if token is None or channel is None or group is None:
 		return error_mess
 	else:
@@ -391,10 +384,10 @@ def add_slack_channel(token: str, channel: str, group: str, page: str) -> str:
 			channels = channel_sql.select_slack(token=token)
 			groups = group_sql.select_groups()
 			roxywi_common.logging('Roxy-WI server', f'A new Slack channel {channel} has been created ', roxywi=1, login=1)
-			return render_template('ajax/new_receiver.html', groups=groups, lang=lang, channels=channels, page=page, receiver='slack')
+			return render_template('ajax/new_receiver.html', groups=groups, lang=lang, channels=channels, receiver='slack')
 
 
-def add_pd_channel(token: str, channel: str, group: str, page: str) -> str:
+def add_pd_channel(token: str, channel: str, group: str) -> str:
 	if token is None or channel is None or group is None:
 		return error_mess
 	else:
@@ -403,10 +396,10 @@ def add_pd_channel(token: str, channel: str, group: str, page: str) -> str:
 			channels = channel_sql.select_pd(token=token)
 			groups = group_sql.select_groups()
 			roxywi_common.logging('Roxy-WI server', f'A new PagerDuty channel {channel} has been created ', roxywi=1, login=1)
-			return render_template('ajax/new_receiver.html', groups=groups, lang=lang, channels=channels, page=page, receiver='pd')
+			return render_template('ajax/new_receiver.html', groups=groups, lang=lang, channels=channels, receiver='pd')
 
 
-def add_mm_channel(token: str, channel: str, group: str, page: str) -> str:
+def add_mm_channel(token: str, channel: str, group: str) -> str:
 	if token is None or channel is None or group is None:
 		return error_mess
 	else:
@@ -415,7 +408,7 @@ def add_mm_channel(token: str, channel: str, group: str, page: str) -> str:
 			channels = channel_sql.select_mm(token=token)
 			groups = group_sql.select_groups()
 			roxywi_common.logging('Roxy-WI server', f'A new Mattermost channel {channel} has been created ', roxywi=1, login=1)
-			return render_template('ajax/new_receiver.html', groups=groups, lang=lang, channels=channels, page=page, receiver='mm')
+			return render_template('ajax/new_receiver.html', groups=groups, lang=lang, channels=channels, receiver='mm')
 
 
 def delete_telegram_channel(channel_id) -> str:
@@ -428,58 +421,51 @@ def delete_telegram_channel(channel_id) -> str:
 		return 'ok'
 
 
-def delete_slack_channel(channel_id) -> str:
+def delete_slack_channel(channel_id) -> None:
 	slack = channel_sql.select_slack(id=channel_id)
 	channel_name = ''
 	for t in slack:
 		channel_name = t.chanel_name
 	if channel_sql.delete_slack(channel_id):
 		roxywi_common.logging('Roxy-WI server', f'The Slack channel {channel_name} has been deleted ', roxywi=1, login=1)
-		return 'ok'
 
 
-def delete_pd_channel(channel_id) -> str:
+def delete_pd_channel(channel_id) -> None:
 	pd = channel_sql.select_pd(id=channel_id)
 	channel_name = ''
 	for t in pd:
 		channel_name = t.chanel_name
 	if channel_sql.delete_pd(channel_id):
 		roxywi_common.logging('Roxy-WI server', f'The PageDuty channel {channel_name} has been deleted ', roxywi=1, login=1)
-		return 'ok'
 
 
-def delete_mm_channel(channel_id) -> str:
+def delete_mm_channel(channel_id) -> None:
 	pd = channel_sql.select_mm(id=channel_id)
 	channel_name = ''
 	for t in pd:
 		channel_name = t.chanel_name
 	if channel_sql.delete_mm(channel_id):
 		roxywi_common.logging('Roxy-WI server', f'The Mattermost channel {channel_name} has been deleted ', roxywi=1, login=1)
-		return 'ok'
 
 
-def update_telegram(token: str, channel: str, group: str, user_id: int) -> str:
+def update_telegram(token: str, channel: str, group: int, user_id: int) -> None:
 	channel_sql.update_telegram(token, channel, group, user_id)
-	roxywi_common.logging('group ' + group, f'The Telegram token has been updated for channel: {channel}', roxywi=1, login=1)
-	return 'ok'
+	roxywi_common.logging(f'group {group}', f'The Telegram token has been updated for channel: {channel}', roxywi=1, login=1)
 
 
-def update_slack(token: str, channel: str, group: str, user_id: int) -> str:
+def update_slack(token: str, channel: str, group: int, user_id: int) -> None:
 	channel_sql.update_slack(token, channel, group, user_id)
 	roxywi_common.logging(f'group {group}', f'The Slack token has been updated for channel: {channel}', roxywi=1, login=1)
-	return 'ok'
 
 
-def update_pd(token: str, channel: str, group: str, user_id: int) -> str:
+def update_pd(token: str, channel: str, group: int, user_id: int) -> None:
 	channel_sql.update_pd(token, channel, group, user_id)
 	roxywi_common.logging(f'group {group}', f'The PagerDuty token has been updated for channel: {channel}', roxywi=1, login=1)
-	return 'ok'
 
 
-def update_mm(token: str, channel: str, group: str, user_id: int) -> str:
+def update_mm(token: str, channel: str, group: int, user_id: int) -> None:
 	channel_sql.update_mm(token, channel, group, user_id)
 	roxywi_common.logging(f'group {group}', f'The Mattermost token has been updated for channel: {channel}', roxywi=1, login=1)
-	return 'ok'
 
 
 def delete_receiver_channel(channel_id: int, receiver_name: str) -> None:
@@ -492,7 +478,7 @@ def delete_receiver_channel(channel_id: int, receiver_name: str) -> None:
 	return delete_functions[receiver_name](channel_id)
 
 
-def add_receiver_channel(receiver_name: str, token: str, channel: str, group: id, page: str) -> str:
+def add_receiver_channel(receiver_name: str, token: str, channel: str, group: id) -> str:
 	add_functions = {
 		"telegram": add_telegram_channel,
 		"slack": add_slack_channel,
@@ -501,9 +487,9 @@ def add_receiver_channel(receiver_name: str, token: str, channel: str, group: id
 	}
 
 	try:
-		return add_functions[receiver_name](token, channel, group, page)
+		return add_functions[receiver_name](token, channel, group)
 	except Exception as e:
-		return f'error: Cannot add new receiver: {e}'
+		raise Exception(e)
 
 
 def update_receiver_channel(receiver_name: str, token: str, channel: str, group: id, user_id: int) -> None:
@@ -516,7 +502,7 @@ def update_receiver_channel(receiver_name: str, token: str, channel: str, group:
 	return update_functions[receiver_name](token, channel, group, user_id)
 
 
-def check_receiver(channel_id: int, receiver_name: str) -> str:
+def check_receiver(channel_id: int, receiver_name: str) -> None:
 	functions = {
 		"telegram": telegram_send_mess,
 		"slack": slack_send_mess,
@@ -531,9 +517,9 @@ def check_receiver(channel_id: int, receiver_name: str) -> str:
 		level = 'info'
 
 	try:
-		return functions[receiver_name](mess, level, channel_id=channel_id)
+		functions[receiver_name](mess, level, channel_id=channel_id)
 	except Exception as e:
-		return f'error: Cannot send message: {e}'
+		raise Exception(e)
 
 
 def load_channels():

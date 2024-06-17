@@ -8,7 +8,7 @@
 		<td>
 			<input type="text" id="{{receiver}}-chanel-{{c.id}}" class="form-control" value="{{c.chanel_name}}" size="30">
 		</td>
-		{% if page != "servers.py" %}
+		{% if g.user_params['role'] > 1 %}
 			<td>
 				<select id="{{receiver}}group-{{c.id}}" name="{{receiver}}group-{{c.id}}">
 					{% for group in groups %}
