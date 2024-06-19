@@ -56,18 +56,6 @@ def check_user_group_for_flask(**kwargs) -> bool:
 		return False
 
 
-def get_user_id(**kwargs):
-	if kwargs.get('login'):
-		return user_sql.get_user_id_by_username(kwargs.get('login'))
-
-	user_uuid = request.cookies.get('uuid')
-
-	if user_uuid is not None:
-		user_id = user_sql.get_user_id_by_uuid(user_uuid)
-
-		return user_id
-
-
 def check_is_server_in_group(server_ip: str) -> bool:
 	group_id = get_user_group(id=1)
 	servers = server_sql.select_servers(server=server_ip)
@@ -155,7 +143,8 @@ def logging(server_ip: str, action: str, **kwargs) -> None:
 
 def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
 	if login != '':
-		user_id = user_sql.get_user_id_by_username(login)
+		user = user_sql.get_user_id_by_username(login)
+		user_id = user.user_id
 	else:
 		user_id = 0
 	if user_ip == '':
@@ -319,6 +308,6 @@ def handle_exceptions(ex: Exception, server_ip: str, message: str, **kwargs: Any
 	raise Exception(f'error: {message}: {ex}')
 
 
-def handle_json_exceptions(ex: Exception, server_ip: str, message: str, **kwargs: Any) -> dict:
-	logging(server_ip, f'error: {message}: {ex}', roxywi=1, login=1, **kwargs)
+def handle_json_exceptions(ex: Exception, message: str, server_ip='Roxy-WI server') -> dict:
+	logging(server_ip, f'error: {message}: {ex}', roxywi=1, login=1)
 	return {'status': 'failed', 'error': f'{message}: {ex}'}

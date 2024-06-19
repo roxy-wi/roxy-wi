@@ -292,26 +292,15 @@ function removeReceiver(receiver_name, receiver_id) {
 		}
 	});
 }
-function checkWebPanel() {
+function sendCheckMessage(sender) {
 	$.ajax({
-		url: "/app/channel/check/rabbit",
+		url: "/app/channel/check",
+		data: JSON.stringify({'sender': sender}),
+		type: "POST",
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
 			if (data.status === 'failed') {
 				toastr.error(data.error);
-			} else {
-				toastr.success('Test message has been sent');
-			}
-		}
-	});
-}
-function checkEmail() {
-	$.ajax({
-		url: "/app/channel/check/email",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
-				toastr.error(data);
 			} else {
 				toastr.success('Test message has been sent');
 			}

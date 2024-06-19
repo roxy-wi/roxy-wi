@@ -39,13 +39,10 @@ def delete_user(user_id: int):
         count_super_admin_users = user_sql.get_super_admin_count()
         if count_super_admin_users < 2:
             raise Exception('error: you cannot delete a last user with superAdmin role')
-    user = user_sql.select_users(id=user_id)
-    username = ''
-    for u in user:
-        username = u.username
+    user = user_sql.get_user_id(user_id)
     if user_sql.delete_user(user_id):
         user_sql.delete_user_groups(user_id)
-        roxywi_common.logging(username, ' has been deleted user ', roxywi=1, login=1)
+        roxywi_common.logging(user.username, 'has been deleted user', roxywi=1, login=1)
 
 
 def update_user(email, new_user, user_id, enabled, group_id, role_id):
@@ -57,19 +54,12 @@ def update_user(email, new_user, user_id, enabled, group_id, role_id):
     roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
 
 
-def update_user_password(password, uuid, user_id_from_get):
-    username = ''
-
+def update_user_password(password: str, uuid: str, user_id: int):
     if uuid:
         user_id = user_sql.get_user_id_by_uuid(uuid)
-    else:
-        user_id = user_id_from_get
-    user = user_sql.select_users(id=user_id)
-    for u in user:
-        username = u.username
+    user = user_sql.get_user_id(user_id)
     user_sql.update_user_password(password, user_id)
-    roxywi_common.logging(f'user {username}', ' has changed password ', roxywi=1, login=1)
-    return 'ok'
+    roxywi_common.logging(f'user {user.username}', 'has changed password', roxywi=1, login=1)
 
 
 def get_user_services(user_id: int) -> str:
@@ -162,22 +152,27 @@ def get_ldap_email(username) -> str:
 
     ldap_proto = 'ldap' if ldap_type == "0" else 'ldaps'
 
-    ldap_bind = ldap.initialize('{}://{}:{}/'.format(ldap_proto, server, port))
+    try:
+        ldap_bind = ldap.initialize(f'{ldap_proto}://{server}:{port}/')
+    except Exception as e:
+        raise Exception(f'Cannot initialize connect to LDAP: {e}')
 
     try:
         ldap_bind.protocol_version = ldap.VERSION3
         ldap_bind.set_option(ldap.OPT_REFERRALS, 0)
 
-        bind = ldap_bind.simple_bind_s(user, password)
+        _ = ldap_bind.simple_bind_s(user, password)
 
-        criteria = "(&(objectClass=" + ldap_class_search + ")(" + ldap_user_attribute + "=" + username + "))"
+        criteria = f"(&(objectClass={ldap_class_search})({ldap_user_attribute}={username}))"
         attributes = [ldap_search_field]
         result = ldap_bind.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
 
         results = [entry for dn, entry in result if isinstance(entry, dict)]
         try:
-            return '["' + results[0][ldap_search_field][0].decode("utf-8") + '","' + domain + '"]'
+            return f'["' + results[0][ldap_search_field][0].decode("utf-8") + '","' + domain + '"]'
         except Exception:
-            return 'error: user not found'
+            raise Exception('user not found')
+    except Exception as e:
+        raise Exception(e)
     finally:
         ldap_bind.unbind()

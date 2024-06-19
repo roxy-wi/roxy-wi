@@ -186,8 +186,8 @@ def _create_config_version(server_id: int, server_ip: str, service: str, config_
 		roxywi_common.logging('Roxy-WI server', f'error: Cannot create diff config version: {e}', roxywi=1)
 
 	try:
-		user_id = roxywi_common.get_user_id(login=login)
-		config_sql.insert_config_version(server_id, user_id, service, cfg, config_path, diff)
+		user = user_sql.get_user_id_by_username(login=login)
+		config_sql.insert_config_version(server_id, user.user_id, service, cfg, config_path, diff)
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', f'error: Cannot insert config version: {e}', roxywi=1)
 

@@ -1,4 +1,4 @@
-from flask import render_template, request, g
+from flask import render_template, request, g, jsonify
 from flask_login import login_required
 
 from app.routes.portscanner import bp
@@ -78,17 +78,13 @@ def change_settings_portscanner():
         return 'ok'
 
 
-@bp.route('/scan/<int:server_id>', defaults={'server_ip': None})
-@bp.route('/scan/<server_ip>', defaults={'server_id': None})
-def scan_port(server_id, server_ip):
-    if server_ip:
-        ip = server_ip
+@bp.post('/scan')
+def scan_port():
+    json_data = request.get_json()
+    if 'id' in json_data:
+        ip = server_sql.select_server_ip_by_id(json_data['id'])
     else:
-        server = server_sql.select_servers(id=server_id)
-        ip = ''
-
-        for s in server:
-            ip = s[2]
+        ip = json_data['ip']
 
     cmd = f"sudo nmap -sS {ip} |grep -E '^[[:digit:]]'|sed 's/  */ /g'"
     cmd1 = f"sudo nmap -sS {ip} |head -5|tail -2"
@@ -97,7 +93,8 @@ def scan_port(server_id, server_ip):
     stdout1, stderr1 = server_mod.subprocess_execute(cmd1)
 
     if stderr != '':
-        return f'error: {stderr}'
+        return jsonify({'error': stderr})
     else:
         lang = roxywi_common.get_user_lang_for_flask()
-        return render_template('ajax/scan_ports.html', ports=stdout, info=stdout1, lang=lang)
+        temp = render_template('ajax/scan_ports.html', ports=stdout, info=stdout1, lang=lang)
+        return jsonify({'status': 'success', 'data': temp})

@@ -40,21 +40,22 @@ def check_receiver(channel_id, receiver_name):
         alerting.check_receiver(channel_id, receiver_name)
         return jsonify({'status': 'success'})
     except Exception as e:
-        roxywi_common.handle_json_exceptions(e, 'Roxy-WI', f'Cannot send message via {receiver_name}')
+        return roxywi_common.handle_json_exceptions(e, f'Cannot send message via {receiver_name}')
 
 
-@bp.route('/check/rabbit')
-def check_rabbit():
+@bp.post('/check')
+def check_sender():
+    json_data = request.get_json()
+    sender = json_data.get('sender')
+    send_function = {
+        'email': alerting.check_email_alert,
+        'web': alerting.check_rabbit_alert
+    }
     try:
-        alerting.check_rabbit_alert()
+        send_function[sender]()
         return jsonify({'status': 'success'})
     except Exception as e:
-        roxywi_common.handle_json_exceptions(e, 'Roxy-WI', 'Cannot send message via Web panel')
-
-
-@bp.route('/check/email')
-def check_email():
-    return alerting.check_email_alert()
+        return roxywi_common.handle_json_exceptions(e, f'Cannot send message via {sender.title()}')
 
 
 @bp.route('/receiver/<receiver_name>', methods=['PUT', 'POST', 'DELETE'])
@@ -70,7 +71,7 @@ def receiver(receiver_name):
             data = alerting.add_receiver_channel(receiver_name, token, channel, group)
             return jsonify({'status': 'updated', 'data': data})
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI', f'Cannot create {receiver_name} channel')
+            return roxywi_common.handle_json_exceptions(e, f'Cannot create {receiver_name} channel')
     elif request.method == 'PUT':
         token = common.checkAjaxInput(json_data['receiver_token'])
         channel = common.checkAjaxInput(json_data['channel'])
@@ -81,11 +82,11 @@ def receiver(receiver_name):
             alerting.update_receiver_channel(receiver_name, token, channel, group, user_id)
             return jsonify({'status': 'updated'})
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI', f'Cannot update {receiver_name} channel')
+            return roxywi_common.handle_json_exceptions(e, f'Cannot update {receiver_name} channel')
     elif request.method == 'DELETE':
         channel_id = int(json_data['channel_id'])
         try:
             alerting.delete_receiver_channel(channel_id, receiver_name)
             return jsonify({'status': 'deleted'})
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI', f'Cannot delete {receiver_name} channel')
+            return roxywi_common.handle_json_exceptions(e, f'Cannot delete {receiver_name} channel')

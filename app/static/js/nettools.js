@@ -109,26 +109,29 @@ $( function() {
         event.preventDefault();
     });
     $("#nettools_portscanner_form").on("click", ":submit", function (e) {
+        let port_server = $('#nettools_portscanner_server').val();
         $('#ajax-nettools').html('');
-        if ($('#nettools_portscanner_server').val() == '') {
+        if (port_server == '') {
             toastr.warning('Enter an address');
             return false;
         }
         $.ajax({
-            url: "/app/portscanner/scan/" + $('#nettools_portscanner_server').val(),
+            url: "/app/portscanner/scan",
+            data: JSON.stringify({'ip': port_server}),
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
             success: function (data) {
-                data = data.replace(/\s+/g, ' ');
-                if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
-                    toastr.error(data);
+                if (data.status === 'failed') {
+                    toastr.error(data.error);
                 } else {
                     toastr.clear();
-                    $("#show_scans_ports_body").html(data);
+                    $("#show_scans_ports_body").html(data.data);
                     $("#show_scans_ports").dialog({
                         resizable: false,
                         height: "auto",
                         width: 360,
                         modal: true,
-                        title: "{{lang.words.opened|title()}} {{lang.words.ports}}",
+                        title: "Opened ports",
                         buttons: [{
                             text: close_word,
                             click: function () {

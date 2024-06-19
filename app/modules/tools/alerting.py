@@ -31,15 +31,18 @@ def send_message_to_rabbit(message: str, **kwargs) -> None:
 		rabbit_queue = sql.get_setting('rabbitmq_queue')
 
 	credentials = pika.PlainCredentials(rabbit_user, rabbit_password)
-	parameters = pika.ConnectionParameters(
-		rabbit_host,
-		rabbit_port,
-		rabbit_vhost,
-		credentials
-	)
+	try:
+		parameters = pika.ConnectionParameters(
+			rabbit_host,
+			rabbit_port,
+			rabbit_vhost,
+			credentials
+		)
+		connection = pika.BlockingConnection(parameters)
+		channel = connection.channel()
+	except Exception as e:
+		raise Exception(f'RabbitMQ connection error {e}')
 
-	connection = pika.BlockingConnection(parameters)
-	channel = connection.channel()
 	channel.queue_declare(queue=rabbit_queue)
 	channel.basic_publish(exchange='', routing_key=rabbit_queue, body=message)
 
@@ -337,29 +340,27 @@ def check_rabbit_alert() -> None:
 		json_for_sending = {"user_group": user_group_id, "message": 'info: Test message'}
 		send_message_to_rabbit(json.dumps(json_for_sending))
 	except Exception as e:
-		raise Exception(e)
+		raise Exception(f'Cannot send message {e}')
 
 
-def check_email_alert() -> str:
+def check_email_alert() -> None:
 	subject = 'test message'
 	message = 'Test message from Roxy-WI'
 
 	try:
 		user_uuid = request.cookies.get('uuid')
 	except Exception as e:
-		return f'error: Cannot send a message {e}'
+		raise Exception(f'Cannot send a message {e}')
 
 	try:
 		user_email = user_sql.select_user_email_by_uuid(user_uuid)
 	except Exception as e:
-		return f'error: Cannot get a user email: {e}'
+		raise Exception(f'Cannot get a user email: {e}')
 
 	try:
 		send_email(user_email, subject, message)
 	except Exception as e:
-		return f'error: Cannot send a message {e}'
-
-	return 'ok'
+		raise Exception('Cannot send a message {e}')
 
 
 def add_telegram_channel(token: str, channel: str, group: str) -> str:

@@ -43,7 +43,7 @@ def create_user():
         try:
             user_id = roxywi_user.create_user(new_user, email, password, role, enabled, group_id)
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', 'Cannot create a new user')
+            return roxywi_common.handle_json_exceptions(e, 'Cannot create a new user')
         else:
             return jsonify({'status': 'created', 'id': user_id, 'data': render_template(
                 'ajax/new_user.html', users=user_sql.select_users(user=new_user), groups=group_sql.select_groups(),
@@ -58,7 +58,7 @@ def create_user():
             try:
                 user_sql.update_user_from_admin_area(user_name, email, user_id, enabled)
             except Exception as e:
-                return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', 'Cannot update user')
+                return roxywi_common.handle_json_exceptions(e, 'Cannot update user')
             roxywi_common.logging(user_name, ' has been updated user ', roxywi=1, login=1)
             return jsonify({'status': 'updated'})
     elif request.method == 'DELETE':
@@ -68,7 +68,7 @@ def create_user():
             roxywi_user.delete_user(user_id)
             return jsonify({'status': 'deleted'})
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', f'Cannot delete the user {user_id}')
+            return roxywi_common.handle_json_exceptions(e, f'Cannot delete the user {user_id}')
     else:
         abort(405)
 
@@ -77,16 +77,29 @@ def create_user():
 def get_ldap_email(username):
     roxywi_auth.page_for_admin(level=2)
 
-    return roxywi_user.get_ldap_email(username)
+    try:
+        user = roxywi_user.get_ldap_email(username)
+        return jsonify({'status': 'ldap', 'user': user})
+    except Exception as e:
+        return roxywi_common.handle_json_exceptions(e, 'Cannot get LDAP email')
 
 
 @bp.post('/password')
 def update_password():
-    password = request.form.get('updatepassowrd')
-    uuid = request.form.get('uuid')
-    user_id_from_get = request.form.get('id')
+    json_data = request.get_json()
+    password = json_data['password']
+    uuid = ''
+    user_id = ''
+    if 'uuid' in json_data:
+        uuid = common.checkAjaxInput(json_data['uuid'])
+    else:
+        user_id = int(json_data['id'])
 
-    return roxywi_user.update_user_password(password, uuid, user_id_from_get)
+    try:
+        roxywi_user.update_user_password(password, uuid, user_id)
+        return jsonify({'status': 'updated'})
+    except Exception as e:
+        return roxywi_common.handle_json_exceptions(e, 'Cannot update password')
 
 
 @bp.route('/services/<int:user_id>', methods=['GET', 'POST'])
@@ -101,7 +114,7 @@ def show_user_services(user_id):
             roxywi_user.change_user_services(user, user_id, user_services)
             return jsonify({'status': 'updated'})
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server', 'Cannot change user services')
+            return roxywi_common.handle_json_exceptions(e, 'Cannot change user services')
 
 
 @bp.route('/group', methods=['GET', 'PUT'])

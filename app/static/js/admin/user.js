@@ -1,11 +1,11 @@
 var cur_url = window.location.href.split('/app/').pop();
 cur_url = cur_url.split('/');
 $( function() {
-	$('#add-user-button').click(function() {
+	$('#add-user-button').click(function () {
 		addUserDialog.dialog('open');
 	});
-	let user_tabel_title = $( "#user-add-table-overview" ).attr('title');
-	let addUserDialog = $( "#user-add-table" ).dialog({
+	let user_tabel_title = $("#user-add-table-overview").attr('title');
+	let addUserDialog = $("#user-add-table").dialog({
 		autoOpen: false,
 		resizable: false,
 		height: "auto",
@@ -33,15 +33,15 @@ $( function() {
 			}
 		}]
 	});
-	$( "#ajax-users input" ).change(function() {
+	$("#ajax-users input").change(function () {
 		let id = $(this).attr('id').split('-');
 		updateUser(id[1])
 	});
-	$( "#ajax-users select" ).on('selectmenuchange',function() {
+	$("#ajax-users select").on('selectmenuchange', function () {
 		let id = $(this).attr('id').split('-');
 		updateUser(id[1])
 	});
-	$('#search_ldap_user').click(function() {
+	$('#search_ldap_user').click(function () {
 		toastr.clear();
 		let username_div = $('#new-username')
 		let valid = true;
@@ -52,13 +52,12 @@ $( function() {
 		if (valid) {
 			$.ajax({
 				url: "/app/user/ldap/" + user,
+				contentType: "application/json; charset=utf-8",
 				success: function (data) {
-					data = data.replace(/\s+/g, ' ');
-					if (data.indexOf('error:') != '-1') {
-						toastr.error(data);
+					if (data.status === 'failed') {
+						toastr.error(data.error);
 						$('#new-email').val('');
 						username_div.attr('readonly', false);
-						username_div.val('');
 					} else {
 						let json = $.parseJSON(data);
 						toastr.clear();
@@ -76,22 +75,25 @@ $( function() {
 	});
 } );
 function addUser(dialog_id) {
-	let valid = true;
 	toastr.clear();
-	let allFields = $([]).add($('#new-username')).add($('#new-password')).add($('#new-email'))
+	let valid = true;
+	let new_username_div = $('#new-username');
+	let password_div = $('#new-password');
+	let email_div = $('#new-email');
+	let allFields = $([]).add(new_username_div).add(password_div).add(email_div)
 	allFields.removeClass("ui-state-error");
-	valid = valid && checkLength($('#new-username'), "user name", 1);
-	valid = valid && checkLength($('#new-password'), "password", 1);
-	valid = valid && checkLength($('#new-email'), "Email", 1);
+	valid = valid && checkLength(new_username_div, "user name", 1);
+	valid = valid && checkLength(password_div, "password", 1);
+	valid = valid && checkLength(email_div, "Email", 1);
 	let enabled = 0;
 	if ($('#activeuser').is(':checked')) {
 		enabled = '1';
 	}
 	if (valid) {
 		let jsonData = {
-			"username": $('#new-username').val(),
-			"password": $('#new-password').val(),
-			"email": $('#new-email').val(),
+			"username": new_username_div.val(),
+			"password": password_div.val(),
+			"email": email_div.val(),
 			"role": $('#new-role').val(),
 			"enabled": enabled,
 			"user_group": $('#new-group').val(),
@@ -231,17 +233,18 @@ function changeUserPassword(id, d) {
 	} else {
 		$('#missmatchpass').hide();
 		toastr.clear();
+		let jsonData = {
+			"password": pass,
+			"id": id
+		}
 		$.ajax({
 			url: "/app/user/password",
-			data: {
-				updatepassowrd: pass,
-				id: id
-			},
+			data: JSON.stringify(jsonData),
+			contentType: "application/json; charset=utf-8",
 			type: "POST",
 			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
+				if (data.status === 'failed') {
+					toastr.error(data.error);
 				} else {
 					toastr.clear();
 					$("#user-" + id).addClass("update", 1000);
@@ -310,7 +313,7 @@ function changeUserServices(user_id) {
 		type: "POST",
 		success: function( data ) {
 			if (data.status === 'failed') {
-				toastr.error(data);
+				toastr.error(data.error);
 			} else {
 				$("#user-" + user_id).addClass("update", 1000);
 				setTimeout(function () {

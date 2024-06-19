@@ -100,8 +100,6 @@ def update_user_role(user_id: int, group_id: int, role_id: int) -> None:
 def select_users(**kwargs):
 	if kwargs.get("user") is not None:
 		query = User.select().where(User.username == kwargs.get("user"))
-	elif kwargs.get("id") is not None:
-		query = User.select().where(User.user_id == kwargs.get("id"))
 	elif kwargs.get("group") is not None:
 		get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
 		cur_date = get_date.return_date('regular', timedelta_minutes_minus=15)
@@ -225,13 +223,11 @@ def get_user_id_by_uuid(uuid):
 			return user.user_id
 
 
-def get_user_id_by_username(username: str):
+def get_user_id_by_username(username: str) -> User:
 	try:
-		query = User.get(User.username == username).user_id
+		return User.get(User.username == username)
 	except Exception as e:
 		out_error(e)
-	else:
-		return query
 
 
 def get_user_role_by_uuid(uuid, group_id):
@@ -270,7 +266,7 @@ def write_user_uuid(login, user_uuid):
 	cur_date = get_date.return_date('regular', timedelta=session_ttl)
 
 	try:
-		UUID.insert(user_id=user_id, uuid=user_uuid, exp=cur_date).execute()
+		UUID.insert(user_id=user_id.user_id, uuid=user_uuid, exp=cur_date).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -405,7 +401,7 @@ def get_role_id(user_id: int, group_id: int) -> int:
 		return int(role_id.user_role_id)
 
 
-def get_user_id(user_id: int) -> int:
+def get_user_id(user_id: int) -> User:
 	try:
 		return User.get(User.user_id == user_id)
 	except Exception as e:

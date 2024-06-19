@@ -54,22 +54,21 @@ def get_token():
 	except Exception as e:
 		return f'error getting group: {e}'
 	try:
-		users = user_sql.select_users(user=login)
+		user = user_sql.get_user_id_by_username(login)
 		password = roxy_wi_tools.Tools.get_hash(password_from_user)
 	except Exception as e:
 		return f'error one more: {e}'
 
-	for user in users:
-		if user.activeuser == 0:
-			return False
-		if login in user.username and password == user.password:
-			import uuid
-			user_token = str(uuid.uuid4())
-			role_id = user_sql.get_role_id(user.user_id, group_id)
-			user_sql.write_api_token(user_token, group_id, role_id, user.username)
-			return user_token
-		else:
-			return False
+	if user.activeuser == 0:
+		return False
+	if login in user.username and password == user.password:
+		import uuid
+		user_token = str(uuid.uuid4())
+		role_id = user_sql.get_role_id(user.user_id, group_id)
+		user_sql.write_api_token(user_token, group_id, role_id, user.username)
+		return user_token
+	else:
+		return False
 
 
 def check_login(required_service=0) -> bool:

@@ -1328,17 +1328,18 @@ function changeUserPasswordItOwn(d) {
 	} else {
 		$('#missmatchpass').hide();
 		toastr.clear();
+		let jsonData = {
+			"password": pass,
+			"uuid": Cookies.get('uuid')
+		}
 		$.ajax({
 			url: "/app/user/password",
-			data: {
-				updatepassowrd: pass,
-				uuid: Cookies.get('uuid'),
-			},
+			data: JSON.stringify(jsonData),
+			contentType: "application/json; charset=utf-8",
 			type: "POST",
 			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
+				if (data.status === 'failed') {
+					toastr.error(data.error);
 				} else {
 					toastr.clear();
 					d.dialog("close");

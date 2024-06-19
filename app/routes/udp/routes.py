@@ -44,7 +44,7 @@ def listener_funct(service):
             roxywi_common.logging(listener_id, f'UDP listener {listener_name} has been created', roxywi=1, keep_history=1, login=1, service='UDP listener')
             return jsonify({'status': 'created', 'listener_id': listener_id})
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server','Cannot create UDP listener')
+            return roxywi_common.handle_json_exceptions(e,'Cannot create UDP listener')
     elif request.method == 'PUT':
         json_data = request.get_json()
         json_data['group_id'] = g.user_params['group_id']
@@ -64,12 +64,12 @@ def listener_funct(service):
             service_mod.run_ansible(inv, server_ips, 'udp'), 201
             roxywi_common.logging(listener_id, f'UDP listener has been deleted {listener_id}', roxywi=1, keep_history=1, login=1, service='UDP listener')
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server',f'Cannot create inventory for UDP listener deleting {listener_id}')
+            return roxywi_common.handle_json_exceptions(e,f'Cannot create inventory for UDP listener deleting {listener_id}')
         try:
             udp_sql.delete_listener(listener_id)
             return jsonify({'status': 'deleted'}), 201
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server',f'Cannot delete UDP listener {listener_id}')
+            return roxywi_common.handle_json_exceptions(e,f'Cannot delete UDP listener {listener_id}')
 
 
 @bp.get('/<service>/listener/<int:listener_id>')
@@ -109,4 +109,4 @@ def action_with_listener(service, listener_id, action):
         roxywi_common.logging(listener_id, f'UDP listener {listener_id} has been {action}ed', roxywi=1, keep_history=1, login=1, service='UDP listener')
         return jsonify({'status': 'done'})
     except Exception as e:
-        return roxywi_common.handle_json_exceptions(e, 'Roxy-WI server',f'Cannot {action} listener')
+        return roxywi_common.handle_json_exceptions(e,f'Cannot {action} listener')
