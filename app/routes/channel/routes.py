@@ -1,4 +1,4 @@
-from flask import request, render_template, jsonify
+from flask import request, render_template, g, jsonify
 from flask_login import login_required
 
 from app.routes.channel import bp
@@ -19,8 +19,9 @@ def before_request():
 @get_user_params()
 def channels():
     roxywi_common.check_user_group_for_flask()
+    lang = g.user_params['lang']
 
-    return render_template('channel.html')
+    return render_template('channel.html', lang=lang)
 
 
 @bp.route('/load')

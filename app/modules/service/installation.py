@@ -204,7 +204,7 @@ def generate_service_inv(json_data: json, installed_service: str) -> object:
 	return inv, server_ips
 
 
-def run_ansible(inv: dict, server_ips: str, ansible_role: str) -> object:
+def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> object:
 	inventory_path = '/var/www/haproxy-wi/app/scripts/ansible/inventory'
 	inventory = f'{inventory_path}/{ansible_role}.json'
 	proxy = sql.get_setting('proxy')

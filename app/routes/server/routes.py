@@ -296,40 +296,29 @@ def show_firewall(server_ip):
     return server_mod.show_firewalld_rules(server_ip)
 
 
-@bp.route('/backup')
+@bp.route('/backup', methods=['GET', 'POST', 'PUT', 'DELETE'])
 @get_user_params()
 def load_backup():
-    user_group = g.user_params['group_id']
-    kwargs = {
-        'sshs': cred_sql.select_ssh(group=user_group),
-        'servers': roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1),
-        'backups': backup_sql.select_backups(),
-        's3_backups': backup_sql.select_s3_backups(),
-        'gits': backup_sql.select_gits(),
-        'lang': g.user_params['lang'],
-        'is_needed_tool': common.is_tool('ansible'),
-        'user_subscription': roxywi_common.return_user_subscription(),
-    }
-    return render_template('include/admin_backup.html', **kwargs)
-
-@bp.post('/backup/create')
-@bp.post('/backup/delete')
-@bp.post('/backup/update')
-def create_backup():
-    server = common.is_ip_or_dns(request.form.get('server'))
-    rpath = common.checkAjaxInput(request.form.get('rpath'))
-    time = common.checkAjaxInput(request.form.get('time'))
-    backup_type = common.checkAjaxInput(request.form.get('type'))
-    rserver = common.checkAjaxInput(request.form.get('rserver'))
-    cred = int(request.form.get('cred'))
-    deljob = common.checkAjaxInput(request.form.get('deljob'))
-    update = common.checkAjaxInput(request.form.get('backupupdate'))
-    description = common.checkAjaxInput(request.form.get('description'))
-
-    try:
-        return backup_mod.backup(server, rpath, time, backup_type, rserver, cred, deljob, update, description)
-    except Exception as e:
-        return str(e)
+    if request.method == 'GET':
+        user_group = g.user_params['group_id']
+        kwargs = {
+            'sshs': cred_sql.select_ssh(group=user_group),
+            'servers': roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1),
+            'backups': backup_sql.select_backups(),
+            's3_backups': backup_sql.select_s3_backups(),
+            'gits': backup_sql.select_gits(),
+            'lang': g.user_params['lang'],
+            'is_needed_tool': common.is_tool('ansible'),
+            'user_subscription': roxywi_common.return_user_subscription(),
+        }
+        return render_template('include/admin_backup.html', **kwargs)
+    elif request.method in ('POST', 'PUT', 'DELETE'):
+        json_data = request.get_json()
+        try:
+            data = backup_mod.backup(json_data)
+            return jsonify({'status': 'ok', 'data': data})
+        except Exception as e:
+            return roxywi_common.handle_json_exceptions(e, f'Cannot {request.method} backup')
 
 
 @bp.post('/s3backup/create')
@@ -350,18 +339,24 @@ def create_s3_backup():
         return str(e)
 
 
-@bp.post('/git/create')
-@bp.post('/git/delete')
+@bp.route('/git', methods=['DELETE', 'POST'])
 def create_git_backup():
-    server_id = request.form.get('server')
-    service_id = request.form.get('git_service')
-    git_init = request.form.get('git_init')
-    repo = request.form.get('git_repo')
-    branch = request.form.get('git_branch')
-    period = request.form.get('time')
-    cred = request.form.get('cred')
-    deljob = request.form.get('git_deljob')
-    description = request.form.get('description')
-    backup_id = request.form.get('git_backup')
+    json_data = request.get_json()
+    server_id = int(json_data['server'])
+    service_id = int(json_data['service'])
+    git_init = int(json_data['init'])
+    repo = common.checkAjaxInput(json_data['repo'])
+    branch = common.checkAjaxInput(json_data['branch'])
+    period = common.checkAjaxInput(json_data['time'])
+    cred = int(json_data['cred'])
+    del_job = int(json_data['del_job'])
+    description = common.checkAjaxInput(json_data['desc'])
+    backup_id = ''
+    if request.method == 'DELETE':
+        backup_id = json_data['backup_id']
 
-    return backup_mod.git_backup(server_id, service_id, git_init, repo, branch, period, cred, deljob, description, backup_id)
+    try:
+        data = backup_mod.git_backup(server_id, service_id, git_init, repo, branch, period, cred, del_job, description, backup_id)
+        return jsonify({'status': 'ok', 'data': data})
+    except Exception as e:
+        return roxywi_common.handle_json_exceptions(e, f'Cannot {request.method} git backup')

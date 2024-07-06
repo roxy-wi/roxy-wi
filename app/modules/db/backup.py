@@ -64,7 +64,7 @@ def delete_s3_backups(backup_id: int) -> bool:
 		return True
 
 
-def insert_new_git(server_id, service_id, repo, branch, period, cred, description):
+def insert_new_git(server_id, service_id, repo, branch, period, cred, description) -> None:
 	try:
 		GitSetting.insert(
 			server_id=server_id, service_id=service_id, repo=repo, branch=branch, period=period,
@@ -72,9 +72,6 @@ def insert_new_git(server_id, service_id, repo, branch, period, cred, descriptio
 		).execute()
 	except Exception as e:
 		out_error(e)
-		return False
-	else:
-		return True
 
 
 def delete_git(git_id):

@@ -69,8 +69,6 @@ def create_user():
             return jsonify({'status': 'deleted'})
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, f'Cannot delete the user {user_id}')
-    else:
-        abort(405)
 
 
 @bp.route('/ldap/<username>')

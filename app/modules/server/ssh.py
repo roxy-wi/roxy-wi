@@ -51,7 +51,7 @@ def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
 		ssh_port = [str(server[10]) for server in server_sql.select_servers(server=server_ip)]
 		ssh_settings.setdefault('port', ssh_port[0])
 	except Exception as e:
-		raise Exception(f'error: Cannot get SSH settings: {e}')
+		raise Exception(f'error: Cannot get SSH port: {e}')
 
 	return ssh_settings
 

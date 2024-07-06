@@ -89,6 +89,10 @@ function addUser(dialog_id) {
 	if ($('#activeuser').is(':checked')) {
 		enabled = '1';
 	}
+	let user_group = $('#new-group').val();
+	if (user_group === undefined || user_group === null) {
+		user_group = $('#new-sshgroup').val();
+	}
 	if (valid) {
 		let jsonData = {
 			"username": new_username_div.val(),
@@ -96,7 +100,7 @@ function addUser(dialog_id) {
 			"email": email_div.val(),
 			"role": $('#new-role').val(),
 			"enabled": enabled,
-			"user_group": $('#new-group').val(),
+			"user_group": user_group,
 		}
 		$.ajax({
 			url: "/app/user",
@@ -157,7 +161,6 @@ function updateUser(id) {
 	if ($('#activeuser-' + id).is(':checked')) {
 		enabled = '1';
 	}
-	toastr.remove();
 	let jsonData = {
 		"username": $('#login-' + id).val(),
 		"email": $('#email-' + id).val(),

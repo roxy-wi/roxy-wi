@@ -9,65 +9,80 @@ import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
 import app.modules.server.ssh as ssh_mod
 import app.modules.server.server as server_mod
+import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.installation as installation_mod
 
 
-def backup(serv, rpath, time, backup_type, rserver, cred, deljob, update, description) -> str:
-    script = 'backup.sh'
-    ssh_settings = ssh_mod.return_ssh_keys_path(rserver, id=cred)
-    full_path = '/var/www/haproxy-wi/app'
+def delete_backup(serv: str, backup_id: int) -> None:
+    if backup_sql.check_exists_backup(serv):
+        raise Exception(f'Backup job for {serv} already exists')
 
-    if deljob:
+    backup_sql.delete_backups(backup_id)
+    roxywi_common.logging('backup ', f' a backup job for server {serv} has been deleted', roxywi=1, login=1)
+
+
+def backup(json_data) -> str:
+    cred = int(json_data['cred'])
+    server = common.is_ip_or_dns(json_data['server'])
+    rserver = common.is_ip_or_dns(json_data['rserver'])
+    ssh_settings = ssh_mod.return_ssh_keys_path(rserver, id=cred)
+    update_id = ''
+    description = ''
+    if 'del_id' in json_data:
         time = ''
         rpath = ''
         backup_type = ''
-    elif update:
-        deljob = ''
+        del_id = int(json_data['del_id'])
     else:
-        deljob = ''
-        if backup_sql.check_exists_backup(serv):
-            return f'warning: Backup job for {serv} already exists'
+        del_id = ''
+        rpath = common.checkAjaxInput(json_data['rpath'])
+        backup_type = common.checkAjaxInput(json_data['type'])
+        time = common.checkAjaxInput(json_data['time'])
+        description = common.checkAjaxInput(json_data['description'])
+        if backup_sql.check_exists_backup(server):
+            return f'warning: Backup job for {server} already exists'
 
-    os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
+    if 'update_id' in json_data:
+        update_id = int(json_data['update_id'])
 
-    commands = [
-        f"chmod +x {full_path}/{script} && {full_path}/{script} HOST={rserver} SERVER={serv} TYPE={backup_type} SSH_PORT={ssh_settings['port']} "
-        f"TIME={time} RPATH={rpath} DELJOB={deljob} USER={ssh_settings['user']} KEY={ssh_settings['key']}"
-    ]
-
-    output, error = server_mod.subprocess_execute(commands[0])
+    inv = {"server": {"hosts": {}}}
+    server_ips = []
+    inv['server']['hosts'][server] = {
+        'HOST': rserver,
+        "SERVER": server,
+        "TYPE": backup_type,
+        "TIME": time,
+        "RPATH": rpath,
+        "DELJOB": del_id,
+        "USER": ssh_settings['user'],
+        "KEY": ssh_settings['key']
+    }
+    server_ips.append(server)
 
     try:
-        os.remove(f'{full_path}/{script}')
-    except Exception:
-        pass
+        installation_mod.run_ansible(inv, server_ips, 'backup')
+    except Exception as e:
+        raise Exception(f'error: {e}')
 
-    for line in output:
-        if any(s in line for s in ("Traceback", "FAILED")):
-            try:
-                return f'error: {line}'
-            except Exception:
-                return f'error: {output}'
-    else:
-        if not deljob and not update:
-            if backup_sql.insert_backup_job(serv, rserver, rpath, backup_type, time, cred, description):
-                roxywi_common.logging('backup ', f' a new backup job for server {serv} has been created', roxywi=1,
-                                      login=1)
-                return render_template(
-                    'ajax/new_backup.html', backups=backup_sql.select_backups(server=serv, rserver=rserver), sshs=cred_sql.select_ssh()
-                )
+    if not del_id and not update_id:
+        if backup_sql.insert_backup_job(server, rserver, rpath, backup_type, time, cred, description):
+            roxywi_common.logging('backup ', f' a new backup job for server {server} has been created', roxywi=1,
+                                  login=1)
+            return render_template(
+                'ajax/new_backup.html', backups=backup_sql.select_backups(server=server, rserver=rserver), sshs=cred_sql.select_ssh()
+            )
 
-            else:
-                raise Exception('error: Cannot add the job into DB')
-        elif deljob:
-            backup_sql.delete_backups(deljob)
-            roxywi_common.logging('backup ', f' a backup job for server {serv} has been deleted', roxywi=1, login=1)
-            return 'ok'
-        elif update:
-            backup_sql.update_backup(serv, rserver, rpath, backup_type, time, cred, description, update)
-            roxywi_common.logging('backup ', f' a backup job for server {serv} has been updated', roxywi=1, login=1)
-            return 'ok'
+        else:
+            raise Exception('Cannot add the job into DB')
+    elif del_id:
+        backup_sql.delete_backups(del_id)
+        roxywi_common.logging('backup ', f' a backup job for server {server} has been deleted', roxywi=1, login=1)
+        return 'ok'
+    elif update_id:
+        backup_sql.update_backup(server, rserver, rpath, backup_type, time, cred, description, update_id)
+        roxywi_common.logging('backup ', f' a backup job for server {server} has been updated', roxywi=1, login=1)
+        return 'ok'
 
 
 def s3_backup(server, s3_server, bucket, secret_key, access_key, time, deljob, description) -> str:
@@ -110,62 +125,46 @@ def s3_backup(server, s3_server, bucket, secret_key, access_key, time, deljob, d
         return 'ok'
 
 
-def git_backup(server_id, service_id, git_init, repo, branch, period, cred, deljob, description, backup_id) -> str:
-    servers = roxywi_common.get_dick_permit()
-    proxy = sql.get_setting('proxy')
-    services = service_sql.select_services()
+def git_backup(server_id, service_id, git_init, repo, branch, period, cred, del_job, description, backup_id) -> str:
     server_ip = server_sql.select_server_ip_by_id(server_id)
     service_name = service_sql.select_service_name_by_id(service_id).lower()
     service_config_dir = sql.get_setting(service_name + '_dir')
-    script = 'git_backup.sh'
-    proxy_serv = ''
-    ssh_settings = ssh_mod.return_ssh_keys_path('localhost', id=int(cred))
-    full_path = '/var/www/haproxy-wi/app'
-
-    os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
-
-    if proxy is not None and proxy != '' and proxy != 'None':
-        proxy_serv = proxy
+    ssh_settings = ssh_mod.return_ssh_keys_path(server_ip, id=cred)
 
     if repo is None or git_init == '0':
         repo = ''
     if branch is None or branch == '0':
         branch = 'main'
 
-    commands = [
-        f"chmod +x {full_path}/{script} && {full_path}/{script} HOST={server_ip} DELJOB={deljob} SERVICE={service_name} INIT={git_init} "
-        f"SSH_PORT={ssh_settings['port']} PERIOD={period} REPO={repo} BRANCH={branch} CONFIG_DIR={service_config_dir} "
-        f"PROXY={proxy_serv} USER={ssh_settings['user']} KEY={ssh_settings['key']}"
-    ]
-
-    output, error = server_mod.subprocess_execute(commands[0])
+    inv = {"server": {"hosts": {}}}
+    inv["server"]["hosts"][server_ip] = {
+        "REPO": repo,
+        "CONFIG_DIR": service_config_dir,
+        "PERIOD": period,
+        "INIT": git_init,
+        "BRANCH": branch,
+        "SERVICE": service_name,
+        "DELJOB": del_job,
+        "KEY": ssh_settings['key']
+    }
 
     try:
-        os.remove(f'{full_path}/{script}')
-    except Exception:
-        pass
+        installation_mod.run_ansible(inv, [server_ip], 'git_backup')
+    except Exception as e:
+        raise Exception(f'error: {e}')
 
-    for line in output:
-        if any(s in line for s in ("Traceback", "FAILED")):
-            try:
-                return 'error: ' + line
-            except Exception:
-                return 'error: ' + output
+    if not del_job:
+        backup_sql.insert_new_git(server_id=server_id, service_id=service_id, repo=repo, branch=branch, period=period, cred=cred, description=description)
+        kwargs = {
+            "gits": backup_sql.select_gits(server_id=server_id, service_id=service_id),
+            "sshs":  cred_sql.select_ssh(),
+            "servers": roxywi_common.get_dick_permit(),
+            "services": service_sql.select_services(),
+            "new_add": 1,
+            "lang": roxywi_common.get_user_lang_for_flask()
+        }
+        roxywi_common.logging(server_ip, 'A new git job has been created', roxywi=1, login=1, keep_history=1, service=service_name)
+        return render_template('ajax/new_git.html', **kwargs)
     else:
-        if deljob == '0':
-            if backup_sql.insert_new_git(
-                    server_id=server_id, service_id=service_id, repo=repo, branch=branch,
-                    period=period, cred=cred, description=description
-            ):
-                gits = backup_sql.select_gits(server_id=server_id, service_id=service_id)
-                sshs = cred_sql.select_ssh()
-
-                lang = roxywi_common.get_user_lang_for_flask()
-                roxywi_common.logging(
-                    server_ip, ' A new git job has been created', roxywi=1, login=1, keep_history=1,
-                    service=service_name
-                )
-                return render_template('ajax/new_git.html', gits=gits, sshs=sshs, servers=servers, services=services, new_add=1, lang=lang)
-        else:
-            if backup_sql.delete_git(backup_id):
-                return 'ok'
+        if backup_sql.delete_git(backup_id):
+            return 'ok'

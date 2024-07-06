@@ -39,3 +39,7 @@
         {% endfor %}
     </div>
 </div>
+<script>
+    checkStatus('{{listener.id}}');
+    setInterval(checkStatus, 15000, '{{listener.id}}');
+</script>

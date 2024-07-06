@@ -110,3 +110,13 @@ def action_with_listener(service, listener_id, action):
         return jsonify({'status': 'done'})
     except Exception as e:
         return roxywi_common.handle_json_exceptions(e,f'Cannot {action} listener')
+
+
+@bp.get('/<service>/listener/<int:listener_id>/check')
+@check_services
+def check_listener(service, listener_id):
+    try:
+        status = udp_mod.check_is_listener_active(listener_id)
+        return jsonify({'status': status})
+    except Exception as e:
+        return roxywi_common.handle_json_exceptions(e,f'Cannot get status')

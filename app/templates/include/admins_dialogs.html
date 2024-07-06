@@ -64,7 +64,7 @@
                 <option disabled selected>{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.role}}</option>
                 {% for role in roles %}
                 {% if role.name != "superAdmin" %}
-                <option value="{{ role.name }}">{{ role.name }}</option>
+                <option value="{{ role.role_id }}">{{ role.name }}</option>
                 {% endif %}
                 {% endfor %}
             </select>

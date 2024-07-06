@@ -138,31 +138,25 @@ function addBackup(dialog_id) {
 	valid = valid && checkLength($('#backup-time'), "backup time", 1);
 	valid = valid && checkLength($('#backup-credentials'), "backup credentials", 1);
 	if (valid) {
+		let jsonData = {
+			"server": $('#backup-server').val(),
+			"rserver": $('#rserver').val(),
+			"rpath": $('#rpath').val(),
+			"type": $('#backup-type').val(),
+			"time": $('#backup-time').val(),
+			"cred": $('#backup-credentials').val(),
+			"description": $('#backup-description').val()
+		}
 		$.ajax({
-			url: "/app/server/backup/create",
-			data: {
-				server: $('#backup-server').val(),
-				rserver: $('#rserver').val(),
-				rpath: $('#rpath').val(),
-				type: $('#backup-type').val(),
-				time: $('#backup-time').val(),
-				cred: $('#backup-credentials').val(),
-				description: $('#backup-description').val(),
-				token: $('#token').val()
-			},
-			type: "POST",
+			url: "/app/server/backup",
+			data: JSON.stringify(jsonData),
+			type: "PUT",
+			contentType: "application/json; charset=utf-8",
 			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else if (data.indexOf('info: ') != '-1') {
-					toastr.clear();
-					toastr.info(data);
-				} else if (data.indexOf('warning: ') != '-1') {
-					toastr.clear();
-					toastr.warning(data);
+				if (data.status === 'failed') {
+					toastr.error(data.error);
 				} else {
-					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-table', data);
+					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-table', data.data);
 					$("select").selectmenu();
 				}
 			}
@@ -212,47 +206,46 @@ function addS3Backup(dialog_id) {
 	}
 }
 function addGit(dialog_id) {
-	let valid = true;
 	toastr.clear();
-	allFields = $([]).add($('#git-server')).add($('#git-service')).add($('#git-time')).add($('#git-credentials')).add($('#git-branch'))
-	allFields.removeClass("ui-state-error");
-	valid = valid && checkLength($('#git-server'), "Server ", 1);
-	valid = valid && checkLength($('#git-service'), "Service", 1);
-	valid = valid && checkLength($('#git-credentials'), "Credentials", 1);
-	valid = valid && checkLength($('#git-branch'), "Branch name", 1);
+	let valid = true;
+	let server_div = $('#git-server');
+	let service_div = $('#git-service');
+	let branch_div = $('#git-branch');
+	let time_div = $('#git-time');
+	let cred_div = $('#git-credentials');
 	let git_init = 0;
 	if ($('#git-init').is(':checked')) {
 		git_init = '1';
 	}
+	let allFields = $([]).add(server_div).add(service_div).add(time_div).add(cred_div).add(branch_div);
+	allFields.removeClass("ui-state-error");
+	valid = valid && checkLength(server_div, "Server ", 1);
+	valid = valid && checkLength(service_div, "Service", 1);
+	valid = valid && checkLength(cred_div, "Credentials", 1);
+	valid = valid && checkLength(branch_div, "Branch name", 1);
 	if (valid) {
+		let jsonData = {
+			"server": server_div.val(),
+			"service": service_div.val(),
+			"init": git_init,
+			"repo": $('#git-repo').val(),
+			"branch": branch_div.val(),
+			"time": time_div.val(),
+			"cred": cred_div.val(),
+			"del_job": 0,
+			"desc": $('#git-description').text(),
+		}
 		$.ajax({
-			url: "/app/server/git/create",
-			data: {
-				server: $('#git-server').val(),
-				git_service: $('#git-service').val(),
-				git_init: git_init,
-				git_repo: $('#git-repo').val(),
-				git_branch: $('#git-branch').val(),
-				time: $('#git-time').val(),
-				cred: $('#git-credentials').val(),
-				description: $('#git-description').val(),
-				git_deljob: 0,
-				token: $('#token').val()
-			},
+			url: "/app/server/git",
+			data: JSON.stringify(jsonData),
+			contentType: "application/json; charset=utf-8",
 			type: "POST",
 			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else if (data.indexOf('success: ') != '-1') {
-					common_ajax_action_after_success(dialog_id, 'newgit', 'ajax-git-table', data);
+				if (data.status === 'failed') {
+					toastr.error(data.error);
+				} else {
+					common_ajax_action_after_success(dialog_id, 'newgit', 'ajax-git-table', data.data);
 					$("select").selectmenu();
-				} else if (data.indexOf('info: ') != '-1') {
-					toastr.clear();
-					toastr.info(data);
-				} else if (data.indexOf('warning: ') != '-1') {
-					toastr.clear();
-					toastr.warning(data);
 				}
 			}
 		});
@@ -344,22 +337,22 @@ function cloneS3Backup(id) {
 }
 function removeBackup(id) {
 	$("#backup-table-" + id).css("background-color", "#f2dede");
+	let jsonData = {
+		"del_id": id,
+		"cred": $('#backup-credentials-' + id).val(),
+		"server": $('#backup-server-' + id).text(),
+		"rserver": $('#backup-rserver-' + id).val()
+	}
 	$.ajax({
-		url: "/app/server/backup/delete",
-		data: {
-			deljob: id,
-			cred: $('#backup-credentials-' + id).val(),
-			server: $('#backup-server-' + id).text(),
-			rserver: $('#backup-rserver-' + id).val(),
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/server/backup",
+		data: JSON.stringify(jsonData),
+		type: "DELETE",
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('ok') != '-1') {
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+			} else {
 				$("#backup-table-" + id).remove();
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
 			}
 		}
 	});
@@ -387,27 +380,28 @@ function removeS3Backup(id) {
 }
 function removeGit(id) {
 	$("#git-table-" + id).css("background-color", "#f2dede");
+	let jsonData = {
+		"backup_id": id,
+		"del_job": 1,
+		"init": 0,
+		"repo": 0,
+		"branch": 0,
+		"time": 0,
+		"cred": $('#git-credentials-id-' + id).text(),
+		"server": $('#git-server-id-' + id).text(),
+		"service": $('#git-service-id-' + id).text(),
+		"desc": '',
+	}
 	$.ajax({
-		url: "/app/server/git/delete",
-		data: {
-			git_backup: id,
-			git_deljob: 1,
-			git_init: 0,
-			repo: 0,
-			branch: 0,
-			time: 0,
-			cred: $('#git-credentials-id-' + id).text(),
-			server: $('#git-server-id-' + id).text(),
-			git_service: $('#git-service-id-' + id).text(),
-			token: $('#token').val()
-		},
-		type: "POST",
+		url: "/app/server/git",
+		data: JSON.stringify(jsonData),
+		contentType: "application/json; charset=utf-8",
+		type: "DELETE",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('ok') != '-1') {
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+			} else {
 				$("#git-table-" + id).remove();
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
 			}
 		}
 	});
@@ -417,24 +411,24 @@ function updateBackup(id) {
 	if ($("#backup-type-" + id + " option:selected").val() == "-------" || $('#backup-rserver-' + id).val() == '' || $('#backup-rpath-' + id).val() == '') {
 		toastr.error('All fields must be completed');
 	} else {
+		let jsonData = {
+			"update_id": id,
+			"server": $('#backup-server-' + id).text(),
+			"rserver": $('#backup-rserver-' + id).val(),
+			"rpath": $('#backup-rpath-' + id).val(),
+			"type": $('#backup-type-' + id).val(),
+			"time": $('#backup-time-' + id).val(),
+			"cred": $('#backup-credentials-' + id).val(),
+			"description": $('#backup-description-' + id).val()
+		}
 		$.ajax({
-			url: "/app/server/backup/update",
-			data: {
-				backupupdate: id,
-				server: $('#backup-server-' + id).text(),
-				rserver: $('#backup-rserver-' + id).val(),
-				rpath: $('#backup-rpath-' + id).val(),
-				type: $('#backup-type-' + id).val(),
-				time: $('#backup-time-' + id).val(),
-				cred: $('#backup-credentials-' + id).val(),
-				description: $('#backup-description-' + id).val(),
-				token: $('#token').val()
-			},
-			type: "POST",
+			url: "/app/server/backup",
+			data: JSON.stringify(jsonData),
+			type: "PUT",
+			contentType: "application/json; charset=utf-8",
 			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-					toastr.error(data);
+				if (data.status === 'failed') {
+					toastr.error(data.error);
 				} else {
 					toastr.clear();
 					$("#backup-table-" + id).addClass("update", 1000);

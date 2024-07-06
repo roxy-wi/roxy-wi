@@ -183,6 +183,9 @@ function createUDPListenerStep2(edited, listener_id, place) {
 		}, {
 			text: apply_word,
 			click: function () {
+				if (!validateUDPListenerForm(place)) {
+					return false;
+				}
 				jsonData = getFormData($("#create_udp_listener"));
 				saveUdpListener(jsonData, $(this), listener_id, edited, 1);
 			}
@@ -254,7 +257,6 @@ function getFormData($form) {
 	let unindexed_array = $form.serializeArray();
 	let indexed_array = {};
 	indexed_array['servers'] = {};
-	console.log(unindexed_array)
 
 	$.map(unindexed_array, function (n, i) {
 		indexed_array[n['name']] = n['value'];
@@ -449,6 +451,7 @@ function ajaxActionListener(action, listener_id) {
             } else {
                 toastr.success(`Listener has been ${action}ed`);
 				getUDPListener(listener_id);
+				checkStatus(listener_id);
             }
         }
     });
@@ -465,4 +468,40 @@ function createBackendServer(server='', port='', weight='1') {
 		'<span class="minus minus-style" title="'+delete_word+' '+server_word+'" onclick="$(this).parent().remove()"></span>' +
 		'</div>').insertBefore('.add-server');
 	$.getScript(awesome);
+}
+function checkStatus(listener_id) {
+	if (sessionStorage.getItem('check-service-udp') == 0) {
+		return false;
+	}
+	NProgress.configure({showSpinner: false});
+	let listener_div = $('#listener-' + listener_id);
+	$.ajax({
+		url: "/app/udp/listener/" + listener_id + "/check",
+		contentType: "application/json; charset=utf-8",
+		success: function (data) {
+			try {
+				if (data.indexOf('logout') != '-1') {
+					sessionStorage.setItem('check-service-udp', 0);
+				}
+			} catch (e) {}
+
+			if (data.status === 'ok') {
+				listener_div.addClass('div-server-head-up');
+				listener_div.attr('title', 'All services are UP');
+				listener_div.removeClass('div-server-head-down');
+				listener_div.removeClass('div-server-head-unknown');
+			} else if (data.status === 'failed' || data.status === 'error') {
+				listener_div.removeClass('div-server-head-unknown');
+				listener_div.removeClass('div-server-head-up');
+				listener_div.addClass('div-server-head-down');
+				listener_div.attr('title', 'All services are DOWN');
+			} else if (data.status === 'warning') {
+				listener_div.addClass('div-server-head-unknown');
+				listener_div.removeClass('div-server-head-up');
+				listener_div.removeClass('div-server-head-down');
+				listener_div.attr('title', 'Not all services are UP');
+			}
+		}
+	});
+	NProgress.configure({showSpinner: true});
 }

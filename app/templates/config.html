@@ -51,7 +51,7 @@
 				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.versions}}" onclick="openVersions()">{{lang.menu_links.versions.link}}</a>
 			{% endif %}
 			{% if g.user_params['role'] <= 2 %}
-				<a href="/app/servers#backup" class="ui-button ui-widget ui-corner-all" title="Git">Git</a>
+				<a href="/app/admin#backup" class="ui-button ui-widget ui-corner-all" title="Git">Git</a>
 			{% endif %}
 		</form>
 	</p>

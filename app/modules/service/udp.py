@@ -107,26 +107,54 @@ def get_slaves_for_udp_listener(cluster_id: int, vip: str) -> list:
     return servers
 
 
-def listener_actions(listener_id: int, action: str, group_id: int) -> str:
-    if action not in ('start', 'stop', 'restart'):
-        raise ValueError("error: Invalid action")
+def _return_listener_servers(listener_id: int, group_id=None):
     servers = []
     listener = udp_sql.get_listener(listener_id)
-    if int(listener.group_id.group_id) != group_id:
+    if group_id is not None and int(listener.group_id.group_id) != group_id:
         raise ValueError("error: Invalid group")
     if listener.cluster_id:
-        get_slaves_for_udp_listener(listener.cluster_id, listener.vip)
+        servers = get_slaves_for_udp_listener(listener.cluster_id, listener.vip)
     elif listener.server_id:
         server = server_sql.get_server_by_id(listener.server_id)
         servers.append(server.ip)
     if len(servers) < 1:
         raise ValueError("error: Cannot find server")
+
+    return servers, listener
+
+
+
+def listener_actions(listener_id: int, action: str, group_id: int) -> str:
+    if action not in ('start', 'stop', 'restart'):
+        raise ValueError("error: Invalid action")
+
     cmd = f'sudo systemctl {action} keepalived-udp-{listener_id}.service'
-    print(cmd)
+    try:
+        servers, listener = _return_listener_servers(listener_id, group_id)
+    except Exception as e:
+        raise e
+
     for server_ip in servers:
         try:
             server_mod.ssh_command(server_ip, cmd)
             roxywi_common.logging(listener.id, f'UDP listener {listener.name} has been {action} on {server_ip}', keep_history=1, roxywi=1, service='UDP Listener')
         except Exception as e:
             roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot {action} for UDP balancer {listener.name}', roxywi=1)
+    return 'ok'
+
+
+def check_is_listener_active(listener_id: int) -> str:
+    try:
+        servers, listener = _return_listener_servers(listener_id)
+    except Exception as e:
+        raise Exception(e)
+    statuses = []
+    cmd = f'systemctl is-active keepalived-udp-{listener_id}.service'
+    for server_ip in servers:
+        status = server_mod.ssh_command(server_ip, cmd)
+        statuses.append(status.replace('\n', '').replace('\r', ''))
+    if 'inactive' in statuses and 'active' in statuses:
+        return 'warning'
+    elif 'inactive' in statuses and 'active' not in statuses:
+        return 'error'
     return 'ok'

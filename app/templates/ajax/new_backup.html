@@ -49,7 +49,7 @@
 		</td>
 		<td>	
 			{% if b.description != 'None' %}
-				<input type="text" id="backup-description-{{b.id}}" value="{{b.description}}" class="form-control">
+				<input type="text" id="backup-description-{{b.id}}" value="{{b.description.replace("'", "")}}" class="form-control">
 			{% else %}
 				<input type="text" id="backup-description-{{b.id}}" class="form-control">
 			{% endif %}

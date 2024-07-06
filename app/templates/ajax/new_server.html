@@ -3,7 +3,7 @@
 	{% include 'include/admin_servers.html' %}
 	<script>
 		$( function() {
-			{% if page != "servers.py" %}
+			{% if g.user_params['role'] == 1 %}
 			$("#servergroup-{{ server.0}}" ).selectmenu({
 			  width: 100
 			});
