@@ -52,7 +52,6 @@ def is_admin(level=1, **kwargs):
             role = user_sql.get_user_role_by_uuid(user_id, group_id)
         except Exception:
             role = 4
-            pass
     try:
         return True if int(role) <= int(level) else False
     except Exception:
@@ -84,13 +83,13 @@ def check_in_ldap(user, password):
         ldap_bind.protocol_version = ldap.VERSION3
         ldap_bind.set_option(ldap.OPT_REFERRALS, 0)
 
-        bind = ldap_bind.simple_bind_s(root_user, root_password)
+        _ = ldap_bind.simple_bind_s(root_user, root_password)
 
         criteria = "(&(objectClass=" + ldap_class_search + ")(" + ldap_user_attribute + "=" + user + "))"
         attributes = [ldap_search_field]
         result = ldap_bind.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
 
-        bind = ldap_bind.simple_bind_s(result[0][0], password)
+        _ = ldap_bind.simple_bind_s(result[0][0], password)
     except ldap.INVALID_CREDENTIALS:
         return False
     except ldap.SERVER_DOWN:
@@ -115,6 +114,8 @@ def do_login(user_uuid: str, user_group: str, user: str, next_url: str):
     try:
         session_ttl = sql.get_setting('session_ttl')
     except Exception:
+        session_ttl = 5
+    if session_ttl is None:
         session_ttl = 5
 
     if next_url:

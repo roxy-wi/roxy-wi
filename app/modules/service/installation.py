@@ -176,7 +176,7 @@ def generate_service_inv(json_data: json, installed_service: str) -> object:
 	is_docker = json_data['services'][installed_service]['docker']
 
 	if installed_service == 'nginx' and not os.path.isdir('/var/www/haproxy-wi/app/scripts/ansible/roles/nginxinc.nginx'):
-		os.system('ansible-galaxy install nginxinc.nginx,0.24.2 --roles-path /var/www/haproxy-wi/app/scripts/ansible/roles/')
+		os.system('ansible-galaxy install nginxinc.nginx,0.24.1 --roles-path /var/www/haproxy-wi/app/scripts/ansible/roles/')
 
 	for k, v in json_data['servers'].items():
 		server_ip = v['ip']
