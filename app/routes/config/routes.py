@@ -141,8 +141,6 @@ def save_config(service, server_ip):
     oldcfg = request.form.get('oldconfig')
     save = request.form.get('save')
     config_file_name = request.form.get('config_file_name')
-    user_id = g.user_params['user_id']
-    user = user_sql.get_user_id(user_id)
 
     try:
         cfg = config_mod.return_cfg(service, server_ip, config_file_name)
@@ -160,7 +158,7 @@ def save_config(service, server_ip):
             stderr = config_mod.upload_and_restart(server_ip, cfg, save, service, oldcfg=oldcfg)
         else:
             stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, service, oldcfg=oldcfg,
-                                                                config_file_name=config_file_name, login=user.username)
+                                                                config_file_name=config_file_name)
     except Exception as e:
         return f'error: {e}', 200
 
@@ -322,6 +320,7 @@ def haproxy_section_show(server_ip, section):
 
 
 @bp.route('/section/haproxy/<server_ip>/save', methods=['POST'])
+@get_user_params()
 def haproxy_section_save(server_ip):
     hap_configs_dir = config_common.get_config_dir('haproxy')
     cfg = config_common.generate_config_path('haproxy', server_ip)

@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from flask import render_template, request
+from flask import render_template, request, g
 
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
@@ -203,6 +203,8 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	:return: Error message or service title
 
 	"""
+	user_id = g.user_params['user_id']
+	user = user_sql.get_user_id(user_id)
 	file_format = config_common.get_file_format(service)
 	config_path = kwargs.get('config_file_name')
 	config_date = get_date.return_date('config')
@@ -216,28 +218,27 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 
 	common.check_is_conf(config_path)
 
-	login = kwargs.get('login') if kwargs.get('login') else 1
 	tmp_file = f"{sql.get_setting('tmp_config_path')}/{config_date}.{file_format}"
 
 	try:
 		os.system(f"dos2unix -q {cfg}")
 	except OSError as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'There is no dos2unix')
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'There is no dos2unix', login=user.username)
 
 	try:
 		upload(server_ip, tmp_file, cfg)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot upload config', login=login)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot upload config', login=user.username)
 
 	try:
 		if just_save != 'test':
-			roxywi_common.logging(server_ip, 'A new config file has been uploaded', login=login, keep_history=1, service=service)
+			roxywi_common.logging(server_ip, 'A new config file has been uploaded', login=user.username, keep_history=1, service=service)
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 
 	# If master then save a version of config in a new way
 	if not kwargs.get('slave') and service != 'waf':
-		_create_config_version(server_id, server_ip, service, config_path, kwargs.get('login'), cfg, kwargs.get('oldcfg'), tmp_file)
+		_create_config_version(server_id, server_ip, service, config_path, user.username, cfg, kwargs.get('oldcfg'), tmp_file)
 
 	try:
 		commands = _generate_command(service, server_id, just_save, config_path, tmp_file, cfg, server_ip)
@@ -251,7 +252,7 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 
 	try:
 		if just_save in ('reload', 'restart'):
-			roxywi_common.logging(server_ip, f'Service has been {just_save}ed', login=login, keep_history=1, service=service)
+			roxywi_common.logging(server_ip, f'Service has been {just_save}ed', login=user.username, keep_history=1, service=service)
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 
@@ -280,11 +281,6 @@ def master_slave_upload_and_restart(server_ip: str, cfg: str, just_save: str, se
 	waf = kwargs.get('waf')
 	server_name = server_sql.get_hostname_by_server_ip(server_ip)
 
-	if kwargs.get('login'):
-		login = kwargs.get('login')
-	else:
-		login = ''
-
 	for master in masters:
 		if master[0] is not None:
 			try:
@@ -296,7 +292,7 @@ def master_slave_upload_and_restart(server_ip: str, cfg: str, just_save: str, se
 				slave_output += f'<br>slave_server:\n error: {e}'
 	try:
 		output = upload_and_restart(
-			server_ip, cfg, just_save, service, waf=waf, config_file_name=config_file_name, oldcfg=old_cfg, login=login
+			server_ip, cfg, just_save, service, waf=waf, config_file_name=config_file_name, oldcfg=old_cfg
 		)
 	except Exception as e:
 		output = f'error: {e}'

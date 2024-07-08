@@ -70,6 +70,7 @@ def add(service):
 
 
 @bp.route('/haproxy/add', methods=['POST'])
+@get_user_params()
 def add_haproxy():
     """
     Add HAProxy sections
@@ -379,6 +380,7 @@ def add_haproxy():
 
 
 @bp.post('/haproxy/userlist')
+@get_user_params()
 def add_userlist():
     """
     Add HAProxy section userlist
@@ -617,6 +619,7 @@ def lets():
 
 
 @bp.post('/nginx/upstream')
+@get_user_params()
 def add_nginx_upstream():
     roxywi_auth.page_for_admin(level=3)
 
