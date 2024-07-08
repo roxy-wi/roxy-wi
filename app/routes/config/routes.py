@@ -5,6 +5,7 @@ from flask_login import login_required
 
 from app.routes.config import bp
 import app.modules.db.sql as sql
+import app.modules.db.user as user_sql
 import app.modules.db.config as config_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
@@ -133,12 +134,15 @@ def config(service, serv, edit, config_file_name, new):
 
 @bp.route('/<service>/<server_ip>/save', methods=['POST'])
 @check_services
+@get_user_params()
 def save_config(service, server_ip):
     roxywi_common.check_is_server_in_group(server_ip)
     config_file = request.form.get('config')
     oldcfg = request.form.get('oldconfig')
     save = request.form.get('save')
     config_file_name = request.form.get('config_file_name')
+    user_id = g.user_params['user_id']
+    user = user_sql.get_user_id(user_id)
 
     try:
         cfg = config_mod.return_cfg(service, server_ip, config_file_name)
@@ -156,7 +160,7 @@ def save_config(service, server_ip):
             stderr = config_mod.upload_and_restart(server_ip, cfg, save, service, oldcfg=oldcfg)
         else:
             stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, service, oldcfg=oldcfg,
-                                                                config_file_name=config_file_name)
+                                                                config_file_name=config_file_name, login=user.username)
     except Exception as e:
         return f'error: {e}', 200
 
