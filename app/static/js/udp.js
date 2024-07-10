@@ -346,10 +346,10 @@ function getUDPListener(listener_id, new_listener=false) {
 					$('#listener-' + listener_id).replaceWith(data);
 				}
 				$('#listener-'+listener_id).removeClass('animated-background');
+				$.getScript(awesome);
 			}
 		}
 	});
-	$.getScript(awesome);
 }
 function confirmDeleteListener(listener_id) {
 	$("#dialog-confirm").dialog({

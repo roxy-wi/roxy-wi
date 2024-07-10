@@ -862,25 +862,25 @@ def create_ha_cluster():
 	try:
 		json_loads['cluster_id'] = cluster_id
 		json_dump = json.dumps(json_loads)
-		service_mod.install_service('keepalived', json_dump)
+		service_mod.install_service('keepalived', json.loads(json_dump))
 	except Exception as e:
-		data['status'].setdefault('keepalived', f'error: {e}')
+		data['status'].setdefault('keepalived', f'{e}')
 	else:
 		data['status'].setdefault('keepalived', 'done')
 
 	if json_loads['services']['haproxy']['enabled']:
 		try:
-			service_mod.install_service('haproxy', body)
+			service_mod.install_service('haproxy', json.loads(body))
 		except Exception as e:
-			data['status'].setdefault('haproxy', f'error: {e}')
+			data['status'].setdefault('haproxy', f'{e}')
 		else:
 			data['status'].setdefault('haproxy', 'done')
 
 	if json_loads['services']['nginx']['enabled']:
 		try:
-			service_mod.install_service('nginx', body)
+			service_mod.install_service('nginx', json.loads(body))
 		except Exception as e:
-			data['status'].setdefault('nginx', f'error: {e}')
+			data['status'].setdefault('nginx', f'{e}')
 		else:
 			data['status'].setdefault('nginx', 'done')
 
