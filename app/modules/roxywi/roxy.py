@@ -93,11 +93,14 @@ def update_user_status() -> None:
 
 def action_service(action: str, service: str) -> str:
 	is_in_docker = is_docker()
-	cmd = f"sudo systemctl disable {service} --now"
-	if action in ("start", "restart"):
-		cmd = f"sudo systemctl {action} {service} --now"
-		if not roxy_sql.select_user_status():
-			return 'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing" ' \
+	actions = {
+		'start': 'enable --now',
+		'stop': 'disable --now',
+		'restart': 'restart',
+	}
+	cmd = f"sudo systemctl {actions[action]} {service}"
+	if not roxy_sql.select_user_status():
+		return 'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing" ' \
 				   'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions'
 	if is_in_docker:
 		cmd = f"sudo supervisorctl {action} {service}"
