@@ -176,7 +176,6 @@
 {% endif %}
 <script>
 	{%- for server in servers %}
-		setInterval(serverIsUp, 18000, '{{server.2}}', '{{server.0}}');
-		serverIsUp('{{server.2}}', '{{server.0}}');
+		serverIsUp('{{server.0}}');
 	{%- endfor %}
 </script>

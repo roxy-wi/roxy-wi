@@ -34,6 +34,7 @@ def generate_udp_inv(listener_id: int, action: str) -> object:
 			"port": listener['port'],
 			"id": listener['id'],
 			"config": listener['config'],
+			"lb_algo": listener['lb_algo'],
 		}
 	return inv, server_ips
 
@@ -129,7 +130,6 @@ def generate_haproxy_inv(json_data: json, installed_service: str) -> object:
 	container_name = sql.get_setting('haproxy_container_name')
 	haproxy_ver = '2.9.6-1'
 	is_docker = json_data['services']['haproxy']['docker']
-
 	for k, v in json_data['servers'].items():
 		if not v['master']:
 			slaves.append(v['ip'])
@@ -335,6 +335,9 @@ def install_service(service: str, json_data: str) -> object:
 
 	try:
 		inv, server_ips = generate_functions[service](json_data, service)
+	except Exception as e:
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot generate inv {service}', roxywi=1)
+	try:
 		service_actions_after_install(server_ips, service, json_data)
 		return run_ansible(inv, server_ips, service), 201
 	except Exception as e:

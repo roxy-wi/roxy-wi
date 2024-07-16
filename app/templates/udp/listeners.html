@@ -108,11 +108,23 @@
         </tr>
         <tr>
             <td class="padding20">
+                {{lang.udp_page.balancing_type}}
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {% set values = {'rr': 'Round robin', 'wrr': 'Weighted Round Robin', 'lc': 'Least Connection',
+                'wlc': 'Weighted Least Connection', 'sh': 'Source Hashing', 'dh': 'Destination Hashing',
+                'lblc': 'Locality-Based Least Connection' } %}
+                {{ select('new-udp-balancer-type', values=values) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
                 {{lang.words.backend|title()}} {{lang.words.servers|title()}}
                 <span class="need-field">*</span>
             </td>
             <td id="new-udp-servers-td">
-                <a class="link add-server" id="frontend_add_acl" title="{{lang.words.add|title()}} ACL" style="cursor: pointer; display: none;"></a>
+                <a class="link add-server" id="frontend_add_acl" title="{{lang.words.add|title()}} {{ lang.words.backend }} {{ lang.words.server }}" style="cursor: pointer; display: none;"></a>
             </td>
         </tr>
         <tr>

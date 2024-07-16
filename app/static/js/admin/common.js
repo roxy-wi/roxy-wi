@@ -174,9 +174,6 @@ function ajaxActionServices(action, service) {
 				toastr.success('The ' + service + ' has been ' + action +'ed');
 				loadServices();
 			}
-		},
-		error: function(){
-			alert(w.data_error);
 		}
 	} );
 }

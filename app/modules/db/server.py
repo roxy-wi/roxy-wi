@@ -291,3 +291,10 @@ def is_master(ip, **kwargs):
 		out_error(e)
 	else:
 		return cursor.fetchall()
+
+
+def get_server(server_id: int) -> Server:
+	try:
+		return Server.get(Server.server_id == server_id)
+	except Exception as e:
+		out_error(e)

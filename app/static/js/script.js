@@ -326,6 +326,11 @@ $( document ).ajaxSend(function( event, request, settings ) {
 $( document ).ajaxComplete(function( event, request, settings ) {
 	NProgress.done();
 });
+$(document).ajaxError(function myErrorHandler(event, xhr, ajaxOptions, thrownError) {
+	if (xhr.status != 401) {
+		toastr.error(xhr.responseJSON.error);
+	}
+});
 function showStats() {
 	$.ajax({
 		url: "/app/stats/view/" + $("#service").val() + "/" + $("#serv").val(),

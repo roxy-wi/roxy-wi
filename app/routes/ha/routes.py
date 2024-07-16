@@ -30,7 +30,8 @@ def cluster_function(service):
         kwargs = {
             'clusters': ha_sql.select_clusters(group_id),
             'is_needed_tool': common.is_tool('ansible'),
-            'user_subscription': roxywi_common.return_user_subscription()
+            'user_subscription': roxywi_common.return_user_subscription(),
+            'lang': g.user_params['lang'],
         }
 
         return render_template('ha_cluster.html', **kwargs)

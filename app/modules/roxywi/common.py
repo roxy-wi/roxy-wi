@@ -1,6 +1,6 @@
 import os
 import glob
-from typing import Any
+from typing import Any, Union
 
 from flask import request
 
@@ -13,6 +13,7 @@ import app.modules.db.server as server_sql
 import app.modules.db.history as history_sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.roxy_wi_tools as roxy_wi_tools
+from app.modules.roxywi.class_models import ErrorResponse
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 
@@ -94,7 +95,7 @@ def get_files(folder, file_format, server_ip=None) -> list:
 		return file
 
 
-def logging(server_ip: str, action: str, **kwargs) -> None:
+def logging(server_ip: Union[str, int], action: str, **kwargs) -> None:
 	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
 	cur_date_in_log = get_date.return_date('date_in_log')
 	log_path = get_config_var.get_config_var('main', 'log_path')
@@ -311,3 +312,8 @@ def handle_exceptions(ex: Exception, server_ip: str, message: str, **kwargs: Any
 def handle_json_exceptions(ex: Exception, message: str, server_ip='Roxy-WI server') -> dict:
 	logging(server_ip, f'error: {message}: {ex}', roxywi=1, login=1)
 	return {'status': 'failed', 'error': f'{message}: {ex}'}
+
+
+def handle_json_exceptions(ex: Exception, message: str, server_ip='Roxy-WI server') -> dict:
+	logging(server_ip, f'{message}: {ex}', login=1, roxywi=1)
+	return ErrorResponse(error=f'{message}: {ex}').model_dump(mode='json')

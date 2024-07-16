@@ -371,31 +371,58 @@ function showServerInfo(id, ip) {
 		}
 	});
 }
-function serverIsUp(server_ip, server_id) {
-	let cur_url = window.location.href.split('/').pop();
-	if (cur_url.split('#')[1] == 'servers') {
-		$.ajax({
-			url: "/app/server/check/server/" + server_ip,
-			success: function (data) {
-				data = data.replace(/^\s+|\s+$/g, '');
-				if (data.indexOf('up') != '-1') {
-					$('#server_status-' + server_id).removeClass('serverNone');
-					$('#server_status-' + server_id).removeClass('serverDown');
-					$('#server_status-' + server_id).addClass('serverUp');
-					$('#server_status-' + server_id).attr('title', 'Server is reachable');
-				} else if (data.indexOf('down') != '-1') {
-					$('#server_status-' + server_id).removeClass('serverNone');
-					$('#server_status-' + server_id).removeClass('serverUp');
-					$('#server_status-' + server_id).addClass('serverDown');
-					$('#server_status-' + server_id).attr('title', 'Server is unreachable');
-				} else {
-					$('#server_status-' + server_id).removeClass('serverDown');
-					$('#server_status-' + server_id).removeClass('serverUp');
-					$('#server_status-' + server_id).addClass('serverNone');
-					$('#server_status-' + server_id).attr('title', 'Cannot get server status');
-				}
-			}
-		});
+function serverIsUp(server_id) {
+	const source = new EventSource(`/app/server/check/server/${server_id}`);
+	let server_div = $('#server_status-' + server_id);
+	source.onmessage = function (event) {
+		let data = JSON.parse(event.data);
+		if (data.status === 'up') {
+			server_div.removeClass('serverNone');
+			server_div.removeClass('serverDown');
+			server_div.addClass('serverUp');
+			// server_div.attr('title', 'Server is reachable');
+		} else if (data.status === 'down') {
+			server_div.removeClass('serverNone');
+			server_div.removeClass('serverUp');
+			server_div.addClass('serverDown');
+			// server_div.attr('title', 'Server is unreachable');
+		} else {
+			server_div.removeClass('serverDown');
+			server_div.removeClass('serverUp');
+			server_div.addClass('serverNone');
+			// server_div.attr('title', 'Cannot get server status');
+		}
+		$('#hostname-' + server_id).val(data.name);
+		$('#ip-' + server_id).val(data.ip);
+		$('#port-' + server_id).val(data.port);
+		$('#desc-' + server_id).val(data.desc);
+		if (data.enabled === 1) {
+			$('#enable-' + server_id).prop('checked', true);
+		} else {
+			$('#enable-' + server_id).prop('checked', false);
+		}
+		if (data.protected === 1) {
+			$('#protected-' + server_id).prop('checked', true);
+		} else {
+			$('#protected-' + server_id).prop('checked', false);
+		}
+		if (data.type_ip === 1) {
+			$('#typeip-' + server_id).prop('checked', true);
+		} else {
+			$('#typeip-' + server_id).prop('checked', false);
+		}
+		$('#typeip-' + server_id).checkboxradio("refresh");
+		$('#protected-' + server_id).checkboxradio("refresh");
+		$('#enable-' + server_id).checkboxradio("refresh");
+		$('#servergroup-' + server_id).val(data.group_id).change();
+		$('#credentials-' + server_id).val(data.creds_id).change();
+		$('#slavefor-' + server_id).val(data.creds_id).change();
+		$('#servergroup-' + server_id).selectmenu("refresh");
+		$('#credentials-' + server_id).selectmenu("refresh");
+		$('#slavefor-' + server_id).selectmenu("refresh");
+	}
+	source.onerror = function (event) {
+		server_div.remove();
 	}
 }
 function openChangeServerServiceDialog(server_id) {

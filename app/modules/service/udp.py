@@ -31,6 +31,7 @@ def _validate_form(json_data: json) -> dict:
         raise ValueError("error: Invalid form data")
     returned_data['name'] = common.checkAjaxInput(json_data['new-listener-name'])
     returned_data['desc'] = common.checkAjaxInput(json_data['new-listener-desc'])
+    returned_data['lb_algo'] = common.checkAjaxInput(json_data['new-udp-balancer-type'])
     try:
         returned_data['port'] = int(json_data['new-listener-port'])
     except Exception:

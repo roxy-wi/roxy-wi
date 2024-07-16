@@ -1,5 +1,5 @@
 virtual_server {{ vip }} {{ port }} {
-    lb_algo rr
+    lb_algo {{ lb_algo }}
     lb_kind NAT
     protocol UDP
     delay_loop 10
