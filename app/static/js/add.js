@@ -933,7 +933,7 @@ $( function() {
 			$.ajax({
 				url: "/app/add/lets",
 				data: {
-					serv: $('#serv_for_vars').val(),
+					serv: $('#serv_for_lets').val(),
 					lets_domain: lets_domain,
 					lets_email: lets_email
 				},
