@@ -286,20 +286,20 @@ function cloneServer(id) {
 	}
 }
 function removeServer(id) {
-    $("#server-" + id).css("background-color", "#f2dede");
-    $.ajax({
-        url: "/app/server",
-        type: "DELETE",
-        data: JSON.stringify({'id': id}),
-        contentType: "application/json; charset=utf-8",
-        success: function (data) {
-            if (data.status === 'failed') {
-                toastr.error(data.error);
-            } else {
-                $("#server-" + id).remove();
-            }
-        }
-    });
+	$("#server-" + id).css("background-color", "#f2dede");
+	$.ajax({
+		url: "/app/server",
+		type: "DELETE",
+		data: JSON.stringify({'id': id}),
+		contentType: "application/json; charset=utf-8",
+		success: function (data) {
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+			} else {
+				$("#server-" + id).remove();
+			}
+		}
+	});
 }
 function viewFirewallRules(ip) {
 	$.ajax({
@@ -371,7 +371,9 @@ function showServerInfo(id, ip) {
 		}
 	});
 }
-function serverIsUp(server_id) {
+async function serverIsUp(server_id) {
+	let random_sleep = getRandomArbitrary(1000, 10000);
+	await sleep(random_sleep);
 	const source = new EventSource(`/app/server/check/server/${server_id}`);
 	let server_div = $('#server_status-' + server_id);
 	source.onmessage = function (event) {
@@ -380,17 +382,17 @@ function serverIsUp(server_id) {
 			server_div.removeClass('serverNone');
 			server_div.removeClass('serverDown');
 			server_div.addClass('serverUp');
-			// server_div.attr('title', 'Server is reachable');
+			server_div.attr('title', 'Server is reachable');
 		} else if (data.status === 'down') {
 			server_div.removeClass('serverNone');
 			server_div.removeClass('serverUp');
 			server_div.addClass('serverDown');
-			// server_div.attr('title', 'Server is unreachable');
+			server_div.attr('title', 'Server is unreachable');
 		} else {
 			server_div.removeClass('serverDown');
 			server_div.removeClass('serverUp');
 			server_div.addClass('serverNone');
-			// server_div.attr('title', 'Cannot get server status');
+			server_div.attr('title', 'Cannot get server status');
 		}
 		$('#hostname-' + server_id).val(data.name);
 		$('#ip-' + server_id).val(data.ip);
@@ -416,13 +418,13 @@ function serverIsUp(server_id) {
 		$('#enable-' + server_id).checkboxradio("refresh");
 		$('#servergroup-' + server_id).val(data.group_id).change();
 		$('#credentials-' + server_id).val(data.creds_id).change();
-		$('#slavefor-' + server_id).val(data.creds_id).change();
+		$('#slavefor-' + server_id).val(data.slave).change();
 		$('#servergroup-' + server_id).selectmenu("refresh");
 		$('#credentials-' + server_id).selectmenu("refresh");
 		$('#slavefor-' + server_id).selectmenu("refresh");
 	}
 	source.onerror = function (event) {
-		server_div.remove();
+		source.close();
 	}
 }
 function openChangeServerServiceDialog(server_id) {
