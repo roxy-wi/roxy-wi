@@ -27,7 +27,7 @@
       yum:
         name:
           - yajl-devel
-          - http://repo.haproxy-wi.org/libevent-devel-2.0.21-4.el7.x86_64.rpm
+          - http://repo.roxy-wi.org/libevent-devel-2.0.21-4.el7.x86_64.rpm
         state: latest
       when:
         - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
