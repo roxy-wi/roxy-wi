@@ -819,7 +819,7 @@ function clearClusterDialog(edited=0) {
 	$('#vrrp-ip-edit').val('');
 	$('#cur_master_ver').text('');
 	$('#virt_server').prop('checked', true);
-	$('#return_master').prop('checked', true);
+	$('#return_master').prop('checked', false);
 	$('#use_src').prop('checked', false);
 	$('#hap').prop('checked', false);
 	$('#hap_docker').prop('checked', false);
