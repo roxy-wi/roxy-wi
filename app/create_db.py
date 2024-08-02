@@ -1,13 +1,9 @@
 #!/usr/bin/env python3.11
-import os
-import sys
 import distro
 
-sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/'))
-
-from modules.db.db_model import (
+from app.modules.db.db_model import (
 	connect, Setting, Role, User, UserGroups, Groups, Services, RoxyTool, Version, SmonHttpCheck, GeoipCodes, SmonTcpCheck, SMON,
-	SmonPingCheck, migrate, mysql_enable, create_tables
+	SmonPingCheck, migrate, mysql_enable
 )
 from peewee import DateTimeField, IntegerField, CharField, SQL
 
@@ -734,9 +730,3 @@ def update_all():
 	update_db_v_7_3_1()
 	update_db_v_7_4()
 	update_ver()
-
-
-if __name__ == "__main__":
-	create_tables()
-	default_values()
-	update_all()

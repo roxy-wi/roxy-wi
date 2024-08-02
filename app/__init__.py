@@ -17,6 +17,13 @@ scheduler.start()
 
 jwt = JWTManager(app)
 
+from app.modules.db.db_model import create_tables
+from app.create_db import default_values, update_all
+
+create_tables()
+default_values()
+update_all()
+
 from app.api.routes import bp as api_bp
 
 app.register_blueprint(api_bp, url_prefix='/api')
