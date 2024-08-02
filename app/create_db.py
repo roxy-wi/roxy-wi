@@ -4,7 +4,8 @@ import sys
 import distro
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/'))
-from app.modules.db.db_model import (
+
+from modules.db.db_model import (
 	connect, Setting, Role, User, UserGroups, Groups, Services, RoxyTool, Version, SmonHttpCheck, GeoipCodes, SmonTcpCheck, SMON,
 	SmonPingCheck, migrate, mysql_enable, create_tables
 )
