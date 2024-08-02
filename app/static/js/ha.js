@@ -435,7 +435,6 @@ function installServiceCluster(jsonData, service, progress_step, cluster_id) {
 	let install_mess = translate_div.attr('data-installing');
 	let timeout_mess = translate_div.attr('data-roxywi_timeout');
 	let something_wrong = translate_div.attr('data-something_wrong');
-	let nice_service_name = {'keepalived': 'HA Custer', 'haproxy': 'HAProxy', 'nginx': 'NGINX', 'apache': 'Apache'};
 	$('#server_creating_list').append('<li id="' + li_id + servers['cluster_id'] + '" class="server-creating proccessing">' + install_mess + ' ' + nice_service_name[service] + '</li>');
 	return $.ajax({
 		url: "/install/" + service,

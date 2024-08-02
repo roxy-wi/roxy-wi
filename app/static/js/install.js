@@ -111,7 +111,8 @@ $( function() {
 				if (data.status === 'failed') {
 					toastr.error(data.error);
 				} else {
-					parseAnsibleJsonOutput(data, service + ' GeoIP', '#geoip_service');
+					// parseAnsibleJsonOutput(data, service + ' GeoIP', '#geoip_service');
+					toastr.success('GeoIP has been installed');
 					$("#geoip_service").trigger("selectmenuchange");
 				}
 			}
@@ -183,6 +184,7 @@ function installService(service) {
 				toastr.error(data.error);
 			} else {
 				$(select_id).trigger("selectmenuchange");
+				toastr.success(nice_service_name[service] + ' has been installed');
 				$("#ajax").empty();
 			}
 		}
