@@ -47,11 +47,11 @@ def create_cluster(cluster: HAClusterRequest, group_id: int) -> int:
         raise Exception(f'error: Cannon add VIP: {e}')
 
 
-    for value in cluster.servers:
+    for value in servers:
         if value['master']:
             master_ip = value['ip']
 
-    for value in cluster.servers:
+    for value in servers:
         if value['master']:
             continue
         try:
@@ -60,7 +60,7 @@ def create_cluster(cluster: HAClusterRequest, group_id: int) -> int:
             raise Exception(f'error: Cannot update master on slave {value["ip"]: {e}}')
 
     for value in servers:
-        slave_id = servers['ip']
+        slave_id = value['id']
         if value['master']:
             slave_id = server_sql.select_server_id_by_ip(master_ip)
         try:

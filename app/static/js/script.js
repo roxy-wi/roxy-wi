@@ -815,6 +815,7 @@ function saveUserSettings(user_id){
 		localStorage.setItem('disabled_alert', '1');
 	}
 	changeCurrentGroupF(user_id);
+	Cookies.set('lang', $('#lang_select').val(), { expires: 365, path: '/', secure: 'true' });
 }
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));

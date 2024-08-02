@@ -218,7 +218,7 @@ function installExporter(exporter) {
 			if (data.status === 'failed') {
 				toastr.error(data.error);
 			} else {
-				parseAnsibleJsonOutput(data, nice_names[service], select_id);
+				parseAnsibleJsonOutput(data, nice_names[service], exporter_id);
 				$(exporter_id).trigger("selectmenuchange");
 				$("#ajax").empty();
 			}

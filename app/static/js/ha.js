@@ -711,8 +711,7 @@ function get_keepalived_ver(div_id, server_ip) {
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
 			if (data.status === 'failed') {
-				let p_err = show_pretty_ansible_error(data.error);
-				toastr.error(p_err);
+				div_id.text('Keepalived has not installed');
 			} else if (!data.Version) {
 				div_id.text('Keepalived has not installed');
 			} else {
