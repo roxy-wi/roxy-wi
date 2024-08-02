@@ -3,8 +3,8 @@
 {% block h2 %}{{ lang.menu_links.monitoring.net_tools }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
-<script src="/app/static/js/nettools.js"></script>
-<form name="nettools_icmp_form" id="nettools_icmp_form" method="post" action="/app/nettools/icmp">
+<script src="/static/js/nettools.js"></script>
+<form name="nettools_icmp_form" id="nettools_icmp_form" method="post" action="/nettools/icmp">
     <table class="overview">
         <caption><h3>ICMP</h3></caption>
         <tr class="overviewHead">
@@ -36,7 +36,7 @@
         </tr>
     </table>
 </form>
-<form name="nettools_telnet_form" id="nettools_telnet_form" method="post" action="/app/nettools/tcp">
+<form name="nettools_telnet_form" id="nettools_telnet_form" method="post" action="/nettools/tcp">
     <table class="overview">
         <caption><h3>Check port</h3></caption>
         <tr class="overviewHead">
@@ -68,7 +68,7 @@
         </tr>
     </table>
 </form>
-<form name="nettools_nslookup_form" id="nettools_nslookup_form" method="post" action="/app/nettools/dns">
+<form name="nettools_nslookup_form" id="nettools_nslookup_form" method="post" action="/nettools/dns">
     <table class="overview">
         <caption><h3>NSLookup</h3></caption>
         <tr class="overviewHead">
@@ -103,7 +103,7 @@
         </tr>
     </table>
 </form>
-<form name="nettools_portscanner_form" id="nettools_portscanner_form" method="post" action="/app/nettools/portscan">
+<form name="nettools_portscanner_form" id="nettools_portscanner_form" method="post" action="/nettools/portscan">
     <table class="overview" style="width: 40%;float: left;">
         <caption><h3>Port scanner</h3></caption>
         <tr class="overviewHead">
@@ -120,7 +120,7 @@
         </tr>
     </table>
 </form>
-<form name="nettools_whois_form" id="nettools_whois_form" method="post" action="/app/nettools/whois">
+<form name="nettools_whois_form" id="nettools_whois_form" method="post" action="/nettools/whois">
     <table class="overview" style="width: 60%;">
         <caption><h3>Whois</h3></caption>
         <tr class="overviewHead">

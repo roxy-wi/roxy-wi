@@ -1,6 +1,6 @@
 import pytz
 from flask import render_template, request, g
-from flask_login import login_required
+from flask_jwt_extended import jwt_required
 
 from app import scheduler
 from app.routes.admin import bp
@@ -16,10 +16,17 @@ import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.smon as smon_mod
 import app.modules.tools.common as tools_common
+from app.views.admin.views import SettingsView
+
+bp.add_url_rule(
+    '/settings/<any(smon, main, haproxy, nginx, apache, keepalived, rabbitmq, ldap, monitoring, mail, logs):section>',
+    view_func=SettingsView.as_view('settings'),
+    methods=['GET', 'POST']
+)
 
 
 @bp.before_request
-@login_required
+@jwt_required()
 def before_request():
     """ Protect all the admin endpoints. """
     pass
@@ -38,7 +45,7 @@ def admin():
     else:
         users = user_sql.select_users(group=user_group)
         servers = roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1)
-        masters = server_sql.select_servers(get_master_servers=1, uuid=g.user_params['user_uuid'])
+        masters = server_sql.select_servers(get_master_servers=1, uuid=g.user_params['user_id'])
         sshs = cred_sql.select_ssh(group=user_group)
 
     kwargs = {
@@ -115,7 +122,7 @@ def check_update():
 @get_user_params()
 def get_settings():
     kwargs = {
-        'settings': sql.get_setting('', all=1),
+        'settings': sql.get_setting('', all=1, group_id=g.user_params['group_id']),
         'timezones': pytz.all_timezones,
     }
     return render_template('include/admin_settings.html', **kwargs)
@@ -126,13 +133,16 @@ def update_settings(param):
     roxywi_auth.page_for_admin(level=2)
     val = request.form.get('val').replace('92', '/')
     user_group = roxywi_common.get_user_group(id=1)
-    if sql.update_setting(param, val, user_group):
-        roxywi_common.logging('Roxy-WI server', f'The {param} setting has been changed to: {val}', roxywi=1, login=1)
+    try:
+        sql.update_setting(param, val, user_group)
+    except Exception as e:
+        roxywi_common.handle_json_exceptions(e, 'Cannot update settings')
+    roxywi_common.logging('Roxy-WI server', f'The {param} setting has been changed to: {val}', roxywi=1, login=1)
 
-        if param == 'master_port':
-            try:
-                smon_mod.change_smon_port(val)
-            except Exception as e:
-                return f'{e}'
+    if param == 'master_port':
+        try:
+            smon_mod.change_smon_port(int(val))
+        except Exception as e:
+            return f'{e}'
 
         return 'Ok'

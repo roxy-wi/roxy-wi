@@ -45,18 +45,7 @@ def delete_user(user_id: int):
         roxywi_common.logging(user.username, 'has been deleted user', roxywi=1, login=1)
 
 
-def update_user(email, new_user, user_id, enabled, group_id, role_id):
-    try:
-        user_sql.update_user(new_user, email, role_id, user_id, enabled)
-    except Exception as e:
-        roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot update user {new_user}', roxywi=1, login=1)
-    user_sql.update_user_role(user_id, group_id, role_id)
-    roxywi_common.logging(new_user, ' has been updated user ', roxywi=1, login=1)
-
-
-def update_user_password(password: str, uuid: str, user_id: int):
-    if uuid:
-        user_id = user_sql.get_user_id_by_uuid(uuid)
+def update_user_password(password, user_id):
     user = user_sql.get_user_id(user_id)
     user_sql.update_user_password(password, user_id)
     roxywi_common.logging(f'user {user.username}', 'has changed password', roxywi=1, login=1)
@@ -85,36 +74,36 @@ def change_user_services(user: str, user_id: int, user_services: dict):
     roxywi_common.logging('Roxy-WI server', f'Access to the services has been updated for user: {user}', roxywi=1, login=1)
 
 
-def change_user_active_group(group_id: int, user_uuid: str) -> str:
+def change_user_active_group(group_id: int, user_id: int) -> str:
     try:
-        user_sql.update_user_current_groups(group_id, user_uuid)
+        user_sql.update_user_current_groups(group_id, user_id)
         return 'Ok'
     except Exception as e:
         roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot change the group', roxywi=1, login=1)
 
 
-def get_user_active_group(uuid: str, group: str) -> str:
-    group_id = user_sql.get_user_id_by_uuid(uuid)
-    groups = user_sql.select_user_groups_with_names(group_id)
+def get_user_active_group(group_id: int, user_id: int) -> str:
+    # group_id = user_sql.get_user_id_by_uuid(uuid)
+    groups = user_sql.select_user_groups_with_names(user_id)
     lang = roxywi_common.get_user_lang_for_flask()
-    return render_template('ajax/user_current_group.html', groups=groups, group=group, id=group_id, lang=lang)
+    return render_template('ajax/user_current_group.html', groups=groups, group=group_id, lang=lang)
 
 
-def show_user_groups_and_roles(user_id: int, lang: str) -> str:
-    groups = user_sql.select_user_groups_with_names(user_id, user_not_in_group=1)
-    roles = sql.select_roles()
-    user_groups = user_sql.select_user_groups_with_names(user_id)
-    return render_template('ajax/user_groups_and_roles.html', groups=groups, user_groups=user_groups, roles=roles, lang=lang)
+# def show_user_groups_and_roles(user_id: int, lang: str) -> str:
+#     groups = user_sql.select_user_groups_with_names(user_id, user_not_in_group=1)
+#     roles = sql.select_roles()
+#     user_groups = user_sql.select_user_groups_with_names(user_id)
+#     return render_template('ajax/user_groups_and_roles.html', groups=groups, user_groups=user_groups, roles=roles, lang=lang)
 
 
-def is_current_user(user_id: int, user_uuid: str) -> bool:
-    current_user_id = user_sql.get_user_id_by_uuid(user_uuid)
-    if current_user_id == user_id:
-        return True
-    return False
+# def is_current_user(user_id: int, user_uuid: str) -> bool:
+#     current_user_id = user_sql.get_user_id_by_uuid(user_uuid)
+#     if current_user_id == user_id:
+#         return True
+#     return False
 
 
-def save_user_group_and_role(user: str, groups_and_roles: dict, user_uuid: str):
+def save_user_group_and_role(user: str, groups_and_roles: dict):
     resp = make_response('ok')
     for k, v in groups_and_roles.items():
         user_id = int(k)
@@ -125,8 +114,7 @@ def save_user_group_and_role(user: str, groups_and_roles: dict, user_uuid: str):
             role_id = int(v2['role_id'])
             if len(v) == 1:
                 user_sql.update_user_current_groups_by_id(group_id, user_id)
-                if is_current_user(user_id, user_uuid):
-                    resp.set_cookie('group', str(group_id), secure=True)
+                resp.set_cookie('group', str(group_id), secure=True)
             try:
                 user_sql.update_user_role(user_id, group_id, role_id)
             except Exception as e:

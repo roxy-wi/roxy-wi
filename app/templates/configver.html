@@ -3,7 +3,7 @@
 {% block h2 %}{{ lang.menu_links.versions.h2 }} {{ lang.words[service] }}{% endblock %}
 {% block content %}
 	<p>
-		<form action="/app/config/versions/{{service}}/{{serv}}" method="post" class="left-space">
+		<form action="/config/versions/{{service}}/{{serv}}" method="post" class="left-space">
 			<input type="hidden" id="service" value="{{service}}">
 			{{ select('serv', values=g.user_params['servers'], is_servers='true', selected=serv) }}
 			<button type="submit" value="open" name="open" class="btn btn-default">{{lang.words.open|title()}}</button>

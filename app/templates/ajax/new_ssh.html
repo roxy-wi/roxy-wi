@@ -5,7 +5,7 @@
 			<input type="text" id="ssh_name-{{ssh.id}}" class="form-control" value="{{ssh.name}}" style="margin-bottom: 23px;">	
 		</td>
 		<td class="first-collumn" valign="top" style="padding-top: 15px;">
-			{% if ssh.enable == 1 %}
+			{% if ssh.key_enabled == 1 %}
 				<label for="ssh_enable-{{ssh.id}}">{{lang.words.enable|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="ssh_enable-{{ssh.id}}" checked>
 			{% else %}
 				<label for="ssh_enable-{{ssh.id}}">{{lang.words.enable|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="ssh_enable-{{ssh.id}}">
@@ -15,7 +15,7 @@
 			<td>
 				<select id="sshgroup-{{ssh.id}}" name="sshgroup-{{ssh.id}}">
 					{% for group in groups %}
-						{% if ssh.groups == group.group_id %}
+						{% if ssh.group_id == group.group_id %}
 							<option value="{{ group.group_id }}" selected>{{ group.name }}</option>
 						{% else %}
 							<option value="{{ group.group_id }}">{{ group.name }}</option>
@@ -28,7 +28,7 @@
 			<p>
 				<input type="text" id="ssh_user-{{ssh.id}}" class="form-control" value="{{ssh.username.replace("'", "")}}">
 			</p>
-			{% if ssh.enable == 1 %}
+			{% if ssh.key_enabled == 1 %}
 				<input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" placeholder="*****" style="display: none;">
 			{% else %}
 				<input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" placeholder="*****">

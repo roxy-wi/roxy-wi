@@ -7,11 +7,11 @@ virtual_server {{ vip }} {{ port }} {
     retry 3
 
 
-{% for server, value in config.items() %}
-    real_server {{ server }} {{ value.port }} {
-        weight {{ value.weight }}
+{% for server in config %}
+    real_server {{ server.backend_ip }} {{ server.port }} {
+        weight {{ server.weight }}
         MISC_CHECK {
-            misc_path "{{ service_dir }}/checks/udp_check.sh {{ server }} {{ value.port }}"
+            misc_path "{{ service_dir }}/checks/udp_check.sh {{ server.backend_ip }} {{ server.port }}"
             misc_timeout 5
         }
     }

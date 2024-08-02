@@ -113,14 +113,14 @@ $( function() {
 });
 function loadBackup() {
 	$.ajax({
-		url: "/app/server/backup",
+		url: "/server/backup",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				$('#backup').html(data);
-				$.getScript('/app/static/js/backup.js');
+				$.getScript('/static/js/backup.js');
 				$("select").selectmenu();
 				$.getScript(awesome);
 			}
@@ -144,13 +144,13 @@ function addBackup(dialog_id) {
 			"rpath": $('#rpath').val(),
 			"type": $('#backup-type').val(),
 			"time": $('#backup-time').val(),
-			"cred": $('#backup-credentials').val(),
+			"cred_id": $('#backup-credentials').val(),
 			"description": $('#backup-description').val()
 		}
 		$.ajax({
-			url: "/app/server/backup",
+			url: "/server/backup",
 			data: JSON.stringify(jsonData),
-			type: "PUT",
+			type: "POST",
 			contentType: "application/json; charset=utf-8",
 			success: function (data) {
 				if (data.status === 'failed') {
@@ -166,7 +166,7 @@ function addBackup(dialog_id) {
 function addS3Backup(dialog_id) {
 	let valid = true;
 	toastr.clear();
-	allFields = $([]).add($('#s3-backup-server')).add($('#s3_server')).add($('#s3_bucket')).add($('#s3_secret_key')).add($('#s3_access_key'))
+	let allFields = $([]).add($('#s3-backup-server')).add($('#s3_server')).add($('#s3_bucket')).add($('#s3_secret_key')).add($('#s3_access_key'))
 	allFields.removeClass("ui-state-error");
 	valid = valid && checkLength($('#s3-backup-server'), "backup server ", 1);
 	valid = valid && checkLength($('#s3_server'), "S3 server", 1);
@@ -174,31 +174,25 @@ function addS3Backup(dialog_id) {
 	valid = valid && checkLength($('#s3_secret_key'), "S3 secret key", 1);
 	valid = valid && checkLength($('#s3_access_key'), "S3 access key", 1);
 	if (valid) {
+		let json_data = {
+			"s3_server": $('#s3-backup-server').val(),
+			"server": $('#s3_server').val(),
+			"bucket": $('#s3_bucket').val(),
+			"secret_key": $('#s3_secret_key').val(),
+			"access_key": $('#s3_access_key').val(),
+			"time": $('#s3-backup-time').val(),
+			"description": $('#s3-backup-description').val(),
+		}
 		$.ajax({
-			url: "/app/server/s3backup/create",
-			data: {
-				s3_backup_server: $('#s3-backup-server').val(),
-				s3_server: $('#s3_server').val(),
-				s3_bucket: $('#s3_bucket').val(),
-				s3_secret_key: $('#s3_secret_key').val(),
-				s3_access_key: $('#s3_access_key').val(),
-				time: $('#s3-backup-time').val(),
-				description: $('#s3-backup-description').val(),
-				token: $('#token').val()
-			},
+			url: "/server/backup/s3",
+			data: JSON.stringify(json_data),
 			type: "POST",
+			contentType: "application/json; charset=utf-8",
 			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error: ') != '-1') {
+				if (data.status === 'failed') {
 					toastr.error(data);
-				} else if (data.indexOf('info: ') != '-1') {
-					toastr.clear();
-					toastr.info(data);
-				} else if (data.indexOf('warning: ') != '-1') {
-					toastr.clear();
-					toastr.warning(data);
 				} else {
-					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-s3-table', data);
+					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-s3-table', data.data);
 					$("select").selectmenu();
 				}
 			}
@@ -236,7 +230,7 @@ function addGit(dialog_id) {
 			"desc": $('#git-description').text(),
 		}
 		$.ajax({
-			url: "/app/server/git",
+			url: "/server/git",
 			data: JSON.stringify(jsonData),
 			contentType: "application/json; charset=utf-8",
 			type: "POST",
@@ -338,42 +332,55 @@ function cloneS3Backup(id) {
 function removeBackup(id) {
 	$("#backup-table-" + id).css("background-color", "#f2dede");
 	let jsonData = {
-		"del_id": id,
-		"cred": $('#backup-credentials-' + id).val(),
+		"cred_id": $('#backup-credentials-' + id).val(),
 		"server": $('#backup-server-' + id).text(),
-		"rserver": $('#backup-rserver-' + id).val()
 	}
 	$.ajax({
-		url: "/app/server/backup",
+		url: api_prefix + "/server/backup/fs/" + id,
 		data: JSON.stringify(jsonData),
 		type: "DELETE",
 		contentType: "application/json; charset=utf-8",
-		success: function (data) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
+		statusCode: {
+			204: function (xhr) {
 				$("#backup-table-" + id).remove();
+			},
+			404: function (xhr) {
+				$("#backup-table-" + id).remove();
+			}
+		},
+		success: function (data) {
+			if (data) {
+				if (data.status === "failed") {
+					toastr.error(data);
+				}
 			}
 		}
 	});
 }
 function removeS3Backup(id) {
 	$("#backup-table-s3-" + id).css("background-color", "#f2dede");
+	let jsonData = {
+		"bucket": $('#bucket-' + id).text(),
+		"server": $('#backup-s3-server-' + id).text(),
+	}
 	$.ajax({
-		url: "/app/server/s3backup/delete",
-		data: {
-			dels3job: id,
-			s3_bucket: $('#bucket-' + id).text(),
-			s3_backup_server: $('#backup-s3-server-' + id).text(),
-			token: $('#token').val()
-		},
-		type: "POST",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('ok') != '-1') {
+		url: api_prefix + "/server/backup/s3/" + id,
+		data: JSON.stringify(jsonData),
+		type: "DELETE",
+		contentType: "application/json; charset=utf-8",
+		statusCode: {
+			204: function (xhr) {
 				$("#s3-backup-table-" + id).remove();
-			} else if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-				toastr.error(data);
+			},
+			404: function (xhr) {
+				$("#s3-backup-table-" + id).remove();
+			}
+		},
+		success: function (data) {
+			if (data) {
+				if (data.status === "failed") {
+					toastr.error(data);
+				}
 			}
 		}
 	});
@@ -393,7 +400,7 @@ function removeGit(id) {
 		"desc": '',
 	}
 	$.ajax({
-		url: "/app/server/git",
+		url: "/server/git",
 		data: JSON.stringify(jsonData),
 		contentType: "application/json; charset=utf-8",
 		type: "DELETE",
@@ -412,17 +419,16 @@ function updateBackup(id) {
 		toastr.error('All fields must be completed');
 	} else {
 		let jsonData = {
-			"update_id": id,
 			"server": $('#backup-server-' + id).text(),
 			"rserver": $('#backup-rserver-' + id).val(),
 			"rpath": $('#backup-rpath-' + id).val(),
 			"type": $('#backup-type-' + id).val(),
 			"time": $('#backup-time-' + id).val(),
-			"cred": $('#backup-credentials-' + id).val(),
+			"cred_id": $('#backup-credentials-' + id).val(),
 			"description": $('#backup-description-' + id).val()
 		}
 		$.ajax({
-			url: "/app/server/backup",
+			url: api_prefix + "/server/backup/fs/" + id,
 			data: JSON.stringify(jsonData),
 			type: "PUT",
 			contentType: "application/json; charset=utf-8",

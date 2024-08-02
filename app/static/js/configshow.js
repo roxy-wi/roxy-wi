@@ -1,22 +1,22 @@
 $( function() {
-	$( "input[type=submit], button" ).button();
-	$( ".configShow" ).accordion({
+	$("input[type=submit], button").button();
+	$(".configShow").accordion({
 		collapsible: true,
 		heightStyle: "content",
-		icons: { "header": "ui-icon-plus", "activeHeader": "ui-icon-minus" }
+		icons: {"header": "ui-icon-plus", "activeHeader": "ui-icon-minus"}
 	});
-	$('#raw').click(function() {	
+	$('#raw').click(function () {
 		$(".configShow").accordion("destroy");
 		$('#raw').css('display', 'none');
 		$('.numRow').css('display', 'none');
 		$('#according').css('display', 'inline-block');
 		$('.accordion-expand-all').css('display', 'none');
 	});
-	$('#according').click(function() {	
-		$( ".configShow" ).accordion({
+	$('#according').click(function () {
+		$(".configShow").accordion({
 			collapsible: true,
 			heightStyle: "content",
-			icons: { "header": "ui-icon-plus", "activeHeader": "ui-icon-minus" }
+			icons: {"header": "ui-icon-plus", "activeHeader": "ui-icon-minus"}
 		});
 		$('#raw').css('display', 'inline-block');
 		$('.numRow').css('display', 'inline-block');
@@ -25,9 +25,9 @@ $( function() {
 	});
 	let headers = $('.configShow .accordion-header');
 	let contentAreas = $('.configShow .ui-accordion-content ').hide()
-	.first().show().end();
+		.first().show().end();
 	let expandLink = $('.accordion-expand-all');
-	headers.click(function() {
+	headers.click(function () {
 		// close all panels
 		contentAreas.slideUp();
 		// open the appropriate panel
@@ -37,39 +37,49 @@ $( function() {
 			.data('isAllOpen', false);
 		// stop page scroll
 		return false;
-		});
+	});
 	// hook up the expand/collapse all
-	expandLink.click(function(){
+	expandLink.click(function () {
 		let isAllOpen = !$(this).data('isAllOpen');
 		console.log({isAllOpen: isAllOpen, contentAreas: contentAreas})
-		contentAreas[isAllOpen? 'slideDown': 'slideUp']();
-			
-	expandLink.text(isAllOpen? 'Collapse All': 'Expand all')
-				.data('isAllOpen', isAllOpen);    
-	});
-	$(".accordion-link a").on("click", function(event) { 
-	  window.location.href = $(this).attr("href"); 
-      event.preventDefault(); 
-	 });
+		contentAreas[isAllOpen ? 'slideDown' : 'slideUp']();
 
-	$( "#saveconfig" ).on("click", ":submit", function(e){
+		expandLink.text(isAllOpen ? 'Collapse All' : 'Expand all')
+			.data('isAllOpen', isAllOpen);
+	});
+	$(".accordion-link a").on("click", function (event) {
+		window.location.href = $(this).attr("href");
+		event.preventDefault();
+	});
+
+	$("#saveconfig").on("click", ":submit", function (e) {
 		let frm = $('#saveconfig');
-		let service = $('#service').val();
 		myCodeMirror.save();
+
+		let unindexed_array = frm.serializeArray();
+		let indexed_array = {};
+		$.map(unindexed_array, function (n, i) {
+			if (n['value'] != 'undefined') {
+				indexed_array[n['name']] = n['value'];
+			}
+		});
+		indexed_array['action'] = $(this).val();
 		$.ajax({
 			url: frm.attr('action'),
-			data: frm.serialize() + "&save=" + $(this).val(),
+			dataType: 'json',
+			data: JSON.stringify(indexed_array),
 			type: frm.attr('method'),
-			success: function( data ) {
-				data = data.replace(/\n/g, "<br>");
+			contentType: "application/json; charset=UTF-8",
+			success: function (data) {
 				toastr.clear();
-				returnNiceCheckingConfig(data);
+				data.data = data.data.replace(/\n/g, "<br>");
+				returnNiceCheckingConfig(data.data);
 				$(window).unbind('beforeunload');
-				if (data.indexOf('warning: ') != '-1') {
-					toastr.warning(data)
+				if (data.status === 'failed') {
+					toastr.warning(data.error)
 				}
 			}
 		});
-		event.preventDefault();
+		e.preventDefault();
 	});
 })

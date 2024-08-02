@@ -1,11 +1,10 @@
 from datetime import datetime
 
 from playhouse.migrate import *
-from flask_login import UserMixin
 from playhouse.shortcuts import ReconnectMixin
 from playhouse.sqlite_ext import SqliteExtDatabase
 
-import modules.roxy_wi_tools as roxy_wi_tools
+import app.modules.roxy_wi_tools as roxy_wi_tools
 
 get_config = roxy_wi_tools.GetConfigVar()
 mysql_enable = get_config.get_config_var('mysql', 'enable')
@@ -43,15 +42,15 @@ class BaseModel(Model):
         database = connect()
 
 
-class User(BaseModel, UserMixin):
+class User(BaseModel):
     user_id = AutoField(column_name='id')
     username = CharField(constraints=[SQL('UNIQUE')])
     email = CharField(constraints=[SQL('UNIQUE')])
     password = CharField(null=True)
     role = CharField()
-    groups = CharField()
+    group_id = CharField()
     ldap_user = IntegerField(constraints=[SQL('DEFAULT "0"')])
-    activeuser = IntegerField(constraints=[SQL('DEFAULT "1"')])
+    enabled = IntegerField(constraints=[SQL('DEFAULT "1"')])
     user_services = CharField(constraints=[SQL('DEFAULT "1 2 3 4 5 6"')])
     last_login_date = DateTimeField(constraints=[SQL('DEFAULT "0000-00-00 00:00:00"')])
     last_login_ip = CharField(null=True)
@@ -64,16 +63,16 @@ class Server(BaseModel):
     server_id = AutoField(column_name='id')
     hostname = CharField()
     ip = CharField(constraints=[SQL('UNIQUE')])
-    groups = CharField()
+    group_id = CharField()
     type_ip = IntegerField(constraints=[SQL('DEFAULT 0')])
-    enable = IntegerField(constraints=[SQL('DEFAULT 1')])
+    enabled = IntegerField(constraints=[SQL('DEFAULT 1')])
     master = IntegerField(constraints=[SQL('DEFAULT 0')])
-    cred = IntegerField(constraints=[SQL('DEFAULT 1')])
-    alert = IntegerField(constraints=[SQL('DEFAULT 0')])
-    metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
+    cred_id = IntegerField(constraints=[SQL('DEFAULT 1')])
+    haproxy_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
+    haproxy_metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
     port = IntegerField(constraints=[SQL('DEFAULT 22')])
-    desc = CharField(null=True)
-    active = IntegerField(constraints=[SQL('DEFAULT 0')])
+    description = CharField(null=True)
+    haproxy_active = IntegerField(constraints=[SQL('DEFAULT 0')])
     keepalived = IntegerField(constraints=[SQL('DEFAULT 0')])
     nginx = IntegerField(constraints=[SQL('DEFAULT 0')])
     haproxy = IntegerField(constraints=[SQL('DEFAULT 0')])
@@ -107,7 +106,7 @@ class Telegram(BaseModel):
     id = AutoField()
     token = CharField()
     chanel_name = CharField()
-    groups = IntegerField()
+    group_id = IntegerField()
 
     class Meta:
         table_name = 'telegram'
@@ -117,7 +116,7 @@ class Slack(BaseModel):
     id = AutoField()
     token = CharField()
     chanel_name = CharField()
-    groups = IntegerField()
+    group_id = IntegerField()
 
     class Meta:
         table_name = 'slack'
@@ -127,7 +126,7 @@ class MM(BaseModel):
     id = AutoField()
     token = CharField()
     chanel_name = CharField()
-    groups = IntegerField()
+    group_id = IntegerField()
 
     class Meta:
         table_name = 'mattermost'
@@ -137,20 +136,10 @@ class PD(BaseModel):
     id = AutoField()
     token = CharField()
     chanel_name = CharField()
-    groups = IntegerField()
+    group_id = IntegerField()
 
     class Meta:
         table_name = 'pd'
-
-
-class UUID(BaseModel):
-    user_id = IntegerField()
-    uuid = CharField()
-    exp = DateTimeField(default=datetime.now)
-
-    class Meta:
-        table_name = 'uuid'
-        primary_key = False
 
 
 class ApiToken(BaseModel):
@@ -202,10 +191,10 @@ class UserGroups(BaseModel):
 class Cred(BaseModel):
     id = AutoField()
     name = CharField()
-    enable = IntegerField(constraints=[SQL('DEFAULT 1')])
+    key_enabled = IntegerField(constraints=[SQL('DEFAULT 1')])
     username = CharField()
     password = CharField(null=True)
-    groups = IntegerField(constraints=[SQL('DEFAULT 1')])
+    group_id = IntegerField(constraints=[SQL('DEFAULT 1')])
     passphrase = CharField(null=True)
 
     class Meta:
@@ -218,9 +207,9 @@ class Backup(BaseModel):
     server = CharField()
     rhost = CharField()
     rpath = CharField()
-    backup_type = CharField(column_name='type')
+    type = CharField(column_name='type')
     time = CharField()
-    cred = IntegerField()
+    cred_id = IntegerField()
     description = CharField(null=True)
 
     class Meta:
@@ -693,7 +682,7 @@ class HaCluster(BaseModel):
     name = CharField()
     syn_flood = IntegerField(constraints=[SQL('DEFAULT "0"')])
     group_id = IntegerField()
-    desc = CharField()
+    description = CharField()
     pos = IntegerField(constraints=[SQL('DEFAULT "0"')])
 
     class Meta:
@@ -765,7 +754,7 @@ class UDPBalancer(BaseModel):
     port = IntegerField()
     group_id = ForeignKeyField(Groups)
     config = CharField()
-    desc = CharField()
+    description = CharField()
     lb_algo = CharField(constraints=[SQL('DEFAULT "rr"')])
     check_enabled = IntegerField(constraints=[SQL('DEFAULT "1"')])
     delay_loop = IntegerField(constraints=[SQL('DEFAULT "10"')])
@@ -781,7 +770,7 @@ def create_tables():
     conn = connect()
     with conn:
         conn.create_tables(
-            [User, Server, Role, Telegram, Slack, UUID, ApiToken, Groups, UserGroups, ConfigVersion, Setting,
+            [User, Server, Role, Telegram, Slack, ApiToken, Groups, UserGroups, ConfigVersion, Setting,
              Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
              PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes,
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,

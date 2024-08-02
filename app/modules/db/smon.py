@@ -9,7 +9,7 @@ import app.modules.roxy_wi_tools as roxy_wi_tools
 
 def get_agents(group_id: int):
 	try:
-		return SmonAgent.select(SmonAgent, Server).join(Server).where(Server.groups == group_id).objects().execute()
+		return SmonAgent.select(SmonAgent, Server).join(Server).where(Server.group_id == group_id).objects().execute()
 	except Exception as e:
 		out_error(e)
 
@@ -19,7 +19,7 @@ def get_free_servers_for_agent(group_id: int):
 		query = Server.select().where(
 			(Server.type_ip == 0) &
 			(Server.server_id.not_in(SmonAgent.select(SmonAgent.server_id))) &
-			(Server.groups == group_id)
+			(Server.group_id == group_id)
 		)
 		return query.execute()
 	except Exception as e:

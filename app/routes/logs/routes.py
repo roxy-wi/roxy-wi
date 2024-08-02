@@ -1,5 +1,5 @@
 from flask import render_template, request, redirect, url_for, g
-from flask_login import login_required
+from flask_jwt_extended import jwt_required
 
 from app.routes.logs import bp
 from app.middleware import check_services, get_user_params
@@ -16,7 +16,7 @@ get_config = roxy_wi_tools.GetConfigVar()
 
 
 @bp.before_request
-@login_required
+@jwt_required()
 def before_request():
     """ Protect all the admin endpoints. """
     pass

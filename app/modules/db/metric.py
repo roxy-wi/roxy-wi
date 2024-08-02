@@ -209,12 +209,12 @@ def select_metrics(serv, service, **kwargs):
 def select_servers_metrics_for_master(**kwargs):
 	if kwargs.get('group') != 1:
 		query = Server.select(Server.ip).where(
-			((Server.metrics == 1) | (Server.nginx_metrics == 1) | (Server.apache_metrics == 1))
-			& (Server.groups == kwargs.get('group'))
+			((Server.haproxy_metrics == 1) | (Server.nginx_metrics == 1) | (Server.apache_metrics == 1))
+			& (Server.group_id == kwargs.get('group'))
 		)
 	else:
 		query = Server.select(Server.ip).where(
-			(Server.metrics == 1)
+			(Server.haproxy_metrics == 1)
 			| (Server.nginx_metrics == 1)
 			| (Server.apache_metrics == 1)
 		)
@@ -228,7 +228,7 @@ def select_servers_metrics_for_master(**kwargs):
 
 
 def select_haproxy_servers_metrics_for_master():
-	query = Server.select(Server.ip).where(Server.metrics == 1)
+	query = Server.select(Server.ip).where(Server.haproxy_metrics == 1)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -262,10 +262,10 @@ def select_apache_servers_metrics_for_master():
 
 def select_servers_metrics(group_id):
 	if group_id == 1:
-		query = Server.select(Server.ip).where((Server.enable == 1) & (Server.metrics == 1))
+		query = Server.select(Server.ip).where((Server.enabled == 1) & (Server.haproxy_metrics == 1))
 	else:
 		query = Server.select(Server.ip).where(
-			(Server.enable == 1) & (Server.groups == group_id) & (Server.metrics == 1))
+			(Server.enabled == 1) & (Server.group_id == group_id) & (Server.haproxy_metrics == 1))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -281,84 +281,84 @@ def select_table_metrics(group_id):
 	if group_id == 1:
 		groups = ""
 	else:
-		groups = "and servers.groups = '{group}' ".format(group=group_id)
+		groups = "and servers.group_id = '{group}' ".format(group=group_id)
 	if mysql_enable == '1':
 		sql = """
 				select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d,
 				avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
-				(select servers.ip from servers where metrics = 1 ) as ip,
+				(select servers.ip from servers where haproxy_metrics = 1 ) as ip,
 
 				(select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.metrics = 1 %s) as hostname,
 
 				(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_1h from servers
 				left join metrics as metr on metr.serv = servers.ip
-				where servers.metrics = 1 and
+				where servers.haproxy_metrics = 1 and
 				metr.date <= now() and metr.date >= DATE_ADD(NOW(), INTERVAL -1 HOUR)
 				group by servers.ip)   as avg_sess_1h,
 
 				(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_24h from servers
 				left join metrics as metr on metr.serv = servers.ip
-				where servers.metrics = 1 and
+				where servers.haproxy_metrics = 1 and
 				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
 				group by servers.ip) as avg_sess_24h,
 
 				(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_3d from servers
 				left join metrics as metr on metr.serv = servers.ip
-				where servers.metrics = 1 and
+				where servers.haproxy_metrics = 1 and
 				metr.date <= now() and metr.date >= DATE_ADD(NOW(), INTERVAL -3 DAY)
 				group by servers.ip ) as avg_sess_3d,
 
 		(select servers.ip,max(metr.sess_rate) as max_sess_1h from servers
 				left join metrics as metr on metr.serv = servers.ip
-				where servers.metrics = 1 and
+				where servers.haproxy_metrics = 1 and
 				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
 				group by servers.ip)   as max_sess_1h,
 
 				(select servers.ip,max(metr.sess_rate) as max_sess_24h from servers
 				left join metrics as metr on metr.serv = servers.ip
-				where servers.metrics = 1 and
+				where servers.haproxy_metrics = 1 and
 				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
 				group by servers.ip) as max_sess_24h,
 
 				(select servers.ip,max(metr.sess_rate) as max_sess_3d from servers
 				left join metrics as metr on metr.serv = servers.ip
-				where servers.metrics = 1 and
+				where servers.haproxy_metrics = 1 and
 				metr.date <=  now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
 				group by servers.ip ) as max_sess_3d,
 
 				(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_1h from servers
 				left join metrics as metr on metr.serv = servers.ip
-				where servers.metrics = 1 and
+				where servers.haproxy_metrics = 1 and
 				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
 				group by servers.ip)   as avg_cur_1h,
 
 				(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_24h from servers
 				left join metrics as metr on metr.serv = servers.ip
-				where servers.metrics = 1 and
+				where servers.haproxy_metrics = 1 and
 				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
 				group by servers.ip) as avg_cur_24h,
 
 		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_3d from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <=  now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
 		group by servers.ip ) as avg_cur_3d,
 
 		(select servers.ip,max(metr.curr_con) as max_con_1h from servers
 				left join metrics as metr on metr.serv = servers.ip
-				where servers.metrics = 1 and
+				where servers.haproxy_metrics = 1 and
 				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -1 HOUR)
 				group by servers.ip)   as max_con_1h,
 
 				(select servers.ip,max(metr.curr_con) as max_con_24h from servers
 				left join metrics as metr on metr.serv = servers.ip
-				where servers.metrics = 1 and
+				where servers.haproxy_metrics = 1 and
 				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -24 HOUR)
 				group by servers.ip) as max_con_24h,
 
 				(select servers.ip,max(metr.curr_con) as max_con_3d from servers
 				left join metrics as metr on metr.serv = servers.ip
-				where servers.metrics = 1 and
+				where servers.haproxy_metrics = 1 and
 				metr.date <= now() and metr.date >= DATE_ADD(NOW(),INTERVAL -3 DAY)
 				group by servers.ip ) as max_con_3d
 
@@ -381,79 +381,79 @@ def select_table_metrics(group_id):
 		sql = """
 		select ip.ip, hostname, avg_sess_1h, avg_sess_24h, avg_sess_3d, max_sess_1h, max_sess_24h, max_sess_3d, avg_cur_1h,
 			avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
-		(select servers.ip from servers where metrics = 1 ) as ip,
+		(select servers.ip from servers where haproxy_metrics = 1 ) as ip,
 
 		(select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.metrics = 1 %s) as hostname,
 
 		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_1h from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
 		group by servers.ip)   as avg_sess_1h,
 
 		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_24h from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
 		group by servers.ip) as avg_sess_24h,
 
 		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_3d from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime')
 		group by servers.ip ) as avg_sess_3d,
 
 		(select servers.ip,max(metr.sess_rate) as max_sess_1h from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
 		group by servers.ip)   as max_sess_1h,
 
 		(select servers.ip,max(metr.sess_rate) as max_sess_24h from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
 		group by servers.ip) as max_sess_24h,
 
 		(select servers.ip,max(metr.sess_rate) as max_sess_3d from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime')
 		group by servers.ip ) as max_sess_3d,
 
 		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_1h from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
 		group by servers.ip)   as avg_cur_1h,
 
 		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_24h from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
 		group by servers.ip) as avg_cur_24h,
 
 		(select servers.ip,round(avg(metr.curr_con+metr.cur_ssl_con), 1) as avg_cur_3d from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime')
 		group by servers.ip ) as avg_cur_3d,
 
 		(select servers.ip,max(metr.curr_con) as max_con_1h from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-1 hours', 'localtime')
 		group by servers.ip)   as max_con_1h,
 
 		(select servers.ip,max(metr.curr_con) as max_con_24h from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-24 hours', 'localtime')
 		group by servers.ip) as max_con_24h,
 
 		(select servers.ip,max(metr.curr_con) as max_con_3d from servers
 		left join metrics as metr on metr.serv = servers.ip
-		where servers.metrics = 1 and
+		where servers.haproxy_metrics = 1 and
 		metr.date <= datetime('now', 'localtime') and metr.date >= datetime('now', '-3 days', 'localtime')
 		group by servers.ip ) as max_con_3d
 
@@ -491,7 +491,7 @@ def select_service_table_metrics(service: str, group_id: int):
 	if group_id == 1:
 		groups = ""
 	else:
-		groups = f"and servers.groups = '{group_id}' "
+		groups = f"and servers.group_id = '{group_id}' "
 
 	if mysql_enable == '1':
 		sql = """

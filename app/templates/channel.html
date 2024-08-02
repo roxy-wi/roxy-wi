@@ -4,7 +4,7 @@
 {% block content %}
 {% from 'include/input_macros.html' import input, select, copy_to_clipboard, checkbox %}
 <script src="{{ url_for('static', filename='js/channel.js') }}"></script>
-<script src="/app/static/js/fontawesome.min.js"></script>
+<script src="{{ url_for('static', filename='js/fontawesome.min.js') }}"></script>
 <div id="checker"></div>
 <script>
     loadChannel();

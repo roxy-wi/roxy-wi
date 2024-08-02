@@ -15,7 +15,7 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 			update_hapwi = Server.update(apache_alert=alert, apache_active=active, apache_metrics=metrics).where(
 				Server.server_id == server_id)
 		else:
-			update_hapwi = Server.update(alert=alert, metrics=metrics, active=active).where(
+			update_hapwi = Server.update(haproxy_alert=alert, haproxy_metrics=metrics, haproxy_active=active).where(
 				Server.server_id == server_id)
 		update_hapwi.execute()
 	except Exception as e:

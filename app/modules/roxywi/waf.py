@@ -1,4 +1,4 @@
-from flask import render_template, request
+from flask import render_template
 
 import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
@@ -10,11 +10,9 @@ import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 
 
-def waf_overview(serv, waf_service) -> str:
+def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
     servers = server_sql.select_servers(server=serv)
-    user_id = request.cookies.get('uuid')
-    group_id = int(request.cookies.get('group'))
-    role = user_sql.get_user_role_by_uuid(user_id, group_id)
+    role = user_sql.get_user_role_in_group(claims['user_id'], claims['group'])
     returned_servers = []
     waf = ''
     metrics_en = 0

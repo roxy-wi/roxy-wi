@@ -19,12 +19,9 @@ def select_checker_settings_for_server(service_id: int, server_id: int):
 		& (CheckerSetting.server_id == server_id)
 	)
 	try:
-		query_res = query.execute()
+		return query.execute()
 	except Exception as e:
 		out_error(e)
-		return
-	else:
-		return query_res
 
 
 def insert_new_checker_setting_for_server(server_ip: str) -> None:
@@ -121,10 +118,10 @@ def inset_or_update_service_status(server_id: int, service_id: int, service_chec
 def select_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
-			(Server.alert == 1) & (Server.enable == 1) & (Server.groups == kwargs.get('group'))
+			(Server.haproxy_alert == 1) & (Server.enabled == 1) & (Server.group_id == kwargs.get('group'))
 		)
 	else:
-		query = Server.select(Server.ip).where((Server.alert == 1) & (Server.enable == 1))
+		query = Server.select(Server.ip).where((Server.haproxy_alert == 1) & (Server.enabled == 1))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -136,10 +133,10 @@ def select_alert(**kwargs):
 def select_all_alerts(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
-			((Server.alert == 1) | (Server.nginx_alert == 1)) & (Server.enable == 1) & (Server.groups == kwargs.get('group'))
+			((Server.haproxy_alert == 1) | (Server.nginx_alert == 1)) & (Server.enabled == 1) & (Server.group_id == kwargs.get('group'))
 		)
 	else:
-		query = Server.select(Server.ip).where(((Server.alert == 1) | (Server.nginx_alert == 1)) & (Server.enable == 1))
+		query = Server.select(Server.ip).where(((Server.haproxy_alert == 1) | (Server.nginx_alert == 1)) & (Server.enabled == 1))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -152,14 +149,14 @@ def select_nginx_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
 			(Server.nginx_alert == 1)
-			& (Server.enable == 1)
-			& (Server.groups == kwargs.get('group'))
+			& (Server.enabled == 1)
+			& (Server.group_id == kwargs.get('group'))
 			& (Server.nginx == 1)
 		)
 	else:
 		query = Server.select(Server.ip).where(
 			(Server.nginx_alert == 1)
-			& (Server.enable == 1)
+			& (Server.enabled == 1)
 			& (Server.nginx == 1)
 		)
 	try:
@@ -174,12 +171,12 @@ def select_apache_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
 			(Server.apache_alert == 1)
-			& (Server.enable == 1)
-			& (Server.groups == kwargs.get('group'))
+			& (Server.enabled == 1)
+			& (Server.group_id == kwargs.get('group'))
 			& (Server.apache == 1)
 		)
 	else:
-		query = Server.select(Server.ip).where((Server.apache_alert == 1) & (Server.enable == 1) & (Server.apache == 1))
+		query = Server.select(Server.ip).where((Server.apache_alert == 1) & (Server.enabled == 1) & (Server.apache == 1))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -192,14 +189,14 @@ def select_keepalived_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
 			(Server.keepalived_alert == 1)
-			& (Server.enable == 1)
-			& (Server.groups == kwargs.get('group'))
+			& (Server.enabled == 1)
+			& (Server.group_id == kwargs.get('group'))
 			& (Server.keepalived == 1)
 		)
 	else:
 		query = Server.select(Server.ip).where(
 			(Server.keepalived_alert == 1)
-			& (Server.enable == 1)
+			& (Server.enabled == 1)
 			& (Server.keepalived == 1)
 		)
 	try:

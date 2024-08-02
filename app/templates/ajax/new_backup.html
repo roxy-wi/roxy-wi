@@ -37,7 +37,7 @@
 			<select id="backup-credentials-{{b.id}}" required>
 				<option disabled selected>Choose credentials</option>
 				{% for ssh in sshs %}
-					{% if ssh.enable == 1 %}
+					{% if ssh.key_enabled == 1 %}
 						{% if ssh.id == b.cred %}
 							<option value="{{ssh.id}}" selected="selected">{{ssh.name}}</option>
 						{% else %}

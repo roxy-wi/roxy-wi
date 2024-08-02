@@ -7,13 +7,13 @@
 	{% include 'include/no_sub.html' %}
 {% else %}
 <link href="{{ url_for('static', filename='css/table-6.3.9.css') }}" rel="stylesheet" type="text/css">
-<link href="/app/static/js/dataTables/buttons.dataTables.min.css" rel="stylesheet" type="text/css">
-<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables.min.js"></script>
-<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables/dataTables.buttons.min.js"></script>
-<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables/jszip.min.js"></script>
-<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables/pdfmake.min.js"></script>
-<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables/vfs_fonts.js"></script>
-<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables/buttons.html5.min.js"></script>
+<link href="/static/js/dataTables/buttons.dataTables.min.css" rel="stylesheet" type="text/css">
+<script type="text/javascript" charset="utf8" src="/static/js/dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/static/js/dataTables/dataTables.buttons.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/static/js/dataTables/jszip.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/static/js/dataTables/pdfmake.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/static/js/dataTables/vfs_fonts.js"></script>
+<script type="text/javascript" charset="utf8" src="/static/js/dataTables/buttons.html5.min.js"></script>
 <script>
     $(document).ready(function() {
         $('#table_history').on('page.dt')
@@ -57,7 +57,7 @@
         <td>
             {% for u in users %}
             {% if u.user_id == h.user_id %}
-            <a href="/app/history/user/{{u.user_id}}" title="Open history for {{u.username}}">{{ u.username }}</a>
+            <a href="/history/user/{{u.user_id}}" title="Open history for {{u.username}}">{{ u.username }}</a>
             {% endif %}
             {% endfor %}
         </td>
@@ -65,7 +65,7 @@
         <td>
             {% if h.server_ip != None %}
                 {% if h.service in ('haproxy', 'nginx', 'apache', 'keepalived') %}
-                    <a href="/app/service/{{h.service}}/{{h.server_ip}}" title="Open history for {{h.hostname}}">{{ h.hostname }}</a>
+                    <a href="/service/{{h.service}}/{{h.server_ip}}" title="Open history for {{h.hostname}}">{{ h.hostname }}</a>
                 {% elif h.service == 'HA cluster' %}
                     {{h.hostname}}
                 {% endif %}

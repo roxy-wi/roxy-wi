@@ -6,31 +6,14 @@
 </head>
 <body>
 <style>
-body, .container {
-	background-color: #fff;
-}
-.top-menu, .footer {
-	display: none !important;
-}
-.container {
-	margin: 0 !important;
-	width: 100% !important;
-	max-width: 100% !important;
-}
 #enter {
-	width: 220px !important;
-	padding: 10px !important;
-	background-color: #ededee !important;
-	font-weight: bold !important;
-}
-#main_div {
-	margin-top: 10%;
-	background-color: #239dee;
-}
-@supports (-moz-osx-font-smoothing: auto) {
-	#main_div {
-		background-color: #239dee;
-	}
+    width: 220px !important;
+    padding: 10px !important;
+    background-color: var(--background) !important;
+    font-weight: bold !important;
+    color: var(--color-wanring);
+    border: 1px solid var(--color-wanring) !important;
+    border-radius: var(--border-radius) !important;
 }
 .fontuser {
 	position: relative;
@@ -39,7 +22,7 @@ body, .container {
 	position: absolute;
 	left: 9px;
 	top: 10px;
-	color: #036bb0;
+	{#color: #036bb0;#}
 }
 .fontpassword {
 	position: relative;
@@ -49,7 +32,6 @@ body, .container {
 	position: absolute;
 	left: 9px;
 	top: 10px;
-	color: #036bb0;
 }
 .fontpassword span i {
 	position: absolute;
@@ -60,12 +42,13 @@ body, .container {
 	cursor: pointer;
 }
 </style>
+
 <div id="main_div">
-	<div id="login-form" style="padding-top: 40px; padding-bottom: 50px; height: 250px; color: #000;">
+	<div id="login-form">
 		<span id="logo_span">
 			<img src="{{ url_for('static', filename='images/logo_login.png')}}">
 		</span>
-		<form class="form-horizontal" id="auth" method="post" style="margin-top: 60px;left: 0;float: left;margin-left: 93px;">
+		<form class="form-horizontal" id="auth" method="post">
 			<div class="fontuser">
 				{{ input('login', class='form-login', placeholder=lang.words.login|title(), required='required', autofocus='autofocus') }}
 				<i class="fa fa-user fa-lg"></i>
@@ -81,13 +64,14 @@ body, .container {
 			</div>
 			<button type="submit" name="Login" value="Enter" id="enter">{{lang.words.login2|title()}}</button>
 		</form>
+    </div>
 		{% if error_log or error %}
-		<div class="alert alert-danger wrong-login alert-one-row" style="display: block">
+		<div class="alert alert-danger wrong-login alert-one-row" style="display: block; float: left;">
 			{{error_log}}
 			{{error}}
 		</div>
 		{% endif %}
-		<div class="alert alert-danger wrong-login alert-one-row" id="wrong-login">
+		<div class="alert alert-danger wrong-login alert-one-row" id="wrong-login" style="float: left;">
 			{{lang.phrases.login_or_pass_incorrect}}
 			<br />
 			<span id="ban_10">

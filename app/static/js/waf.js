@@ -1,27 +1,26 @@
-var waf = "/app/static/js/waf.js"
-function showOverviewWaf(serv, hostnamea) {
-	let service = cur_url[1];
+function showOverviewWaf(serv, hostname) {
+	let service = cur_url[0];
 	if (service == 'haproxy') {
-		$.getScript('/app/static/js/chart.min-4.3.0.js');
+		$.getScript('/static/js/chart.min-4.3.0.js');
 		showWafMetrics();
 	}
 	let i;
 	for (i = 0; i < serv.length; i++) {
-		showOverviewWafCallBack(serv[i], hostnamea[i])
+		showOverviewWafCallBack(serv[i], hostname[i])
 	}
 	$.getScript(overview);
 	$.getScript(waf);
 }
-function showOverviewWafCallBack(serv, hostnamea) {
-	let service = cur_url[1];
+function showOverviewWafCallBack(serv, hostname) {
+	let service = cur_url[0];
 	$.ajax({
-		url: "/app/waf/overview/" + service + "/" + serv,
+		url: "/waf/overview/" + service + "/" + serv,
 		beforeSend: function () {
-			$("#" + hostnamea).html('<img class="loading_small" src="/app/static/images/loading.gif" />');
+			$("#" + hostname).html('<img class="loading_small" src="/static/images/loading.gif" />');
 		},
 		success: function (data) {
-			$("#" + hostnamea).empty();
-			$("#" + hostnamea).html(data)
+			$("#" + hostname).empty();
+			$("#" + hostname).html(data)
 			$("input[type=submit], button").button();
 			$("input[type=checkbox]").checkboxradio();
 			$.getScript(overview);
@@ -36,7 +35,7 @@ function metrics_waf(name) {
 	}
 	name = name.split('metrics')[1]
 	$.ajax({
-		url: "/app/waf/metric/enable/" + enable + "/" + name,
+		url: "/waf/metric/enable/" + enable + "/" + name,
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
 			if (data.status === 'failed') {
@@ -53,9 +52,9 @@ function metrics_waf(name) {
 function installWaf(ip1) {
 	$("#ajax").html('');
 	$("#ajax").html(wait_mess);
-	let service = cur_url[1];
+	let service = cur_url[0];
 	$.ajax({
-		url: "/app/install/waf/" + service + "/" + ip1,
+		url: "/install/waf/" + service + "/" + ip1,
 		type: "POST",
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
@@ -73,9 +72,9 @@ function installWaf(ip1) {
 function changeWafMode(id) {
 	let waf_mode = $('#' + id + ' option:selected').val();
 	let server_hostname = id.split('_')[0];
-	let service = cur_url[1];
+	let service = cur_url[0];
 	$.ajax({
-		url: "/app/waf/" + service + "/mode/" + server_hostname + "/" + waf_mode,
+		url: "/waf/" + service + "/mode/" + server_hostname + "/" + waf_mode,
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
 			if (data.status === 'failed') {
@@ -103,7 +102,7 @@ function waf_rules_en(id) {
 	}
 	let serv = cur_url[2];
 	$.ajax({
-		url: "/app/waf/" + serv + "/rule/" + id + "/" + enable,
+		url: "/waf/" + serv + "/rule/" + id + "/" + enable,
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
 			if (data.status === 'failed') {
@@ -147,7 +146,7 @@ function addNewConfig() {
 					let new_rule_name = new_rule_name_id.val();
 					let new_rule_description = new_rule_description_id.val();
 					let new_rule_file = new_rule_name.replaceAll(' ', '_');
-					let service = cur_url[1];
+					let service = cur_url[0];
 					let serv = cur_url[2];
 					service = escapeHtml(service);
 					new_rule_name = escapeHtml(new_rule_name);
@@ -160,7 +159,7 @@ function addNewConfig() {
 						"new_rule_file": new_rule_file
 					}
 					$.ajax({
-						url: "/app/waf/" + service + "/" + serv + "/rule/create",
+						url: "/waf/" + service + "/" + serv + "/rule/create",
 						data: JSON.stringify(jsonData),
 						contentType: "application/json; charset=utf-8",
 						type: "POST",
@@ -168,7 +167,7 @@ function addNewConfig() {
 							if (data.status === 'failed') {
 								toastr.error(data.error);
 							} else {
-								window.location.replace("/app/waf/" + service + "/" + serv + "/rule/" + data.id);
+								window.location.replace("/waf/" + service + "/" + serv + "/rule/" + data.id);
 							}
 						}
 					});

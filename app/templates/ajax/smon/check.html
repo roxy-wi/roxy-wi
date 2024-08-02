@@ -19,7 +19,7 @@
     {% endif %}
 <div class="smon_services {{additional_classes}}" id="smon-{{ s.smon_id.id }}">
 <div class="ip server-name">
-    <a href="/app/smon/dashboard/{{s.smon_id.id}}/{{check_type_id}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{s.smon_id.name}} {{lang.words.host}}" class="link" id="smon-name-{{ s.smon_id.id }}">{{s.smon_id.name.strip("'")}}</a>
+    <a href="/smon/dashboard/{{s.smon_id.id}}/{{check_type_id}}" title="{{lang.words.view|title()}} {{lang.words.history}} {{lang.words.for}} {{s.smon_id.name}} {{lang.words.host}}" class="link" id="smon-name-{{ s.smon_id.id }}">{{s.smon_id.name.strip("'")}}</a>
     {% set agent_exist = [] %}
     {% for a in agents %}
         {% if a.id|string() == s.agent_id|string() %}
@@ -33,7 +33,7 @@
         <a class="edit" onclick="editSmon('{{s.smon_id.id}}', '{{ s.smon_id.check_type }}')"></a>
         <a class="add" onclick="cloneSmom({{s.smon_id.id}}, '{{ s.smon_id.check_type }}')" id="clone-{{s.smon_id.id}}" title="{{lang.words.clone|title()}} {{s.smon_id.name}}" style="cursor: pointer; color: #000;"></a>
         <a class="delete" onclick="confirmDeleteSmon({{s.smon_id.id}})" title="{{lang.words.delete|title()}} {{s.smon_id.name}}" style="cursor: pointer; color: #000;"></a>
-        <a href="/app/smon/history/host/{{s.smon_id.name}}" title="{{lang.words.view|title()}} {{lang.words.alerts}} {{lang.words.history}} {{lang.words.for}} {{s.smon_id.name}} {{lang.words.host}}" class="history"></a>
+        <a href="/smon/history/host/{{s.smon_id.name}}" title="{{lang.words.view|title()}} {{lang.words.alerts}} {{lang.words.history}} {{lang.words.for}} {{s.smon_id.name}} {{lang.words.host}}" class="history"></a>
     </span>
 </div>
 <div class="desc">

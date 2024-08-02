@@ -1,12 +1,13 @@
 from app.modules.db.db_model import mysql_enable, connect, Server, SystemInfo
 from app.modules.db.common import out_error
+from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
-def add_server(hostname, ip, group, typeip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
+def add_server(hostname, ip, group, type_ip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
 	try:
 		server_id = Server.insert(
-			hostname=hostname, ip=ip, groups=group, type_ip=typeip, enable=enable, master=master, cred=cred,
-			port=port, desc=desc, haproxy=haproxy, nginx=nginx, apache=apache, firewall_enable=firewall
+			hostname=hostname, ip=ip, group_id=group, type_ip=type_ip, enabled=enable, master=master, cred_id=cred,
+			port=port, description=desc, haproxy=haproxy, nginx=nginx, apache=apache, firewall_enable=firewall
 		).execute()
 		return server_id
 	except Exception as e:
@@ -24,11 +25,11 @@ def delete_server(server_id):
 		return True
 
 
-def update_server(hostname, group, typeip, enable, master, server_id, cred, port, desc, firewall, protected):
+def update_server(hostname, group, type_ip, enable, master, server_id, cred, port, desc, firewall, protected):
 	try:
 		server_update = Server.update(
-			hostname=hostname, groups=group, type_ip=typeip, enable=enable, master=master, cred=cred,
-			port=port, desc=desc, firewall_enable=firewall, protected=protected
+			hostname=hostname, group_id=group, type_ip=type_ip, enabled=enable, master=master, cred_id=cred,
+			port=port, description=desc, firewall_enable=firewall, protected=protected
 		).where(Server.server_id == server_id)
 		server_update.execute()
 	except Exception as e:
@@ -44,9 +45,20 @@ def get_hostname_by_server_ip(server_ip):
 		return hostname.hostname
 
 
-def get_server_by_id(server_id):
+def get_server_by_id(server_id: int) -> Server:
 	try:
 		return Server.get(Server.server_id == server_id)
+	except Server.DoesNotExist:
+		raise RoxywiResourceNotFound
+	except Exception as e:
+		return out_error(e)
+
+
+def get_server_by_ip(server_ip: str) -> Server:
+	try:
+		return Server.get(Server.ip == server_ip)
+	except Server.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		return out_error(e)
 
@@ -167,20 +179,19 @@ def select_servers(**kwargs):
 	cursor = conn.cursor()
 
 	if mysql_enable == '1':
-		sql = """select * from `servers` where `enable` = 1 ORDER BY servers.groups """
+		sql = """select * from `servers` where `enabled` = 1 ORDER BY servers.group_id """
 
 		if kwargs.get("server") is not None:
 			sql = """select * from `servers` where `ip` = '{}' """.format(kwargs.get("server"))
 		if kwargs.get("full") is not None:
 			sql = """select * from `servers` ORDER BY hostname """
 		if kwargs.get("get_master_servers") is not None:
-			sql = """select id,hostname from `servers` where `master` = 0 and type_ip = 0 and enable = 1 ORDER BY servers.groups """
-		if kwargs.get("get_master_servers") is not None and kwargs.get('uuid') is not None:
+			sql = """select id,hostname from `servers` where `master` = 0 and type_ip = 0 and enabled = 1 ORDER BY servers.group_id """
+		if kwargs.get("get_master_servers") is not None and kwargs.get('user_id') is not None:
 			sql = """ select servers.id, servers.hostname from `servers`
-				left join user as user on servers.groups = user.groups
-				left join uuid as uuid on user.id = uuid.user_id
-				where uuid.uuid = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups
-				""".format(kwargs.get('uuid'))
+				left join user as user on servers.group_id = user.group_id
+				where user.user_id = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enabled = 1 ORDER BY servers.group_id
+				""".format(kwargs.get('user_id'))
 		if kwargs.get("id"):
 			sql = """select * from `servers` where `id` = '{}' """.format(kwargs.get("id"))
 		if kwargs.get("hostname"):
@@ -189,22 +200,21 @@ def select_servers(**kwargs):
 			sql = """select * from `servers` where `hostname` ='{}' or id = '{}' or ip = '{}'""".format(
 				kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
 		if kwargs.get("server") and kwargs.get("keep_alive"):
-			sql = """select active from `servers` where `ip` = '{}' """.format(kwargs.get("server"))
+			sql = """select haproxy_active from `servers` where `ip` = '{}' """.format(kwargs.get("server"))
 	else:
-		sql = """select * from servers where enable = '1' ORDER BY servers.groups """
+		sql = """select * from servers where enabled = '1' ORDER BY servers.group_id """
 
 		if kwargs.get("server") is not None:
 			sql = """select * from servers where ip = '{}' """.format(kwargs.get("server"))
 		if kwargs.get("full") is not None:
 			sql = """select * from servers ORDER BY hostname """
 		if kwargs.get("get_master_servers") is not None:
-			sql = """select id,hostname from servers where master = 0 and type_ip = 0 and enable = 1 ORDER BY servers.groups """
-		if kwargs.get("get_master_servers") is not None and kwargs.get('uuid') is not None:
+			sql = """select id,hostname from servers where master = 0 and type_ip = 0 and enabled = 1 ORDER BY servers.group_id """
+		if kwargs.get("get_master_servers") is not None and kwargs.get('user_id') is not None:
 			sql = """ select servers.id, servers.hostname from servers
-				left join user as user on servers.groups = user.groups
-				left join uuid as uuid on user.id = uuid.user_id
-				where uuid.uuid = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enable = 1 ORDER BY servers.groups
-				""".format(kwargs.get('uuid'))
+				left join user as user on servers.group_id = user.group_id
+				where user.user_id = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enabled = 1 ORDER BY servers.group_id
+				""".format(kwargs.get('user_id'))
 		if kwargs.get("id"):
 			sql = """select * from servers where id = '{}' """.format(kwargs.get("id"))
 		if kwargs.get("hostname"):
@@ -213,7 +223,7 @@ def select_servers(**kwargs):
 			sql = """select * from servers where hostname = '{}' or id = '{}' or ip = '{}'""".format(
 				kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
 		if kwargs.get("server") and kwargs.get("keep_alive"):
-			sql = """select active from servers where ip = '{}' """.format(kwargs.get("server"))
+			sql = """select haproxy_active from servers where ip = '{}' """.format(kwargs.get("server"))
 
 	try:
 		cursor.execute(sql)
@@ -225,7 +235,7 @@ def select_servers(**kwargs):
 
 def get_dick_permit(group_id, **kwargs):
 	only_group = kwargs.get('only_group')
-	disable = 'enable = 1'
+	disable = 'enabled = 1'
 	haproxy = ''
 	nginx = ''
 	keepalived = ''
@@ -237,7 +247,7 @@ def get_dick_permit(group_id, **kwargs):
 	else:
 		type_ip = "and type_ip = 0"
 	if kwargs.get('disable') == 0:
-		disable = '(enable = 1 or enable = 0)'
+		disable = '(enabled = 1 or enabled = 0)'
 	if kwargs.get('ip'):
 		ip = "and ip = '%s'" % kwargs.get('ip')
 	if kwargs.get('haproxy') or kwargs.get('service') == 'haproxy':
@@ -255,12 +265,12 @@ def get_dick_permit(group_id, **kwargs):
 			if group_id == '1' and not only_group:
 				sql = f" select * from `servers` where {disable} {type_ip} {nginx} {haproxy} {keepalived} {apache} {ip} order by `pos` asc"
 			else:
-				sql = f" select * from `servers` where `groups` = {group_id} and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by `pos` asc"
+				sql = f" select * from `servers` where `group_id` = {group_id} and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by `pos` asc"
 		else:
 			if group_id == '1' and not only_group:
 				sql = f" select * from servers where {disable} {type_ip} {nginx} {haproxy} {keepalived} {apache} {ip} order by pos"
 			else:
-				sql = f" select * from servers where groups = '{group_id}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos"
+				sql = f" select * from servers where group_id = '{group_id}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos"
 
 	except Exception as e:
 		raise Exception(f'error: {e}')
@@ -293,8 +303,19 @@ def is_master(ip, **kwargs):
 		return cursor.fetchall()
 
 
-def get_server(server_id: int) -> Server:
+def get_server_with_group(server_id: int, group_id: int) -> Server:
 	try:
-		return Server.get(Server.server_id == server_id)
+		return Server.get((Server.server_id == server_id) & (Server.group_id == group_id))
+	except Server.DoesNotExist:
+		raise RoxywiResourceNotFound
+	except Exception as e:
+		out_error(e)
+
+
+def select_servers_with_group(group_id: int) -> Server:
+	try:
+		return Server.select().where(Server.group_id == group_id)
+	except Server.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)

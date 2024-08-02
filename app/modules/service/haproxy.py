@@ -234,12 +234,12 @@ def show_map(serv: str) -> str:
         nx.draw_networkx_edge_labels(G, pos, alpha=0.4, label_pos=0.5, font_color="#5d9ceb", edge_labels=edge_labels,
                                      font_size=8)
 
-        plt.savefig("/var/www/haproxy-wi/map.png")
+        plt.savefig("/var/www/haproxy-wi/app/static/map.png")
         plt.show()
     except Exception as e:
         return f'error: Cannot create a map: {e}'
 
-    output += '<img src="/map.png" alt="map"></center>'
+    output += '<img src="/static/map.png" alt="map"></center>'
     return output
 
 

@@ -1,10 +1,8 @@
 import os
-import sys
 
-from flask import render_template, request, session, g, abort, jsonify
-from flask_login import login_required
-
-sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/app'))
+from flask import render_template, request, g, abort, jsonify, redirect, url_for, send_from_directory
+from flask_jwt_extended import jwt_required
+from flask_pydantic.exceptions import ValidationError
 
 from app import app, cache
 from app.routes.main import bp
@@ -20,6 +18,7 @@ import app.modules.roxywi.nettools as nettools_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
 import app.modules.service.haproxy as service_haproxy
+from app.modules.roxywi.class_models import ErrorResponse
 
 
 @app.template_filter('strftime')
@@ -27,9 +26,37 @@ def _jinja2_filter_datetime(date, fmt=None):
     return common.get_time_zoned_date(date, fmt)
 
 
+@app.errorhandler(ValidationError)
+def handle_pydantic_validation_errors1(e):
+    errors = []
+    if e.body_params:
+        req_type = e.body_params
+    elif e.form_params:
+        req_type = e.form_params
+    elif e.path_params:
+        req_type = e.path_params
+    else:
+        req_type = e.query_params
+    for er in req_type:
+        if len(er["loc"]) > 0:
+            errors.append(f'{er["loc"][0]}: {er["msg"]}')
+        else:
+            errors.append(er["msg"])
+    return ErrorResponse(error=errors).model_dump(mode='json'), 400
+
+
+@app.errorhandler(401)
+def no_auth(e):
+    if 'api' in request.url:
+        return jsonify({'error': str(e)}), 401
+    return redirect(url_for('login_page'))
+
+
 @app.errorhandler(403)
 @get_user_params()
 def page_is_forbidden(e):
+    if 'api' in request.url:
+        return jsonify({'error': str(e)}), 403
     kwargs = {
         'user_params': g.user_params,
         'title': e,
@@ -41,6 +68,8 @@ def page_is_forbidden(e):
 @app.errorhandler(404)
 @get_user_params()
 def page_not_found(e):
+    if 'api' in request.url:
+        return jsonify({'error': str(e)}), 404
     kwargs = {
         'user_params': g.user_params,
         'title': e,
@@ -52,6 +81,8 @@ def page_not_found(e):
 @app.errorhandler(405)
 @get_user_params()
 def method_not_allowed(e):
+    if 'api' in request.url:
+        return jsonify({'error': str(e)}), 405
     kwargs = {
         'user_params': g.user_params,
         'title': e,
@@ -63,6 +94,8 @@ def method_not_allowed(e):
 @app.errorhandler(500)
 @get_user_params()
 def internal_error(e):
+    if 'api' in request.url:
+        return jsonify({'error': str(e)}), 500
     kwargs = {
         'user_params': g.user_params,
         'title': e,
@@ -71,19 +104,19 @@ def internal_error(e):
     return render_template('error.html', **kwargs), 500
 
 
-@app.before_request
-def make_session_permanent():
-    session.permanent = True
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory(os.path.join(app.root_path, 'static'),
+                               'images/favicon/favicon.ico', mimetype='image/vnd.microsoft.icon')
 
 
 @bp.route('/stats/<service>/', defaults={'serv': None})
 @bp.route('/stats/<service>/<serv>')
-@login_required
+@jwt_required()
 @check_services
 @get_user_params()
 def stats(service, serv):
     kwargs = {
-        'autorefresh': 1,
         'serv': serv,
         'service': service,
         'service_desc': service_sql.select_service(service),
@@ -93,7 +126,7 @@ def stats(service, serv):
 
 
 @bp.route('/stats/view/<service>/<server_ip>')
-@login_required
+@jwt_required()
 @check_services
 def show_stats(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
@@ -111,14 +144,14 @@ def show_stats(service, server_ip):
 
 
 @bp.route('/nettools')
-@login_required
+@jwt_required()
 @get_user_params(1)
 def nettools():
     return render_template('nettools.html', lang=g.user_params['lang'])
 
 
 @bp.post('/nettools/<check>')
-@login_required
+@jwt_required()
 def nettools_check(check):
     server_from = common.checkAjaxInput(request.form.get('server_from'))
     server_to = common.is_ip_or_dns(request.form.get('server_to'))
@@ -154,7 +187,7 @@ def nettools_check(check):
 
 
 @bp.route('/history/<service>/<server_ip>')
-@login_required
+@jwt_required()
 @get_user_params()
 def service_history(service, server_ip):
     history = ''

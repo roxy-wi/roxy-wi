@@ -1,7 +1,7 @@
 import os
 
 from flask import render_template, request, g, abort, jsonify
-from flask_login import login_required
+from flask_jwt_extended import jwt_required, get_jwt
 
 from app.routes.waf import bp
 import app.modules.db.sql as sql
@@ -18,7 +18,7 @@ get_config = roxy_wi_tools.GetConfigVar()
 
 
 @bp.before_request
-@login_required
+@jwt_required()
 def before_request():
     """ Protect all the admin endpoints. """
     pass
@@ -218,7 +218,9 @@ def overview_waf(service, server_ip):
     if service not in ('haproxy', 'nginx'):
         return 'error: Wrong service'
 
-    return roxy_waf.waf_overview(server_ip, service)
+    claims = get_jwt()
+
+    return roxy_waf.waf_overview(server_ip, service, claims)
 
 
 @bp.route('/metric/enable/<int:enable>/<server_name>')

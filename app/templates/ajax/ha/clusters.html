@@ -3,9 +3,9 @@
 {% for cluster in clusters %}
 <div id="cluster-{{cluster.id}}" class="div-server-hapwi">
     <div class="server-name">
-        <a href="/app/ha/cluster/{{cluster.id}}" style="color: #5d9ceb" title="{{lang.words.open|title()}} {{lang.words.cluster|replace("'", "")}}">
+        <a href="/ha/cluster/{{cluster.id}}" title="{{lang.words.open|title()}} {{lang.words.cluster|replace("'", "")}}">
             <span id="cluster-name-{{cluster.id}}">{{cluster.name}}</span>
-            <span id="cluster-desc-{{cluster.id}}">{% if cluster.desc != '' %} ({{cluster.desc|replace("'", "")}}) {% endif %}</span>
+            <span id="cluster-desc-{{cluster.id}}">{% if cluster.desc != '' %} ({{cluster.description|replace("'", "")}}) {% endif %}</span>
         </a>
         <span class="server-action">
             {% if g.user_params['role'] <= 3 %}
@@ -59,7 +59,7 @@
                 {% if c_s.cluster_id|string() == cluster.id|string() %}
                 {% for service in services %}
                 {% if c_s.service_id|string() == service.service_id|string() %}
-                <a href="/app/service/{{service.slug}}">{{service.service}}</a>
+                <a href="/service/{{service.slug}}">{{service.service}}</a>
                 {% endif %}
                 {% endfor %}
                 {% endif %}

@@ -1,6 +1,6 @@
 import distro
 from flask import render_template, request, g
-from flask_login import login_required
+from flask_jwt_extended import jwt_required, get_jwt
 
 from app import cache
 from app.routes.service import bp
@@ -13,15 +13,22 @@ import app.modules.db.service as service_sql
 from app.middleware import check_services, get_user_params
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
-import app.modules.service.action as service_action
 import app.modules.service.common as service_common
 import app.modules.service.keepalived as keepalived
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxywi.overview as roxy_overview
+from app.views.service.views import ServiceActionView, ServiceBackendView, ServiceView
 
+
+bp.add_url_rule('/<service>/<server_id>/<any(start, stop, reload, restart):action>', view_func=ServiceActionView.as_view('service_action_ip'), methods=['GET'])
+bp.add_url_rule('/<service>/<int:server_id>/<any(start, stop, reload, restart):action>', view_func=ServiceActionView.as_view('service_action'), methods=['GET'])
+bp.add_url_rule('/<service>/<server_id>/backend', view_func=ServiceBackendView.as_view('service_backend_ip'), methods=['GET'])
+bp.add_url_rule('/<service>/<int:server_id>/backend', view_func=ServiceBackendView.as_view('service_backend'), methods=['GET'])
+bp.add_url_rule('/<service>/<server_id>/status', view_func=ServiceView.as_view('service_ip'), methods=['GET'])
+bp.add_url_rule('/<service>/<int:server_id>/status', view_func=ServiceView.as_view('service'), methods=['GET'])
 
 @bp.before_request
-@login_required
+@jwt_required()
 def before_request():
     """ Protect all the admin endpoints. """
     pass
@@ -178,22 +185,22 @@ def services(service, serv):
     return render_template('service.html', **kwargs)
 
 
-@bp.post('/action/<service>/check-service')
-def check_service(service):
-    user_uuid = request.cookies.get('uuid')
-    server_ip = common.checkAjaxInput(request.form.get('server_ip'))
-
-    try:
-        return service_action.check_service(server_ip, user_uuid, service)
-    except Exception:
-        return 'logout'
-
-
-@bp.route('/action/<service>/<server_ip>/<action>', methods=['GET'])
-def action_service(service, server_ip, action):
-    server_ip = common.is_ip_or_dns(server_ip)
-
-    return service_action.common_action(server_ip, action, service)
+# @bp.post('/action/<service>/check-service')
+# def check_service(service):
+#     claims = get_jwt()
+#     server_ip = common.checkAjaxInput(request.form.get('server_ip'))
+#
+#     try:
+#         return service_action.check_service(server_ip, claims['user_id'], service)
+#     except Exception:
+#         return 'logout'
+#
+#
+# @bp.route('/action/<service>/<server_ip>/<action>', methods=['GET'])
+# def action_service(service, server_ip, action):
+#     server_ip = common.is_ip_or_dns(server_ip)
+#
+#     return service_action.common_action(server_ip, action, service)
 
 
 @bp.route('/<service>/<server_ip>/last-edit')
@@ -222,11 +229,10 @@ def cpu_ram_metrics(server_ip, server_id, name, service):
         return_out = ''
 
     servers = [[name, server_ip, return_out]]
-    user_id = request.cookies.get('uuid')
-    group_id = int(request.cookies.get('group'))
+    claims = get_jwt()
     kwargs = {
         'service_status': sorted(servers, key=common.get_key),
-        'role': user_sql.get_user_role_by_uuid(user_id, group_id),
+        'role': user_sql.get_user_role_in_group(claims['user_id'], claims['group']),
         'id': server_id,
         'service_page': service,
         'lang': g.user_params['lang']
@@ -271,26 +277,26 @@ def show_keepalived_become_master():
     server_ip = common.is_ip_or_dns(request.form.get('keepalivedBecameMaster'))
 
     return roxy_overview.keepalived_became_master(server_ip)
-
-
-@bp.route('/<service>/backends/<server_ip>')
-@cache.cached()
-def show_service_backends(service, server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
-
-    return service_common.overview_backends(server_ip, service)
+#
+#
+# @bp.route('/<service>/backends/<server_ip>')
+# @cache.cached()
+# def show_service_backends(service, server_ip):
+#     server_ip = common.is_ip_or_dns(server_ip)
+#
+#     return service_common.overview_backends(server_ip, service)
 
 
 @bp.route('/position/<int:server_id>/<int:pos>')
 def change_pos(server_id, pos):
     return server_sql.update_server_pos(pos, server_id)
 
-
-@bp.route('/haproxy/version/<server_ip>')
-def get_haproxy_v(server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
-
-    return service_common.check_haproxy_version(server_ip)
+#
+# @bp.route('/haproxy/version/<server_ip>')
+# def get_haproxy_v(server_ip):
+#     server_ip = common.is_ip_or_dns(server_ip)
+#
+#     return service_common.check_haproxy_version(server_ip)
 
 
 @bp.route('/settings/<service>/<int:server_id>')

@@ -29,13 +29,12 @@
 </form>
 
 <div id="ajax" style="margin-left: 15px; margin-right: 5px;"></div>
-<script> 
-	if (cur_url[2]) {
+<script>
+	if (cur_url != '') {
 		showStats();		
 	}	
 	async function wait() {
 		$('form').append('<input type="hidden" name="serv" value='+$("#serv").val()+'>');
-		$('form').append('<input type="hidden" name="token" value='+$('#token').val()+'>');
 		$( "input[type=submit], button" ).button();
 		$('#notice').hide();
 		$('.active_going_down').hide();
@@ -56,7 +55,7 @@
 		$('th').css('padding-top', '4px');
 		$('th').css('padding-bottom', '4px');
 		$('h2').css('font-style', 'inherit');
-		$('h2').css('color', '#fff');
+		$('h2').css('color', '#000');
 		$('h2').css('font-size', '1.5em');
 		if ($('#service').val() != 'apache') {
 			$('h1').css('display', 'none');
@@ -132,7 +131,7 @@
 	  $("form").submit(function() {
 		$.ajax({
 			type: "post",
-			url: "/app/runtimeapi/stats/action/" + $('#serv').val(),
+			url: "/runtimeapi/stats/action/" + $('#serv').val(),
 			dataType: "text",
 			data: $(this).serialize(),
 			success: function( data ) {
@@ -146,6 +145,6 @@
 		showStats();		
 	});
 </script>
-<link href="{{ url_for('static', filename='css/style-6.3.9.css') }}" rel="stylesheet">
+<link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
 {% endif %}
 {% endblock %}

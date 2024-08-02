@@ -1,7 +1,7 @@
 import os
 
 from flask import render_template, request, jsonify, redirect, url_for, g
-from flask_login import login_required
+from flask_jwt_extended import jwt_required, get_jwt
 
 from app.routes.add import bp
 import app.modules.db.sql as sql
@@ -17,7 +17,7 @@ get_config = roxy_wi_tools.GetConfigVar()
 
 
 @bp.before_request
-@login_required
+@jwt_required()
 def before_request():
     """ Protect all the admin endpoints. """
     pass
@@ -41,7 +41,8 @@ def add(service):
     }
 
     if service == 'haproxy':
-        user_group = request.cookies.get('group')
+        claims = get_jwt()
+        user_group = claims['group']
         lib_path = get_config.get_config_var('main', 'lib_path')
         list_dir = lib_path + "/lists"
         white_dir = lib_path + "/lists/" + user_group + "/white"

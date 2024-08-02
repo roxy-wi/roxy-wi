@@ -3,7 +3,7 @@ import time
 
 import distro
 from flask import render_template, request, jsonify, g, Response, stream_with_context
-from flask_login import login_required
+from flask_jwt_extended import jwt_required
 
 from app.routes.metric import bp
 import app.modules.db.server as server_sql
@@ -17,7 +17,7 @@ import app.modules.roxywi.common as roxywi_common
 
 
 @bp.before_request
-@login_required
+@jwt_required()
 def before_request():
     """ Protect all the admin endpoints. """
     pass

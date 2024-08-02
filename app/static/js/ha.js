@@ -72,16 +72,21 @@ function confirmDeleteCluster(cluster_id) {
 }
 function deleteCluster(cluster_id) {
 	$.ajax({
-		url: "/app/ha/cluster",
+		url: api_prefix + "/ha/cluster/" + cluster_id,
 		type: "DELETE",
-		data: {
-			cluster_id: cluster_id,
+		statusCode: {
+			204: function (xhr) {
+				$("#cluster-" + cluster_id).remove();
+			},
+			404: function (xhr) {
+				$("#cluster-" + cluster_id).remove();
+			}
 		},
 		success: function (data) {
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				$("#cluster-" + cluster_id).remove();
+			if (data) {
+				if (data.status === "failed") {
+					toastr.error(data);
+				}
 			}
 		}
 	});
@@ -92,7 +97,7 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 	if (clean) {
 		clearClusterDialog(edited);
 		$.ajax({
-			url: "/app/ha/cluster/masters",
+			url: "/ha/cluster/masters",
 			async: false,
 			type: "GET",
 			success: function (data) {
@@ -118,13 +123,13 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 		$('#ha-cluster-master').selectmenu("refresh");
 		get_keepalived_ver($('#cur_master_ver'), master_ip);
 		$.ajax({
-			url: "/app/ha/cluster/settings/" + cluster_id,
+			url: api_prefix + "/ha/cluster/" + cluster_id,
 			type: "GET",
 			async: false,
 			success: function (data) {
 				let clusterSettings = JSON.parse(JSON.stringify(data));
-				$('#ha-cluster-name').val(clusterSettings.name);
-				$('#ha-cluster-desc').val(clusterSettings.desc);
+				$('#ha-cluster-name').val(clusterSettings.name.replaceAll("'", ""));
+				$('#ha-cluster-desc').val(clusterSettings.description.replaceAll("'", ""));
 				$('#ha-cluster-master-interface').val(clusterSettings.eth);
 				$('#vrrp-ip').val(clusterSettings.vip);
 				if (clusterSettings.haproxy) {
@@ -137,10 +142,10 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 				} else {
 					$('#nginx').prop('checked', false);
 				}
-				if (clusterSettings.return_to_master) {
-					$('#return_to_master').prop('checked', true);
+				if (clusterSettings.return_master) {
+					$('#return_master').prop('checked', true);
 				} else {
-					$('#return_to_master').prop('checked', false);
+					$('#return_master').prop('checked', false);
 				}
 				if (clusterSettings.syn_flood) {
 					$('#syn_flood').prop('checked', true);
@@ -162,7 +167,7 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 		});
 	}
 	$.ajax({
-		url: "/app/ha/cluster/slaves/servers/" + cluster_id,
+		url: "/ha/cluster/slaves/servers/" + cluster_id,
 		async: false,
 		type: "GET",
 		success: function (data) {
@@ -282,7 +287,7 @@ function createHaClusterStep2(edited=false, cluster_id=0, jsonData='') {
 }
 function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	let virt_server = 0;
-	let return_to_master = 0;
+	let return_master = 0;
 	let syn_flood = 0;
 	let use_src = 0;
 	let hap = 0;
@@ -291,14 +296,12 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	let nginx_docker = 0;
 	let apache = 0;
 	let req_method = 'POST';
-	if (edited) {
-		req_method = 'PUT';
-	}
+	let url = api_prefix + '/ha/cluster';
 	if ($('#virt_server').is(':checked')) {
 		virt_server = '1';
 	}
-	if ($('#return_to_master').is(':checked')) {
-		return_to_master = '1';
+	if ($('#return_master').is(':checked')) {
+		return_master = '1';
 	}
 	if ($('#syn_flood').is(':checked')) {
 		syn_flood = '1';
@@ -321,12 +324,15 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	if ($('#apache').is(':checked')) {
 		apache = '1';
 	}
-	jsonData['cluster_id'] = cluster_id;
+	if (edited) {
+		req_method = 'PUT';
+		url = api_prefix + '/ha/cluster/' + cluster_id;
+	}
 	jsonData['name'] = $('#ha-cluster-name').val();
-	jsonData['desc'] = $('#ha-cluster-desc').val();
+	jsonData['description'] = $('#ha-cluster-desc').val();
 	jsonData['vip'] = $('#vrrp-ip').val();
 	jsonData['virt_server'] = virt_server;
-	jsonData['return_to_master'] = return_to_master;
+	jsonData['return_master'] = return_master;
 	jsonData['syn_flood'] = syn_flood;
 	jsonData['use_src'] = use_src;
 	jsonData['services'] = {'haproxy': {'enabled': hap, 'docker': hap_docker}};
@@ -334,7 +340,7 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	jsonData['services']['apache'] = {'enabled': apache, 'docker': 0};
 	jsonData['router_id'] = $('#router_id-' + cluster_id).val();
 	$.ajax({
-		url: "/app/ha/cluster",
+		url: url,
 		type: req_method,
 		async: false,
 		data: JSON.stringify(jsonData),
@@ -344,7 +350,7 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 				toastr.error(data.error);
 			} else {
 				if (!edited) {
-					cluster_id = data.cluster_id;
+					cluster_id = data.id;
 					getHaCluster(cluster_id, true);
 				} else {
 					getHaCluster(cluster_id);
@@ -432,7 +438,7 @@ function installServiceCluster(jsonData, service, progress_step, cluster_id) {
 	let nice_service_name = {'keepalived': 'HA Custer', 'haproxy': 'HAProxy', 'nginx': 'NGINX', 'apache': 'Apache'};
 	$('#server_creating_list').append('<li id="' + li_id + servers['cluster_id'] + '" class="server-creating proccessing">' + install_mess + ' ' + nice_service_name[service] + '</li>');
 	return $.ajax({
-		url: "/app/install/" + service,
+		url: "/install/" + service,
 		type: "POST",
 		data: JSON.stringify(servers),
 		contentType: "application/json; charset=utf-8",
@@ -446,8 +452,7 @@ function installServiceCluster(jsonData, service, progress_step, cluster_id) {
 		},
 		success: function (data) {
 			if (data.status === 'failed') {
-				toastr.error(data.error);
-				toastr.error(data);
+				showErrorStatus(nice_service_name[service], servers["name"], li_id, servers['cluster_id'], progress_step, something_wrong);
 			} else {
 				checkInstallResp(data, servers['cluster_id'], progress_step, servers["name"], li_id, nice_service_name[service]);
 			}
@@ -467,7 +472,6 @@ function checkInstallResp(output, server_id, progress_step, name, li_id, service
 	output = JSON.parse(JSON.stringify(output));
 	let was_installed = translate_div.attr('data-was_installed');
 	let something_wrong = translate_div.attr('data-something_wrong');
-	// let check_apache_log = translate_div.attr('data-check_apache_log');
 	for (let k in output['ok']) {
 		$('#' + li_id + server_id).removeClass('proccessing');
 		$('#' + li_id + server_id).addClass('proccessing_done');
@@ -504,15 +508,15 @@ function add_vip_ha_cluster(cluster_id, cluster_name, router_id='', vip='', edit
 	let req_method = 'GET';
 	if (edited) {
 		$.ajax({
-			url: "/app/ha/cluster/settings/" + cluster_id + "/vip/" + router_id,
+			url: api_prefix + "/ha/cluster/" + cluster_id + "/vip/" + router_id,
 			type: "GET",
 			async: false,
 			success: function (data) {
 				let clusterSettings = JSON.parse(JSON.stringify(data));
-				if (clusterSettings.return_to_master) {
-					$('#vrrp-ip-add-return_to_master').prop('checked', true);
+				if (clusterSettings.return_master) {
+					$('#vrrp-ip-add-return_master').prop('checked', true);
 				} else {
-					$('#vrrp-ip-add-return_to_master').prop('checked', false);
+					$('#vrrp-ip-add-return_master').prop('checked', false);
 				}
 				if (clusterSettings.virt_server) {
 					$('#vrrp-ip-add-virt_server').prop('checked', true);
@@ -588,7 +592,7 @@ function add_vip_ha_cluster(cluster_id, cluster_name, router_id='', vip='', edit
 		}]
 	}
 	$.ajax({
-		url: "/app/ha/cluster/slaves/" + cluster_id,
+		url: "/ha/cluster/slaves/" + cluster_id,
 		data: {
 			router_id: router_id,
 		},
@@ -626,11 +630,11 @@ function add_vip_ha_cluster(cluster_id, cluster_name, router_id='', vip='', edit
 }
 function saveVip(jsonData, cluster_id, dialog_id, cluster_name, edited, router_id='', vip='', deleted=false) {
 	let req_type = 'POST'
-	let return_to_master = 0
+	let return_master = 0
 	let virt_server = 0
 	let use_src = 0
-	if ($('#vrrp-ip-add-return_to_master').is(':checked')) {
-		return_to_master = '1';
+	if ($('#vrrp-ip-add-return_master').is(':checked')) {
+		return_master = '1';
 	}
 	if ($('#vrrp-ip-add-virt_server').is(':checked')) {
 		virt_server = '1';
@@ -639,30 +643,45 @@ function saveVip(jsonData, cluster_id, dialog_id, cluster_name, edited, router_i
 		use_src = '1';
 	}
 	jsonData['vip'] = $('#vrrp-ip-add').val();
-	jsonData['return_to_master'] = return_to_master;
+	jsonData['return_master'] = return_master;
 	jsonData['virt_server'] = virt_server;
 	jsonData['use_src'] = use_src;
 	jsonData['name'] = cluster_name;
+	let url = api_prefix + "/ha/cluster/" + cluster_id + "/vip";
 	if (edited) {
 		req_type = 'PUT';
 		jsonData['router_id'] = router_id;
 	}
 	if (deleted) {
 		req_type = 'DELETE';
-		jsonData['router_id'] = router_id;
+		url = api_prefix + "/ha/cluster/" + router_id + "/vip"
 	}
 	$.ajax({
-		url: "/app/ha/cluster/" + cluster_id + "/vip",
+		url: url,
 		data: JSON.stringify(jsonData),
 		contentType: "application/json; charset=utf-8",
 		type: req_type,
-		success: function (data) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
+		statusCode: {
+			204: function (xhr) {
 				getHaCluster(cluster_id);
 				dialog_id.dialog('destroy');
 				clearClusterDialog();
+			},
+			404: function (xhr) {
+				getHaCluster(cluster_id);
+				dialog_id.dialog('destroy');
+				clearClusterDialog();
+			}
+		},
+		success: function (data) {
+			if (data) {
+				if (data.status === "failed") {
+					toastr.error(data);
+				} else {
+					getHaCluster(cluster_id);
+					dialog_id.dialog('destroy');
+					clearClusterDialog();
+				}
 			}
 		}
 	});
@@ -671,7 +690,7 @@ function get_interface(input_id, server_ip) {
 	input_id.autocomplete({
 		source: function (request, response) {
 			$.ajax({
-				url: "/app/server/show/if/" + server_ip,
+				url: "/server/show/if/" + server_ip,
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
@@ -688,16 +707,16 @@ function get_interface(input_id, server_ip) {
 }
 function get_keepalived_ver(div_id, server_ip) {
 	$.ajax({
-		url: "/app/install/keepalived/version/" + server_ip,
+		url: api_prefix + "/service/keepalived/" + server_ip + "/status",
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			data = data.replace(/^\s+|\s+$/g, '');
-			if (data.indexOf('error:') != '-1') {
-				let p_err = show_pretty_ansible_error(data);
+			if (data.status === 'failed') {
+				let p_err = show_pretty_ansible_error(data.error);
 				toastr.error(p_err);
-			} else if (data.indexOf('keepalived:') != '-1') {
+			} else if (!data.Version) {
 				div_id.text('Keepalived has not installed');
 			} else {
-				div_id.text(data);
+				div_id.text(data.Version);
 				div_id.css('font-weight', 'bold');
 			}
 		}
@@ -740,19 +759,20 @@ function removeCheckFromStatus(server_id, server_ip) {
 }
 function createJsonCluster(div_id) {
 	let jsonData = {};
-	jsonData = {'servers': {}};
-	jsonData['servers'][1] = {
+	jsonData = {'servers': []};
+	jsonData['servers'].push({
+		'id': 1,
 		'eth': $('#ha-cluster-master-interface').val(),
 		'ip': $('#ha-cluster-master option:selected').val(),
 		'name': $('#ha-cluster-master option:selected').text(),
 		'master': 1
-	};
+	});
 	$(div_id).each(function () {
 		let this_id = $(this).attr('id').split('-')[1];
 		let eth = $('#slave_int-' + this_id).val();
 		let ip = $('#slave_int_div-' + this_id).attr('data-ip');
 		let name = $('#slave_int_div-' + this_id).parent().text().replace('\n','').replace('\t','').trim();
-		jsonData['servers'][this_id] = {'eth': eth, 'ip': ip, 'name': name, 'master': 0};
+		jsonData['servers'].push({'id': this_id, 'eth': eth, 'ip': ip, 'name': name, 'master': 0});
 	});
 	return jsonData;
 }
@@ -801,7 +821,7 @@ function clearClusterDialog(edited=0) {
 	$('#vrrp-ip-edit').val('');
 	$('#cur_master_ver').text('');
 	$('#virt_server').prop('checked', true);
-	$('#return_to_master').prop('checked', true);
+	$('#return_master').prop('checked', true);
 	$('#use_src').prop('checked', false);
 	$('#hap').prop('checked', false);
 	$('#hap_docker').prop('checked', false);
@@ -818,7 +838,7 @@ function clearClusterDialog(edited=0) {
 }
 function getHaCluster(cluster_id, new_cluster=false) {
 	$.ajax({
-		url: "/app/ha/cluster/get/" + cluster_id,
+		url: "/ha/cluster/get/" + cluster_id,
 		success: function (data) {
 			data = data.replace(/^\s+|\s+$/g, '');
 			if (data.indexOf('error:') != '-1') {

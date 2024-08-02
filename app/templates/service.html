@@ -3,10 +3,10 @@
 {% block h2 %}{{ lang.menu_links.hapservers.h2 }} {{ service_desc.service }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
-<script src="/app/static/js/overview.js"></script>
+<script src="/static/js/overview.js"></script>
 <link href="{{ url_for('static', filename='css/chart.min.css') }}" rel="stylesheet">
-<script src="/app/static/js/metrics.js"></script>
-<script src="/app/static/js/chart.min-4.3.0.js"></script>
+<script src="/static/js/metrics.js"></script>
+<script src="/static/js/chart.min-4.3.0.js"></script>
 {% if servers|length == 0 %} {% include 'include/getstarted.html' %} {% endif %}
 <style>
 .ui-checkboxradio-label {
@@ -228,27 +228,27 @@
 				{% if g.user_params['role'] <= 3 %}
 				<span class="server-action">
 					<a id="start-{{ s.2 }}" class="start" title="{{lang.words.start|title()}} {{service}} {{lang.words.service}}">
-						<span class="service-start" onclick="confirmAjaxAction('start', '{{service}}', '{{s.2}}')"></span>
+						<span class="service-start" onclick="confirmAjaxAction('start', '{{service}}', '{{s.0}}', '{{s.1}}')"></span>
 					</a>
 					{% if service != 'keepalived' %}
 					<a id="reload-{{ s.2 }}" class="reload" title="{{lang.words.reload|title()}} {{service}} {{lang.words.service}}">
-						<span class="service-reload" onclick="confirmAjaxAction('reload', '{{service}}', '{{s.2}}', '{{s.1}}')"></span>
+						<span class="service-reload" onclick="confirmAjaxAction('reload', '{{service}}', '{{s.0}}', '{{s.1}}')"></span>
 					</a>
 					{% endif %}
 					{% for set in restart_settings %}
 						{% if set.server_id == s.0 and set.setting == 'restart' and set.value|int == 0 %}
 						<a id="restart-{{ s.2 }}" class="restart" title="{{lang.words.restart|title()}} {{service}} {{lang.words.service}}">
-							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{service}}', '{{s.2}}')"></span>
+							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{service}}', '{{s.0}}', '{{s.1}}')"></span>
 						</a>
 						{% endif %}
 					{% endfor %}
 					{% if restart_settings|length == 0 %}
 						<a id="restart-{{ s.2 }}" class="restart" title="{{lang.words.restart|title()}} {{service}} {{lang.words.service}}">
-							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{service}}', '{{s.2}}')"></span>
+							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{service}}', '{{s.0}}', '{{s.1}}')"></span>
 						</a>
 					{% endif %}
 					<a id="stop-{{ s.2 }}" class="stop" title="{{lang.words.stop|title()}} {{service}} {{lang.words.service}}">
-						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service}}', '{{s.2}}')"></span>
+						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service}}', '{{s.0}}', '{{s.1}}')"></span>
 					</a>
 					<a href="{{ url_for('main.service_history', service=service, server_ip=s.2) }}" title="{{lang.words.view|title()}} {{lang.words.history3}} {{s.1}}" class="history" style="margin: 0 5px 0 10px;"></a>
 					{% if service != 'keepalived' %}
@@ -263,7 +263,7 @@
 				{% endif %}
 			</div>
 			<div class="server-desc">
-				IP: {{ copy_to_clipboard(value=s.2, style='font-weight: bold') }}
+                <b>IP:</b> {{ copy_to_clipboard(value=s.2, style='font-weight: bold') }}
 				{% if s.3 == '' %}
 				{{lang.words.no_desc|title()}}
 				{% else %}
@@ -271,7 +271,7 @@
 				{% endif %}
 				<br />
 				{% if service == 'nginx' or service == 'keepalived' %}
-					{{lang.words.version|title()}}: {{s.5.0.0}} {{lang.words.process_num|title()}}: {{s.5.0.3}}
+                    <b>{{lang.words.version|title()}}</b>: {{s.5.0.0}} <b>{{lang.words.process_num|title()}}</b>: {{s.5.0.3}}
 					<br />
 					{% if s.5.0.1 == 'active' or s.5.0.1 == 'Up' %}
 						{{lang.words.started|title()}}:
@@ -297,14 +297,14 @@
 					{% endif %}
 				{% endif %}
 				<span title="Date of last configuration edit">
-					{{lang.services.last_edit}}:
+                    <b>{{lang.services.last_edit}}</b>:
 					<span id="edit_date_{{s.2}}"></span>
 				</span>
 				<div class="overflow_div">
 					{% for cluster in clusters %}
 						{% if cluster.haclusterslave.server_id|string() == s.0|string() %}
-							{{lang.words.cluster|title()}}:
-							<a href="/app/ha/cluster/{{cluster.id}}" title="{{lang.words.open|title()}} {{lang.words.cluster}}">{{cluster.name}}</a>
+                            <b>{{lang.words.cluster|title()}}</b>:
+							<a href="/ha/cluster/{{cluster.id}}" title="{{lang.words.open|title()}} {{lang.words.cluster}}">{{cluster.name}}</a>
 							{% break %}
 						{% else %}
 							{% if loop.last %}
@@ -356,13 +356,13 @@
 			</div>
 			<div class="server-act-links">
 				{% if service == 'nginx' or service == 'apache' %}
-				<a href="/app/config/{{service}}/{{s.2}}/show-files" {{config_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.open|title()}} {{lang.words.running}} {{lang.words.configs}}">{{lang.menu_links.config.link}}</a>
+				<a href="/config/{{service}}/{{s.2}}/show-files" {{config_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.open|title()}} {{lang.words.running}} {{lang.words.configs}}">{{lang.menu_links.config.link}}</a>
 				{% else %}
-				<a href="/app/config/{{service}}/{{s.2}}/show/undefined" {{config_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.open|title()}} {{lang.words.running}} {{lang.words.config}}">{{lang.menu_links.config.link}}</a>
+				<a href="/config/{{service}}/{{s.2}}/show/undefined" {{config_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.open|title()}} {{lang.words.running}} {{lang.words.config}}">{{lang.menu_links.config.link}}</a>
 				{% endif %}
-				<a href="/app/config/compare/{{service}}/{{s.2}}" {{compare_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.compare|title()}} {{lang.words.configs}}">{{lang.words.compare|title()}}</a>
+				<a href="/config/compare/{{service}}/{{s.2}}" {{compare_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.compare|title()}} {{lang.words.configs}}">{{lang.words.compare|title()}}</a>
 			{% if service == 'haproxy' %}
-				<a href="/app/config/map/{{service}}/{{s.2}}" class="ui-button ui-widget ui-corner-all" {{map_id}} title="{{lang.words.show|title()}} {{lang.words.map}}">{{lang.words.map|title()}}</a>
+				<a href="/config/map/{{service}}/{{s.2}}" class="ui-button ui-widget ui-corner-all" {{map_id}} title="{{lang.words.show|title()}} {{lang.words.map}}">{{lang.words.map|title()}}</a>
 			{% endif %}
 			{% if service != 'keepalived' %}
 			<a href="{{ url_for('main.stats', service=service, serv=s.2) }}" class="ui-button ui-widget ui-corner-all" {{stats_id}} title="{{lang.words.view|title()}} {{service}} {{lang.words.statistics}}">{{lang.menu_links.stats.link}}</a>

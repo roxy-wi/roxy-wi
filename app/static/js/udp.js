@@ -1,23 +1,23 @@
 $( function() {
-	$( "#ha-cluster" ).on('selectmenuchange',function()  {
-		let cluster_id = $( "#ha-cluster option:selected" ).val();
-		if (cluster_id != '------') {
+	$("#cluster_id").on('selectmenuchange', function () {
+		let cluster_id = $("#cluster_id option:selected").val();
+		if (cluster_id != '------' && cluster_id != '' && cluster_id != undefined) {
 			getHAClusterVIPS(cluster_id);
 		} else {
 			clearUdpVip();
 		}
 	});
-	$("#new-udp-ip").autocomplete({
+	$("#ip").autocomplete({
 		source: function (request, response) {
 			if (!checkIsServerFiled('#serv')) return false;
 			if (request.term == "") {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/server/show/ip/" + $("#serv").val(),
+				url: `/server/${$("#serv").val()}/ip`,
+				contentType: "application/json; charset=UTF-8",
 				success: function (data) {
-					data = data.replace(/\s+/g, ' ');
-					response(data.split(" "));
+					response(data);
 				}
 			});
 		},
@@ -30,8 +30,9 @@ $( function() {
 	});
 });
 function getHAClusterVIPS(cluster_id) {
+	let vip_id = $('#vip');
 	$.ajax({
-		url: `/app/ha/cluster/${cluster_id}/vips`,
+		url: api_prefix + `/ha/cluster/${cluster_id}/vips`,
 		async: false,
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
@@ -40,11 +41,11 @@ function getHAClusterVIPS(cluster_id) {
 				return false;
 			} else {
 				clearUdpVip();
-				$('#new-udp-vip').append('<option value="------" selected>------</option>')
+				vip_id.append('<option value="------" selected>------</option>')
 				data.forEach(function (obj) {
-					$('#new-udp-vip').append('<option value="' + obj.id + '">' + obj.vip + '</option>')
+					vip_id.append('<option value="' + obj.id + '">' + obj.vip + '</option>')
 				});
-				$('#new-udp-vip').selectmenu("refresh");
+				vip_id.selectmenu("refresh");
 			}
 		}
 	});
@@ -67,35 +68,39 @@ function createUDPListener(edited=false, listener_id=0, clean=true) {
 			$('.new-udp-servers-tr').show();
 		}
 		$.ajax({
-			url: `/app/udp/listener/${listener_id}/settings`,
+			url: `${api_prefix}/udp/listener/${listener_id}`,
 			type: "GET",
 			async: false,
 			contentType: "application/json; charset=utf-8",
 			success: function (data) {
-				$('#new-listener-name').val(data.name.replaceAll("'", ""));
+				$('#name').val(data.name.replaceAll("'", ""));
 				$('#new-listener-type').val(place);
-				$('#new-listener-port').val(data.port);
-				$('#new-listener-desc').val(data.desc.replaceAll("'", ""));
+				$('#port').val(data.port);
+				$('#lb_algo').val(data.lb_algo).change();
+				$('#lb_algo').selectmenu('refresh');
+				$('#desc').val(data.description.replaceAll("'", ""));
 				if (place === 'cluster') {
 					$.when(getHAClusterVIPS(data.cluster_id)).done(function () {
-						$("#new-udp-vip option").filter(function () {
+						$("#vip option").filter(function () {
 							return $(this).text() == data.vip;
 						}).attr('selected', true);
-						$("#new-udp-vip").selectmenu('refresh');
+						$("#vip").selectmenu('refresh');
 					});
-					$("#ha-cluster").val(data.cluster_id).change();
-					$("#ha-cluster").attr('disabled', 'disabled');
-					$("#ha-cluster").selectmenu('refresh');
+					$("#cluster_id").val(data.cluster_id).change();
+					$("#cluster_id").attr('disabled', 'disabled');
+					$("#cluster_id").selectmenu('refresh');
 				} else {
 					$("#serv").val(data.server_id).change();
 					$("#serv").attr('disabled', 'disabled');
 					$("#serv").selectmenu('refresh');
-					$('#new-udp-ip').val(data.vip);
+					$('#ip').val(data.vip);
 				}
 				$('#new-udp-servers-td').empty();
 				$('#new-udp-servers-td').append('<a class="link add-server" title="Add backend server" onclick="createBackendServer()"></a>');
-				for(let server in data.config) {
-					createBackendServer(server, data.config[server]['port'], data.config[server]['weight']);
+				data.config = JSON.stringify(data.config);
+				let config = JSON.parse(data.config)
+				for(let server of config) {
+					createBackendServer(server.backend_ip, server.port, server.weight);
 				}
 			}
 		});
@@ -206,20 +211,20 @@ function createUDPListenerStep2(edited, listener_id, place) {
 	dialog_div.dialog('open');
 }
 function validateUDPListenerForm(place) {
-	if ($('#new-listener-name').val() == '') {
+	if ($('#name').val() == '') {
 		toastr.error('error: Fill in the Name field');
 		return false;
 	}
-	if ($('#new-listener-port').val() == '') {
+	if ($('#port').val() == '') {
 		toastr.error('error: Fill in the Port field');
 		return false;
 	}
 	if (place == 'server') {
-		if ($('#new-udp-ip').val() == '') {
+		if ($('#ip').val() == '') {
 			toastr.error('error: Fill in the IP field');
 			return false;
 		}
-		if (!ValidateIPaddress($('#new-udp-ip').val())) {
+		if (!ValidateIPaddress($('#ip').val())) {
 			toastr.error('error: Wrong IP');
 			return false;
 		}
@@ -228,7 +233,7 @@ function validateUDPListenerForm(place) {
 			return false;
 		}
 	} else {
-		if ($('#ha-cluster option:selected').val().indexOf('--') != '-1') {
+		if ($('#cluster_id option:selected').val().indexOf('--') != '-1') {
 			toastr.error('error: Select a HA cluster');
 			return false;
 		}
@@ -240,11 +245,11 @@ function validateUDPListenerForm(place) {
 			toastr.error('error: Fill in the Weight field');
 			return false;
 		}
-		if ($('#new-udp-vip option:selected').val().indexOf('--') != '-1') {
+		if ($('#vip option:selected').val().indexOf('--') != '-1') {
 			toastr.error('error: Select the VIP address');
 			return false;
 		}
-		if (!ValidateIPaddress($('#new-udp-vip option:selected').text())) {
+		if (!ValidateIPaddress($('#vip option:selected').text())) {
 			toastr.error('error: Wrong VIP');
 			return false;
 		}
@@ -256,35 +261,52 @@ function getFormData($form) {
 	$("#serv").selectmenu('refresh');
 	let unindexed_array = $form.serializeArray();
 	let indexed_array = {};
-	indexed_array['servers'] = {};
+	indexed_array['config'] = [];
 
 	$.map(unindexed_array, function (n, i) {
-		indexed_array[n['name']] = n['value'];
+		if (n['name'] === 'serv') {
+			indexed_array['server_id'] = n['value'];
+		} else {
+			indexed_array[n['name']] = n['value'];
+		}
 	});
+
 	$('.servers').each(function () {
-		let ip = $(this).children("input[name='new-udp-server']").val();
-		if (ip === undefined || ip === '') {
+		let backend_ip = $(this).children("input[name='new-udp-server']").val();
+		if (backend_ip === undefined || backend_ip === '') {
 			return;
 		}
 		let port = $(this).children("input[name='new-udp-port']").val();
 		let weight = $(this).children("input[name='new-udp-weight']").val();
-		indexed_array['servers'][ip] = {port, weight};
+		indexed_array['config'].push({backend_ip, port, weight});
 	});
-	indexed_array['ha-cluster'] = $('#ha-cluster').val();
-	indexed_array['new-udp-router_id'] = $('#new-udp-vip').val();
-	indexed_array['new-udp-vip'] = $('#new-udp-vip option:selected').text();
+	if ($('#cluster_id').val()) {
+		indexed_array['cluster_id'] = $('#cluster_id').val();
+	} else {
+		indexed_array['cluster_id'] = null;
+	}
+	if ($('#new-listener-type').val() === 'cluster') {
+		indexed_array['router_id'] = $('#vip').val();
+		indexed_array['vip'] = $('#vip option:selected').text();
+	} else {
+		indexed_array['vip'] = $('#ip').val();
+	}
 	$("#serv").attr('disabled', 'disabled');
 	$("#serv").selectmenu('refresh');
 	return indexed_array;
 }
 function saveUdpListener(jsonData, dialog_id, listener_id=0, edited=0, reconfigure=0) {
 	let req_method = 'POST';
+	let url = api_prefix + "/udp/listener";
+	if (reconfigure) {
+		jsonData['reconfigure'] = 1;
+	}
 	if (edited) {
 		req_method = 'PUT';
-		jsonData['listener_id'] = listener_id;
+		url = api_prefix + "/udp/listener/" + listener_id;
 	}
 	$.ajax({
-		url: "/app/udp/listener",
+		url: url,
 		type: req_method,
 		data: JSON.stringify(jsonData),
 		contentType: "application/json; charset=utf-8",
@@ -299,18 +321,18 @@ function saveUdpListener(jsonData, dialog_id, listener_id=0, edited=0, reconfigu
 						$("#listener-" + listener_id).removeClass("update");
 					}, 2500);
 				} else {
-					listener_id = data.listener_id;
-					getUDPListener(data.listener_id, true);
+					listener_id = data.id;
+					getUDPListener(listener_id, true);
 				}
-				if (reconfigure) {
-					NProgress.start();
-					$.when(Reconfigure(listener_id)).done(function () {
-						dialog_id.dialog("close");
-						NProgress.done();
-					});
-				} else {
+				// if (reconfigure) {
+				// 	NProgress.start();
+				// 	$.when(Reconfigure(listener_id)).done(function () {
+				// 		dialog_id.dialog("close");
+				// 		NProgress.done();
+				// 	});
+				// } else {
 					dialog_id.dialog("close");
-				}
+				// }
 				toastr.success('Listener ' + data.status);
 			}
 		}
@@ -318,7 +340,7 @@ function saveUdpListener(jsonData, dialog_id, listener_id=0, edited=0, reconfigu
 }
 function Reconfigure(listener_id) {
 	return $.ajax({
-		url: "/app/install/udp",
+		url: "/install/udp",
 		data: JSON.stringify({listener_id: listener_id}),
 		contentType: "application/json; charset=utf-8",
 		async: false,
@@ -334,7 +356,7 @@ function Reconfigure(listener_id) {
 }
 function getUDPListener(listener_id, new_listener=false) {
 	$.ajax({
-		url: "/app/udp/listener/" + listener_id,
+		url: "/udp/listener/" + listener_id,
 		success: function (data) {
 			data = data.replace(/^\s+|\s+$/g, '');
 			if (data.indexOf('error:') != '-1') {
@@ -373,17 +395,23 @@ function confirmDeleteListener(listener_id) {
 	});
 }
 function deleteListener(listener_id) {
-	let jsonData = {'listener_id': listener_id}
 	$.ajax({
-		url: "/app/udp/listener",
+		url: api_prefix + "/udp/listener/" + listener_id,
 		type: "DELETE",
-		data: JSON.stringify(jsonData),
 		contentType: "application/json; charset=utf-8",
-		success: function (data) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
+		statusCode: {
+			204: function (xhr) {
 				$('#listener-' + listener_id).remove();
+			},
+			404: function (xhr) {
+				$('#listener-' + listener_id).remove();
+			}
+		},
+		success: function (data) {
+			if (data) {
+				if (data.status === "failed") {
+					toastr.error(data.error);
+				}
 			}
 		}
 	});
@@ -391,17 +419,16 @@ function deleteListener(listener_id) {
 function clearListenerDialog(edited=0) {
 	$('#new-listener-name').val('');
 	$('#new-listener-desc').val('');
-	$('#ha-cluster-master-interface').val('');
 	$('#new-udp-ip').val('');
 	$('#vrrp-ip').prop("readonly", false);
 	$('#new-listener-port').val('');
-	$("#ha-cluster").attr('disabled', false);
+	$("#cluster_id").attr('disabled', false);
 	$("#serv").attr('disabled', false);
 	clearUdpVip()
 	$('#new-udp-servers-td').empty();
 	$('#new-udp-servers-td').append('<a class="link add-server" title="Add backend server" onclick="createBackendServer()"></a>');
 	createBackendServer();
-	let selects = ['new-udp-type', 'ha-cluster', 'new-udp-vip', 'serv']
+	let selects = ['new-udp-type', 'cluster_id', 'vip', 'serv']
 	for (let select of selects) {
 		unselectSelectMenu(select);
 	}
@@ -412,9 +439,9 @@ function unselectSelectMenu(select_id) {
 	$('#' + select_id).selectmenu("refresh");
 }
 function clearUdpVip() {
-	$('#new-udp-vip').selectmenu( "destroy" );
-	$('#new-udp-vip').empty();
-	$('#new-udp-vip').selectmenu();
+	$('#vip').selectmenu( "destroy" );
+	$('#vip').empty();
+	$('#vip').selectmenu();
 }
 function confirmUdpBalancerAction(action, listener_id) {
 	let action_word = translate_div.attr('data-'+action);
@@ -441,7 +468,7 @@ function confirmUdpBalancerAction(action, listener_id) {
 }
 function ajaxActionListener(action, listener_id) {
 	$.ajax({
-        url: `/app/udp/listener/${listener_id}/${action}`,
+        url: `${api_prefix}/udp/listener/${listener_id}/${action}`,
         type: "GET",
         contentType: "application/json; charset=utf-8",
         success: function (data) {
@@ -470,18 +497,29 @@ function createBackendServer(server='', port='', weight='1') {
 	$.getScript(awesome);
 }
 function checkStatus(listener_id) {
-	if (sessionStorage.getItem('check-service-udp') == 0) {
+	if (sessionStorage.getItem('check-service-udp-'+listener_id) == 0) {
 		return false;
 	}
 	NProgress.configure({showSpinner: false});
 	let listener_div = $('#listener-' + listener_id);
 	$.ajax({
-		url: "/app/udp/listener/" + listener_id + "/check",
+		url: api_prefix + "/udp/listener/" + listener_id,
 		contentType: "application/json; charset=utf-8",
+		statusCode: {
+			404: function (xhr) {
+				$('#listener-' + listener_id).remove();
+			},
+			403: function (xhr) {
+				sessionStorage.setItem('check-service-udp-'+listener_id, 0);
+			},
+			500: function (xhr) {
+				sessionStorage.setItem('check-service-udp-'+listener_id, 0);
+			}
+		},
 		success: function (data) {
 			try {
 				if (data.indexOf('logout') != '-1') {
-					sessionStorage.setItem('check-service-udp', 0);
+					sessionStorage.setItem('check-service-udp-'+listener_id, 0);
 				}
 			} catch (e) {}
 
@@ -501,6 +539,14 @@ function checkStatus(listener_id) {
 				listener_div.removeClass('div-server-head-down');
 				listener_div.attr('title', 'Not all services are UP');
 			}
+			$(`#listener-name-${listener_id}`).text(data.name.replaceAll("'", ""));
+			if (data.description === '') {
+				$(`#listener-desc-${listener_id}`).text('');
+			} else {
+				$(`#listener-desc-${listener_id}`).text(`(${data.description.replaceAll("'", "")})`);
+			}
+			$(`#port-${listener_id}`).text(data.port);
+			$(`#vip-${listener_id}`).text(data.vip);
 		}
 	});
 	NProgress.configure({showSpinner: true});

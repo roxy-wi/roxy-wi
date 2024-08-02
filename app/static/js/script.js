@@ -1,4 +1,4 @@
-var cur_url = window.location.href.split('/app/').pop();
+var cur_url = window.location.href.split('/').pop();
 cur_url = cur_url.split('/');
 var intervalId;
 function validateEmail(email) {
@@ -7,9 +7,9 @@ function validateEmail(email) {
 }
 function ValidateIPaddress(ipaddress) {
 	if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(ipaddress)) {
-		return (true)
+		return true
 	}
-	return (false)
+	return false
 }
 var select_server = translate_div.attr('data-select_server');
 function checkIsServerFiled(select_id, message = select_server) {
@@ -36,109 +36,53 @@ function show_current_page(id) {
 	id.parent().css('left', '0');
 	id.parent().children().css('margin-left', '-20px');
 	id.parent().find('a').css('padding-left', '20px');
-	id.find('a').css('background-color', 'var(--right-menu-blue-rolor)');
+	id.find('a').css('border-left', '4px solid var(--color-wanring) !important');
+	id.find('a').css('background-color', 'var(--color-gray-dark-alpha) !important');
 }
 $( function() {		
    $('.menu li ul li').each(function () {
-	   var link = $(this).find('a').attr('href');
-	   var link2 = link.split('/')[2];
-	   var link3 = link.split('/')[3];
-	   var link4 = link.split('/')[4];
-	   if (cur_url[1] == null) {
-		   cur_url[1] = 'haproxy';
-	   }
-	   var full_uri = cur_url[0] + '/' + cur_url[1]
-	   var full_uri1 = link2 + '/' + link3
-	   var full_uri2 = cur_url[0] + '/' + cur_url[1] + '/' + cur_url[2]
-	   var full_uri3 = link2 + '/' + link3 + '/' + link4
-	   if (cur_url[0] == link2 && link3 == null) {
+	   let link = $(this).find('a').attr('href');
+	   let link2 = link.split('#')[1];
+	   let link3 = link.split('/')[2];
+	   let link4 = link.split('/')[3];
+	   // if (cur_url[1] == null) {
+		//    cur_url[1] = 'haproxy';
+	   // }
+	   let full_uri = window.location.pathname
+	   let full_uri1 = window.location.hash
+	   let full_uri2 = cur_url[0] + '/' + cur_url[1] + '/' + cur_url[2]
+	   let full_uri3 = link2 + '/' + link3 + '/' + link4
+	   // console.log(link)
+	   // console.log(window.location.hash)
+	   let params = new URL(document.location.toString()).searchParams;
+	   // console.log(params.get("service"))
+	   // console.log(link)
+	   // console.log(full_uri)
+	   // console.log(full_uri1)
+	   // console.log(full_uri + "/" + full_uri1)
+	   // if (full_uri1 === '/service/haproxy') {
+		   // console.log(full_uri)
+		   // console.log(full_uri1)
+	   // }
+	   if (full_uri === link) {
 		   show_current_page($(this))
-	   } else if (full_uri == 'config/haproxy' && full_uri1 == 'config/haproxy') {
+	   // } else if (window.location.pathname.indexOf('add/haproxy#') != '-1' && link.indexOf('add/haproxy#proxy') != '-1') {
+		//    show_current_page($(this))
+	   } else if (link === full_uri + full_uri1) {
 		   show_current_page($(this))
-	   } else if (full_uri == 'config/nginx' && full_uri1 == 'config/nginx') {
+	   // } else if (link === '/admin#servers' && full_uri1 === '#servers') {
+		//    show_current_page($(this))
+	   // } else if (link === '/admin#ssh' && full_uri1 === '#ssh') {
+		//    show_current_page($(this))
+	   // } else if (link === '/add/haproxy#proxy' && full_uri1 === '#proxy') {
+		//    show_current_page($(this))
+	   } else if (link === '/add/haproxy#ssl' && full_uri1 === '#ssl' && params.get("service") != 'nginx') {
 		   show_current_page($(this))
-	   } else if (full_uri == 'config/apache' && full_uri1 == 'config/apache') {
+	   } else if (link === '/add/haproxy#ssl' && full_uri1 === '#ssl' && params.get("service") === 'nginx') {
 		   show_current_page($(this))
-	   } else if (full_uri == 'config/keepalived' && full_uri1 == 'config/keepalived') {
+	   } else if (full_uri === 'add/haproxy?service=nginx#ssl' && cur_url[1].split('?')[1] === 'service=nginx#ssl' && full_uri1 === 'add/haproxy?service=nginx#ssl') {
 		   show_current_page($(this))
-	   } else if (full_uri2 == 'config/versions/haproxy' && full_uri3 == 'config/versions/haproxy') {
-		   show_current_page($(this))
-	   } else if (full_uri2 == 'config/versions/nginx' && full_uri3 == 'config/versions/nginx') {
-		   show_current_page($(this))
-	   } else if (full_uri2 == 'config/versions/keepalived' && full_uri3 == 'config/versions/keepalived') {
-		   show_current_page($(this))
-	   } else if (full_uri2 == 'config/versions/apache' && full_uri3 == 'config/versions/apache') {
-		   show_current_page($(this))
-	   } else if (full_uri2 == 'config/map/haproxy' && full_uri1 == 'config/haproxy') {
-		   show_current_page($(this))
-	   } else if (full_uri2 == 'config/compare/haproxy' && full_uri1 == 'config/haproxy') {
-		   show_current_page($(this))
-	   } else if (full_uri2 == 'config/compare/nginx' && full_uri1 == 'config/nginx') {
-		   show_current_page($(this))
-	   } else if (full_uri2 == 'config/compare/keepalived' && full_uri3 == 'config/keepalived') {
-		   show_current_page($(this))
-	   } else if (full_uri2 == 'config/compare/apache' && full_uri3 == 'config/apache') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'logs/haproxy' && full_uri1 == 'logs/haproxy') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'logs/nginx' && full_uri1 == 'logs/nginx') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'logs/keepalived' && full_uri1 == 'logs/keepalived') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'logs/apache' && full_uri1 == 'logs/apache') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'logs/internal' && full_uri1 == 'logs/internal') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'service/haproxy' && full_uri1 == 'service/haproxy') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'service/nginx' && full_uri1 == 'service/nginx') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'service/keepalived' && full_uri1 == 'service/keepalived') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'service/apache' && full_uri1 == 'service/apache') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'stats/haproxy' && full_uri1 == 'stats/haproxy') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'stats/nginx' && full_uri1 == 'stats/nginx') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'stats/apache' && full_uri1 == 'stats/apache') {
-		   show_current_page($(this))
-	   } else if (full_uri.indexOf('add/haproxy#') != '-1' && full_uri1.indexOf('add/haproxy#proxy') != '-1') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'add/haproxy#ssl' && full_uri1 == 'add/haproxy#ssl') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'add/nginx#proxy' && full_uri1 == 'add/nginx#proxy') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'smon/dashboard' && full_uri1 == 'smon/dashboard') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'smon/agent' && full_uri1 == 'smon/agent') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'smon/history' && full_uri1 == 'smon/history') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'smon/status-page' && full_uri1 == 'smon/status-page') {
-		   show_current_page($(this))
-	   } else if (full_uri === 'checker/settings' && full_uri1 === 'checker/settings') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'checker/history' && full_uri1 == 'checker/history') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'add/haproxy?service=nginx#ssl' && cur_url[1].split('?')[1] == 'service=nginx#ssl' && full_uri1 == 'add/haproxy?service=nginx#ssl') {
-		   show_current_page($(this))
-	   } else if (cur_url[0] == 'app/logs' && cur_url[1].split('&')[0] == 'type=2' && link2 == 'viewlogs.py?type=2') {
-		   show_current_page($(this));
-		   return false;
-	   } else if (full_uri == 'metrics/haproxy' && full_uri1 == 'metrics/haproxy') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'metrics/nginx' && full_uri1 == 'metrics/nginx') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'metrics/apache' && full_uri1 == 'metrics/apache') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'add/haproxy?service=apache#ssl' && cur_url[1].split('?')[1] == 'service=apache#ssl' && full_uri1 == 'add/haproxy?service=apache#ssl') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'waf/haproxy' && full_uri1 == 'waf/haproxy') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'waf/nginx' && full_uri1 == 'waf/nginx') {
-		   show_current_page($(this))
-	   } else if (full_uri == 'install/ha' && full_uri1 == 'install/ha') {
+	   } else if (full_uri === 'add/haproxy?service=apache#ssl' && cur_url[1].split('?')[1] === 'service=apache#ssl' && full_uri1 === 'add/haproxy?service=apache#ssl') {
 		   show_current_page($(this))
 	   }
    });
@@ -156,29 +100,10 @@ jQuery.expr[':'].regex = function(elem, index, match) {
         regex = new RegExp(matchParams.join('').replace(/^\s+|\s+$/g,''), regexFlags);
     return regex.test(jQuery(elem)[attr.method](attr.property));
 }
-window.onblur= function() {
-	window.onfocus= function () {
-		if(sessionStorage.getItem('auto-refresh-pause') == "0" && sessionStorage.getItem('auto-refresh') > 5000) {
-			if (cur_url[0] == "logs") {
-				showLog();
-			} else if (cur_url[0] == "stats") {
-				showStats()
-			} else if (cur_url[0] == "/") {
-				showOverview();
-			} else if (cur_url[0] == "internal") {
-				viewLogs();
-			} else if (cur_url[0] == "metrics") {
-				showMetrics();
-			} else if (cur_url[0] == "smon" && cur_url[1] == "dashboard") {
-				showSmon('refresh')
-			}
-		}
-	}
-};
 if(localStorage.getItem('restart')) {
-	var ip_for_restart = localStorage.getItem('restart');
+	let ip_for_restart = localStorage.getItem('restart');
 	$.ajax({
-		url: "/app/service/check-restart/" + ip_for_restart,
+		url: "/service/check-restart/" + ip_for_restart,
 		success: function (data) {
 			if (data.indexOf('ok') != '-1') {
 				var apply_div = $.find("#apply_div");
@@ -186,7 +111,7 @@ if(localStorage.getItem('restart')) {
 				$("#apply").css('display', 'block');
 				$('#' + apply_div).css('width', '850px');
 				ip_for_restart = escapeHtml(ip_for_restart);
-				if (cur_url[0] == "service") {
+				if (cur_url[0] === "service") {
 					$('#' + apply_div).css('width', '650px');
 					$('#' + apply_div).addClass("alert-one-row");
 					$('#' + apply_div).html("You have made changes to the server: " + ip_for_restart + ". Changes will take effect only after<a id='" + ip_for_restart + "' class='restart' title='Restart HAproxy service' onclick=\"confirmAjaxAction('restart', 'hap', '" + ip_for_restart + "')\">restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
@@ -198,133 +123,14 @@ if(localStorage.getItem('restart')) {
 		}
 	});
 }
-function autoRefreshStyle(autoRefresh) {
-	var margin;
-	if (cur_url[0] == "/" || cur_url[0] == "waf" || cur_url[0] == "metrics") {
-		if (autoRefresh < 60000) {
-			autoRefresh = 60000;
-		}
-	}
-	autoRefresh = autoRefresh / 1000;
-	if (autoRefresh == 60) {
-		timeRange = " minute"
-		autoRefresh = autoRefresh / 60;
-	} else if (autoRefresh > 60 && autoRefresh < 3600) {
-		timeRange = " minutes"
-		autoRefresh = autoRefresh / 60;
-	} else if (autoRefresh >= 3600 && autoRefresh < 86401) {
-		timeRange = " hours"
-		autoRefresh = autoRefresh / 3600;
-	} else {
-		timeRange = " seconds";
-	}
-	$('#1').text(autoRefresh + timeRange);
-	$('#0').text(autoRefresh + timeRange);
-	$('.auto-refresh-pause').css('display', 'inline');
-	$('.auto-refresh-resume').css('display', 'none');
-	$('.auto-refresh-pause').css('margin-left', "-25px");
-	$('.auto-refresh-resume').css('margin-left', "-25px");
-	$('#browse_history').css("border-bottom", "none");
-	$('.auto-refresh img').remove();
-}
-function setRefreshInterval(interval) {
-	if (interval == "0") {
-		var autoRefresh = sessionStorage.getItem('auto-refresh');
-		if (autoRefresh !== undefined) {
-			var autorefresh_word = translate_div.attr('data-autorefresh');
-			sessionStorage.removeItem('auto-refresh');
-			pauseAutoRefresh();
-			$('#0').html('<span class="auto-refresh-reload auto-refresh-reload-icon"></span> '+autorefresh_word);
-			$('.auto-refresh').css('display', 'inline');
-			$('.auto-refresh').css('font-size', '15px');
-			$('#1').text(autorefresh_word);
-			$('.auto-refresh-resume').css('display', 'none');
-			$('.auto-refresh-pause').css('display', 'none');
-			$.getScript(overview);
-		}
-		hideAutoRefreshDiv();
-	} else {
-		clearInterval(intervalId);
-		sessionStorage.setItem('auto-refresh', interval)
-		sessionStorage.setItem('auto-refresh-pause', 0)
-		startSetInterval(interval);
-		hideAutoRefreshDiv();
-		autoRefreshStyle(interval);
-	}
-}
-function startSetInterval(interval) {
-	if(sessionStorage.getItem('auto-refresh-pause') == "0") {
-		if (cur_url[0] == "logs") {
-			intervalId = setInterval('showLog()', interval);
-			showLog();
-		} else if (cur_url[0] == "stats") {
-			intervalId = setInterval('showStats()', interval);
-			showStats()
-		} else if (cur_url[0] == "/") {
-			if(interval < 60000) {
-				interval = 60000;
-			}
-			intervalId = setInterval('showOverview(ip, hostnamea)', interval);
-			showOverview(ip, hostnamea);
-		} else if (cur_url[1] == "internal") {
-			intervalId = setInterval('viewLogs()', interval);
-			viewLogs();
-		} else if (cur_url[0] == "metrics") {
-			if(interval < 60000) {
-				interval = 60000;
-			}
-			intervalId = setInterval('showMetrics()', interval);
-			showMetrics();
-		} else if (cur_url[0] == "waf") {
-			if(interval < 60000) {
-				interval = 60000;
-			}
-			intervalId = setInterval('showOverviewWaf(ip, hostnamea)', interval);
-			showOverviewWaf(ip, hostnamea);
-			showWafMetrics();
-		} else if (cur_url[0] == "service") {
-			if(interval < 60000) {
-				interval = 60000;
-			}
-			intervalId = setInterval('showMetrics()', interval);
-			showMetrics();
-		} else if (cur_url[0] == "smon" && cur_url[1] == "dashboard") {
-			intervalId = setInterval("showSmon('refresh')", interval);
-			showSmon('refresh');
-		} else if (cur_url[0] == "smon" && cur_url[1] == "history") {
-			if(interval < 60000) {
-				interval = 60000;
-			}
-			intervalId = setInterval('showSmonHistory()', interval);
-			showSmonHistory();
-		}
-	} else {
-		pauseAutoRefresh();
-	}
-}
-function pauseAutoRefresh() {
-	clearInterval(intervalId);
-	$('.auto-refresh-pause').css('display', 'none');
-	$('.auto-refresh-resume').css('display', 'inline');
-	sessionStorage.setItem('auto-refresh-pause', '1');
-}
-function pauseAutoResume(){
-	var autoRefresh = sessionStorage.getItem('auto-refresh');
-	setRefreshInterval(autoRefresh);
-	sessionStorage.setItem('auto-refresh-pause', '0');
-}
-function hideAutoRefreshDiv() {
-	$(function() {
-		$('.auto-refresh-div').hide("blind", "fast");
-		$('#1').css("display", "none");
-		$('#0').css("display", "inline");
-	});
-}
 $( document ).ajaxSend(function( event, request, settings ) {
 	NProgress.start();
 });
 $( document ).ajaxComplete(function( event, request, settings ) {
 	NProgress.done();
+});
+$.ajaxSetup({
+	headers: {"X-CSRF-TOKEN": csrf_token},
 });
 $(document).ajaxError(function myErrorHandler(event, xhr, ajaxOptions, thrownError) {
 	if (xhr.status != 401) {
@@ -333,38 +139,38 @@ $(document).ajaxError(function myErrorHandler(event, xhr, ajaxOptions, thrownErr
 });
 function showStats() {
 	$.ajax({
-		url: "/app/stats/view/" + $("#service").val() + "/" + $("#serv").val(),
+		url: "/stats/view/" + $("#service").val() + "/" + $("#serv").val(),
 		success: function (data) {
 			if (data.indexOf('error:') != '-1' && data.indexOf('Internal error:') == '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
 				$("#ajax").html(data);
-				window.history.pushState("Stats", "Stats", "/app/stats/" + $("#service").val() + "/" + $("#serv").val());
+				window.history.pushState("Stats", "Stats", "/stats/" + $("#service").val() + "/" + $("#serv").val());
 				wait();
 			}
 		}
 	});
 }
 function openStats() {
-	var serv = $("#serv").val();
-	var service_url = cur_url[1];
-	var url = "/app/stats/"+service_url+"/"+serv
-	var win = window.open(url, '_blank');
+	let serv = $("#serv").val();
+	let service_url = cur_url[4];
+	let url = "/stats/"+service_url+"/"+serv
+	let win = window.open(url, '_blank');
 	win.focus();
 }
 function openVersions() {
-	var serv = $("#serv").val();
-	var service_url = cur_url[1];
-	var url = "/app/config/versions/"+service_url+"/"+serv
-	var win = window.open(url,"_self");
+	let serv = $("#serv").val();
+	let service_url = cur_url[4];
+	let url = "/config/versions/"+service_url+"/"+serv
+	let win = window.open(url,"_self");
 	win.focus();
 }
 function openSection() {
-	var serv = $("#serv").val();
-	var section = $("#section").val();
-	var url = "/app/config/section/haproxy/"+serv+"/"+section;
-	var win = window.open(url,"_self");
+	let serv = $("#serv").val();
+	let section = $("#section").val();
+	let url = "/config/section/haproxy/"+serv+"/"+section;
+	let win = window.open(url,"_self");
 	win.focus();
 }
 function showLog() {
@@ -392,10 +198,10 @@ function showLog() {
 		service = 'haproxy';
 	}
 	if (waf) {
-		var url = "/app/logs/" + service + "/waf/" + serv + "/" + rows;
+		var url = "/logs/" + service + "/waf/" + serv + "/" + rows;
 		waf = 1;
 	} else {
-		var url = "/app/logs/" + service + "/" + serv + "/" + rows;
+		var url = "/logs/" + service + "/" + serv + "/" + rows;
 	}
 	$.ajax( {
 		url: url,
@@ -435,7 +241,7 @@ function showRemoteLogFiles() {
 		service = 'haproxy';
 	}
 	$.ajax( {
-		url: "/app/logs/" + service + "/" + serv ,
+		url: "/logs/" + service + "/" + serv ,
 		data: {
 			serv: $("#serv").val(),
 		},
@@ -469,21 +275,21 @@ function showMap() {
 	clearAllAjaxFields();
 	$('#ajax-config_file_name').empty();
 	$.ajax( {
-		url: "/app/config/map/haproxy/" + $("#serv").val() + '/show',
+		url: "/config/map/haproxy/" + $("#serv").val() + '/show',
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
 				$("#ajax").html(data);
-				window.history.pushState("Show Map", "Show Map", '/app/config/map/' + $("#service").val() + '/' + $("#serv").val());
+				window.history.pushState("Show Map", "Show Map", '/config/map/' + $("#service").val() + '/' + $("#serv").val());
 			}
 		}
 	} );
 }
 function showCompare() {
 	$.ajax( {
-		url: "/app/config/compare/" + $("#service").val() + "/" + $("#serv").val() + "/show",
+		url: "/config/compare/" + $("#service").val() + "/" + $("#serv").val() + "/show",
 		data: {
 			left: $('#left').val(),
 			right: $("#right").val(),
@@ -503,7 +309,7 @@ function showCompareConfigs() {
 	clearAllAjaxFields();
 	$('#ajax-config_file_name').empty();
 	$.ajax( {
-		url: "/app/config/compare/" + $("#service").val() + "/" + $("#serv").val() + "/files",
+		url: "/config/compare/" + $("#service").val() + "/" + $("#serv").val() + "/files",
 		type: "GET",
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1') {
@@ -513,19 +319,20 @@ function showCompareConfigs() {
 				$("#ajax-compare").html(data);
 				$("input[type=submit], button").button();
 				$("select").selectmenu();
-				window.history.pushState("Show compare config", "Show compare config", '/app/config/compare/' + $("#service").val() + '/' + $("#serv").val());
+				window.history.pushState("Show compare config", "Show compare config", '/config/compare/' + $("#service").val() + '/' + $("#serv").val());
 			}
 		}
 	} );
 }
 function showConfig() {
-	var service = $('#service').val();
-	var config_file_name = encodeURI($('#config_file_name').val());
-	if (service == 'nginx' || service == 'apache') {
-		if ($('#config_file_name').val() === undefined || $('#config_file_name').val() === null) {
+	let service = $('#service').val();
+	let config_file = $('#config_file_name').val()
+	let config_file_name = encodeURI(config_file);
+	if (service === 'nginx' || service === 'apache') {
+		if (config_file === undefined || config_file === null) {
 			config_file_name = cur_url[4]
-			if (config_file_name == '') {
-				toastr.warning('Select a config file firts');
+			if (config_file_name === '') {
+				toastr.warning('Select a config file first');
 				return false;
 			} else {
 				showConfigFiles(true);
@@ -534,7 +341,7 @@ function showConfig() {
 	}
 	clearAllAjaxFields();
 	$.ajax( {
-		url: "/app/config/" + service + "/show",
+		url: "/config/" + service + "/show",
 		data: {
 			serv: $("#serv").val(),
 			service: service,
@@ -548,7 +355,7 @@ function showConfig() {
 				toastr.clear();
 				$("#ajax").html(data);
 				$.getScript(configShow);
-				window.history.pushState("Show config", "Show config", "/app/config/" + service + "/" + $("#serv").val() + "/show/" + config_file_name);
+				window.history.pushState("Show config", "Show config", "/config/" + service + "/" + $("#serv").val() + "/show/" + config_file_name);
 			}
 		}
 	} );
@@ -558,7 +365,7 @@ function showConfigFiles(not_redirect=false) {
 	var server_ip = $("#serv").val();
 	clearAllAjaxFields();
 	$.ajax( {
-		url: "/app/config/" + service + "/show-files",
+		url: "/config/" + service + "/show-files",
 		data: {
 			serv: server_ip,
 			service: service
@@ -572,7 +379,7 @@ function showConfigFiles(not_redirect=false) {
 				$("#ajax-config_file_name").html(data);
 				if (findGetParameter('findInConfig') === null) {
 					if (not_redirect) {
-						window.history.pushState("Show config", "Show config", "/app/config/" + service + "/" + server_ip + "/show-files");
+						window.history.pushState("Show config", "Show config", "/config/" + service + "/" + server_ip + "/show-files");
 					}
 				}
 			}
@@ -580,12 +387,12 @@ function showConfigFiles(not_redirect=false) {
 	} );
 }
 function showConfigFilesForEditing() {
-	var service = $('#service').val();
-	var server_ip = $("#serv").val();
-	var config_file_name = findGetParameter('config_file_name')
-	if (service == 'nginx' || service == 'apache') {
+	let service = $('#service').val();
+	let server_ip = $("#serv").val();
+	let config_file_name = findGetParameter('config_file_name')
+	if (service === 'nginx' || service === 'apache') {
 		$.ajax({
-			url: "/app/config/" + service + "/" + server_ip + "/edit/" + config_file_name,
+			url: "/config/" + service + "/" + server_ip + "/edit/" + config_file_name,
 			type: "POST",
 			success: function (data) {
 				if (data.indexOf('error:') != '-1') {
@@ -599,11 +406,11 @@ function showConfigFilesForEditing() {
 	}
 }
 function showUploadConfig() {
-	var service = $('#service').val();
-	var configver = $('#configver').val();
-	var serv = $("#serv").val()
+	let service = $('#service').val();
+	let configver = $('#configver').val();
+	let serv = $("#serv").val()
 	$.ajax( {
-		url: "/app/config/" + service + "/show",
+		url: "/config/" + service + "/show",
 		data: {
 			serv: serv,
 			configver: configver
@@ -615,21 +422,21 @@ function showUploadConfig() {
 			} else {
 				toastr.clear();
 				$("#ajax").html(data);
-				window.history.pushState("Show config", "Show config", "/app/config/versions/" + service + "/" + serv + "/" + configver);
+				window.history.pushState("Show config", "Show config", "/config/versions/" + service + "/" + serv + "/" + configver);
 				$.getScript(configShow);
 			}
 		}
 	} );
 }
 function showListOfVersion(for_delver) {
-	var cur_url = window.location.href.split('/app/').pop();
+	let cur_url = window.location.href.split('/').pop();
 	cur_url = cur_url.split('/');
-	var service = $('#service').val();
-	var serv = $("#serv").val();
-	var configver = cur_url[4];
+	let service = $('#service').val();
+	let serv = $("#serv").val();
+	let configver = cur_url[4];
 	clearAllAjaxFields();
 	$.ajax( {
-		url: "/app/config/version/" + service + "/list",
+		url: "/config/version/" + service + "/list",
 		data: {
 			serv: serv,
 			configver: configver,
@@ -643,39 +450,39 @@ function showListOfVersion(for_delver) {
 				toastr.clear();
 				$("#config_version_div").html(data);
 				$( "input[type=checkbox]" ).checkboxradio();
-				window.history.pushState("Show config", "Show config", "/app/config/versions/" + service + "/" + serv);
+				window.history.pushState("Show config", "Show config", "/config/versions/" + service + "/" + serv);
 			}
 		}
 	} );
 }
 function findGetParameter(parameterName) {
-    var result = null,
+    let result = null,
         tmp = [];
-    var items = location.search.substr(1).split("&");
-    for (var index = 0; index < items.length; index++) {
+    let items = location.search.substr(1).split("&");
+    for (let index = 0; index < items.length; index++) {
         tmp = items[index].split("=");
         if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
     }
     return result;
 }
 function viewLogs() {
-	var viewlogs = $('#viewlogs').val();
-	if (viewlogs == '------' || viewlogs === null) { return false; }
-	if(viewlogs == 'roxy-wi.error.log' || viewlogs == 'roxy-wi.access.log' || viewlogs == 'fail2ban.log') {
+	let viewlogs = $('#viewlogs').val();
+	if (viewlogs === '------' || viewlogs === null) { return false; }
+	if(viewlogs === 'roxy-wi.error.log' || viewlogs === 'roxy-wi.access.log' || viewlogs === 'fail2ban.log') {
 		showApacheLog(viewlogs);
 	} else {
-		var rows = $('#rows').val();
-		var grep = $('#grep').val();
-		var exgrep = $('#exgrep').val();
-		var hour = $('#time_range_out_hour').val();
-		var minute = $('#time_range_out_minut').val();
-		var hour1 = $('#time_range_out_hour1').val();
-		var minute1 = $('#time_range_out_minut1').val();
-		var type = findGetParameter('type')
+		let rows = $('#rows').val();
+		let grep = $('#grep').val();
+		let exgrep = $('#exgrep').val();
+		let hour = $('#time_range_out_hour').val();
+		let minute = $('#time_range_out_minut').val();
+		let hour1 = $('#time_range_out_hour1').val();
+		let minute1 = $('#time_range_out_minut1').val();
+		let type = findGetParameter('type')
 		if (viewlogs == null){
 			viewlogs = findGetParameter('viewlogs')
 		}
-		var url = "/app/logs/internal/" + viewlogs + "/" + rows;
+		let url = "/logs/internal/" + viewlogs + "/" + rows;
 		$.ajax({
 			url: url,
 			data: {
@@ -701,7 +508,7 @@ $( function() {
 		try {
 			var cur_path = window.location.pathname;
 			var attr = $(this).attr('href');
-			if (cur_path == '/app/add/haproxy' || cur_path == '/app/add/nginx' || cur_path == '/app/admin' || cur_path == '/app/install' || cur_path == '/app/runtimeapi') {
+			if (cur_path == '/add/haproxy' || cur_path == '/add/nginx' || cur_path == '/admin' || cur_path == '/install' || cur_path == '/runtimeapi') {
 				if (typeof attr !== typeof undefined && attr !== false) {
 					$('title').text($(this).attr('title'));
 					history.pushState({}, '', $(this).attr('href'));
@@ -729,16 +536,6 @@ $( function() {
 	if ($( "#serv option:selected" ).val() == "Choose server")  {
 		$("#show").css("pointer-events", "none");
 		$("#show").css("cursor", "not-allowed");
-	}
-
-	var pause = '<a onclick="pauseAutoRefresh()" title="Pause auto-refresh" class="auto-refresh-pause"></a>'
-	var autoRefresh = sessionStorage.getItem('auto-refresh');
-
-	if ($('.auto-refresh')) {
-		if(autoRefresh) {
-			startSetInterval(autoRefresh);
-			autoRefreshStyle(autoRefresh);
-		}
 	}
 	$( "#tabs" ).tabs();
 	$( "select" ).selectmenu();
@@ -862,42 +659,45 @@ $( function() {
 	} else {
 		$('#time_range_out_minut1').val(date2_minute);
 	}
-
-	$('#0').click(function() {
-		$('.auto-refresh-div').show("blind", "fast");
-		$('#0').css("display", "none");
-		$('#1').css("display", "inline");
-		});
-
-	$('#1').click(function() {
-		$('.auto-refresh-div').hide("blind", "fast");
-		$('#1').css("display", "none");
-		$('#0').css("display", "inline");
-	});
-	$('#auth').submit(function() {
-		var next_url = findGetParameter('next');
-		$.ajax( {
-			url: "/app/login",
-			data: {
-				login: $('#login').val(),
-				pass: $('#pass').val(),
-				next: next_url
-			},
+	$('#auth').submit(function () {
+		let next_url = findGetParameter('next');
+		let json_data = {
+			"login": $('#login').val(),
+			"pass": $('#pass').val(),
+			"next": next_url
+		}
+		$.ajax({
+			url: "/login",
+			data: JSON.stringify(json_data),
+			contentType: "application/json; charset=utf-8",
 			type: "POST",
-			success: function( data ) {
-				if (data.indexOf('disabled') != '-1') {
+			statusCode: {
+				401: function (xhr) {
 					$('.alert').show();
-					$('.alert').html(data);
-				} else if (data.indexOf('ban') != '-1') {
-					ban();
-				} else if (data.indexOf('error') != '-1') {
-					toastr.error(data);
+					if (xhr.responseText.indexOf('disabled') != '-1') {
+						$('.alert').html('Your login is disabled')
+					} else {
+						$('.alert').html('Login or password is incorrect');
+						ban();
+					}
+				}
+			},
+			success: function (data) {
+				if (data.status === 'failed') {
+					if (data.error.indexOf('disabled') != '-1') {
+						$('.alert').show();
+						$('.alert').html(data.error);
+					} else {
+						$('.alert').show();
+						$('.alert').html(data.error);
+						ban();
+					}
 				} else {
 					sessionStorage.removeItem('check-service');
-					window.location.replace(data);
+					window.location.replace(data.next_url);
 				}
 			}
-		} );
+		});
 		return false;
 	});
 	$('#show_log_form').submit(function() {
@@ -908,88 +708,24 @@ $( function() {
 		viewLogs();
 		return false;
 	});
-
-	var user_settings_tabel_title = $( "#show-user-settings-table" ).attr('title');
-	var change_word = translate_div.attr('data-change');
-	var password_word = translate_div.attr('data-password');
-	var change_pass_word = change_word + ' ' + password_word
-	var showUserSettings = $( "#show-user-settings" ).dialog({
-		autoOpen: false,
-		width: 600,
-		modal: true,
-		title: user_settings_tabel_title,
-		buttons: [{
-			text: save_word,
-			click: function () {
-				saveUserSettings();
-				$(this).dialog("close");
-			}
-		}, {
-			text: change_pass_word,
-			click: function () {
-				changePassword();
-				$(this).dialog("close");
-			}
-		}, {
-			text: cancel_word,
-			click: function () {
-				$(this).dialog("close");
-			}
-		}]
-	});
-
-	$('#show-user-settings-button').click(function() {
-		if (localStorage.getItem('disabled_alert') == '1') {
-			$('#disable_alerting').prop('checked', false).checkboxradio('refresh');
-		} else {
-			$('#disable_alerting').prop('checked', true).checkboxradio('refresh');
-		}
-		$.ajax({
-			url: "/app/user/group",
-			success: function (data) {
-				if (data.indexOf('danger') != '-1') {
-					$("#ajax").html(data);
-				} else {
-					$('#show-user-settings-group').html(data);
-					$("select").selectmenu();
-				}
-			}
-		});
-		showUserSettings.dialog('open');
-	});
-	var cur_url = window.location.href.split('/app/').pop();
-	cur_url = cur_url.split('/');
+	let cur_url = window.location.href.split('/').pop();
+	cur_url = cur_url.split('#');
 	if (cur_url[0].indexOf('install') != '-1') {
 		$(".installproxy").on("click", function () {
 			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children(".installproxy").css('padding-left', '30px');
-				$(this).children(".installproxy").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-				$(this).children(".installproxy").css('background-color', 'var(--right-menu-blue-rolor)');
+				activeSubMenu($(this), 'installproxy');
 			});
 			$("#tabs").tabs("option", "active", 0);
 		});
 		$(".installmon").on("click", function () {
 			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children(".installmon").css('padding-left', '30px');
-				$(this).children(".installmon").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-				$(this).children(".installmon").css('background-color', 'var(--right-menu-blue-rolor)');
+				activeSubMenu($(this), 'instalmon');
 			});
 			$("#tabs").tabs("option", "active", 1);
 		});
 		$(".installgeo").on("click", function () {
 			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children(".installgeo").css('padding-left', '30px');
-				$(this).children(".installgeo").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-				$(this).children(".installgeo").css('background-color', 'var(--right-menu-blue-rolor)');
+				activeSubMenu($(this), 'installgeo');
 			});
 			$("#tabs").tabs("option", "active", 2);
 		});
@@ -997,92 +733,52 @@ $( function() {
 	if (cur_url[0].indexOf('admin') != '-1') {
 		$(".users").on("click", function () {
 			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children(".users").css('padding-left', '30px');
-				$(this).children(".users").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-				$(this).children(".users").css('background-color', 'var(--right-menu-blue-rolor)');
+				activeSubMenu($(this), 'users');
 			});
 			$("#tabs").tabs("option", "active", 0);
 		});
-		$(".runtime").on("click", function () {
+		$(".servers").on("click", function () {
 			$('.menu li ul li').each(function () {
-				$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-				$(this).find('a').css('padding-left', '20px');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children(".runtime").css('padding-left', '30px');
-				$(this).children(".runtime").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-				$(this).children(".runtime").css('background-color', 'var(--right-menu-blue-rolor)');
+				activeSubMenu($(this), 'servers');
 			});
 			$("#tabs").tabs("option", "active", 1);
 		});
-		$(".admin").on("click", function () {
+		$(".ssh").on("click", function () {
 			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px');
-				$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children(".admin").css('padding-left', '30px');
-				$(this).children(".admin").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-				$(this).children(".admin").css('background-color', 'var(--right-menu-blue-rolor)');
+				activeSubMenu($(this), 'ssh');
 			});
 			$("#tabs").tabs("option", "active", 2);
 		});
 		$(".settings").on("click", function () {
 			$('.menu li ul li').each(function () {
-				$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-				$(this).find('a').css('padding-left', '20px');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children(".settings").css('padding-left', '30px');
-				$(this).children(".settings").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-				$(this).children(".settings").css('background-color', 'var(--right-menu-blue-rolor)');
+				activeSubMenu($(this), 'settings');
 			});
 			$("#tabs").tabs("option", "active", 3);
 			loadSettings();
 		});
 		$(".backup").on("click", function () {
 			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px');
-				$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children(".backup").css('padding-left', '30px');
-				$(this).children(".backup").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-				$(this).children(".backup").css('background-color', 'var(--right-menu-blue-rolor)');
+				activeSubMenu($(this), 'backup');
 			});
 			$("#tabs").tabs("option", "active", 4);
 			loadBackup();
 		});
-		$(".group").on("click", function () {
+		$(".groups").on("click", function () {
 			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px');
-				$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children(".group").css('padding-left', '30px');
-				$(this).children(".group").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-				$(this).children(".group").css('background-color', 'var(--right-menu-blue-rolor)');
+				activeSubMenu($(this), 'groups');
 			});
 			$("#tabs").tabs("option", "active", 5);
 		});
 		$(".tools").on("click", function () {
 			$('.menu li ul li').each(function () {
-				$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-				$(this).find('a').css('padding-left', '20px');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children(".tools").css('padding-left', '30px');
-				$(this).children(".tools").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-				$(this).children(".tools").css('background-color', 'var(--right-menu-blue-rolor)');
+				activeSubMenu($(this), 'tools');
 			});
 			$("#tabs").tabs("option", "active", 6);
 			loadServices();
 		});
 		$(".updatehapwi").on("click", function () {
 			$('.menu li ul li').each(function () {
-				$(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-				$(this).find('a').css('padding-left', '20px');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children(".updatehapwi").css('padding-left', '30px');
-				$(this).children(".updatehapwi").css('border-left', '4px solid var(--right-menu-blue-rolor)');
-				$(this).children(".updatehapwi").css('background-color', 'var(--right-menu-blue-rolor)');
+				activeSubMenu($(this), 'updatehapwi');
 			});
 			$("#tabs").tabs("option", "active", 7);
 			loadupdatehapwi();
@@ -1104,14 +800,21 @@ $( function() {
         document.body.removeChild(el);
     })
 });
-function saveUserSettings(){
+function activeSubMenu(sub_menu, sub_menu_class) {
+	sub_menu.find('a').css('padding-left', '20px');
+	sub_menu.find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
+	sub_menu.find('a').css('background-color', '#48505A');
+	sub_menu.children("." + sub_menu_class).css('padding-left', '30px');
+	sub_menu.children("." + sub_menu_class).css('border-left', '4px solid var(--color-wanring) !important');
+	sub_menu.children("." + sub_menu_class).css('background-color', 'var(--color-gray-dark-alpha) !important');
+}
+function saveUserSettings(user_id){
 	if ($('#disable_alerting').is(':checked')) {
 		localStorage.removeItem('disabled_alert');
 	} else {
 		localStorage.setItem('disabled_alert', '1');
 	}
-	changeCurrentGroupF();
-	Cookies.set('lang', $('#lang_select').val(), { expires: 365, path: '/', samesite: 'strict', secure: 'true' });
+	changeCurrentGroupF(user_id);
 }
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
@@ -1120,23 +823,23 @@ function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
 }
 async function ban() {
-	$( '#login').attr('disabled', 'disabled');
-	$( '#pass').attr('disabled', 'disabled');
-	$( "input[type=submit], button" ).button('disable');
+	$('#login').attr('disabled', 'disabled');
+	$('#pass').attr('disabled', 'disabled');
+	$("input[type=submit], button").button('disable');
 	$('#wrong-login').show();
 	$('#ban_10').show();
-	$( '#ban_timer').text(10);
+	$('#ban_timer').text(10);
 
 	let i = 10;
 	while (i > 0) {
 		i--;
 		await sleep(1000);
-		$( '#ban_timer').text(i);
-		}
+		$('#ban_timer').text(i);
+	}
 
-	$( '#login').removeAttr('disabled');
-	$( '#pass').removeAttr('disabled');
-	$( "input[type=submit], button" ).button('enable');
+	$('#login').removeAttr('disabled');
+	$('#pass').removeAttr('disabled');
+	$("input[type=submit], button").button('enable');
 	$('#ban_10').hide();
 }
 function replace_text(id_textarea, text_var) {
@@ -1187,21 +890,16 @@ function listHistroy() {
 createHistroy();
 listHistroy();
 
-function changeCurrentGroupF() {
+function changeCurrentGroupF(user_id) {
 	$.ajax({
-		url: "/app/user/group",
-		data: {
-			group: $('#newCurrentGroup').val(),
-			uuid: Cookies.get('uuid')
-		},
-		type: "PUT",
+		url: "/user/" + user_id + "/groups/" + $('#newCurrentGroup').val(),
+		contentType: "application/json; charset=utf-8",
+		type: "PATCH",
 		success: function (data) {
-			if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
+			if (data.error === 'failed') {
+				toastr.error(data.error);
 			} else {
 				toastr.clear();
-				Cookies.remove('group');
-				Cookies.set('group', $('#newCurrentGroup').val(), {expires: 365, path: '/', samesite: 'strict', secure: 'true'});
 				location.reload();
 			}
 		}
@@ -1244,7 +942,7 @@ $(function () {
 			}
 		],
 		volume: 0.5,
-		path: "/app/static/js/sounds/",
+		path: "/static/js/sounds/",
 		preload: true
 	});
 });
@@ -1256,11 +954,11 @@ socket.onopen = function(e) {
 };
 
 function getAlerts() {
-	socket.send("alert_group " + Cookies.get('group') + ' ' + Cookies.get('uuid'));
+	socket.send("alert_group " + $('#user_group_socket').val() + " " + $('#user_id_socket').val());
 }
 
 socket.onmessage = function(event) {
-	var cur_url = window.location.href.split('/app/').pop();
+	var cur_url = window.location.href.split('/').pop();
 	cur_url = cur_url.split('/');
 	if (cur_url != 'login' && localStorage.getItem('disabled_alert') === null) {
 		data = event.data.split(";");
@@ -1333,15 +1031,11 @@ function changeUserPasswordItOwn(d) {
 	} else {
 		$('#missmatchpass').hide();
 		toastr.clear();
-		let jsonData = {
-			"password": pass,
-			"uuid": Cookies.get('uuid')
-		}
 		$.ajax({
-			url: "/app/user/password",
-			data: JSON.stringify(jsonData),
-			contentType: "application/json; charset=utf-8",
+			url: "/user/password",
+			data: JSON.stringify({'pass': pass}),
 			type: "POST",
+			contentType: "application/json; charset=utf-8",
 			success: function (data) {
 				if (data.status === 'failed') {
 					toastr.error(data.error);
@@ -1356,7 +1050,7 @@ function changeUserPasswordItOwn(d) {
 function findInConfig(words) {
 	clearAllAjaxFields();
 	$.ajax({
-		url: "/app/config/" + $("#service").val() + "/find-in-config",
+		url: "/config/" + $("#service").val() + "/find-in-config",
 		data: {
 			serv: $("#serv").val(),
 			words: words
@@ -1470,7 +1164,7 @@ function returnNiceCheckingConfig(data) {
 function show_version() {
 	NProgress.configure({showSpinner: false});
 	$.ajax( {
-		url: "/app/internal/show_version",
+		url: "/internal/show_version",
 		success: function( data ) {
 			$('#version').html(data);
 			var showUpdates = $( "#show-updates" ).dialog({
@@ -1493,7 +1187,7 @@ function show_version() {
 	NProgress.configure({showSpinner: true});
 }
 function statAgriment() {
-	var cur_url = window.location.href.split('/app/').pop();
+	var cur_url = window.location.href.split('/').pop();
 	cur_url = cur_url.split('/');
 	if (localStorage.getItem('statistic') == null && cur_url != 'login') {
 		var titles = new Map()
@@ -1658,4 +1352,64 @@ function common_ajax_action_after_success(dialog_id, new_group, ajax_append_id, 
 	setTimeout(function() {
 		$( "."+new_group ).removeClass( "update" );
 	}, 2500 );
+}
+function getAllGroups() {
+	let groups = '';
+	$.ajax({
+		url: "/server/groups",
+		contentType: "application/json; charset=utf-8",
+		async: false,
+		success: function (data) {
+			groups = data;
+		}
+	});
+	return groups;
+}
+function openUserSettings(user_id) {
+	if (localStorage.getItem('disabled_alert') == '1') {
+		$('#disable_alerting').prop('checked', false).checkboxradio('refresh');
+	} else {
+		$('#disable_alerting').prop('checked', true).checkboxradio('refresh');
+	}
+	$.ajax({
+		url: "/user/group",
+		success: function (data) {
+			if (data.indexOf('danger') != '-1') {
+				$("#ajax").html(data);
+			} else {
+				$('#show-user-settings-group').html(data);
+				$("select").selectmenu();
+			}
+		}
+	});
+	let user_settings_tabel_title = $("#show-user-settings-table").attr('title');
+	let change_pass_word = $('#translate').attr('data-change') + ' ' + $('#translate').attr('data-password')
+	let showUserSettings = $("#show-user-settings").dialog({
+		autoOpen: false,
+		width: 600,
+		modal: true,
+		title: user_settings_tabel_title,
+		buttons: [{
+			text: save_word,
+			click: function () {
+				saveUserSettings(user_id);
+				$(this).dialog("close");
+			}
+		}, {
+			text: change_pass_word,
+			click: function () {
+				changePassword();
+				$(this).dialog("close");
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
+				$(this).dialog("close");
+			}
+		}]
+	});
+	showUserSettings.dialog('open');
+}
+function generateSelect(select_id, option_value, option_name, is_selected='') {
+	$(select_id).append('<option value="' + option_value + '" '+is_selected+'>' + option_name + '</option>');
 }

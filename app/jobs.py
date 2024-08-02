@@ -39,13 +39,6 @@ def update_cur_tool_versions():
         tools_common.update_cur_tool_versions()
 
 
-@scheduler.task('interval', id='delete_old_uuid', minutes=60, misfire_grace_time=None)
-def delete_old_uuid():
-    app = scheduler.app
-    with app.app_context():
-        user_sql.delete_old_uuid()
-
-
 @scheduler.task('interval', id='delete_action_history_for_period', minutes=70, misfire_grace_time=None)
 def delete_action_history_for_period():
     app = scheduler.app

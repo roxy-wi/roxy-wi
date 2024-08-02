@@ -36,19 +36,21 @@ $( function() {
 		var id = $(this).attr('id');
 		var val = $(this).val();
 		updateSettings(id, val);
-		updateSettings(id[1])
+		let section = $(this).parent().parent().attr('class').split(' ')[1].split('-')[0];
+		updateSettings(id, section, val);
 	});
 	$( "#settings input" ).change(function() {
 		var id = $(this).attr('id');
 		var val = $(this).val();
 		if($('#'+id).is(':checkbox')) {
 			if ($('#'+id).is(':checked')){
-				val = 1;
+				val = '1';
 			} else {
-				val = 0;
+				val = '0';
 			}
 		}
-		updateSettings(id, val);
+		let section = $(this).parent().parent().attr('class').split(' ')[1].split('-')[0];
+		updateSettings(id, section, val);
 	});
 });
 function hideAndShowSettings(section) {
@@ -65,23 +67,27 @@ function hideAndShowSettings(section) {
 		$.getScript(awesome);
 	}
 }
-function updateSettings(param, val) {
+function updateSettings(param, section, val) {
 	try {
 		val = val.replace(/\//g, "92");
 	} catch (e) {
 		val = val;
 	}
 	toastr.clear();
+	let json_data = {
+		'param': param,
+		'value': val
+	}
+	if (section === 'smon') {
+		section = 'rmon';
+	}
 	$.ajax({
-		url: "/app/admin/setting/" + param,
-		data: {
-			val: val,
-			token: $('#token').val()
-		},
+		url: "/admin/settings/" + section,
+		data: JSON.stringify(json_data),
 		type: "POST",
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error:') != '-1') {
+			if (data.status === 'failed') {
 				toastr.error(data);
 			} else {
 				toastr.clear();

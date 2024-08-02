@@ -12,7 +12,7 @@ def select_clusters(group_id: int):
 def create_cluster(name: str, syn_flood: int, group_id: int, desc: str) -> int:
 	try:
 		last_id = HaCluster.insert(
-			name=name, syn_flood=syn_flood, group_id=group_id, desc=desc
+			name=name, syn_flood=syn_flood, group_id=group_id, description=desc
 		).execute()
 		return last_id
 	except Exception as e:
@@ -79,7 +79,7 @@ def select_cluster_master_slaves(cluster_id: int, group_id: int, router_id: int)
 	conn = connect()
 	cursor = conn.cursor()
 	sql = f"select * from servers left join ha_cluster_slaves on (servers.id = ha_cluster_slaves.server_id) " \
-		  f"where servers.groups = {group_id} and ha_cluster_slaves.cluster_id = {cluster_id} and ha_cluster_slaves.router_id = {router_id};"
+		  f"where servers.group_id = {group_id} and ha_cluster_slaves.cluster_id = {cluster_id} and ha_cluster_slaves.router_id = {router_id};"
 	try:
 		cursor.execute(sql)
 	except Exception as e:
@@ -133,7 +133,7 @@ def select_ha_cluster_not_masters_not_slaves(group_id: int):
 		query = Server.select().where(
 			(Server.type_ip == 0) &
 			(Server.server_id.not_in(HaClusterSlave.select(HaClusterSlave.server_id))) &
-			(Server.groups == group_id)
+			(Server.group_id == group_id)
 		)
 		return query.execute()
 	except Exception as e:
@@ -206,7 +206,7 @@ def update_slave(cluster_id: int, server_id: int, eth: str, master: int, router_
 
 def update_cluster(cluster_id: int, name: str, desc: str, syn_flood: int) -> None:
 	try:
-		HaCluster.update(name=name, desc=desc, syn_flood=syn_flood).where(HaCluster.id == cluster_id).execute()
+		HaCluster.update(name=name, description=desc, syn_flood=syn_flood).where(HaCluster.id == cluster_id).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -276,4 +276,4 @@ def get_cred_id_by_server_ip(server_ip):
 	except Exception as e:
 		return out_error(e)
 	else:
-		return cred.cred
+		return cred.cred_id

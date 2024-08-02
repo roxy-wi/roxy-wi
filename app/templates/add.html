@@ -20,7 +20,7 @@
 {% set header_params = {'add-header': 'add-header', 'set-header': 'set-header', 'del-header': 'del-header'} %}
 {% set if_values = {'1':'Host name starts with','2':'Host name ends with','3':'Path starts with','4':'Path ends with', '6': 'Src ip'} %}
 
-<script src="/app/static/js/add.js"></script>
+<script src="/static/js/add.js"></script>
 <div id="tabs">
 	<ul>
 		<li><a href="#create" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.proxy}} - Roxy-WI">{{lang.words.create|title()}} {{lang.words.proxy}}</a></li>
@@ -38,7 +38,7 @@
 	<ul id='browse_histroy'></ul>
 	{% include 'include/add_proxy.html' %}
 	<div id="listen">
-		<form name="add-listener" id="add-listener" action="/app/add/haproxy/add" method="post">
+		<form name="add-listener" id="add-listener" action="/add/haproxy/add" method="post">
 			<table class="add-table">
 				<caption><h3>{{lang.words.add|title()}} {{lang.words.listener}}</h3></caption>
 				<tr>
@@ -301,7 +301,7 @@
 		<!-- Second tabs -->
 
 	<div id="frontend">
-		<form name="add-frontend" id="add-frontend" action="/app/add/haproxy/add" method="post">
+		<form name="add-frontend" id="add-frontend" action="/add/haproxy/add" method="post">
 		<table>
 			<caption><h3>{{lang.words.add|title()}} {{lang.words.frontend}}</h3></caption>
 			<tr>
@@ -492,7 +492,7 @@
 				<!-- Third tabs -->
 
 	<div id="backend">
-		<form name="add-backend" id="add-backend" action="/app/add/haproxy/add" method="post">
+		<form name="add-backend" id="add-backend" action="/add/haproxy/add" method="post">
 		<table>
 			<caption><h3>{{lang.words.add|title()}} {{lang.words.backend}}</h3></caption>
 			<tr>
@@ -873,7 +873,7 @@
 		</div>
 	</div>
 	<div id="userlist">
-		<form name="add-userlist" id="add-userlist" action="/app/add/haproxy/userlist" method="post">
+		<form name="add-userlist" id="add-userlist" action="/add/haproxy/userlist" method="post">
 		<table>
 			<caption><h3>{{lang.words.add|title()}} {{lang.words.userlists}}</h3></caption>
 			<tr>
@@ -956,7 +956,7 @@
 		</div>
 	</div>
 	<div id="peers">
-		<form name="add-peers" id="add-peers" action="/app/add/haproxy/peers" method="post">
+		<form name="add-peers" id="add-peers" action="/add/haproxy/peers" method="post">
 		<table>
 			<caption><h3>{{lang.words.add|title()}} Peer</h3></caption>
 			<tr>

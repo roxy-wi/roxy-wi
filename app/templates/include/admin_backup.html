@@ -76,7 +76,7 @@
 						</td>
 						<td>
 							{% set values = {'backup':'backup','synchronization':'synchronization'} %}
-							{{ select('backup-type-'+b.id|string(), values=values, selected=b.backup_type, required='required', class='force_close') }}
+							{{ select('backup-type-'+b.id|string(), values=values, selected=b.type, required='required', class='force_close') }}
 						</td>
 						<td>
 							{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
@@ -86,8 +86,8 @@
 							<select id="backup-credentials-{{b.id}}" required>
 								<option disabled selected>------</option>
 								{% for ssh in sshs %}
-									{% if ssh.enable == 1 %}
-										{% if ssh.id == b.cred %}
+									{% if ssh.key_enabled == 1 %}
+										{% if ssh.id == b.cred_id %}
 											<option value="{{ssh.id}}" selected="selected">{{ssh.name}}</option>
 										{% else %}
 											<option value="{{ssh.id}}">{{ssh.name}}</option>

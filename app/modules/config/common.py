@@ -1,5 +1,5 @@
 import app.modules.db.sql as sql
-import modules.roxy_wi_tools as roxy_wi_tools
+import app.modules.roxy_wi_tools as roxy_wi_tools
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 time_zone = sql.get_setting('time_zone')

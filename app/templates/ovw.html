@@ -3,9 +3,10 @@
 {% block h2 %}{{lang.menu_links.overview.h2}}{% endblock %}
 {% block content %}
 <link href="{{ url_for('static', filename='css/chart.min.css') }}" rel="stylesheet">
-<script src="/app/static/js/metrics.js"></script>
-<script src="/app/static/js/chart.min-4.3.0.js"></script>
-<script src="/app/static/js/overview.js"></script>
+    <link href="{{ url_for('static', filename='css/new-style.css') }}" rel="stylesheet">
+<script src="/static/js/metrics.js"></script>
+<script src="/static/js/chart.min-4.3.0.js"></script>
+<script src="/static/js/overview.js"></script>
 <script>
 	$("#secIntervals").css("display", "none");
 	var ip = []
@@ -25,33 +26,33 @@
 	<tr class="overviewHead">
 		<td class="padding10 first-collumn-wi">
 			{% if g.user_params['role'] <= 2 %}
-				<a href="servers#servers" title="{{lang.words.manage|title()}} {{lang.words.servers}}">{{lang.words.servers|title()}}</a>
+				<a href="/admin#servers" title="{{lang.words.manage|title()}} {{lang.words.servers}}">{{lang.words.servers|title()}}</a>
 			{% else %}
 				{{lang.words.servers|title()}}
 			{% endif %}
 		</td>
 		<td class="padding10 third-collumn-wi" style="width: 20%;">
-			<a href="/app/service/haproxy" title="HAProxy {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
+			<a href="/service/haproxy" title="HAProxy {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
 				HAProxy
 			</a>
 		</td>
 		<td class="padding10">
-			<a href="/app/service/nginx" title="NGINX {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
+			<a href="/service/nginx" title="NGINX {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
 				NGINX
 			</a>
 		</td>
 		<td class="padding10">
-			<a href="/app/service/apache" title="Apache {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
+			<a href="/service/apache" title="Apache {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
 				Apache
 			</a>
 		</td>
 		<td class="padding10">
-			<a href="/app/service/keepalived" title="Keepalived {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
+			<a href="/service/keepalived" title="Keepalived {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
 				Keepalived
 			</a>
 		</td>
 		<td class="padding10">
-			<a href="/app/waf/haproxy" title="HAProxy WAF {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
+			<a href="/waf/haproxy" title="HAProxy WAF {{lang.words.servers}} {{lang.words.overview}}" class="logs_link">
 				WAF
 			</a>
 		</td>
@@ -69,7 +70,7 @@
 	<tr class="overviewHead" style="height: 30px;">
 		<td class="padding10 first-collumn-wi" colspan="2">
 			{% if g.user_params['role'] <= 1 %}
-				<a href="/app/logs/internal" title="{{lang.words.view|title()}} Roxy-WI {{lang.words.logs}}" class="logs_link">
+				<a href="/logs/internal" title="{{lang.words.view|title()}} Roxy-WI {{lang.words.logs}}" class="logs_link">
 					Roxy-WI {{lang.words.server_status}}
 				</a>
 			{% else %}
@@ -152,7 +153,7 @@
 	<table class="overview-wi" id="overview-groups">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn-wi">
-				<a href="/app/users#groups" title="{{lang.words.manage|title()}} {{lang.words.groups3}}" class="logs_link">{{lang.words.groups|title()}}</a>
+				<a href="/users#groups" title="{{lang.words.manage|title()}} {{lang.words.groups3}}" class="logs_link">{{lang.words.groups|title()}}</a>
 			</td>
 			<td class="second-collumn" style="width: 40%">{{lang.words.desc|title()}}</td>
 			<td>

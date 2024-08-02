@@ -3,7 +3,7 @@
 {% block h2 %}{{ lang.menu_links.monitoring.smon.status_page }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, select %}
-<script src="/app/static/js/smon.js"></script>
+<script src="/static/js/smon.js"></script>
 <link href="{{ url_for('static', filename='css/servers.css') }}" rel="stylesheet"/>
 <link href="{{ url_for('static', filename='css/smon.css') }}" rel="stylesheet"/>
 
@@ -14,7 +14,7 @@
 	<br />
 	<h3>{{lang.smon_page.desc.smon_is_not_run}}</h3>
 	<img src="{{ url_for('static', filename='images/no_servers.png')}}" alt="There is no server">
-	<h4>{{lang.smon_page.desc.run_smon}} <a href="/app/users/services" title="Roxy-WI services" target="_blank">{{lang.words.here}}</a> {{lang.smon_page.desc.before_use}}</h4>
+	<h4>{{lang.smon_page.desc.run_smon}} <a href="/users/services" title="Roxy-WI services" target="_blank">{{lang.words.here}}</a> {{lang.smon_page.desc.before_use}}</h4>
 </div>
 {% else %}
     <div class="add-button add-button-big" title="SMOM: {{lang.phrases.create_page_status}} - Roxy-WI" onclick="createStatusPageStep1();">+ {{lang.phrases.create_page_status}}</div>
@@ -41,7 +41,7 @@
                     <span class="need-field">*</span>
                 </td>
                 <td>
-                    <span style="margin-top: 10px;display: inline-block;margin-right: -5px;">/app/smon/status/</span>{{ input('new-status-page-slug') }}
+                    <span style="margin-top: 10px;display: inline-block;margin-right: -5px;">/smon/status/</span>{{ input('new-status-page-slug') }}
                     <ul class="tooltip tooltipTop">
                         <li>Accept characters: a-z 0-9 -</li>
                         <li>No consecutive dashes --</li>

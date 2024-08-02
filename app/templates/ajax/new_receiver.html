@@ -1,34 +1,33 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
-{% for c in channels %}
-	<tr style="width: 50%;" id="{{receiver}}-table-{{c.id}}" class="newgroup">
-		<td class="padding10 first-collumn">
-			<input type="text" id="{{receiver}}-token-{{c.id}}" class="form-control" value="{{c.token}}" size="30">
-			<input type="hidden" id="{{receiver}}group-{{c.id}}" name="{{receiver}}group-{{c.id}}">
-		</td>
-		<td>
-			<input type="text" id="{{receiver}}-chanel-{{c.id}}" class="form-control" value="{{c.chanel_name}}" size="30">
-		</td>
-		{% if g.user_params['role'] > 1 %}
-			<td>
-				<select id="{{receiver}}group-{{c.id}}" name="{{receiver}}group-{{c.id}}">
-					{% for group in groups %}
-						{% if c.groups == group.group_id %}
-							<option value="{{ group.group_id }}" selected>{{ group.name }}</option>
-						{% else %}
-							<option value="{{ group.group_id }}">{{ group.name }}</option>
-						{% endif %}
-					{% endfor %}
-				</select>
-			</td>
-		{% endif %}
+<tr style="width: 50%;" id="{{receiver}}-table-{{channel.id}}" class="newgroup">
+    <td class="padding10 first-collumn">
+        <input type="text" id="{{receiver}}-token-{{channel.id}}" class="form-control" value="{{channel.token}}" size="30">
+        <input type="hidden" id="{{receiver}}group-{{channel.id}}" name="{{receiver}}group-{{channel.id}}">
+    </td>
+    <td>
+        <input type="text" id="{{receiver}}-chanel-{{channel.id}}" class="form-control" value="{{channel.chanel_name}}" size="30">
+    </td>
+{{ g.user_params['role'] }}
+    {% if g.user_params['role'] == 1 %}
         <td>
-            <button title="{{lang.phrases.send_test_mes}}" onclick="checkReceiver({{c.id}}, '{{receiver}}')">{{lang.words.test|title()}}</button>
+            <select id="{{receiver}}group-{{channel.id}}" name="{{receiver}}group-{{channel.id}}">
+                {% for group in groups %}
+                    {% if channel.group_id == group.group_id %}
+                        <option value="{{ group.group_id }}" selected>{{ group.name }}</option>
+                    {% else %}
+                        <option value="{{ group.group_id }}">{{ group.name }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
         </td>
-		<td>
-			<a class="add" onclick="cloneReceiver({{c.id}}, '{{receiver}}')" id="clone-{{c.id}}" title="{{lang.words.clone|title()}} {{c.chanel_name}}" style="cursor: pointer;"></a>
-		</td>
-		<td>
-			<a class="delete" onclick="confirmDeleteReceiver({{c.id}}, '{{receiver}}')" style="cursor: pointer;"></a>
-		</td>
-	</tr>
-{% endfor %}
+    {% endif %}
+    <td>
+        <button title="{{lang.phrases.send_test_mes}}" onclick="checkReceiver({{channel.id}}, '{{receiver}}')">{{lang.words.test|title()}}</button>
+    </td>
+    <td>
+        <a class="add" onclick="cloneReceiver({{channel.id}}, '{{receiver}}')" id="clone-{{channel.id}}" title="{{lang.words.clone|title()}} {{channel.chanel_name}}" style="cursor: pointer;"></a>
+    </td>
+    <td>
+        <a class="delete" onclick="confirmDeleteReceiver({{channel.id}}, '{{receiver}}')" style="cursor: pointer;"></a>
+    </td>
+</tr>

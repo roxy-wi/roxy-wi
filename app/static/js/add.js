@@ -262,10 +262,10 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/server/show/ip/" + $("#serv").val(),
+				url: `/server/${$("#serv").val()}/ip`,
+				contentType: "application/json; charset=utf-8",
 				success: function (data) {
-					data = data.replace(/\s+/g, ' ');
-					response(data.split(" "));
+					response(data);
 				}
 			});
 		},
@@ -282,10 +282,10 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/server/show/ip/" + $("#serv2").val(),
+				url: `/server/${$("#serv2").val()}/ip`,
+				contentType: "application/json; charset=utf-8",
 				success: function (data) {
-					data = data.replace(/\s+/g, ' ');
-					response(data.split(" "));
+					response(data);
 				}
 			});
 		},
@@ -302,7 +302,7 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/runtimeapi/backends/" + $("#serv2").val(),
+				url: "/runtimeapi/backends/" + $("#serv2").val(),
 				success: function (data) {
 					response(data.split('<br>'));
 				}
@@ -317,7 +317,7 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/add/haproxy/bwlists/black/" + $("#group_id").val(),
+				url: "/add/haproxy/bwlists/black/" + $("#group_id").val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -333,7 +333,7 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/add/haproxy/bwlists/black/" + $("#group_id").val(),
+				url: "/add/haproxy/bwlists/black/" + $("#group_id").val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -349,7 +349,7 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/add/haproxy/bwlists/white/" + $("#group_id").val(),
+				url: "/add/haproxy/bwlists/white/" + $("#group_id").val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -365,7 +365,7 @@ $( function() {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/add/haproxy/bwlists/white/" + $("#group_id").val(),
+				url: "/add/haproxy/bwlists/white/" + $("#group_id").val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -399,7 +399,7 @@ $( function() {
 	});
 	$("#saved-options").autocomplete({
 		dataType: "json",
-		source: "/app/add/option/get/" + $('#group_id').val(),
+		source: "/add/option/get/" + $('#group_id').val(),
 		autoFocus: true,
 		minLength: 1,
 		select: function (event, ui) {
@@ -420,7 +420,7 @@ $( function() {
 	});
 	$("#saved-options1").autocomplete({
 		dataType: "json",
-		source: "/app/add/option/get/" + $('#group_id').val(),
+		source: "/add/option/get/" + $('#group_id').val(),
 		autoFocus: true,
 		minLength: 1,
 		select: function (event, ui) {
@@ -441,7 +441,7 @@ $( function() {
 	});
 	$("#saved-options2").autocomplete({
 		dataType: "json",
-		source: "/app/add/option/get/" + $('#group_id').val(),
+		source: "/add/option/get/" + $('#group_id').val(),
 		autoFocus: true,
 		minLength: 1,
 		select: function (event, ui) {
@@ -457,7 +457,7 @@ $( function() {
 	});
 	$('#add-option-new').click(function () {
 		$.ajax({
-			url: "/app/add/option/save",
+			url: "/add/option/save",
 			data: {
 				option: $('#new-option').val()
 			},
@@ -481,7 +481,7 @@ $( function() {
 
 	});
 	$('[name=servers]').autocomplete({
-		source: "/app/add/server/get/" + $('#group_id').val(),
+		source: "/add/server/get/" + $('#group_id').val(),
 		autoFocus: true,
 		minLength: 1,
 		select: function (event, ui) {
@@ -501,7 +501,7 @@ $( function() {
 	});
 	$('#add-saved-server-new').click(function () {
 		$.ajax({
-			url: "/app/add/server/save",
+			url: "/add/server/save",
 			data: {
 				server: $('#new-saved-servers').val(),
 				desc: $('#new-saved-servers-description').val()
@@ -722,7 +722,7 @@ $( function() {
 			$("[name=port_check_text]").show("fast");
 		}
 	});
-	let cur_url = window.location.href.split('/app/').pop();
+	let cur_url = window.location.href.split('/').pop();
 	cur_url = cur_url.split('/');
 	if (cur_url[0] == "add") {
 		$("#cache").checkboxradio("disable");
@@ -838,7 +838,7 @@ $( function() {
 		source: function (request, response) {
 			if (!checkIsServerFiled('#serv')) return false;
 			$.ajax({
-				url: "/app/add/certs/" + $('#serv').val(),
+				url: "/add/certs/" + $('#serv').val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -852,7 +852,7 @@ $( function() {
 		source: function (request, response) {
 			if (!checkIsServerFiled('#serv2')) return false;
 			$.ajax({
-				url: "/app/add/certs/" + $('#serv2').val(),
+				url: "/add/certs/" + $('#serv2').val(),
 				success: function (data) {
 					data = data.replace(/\s+/g, ' ');
 					response(data.split(" "));
@@ -867,7 +867,7 @@ $( function() {
 		if (!checkIsServerFiled('#ssl_name', 'Enter the Certificate name')) return false;
 		if (!checkIsServerFiled('#ssl_cert', 'Paste the contents of the certificate file')) return false;
 		$.ajax({
-			url: "/app/add/cert/add",
+			url: "/add/cert/add",
 			data: {
 				serv: $('#serv4').val(),
 				ssl_cert: $('#ssl_cert').val(),
@@ -893,7 +893,7 @@ $( function() {
 	$('#ssl_key_view').click(function () {
 		if (!checkIsServerFiled('#serv5')) return false;
 		$.ajax({
-			url: "/app/add/certs/" + $('#serv5').val(),
+			url: "/add/certs/" + $('#serv5').val(),
 			success: function (data) {
 				if (data.indexOf('error:') != '-1') {
 					toastr.error(data);
@@ -931,7 +931,7 @@ $( function() {
 		} else if (validateEmail(lets_email)) {
 			$("#ajax-ssl").html(wait_mess);
 			$.ajax({
-				url: "/app/add/lets",
+				url: "/add/lets",
 				data: {
 					serv: $('#serv_for_lets').val(),
 					lets_domain: lets_domain,
@@ -1324,7 +1324,7 @@ function confirmDeleteOption(id) {
 function removeOption(id) {
 	$("#option-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-		url: "/app/add/option/delete/" + id,
+		url: "/add/option/delete/" + id,
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1') {
@@ -1338,7 +1338,7 @@ function removeOption(id) {
 function updateOptions(id) {
 	toastr.clear();
 	$.ajax({
-		url: "/app/add/option/update",
+		url: "/add/option/update",
 		data: {
 			option: $('#option-body-' + id).val(),
 			id: id,
@@ -1381,7 +1381,7 @@ function confirmDeleteSavedServer(id) {
 function removeSavedServer(id) {
 	$("#servers-saved-"+id).css("background-color", "#f2dede");
 	$.ajax( {
-		url: "/app/add/server/delete/"+id,
+		url: "/add/server/delete/"+id,
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if(data.indexOf('ok') != '-1') {
@@ -1393,7 +1393,7 @@ function removeSavedServer(id) {
 function updateSavedServer(id) {
 	toastr.clear();
 	$.ajax( {
-		url: "/app/add/server/update",
+		url: "/add/server/update",
 		data: {
 			server: $('#servers-ip-'+id).val(),
 			desc: $('#servers-desc-'+id).val(),
@@ -1417,7 +1417,7 @@ function view_ssl(id) {
 	let raw_word = translate_div.attr('data-raw');
 	if(!checkIsServerFiled('#serv5')) return false;
 	$.ajax( {
-		url: "/app/add/cert/" + $('#serv5').val() + '/' + id,
+		url: "/add/cert/" + $('#serv5').val() + '/' + id,
 		success: function( data ) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
@@ -1453,7 +1453,7 @@ function view_ssl(id) {
 }
 function showRawSSL(id) {
 	$.ajax({
-		url: "/app/add/cert/get/raw/" + $('#serv5').val() + "/" + id,
+		url: "/add/cert/get/raw/" + $('#serv5').val() + "/" + id,
 		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
@@ -1490,7 +1490,7 @@ function showRawSSL(id) {
 function deleteSsl(id) {
 	if (!checkIsServerFiled('#serv5')) return false;
 	$.ajax({
-		url: "/app/add/cert/" + $("#serv5").val() + "/" + id,
+		url: "/add/cert/" + $("#serv5").val() + "/" + id,
 		type: "DELETE",
 		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
@@ -1505,10 +1505,10 @@ function deleteSsl(id) {
 }
 function change_select_acceleration(id) {
 	$.ajax({
-		url: "/app/service/haproxy/version/" + $('#serv' + id + ' option:selected').val(),
+		url: "/service/haproxy/" + $('#serv' + id + ' option:selected').val() + "/status",
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (parseFloat(data) < parseFloat('1.8') || data == ' ') {
+			if (parseFloat(data.Version.split('-')[0]) < parseFloat('1.8') || data.Version == ' ') {
 				$("#cache" + id).checkboxradio("disable");
 			} else {
 				$("#cache" + id).checkboxradio("enable");
@@ -1518,9 +1518,10 @@ function change_select_acceleration(id) {
 }
 function change_select_waf(id) {
 	$.ajax({
-		url: "/app/service/haproxy/version/" + $('#serv' + id + ' option:selected').val(),
+		url: "/service/haproxy/" + $('#serv' + id + ' option:selected').val() + "/status",
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			if (parseFloat(data) < parseFloat('1.8')) {
+			if (parseFloat(data.Version.split('-')[0]) < parseFloat('1.8') || data.Version == ' ') {
 				$("#waf" + id).checkboxradio("disable");
 			} else {
 				$("#waf" + id).checkboxradio("enable");
@@ -1536,7 +1537,7 @@ function createList(color) {
 	}
 	list = escapeHtml(list);
 	$.ajax( {
-		url: "/app/add/haproxy/bwlist/create",
+		url: "/add/haproxy/bwlist/create",
 		data: {
 			bwlists_create: list,
 			color: color
@@ -1560,7 +1561,7 @@ function createList(color) {
 }
 function editList(list, color) {
 	$.ajax( {
-		url: "/app/add/haproxy/bwlist/" + list + "/" + color + "/" + $('#group_id').val(),
+		url: "/add/haproxy/bwlist/" + list + "/" + color + "/" + $('#group_id').val(),
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
@@ -1611,7 +1612,7 @@ function saveList(action, list, color) {
 	let serv = $("#serv-" + color + "-list option:selected").val();
 	if (!checkIsServerFiled($("#serv-" + color + "-list"))) return false;
 	$.ajax({
-		url: "/app/add/haproxy/bwlist/save",
+		url: "/add/haproxy/bwlist/save",
 		data: {
 			bwlists_save: list,
 			serv: serv,
@@ -1640,7 +1641,7 @@ function deleteList(list, color) {
 	let serv = $( "#serv-"+color+"-list option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-"+color+"-list"))) return false;
 	$.ajax({
-		url: "/app/add/haproxy/bwlist/delete/" + serv + "/" + color + "/" + list + "/" + $('#group_id').val(),
+		url: "/add/haproxy/bwlist/delete/" + serv + "/" + color + "/" + list + "/" + $('#group_id').val(),
 		success: function (data) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
 				toastr.error(data);
@@ -1659,7 +1660,7 @@ function createMap() {
 	map_name = $('#new_map_name').val()
 	map_name = escapeHtml(map_name);
 	$.ajax( {
-		url: "/app/add/map",
+		url: "/add/map",
 		data: {
 			map_name: map_name
 		},
@@ -1682,7 +1683,7 @@ function createMap() {
 }
 function editMap(map) {
 	$.ajax({
-		url: "/app/add/map",
+		url: "/add/map",
 		data: {
 			map_name: map,
 		},
@@ -1737,7 +1738,7 @@ function saveMap(action, map) {
 	let serv = $( "#serv-map option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-map"))) return false;
 	$.ajax({
-		url: "/app/add/map",
+		url: "/add/map",
 		data: {
 			map_name: map,
 			serv: serv,
@@ -1765,7 +1766,7 @@ function deleteMap(map) {
 	let serv = $( "#serv-map option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-map"))) return false;
 	$.ajax({
-		url: "/app/add/map",
+		url: "/add/map",
 		data: {
 			map_name: map,
 			serv: serv,
@@ -2071,10 +2072,10 @@ function make_actions_for_adding_bind(section_id) {
 				request.term = 1
 			}
 			$.ajax({
-				url: "/app/server/show/ip/" + $("#" + serv).val(),
+				url: "/server/" + $("#" + serv).val() + "/ip",
+				contentType: "application/json; charset=utf-8",
 				success: function (data) {
-					data = data.replace(/\s+/g, ' ');
-					response(data.split(" "));
+					response(data);
 				}
 			});
 		},
@@ -2099,7 +2100,7 @@ function showUserlists() {
 	let select_id = $("#existing_userlist_serv");
 	if (!checkIsServerFiled(select_id)) return false;
 	$.ajax({
-		url: "/app/add/haproxy/userlist/" + serv,
+		url: "/add/haproxy/userlist/" + serv,
 		success: function (data) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
@@ -2111,7 +2112,7 @@ function showUserlists() {
 					let existing_userlist_ajax = $.find("#existing_userlist_ajax");
 					existing_userlist_ajax = existing_userlist_ajax[0].id;
 					data[i] = escapeHtml(data[i]);
-					$('#' + existing_userlist_ajax).append('<a href="/app/config/section/haproxy/' + serv + '/' + data[i] + '" title="Edit/Delete this userlist" target="_blank">' + data[i] + '</a> ');
+					$('#' + existing_userlist_ajax).append('<a href="/config/section/haproxy/' + serv + '/' + data[i] + '" title="Edit/Delete this userlist" target="_blank">' + data[i] + '</a> ');
 				}
 			}
 		}

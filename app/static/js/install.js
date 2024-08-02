@@ -19,7 +19,7 @@ $( function() {
 		$("#ajaxmon").html('');
 		$("#ajaxmon").html(wait_mess);
 		$.ajax({
-			url: "/app/install/grafana",
+			url: "/install/grafana",
 			success: function (data) {
 				data = data.replace(/\s+/g, ' ');
 				$("#ajaxmon").html('');
@@ -102,7 +102,7 @@ $( function() {
 			"update": updating_geoip
 		}
 		$.ajax({
-			url: "/app/install/geoip",
+			url: "/install/geoip",
 			data: JSON.stringify(jsonData),
 			contentType: "application/json; charset=utf-8",
 			type: "POST",
@@ -120,7 +120,7 @@ $( function() {
 });
 function checkGeoipInstallation() {
 	$.ajax({
-		url: "/app/install/geoip/" + $('#geoip_service option:selected').val() + "/" + $('#geoipserv option:selected').val(),
+		url: "/install/geoip/" + $('#geoip_service option:selected').val() + "/" + $('#geoipserv option:selected').val(),
 		success: function (data) {
 			data = data.replace(/^\s+|\s+$/g, '');
 			if (data.indexOf('No such file or directory') != '-1' || data.indexOf('cannot access') != '-1') {
@@ -144,27 +144,31 @@ function installService(service) {
 	if ($('#' + service + '_docker').is(':checked')) {
 		docker = '1';
 	}
-	if ($(select_id).val() == '------' || $(select_id).val() === null) {
+	if ($(select_id).val() === '------' || $(select_id).val() === null) {
 		let select_server = translate_div.attr('data-select_server');
 		toastr.warning(select_server);
 		return false
 	}
 	let jsonData = {};
-	jsonData['servers'] = {'0': {}}
+	let server = {
+		"ip": $(select_id).val(),
+        "master": '0',
+        "name": $(select_id + ' option:selected').text(),
+	}
+	if (service === 'haproxy') {
+		server['version'] = $('#hapver option:selected').val();
+	}
+	jsonData['servers'] = {}
 	jsonData['services'] = {};
 	jsonData['services'][service] = {};
 	jsonData['syn_flood'] = syn_flood;
-	jsonData['servers']['0']['ip'] = $(select_id).val();
-	jsonData['servers']['0']['master'] = '0';
-	jsonData['servers']['0']['name'] = $(select_id + ' option:selected').text();
-	if (service == 'haproxy') {
-		jsonData['servers']['0']['version'] = $('#hapver option:selected').val();
-	}
+	jsonData['servers'] = [];
+	jsonData['servers'].push(server);
 	jsonData['services'][service]['enabled'] = 1;
 	jsonData['services'][service]['docker'] = docker;
 	$("#ajax").html(wait_mess);
 	$.ajax({
-		url: "/app/install/" + service,
+		url: "/install/" + service + "/" + $(select_id).val(),
 		500: function () {
 			showErrorStatus(nice_names[service], $(select_id + ' option:selected').text());
 		},
@@ -178,8 +182,8 @@ function installService(service) {
 			if (data.status === 'failed') {
 				toastr.error(data.error);
 			} else {
-				parseAnsibleJsonOutput(data, nice_names[service], select_id);
 				$(select_id).trigger("selectmenuchange");
+				$("#ajax").empty();
 			}
 		}
 	});
@@ -200,7 +204,7 @@ function installExporter(exporter) {
 	}
 	$("#ajax").html(wait_mess);
 	$.ajax({
-		url: "/app/install/exporter/" + exporter,
+		url: "/install/exporter/" + exporter,
 		500: function () {
 			showErrorStatus(nice_exporter_name, $(exporter_id + ' option:selected').text());
 		},
@@ -214,15 +218,16 @@ function installExporter(exporter) {
 			if (data.status === 'failed') {
 				toastr.error(data.error);
 			} else {
-				parseAnsibleJsonOutput(data, nice_exporter_name, exporter_id);
+				parseAnsibleJsonOutput(data, nice_names[service], select_id);
 				$(exporter_id).trigger("selectmenuchange");
+				$("#ajax").empty();
 			}
 		}
 	});
 }
 function showExporterVersion(exporter) {
 	$.ajax({
-		url: "/app/install/exporter/" + exporter + "/version/" + $('#' + exporter + '_exp_addserv option:selected').val(),
+		url: "/install/exporter/" + exporter + "/version/" + $('#' + exporter + '_exp_addserv option:selected').val(),
 		success: function (data) {
 			data = data.replace(/^\s+|\s+$/g, '');
 			if (data.indexOf('error:') != '-1') {
@@ -237,28 +242,28 @@ function showExporterVersion(exporter) {
 	});
 }
 function showServiceVersion(service) {
+	let install_div = $('#' + service + '_install');
+	let ver_div = $('#cur_' + service + '_ver');
 	$.ajax({
-		url: "/app/install/" + service + "/version/" + $('#' + service + 'addserv option:selected').val(),
+		url: "/service/" + service + "/" + $('#' + service + 'addserv option:selected').val() + "/status",
+		statusCode: {
+			404: function (xhr) {
+				ver_div.text(service + ' has not installed');
+				install_div.text('Install');
+				install_div.attr('title', 'Install');
+			}
+		},
 		success: function (data) {
-			data = data.replace(/^\s+|\s+$/g, '');
-			if (data.indexOf('error: ') != '-1') {
-				toastr.warning(data);
-				$('#cur_' + service + '_ver').text('');
-			} else if(data.indexOf('bash') != '-1' || data.indexOf('such') != '-1' || data.indexOf('command not found') != '-1' || data.indexOf('from') != '-1') {
-				$('#cur_' + service + '_ver').text(service + ' has not installed');
-				$('#' + service + '_install').text('Install');
-				$('#' + service + '_install').attr('title', 'Install');
-			} else if (data.indexOf('warning: ') != '-1') {
-				toastr.warning(data);
-			} else if (data == '') {
-				$('#cur_' + service + '_ver').text(service + ' has not installed');
-				$('#' + service + '_install').text('Install');
-				$('#' + service + '_install').attr('title', 'Install');
+			if (data.status === 'failed') {
+				ver_div.text(service + ' has not installed');
+				install_div.text('Install');
+				install_div.attr('title', 'Install');
+				toastr.warning('Cannot get version');
 			} else {
-				$('#cur_' + service + '_ver').text(data);
-				$('#cur_' + service + '_ver').css('font-weight', 'bold');
-				$('#' + service + '_install').text('Update');
-				$('#' + service + '_install').attr('title', 'Update');
+				ver_div.text(data.Version);
+				ver_div.css('font-weight', 'bold');
+				install_div.text('Update');
+				install_div.attr('title', 'Update');
 			}
 		}
 	});

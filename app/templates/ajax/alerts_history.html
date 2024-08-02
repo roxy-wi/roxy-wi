@@ -1,5 +1,5 @@
 <link href="{{ url_for('static', filename='css/table-6.3.9.css') }}" rel="stylesheet" type="text/css">
-<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/static/js/dataTables.min.js"></script>
 {% if action == "checker" %}
 {% set column_for_sort = 3 %}
 {% else %}
@@ -55,9 +55,9 @@
         </td>
         <td>
             {% if action == 'smon' %}
-            <a href="/app/smon/history/host/{{t.2|replace("'","")}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2|replace("'","")}}</a>
+            <a href="/smon/history/host/{{t.2|replace("'","")}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2|replace("'","")}}</a>
             {% else %}
-            <a href="/app/history/server/{{t.2|replace("'","")}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2|replace("'","")}}</a>
+            <a href="/history/server/{{t.2|replace("'","")}}" title="{{lang.words.open|title()}} {{lang.words.history}} {{lang.words.for}} {{t.2}} {{lang.words.host}}">{{t.2|replace("'","")}}</a>
             {% endif %}
         </td>
         {% if action != "checker" %}

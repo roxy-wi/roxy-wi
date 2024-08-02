@@ -1,25 +1,11 @@
 {% if g.user_params['user'] %}
-	<span id="show-user-settings-button" class="user-circle login" title="{{lang.words.user3|title()}} {{lang.words.settings}}" style="margin-top: 5px;">{{g.user_params['user']}}</span>
+	<span id="show-user-settings-button" class="user-circle login" title="{{lang.words.user3|title()}} {{lang.words.settings}}" style="margin-top: 5px;" onclick="openUserSettings('{{g.user_params['user_id']}}')">{{g.user_params['user']}}</span>
 {% else %}
-	<a href=/app/login title="Login" class="login"> Login</a>
+	<a href=/login title="Login" class="login"> Login</a>
 {% endif %}
-{% if guide_me %}
-	<style>
-		.guid_me {
-			float: right;
-			position: absolute;
-			color: #fff !important;
-			cursor: pointer;
-			top: 9px;
-			right: -3px;
-			font-size: 17px;
-			margin-right: 10px
-		}
-	</style>
-	<span class="info guid_me" title="Guide me" onclick="startIntroAgain()"></span>
-{% endif %}
-<a href="/app/logout" title="{{lang.words.logout|title()}}" style="float: right;
+<a href="/logout" title="{{lang.words.logout|title()}}" style="float: right;
     right: 27px;
     position: absolute;
-    top: 10px;
-	color: #fff;"><i class="fas fa-sign-out-alt"></i></a>
+    top: 8px;
+	font-size: 17px;
+"><i class="fas fa-sign-out-alt"></i></a>

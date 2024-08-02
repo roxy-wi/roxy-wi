@@ -1,272 +1,82 @@
 from app.modules.db.db_model import Telegram, Slack, PD, Server, MM
 from app.modules.db.common import out_error
+from app.modules.roxywi.exception import RoxywiResourceNotFound
+
+models = {
+		'telegram': Telegram,
+		'slack': Slack,
+		'pd': PD,
+		'mm': MM
+	}
 
 
-def get_user_telegram_by_group(group):
+def get_user_receiver_by_group(receiver: str, group: int):
+	model = models[receiver]
 	try:
-		return Telegram.select().where(Telegram.groups == group).execute()
+		return model.select().where(model.group_id == group).execute()
 	except Exception as e:
 		out_error(e)
 
 
-def get_telegram_by_ip(ip):
+def get_receiver_by_ip(receiver:str, ip: str):
+	model = models[receiver]
 	try:
-		return Telegram.select().join(Server, on=(Server.groups == Telegram.groups)).where(Server.ip == ip).execute()
+		return model.select().join(Server, on=(Server.group_id == model.group_id)).where(Server.ip == ip).execute()
 	except Exception as e:
 		out_error(e)
 
 
-def get_telegram_by_id(telegram_id):
+def get_receiver_by_id(receiver: str, channel_id: str):
+	model = models[receiver]
 	try:
-		return Telegram.select().where(Telegram.id == telegram_id).execute()
+		return model.select().where(model.id == channel_id).execute()
 	except Exception as e:
 		out_error(e)
 
 
-def get_user_slack_by_group(group):
+def select_receiver(receiver: str, channel_id: str):
+	model = models[receiver]
 	try:
-		return Slack.select().where(Slack.groups == group).execute()
+		return model.get(model.id == channel_id)
+	except model.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 
 
-def get_slack_by_ip(ip):
+def insert_new_receiver(receiver: str, token: str, channel: str, group: str):
+	model = models[receiver]
 	try:
-		return Slack.select().join(Server, on=(Server.groups == Slack.groups)).where(Server.ip == ip).execute()
+		return model.insert(token=token, chanel_name=channel, group_id=group).execute()
 	except Exception as e:
 		out_error(e)
 
 
-def get_slack_by_id(slack_id):
+def update_receiver(receiver: str, token: str, channel: str, group: str, channel_id: int) -> None:
+	model = models[receiver]
 	try:
-		return Slack.select().where(Slack.id == slack_id).execute()
+		model.update(token=token, chanel_name=channel, group_id=group).where(model.id == channel_id).execute()
+	except model.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 
 
-def get_user_pd_by_group(group):
+def delete_receiver(receiver: str, channel_id: int) -> None:
+	model = models[receiver]
 	try:
-		return PD.select().where(PD.groups == group).execute()
+		model.delete().where(model.id == channel_id).execute()
+	except model.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 
 
-def get_user_mm_by_group(group):
+def get_receiver_with_group(receiver: str, channel_id: int, group_id: int):
 	try:
-		return MM.select().where(MM.groups == group).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def get_pd_by_ip(ip):
-	query = PD.select().join(Server, on=(Server.groups == PD.groups)).where(Server.ip == ip)
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def get_pd_by_id(pd_id):
-	try:
-		return PD.select().where(PD.id == pd_id).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def delete_telegram(telegram_id):
-	query = Telegram.delete().where(Telegram.id == telegram_id)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def select_telegram(**kwargs):
-	if kwargs.get('token'):
-		query = Telegram.select().where(Telegram.token == kwargs.get('token'))
-	elif kwargs.get('id'):
-		query = Telegram.select().where(Telegram.id == kwargs.get('id'))
-	else:
-		query = Telegram.select()
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def insert_new_telegram(token, channel, group):
-	try:
-		Telegram.insert(token=token, chanel_name=channel, groups=group).execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def update_telegram(token, channel, group, telegram_id):
-	telegram_update = Telegram.update(token=token, chanel_name=channel, groups=group).where(Telegram.id == telegram_id)
-	try:
-		telegram_update.execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def delete_slack(slack_id):
-	query = Slack.delete().where(Slack.id == slack_id)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def select_slack(**kwargs):
-	if kwargs.get('token'):
-		query = Slack.select().where(Slack.token == kwargs.get('token'))
-	elif kwargs.get('id'):
-		query = Slack.select().where(Slack.id == kwargs.get('id'))
-	else:
-		query = Slack.select()
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def insert_new_slack(token, chanel, group):
-	try:
-		Slack.insert(token=token, chanel_name=chanel, groups=group).execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def update_slack(token, chanel, group, slack_id):
-	try:
-		return Slack.update(token=token, chanel_name=chanel, groups=group).where(Slack.id == slack_id).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def delete_pd(pd_id):
-	try:
-		PD.delete().where(PD.id == pd_id).execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def select_pd(**kwargs):
-	if kwargs.get('token'):
-		query = PD.select().where(PD.token == kwargs.get('token'))
-	elif kwargs.get('id'):
-		query = PD.select().where(PD.id == kwargs.get('id'))
-	else:
-		query = PD.select()
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def insert_new_pd(token, chanel, group):
-	try:
-		PD.insert(token=token, chanel_name=chanel, groups=group).execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def update_pd(token, chanel, group, pd_id):
-	try:
-		PD.update(token=token, chanel_name=chanel, groups=group).where(PD.id == pd_id).execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def insert_new_mm(token, chanel, group):
-	try:
-		MM.insert(token=token, chanel_name=chanel, groups=group).execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def update_mm(token, chanel, group, mm_id):
-	try:
-		MM.update(token=token, chanel_name=chanel, groups=group).where(MM.id == mm_id).execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def delete_mm(pd_id):
-	try:
-		MM.delete().where(MM.id == pd_id).execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
-def select_mm(**kwargs):
-	if kwargs.get('token'):
-		query = MM.select().where(MM.token == kwargs.get('token'))
-	elif kwargs.get('id'):
-		query = MM.select().where(MM.id == kwargs.get('id'))
-	else:
-		query = MM.select()
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def get_mm_by_ip(ip):
-	query = MM.select().join(Server, on=(Server.groups == MM.groups)).where(Server.ip == ip)
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def get_mm_by_id(pd_id):
-	try:
-		return MM.select().where(MM.id == pd_id).execute()
+		model = models[receiver]
+		return model.get((model.id == channel_id) & (model.group_id == group_id))
+	except model.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)

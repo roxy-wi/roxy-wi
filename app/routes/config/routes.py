@@ -1,11 +1,10 @@
 import os
 
 from flask import render_template, request, g
-from flask_login import login_required
+from flask_jwt_extended import jwt_required, get_jwt
 
 from app.routes.config import bp
 import app.modules.db.sql as sql
-import app.modules.db.user as user_sql
 import app.modules.db.config as config_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
@@ -18,10 +17,14 @@ import app.modules.config.common as config_common
 import app.modules.config.section as section_mod
 import app.modules.service.haproxy as service_haproxy
 import app.modules.server.server as server_mod
+from app.views.service.views import ServiceConfigView
+
+
+bp.add_url_rule('/<service>/<server_id>', view_func=ServiceConfigView.as_view('config_view_ip'), methods=['POST'])
 
 
 @bp.before_request
-@login_required
+@jwt_required()
 def before_request():
     """ Protect all the admin endpoints. """
     pass
@@ -33,8 +36,9 @@ def show_config(service):
     config_file_name = request.form.get('config_file_name')
     configver = request.form.get('configver')
     server_ip = request.form.get('serv')
+    claims = get_jwt()
 
-    return config_mod.show_config(server_ip, service, config_file_name, configver)
+    return config_mod.show_config(server_ip, service, config_file_name, configver, claims)
 
 
 @bp.route('/<service>/show-files', methods=['POST'])
@@ -132,43 +136,43 @@ def config(service, serv, edit, config_file_name, new):
     return render_template('config.html', **kwargs)
 
 
-@bp.route('/<service>/<server_ip>/save', methods=['POST'])
-@check_services
-@get_user_params()
-def save_config(service, server_ip):
-    roxywi_common.check_is_server_in_group(server_ip)
-    config_file = request.form.get('config')
-    oldcfg = request.form.get('oldconfig')
-    save = request.form.get('save')
-    config_file_name = request.form.get('config_file_name')
-
-    try:
-        cfg = config_mod.return_cfg(service, server_ip, config_file_name)
-    except Exception as e:
-        return f'error: Cannot get config {e}'
-
-    try:
-        with open(cfg, "a") as conf:
-            conf.write(config_file)
-    except IOError as e:
-        return f"error: Cannot read imported config file: {e}", 200
-
-    try:
-        if service == 'keepalived':
-            stderr = config_mod.upload_and_restart(server_ip, cfg, save, service, oldcfg=oldcfg)
-        else:
-            stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, service, oldcfg=oldcfg,
-                                                                config_file_name=config_file_name)
-    except Exception as e:
-        return f'error: {e}', 200
-
-    if save != 'test':
-        config_mod.diff_config(oldcfg, cfg)
-
-    if stderr:
-        return stderr, 200
-
-    return
+# @bp.route('/<service>/<server_ip>/save', methods=['POST'])
+# @check_services
+# @get_user_params()
+# def save_config(service, server_ip):
+#     roxywi_common.check_is_server_in_group(server_ip)
+#     config_file = request.form.get('config')
+#     oldcfg = request.form.get('oldconfig')
+#     save = request.form.get('save')
+#     config_file_name = request.form.get('config_file_name')
+#
+#     try:
+#         cfg = config_mod.return_cfg(service, server_ip, config_file_name)
+#     except Exception as e:
+#         return f'error: Cannot get config {e}'
+#
+#     try:
+#         with open(cfg, "a") as conf:
+#             conf.write(config_file)
+#     except IOError as e:
+#         return f"error: Cannot read imported config file: {e}", 200
+#
+#     try:
+#         if service == 'keepalived':
+#             stderr = config_mod.upload_and_restart(server_ip, cfg, save, service, oldcfg=oldcfg)
+#         else:
+#             stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, service, oldcfg=oldcfg,
+#                                                                 config_file_name=config_file_name)
+#     except Exception as e:
+#         return f'error: {e}', 200
+#
+#     if save != 'test':
+#         config_mod.diff_config(oldcfg, cfg)
+#
+#     if stderr:
+#         return stderr, 200
+#
+#     return
 
 
 @bp.route('/versions/<service>', defaults={'server_ip': None}, methods=['GET', 'POST'])
@@ -177,15 +181,15 @@ def save_config(service, server_ip):
 @get_user_params(disable=1)
 def versions(service, server_ip):
     roxywi_auth.page_for_admin(level=3)
-    aftersave = ''
+    after_save = ''
     file = set()
     stderr = ''
-    file_fortmat = config_common.get_file_format(service)
+    file_format = config_common.get_file_format(service)
 
     if request.form.get('del'):
-        aftersave = 1
+        after_save = 1
         for get in request.form.getlist('do_delete'):
-            if file_fortmat in get and server_ip in get:
+            if file_format in get and server_ip in get:
                 try:
                     if config_sql.delete_config_version(service, get):
                         try:
@@ -209,7 +213,7 @@ def versions(service, server_ip):
 
     kwargs = {
         'serv': server_ip,
-        'aftersave': aftersave,
+        'aftersave': after_save,
         'file': file,
         'service': service,
         'stderr': stderr,
@@ -222,10 +226,10 @@ def versions(service, server_ip):
 @check_services
 def list_of_version(service):
     server_ip = common.is_ip_or_dns(request.form.get('serv'))
-    configver = common.checkAjaxInput(request.form.get('configver'))
+    config_ver = common.checkAjaxInput(request.form.get('configver'))
     for_delver = common.checkAjaxInput(request.form.get('for_delver'))
 
-    return config_mod.list_of_versions(server_ip, service, configver, for_delver)
+    return config_mod.list_of_versions(server_ip, service, config_ver, for_delver)
 
 
 @bp.route('/versions/<service>/<server_ip>/<configver>', defaults={'save': None}, methods=['GET', 'POST'])

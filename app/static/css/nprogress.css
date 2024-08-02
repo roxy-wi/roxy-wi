@@ -37,8 +37,10 @@
   height: 40px;
   box-sizing: border-box;
   border: solid 5px transparent;
-  border-top-color: #5d9ceb;
-  border-left-color: #5d9ceb;
+  /*border-top-color: #5d9ceb;*/
+  /*border-left-color: #5d9ceb;*/
+  border-top-color: var(--color-wanring);
+  border-left-color: var(--color-wanring);
   border-radius: 50%;
   -webkit-animation: nprogress-spinner 400ms linear infinite;
           animation: nprogress-spinner 400ms linear infinite;

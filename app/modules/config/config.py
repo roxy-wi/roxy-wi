@@ -2,7 +2,9 @@ import os
 from pathlib import Path
 from typing import Any
 
-from flask import render_template, request, g
+from flask import render_template, g
+from flask_jwt_extended import get_jwt
+from flask_jwt_extended import verify_jwt_in_request
 
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
@@ -243,7 +245,7 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	try:
 		commands = _generate_command(service, server_id, just_save, config_path, tmp_file, cfg, server_ip)
 	except Exception as e:
-		return f'error: {e}'
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot generate command for service {service}')
 
 	try:
 		error = server_mod.ssh_command(server_ip, commands)
@@ -383,19 +385,20 @@ def diff_config(old_cfg, cfg, **kwargs):
 		return diff
 
 	try:
-		user_uuid = request.cookies.get('uuid')
-		login = user_sql.get_user_name_by_uuid(user_uuid)
+		verify_jwt_in_request()
+		claims = get_jwt()
+		login = user_sql.get_user_id(claims['user_id'])
 	except Exception:
 		login = ''
 
 	for line in output:
-		diff += f"{date} user: {login}, group: {user_group} {line}\n"
+		diff += f"{date} user: {login.username}, group: {user_group} {line}\n"
 
 	try:
 		with open(log_file, 'a') as log:
 			log.write(diff)
 	except IOError as e:
-		roxywi_common.logging('Roxy-WI server', f'error: Cannot write a diff config to the log file: {e}, {stderr}', login=login, roxywi=1)
+		roxywi_common.logging('Roxy-WI server', f'error: Cannot write a diff config to the log file: {e}, {stderr}', login=login.username, roxywi=1)
 
 
 def _classify_line(line: str) -> str:
@@ -409,7 +412,7 @@ def show_finding_in_config(stdout: str, **kwargs) -> str:
 	"""
 	:param stdout: The stdout of a command execution.
 	:param kwargs: Additional keyword arguments.
-	    :keyword grep: The word to find and highlight in the output. (Optional)
+		:keyword grep: The word to find and highlight in the output. (Optional)
 	:return: The output with highlighted lines and formatted dividers.
 
 	This method takes the stdout of a command execution and additional keyword arguments. It searches for a word specified by the `grep` keyword argument in each line of the stdout and highlights
@@ -467,10 +470,11 @@ def compare_config(service: str, left: str, right: str) -> str:
 	return render_template('ajax/compare.html', stdout=output, lang=lang)
 
 
-def show_config(server_ip: str, service: str, config_file_name: str, configver: str) -> str:
+def show_config(server_ip: str, service: str, config_file_name: str, configver: str, claims: dict) -> str:
 	"""
 	Get and display the configuration file for a given server.
 
+	:param claims:
 	:param server_ip: The IP address of the server.
 	:param service: The name of the service.
 	:param config_file_name: The name of the configuration file.
@@ -478,8 +482,8 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 
 	:return: The rendered template for displaying the configuration.
 	"""
-	user_uuid = request.cookies.get('uuid')
-	group_id = int(request.cookies.get('group'))
+	user_id = claims['user_id']
+	group_id = claims['group']
 	configs_dir = config_common.get_config_dir(service)
 	server_id = server_sql.select_server_id_by_ip(server_ip)
 
@@ -513,7 +517,7 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 		'conf': conf,
 		'serv': server_ip,
 		'configver': configver,
-		'role': user_sql.get_user_role_by_uuid(user_uuid, group_id),
+		'role': user_sql.get_user_role_in_group(user_id, group_id),
 		'service': service,
 		'config_file_name': config_file_name,
 		'is_serv_protected': server_sql.is_serv_protected(server_ip),

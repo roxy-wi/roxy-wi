@@ -1,5 +1,6 @@
-var cur_url = window.location.href.split('/app/').pop();
-cur_url = cur_url.split('/');
+var cur_url = window.location.href.split('/').pop();
+// cur_url = cur_url.split('/');
+let superAdmin_pass = translate_div.attr('data-superAdmin_pass');
 $( function() {
 	$('#add-user-button').click(function () {
 		addUserDialog.dialog('open');
@@ -35,11 +36,21 @@ $( function() {
 	});
 	$("#ajax-users input").change(function () {
 		let id = $(this).attr('id').split('-');
-		updateUser(id[1])
+		if ($('#role-'+id + ' option:selected' ).val() === 'Select a role') {
+			toastr.warning(superAdmin_pass);
+			return false;
+		} else {
+			updateUser(id[1])
+		}
 	});
 	$("#ajax-users select").on('selectmenuchange', function () {
 		let id = $(this).attr('id').split('-');
-		updateUser(id[1])
+		if ($('#role-'+id + ' option:selected' ).val() === 'Select a role') {
+			toastr.warning(superAdmin_pass);
+			return false;
+		} else {
+			updateUser(id[1])
+		}
 	});
 	$('#search_ldap_user').click(function () {
 		toastr.clear();
@@ -51,7 +62,7 @@ $( function() {
 		let user = username_div.val()
 		if (valid) {
 			$.ajax({
-				url: "/app/user/ldap/" + user,
+				url: "/user/ldap/" + user,
 				contentType: "application/json; charset=utf-8",
 				success: function (data) {
 					if (data.status === 'failed') {
@@ -103,7 +114,7 @@ function addUser(dialog_id) {
 			"user_group": user_group,
 		}
 		$.ajax({
-			url: "/app/user",
+			url: "/user",
 			type: "POST",
 			data: JSON.stringify(jsonData),
 			contentType: "application/json; charset=utf-8",
@@ -142,15 +153,22 @@ function confirmDeleteUser(id) {
 function removeUser(id) {
 	$("#user-" + id).css("background-color", "#f2dede");
 	$.ajax({
-		url: "/app/user",
-		data: JSON.stringify({'user_id': id}),
+		url: "/user/" + id,
 		contentType: "application/json; charset=utf-8",
 		type: "DELETE",
-		success: function (data) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
+		statusCode: {
+			204: function (xhr) {
 				$("#user-" + id).remove();
+			},
+			404: function (xhr) {
+				$("#user-" + id).remove();
+			}
+		},
+		success: function (data) {
+			if (data) {
+				if (data.status === "failed") {
+					toastr.error(data);
+				}
 			}
 		}
 	});
@@ -165,10 +183,9 @@ function updateUser(id) {
 		"username": $('#login-' + id).val(),
 		"email": $('#email-' + id).val(),
 		"enabled": enabled,
-		"user_id": id
 	}
 	$.ajax({
-		url: "/app/user",
+		url: "/user/" + id,
 		type: "PUT",
 		data: JSON.stringify(jsonData),
 		contentType: "application/json; charset=utf-8",
@@ -192,10 +209,9 @@ function openChangeUserServiceDialog(id) {
 	changeUserServiceDialog(id);
 }
 function changeUserPasswordDialog(id) {
-	let superAdmin_pass = translate_div.attr('data-superAdmin_pass');
 	let change_word = translate_div.attr('data-change2');
 	let password_word = translate_div.attr('data-password');
-	if ($('#role-'+id + ' option:selected' ).val() == 'Select a role') {
+	if ($('#role-'+id + ' option:selected' ).val() === 'Select a role') {
 		toastr.warning(superAdmin_pass);
 		return false;
 	}
@@ -229,25 +245,21 @@ function changeUserPasswordDialog(id) {
 	});
 }
 function changeUserPassword(id, d) {
-	let pass = $('#change-password').val();
-	let pass2 = $('#change2-password').val();
+	var pass = $('#change-password').val();
+	var pass2 = $('#change2-password').val();
 	if (pass != pass2) {
 		$('#missmatchpass').show();
 	} else {
 		$('#missmatchpass').hide();
 		toastr.clear();
-		let jsonData = {
-			"password": pass,
-			"id": id
-		}
 		$.ajax({
-			url: "/app/user/password",
-			data: JSON.stringify(jsonData),
-			contentType: "application/json; charset=utf-8",
+			url: "/user/password/" + id,
+			data: JSON.stringify({'pass': pass,}),
 			type: "POST",
+			contentType: "application/json; charset=utf-8",
 			success: function (data) {
 				if (data.status === 'failed') {
-					toastr.error(data.error);
+					toastr.error(data);
 				} else {
 					toastr.clear();
 					$("#user-" + id).addClass("update", 1000);
@@ -270,7 +282,7 @@ function changeUserServiceDialog(id) {
 		return false;
 	}
 	$.ajax({
-		url: "/app/user/services/" + id,
+		url: "/user/services/" + id,
 		success: function (data) {
 			if (data.indexOf('danger') != '-1') {
 				toastr.error(data);
@@ -310,7 +322,7 @@ function changeUserServices(user_id) {
 		jsonData['services'][user_id][this_id] = {}
 	});
 	$.ajax( {
-		url: "/app/user/services/" + user_id,
+		url: "/user/services/" + user_id,
 		data: JSON.stringify(jsonData),
 		contentType: "application/json; charset=utf-8",
 		type: "POST",
@@ -355,10 +367,19 @@ function removeServiceFromUser(service_id) {
 function confirmChangeGroupsAndRoles(user_id) {
 	let user_groups_word = translate_div.attr('data-user_groups');
 	let username = $('#login-' + user_id).val();
+	let groups = getAllGroups();
 	$.ajax({
-		url: "/app/user/groups/" + user_id,
+		url: "/user/" + user_id + "/groups",
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			$("#groups-roles").html(data);
+			$("#checked_groups tbody").html('');
+			$("#all_groups tbody").html('');
+			for (let group of groups) {
+				removeGroupFromUser(group.group_id, group.name, group.description)
+			}
+			for (let group of data) {
+				addGroupToUser(group.user_group_id, group.user_role_id);
+			}
 			$("#groups-roles").dialog({
 				resizable: false,
 				height: "auto",
@@ -381,29 +402,40 @@ function confirmChangeGroupsAndRoles(user_id) {
 		}
 	});
 }
-function addGroupToUser(group_id) {
-	let group_name = $('#add_group-'+group_id).attr('data-group_name');
+function addGroupToUser(group_id, user_role_id=0) {
+	let group_name = $('#add_group-' + group_id).attr('data-group_name');
 	let group2_word = translate_div.attr('data-group2');
 	let length_tr = $('#all_groups tbody tr').length;
 	const roles = {1: 'superAdmin', 2: 'admin', 3: 'user', 4: 'guest'};
 	let options_roles = '';
 	for (const [role_id, role_name] of Object.entries(roles)) {
-		options_roles += '<option value="'+role_id+'">'+role_name+'</option>';
+		console.log(user_role_id)
+		if (user_role_id === Number(role_id)) {
+			options_roles += '<option value="' + role_id + '" selected>' + role_name + '</option>';
+		} else {
+			options_roles += '<option value="' + role_id + '">' + role_name + '</option>';
+		}
 	}
 	let tr_class = 'odd';
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	let html_tag = '<tr class="'+tr_class+'" id="remove_group-'+group_id+'" data-group_name="'+group_name+'">\n' +
-		'        <td class="padding20" style="width: 50%;">'+group_name+'</td>\n' +
+	let html_tag = '<tr class="' + tr_class + '" id="remove_group-' + group_id + '" data-group_name="' + group_name + '">\n' +
+		'        <td class="padding20" style="width: 50%;">' + group_name + '</td>\n' +
 		'        <td style="width: 50%;">\n' +
-		'            <select id="add_role-'+group_id+'">'+options_roles+'</select></td>\n' +
-		'        <td><span class="remove_user_group" onclick="removeGroupFromUser('+group_id+')" title="'+delete_word+' '+group2_word+'">-</span></td></tr>'
-	$('#add_group-'+group_id).remove();
+		'            <select id="add_role-' + group_id + '">' + options_roles + '</select></td>\n' +
+		'        <td><span class="remove_user_group" onclick="removeGroupFromUser(' + group_id + ')" title="' + delete_word + ' ' + group2_word + '">-</span></td></tr>'
+	$('#add_group-' + group_id).remove();
 	$("#checked_groups tbody").append(html_tag);
 }
-function removeGroupFromUser(group_id) {
+function removeGroupFromUser(group_id, name=false, desc=false) {
 	let group_name = $('#remove_group-'+group_id).attr('data-group_name');
+	let description = '';
+	if (name) {
+		group_name = name;
+		description = desc;
+	}
+
 	let group2_word = translate_div.attr('data-group2');
 	let length_tr = $('#all_groups tbody tr').length;
 	let tr_class = 'odd';
@@ -412,7 +444,7 @@ function removeGroupFromUser(group_id) {
 	}
 	let html_tag = '<tr class="'+tr_class+'" id="add_group-'+group_id+'" data-group_name='+group_name+'>\n' +
 		'    <td class="padding20" style="width: 100%">'+group_name+'</td>\n' +
-		'    <td><span class="add_user_group" title="'+add_word+' '+group2_word+'" onclick="addGroupToUser('+group_id+')">+</span></td></tr>'
+		'    <td><span class="add_user_group" title="'+add_word+' '+group2_word+'" title="'+description+'" onclick="addGroupToUser('+group_id+')">+</span></td></tr>'
 	$('#remove_group-'+group_id).remove();
 	$("#all_groups tbody").append(html_tag);
 }
@@ -432,7 +464,7 @@ function saveGroupsAndRoles(user_id) {
 		}
 	}
 	$.ajax({
-		url: "/app/user/groups/save",
+		url: "/user/groups/save",
 		data: {
 			changeUserGroupsUser: $('#login-' + user_id).val(),
 			jsonDatas: JSON.stringify(jsonData)

@@ -3,8 +3,8 @@
 {% block h2 %}{{ lang.ha_page.has }} {% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
-<script src="/app/static/js/ha.js"></script>
-<script src="/app/static/js/overview.js"></script>
+<script src="/static/js/ha.js"></script>
+<script src="/static/js/overview.js"></script>
 <link href="{{ url_for('static', filename='css/servers.css') }}" rel="stylesheet"/>
 <link href="{{ url_for('static', filename='css/smon.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/ha.css') }}" rel="stylesheet">
@@ -98,7 +98,7 @@
                 {{lang.words.stay|title()}} {{lang.words.as}} {{lang.words.master|title()}}
             </td>
             <td>
-                {{ checkbox('return_to_master', title=lang.ha_page.return_master) }}
+                {{ checkbox('return_master', title=lang.ha_page.return_master) }}
             </td>
         </tr>
         <tr>
@@ -168,7 +168,7 @@
                 {{lang.words.stay|title()}} {{lang.words.as}} {{lang.words.master|title()}}
             </td>
             <td>
-                {{ checkbox('vrrp-ip-add-return_to_master', title=lang.ha_page.return_master) }}
+                {{ checkbox('vrrp-ip-add-return_master', title=lang.ha_page.return_master) }}
             </td>
         </tr>
         <tr>

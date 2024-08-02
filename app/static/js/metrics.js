@@ -64,7 +64,7 @@ function return_service_chart_config() {
 function stream_chart(chart_id, service, service_ip, is_http=0) {
     let random_sleep = getRandomArbitrary(500, 2000);
     sleep(random_sleep);
-    const source = new EventSource(`/app/metrics/${service}/${service_ip}/${is_http}/chart-stream`);
+    const source = new EventSource(`/metrics/${service}/${service_ip}/${is_http}/chart-stream`);
     source.onmessage = function (event) {
         const data = JSON.parse(event.data);
         if (chart_id.data.labels.length >= 30) {
@@ -89,7 +89,7 @@ function getHttpChartData(server) {
         return false;
     }
     $.ajax({
-        url: `/app/metrics/haproxy/${server}/http`,
+        url: `/metrics/haproxy/${server}/http`,
 		data: {
             time_range: $( "#time-range option:selected" ).val(),
 		},
@@ -211,7 +211,7 @@ function renderHttpChart(data, labels, server) {
 }
 function getChartData(server) {
     $.ajax({
-        url: "/app/metrics/haproxy/" + server,
+        url: "/metrics/haproxy/" + server,
 		data: {
             time_range: $( "#time-range option:selected" ).val(),
 		},
@@ -315,7 +315,7 @@ function renderChart(data, labels, server) {
 }
 function getWafChartData(server) {
     $.ajax({
-        url: "/app/metrics/waf/" + server,
+        url: "/metrics/waf/" + server,
 		data: {
             time_range: $( "#time-range option:selected" ).val(),
 		},
@@ -355,7 +355,7 @@ function renderServiceChart(data, labels, server, service) {
 }
 function getNginxChartData(server) {
     $.ajax({
-        url: "/app/metrics/nginx/" + server,
+        url: "/metrics/nginx/" + server,
 		data: {
             time_range: $( "#time-range option:selected" ).val(),
 		},
@@ -371,7 +371,7 @@ function getNginxChartData(server) {
 }
 function getApacheChartData(server) {
     $.ajax({
-        url: "/app/metrics/apache/" + server,
+        url: "/metrics/apache/" + server,
 		data: {
             time_range: $( "#time-range option:selected" ).val(),
 		},
@@ -388,9 +388,9 @@ function getApacheChartData(server) {
 function loadMetrics() {
     let service = $('#service').val();
     $.ajax({
-        url: "/app/metrics/" + service + "/table-metrics",
+        url: "/metrics/" + service + "/table-metrics",
         beforeSend: function () {
-            $('#table_metrics').html('<img class="loading_full_page" src="/app/static/images/loading.gif"  alt="loading..."/>')
+            $('#table_metrics').html('<img class="loading_full_page" src="/static/images/loading.gif"  alt="loading..."/>')
         },
         type: "GET",
         success: function (data) {
@@ -404,14 +404,14 @@ function loadMetrics() {
 }
 function getChartDataHapWiRam(ip) {
     $.ajax({
-        url: "/app/metrics/ram",
+        url: "/metrics/ram",
 		data: {
 			metrics_hapwi_ram: '1',
 			ip: ip,
 			token: $('#token').val()
 		},
 		beforeSend: function() {
-			$('#ram').html('<img class="loading_hapwi_overview" src="/app/static/images/loading.gif" alt="loading..." />')
+			$('#ram').html('<img class="loading_hapwi_overview" src="/static/images/loading.gif" alt="loading..." />')
 		},
 		type: "POST",
         success: function (result) {  
@@ -482,7 +482,7 @@ function renderChartHapWiRam(data) {
 }
 function getChartDataHapWiCpu(ip) {
     $.ajax({
-        url: "/app/metrics/cpu",
+        url: "/metrics/cpu",
 		data: {
 			metrics_hapwi_cpu: '1',
 			ip: ip,

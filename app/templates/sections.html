@@ -3,30 +3,30 @@
 {% block h2 %}{{lang.words.edit|title()}} {{lang.words.section2}} {% endblock %}
 {% block content %}
 {% if is_serv_protected and g.user_params['role'] > 2 %}
-<meta http-equiv="refresh" content="0; url=/app/service/{{service}}">
+<meta http-equiv="refresh" content="0; url=/service/{{service}}">
 {% else %}
-<link rel="stylesheet" href="/app/static/js/codemirror/lib/codemirror.css">
-<link rel="stylesheet" href="/app/static/js/codemirror/addon/dialog/dialog.css">
-<link rel="stylesheet" href="/app/static/js/codemirror/addon/fold/foldgutter.css">
-<script src="/app/static/js/codemirror/lib/codemirror.js"></script>
-<script src="/app/static/js/codemirror/addon/search/search.js"></script>
-<script src="/app/static/js/codemirror/addon/search/searchcursor.js"></script>
-<script src="/app/static/js/codemirror/addon/search/jump-to-line.js"></script>
-<script src="/app/static/js/codemirror/addon/search/matchesonscrollbar.js"></script>
-<script src="/app/static/js/codemirror/addon/search/match-highlighter.js"></script>
-<script src="/app/static/js/codemirror/addon/dialog/dialog.js"></script>
-<script src="/app/static/js/codemirror/addon/edit/matchbrackets.js"></script>
-<script src="/app/static/js/codemirror/addon/edit/closebrackets.js"></script>
-<script src="/app/static/js/codemirror/addon/comment/comment.js"></script>
-<script src="/app/static/js/codemirror/addon/wrap/hardwrap.js"></script>
-<script src="/app/static/js/codemirror/addon/fold/foldcode.js"></script>
-<script src="/app/static/js/codemirror/addon/fold/foldgutter.js"></script>
-<script src="/app/static/js/codemirror/addon/fold/brace-fold.js"></script>
-<script src="/app/static/js/codemirror/addon/fold/comment-fold.js"></script>
-<script src="/app/static/js/codemirror/addon/scroll/annotatescrollbar.js"></script>
-<script src="/app/static/js/codemirror/mode/haproxy.js"></script>
-<script src="/app/static/js/codemirror/keymap/sublime.js"></script>
-<script src="/app/static/js/configshow.js"></script>
+<link rel="stylesheet" href="/static/js/codemirror/lib/codemirror.css">
+<link rel="stylesheet" href="/static/js/codemirror/addon/dialog/dialog.css">
+<link rel="stylesheet" href="/static/js/codemirror/addon/fold/foldgutter.css">
+<script src="/static/js/codemirror/lib/codemirror.js"></script>
+<script src="/static/js/codemirror/addon/search/search.js"></script>
+<script src="/static/js/codemirror/addon/search/searchcursor.js"></script>
+<script src="/static/js/codemirror/addon/search/jump-to-line.js"></script>
+<script src="/static/js/codemirror/addon/search/matchesonscrollbar.js"></script>
+<script src="/static/js/codemirror/addon/search/match-highlighter.js"></script>
+<script src="/static/js/codemirror/addon/dialog/dialog.js"></script>
+<script src="/static/js/codemirror/addon/edit/matchbrackets.js"></script>
+<script src="/static/js/codemirror/addon/edit/closebrackets.js"></script>
+<script src="/static/js/codemirror/addon/comment/comment.js"></script>
+<script src="/static/js/codemirror/addon/wrap/hardwrap.js"></script>
+<script src="/static/js/codemirror/addon/fold/foldcode.js"></script>
+<script src="/static/js/codemirror/addon/fold/foldgutter.js"></script>
+<script src="/static/js/codemirror/addon/fold/brace-fold.js"></script>
+<script src="/static/js/codemirror/addon/fold/comment-fold.js"></script>
+<script src="/static/js/codemirror/addon/scroll/annotatescrollbar.js"></script>
+<script src="/static/js/codemirror/mode/haproxy.js"></script>
+<script src="/static/js/codemirror/keymap/sublime.js"></script>
+<script src="/static/js/configshow.js"></script>
 <div class="left-space" style="margin-top: var(--indent);">
 	<select autofocus required name="section" id="section">
 		<option disabled>------</option>
@@ -47,7 +47,7 @@
 		{% if g.user_params['role'] <= 3 %}
 			<div id="config" class="left-space">
 				<h4>{{lang.phrases.you_are_editing}} "{{section}}" {{lang.phrases.section_from_server}} {{ serv }}</h4>
-				<form action="/app/config/section/haproxy/{{serv}}/save" name="saveconfig" id="saveconfig" method="post">
+				<form action="/config/section/haproxy/{{serv}}/save" name="saveconfig" id="saveconfig" method="post">
 					<input type="hidden" value="{{ serv }}" name="serv">
 					<input type="hidden" value="{{ start_line }}" name="start_line">
 					<input type="hidden" value="{{ end_line }}" name="end_line">

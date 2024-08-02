@@ -68,14 +68,14 @@ function addCreds(dialog_id) {
 	valid = valid && checkLength($('#ssh_user'), "Credentials", 1);
 	if (valid) {
         let jsonData = {
-            "ssh": ssh_add_div.val(),
-            "group": $('#new-sshgroup').val(),
-            "user": $('#ssh_user').val(),
+            "name": ssh_add_div.val(),
+            "group_id": $('#new-sshgroup').val(),
+            "username": $('#ssh_user').val(),
             "pass": $('#ssh_pass').val(),
-            "enabled": ssh_enable,
+            "key_enabled": ssh_enable,
         }
 		$.ajax({
-			url: "/app/server/ssh",
+			url: "/server/cred",
 			type: "POST",
             data: JSON.stringify(jsonData),
             contentType: "application/json; charset=utf-8",
@@ -123,14 +123,13 @@ function updateSSH(id) {
 	}
 	let jsonData = {
 		"name": ssh_name_val,
-		"group": group,
-		"ssh_enable": ssh_enable,
-		"ssh_user": $('#ssh_user-' + id).val(),
-		"ssh_pass": $('#ssh_pass-' + id).val(),
-		"id": id
+		"group_id": group,
+		"key_enabled": ssh_enable,
+		"username": $('#ssh_user-' + id).val(),
+		"password": $('#ssh_pass-' + id).val(),
 	}
 	$.ajax({
-		url: "/app/server/ssh",
+		url: "/server/cred/" + id,
 		data: JSON.stringify(jsonData),
 		contentType: "application/json; charset=utf-8",
 		type: "PUT",
@@ -175,52 +174,58 @@ function confirmDeleteSsh(id) {
 function removeSsh(id) {
 	$("#ssh-table-" + id).css("background-color", "#f2dede");
 	$.ajax({
-		url: "/app/server/ssh",
+		url: "/server/cred/" + id,
 		type: "DELETE",
-		data: JSON.stringify({"id": id}),
 		contentType: "application/json; charset=utf-8",
-		success: function (data) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
+		statusCode: {
+			204: function (xhr) {
 				$("#ssh-table-" + id).remove();
 				$('select:regex(id, credentials) option[value=' + id + ']').remove();
 				$('select:regex(id, credentials)').selectmenu("refresh");
+			},
+			404: function (xhr) {
+				$("#ssh-table-" + id).remove();
+				$('select:regex(id, credentials) option[value=' + id + ']').remove();
+				$('select:regex(id, credentials)').selectmenu("refresh");
+			}
+		},
+		success: function (data) {
+			if (data) {
+				if (data.status === "failed") {
+					toastr.error(data);
+				}
 			}
 		}
 	});
 }
 function uploadSsh() {
-	toastr.clear();
-	if ($("#ssh-key-name option:selected").val() == "------" || $('#ssh_cert').val() == '') {
-		toastr.error('All fields must be completed');
-	} else {
-		let jsonData = {
-			"ssh_cert": $('#ssh_cert').val(),
-			"name": $('#ssh-key-name').val(),
-			"pass": $('#ssh-key-pass').val()
-		}
-		$.ajax({
-			url: "/app/server/ssh",
-			type: "PATCH",
-			data: JSON.stringify(jsonData),
-			contentType: "application/json; charset=utf-8",
-			success: function (data) {
-				if (data.status === 'failed') {
-					toastr.error(data.error);
-				} else if (data.status === 'uploaded') {
-					toastr.clear();
-					toastr.success(data.message)
-				} else {
-					toastr.error('Something wrong, check and try again');
-				}
-			}
-		});
+    toastr.clear();
+    if ($("#ssh-key-name option:selected").val() == "------" || $('#ssh_cert').val() == '') {
+        toastr.error('All fields must be completed');
+        return false;
+    }
+	let jsonData = {
+		"private_key": $('#ssh_cert').val(),
+		"passphrase": $('#ssh-key-pass').val(),
 	}
+    $.ajax({
+        url: "/server/cred/" + $('#ssh-key-name').val().split("_")[0],
+        data: JSON.stringify(jsonData),
+		contentType: "application/json; charset=utf-8",
+        type: "PATCH",
+        success: function (data) {
+            if (data.status === 'failed') {
+                toastr.error(data.error);
+            } else {
+                toastr.clear();
+                toastr.success('The SSH key has been loaded')
+            }
+        }
+    });
 }
 function checkSshConnect(ip) {
 	$.ajax({
-		url: "/app/server/check/ssh/" + ip,
+		url: "/server/check/ssh/" + ip,
 		success: function (data) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data)

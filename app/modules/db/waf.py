@@ -46,7 +46,7 @@ def insert_waf_nginx_server(server_ip):
 def select_waf_servers_metrics_for_master():
 	query = Server.select(Server.ip).join(
 		Waf, on=(Waf.server_id == Server.server_id)
-	).where((Server.enable == 1) & Waf.metrics == 1)
+	).where((Server.enabled == 1) & Waf.metrics == 1)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -58,11 +58,11 @@ def select_waf_servers_metrics_for_master():
 def select_waf_servers_metrics(group_id):
 	if group_id == '1':
 		query = Waf.select(Server.ip).join(Server, on=(Waf.server_id == Server.server_id)).where(
-			(Server.enable == 1) & (Waf.metrics == 1)
+            (Server.enabled == 1) & (Waf.metrics == 1)
 		)
 	else:
 		query = Waf.select(Server.ip).join(Server, on=(Waf.server_id == Server.server_id)).where(
-			(Server.enable == 1) & (Waf.metrics == 1) & (Server.groups == group_id)
+            (Server.enabled == 1) & (Waf.metrics == 1) & (Server.group_id == group_id)
 		)
 	try:
 		query_res = query.execute()

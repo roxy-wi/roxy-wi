@@ -1,6 +1,8 @@
 import psutil
 import requests
 from flask import render_template, request
+from flask_jwt_extended import get_jwt
+from flask_jwt_extended import verify_jwt_in_request
 
 import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
@@ -40,13 +42,12 @@ def show_sub_ovw() -> str:
 
 def show_overview(serv) -> str:
     servers = []
-    user_uuid = request.cookies.get('uuid')
-    group_id = request.cookies.get('group')
+    verify_jwt_in_request()
+    claims = get_jwt()
     lang = roxywi_common.get_user_lang_for_flask()
-    role = user_sql.get_user_role_by_uuid(user_uuid, group_id)
+    role = user_sql.get_user_role_in_group(claims['user_id'], claims['group'])
     server = [server for server in server_sql.select_servers(server=serv)]
-    user_id = user_sql.get_user_id_by_uuid(user_uuid)
-    user_services = user_sql.select_user_services(user_id)
+    user_services = user_sql.select_user_services(claims['user_id'])
 
     haproxy = service_sql.select_haproxy(serv) if '1' in user_services else 0
     nginx = service_sql.select_nginx(serv) if '2' in user_services else 0

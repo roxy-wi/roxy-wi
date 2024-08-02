@@ -24,7 +24,7 @@
             $("form input[type='checkbox']").attr("checked",false).change();
         }
     });
-    $.getScript('/app/static/js/script.js');
+    $.getScript('/static/js/script.js');
     function show_diff(id) {
         if ($('#show_diff_'+id).css('display') == 'none') {
             $('#show_diff_'+id).show();
@@ -103,7 +103,7 @@
             </td>
             <td>{{c.date|strftime}}</td>
             <td style="padding-top: 10px;">
-                <a href="/app/config/versions/{{service}}/{{server_ip}}/{{c.local_path.split('/')[-1]}}"
+                <a href="/config/versions/{{service}}/{{server_ip}}/{{c.local_path.split('/')[-1]}}"
                    class="ui-button ui-widget ui-corner-all" title="{{lang1.phrases.view_and_upload}}" style="margin-top: -6px;">
                     {{lang1.words.view|title()}}/{{lang1.words.upload|title()}}
                 </a>

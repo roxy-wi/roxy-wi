@@ -71,7 +71,7 @@
 				{% endif %}
 			</td>
 			<td class="checkbox" style="padding-left: 15px;">
-				{% set id = 'typeip-' + server.0|string() %}
+				{% set id = 'type_ip-' + server.0|string() %}
 				{% if server.4 == 1 %}
 					{{ checkbox(id, checked='checked') }}
 				{% else %}
@@ -132,13 +132,13 @@
 			<td>
 				{% set id = 'desc-' + server.0|string() %}
 				{% if server.11 is not none %}
-					{{ input(id, value=server.11.replace("'", ''), size='20') }}
+					{{ input(id, value=server.11.replace("'", ""), size='20') }}
 				{% else %}
 					{{ input(id, size='20') }}
 				{% endif %}
 			</td>
 			<td>
-				<a href="/app/history/server/{{server.2}}" title="{{lang.words.view|title}} {{lang.words.history}} {{lang.words.for}} {{lang.words.this}} {{lang.words.server}}" class="history"></a>
+				<a href="/history/server/{{server.2}}" title="{{lang.words.view|title}} {{lang.words.history}} {{lang.words.for}} {{lang.words.this}} {{lang.words.server}}" class="history"></a>
 			</td>
 			<td style="min-width: 17px;">
 				<a class="info" onclick="showServerInfo('{{server.0}}', '{{server.2}}')" id="server_info_link-{{server.0}}" title="{{lang.words.show|title()}} {{lang.words.server}} {{lang.words.info}}" style="cursor: pointer; color: var(--green-color)"></a>
@@ -174,8 +174,8 @@
 	});
 </script>
 {% endif %}
-<script>
-	{%- for server in servers %}
-		serverIsUp('{{server.0}}');
-	{%- endfor %}
-</script>
+{#<script>#}
+{#	{%- for server in servers %}#}
+{#		serverIsUp('{{server.0}}');#}
+{#	{%- endfor %}#}
+{#</script>#}

@@ -51,7 +51,7 @@ function updateHaproxyCheckerSettings(id) {
 		maxconn = '1';
 	}
 	$.ajax({
-		url: "/app/checker/settings/update",
+		url: "/checker/settings/update",
 		data: {
 			service: 'haproxy',
 			setting_id: id,
@@ -95,7 +95,7 @@ function updateKeepalivedCheckerSettings(id) {
 		backend = '1';
 	}
 	$.ajax({
-		url: "/app/checker/settings/update",
+		url: "/checker/settings/update",
 		data: {
 			service: 'keepavlied',
 			setting_id: id,
@@ -134,7 +134,7 @@ function updateServiceCheckerSettings(id, service_name) {
 		server = '1';
 	}
 	$.ajax({
-		url: "/app/checker/settings/update",
+		url: "/checker/settings/update",
 		data: {
 			service: service_name,
 			setting_id: id,
@@ -163,7 +163,7 @@ function updateServiceCheckerSettings(id, service_name) {
 }
 function loadchecker() {
 	$.ajax({
-		url: "/app/checker/settings/load",
+		url: "/checker/settings/load",
 		type: "GET",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
@@ -174,7 +174,7 @@ function loadchecker() {
 				$( "select" ).selectmenu();
 				$("button").button();
 				$( "input[type=checkbox]" ).checkboxradio();
-				$.getScript('/app/static/js/checker.js');
+				$.getScript('/static/js/checker.js');
 				$.getScript(awesome);
 			}
 		}

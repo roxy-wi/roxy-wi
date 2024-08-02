@@ -3,7 +3,7 @@ from app.modules.db.common import out_error
 
 
 def select_keep_alive():
-	query = Server.select(Server.ip, Server.groups, Server.server_id).where(Server.active == 1)
+	query = Server.select(Server.ip, Server.group_id, Server.server_id).where(Server.haproxy_active == 1)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -13,7 +13,7 @@ def select_keep_alive():
 
 
 def select_nginx_keep_alive():
-	query = Server.select(Server.ip, Server.groups, Server.server_id).where(Server.nginx_active == 1)
+	query = Server.select(Server.ip, Server.group_id, Server.server_id).where(Server.nginx_active == 1)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -23,7 +23,7 @@ def select_nginx_keep_alive():
 
 
 def select_apache_keep_alive():
-	query = Server.select(Server.ip, Server.groups, Server.server_id).where(Server.apache_active == 1)
+	query = Server.select(Server.ip, Server.group_id, Server.server_id).where(Server.apache_active == 1)
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -33,7 +33,7 @@ def select_apache_keep_alive():
 
 
 def select_keepalived_keep_alive():
-	query = Server.select(Server.ip, Server.port, Server.groups, Server.server_id).where(Server.keepalived_active == 1)
+	query = Server.select(Server.ip, Server.port, Server.group_id, Server.server_id).where(Server.keepalived_active == 1)
 	try:
 		query_res = query.execute()
 	except Exception as e:

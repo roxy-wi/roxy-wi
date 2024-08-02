@@ -2,7 +2,9 @@ import os
 import glob
 from typing import Any, Union
 
-from flask import request
+from flask import request, g
+from flask_jwt_extended import get_jwt
+from flask_jwt_extended import verify_jwt_in_request
 
 from app.modules.db.sql import get_setting
 import app.modules.db.udp as udp_sql
@@ -13,6 +15,8 @@ import app.modules.db.server as server_sql
 import app.modules.db.history as history_sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.roxy_wi_tools as roxy_wi_tools
+from app.modules.roxywi.class_models import ErrorResponse
+from app.modules.roxywi.exception import RoxywiResourceNotFound, RoxywiGroupMismatch, RoxywiGroupNotFound
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 
@@ -25,35 +29,43 @@ def get_user_group(**kwargs) -> int:
 	user_group = ''
 
 	try:
-		user_group_id = request.cookies.get('group')
+		verify_jwt_in_request()
+		claims = get_jwt()
+		user_group_id = claims['group']
 		groups = group_sql.select_groups(id=user_group_id)
-		for g in groups:
-			if g.group_id == int(user_group_id):
+		for group in groups:
+			if group.group_id == int(user_group_id):
 				if kwargs.get('id'):
-					user_group = g.group_id
+					user_group = group.group_id
 				else:
-					user_group = g.name
+					user_group = group.name
 	except Exception as e:
 		raise Exception(f'error: {e}')
 	return user_group
 
 
-def check_user_group_for_flask(**kwargs) -> bool:
-	if kwargs.get('api_token') is not None:
+def check_user_group_for_flask(api_token: bool = False):
+	if api_token:
 		return True
-	if kwargs.get('user_uuid'):
-		group_id = kwargs.get('user_group_id')
-		user_uuid = kwargs.get('user_uuid')
-	else:
-		user_uuid = request.cookies.get('uuid')
-		group_id = request.cookies.get('group')
+	verify_jwt_in_request()
+	claims = get_jwt()
+	user_id = claims['user_id']
+	group_id = claims['group']
 
-	user_id = user_sql.get_user_id_by_uuid(user_uuid)
 	if user_sql.check_user_group(user_id, group_id):
 		return True
 	else:
-		logging('Roxy-WI server', ' has tried to actions in not his group ', roxywi=1, login=1)
+		logging('RMON server', 'has tried to actions in not his group', login=1)
 		return False
+
+
+def check_user_group_for_socket(user_id: int, group_id: int) -> bool:
+	if user_sql.check_user_group(user_id, group_id):
+		return True
+	else:
+		logging('RMON server', 'has tried to actions in not his group', login=1)
+		return False
+
 
 
 def check_is_server_in_group(server_ip: str) -> bool:
@@ -63,7 +75,7 @@ def check_is_server_in_group(server_ip: str) -> bool:
 		if (s[2] == server_ip and int(s[3]) == int(group_id)) or group_id == 1:
 			return True
 		else:
-			logging('Roxy-WI server', ' has tried to actions in not his group server ', roxywi=1, login=1)
+			logging('Roxy-WI server', 'has tried to actions in not his group server', roxywi=1, login=1)
 			return False
 
 
@@ -98,6 +110,10 @@ def logging(server_ip: Union[str, int], action: str, **kwargs) -> None:
 	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
 	cur_date_in_log = get_date.return_date('date_in_log')
 	log_path = get_config_var.get_config_var('main', 'log_path')
+	verify_jwt_in_request()
+	claims = get_jwt()
+	user_id = claims['user_id']
+	login = user_sql.get_user_id(user_id=user_id)
 
 	if not os.path.exists(log_path):
 		os.makedirs(log_path)
@@ -112,25 +128,19 @@ def logging(server_ip: Union[str, int], action: str, **kwargs) -> None:
 	except Exception:
 		ip = ''
 
-	try:
-		user_uuid = request.cookies.get('uuid')
-		login = user_sql.get_user_name_by_uuid(user_uuid)
-	except Exception:
-		login = ''
-
 	if kwargs.get('roxywi') == 1:
 		if kwargs.get('login'):
-			mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} on: {server_ip}\n"
+			mess = f"{cur_date_in_log} from {ip} user: {login.username}, group: {user_group}, {action} on: {server_ip}\n"
 		else:
 			mess = f"{cur_date_in_log} {action} from {ip}\n"
 		log_file = f"{log_path}/roxy-wi.log"
 	else:
-		mess = f"{cur_date_in_log} from {ip} user: {login}, group: {user_group}, {action} on: {server_ip} {kwargs.get('service')}\n"
+		mess = f"{cur_date_in_log} from {ip} user: {login.username}, group: {user_group}, {action} on: {server_ip} {kwargs.get('service')}\n"
 		log_file = f"{log_path}/config_edit.log"
 
 	if kwargs.get('keep_history'):
 		try:
-			keep_action_history(kwargs.get('service'), action, server_ip, login, ip)
+			keep_action_history(kwargs.get('service'), action, server_ip, login.username, ip)
 		except Exception as e:
 			print(f'error: Cannot save history: {e}')
 
@@ -198,34 +208,22 @@ def get_dick_permit(**kwargs):
 
 
 def get_users_params(**kwargs):
+	verify_jwt_in_request()
+	user_data = get_jwt()
+
 	try:
-		user_uuid = request.cookies.get('uuid')
-		user = user_sql.get_user_name_by_uuid(user_uuid)
+		user_id = user_data['user_id']
+		user = user_sql.get_user_id(user_id)
 	except Exception:
-		raise Exception('error: Cannot get user UUID')
+		raise Exception('error: Cannot get user id')
+
+	if int(user_data['group']) != int(user.group_id):
+		raise Exception('error: Wrong active group')
 
 	try:
-		group_id = user_sql.get_user_current_group_by_uuid(user_uuid)
+		role = user_sql.get_role_id(user_id, user.group_id)
 	except Exception as e:
-		raise Exception(f'error: Cannot get user group: {e}')
-
-	try:
-		group_id_from_cookies = int(request.cookies.get('group'))
-	except Exception as e:
-		raise Exception(f'error: Cannot get group id from cookies: {e}')
-
-	if group_id_from_cookies != group_id:
-		raise Exception('error: Wrong current group')
-
-	try:
-		role = user_sql.get_user_role_by_uuid(user_uuid, group_id)
-	except Exception:
-		raise Exception('error: Cannot get user role')
-
-	try:
-		user_id = user_sql.get_user_id_by_uuid(user_uuid)
-	except Exception as e:
-		raise Exception(f'error: Cannot get user id {e}')
+		raise Exception(f'error: Cannot get user role {e}')
 
 	try:
 		user_services = user_sql.select_user_services(user_id)
@@ -246,14 +244,13 @@ def get_users_params(**kwargs):
 	user_lang = get_user_lang_for_flask()
 
 	user_params = {
-		'user': user,
-		'user_uuid': user_uuid,
+		'user': user.username,
 		'role': role,
 		'servers': servers,
 		'user_services': user_services,
 		'lang': user_lang,
 		'user_id': user_id,
-		'group_id': group_id
+		'group_id': user.group_id
 	}
 
 	return user_params
@@ -305,9 +302,33 @@ def handle_exceptions(ex: Exception, server_ip: str, message: str, **kwargs: Any
 
 	"""
 	logging(server_ip, f'error: {message}: {ex}', **kwargs)
-	raise Exception(f'error: {message}: {ex}')
+	raise Exception(f'{message}: {ex}')
 
+
+def is_user_has_access_to_its_group(user_id: int) -> None:
+	if not user_sql.check_user_group(user_id, g.user_params['group_id']) and g.user_params['role'] != 1:
+		raise RoxywiGroupMismatch
+
+
+def is_user_has_access_to_group(user_id: int, group_id: int) -> None:
+	if not user_sql.check_user_group(user_id, group_id) and g.user_params['role'] != 1:
+		raise RoxywiGroupMismatch
 
 def handle_json_exceptions(ex: Exception, message: str, server_ip='Roxy-WI server') -> dict:
-	logging(server_ip, f'error: {message}: {ex}', roxywi=1, login=1)
-	return {'status': 'failed', 'error': f'{message}: {ex}'}
+	logging(server_ip, f'{message}: {ex}', login=1, roxywi=1)
+	return ErrorResponse(error=f'{message}: {ex}').model_dump(mode='json')
+
+
+def handler_exceptions_for_json_data(ex: Exception, main_ex_mes: str) -> tuple[dict, int]:
+	if isinstance(ex, KeyError):
+		return handle_json_exceptions(ex, 'Missing key in JSON data'), 500
+	elif isinstance(ex, ValueError):
+		return handle_json_exceptions(ex, 'Wrong type or missing value in JSON data'), 500
+	elif isinstance(ex, RoxywiResourceNotFound):
+		return handle_json_exceptions(ex, 'Resource not found'), 404
+	elif isinstance(ex, RoxywiGroupNotFound):
+		return handle_json_exceptions(ex, 'Group not found'), 404
+	elif isinstance(ex, RoxywiGroupMismatch):
+		return handle_json_exceptions(ex, 'Resource not found in group'), 404
+	else:
+		return handle_json_exceptions(ex, main_ex_mes), 500

@@ -3,7 +3,7 @@
 {% block h2 %}{{ lang.p_s_page.p_s_title }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
-<script src="/app/static/js/overview.js"></script>
+<script src="/static/js/overview.js"></script>
 <style>
 .alert-danger {
 	width: 250px;
@@ -60,7 +60,7 @@
 						<span id="portscanner_enable_status-{{s.0}}" class="serverNone server-status" title="Port scanner {{lang.words.is}} {{lang.words.disabled}}"></span>
 					{% endif %}
 					{% if not serv %}
-						<a href="/app/portscanner/history/{{s.2}}" title="{{lang.words.view|title()}} Port scanner {{lang.words.history2}} {{lang.words.for}} {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
+						<a href="/portscanner/history/{{s.2}}" title="{{lang.words.view|title()}} Port scanner {{lang.words.history2}} {{lang.words.for}} {{s.1}}" style="color: #5d9ceb">{{s.1}}</a>
 					{% else %}
 						{{s.1}}
 					{% endif %}
@@ -148,7 +148,7 @@
 <script>
 	function scanPorts(id) {
 		$.ajax({
-            url: "/app/portscanner/scan",
+            url: "/portscanner/scan",
             data: JSON.stringify({'id': id}),
             type: "POST",
             contentType: "application/json; charset=utf-8",
@@ -211,7 +211,7 @@
 			$('#portscanner_history-'+id).checkboxradio('disable');
 		}
 		$.ajax({
-			url: "/app/portscanner/settings",
+			url: "/portscanner/settings",
 			data: {
 				server_id: id,
 				enabled: portscanner_enabled,

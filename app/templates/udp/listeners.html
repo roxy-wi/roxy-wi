@@ -3,8 +3,8 @@
 {% block h2 %}{{ lang.menu_links.udp.title }} {% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard, select %}
-<script src="/app/static/js/install.js"></script>
-<script src="/app/static/js/udp.js"></script>
+<script src="/static/js/install.js"></script>
+<script src="/static/js/udp.js"></script>
 <link href="{{ url_for('static', filename='css/servers.css') }}" rel="stylesheet"/>
 <link href="{{ url_for('static', filename='css/smon.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/ha.css') }}" rel="stylesheet">
@@ -54,18 +54,19 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{ input('new-listener-name', autofocus='autofocus') }}
+                {{ input('name', autofocus='autofocus') }}
                 {{ input('new-listener-type', type='hidden', value='server') }}
+                {{ input('group_id', type='hidden', value=g.user_params['group_id']) }}
             </td>
         </tr>
         <tr class="new-udp-ha-cluster-tr">
             <td class="padding20">
-                {{lang.ha_page.ha}} {{lang.words.cluster}}
+                {{lang.ha_page.ha}}
                 <span class="need-field">*</span>
             </td>
             <td>
-                <select id="ha-cluster">
-                    <option value="------" selected>------</option>
+                <select id="cluster_id">
+                    <option value="" selected>------</option>
                     {% for cluster in clusters %}
                         <option value="{{ cluster.id }}">{{ cluster.name }}</option>
                     {% endfor %}
@@ -78,7 +79,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                <select id="new-udp-vip"></select>
+                <select id="vip"></select>
             </td>
         </tr>
         <tr class="new-udp-servers-tr">
@@ -95,7 +96,7 @@
                 IP
                 <span class="need-field">*</span>
             </td>
-            <td>{{ input('new-udp-ip', title=lang.udp_page.listener_ip) }}</td>
+            <td>{{ input('ip', title=lang.udp_page.listener_ip) }}</td>
         </tr>
         <tr>
             <td class="padding20">
@@ -103,7 +104,7 @@
                 <span class="need-field">*</span>
             </td>
             <td>
-                {{ input('new-listener-port', type='number', title=lang.udp_page.listener_port) }}
+                {{ input('port', type='number', title=lang.udp_page.listener_port) }}
             </td>
         </tr>
         <tr>
@@ -115,7 +116,7 @@
                 {% set values = {'rr': 'Round robin', 'wrr': 'Weighted Round Robin', 'lc': 'Least Connection',
                 'wlc': 'Weighted Least Connection', 'sh': 'Source Hashing', 'dh': 'Destination Hashing',
                 'lblc': 'Locality-Based Least Connection' } %}
-                {{ select('new-udp-balancer-type', values=values) }}
+                {{ select('lb_algo', values=values) }}
             </td>
         </tr>
         <tr>
@@ -132,7 +133,7 @@
                 {{lang.words.desc|title()}}
             </td>
             <td>
-                {{ input('new-listener-desc', autofocus='autofocus') }}
+                {{ input('description', autofocus='autofocus') }}
             </td>
         </tr>
     </table>

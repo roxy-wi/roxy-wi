@@ -1,5 +1,6 @@
 from app.modules.db.db_model import Groups, Setting, UserGroups
 from app.modules.db.common import out_error
+from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
 def select_groups(**kwargs):
@@ -123,11 +124,11 @@ def update_group(name, descript, group_id):
 
 def get_group_name_by_id(group_id):
 	try:
-		group_name = Groups.get(Groups.group_id == group_id)
+		return Groups.get(Groups.group_id == group_id).name
+	except Groups.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
-	else:
-		return group_name.name
 
 
 def get_group_id_by_name(group_name):

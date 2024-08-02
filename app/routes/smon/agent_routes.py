@@ -1,8 +1,8 @@
 from flask import render_template, request, jsonify, g
-from flask_login import login_required
+from flask_jwt_extended import jwt_required
 
 from app.routes.smon import bp
-from middleware import get_user_params
+from app.middleware import get_user_params
 import app.modules.db.smon as smon_sql
 import app.modules.common.common as common
 import app.modules.tools.smon_agent as smon_agent
@@ -12,7 +12,7 @@ import app.modules.server.server as server_mod
 
 
 @bp.route('/agent', methods=['GET', 'POST', 'PUT', 'DELETE'])
-@login_required
+@jwt_required()
 @get_user_params()
 def agent():
     if request.method == 'GET':
@@ -61,7 +61,7 @@ def agent_get_checks():
 
 
 @bp.get('/agent/free')
-@login_required
+@jwt_required()
 @get_user_params()
 def get_free_agents():
     group_id = g.user_params['group_id']
@@ -74,7 +74,7 @@ def get_free_agents():
 
 
 @bp.get('/agent/count')
-@login_required
+@jwt_required()
 def get_agent_count():
     try:
         smon_agent.check_agent_limit()
@@ -85,7 +85,7 @@ def get_agent_count():
 
 
 @bp.get('/agent/<int:agent_id>')
-@login_required
+@jwt_required()
 @get_user_params()
 def get_agent(agent_id):
     try:
@@ -97,7 +97,7 @@ def get_agent(agent_id):
 
 
 @bp.get('/agent/settings/<int:agent_id>')
-@login_required
+@jwt_required()
 def get_agent_settings(agent_id):
     settings = {}
     try:
@@ -116,7 +116,7 @@ def get_agent_settings(agent_id):
 
 
 @bp.get('/agent/version/<server_ip>')
-@login_required
+@jwt_required()
 def get_agent_version(server_ip):
     agent_id = int(request.args.get('agent_id'))
 
@@ -128,7 +128,7 @@ def get_agent_version(server_ip):
 
 
 @bp.get('/agent/uptime/<server_ip>')
-@login_required
+@jwt_required()
 def get_agent_uptime(server_ip):
     agent_id = int(request.args.get('agent_id'))
 
@@ -140,7 +140,7 @@ def get_agent_uptime(server_ip):
 
 
 @bp.get('/agent/status/<server_ip>')
-@login_required
+@jwt_required()
 def get_agent_status(server_ip):
     agent_id = int(request.args.get('agent_id'))
 
@@ -152,7 +152,7 @@ def get_agent_status(server_ip):
 
 
 @bp.get('/agent/checks/<server_ip>')
-@login_required
+@jwt_required()
 def get_agent_checks(server_ip):
     agent_id = int(request.args.get('agent_id'))
 
@@ -164,7 +164,7 @@ def get_agent_checks(server_ip):
 
 
 @bp.post('/agent/action/<action>')
-@login_required
+@jwt_required()
 def agent_action(action):
     server_ip = common.is_ip_or_dns(request.form.get('server_ip'))
 

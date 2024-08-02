@@ -1,7 +1,10 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.11
+import os
+import sys
 import distro
 
-from modules.db.db_model import *
+sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/'))
+from app.modules.db.db_model import *
 
 
 conn = connect()
@@ -101,9 +104,9 @@ def default_values():
 		print(str(e))
 
 	data_source = [
-		{'username': 'admin', 'email': 'admin@localhost', 'password': '21232f297a57a5a743894a0e4a801fc3', 'role': '1', 'groups': '1'},
-		{'username': 'editor', 'email': 'editor@localhost', 'password': '5aee9dbd2a188839105073571bee1b1f', 'role': '2', 'groups': '1'},
-		{'username': 'guest', 'email': 'guest@localhost', 'password': '084e0343a0486ff05530df6c705c8bb4', 'role': '4', 'groups': '1'}
+		{'username': 'admin', 'email': 'admin@localhost', 'password': '21232f297a57a5a743894a0e4a801fc3', 'role': '1', 'group_id': '1'},
+		{'username': 'editor', 'email': 'editor@localhost', 'password': '5aee9dbd2a188839105073571bee1b1f', 'role': '2', 'group_id': '1'},
+		{'username': 'guest', 'email': 'guest@localhost', 'password': '084e0343a0486ff05530df6c705c8bb4', 'role': '4', 'group_id': '1'}
 	]
 
 	try:
@@ -458,7 +461,7 @@ def update_db_v_3_4_5_22():
 def update_db_v_4_3_0():
 	try:
 		UserGroups.insert_from(
-			User.select(User.user_id, User.groups), fields=[UserGroups.user_id, UserGroups.user_group_id]
+			User.select(User.user_id, User.group_id), fields=[UserGroups.user_id, UserGroups.user_group_id]
 		).on_conflict_ignore().execute()
 	except Exception as e:
 		if e.args[0] == 'duplicate column name: haproxy' or str(e) == '(1060, "Duplicate column name \'haproxy\'")':
@@ -659,6 +662,37 @@ def update_db_v_7_3_1():
 		else:
 			print("An error occurred:", e)
 
+def update_db_v_7_4():
+	try:
+		migrate(
+			migrator.rename_column('backups', 'cred', 'cred_id'),
+			migrator.rename_column('backups', 'backup_type', 'type'),
+			migrator.rename_column('servers', 'active', 'haproxy_active'),
+			migrator.rename_column('servers', 'metrics', 'haproxy_metrics'),
+			migrator.rename_column('servers', 'alert', 'haproxy_alert'),
+			migrator.rename_column('udp_balancers', 'desc', 'description'),
+			migrator.rename_column('ha_clusters', 'desc', 'description'),
+			migrator.rename_column('servers', 'desc', 'description'),
+			migrator.rename_column('telegram', 'groups', 'group_id'),
+			migrator.rename_column('slack', 'groups', 'group_id'),
+			migrator.rename_column('mattermost', 'groups', 'group_id'),
+			migrator.rename_column('pd', 'groups', 'group_id'),
+			migrator.rename_column('servers', 'groups', 'group_id'),
+			migrator.rename_column('servers', 'cred', 'cred_id'),
+			migrator.rename_column('servers', 'enable', 'enabled'),
+			migrator.rename_column('user', 'activeuser', 'enabled'),
+			migrator.rename_column('user', 'groups', 'group_id'),
+			migrator.rename_column('cred', 'enable', 'key_enabled'),
+			migrator.rename_column('cred', 'groups', 'group_id'),
+		)
+	except Exception as e:
+		if e.args[0] == 'no such column: "cred"' or str(e) == '(1060, no such column: "cred")':
+			print("Updating... DB has been updated to version 7.4")
+		elif e.args[0] == "'bool' object has no attribute 'sql'":
+			print("Updating... DB has been updated to version 7.4")
+		else:
+			print("An error occurred:", e)
+
 
 def update_ver():
 	try:
@@ -693,6 +727,7 @@ def update_all():
 	update_db_v_7_2_0_1()
 	update_db_v_7_2_3()
 	update_db_v_7_3_1()
+	update_db_v_7_4()
 	update_ver()
 
 

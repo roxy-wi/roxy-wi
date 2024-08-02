@@ -116,7 +116,7 @@ $( function() {
             return false;
         }
         $.ajax({
-            url: "/app/portscanner/scan",
+            url: "/portscanner/scan",
             data: JSON.stringify({'ip': port_server}),
             type: "POST",
             contentType: "application/json; charset=utf-8",

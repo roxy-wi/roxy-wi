@@ -18,7 +18,7 @@ function sort_by_status() {
 function showSmon(action) {
 	let sort = '';
 	let location = window.location.href;
-	let cur_url = '/app/' + location.split('/').pop();
+	let cur_url = '/' + location.split('/').pop();
 	if (action === 'refresh') {
 		try {
 			sort = cur_url[1].split('&')[1];
@@ -28,10 +28,10 @@ function showSmon(action) {
 		}
 	}
 	if (action === 'not_sort') {
-		window.history.pushState("SMON Dashboard", "SMON Dashboard", "/app/smon/dashboard");
+		window.history.pushState("SMON Dashboard", "SMON Dashboard", "/smon/dashboard");
 	}
 	$.ajax({
-		url: "/app/smon/refresh",
+		url: "/smon/refresh",
 		data: {
 			sort: sort,
 			token: $('#token').val()
@@ -108,7 +108,7 @@ function addNewSmonServer(dialog_id, smon_id=0, edit=false) {
 	}
 	if (valid) {
 		$.ajax( {
-			url: '/app/smon/check',
+			url: '/smon/check',
             data: JSON.stringify(jsonData),
             contentType: "application/json; charset=utf-8",
 			type: method,
@@ -155,7 +155,7 @@ function removeSmon(smon_id) {
 	$("#smon-"+smon_id).css("background-color", "#f2dede");
 	let jsonData = {'check_id': smon_id}
 	$.ajax( {
-		url: "/app/smon/check",
+		url: "/smon/check",
 		type: "DELETE",
 		data: JSON.stringify(jsonData),
 		contentType: "application/json; charset=utf-8",
@@ -218,7 +218,7 @@ function openSmonDialog(check_type, smon_id=0, edit=false) {
 }
 function getCheckSettings(smon_id, check_type) {
 	$.ajax( {
-		url: "/app/smon/check/settings/" + smon_id + "/" + check_types[check_type],
+		url: "/smon/check/settings/" + smon_id + "/" + check_types[check_type],
 		type: "get",
 		async: false,
 		dataType: "json",
@@ -270,7 +270,7 @@ function cloneSmom(id, check_type) {
 }
 function getSmonCheck(smon_id, check_id, dialog_id, new_check=false) {
 	$.ajax({
-		url: "/app/smon/check/" + smon_id + "/" + check_id,
+		url: "/smon/check/" + smon_id + "/" + check_id,
 		type: "get",
 		success: function (data) {
 			if (new_check) {
@@ -336,7 +336,7 @@ function clear_check_vals() {
 function show_statuses(dashboard_id, check_id, id_for_history_replace) {
 	show_smon_history_statuses(dashboard_id, id_for_history_replace);
 	$.ajax({
-		url: "/app/smon/history/cur_status/" + dashboard_id + "/" + check_id,
+		url: "/smon/history/cur_status/" + dashboard_id + "/" + check_id,
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
@@ -350,7 +350,7 @@ function show_statuses(dashboard_id, check_id, id_for_history_replace) {
 }
 function show_smon_history_statuses(dashboard_id, id_for_history_replace) {
 	$.ajax({
-		url: "/app/smon/history/statuses/" + dashboard_id,
+		url: "/smon/history/statuses/" + dashboard_id,
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
@@ -370,7 +370,7 @@ function show_smon_history_statuses(dashboard_id, id_for_history_replace) {
 }
 function smon_status_page_avg_status(page_id) {
 	$.ajax({
-		url: "/app/smon/status/avg/" + page_id,
+		url: "/smon/status/avg/" + page_id,
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
@@ -388,7 +388,7 @@ function smon_status_page_avg_status(page_id) {
 }
 function smon_manage_status_page_avg_status(page_id) {
 	$.ajax({
-		url: "/app/smon/status/avg/" + page_id,
+		url: "/smon/status/avg/" + page_id,
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
@@ -468,7 +468,7 @@ function createStatusPageStep2(edited, page_id) {
 		add_word = translate_div.attr('data-edit');
 		if ($("#enabled-check > div").length == 0) {
 			$.ajax({
-				url: "/app/smon/status/checks/" + page_id,
+				url: "/smon/status/checks/" + page_id,
 				async: false,
 				type: "GET",
 				success: function (data) {
@@ -544,7 +544,7 @@ function createStatusPage(dialog_id) {
 		checks.push(check_id);
 	});
 	$.ajax({
-		url: '/app/smon/status-page',
+		url: '/smon/status-page',
 		type: 'POST',
 		data: {
 			name: name_id.val(),
@@ -575,7 +575,7 @@ function editStatusPage(dialog_id, page_id) {
 		checks.push(check_id);
 	});
 	$.ajax({
-		url: '/app/smon/status-page',
+		url: '/smon/status-page',
 		type: 'PUT',
 		data: {
 			page_id: page_id,
@@ -649,7 +649,7 @@ function confirmDeleteStatusPage(id) {
 }
 function deleteStatusPage(page_id) {
 	$.ajax({
-		url: '/app/smon/status-page',
+		url: '/smon/status-page',
 		type: 'DELETE',
 		data: {
 			page_id: page_id,
@@ -667,7 +667,7 @@ function deleteStatusPage(page_id) {
 function checkAgentLimit() {
 	let return_value = false;
 	$.ajax({
-		url: '/app/smon/agent/count',
+		url: '/smon/agent/count',
 		async: false,
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
@@ -772,7 +772,7 @@ function addAgent(dialog_id, agent_id=0, edit=false, reconfigure=false) {
 	}
 	if (valid) {
 		$.ajax({
-			url: "/app/smon/agent",
+			url: "/smon/agent",
 			type: method,
 			data: JSON.stringify(agent_data),
 			contentType: "application/json; charset=utf-8",
@@ -795,7 +795,7 @@ function addAgent(dialog_id, agent_id=0, edit=false, reconfigure=false) {
 }
 function getAgentSettings(agent_id) {
 	$.ajax({
-		url: "/app/smon/agent/settings/" + agent_id,
+		url: "/smon/agent/settings/" + agent_id,
 		async: false,
 		success: function (data) {
 			$('#new-agent-name').val(data['name']);
@@ -815,7 +815,7 @@ function getAgentSettings(agent_id) {
 }
 function getFreeServers() {
 	$.ajax({
-		url: "/app/smon/agent/free",
+		url: "/smon/agent/free",
 		async: false,
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
@@ -838,7 +838,7 @@ function cleanAgentAddForm() {
 }
 function getAgent(agent_id, new_agent=false) {
 	$.ajax({
-		url: "/app/smon/agent/" + agent_id,
+		url: "/smon/agent/" + agent_id,
 		success: function (data) {
 			data = data.replace(/^\s+|\s+$/g, '');
 			if (data.indexOf('error:') != '-1') {
@@ -857,7 +857,7 @@ function getAgent(agent_id, new_agent=false) {
 }
 function getAgentVersion(server_ip, agent_id){
 	$.ajax({
-		url: '/app/smon/agent/version/' + server_ip,
+		url: '/smon/agent/version/' + server_ip,
 		type: 'get',
 		data: {agent_id: agent_id},
 		success: function (data){
@@ -872,7 +872,7 @@ function getAgentVersion(server_ip, agent_id){
 }
 function getAgentUptime(server_ip, agent_id){
 	$.ajax({
-		url: '/app/smon/agent/uptime/' + server_ip,
+		url: '/smon/agent/uptime/' + server_ip,
 		type: 'get',
 		data: {agent_id: agent_id},
 		success: function (data){
@@ -889,7 +889,7 @@ function getAgentUptime(server_ip, agent_id){
 }
 function getAgentStatus(server_ip, agent_id){
 	$.ajax({
-		url: '/app/smon/agent/status/' + server_ip,
+		url: '/smon/agent/status/' + server_ip,
 		type: 'get',
 		data: {agent_id: agent_id},
 		success: function (data){
@@ -919,7 +919,7 @@ function getAgentStatus(server_ip, agent_id){
 }
 function getAgentTotalChecks(server_ip, agent_id){
 	$.ajax({
-		url: '/app/smon/agent/checks/' + server_ip,
+		url: '/smon/agent/checks/' + server_ip,
 		type: 'get',
 		data: {agent_id: agent_id},
 		success: function (data){
@@ -956,7 +956,7 @@ function confirmDeleteAgent(id) {
 }
 function removeAgent(id, dialog_id) {
 	$.ajax({
-        url: "/app/smon/agent",
+        url: "/smon/agent",
         type: "delete",
         data: {agent_id: id},
         success: function (data){
@@ -994,7 +994,7 @@ function confirmAjaxAction(action, id, server_ip) {
 }
 function agentAction(action, id, server_ip, dialog_id) {
 	$.ajax({
-		url: "/app/smon/agent/action/"+ action,
+		url: "/smon/agent/action/"+ action,
 		type: "post",
 		data: {agent_id: id, server_ip: server_ip},
 		success: function (data) {
@@ -1012,7 +1012,7 @@ function agentAction(action, id, server_ip, dialog_id) {
 var charts = []
 function getSmonHistoryCheckData(server) {
     $.ajax({
-        url: "/app/smon/history/metric/" + server,
+        url: "/smon/history/metric/" + server,
         success: function (result) {
             let data = [];
             data.push(result.chartData.curr_con);

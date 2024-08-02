@@ -65,7 +65,7 @@ function addServer(dialog_id) {
     if ($('#scan_server').is(':checked')) {
         scan_server = '1';
     }
-    if ($('#typeip').is(':checked')) {
+    if ($('#type_ip').is(':checked')) {
         type_ip = '1';
     }
     if ($('#enable').is(':checked')) {
@@ -104,24 +104,24 @@ function addServer(dialog_id) {
 	}
     if (valid) {
         let json_data = {
-            "name": servername,
+            "hostname": servername,
             "ip": ip,
             "port": $('#new-port').val(),
-            "group": server_group,
+            "group_id": server_group,
             "type_ip": type_ip,
             "haproxy": haproxy,
             'nginx': nginx,
             "apache": apache,
-            "firewall": firewall,
+            "firewall_enable": firewall,
             "add_to_smon": add_to_smon,
-            "enable": enable,
-            "slave": $('#slavefor').val(),
-            "cred": cred,
-            "desc": $('#desc').val(),
+            "enabled": enable,
+            "master": $('#slavefor').val(),
+            "cred_id": cred,
+            "description": $('#desc').val(),
             "protected": 0
         }
         $.ajax({
-            url: "/app/server",
+            url: "/server",
             type: "POST",
             data: JSON.stringify(json_data),
             contentType: "application/json; charset=utf-8",
@@ -145,32 +145,10 @@ function addServer(dialog_id) {
                     $('select:regex(id, haproxyaddserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
                     $('select:regex(id, nginxaddserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
                     $('select:regex(id, apacheaddserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
-                    after_server_creating(servername, ip, scan_server);
                 }
             }
         });
     }
-}
-function after_server_creating(servername, ip, scan_server) {
-	let json_data = {
-		"name": servername,
-		"ip": ip,
-		"scan_server": scan_server
-	}
-	$.ajax({
-		url: "/app/server",
-		data: JSON.stringify(json_data),
-		contentType: "application/json; charset=utf-8",
-		type: "PATCH",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('You should install lshw on the server') != '-1') {
-				toastr.error(data);
-			} else if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			}
-		}
-	});
 }
 function updateServer(id) {
 	toastr.clear();
@@ -178,7 +156,7 @@ function updateServer(id) {
 	let enable = 0;
 	let firewall = 0;
 	let protected_serv = 0;
-	if ($('#typeip-' + id).is(':checked')) {
+	if ($('#type_ip-' + id).is(':checked')) {
 		type_ip = '1';
 	}
 	if ($('#enable-' + id).is(':checked')) {
@@ -195,20 +173,20 @@ function updateServer(id) {
 		group = $('#new-sshgroup').val();
 	}
 	let json_data = {
-		"name": $('#hostname-' + id).val(),
+		"hostname": $('#hostname-' + id).val(),
 		"port": $('#port-' + id).val(),
-		"group": group,
+		"ip": $('#ip-' + id).text(),
+		"group_id": group,
 		"type_ip": type_ip,
-		"firewall": firewall,
-		"enable": enable,
-		"slave": $('#slavefor-' + id + ' option:selected').val(),
-		"cred": $('#credentials-' + id + ' option:selected').val(),
-		"id": id,
-		"desc": $('#desc-' + id).val(),
+		"firewall_enable": firewall,
+		"enabled": enable,
+		"master": $('#slavefor-' + id + ' option:selected').val(),
+		"cred_id": $('#credentials-' + id + ' option:selected').val(),
+		"description": $('#desc-' + id).val(),
 		"protected": protected_serv
 	}
 	$.ajax({
-		url: "/app/server",
+		url: "/server/" + id,
 		type: 'PUT',
 		contentType: "application/json; charset=utf-8",
 		data: JSON.stringify(json_data),
@@ -253,10 +231,10 @@ function cloneServer(id) {
 	} else {
 		$('#enable').prop('checked', false)
 	}
-	if ($('#typeip-'+id).is(':checked')) {
-		$('#typeip').prop('checked', true)
+	if ($('#type_ip-'+id).is(':checked')) {
+		$('#type_ip').prop('checked', true)
 	} else {
-		$('#typeip').prop('checked', false)
+		$('#type_ip').prop('checked', false)
 	}
 	if ($('#haproxy-'+id).is(':checked')) {
 		$('#haproxy').prop('checked', true)
@@ -269,7 +247,7 @@ function cloneServer(id) {
 		$('#nginx').prop('checked', false)
 	}
 	$('#enable').checkboxradio("refresh");
-	$('#typeip').checkboxradio("refresh");
+	$('#type_ip').checkboxradio("refresh");
 	$('#haproxy').checkboxradio("refresh");
 	$('#nginx').checkboxradio("refresh");
 	$('#new-server-add').val($('#hostname-'+id).val())
@@ -288,22 +266,29 @@ function cloneServer(id) {
 function removeServer(id) {
 	$("#server-" + id).css("background-color", "#f2dede");
 	$.ajax({
-		url: "/app/server",
+		url: "/server/" + id,
 		type: "DELETE",
-		data: JSON.stringify({'id': id}),
 		contentType: "application/json; charset=utf-8",
-		success: function (data) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
+		statusCode: {
+			204: function (xhr) {
 				$("#server-" + id).remove();
+			},
+			404: function (xhr) {
+				$("#server-" + id).remove();
+			}
+		},
+		success: function (data) {
+			if (data) {
+				if (data.status === "failed") {
+					toastr.error(data);
+				}
 			}
 		}
 	});
 }
 function viewFirewallRules(ip) {
 	$.ajax({
-		url: "/app/server/firewall/" + ip,
+		url: "/server/firewall/" + ip,
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error: ') != '-1') {
@@ -330,7 +315,7 @@ function viewFirewallRules(ip) {
 }
 function updateServerInfo(ip, id) {
 	$.ajax({
-		url: "/app/server/system_info/update/" + ip + "/" + id,
+		url: "/server/system_info/update/" + ip + "/" + id,
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
@@ -346,7 +331,7 @@ function updateServerInfo(ip, id) {
 function showServerInfo(id, ip) {
 	let server_info = translate_div.attr('data-server_info');
 	$.ajax({
-		url: "/app/server/system_info/get/" + ip + "/" +id,
+		url: "/server/system_info/get/" + ip + "/" +id,
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {
@@ -374,7 +359,7 @@ function showServerInfo(id, ip) {
 async function serverIsUp(server_id) {
 	let random_sleep = getRandomArbitrary(1000, 10000);
 	await sleep(random_sleep);
-	const source = new EventSource(`/app/server/check/server/${server_id}`);
+	const source = new EventSource(`/server/check/server/${server_id}`);
 	let server_div = $('#server_status-' + server_id);
 	source.onmessage = function (event) {
 		let data = JSON.parse(event.data);
@@ -397,7 +382,7 @@ async function serverIsUp(server_id) {
 		$('#hostname-' + server_id).val(data.name);
 		$('#ip-' + server_id).val(data.ip);
 		$('#port-' + server_id).val(data.port);
-		$('#desc-' + server_id).val(data.desc);
+		$('#desc-' + server_id).val(data.description);
 		if (data.enabled === 1) {
 			$('#enable-' + server_id).prop('checked', true);
 		} else {
@@ -409,11 +394,11 @@ async function serverIsUp(server_id) {
 			$('#protected-' + server_id).prop('checked', false);
 		}
 		if (data.type_ip === 1) {
-			$('#typeip-' + server_id).prop('checked', true);
+			$('#type_ip-' + server_id).prop('checked', true);
 		} else {
-			$('#typeip-' + server_id).prop('checked', false);
+			$('#type_ip-' + server_id).prop('checked', false);
 		}
-		$('#typeip-' + server_id).checkboxradio("refresh");
+		$('#type_ip-' + server_id).checkboxradio("refresh");
 		$('#protected-' + server_id).checkboxradio("refresh");
 		$('#enable-' + server_id).checkboxradio("refresh");
 		$('#servergroup-' + server_id).val(data.group_id).change();
@@ -431,7 +416,7 @@ function openChangeServerServiceDialog(server_id) {
 	let user_groups_word = translate_div.attr('data-user_groups');
 	let hostname = $('#hostname-' + server_id).val();
 	$.ajax({
-		url: "/app/server/services/" + server_id,
+		url: "/server/services/" + server_id,
 		success: function (data) {
 			$("#groups-roles").html(data);
 			$("#groups-roles").dialog({
@@ -493,7 +478,7 @@ function changeServerServices(server_id) {
 		jsonData[this_id] = 0
 	});
 	$.ajax({
-		url: "/app/server/services/" + server_id,
+		url: "/server/services/" + server_id,
 		data: {
 			jsonDatas: JSON.stringify(jsonData),
 			changeServerServicesServer: $('#hostname-' + server_id).val(),

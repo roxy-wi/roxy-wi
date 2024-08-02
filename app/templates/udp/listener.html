@@ -2,8 +2,10 @@
 {% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
 <div id="listener-{{listener.id}}" class="div-server-hapwi">
     <div class="server-name">
-        <span id="listener-name-{{listener.id}}">{{listener.name|replace("'", "")}}</span>
-        <span id="listener-desc-{{listener.id}}">{% if listener.desc != '' %} ({{listener.desc|replace("'", "")}}) {% endif %}</span>
+        <span class="overflow name-span">
+            <span id="listener-name-{{listener.id}}">{{listener.name|replace("'", "")}}</span>
+            <span id="listener-desc-{{listener.id}}">{% if listener.desc and listener.desc != "''" %} ({{listener.desc|replace("'", "")}}) {% endif %}</span>
+        </span>
         <span class="server-action">
             {% if g.user_params['role'] <= 3 %}
             <span class="service-start" onclick="confirmUdpBalancerAction('start', '{{listener.id}}')"></span>
@@ -21,25 +23,27 @@
                 {% if listener.cluster_id == cluster.id %}
                     {{ input('listener-type-'+listener.id|string(), value='cluster', type='hidden') }}
                     <b>{{lang.words.cluster|title}} {{ lang.words.name }}</b>:
-                    <a href="/app/ha/cluster/{{ cluster.id }}" title="{{lang.words.open|title()}} {{lang.words.cluster|replace("'", "")}}"> {{ cluster.name }}</a>
+                    <a href="/ha/cluster/{{ cluster.id }}" title="{{lang.words.open|title()}} {{lang.words.cluster|replace("'", "")}}" id="cluster-{{ listener.id }}"> {{ cluster.name }}</a>
                 {% endif %}
             {% endfor %}
             <b>VIP</b>:
         {% else %}
             {{ input('listener-type-'+listener.id|string(), value='server', type='hidden') }}
-            <b>{{ lang.words.server|title() }}</b>: {{ server.hostname }}
-            <b>IP</b>:
+            <b>{{ lang.words.server|title() }}</b>: <span id="hostname-{{ listener.id }}">{{ server.hostname }}</span>
+            <b id="ip-{{ listener.id }}">IP</b>:
         {% endif %}
-        {{ copy_to_clipboard(value=listener.vip) }}<br />
-        <b>{{lang.words.port|title()}}</b>: {{ listener.port }} <br />
+        <span id="vip-{{ listener.id }}">{{ copy_to_clipboard(value=listener.vip) }}</span><br />
+        <b>{{lang.words.port|title()}}</b>: <span id="port-{{ listener.id }}">{{ listener.port }}</span> <br />
         <b>{{ lang.words.backend|title() }} {{ lang.words.servers }}</b>: <br />
-        {% set config = listener.config|string_to_dict %}
-        {% for c, v in config.items() %}
-        {{ lang.words.server|title() }}: {{ copy_to_clipboard(value=c) }}, {{ lang.words.port }}: {{ v.port }}, {{ lang.words.weight }}: {{ v.weight }} <br />
-        {% endfor %}
+        <div id="config-{{ listener.id }}">
+            {% set config = listener.config|string_to_dict %}
+            {% for c in config %}
+            {{ lang.words.server|title() }}: {{ copy_to_clipboard(value=c.backend_ip) }}, {{ lang.words.port }}: {{ c.port }}, {{ lang.words.weight }}: {{ c.weight }} <br />
+            {% endfor %}
+        </div>
     </div>
 </div>
 <script>
     checkStatus('{{listener.id}}');
-    setInterval(checkStatus, 15000, '{{listener.id}}');
+    setInterval(checkStatus, 25000, '{{listener.id}}');
 </script>

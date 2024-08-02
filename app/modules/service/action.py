@@ -1,8 +1,4 @@
-import socket
-from contextlib import closing
-
 import app.modules.db.sql as sql
-import app.modules.db.user as user_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
 import app.modules.common.common as common
@@ -11,7 +7,7 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
 
 
-def common_action(server_ip: str, action: str, service: str) -> str:
+def common_action(server_ip: str, action: str, service: str) -> None:
     action_functions = {
         'haproxy': service_action,
         'nginx': service_action,
@@ -21,11 +17,13 @@ def common_action(server_ip: str, action: str, service: str) -> str:
         'waf_nginx': action_nginx_waf
     }
 
-    return action_functions[service](server_ip, action, service)
+    try:
+        action_functions[service](server_ip, action, service)
+    except Exception as e:
+        raise e
 
 
-
-def service_action(server_ip: str, action: str, service: str) -> str:
+def service_action(server_ip: str, action: str, service: str) -> None:
     """
     :param server_ip: The IP address of the server on which the action will be performed.
     :param action: The action to be performed on the service (e.g., "start", "stop").
@@ -35,25 +33,21 @@ def service_action(server_ip: str, action: str, service: str) -> str:
     try:
         service_common.is_protected(server_ip, action)
     except Exception as e:
-        return str(e)
+        raise e
     server_id = server_sql.select_server_id_by_ip(server_ip=server_ip)
 
     if service_common.is_not_allowed_to_restart(server_id, service, action):
-        return 'error: This server is not allowed to be restarted'
+        raise Exception('This server is not allowed to be restarted')
 
     try:
         if service != 'keepalived':
             service_common.check_service_config(server_ip, server_id, service)
     except Exception as e:
-        return f'error: Cannot check config: {e}'
+        raise Exception(f'Cannot check config: {e}')
 
     command = get_action_command(service, action, server_id)
-    try:
-        server_mod.ssh_command(server_ip, command)
-        roxywi_common.logging(server_ip, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1, service=service)
-        return f"success: {service.title()} has been {action}"
-    except Exception as e:
-        return f"error: Cannot {action} {service.title()}: {e}"
+    server_mod.ssh_command(server_ip, command)
+    roxywi_common.logging(server_ip, f'Service has been {action}ed', roxywi=1, login=1, keep_history=1, service=service)
 
 
 def get_action_command(service: str, action: str, server_id: int) -> str:
@@ -77,29 +71,26 @@ def get_action_command(service: str, action: str, server_id: int) -> str:
     return commands
 
 
-def action_haproxy_waf(server_ip: str, action: str, service: str) -> str:
+def action_haproxy_waf(server_ip: str, action: str, service: str) -> None:
     try:
         service_common.is_protected(server_ip, action)
     except Exception as e:
-        return str(e)
+        raise e
 
     roxywi_common.logging(
         server_ip, f'HAProxy WAF service has been {action}ed', roxywi=1, login=1, keep_history=1, service='haproxy'
     )
     command = f"sudo systemctl {action} waf"
-    try:
-        server_mod.ssh_command(server_ip, command)
-        return f"success: WAF has been {action}"
-    except Exception as e:
-        return f"error: Cannot {action} WAF service: {e}"
+    server_mod.ssh_command(server_ip, command)
 
-def action_nginx_waf(server_ip: str, action: str, service: str) -> str:
+
+def action_nginx_waf(server_ip: str, action: str, service: str) -> None:
     config_dir = common.return_nice_path(sql.get_setting('nginx_dir'))
 
     try:
         service_common.is_protected(server_ip, action)
     except Exception as e:
-        return str(e)
+        raise e
 
     waf_new_state = 'on' if action == 'start' else 'off'
     waf_old_state = 'off' if action == 'start' else 'on'
@@ -108,37 +99,32 @@ def action_nginx_waf(server_ip: str, action: str, service: str) -> str:
     command = (f"sudo sed -i 's/modsecurity {waf_old_state}/modsecurity {waf_new_state}/g' {config_dir}nginx.conf "
                f"&& sudo systemctl reload nginx")
 
-    try:
-        server_mod.ssh_command(server_ip, command)
-        return f"success: WAF has been {action}"
-    except Exception as e:
-        return f"error: Cannot {action} WAF service: {e}"
+    server_mod.ssh_command(server_ip, command)
 
 
-def check_service(server_ip: str, user_uuid: str, service: str) -> str:
-    user_id = user_sql.get_user_id_by_uuid(user_uuid)
-    user_services = user_sql.select_user_services(user_id)
-
-    if '1' in user_services:
-        if service == 'haproxy':
-            haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-            cmd = 'echo "show info" |nc %s %s -w 1 -v|grep Name' % (server_ip, haproxy_sock_port)
-            out = server_mod.subprocess_execute(cmd)
-            for k in out[0]:
-                if "Name" in k:
-                    return 'up'
-            else:
-                return 'down'
-    if ('2' in user_services and service == 'nginx') or ('4' in user_services and service == 'apache'):
-        stats_port = sql.get_setting(f'{service}_stats_port')
-
-        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-            sock.settimeout(5)
-
-            try:
-                if sock.connect_ex((server_ip, stats_port)) == 0:
-                    return 'up'
-                else:
-                    return 'down'
-            except Exception as e:
-                return f'down {e}'
+# def check_service(server_ip: str, user_id: int, service: str) -> str:
+#     user_services = user_sql.select_user_services(user_id)
+#
+#     if '1' in user_services:
+#         if service == 'haproxy':
+#             haproxy_sock_port = sql.get_setting('haproxy_sock_port')
+#             cmd = 'echo "show info" |nc %s %s -w 1 -v|grep Name' % (server_ip, haproxy_sock_port)
+#             out = server_mod.subprocess_execute(cmd)
+#             for k in out[0]:
+#                 if "Name" in k:
+#                     return 'up'
+#             else:
+#                 return 'down'
+#     if ('2' in user_services and service == 'nginx') or ('4' in user_services and service == 'apache'):
+#         stats_port = sql.get_setting(f'{service}_stats_port')
+#
+#         with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
+#             sock.settimeout(5)
+#
+#             try:
+#                 if sock.connect_ex((server_ip, stats_port)) == 0:
+#                     return 'up'
+#                 else:
+#                     return 'down'
+#             except Exception as e:
+#                 return f'down {e}'

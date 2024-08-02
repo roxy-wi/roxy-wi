@@ -6,13 +6,13 @@
 	{% include 'include/getstarted.html' %}
 {% else %}
 <link href="{{ url_for('static', filename='css/table-6.3.9.css') }}" rel="stylesheet" type="text/css">
-<script type="text/javascript" charset="utf8" src="/app/static/js/dataTables.min.js"></script>
+<script type="text/javascript" charset="utf8" src="/static/js/dataTables.min.js"></script>
 	<p>
 		<form action="{{ action }}" method="post" class="left-space">
 			<input type="hidden" value="{{service}}" name="service" id="service">
 			{{ select('serv', values=g.user_params['servers'], is_servers='true', selected=serv) }}
 				<a class="ui-button ui-widget ui-corner-all" title="Open versions" onclick="showListOfVersion(1)">{{lang.words.open|title()}}</a>
-				<a href="/app/config/{{service}}" class="ui-button ui-widget ui-corner-all" title="Configs page">{{lang.words.configs|title()}}</a>
+				<a href="/config/{{service}}" class="ui-button ui-widget ui-corner-all" title="Configs page">{{lang.words.configs|title()}}</a>
 			{% if service != 'keepalived' %}
 				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">{{lang.words.stats|title()}}</a>
 			{% endif %}

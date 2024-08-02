@@ -28,7 +28,7 @@
 			</td>
 			<td style="padding-top: 5px;padding-bottom: 10px;">{{r.desc}}</td>
 			<td style="padding: 0 10px 0 10px;">
-				<a href="/app/waf/{{service}}/{{serv}}/rule/{{r.id}}" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.this4}} {{lang.words.rule}}">{{lang.words.view|title()}}/{{lang.words.edit|title()}}</a>
+				<a href="/waf/{{service}}/{{serv}}/rule/{{r.id}}" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.this4}} {{lang.words.rule}}">{{lang.words.view|title()}}/{{lang.words.edit|title()}}</a>
 			</td>
 		</tr>
 		{% endfor %}
@@ -49,31 +49,31 @@
 	</div>
 {% elif waf_rule_file %}
 	<div class="left-space">
-		<link rel="stylesheet" href="/app/static/js/codemirror/lib/codemirror.css">
-		<link rel="stylesheet" href="/app/static/js/codemirror/addon/dialog/dialog.css">
-		<link rel="stylesheet" href="/app/static/js/codemirror/addon/fold/foldgutter.css">
-		<script src="/app/static/js/codemirror/lib/codemirror.js"></script>
-		<script src="/app/static/js/codemirror/addon/search/search.js"></script>
-		<script src="/app/static/js/codemirror/addon/search/searchcursor.js"></script>
-		<script src="/app/static/js/codemirror/addon/search/jump-to-line.js"></script>
-		<script src="/app/static/js/codemirror/addon/search/matchesonscrollbar.js"></script>
-		<script src="/app/static/js/codemirror/addon/search/match-highlighter.js"></script>
-		<script src="/app/static/js/codemirror/addon/dialog/dialog.js"></script>
-		<script src="/app/static/js/codemirror/addon/edit/matchbrackets.js"></script>
-		<script src="/app/static/js/codemirror/addon/edit/closebrackets.js"></script>
-		<script src="/app/static/js/codemirror/addon/comment/comment.js"></script>
-		<script src="/app/static/js/codemirror/addon/wrap/hardwrap.js"></script>
-		<script src="/app/static/js/codemirror/addon/fold/foldcode.js"></script>
-		<script src="/app/static/js/codemirror/addon/fold/foldgutter.js"></script>
-		<script src="/app/static/js/codemirror/addon/fold/brace-fold.js"></script>
-		<script src="/app/static/js/codemirror/addon/fold/comment-fold.js"></script>
-		<script src="/app/static/js/codemirror/addon/scroll/annotatescrollbar.js"></script>
-		<script src="/app/static/js/codemirror/mode/nginx.js"></script>
-		<script src="/app/static/js/codemirror/mode/haproxy.js"></script>
-		<script src="/app/static/js/codemirror/keymap/sublime.js"></script>
-		<script src="/app/static/js/configshow.js"></script>
+		<link rel="stylesheet" href="/static/js/codemirror/lib/codemirror.css">
+		<link rel="stylesheet" href="/static/js/codemirror/addon/dialog/dialog.css">
+		<link rel="stylesheet" href="/static/js/codemirror/addon/fold/foldgutter.css">
+		<script src="/static/js/codemirror/lib/codemirror.js"></script>
+		<script src="/static/js/codemirror/addon/search/search.js"></script>
+		<script src="/static/js/codemirror/addon/search/searchcursor.js"></script>
+		<script src="/static/js/codemirror/addon/search/jump-to-line.js"></script>
+		<script src="/static/js/codemirror/addon/search/matchesonscrollbar.js"></script>
+		<script src="/static/js/codemirror/addon/search/match-highlighter.js"></script>
+		<script src="/static/js/codemirror/addon/dialog/dialog.js"></script>
+		<script src="/static/js/codemirror/addon/edit/matchbrackets.js"></script>
+		<script src="/static/js/codemirror/addon/edit/closebrackets.js"></script>
+		<script src="/static/js/codemirror/addon/comment/comment.js"></script>
+		<script src="/static/js/codemirror/addon/wrap/hardwrap.js"></script>
+		<script src="/static/js/codemirror/addon/fold/foldcode.js"></script>
+		<script src="/static/js/codemirror/addon/fold/foldgutter.js"></script>
+		<script src="/static/js/codemirror/addon/fold/brace-fold.js"></script>
+		<script src="/static/js/codemirror/addon/fold/comment-fold.js"></script>
+		<script src="/static/js/codemirror/addon/scroll/annotatescrollbar.js"></script>
+		<script src="/static/js/codemirror/mode/nginx.js"></script>
+		<script src="/static/js/codemirror/mode/haproxy.js"></script>
+		<script src="/static/js/codemirror/keymap/sublime.js"></script>
+		<script src="/static/js/configshow.js"></script>
 			<h4>{{lang.words.config|title()}} {{waf_rule_file}} {{lang.words.from|title()}} {{ serv }}</h4>
-			<form action="/app/waf/{{service}}/{{serv}}/rule/{{waf_rule_id}}/save" name="saveconfig" id="saveconfig" method="post">
+			<form action="/waf/{{service}}/{{serv}}/rule/{{waf_rule_id}}/save" name="saveconfig" id="saveconfig" method="post">
 				<input type="hidden" value="{{ serv }}" name="serv">
 				<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
 				<input type="hidden" value="{{ token }}" name="token">
@@ -83,7 +83,7 @@
 					<textarea name="config" id="config_text_area" class="config" rows="35" cols="100">{{ config }}</textarea>
 				</div>
 				<p>
-					<a href="/app/waf/{{service}}/{{serv}}/rules" class="ui-button ui-widget ui-corner-all" title="Return to rules management">{{lang.words.back|title()}}</a>
+					<a href="/waf/{{service}}/{{serv}}/rules" class="ui-button ui-widget ui-corner-all" title="Return to rules management">{{lang.words.back|title()}}</a>
 					{% if g.user_params['role'] <= 3 %}
 					<button type="submit" value="save" name="save" class="btn btn-default" title="{{lang.words.save|title()}} {{lang.words.without}} {{lang.words.reloading}}">{{lang.words.save|title()}}</button>
 					{% if service == 'haproxy' %}
@@ -177,9 +177,9 @@
 	</table>
 	{% if service == 'haproxy' %}
 	<link href="{{ url_for('static', filename='css/chart.min.css') }}" rel="stylesheet">
-	<script src="/app/static/js/overview.js"></script>
-	<script src="/app/static/js/metrics.js"></script>
-	<script src="/app/static/js/chart.min-4.3.0.js"></script>
+	<script src="/static/js/overview.js"></script>
+	<script src="/static/js/metrics.js"></script>
+	<script src="/static/js/chart.min-4.3.0.js"></script>
 	<div id="table_metrics"></div>
 	<div class="metrics-time-range">
 		<b>{{lang.words.time_range|title()}}:</b>

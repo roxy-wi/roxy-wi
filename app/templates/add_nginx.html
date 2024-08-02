@@ -5,7 +5,7 @@
 {% from 'include/input_macros.html' import input, checkbox, select %}
 {% set balance_params = dict() %}
 {% set balance_params = {'ip_hash':'ip_hash','least_conn':'least_conn','random':'random', 'round_robin': 'round-robin'} %}
-<script src="/app/static/js/add_nginx.js"></script>
+<script src="/static/js/add_nginx.js"></script>
 <div id="tabs">
 	<ul>
 		<li><a href="#create" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.add|title()}} {{lang.words.proxy}} - Roxy-WI">{{lang.words.add|title()}} {{lang.words.proxy}}</a></li>
@@ -14,7 +14,7 @@
 	<ul id='browse_histroy'></ul>
 	{% include 'include/add_nginx_proxy.html' %}
     <div id="upstream">
-        <form name="add-upstream" id="add-upstream" action="/app/add/nginx/upstream" method="post">
+        <form name="add-upstream" id="add-upstream" action="/add/nginx/upstream" method="post">
 			<table class="add-table">
 				<caption><h3>{{lang.words.add|title()}} upstream</h3></caption>
 				<tr>

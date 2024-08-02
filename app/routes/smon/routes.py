@@ -1,7 +1,7 @@
 import json
 
 from flask import render_template, request, jsonify, g
-from flask_login import login_required
+from flask_jwt_extended import jwt_required
 from datetime import datetime
 
 from app.routes.smon import bp
@@ -16,7 +16,7 @@ import app.modules.tools.common as tools_common
 
 
 @bp.route('/dashboard')
-@login_required
+@jwt_required()
 @get_user_params()
 def smon_main_dashboard():
     """
@@ -36,10 +36,10 @@ def smon_main_dashboard():
         'group': group_id,
         'smon_status': tools_common.is_tool_active('roxy-wi-smon'),
         'user_subscription': roxywi_common.return_user_subscription(),
-        'telegrams': channel_sql.get_user_telegram_by_group(group_id),
-        'slacks': channel_sql.get_user_slack_by_group(group_id),
-        'pds': channel_sql.get_user_pd_by_group(group_id),
-        'mms': channel_sql.get_user_mm_by_group(group_id),
+        'telegrams': channel_sql.get_user_receiver_by_group('telegram', group_id),
+        'slacks': channel_sql.get_user_receiver_by_group('slack', group_id),
+        'pds': channel_sql.get_user_receiver_by_group('pd', group_id),
+        'mms': channel_sql.get_user_receiver_by_group('mm', group_id),
         'sort': request.args.get('sort', None)
     }
 
@@ -47,7 +47,7 @@ def smon_main_dashboard():
 
 
 @bp.route('/dashboard/<int:smon_id>/<int:check_id>')
-@login_required
+@jwt_required()
 @get_user_params()
 def smon_dashboard(smon_id, check_id):
     """
@@ -115,7 +115,7 @@ def smon_dashboard(smon_id, check_id):
 
 
 @bp.route('/check', methods=['POST', 'PUT', 'DELETE'])
-@login_required
+@jwt_required()
 def smon_add():
     json_data = request.get_json()
     if request.method == "POST":
@@ -150,7 +150,7 @@ def smon_add():
 
 
 @bp.route('/check/settings/<int:smon_id>/<int:check_type_id>')
-@login_required
+@jwt_required()
 def check(smon_id, check_type_id):
     smon = smon_sql.select_one_smon(smon_id, check_type_id)
     settings = {}
@@ -190,7 +190,7 @@ def check(smon_id, check_type_id):
 
 
 @bp.route('/check/<int:smon_id>/<int:check_type_id>')
-@login_required
+@jwt_required()
 @get_user_params()
 def get_check(smon_id, check_type_id):
     """
@@ -210,7 +210,7 @@ def get_check(smon_id, check_type_id):
 
 
 @bp.route('/status-page', methods=['GET', 'POST', 'DELETE', 'PUT'])
-@login_required
+@jwt_required()
 @get_user_params()
 def status_page():
     """
@@ -295,7 +295,7 @@ def status_page():
 
 
 @bp.route('/status/checks/<int:page_id>')
-@login_required
+@jwt_required()
 def get_checks(page_id):
     """
     :param page_id: The ID of the page for which to fetch the checks.
@@ -327,7 +327,7 @@ def smon_history_statuses_avg(page_id):
 
 
 @bp.route('/history')
-@login_required
+@jwt_required()
 @get_user_params()
 def smon_history():
     roxywi_common.check_user_group_for_flask()
@@ -344,7 +344,7 @@ def smon_history():
 
 
 @bp.route('/history/host/<server_ip>')
-@login_required
+@jwt_required()
 @get_user_params()
 def smon_host_history(server_ip):
     roxywi_common.check_user_group_for_flask()
@@ -367,7 +367,7 @@ def smon_host_history(server_ip):
 
 
 @bp.route('/history/metric/<int:dashboard_id>')
-@login_required
+@jwt_required()
 def smon_history_metric(dashboard_id):
     return jsonify(smon_mod.history_metrics(dashboard_id))
 
@@ -378,13 +378,13 @@ def smon_history_statuses(dashboard_id):
 
 
 @bp.route('/history/cur_status/<int:dashboard_id>/<int:check_id>')
-@login_required
+@jwt_required()
 def smon_history_cur_status(dashboard_id, check_id):
     return smon_mod.history_cur_status(dashboard_id, check_id)
 
 
 @bp.post('/refresh')
-@login_required
+@jwt_required()
 def smon_show():
     sort = common.checkAjaxInput(request.form.get('sort'))
     return smon_mod.show_smon(sort)

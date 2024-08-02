@@ -1,40 +1,38 @@
-import uuid
-
-from flask import request, abort, make_response, url_for
-from flask_login import login_user
-from datetime import datetime, timedelta
+from flask import request, abort, url_for, jsonify
+from flask_jwt_extended import create_access_token, set_access_cookies
+from flask_jwt_extended import get_jwt
+from flask_jwt_extended import verify_jwt_in_request
 
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
 import app.modules.db.group as group_sql
 import app.modules.db.service as service_sql
 import app.modules.roxywi.common as roxywi_common
+import app.modules.roxy_wi_tools as roxy_wi_tools
 
 
-def check_login(user_uuid) -> str:
-    if user_uuid is None:
+def check_login(user_id: int) -> str:
+    if user_id is None:
         return 'login_page'
 
-    if user_uuid is not None:
-        if user_sql.get_user_name_by_uuid(user_uuid) is None:
-            return 'login_page'
-        else:
-            try:
-                ip = request.remote_addr
-            except Exception:
-                ip = ''
+    if user_sql.get_user_id(user_id) is None:
+        return 'login_page'
+    else:
+        try:
+            ip = request.remote_addr
+        except Exception:
+            ip = ''
 
-            user_sql.update_last_act_user(user_uuid, ip)
+        user_sql.update_last_act_user(user_id, ip)
 
-            return 'ok'
-    return 'login_page'
+        return 'ok'
 
 
 def is_access_permit_to_service(service: str) -> bool:
     service_id = service_sql.select_service_id_by_slug(service)
-    user_uuid = request.cookies.get('uuid')
-    user_id = user_sql.get_user_id_by_uuid(user_uuid)
-    user_services = user_sql.select_user_services(user_id)
+    verify_jwt_in_request()
+    claims = get_jwt()
+    user_services = user_sql.select_user_services(claims['user_id'])
     if str(service_id) in user_services:
         return True
     else:
@@ -45,11 +43,13 @@ def is_admin(level=1, **kwargs):
     if kwargs.get('role_id'):
         role = kwargs.get('role_id')
     else:
-        user_id = request.cookies.get('uuid')
-        group_id = request.cookies.get('group')
+        verify_jwt_in_request()
+        claims = get_jwt()
+        user_id = claims['user_id']
+        group_id = claims['group']
 
         try:
-            role = user_sql.get_user_role_by_uuid(user_id, group_id)
+            role = user_sql.get_user_role_in_group(user_id, group_id)
         except Exception:
             role = 4
     try:
@@ -60,7 +60,7 @@ def is_admin(level=1, **kwargs):
 
 def page_for_admin(level=1) -> None:
     if not is_admin(level=level):
-        return abort(404, 'Not found')
+        return abort(400, 'bad permission')
 
 
 def check_in_ldap(user, password):
@@ -103,42 +103,51 @@ def check_in_ldap(user, password):
         return True
 
 
-def create_uuid_and_token(login: str):
-    user_uuid = str(uuid.uuid4())
-    user_sql.write_user_uuid(login, user_uuid)
-
-    return user_uuid
-
-
-def do_login(user_uuid: str, user_group: str, user: str, next_url: str):
-    try:
-        session_ttl = sql.get_setting('session_ttl')
-    except Exception:
-        session_ttl = 5
-    if session_ttl is None:
-        session_ttl = 5
-
+def do_login(user_params: dict, next_url: str):
     if next_url:
         redirect_to = f'https://{request.host}{next_url}'
     else:
         redirect_to = f"https://{request.host}{url_for('overview.index')}"
 
-    expires = datetime.utcnow() + timedelta(days=session_ttl)
-
-    login_user(user)
-    resp = make_response(redirect_to)
-    resp.set_cookie('uuid', user_uuid, secure=True, expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"), samesite='Strict')
-    resp.set_cookie('group', str(user_group), expires=expires.strftime("%a, %d %b %Y %H:%M:%S GMT"), samesite='Strict')
+    response = jsonify({"status": "done", "next_url": redirect_to})
+    access_token = create_jwt_token(user_params)
+    set_access_cookies(response, access_token)
 
     try:
-        user_group_name = group_sql.get_group_name_by_id(user_group)
+        user_group_name = group_sql.get_group_name_by_id(user_params['group'])
     except Exception:
         user_group_name = ''
 
     try:
-        user_name = user_sql.get_user_name_by_uuid(user_uuid)
-        roxywi_common.logging('Roxy-WI server', f' user: {user_name}, group: {user_group_name} login', roxywi=1)
+        roxywi_common.logging('RMON server', f' user: {user_params["name"]}, group: {user_group_name} login', roxywi=1)
     except Exception as e:
         print(f'error: {e}')
 
-    return resp
+    return response
+
+
+def create_jwt_token(user_params: dict) -> str:
+    additional_claims = {'group': str(user_params['group'])}
+    return create_access_token(str(user_params['user']), additional_claims=additional_claims)
+
+
+def check_user_password(login: str, password: str) -> dict:
+    if not login and not password:
+        raise Exception('There is no login or password')
+    try:
+        user = user_sql.get_user_by_username(login)
+    except Exception:
+        raise Exception('ban')
+    if user.enabled == 0:
+        raise Exception('Your login is disabled')
+    if user.ldap_user == 1:
+        if login in user.username and check_in_ldap(login, password):
+            return {'group': str(user.group_id), 'user': user.user_id, 'name': user.username}
+        else:
+            raise Exception('ban')
+    else:
+        hashed_password = roxy_wi_tools.Tools.get_hash(password)
+        if login in user.username and hashed_password == user.password:
+            return {'group': str(user.group_id), 'user': user.user_id, 'name': user.username}
+        else:
+            raise Exception('ban')

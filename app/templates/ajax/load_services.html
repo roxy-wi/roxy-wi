@@ -42,7 +42,7 @@
     <td class="padding10 first-collumn">
         {% if 'is not installed' in service.2['current_version'] or not service.2['current_version'] or service.2['current_version'] == '0' %}
             {% if service.0 in ('prometheus', 'grafana-server') %}
-                <a href="/app/install#monitoring" class="ui-button ui-widget ui-corner-all" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
+                <a href="/install#monitoring" class="ui-button ui-widget ui-corner-all" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
             {% elif service.0 in ('rabbitmq-server', 'fail2ban') %}
                 <a class="ui-button ui-widget ui-corner-all" href="https://roxy-wi.org/tools/{{service.0.split('-')[0]}}" title="{{lang.words.install|title()}} {{services_name[service.0]['name']}}" target="_blank">{{lang.words.install|title()}}</a>
             {% else %}

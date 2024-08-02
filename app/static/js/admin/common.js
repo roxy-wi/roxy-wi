@@ -3,12 +3,7 @@ $( function() {
         let activeTab = $(this).find("a").attr("href");
         let activeTabClass = activeTab.replace('#', '');
         $('.menu li ul li').each(function () {
-            $(this).find('a').css('border-left', '0px solid var(--right-menu-blue-rolor)');
-            $(this).find('a').css('padding-left', '20px')
-            $(this).find('a').css('background-color', '#48505A');
-            $(this).children("." + activeTabClass).css('padding-left', '30px');
-            $(this).children("." + activeTabClass).css('border-left', '4px solid var(--right-menu-blue-rolor)');
-            $(this).children("." + activeTabClass).css('background-color', 'var(--right-menu-blue-rolor)');
+            activeSubMenu($(this), activeTabClass)
         });
         if (activeTab == '#tools') {
             loadServices();
@@ -24,7 +19,7 @@ $( function() {
 window.onload = function() {
 	$('#tabs').tabs();
 	let activeTabIdx = $('#tabs').tabs('option','active')
-	if (cur_url[0].split('#')[0] == 'admin') {
+	if (cur_url.split('#')[0] == 'admin') {
 		if (activeTabIdx == 6) {
 			loadServices();
 		} else if (activeTabIdx == 3) {
@@ -40,7 +35,7 @@ function updateService(service, action='update') {
 	$("#ajax-update").html('')
 	$("#ajax-update").html(wait_mess);
 	$.ajax({
-		url: "/app/admin/tools/update/" + service,
+		url: "/admin/tools/update/" + service,
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('Complete!') != '-1' || data.indexOf('Unpacking') != '-1') {
@@ -90,7 +85,7 @@ function updateService(service, action='update') {
 }
 function loadSettings() {
 	$.ajax({
-		url: "/app/admin/settings",
+		url: "/admin/settings",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1') {
@@ -106,7 +101,7 @@ function loadSettings() {
 }
 function loadServices() {
 	$.ajax({
-		url: "/app/admin/tools",
+		url: "/admin/tools",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
@@ -120,7 +115,7 @@ function loadServices() {
 }
 function loadupdatehapwi() {
 	$.ajax({
-		url: "/app/admin/update",
+		url: "/admin/update",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
@@ -133,7 +128,7 @@ function loadupdatehapwi() {
 }
 function checkUpdateRoxy() {
 	$.ajax({
-		url: "/app/admin/update/check",
+		url: "/admin/update/check",
 		success: function (data) {
 			loadupdatehapwi();
 		}
@@ -163,7 +158,7 @@ function confirmAjaxServiceAction(action, service) {
 }
 function ajaxActionServices(action, service) {
 	$.ajax( {
-		url: "/app/admin/tools/action/" + service + "/" + action,
+		url: "/admin/tools/action/" + service + "/" + action,
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);
@@ -185,7 +180,7 @@ function showApacheLog(serv) {
 	let minute = $('#time_range_out_minut').val();
 	let hour1 = $('#time_range_out_hour1').val();
 	let minute1 = $('#time_range_out_minut1').val();
-	let url = "/app/logs/apache_internal/" + serv + "/" + rows;
+	let url = "/logs/apache_internal/" + serv + "/" + rows;
 	$.ajax( {
 		url: url,
 		data: {

@@ -310,7 +310,7 @@
                 <select id="backup-credentials" required>
                     <option disabled selected>{{lang.words.select|title()}} {{lang.words.creds}}</option>
                     {% for ssh in sshs %}
-                         {% if ssh.enable == 1 %}
+                         {% if ssh.key_enabled == 1 %}
                             <option value="{{ssh.id}}">{{ssh.name}}</option>
                         {% endif %}
                     {% endfor %}
@@ -409,7 +409,7 @@
                 <select id="git-credentials" required>
                     <option disabled selected>------</option>
                     {% for ssh in sshs %}
-                        {% if ssh.enable == 1 %}
+                        {% if ssh.key_enabled == 1 %}
                             <option value="{{ssh.id}}">{{ssh.name}}</option>
                         {% endif %}
                     {% endfor %}
@@ -440,4 +440,13 @@
         <tr id="server-info"></tr>
     </table>
 </div>
-<div id="groups-roles"></div>
+<div id="groups-roles" style="display: none;">
+    <table id="all_groups" style="width: 300px;float: left;margin-right: 50px;">
+        <caption class="user_group_caption">{{lang.words.all|title()}} {{lang.words.groups}}</caption>
+        <tbody></tbody>
+    </table>
+    <table id="checked_groups" style="width: 300px;">
+        <caption class="user_group_caption">{{lang.phrases.user_groups}}</caption>
+        <tbody></tbody>
+    </table>
+</div>

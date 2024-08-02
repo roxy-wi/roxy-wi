@@ -32,7 +32,7 @@
             <select id="telegramgroup-{{telegram.id}}" name="telegramgroup-{{telegram.id}}">
                 <option disabled selected>------</option>
                 {% for group in groups %}
-                {% if telegram.groups|string() == group.group_id|string() %}
+                {% if telegram.group_id|string() == group.group_id|string() %}
                 <option value="{{ group.group_id }}" selected>{{ group.name }}</option>
                 {% else %}
                 <option value="{{ group.group_id }}">{{ group.name }}</option>
@@ -84,7 +84,7 @@
             <select id="slackgroup-{{slack.id}}" name="slackgroup-{{slack.id}}">
                 <option disabled selected>------</option>
                 {% for group in groups %}
-                {% if slack.groups|string() == group.group_id|string() %}
+                {% if slack.group_id|string() == group.group_id|string() %}
                 <option value="{{ group.group_id }}" selected>{{ group.name }}</option>
                 {% else %}
                 <option value="{{ group.group_id }}">{{ group.name }}</option>
@@ -136,7 +136,7 @@
             <select id="pdgroup-{{pd.id}}" name="pdgroup-{{pd.id}}">
                 <option disabled selected>------</option>
                 {% for group in groups %}
-                {% if pd.groups|string() == group.group_id|string() %}
+                {% if pd.group_id|string() == group.group_id|string() %}
                 <option value="{{ group.group_id }}" selected>{{ group.name }}</option>
                 {% else %}
                 <option value="{{ group.group_id }}">{{ group.name }}</option>
@@ -188,7 +188,7 @@
             <select id="pdgroup-{{mm.id}}" name="pdgroup-{{mm.id}}">
                 <option disabled selected>------</option>
                 {% for group in groups %}
-                {% if mm.groups|string() == group.group_id|string() %}
+                {% if mm.group_id|string() == group.group_id|string() %}
                 <option value="{{ group.group_id }}" selected>{{ group.name }}</option>
                 {% else %}
                 <option value="{{ group.group_id }}">{{ group.name }}</option>

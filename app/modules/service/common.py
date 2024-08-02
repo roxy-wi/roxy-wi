@@ -1,5 +1,7 @@
 import requests
 from flask import render_template, request
+from flask_jwt_extended import get_jwt
+from flask_jwt_extended import verify_jwt_in_request
 
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
@@ -32,15 +34,15 @@ def get_correct_service_name(service: str, server_id: int) -> str:
 	return service
 
 
-def check_haproxy_version(server_ip):
-	hap_sock_p = sql.get_setting('haproxy_sock_port')
-	ver = ""
-	cmd = f"echo 'show info' |nc {server_ip} {hap_sock_p} |grep Version |awk '{{print $2}}'"
-	output, stderr = server_mod.subprocess_execute(cmd)
-	for line in output:
-		ver = line
-
-	return ver
+# def check_haproxy_version(server_ip):
+# 	hap_sock_p = sql.get_setting('haproxy_sock_port')
+# 	ver = ""
+# 	cmd = f"echo 'show info' |nc {server_ip} {hap_sock_p} |grep Version |awk '{{print $2}}'"
+# 	output, stderr = server_mod.subprocess_execute(cmd)
+# 	for line in output:
+# 		ver = line
+#
+# 	return ver
 
 
 def is_protected(server_ip: str, action: str) -> None:
@@ -52,9 +54,9 @@ def is_protected(server_ip: str, action: str) -> None:
 	:return: None
 	:raises: Exception if the server is protected and the user role is not high enough.
 	"""
-	user_uuid = request.cookies.get('uuid')
-	group_id = int(request.cookies.get('group'))
-	user_role = user_sql.get_user_role_by_uuid(user_uuid, group_id)
+	verify_jwt_in_request()
+	claims = get_jwt()
+	user_role = user_sql.get_user_role_in_group(claims['user_id'], claims['group'])
 
 	if server_sql.is_serv_protected(server_ip) and int(user_role) > 2:
 		raise Exception(f'error: This server is protected. You cannot {action} it')
@@ -187,11 +189,9 @@ def check_service_config(server_ip: str, server_id: int, service: str) -> None:
 
 
 def overview_backends(server_ip: str, service: str) -> str:
-	import modules.config.config as config_mod
+	import app.modules.config.config as config_mod
 
-	lang = roxywi_common.get_user_lang_for_flask()
-
-	if service != 'nginx' and service != 'apache':
+	if service not in ('nginx', 'apache'):
 		format_file = config_common.get_file_format(service)
 		config_dir = config_common.get_config_dir(service)
 		cfg = config_common.generate_config_path(service, server_ip)
@@ -204,16 +204,24 @@ def overview_backends(server_ip: str, service: str) -> str:
 			try:
 				config_mod.get_config(server_ip, cfg, service=service)
 			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f' Cannot download a config {e}', roxywi=1)
+				raise e
 			try:
 				sections = section_mod.get_sections(cfg, service=service)
 			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f' Cannot get sections from config file {e}', roxywi=1)
-				sections = f'error: Cannot get backends {e}'
+				raise e
 	else:
-		sections = section_mod.get_remote_sections(server_ip, service)
+		sections = {}
+		sections_not_formated = section_mod.get_remote_sections(server_ip, service)
+		for section in sections_not_formated.split('\r'):
+			if section == '\n':
+				continue
+			back_path = section.split(":")[0]
+			back_name = section.split(":")[1]
+			back_name = back_name.strip().replace('\n', '').replace('\r', '').replace(';', '')
+			back_path = back_path.strip().replace('/', '92').replace(':', '')
+			sections[back_path] = back_name
 
-	return render_template('ajax/haproxyservers_backends.html', backends=sections, serv=server_ip, service=service, lang=lang)
+	return sections
 
 
 def get_overview_last_edit(server_ip: str, service: str) -> str:
@@ -261,24 +269,24 @@ def get_stat_page(server_ip: str, service: str) -> str:
 		return data.decode('utf-8')
 
 
-def show_service_version(server_ip: str, service: str) -> str:
-	if service == 'haproxy':
-		return check_haproxy_version(server_ip)
-
-	server_id = server_sql.select_server_id_by_ip(server_ip)
-	service_name = get_correct_service_name(service, server_id)
-	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
-
-	if is_dockerized == '1':
-		container_name = sql.get_setting(f'{service}_container_name')
-		if service == 'apache':
-			cmd = f'docker exec -it {container_name} /usr/local/apache2/bin/httpd -v 2>&1|head -1|awk -F":" \'{{print $2}}\''
-		else:
-			cmd = f'docker exec -it {container_name} /usr/sbin/{service_name} -v 2>&1|head -1|awk -F":" \'{{print $2}}\''
-	else:
-		cmd = [f'sudo /usr/sbin/{service_name} -v|head -1|awk -F":" \'{{print $2}}\'']
-
-	try:
-		return server_mod.ssh_command(server_ip, cmd, timeout=5)
-	except Exception as e:
-		return f'{e}'
+# def show_service_version(server_ip: str, service: str) -> str:
+# 	if service == 'haproxy':
+# 		return check_haproxy_version(server_ip)
+#
+# 	server_id = server_sql.select_server_id_by_ip(server_ip)
+# 	service_name = get_correct_service_name(service, server_id)
+# 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
+#
+# 	if is_dockerized == '1':
+# 		container_name = sql.get_setting(f'{service}_container_name')
+# 		if service == 'apache':
+# 			cmd = f'docker exec -it {container_name} /usr/local/apache2/bin/httpd -v 2>&1|head -1|awk -F":" \'{{print $2}}\''
+# 		else:
+# 			cmd = f'docker exec -it {container_name} /usr/sbin/{service_name} -v 2>&1|head -1|awk -F":" \'{{print $2}}\''
+# 	else:
+# 		cmd = [f'sudo /usr/sbin/{service_name} -v|head -1|awk -F":" \'{{print $2}}\'']
+#
+# 	try:
+# 		return server_mod.ssh_command(server_ip, cmd, timeout=5)
+# 	except Exception as e:
+# 		return f'{e}'

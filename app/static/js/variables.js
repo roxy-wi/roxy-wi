@@ -13,9 +13,16 @@ const delete_word = translate_div.attr('data-delete');
 const back_word = translate_div.attr('data-back');
 
 // JS scripts URL
-const scriptPath = "/app/static/js"
+const scriptPath = "/static/js"
 const script = `${scriptPath}/script.js`;
 const overview = `${scriptPath}/overview.js`;
 const configShow = `${scriptPath}/configshow.js`;
 const awesome = `${scriptPath}/fontawesome.min.js`;
 const ha = `${scriptPath}/ha.js`;
+const waf = `${scriptPath}/waf.js`
+
+// csrf_token
+const csrf_token = Cookies.get('csrf_access_token');
+
+// API prefix
+const api_prefix = '/api'

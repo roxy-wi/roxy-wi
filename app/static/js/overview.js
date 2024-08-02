@@ -1,4 +1,4 @@
-var cur_url = window.location.href.split('/app/').pop();
+var cur_url = window.location.href.split('/').pop();
 cur_url = cur_url.split('/');
 function showHapservers(serv, hostnamea, service) {
 	let i;
@@ -8,9 +8,9 @@ function showHapservers(serv, hostnamea, service) {
 }
 function showHapserversCallBack(serv, hostnamea, service) {
 	$.ajax( {
-		url: "/app/service/" + service + "/" + serv + "/last-edit",
+		url: "/service/" + service + "/" + serv + "/last-edit",
 		beforeSend: function() {
-			$("#edit_date_"+hostnamea).html('<img class="loading_small_haproxyservers" src="/app/static/images/loading.gif" />');
+			$("#edit_date_"+hostnamea).html('<img class="loading_small_haproxyservers" src="/static/images/loading.gif" />');
 		},
 		type: "GET",
 		success: function( data ) {
@@ -28,18 +28,30 @@ function showHapserversCallBack(serv, hostnamea, service) {
 		}
 	} );
 }
-function overviewHapserverBackends(serv, hostnamea, service) {
+function overviewHapserverBackends(serv, hostname, service) {
+	let div = '';
 	$.ajax( {
-		url: "/app/service/" + service + "/backends/" + serv[0],
+		url: `/service/${service}/${serv[0]}/backend`,
 		beforeSend: function() {
-			$("#top-"+hostnamea).html('<img class="loading_small" style="padding-left: 45%;" src="/app/static/images/loading.gif" />');
+			$("#top-"+hostname).html('<img class="loading_small" style="padding-left: 45%;" src="/static/images/loading.gif" />');
 		},
+		contentType: "application/json; charset=utf-8",
 		success: function( data ) {
-			if (data.indexOf('error:') != '-1') {
+			if (data.status === 'failed') {
 				toastr.error(data);
 			} else {
-				$("#top-" + hostnamea).empty();
-				$("#top-" + hostnamea).html(data);
+				$('.div-backends').css('height', 'auto');
+				$("#top-" + hostname).empty();
+				for (let i in data.data) {
+					if (service === 'haproxy') {
+						div = `<a href="/config/section/haproxy/${serv}/${data.data[i]}" target="_blank" style="padding-right: 10px;">${data.data[i]}</a> `
+					} else if (service === 'nginx' || service === 'apache') {
+						div = `<a href="/config/${service}/${serv}/show/${i}" target="_blank" style="padding-right: 10px;">${data.data[i]}</a>`;
+					} else {
+						div = data.data[i];
+					}
+					$("#top-" + hostname).append(div);
+				}
 			}
 		}
 	} );
@@ -57,9 +69,9 @@ function showOverview(serv, hostnamea) {
 }
 function showOverviewCallBack(serv, hostnamea) {
 	$.ajax( {
-		url: "/app/overview/server/"+serv,
+		url: "/overview/server/"+serv,
 		beforeSend: function() {
-			$("#"+hostnamea).html('<img class="loading_small" src="/app/static/images/loading.gif" />');
+			$("#"+hostnamea).html('<img class="loading_small" src="/static/images/loading.gif" />');
 		},
 		type: "GET",
 		success: function( data ) {
@@ -75,9 +87,9 @@ function showOverviewCallBack(serv, hostnamea) {
 }
 function showServicesOverview() {
 	$.ajax( {
-		url: "/app/overview/services",
+		url: "/overview/services",
 		beforeSend: function() {
-			$("#services_ovw").html('<img class="loading_small_bin_bout" style="padding-left: 100%;padding-top: 40px;padding-bottom: 40px;" src="/app/static/images/loading.gif" />');
+			$("#services_ovw").html('<img class="loading_small_bin_bout" style="padding-left: 100%;padding-top: 40px;padding-bottom: 40px;" src="/static/images/loading.gif" />');
 
 		},
 		type: "GET",
@@ -93,15 +105,12 @@ function showServicesOverview() {
 }
 function showOverviewServer(name, ip, id, service) {
 	$.ajax( {
-		url: "/app/service/cpu-ram-metrics/" + ip + "/" + id + "/" + name + "/" + service,
+		url: "/service/cpu-ram-metrics/" + ip + "/" + id + "/" + name + "/" + service,
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				$("#ajax-server-" + id).empty();
-				$("#ajax-server-" + id).css('display', 'block');
-				$("#ajax-server-" + id).css('background-color', '#fbfbfb');
-				$("#ajax-server-" + id).css('border', '1px solid #A4C7F5');
 				$(".ajax-server").css('display', 'block');
 				$(".div-server").css('clear', 'both');
 				$(".div-pannel").css('clear', 'both');
@@ -118,28 +127,17 @@ function showOverviewServer(name, ip, id, service) {
 	} );
 }
 function ajaxActionServers(action, id, service) {
-	$.ajax( {
-		url: "/app/service/action/" + service + "/" + id + "/" + action,
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if( data ==  'Bad config, check please ' ) {
-				toastr.error(data);
+	$.ajax({
+		url: "/service/" + service + "/" + id + "/" + action,
+		contentType: "application/json; charset=utf-8",
+		success: function (data) {
+			if (data.status === 'failed') {
+				toastr.error(data.error);
 			} else {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else {
-					if (data.indexOf('warning: ') != '-1') {
-						toastr.warning(data);
-					} else {
-						location.reload();
-					}
-				}
+				location.reload();
 			}
-		},
-		error: function(){
-			alert(w.data_error);
 		}
-	} );
+	});
 }
 $( function() {
 	try {
@@ -222,14 +220,14 @@ $( function() {
 		}
 	});
 });
-function confirmAjaxAction(action, service, id) {
+function confirmAjaxAction(action, service, id, name) {
 	let action_word = translate_div.attr('data-'+action);
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
 		height: "auto",
 		width: 400,
 		modal: true,
-		title: action_word + " " + id + "?",
+		title: action_word + " " + name + "?",
 		buttons: [{
 			text: action_word,
 			click: function () {
@@ -244,13 +242,7 @@ function confirmAjaxAction(action, service, id) {
 					}
 				} else if (service == "waf") {
 					ajaxActionServers(action, id, 'waf_haproxy');
-				} else if (service == "nginx") {
-					ajaxActionServers(action, id, service);
-				} else if (service == "keepalived") {
-					ajaxActionServers(action, id, service);
-				} else if (service == "apache") {
-					ajaxActionServers(action, id, service);
-				} else if (service == "waf_nginx") {
+				} else {
 					ajaxActionServers(action, id, service);
 				}
 			}
@@ -276,7 +268,7 @@ function updateHapWIServer(id, service_name) {
 		active = '1';
 	}
 	$.ajax({
-		url: "/app/service/" + service_name + "/tools/update",
+		url: "/service/" + service_name + "/tools/update",
 		data: {
 			server_id: id,
 			name: $('#server-name-' + id).val(),
@@ -301,7 +293,7 @@ function updateHapWIServer(id, service_name) {
 }
 function change_pos(pos, id) {
 	$.ajax({
-		url: "/app/service/position/" + id + "/" + pos,
+		url: "/service/position/" + id + "/" + pos,
 		// data: {
 		// 	token: $('#token').val()
 		// },
@@ -313,14 +305,14 @@ function change_pos(pos, id) {
 }
 function showBytes(serv) {
 	$.ajax( {
-		url: "/app/service/haproxy/bytes",
+		url: "/service/haproxy/bytes",
 		data: {
 			showBytes: serv
 		},
 		type: "POST",
 		beforeSend: function() {
-			$("#show_bin_bout").html('<img class="loading_small_bin_bout" src="/app/static/images/loading.gif" />');
-			$("#sessions").html('<img class="loading_small_bin_bout" src="/app/static/images/loading.gif" />');
+			$("#show_bin_bout").html('<img class="loading_small_bin_bout" src="/static/images/loading.gif" />');
+			$("#sessions").html('<img class="loading_small_bin_bout" src="/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
@@ -335,13 +327,13 @@ function showBytes(serv) {
 }
 function showNginxConnections(serv) {
 	$.ajax( {
-		url: "/app/service/nginx/connections",
+		url: "/service/nginx/connections",
 		data: {
 			nginxConnections: serv
 		},
 		type: "POST",
 		beforeSend: function() {
-			$("#sessions").html('<img class="loading_small_bin_bout" src="/app/static/images/loading.gif" />');
+			$("#sessions").html('<img class="loading_small_bin_bout" src="/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
@@ -356,13 +348,13 @@ function showNginxConnections(serv) {
 }
 function showApachekBytes(serv) {
 	$.ajax( {
-		url: "/app/service/apache/bytes",
+		url: "/service/apache/bytes",
 		data: {
 			apachekBytes: serv
 		},
 		type: "POST",
 		beforeSend: function() {
-			$("#sessions").html('<img class="loading_small_bin_bout" src="/app/static/images/loading.gif" />');
+			$("#sessions").html('<img class="loading_small_bin_bout" src="/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
@@ -377,13 +369,13 @@ function showApachekBytes(serv) {
 }
 function keepalivedBecameMaster(serv) {
 	$.ajax( {
-		url: "/app/service/keepalived/become-master",
+		url: "/service/keepalived/become-master",
 		data: {
 			keepalivedBecameMaster: serv
 		},
 		type: "POST",
 		beforeSend: function() {
-			$("#bin_bout").html('<img class="loading_small_bin_bout" src="/app/static/images/loading.gif" />');
+			$("#bin_bout").html('<img class="loading_small_bin_bout" src="/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
@@ -405,7 +397,7 @@ function showUsersOverview() {
 		// },
 		type: "GET",
 		beforeSend: function() {
-			$("#users-table").html('<img class="loading_small_bin_bout" style="padding-left: 100%;padding-top: 40px;padding-bottom: 40px;" src="/app/static/images/loading.gif" />');
+			$("#users-table").html('<img class="loading_small_bin_bout" style="padding-left: 100%;padding-top: 40px;padding-bottom: 40px;" src="/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
@@ -419,14 +411,14 @@ function showUsersOverview() {
 }
 function showSubOverview() {
 	$.ajax( {
-		url: "/app/overview/sub",
+		url: "/overview/sub",
 		// data: {
 		// 	show_sub_ovw: 1,
 		// 	token: $('#token').val()
 		// },
 		type: "GET",
 		beforeSend: function() {
-			$("#sub-table").html('<img class="loading_small_bin_bout" style="padding-left: 40%;padding-top: 40px;padding-bottom: 40px;" src="/app/static/images/loading.gif" />');
+			$("#sub-table").html('<img class="loading_small_bin_bout" style="padding-left: 40%;padding-top: 40px;padding-bottom: 40px;" src="/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
@@ -443,7 +435,7 @@ function serverSettings(id, name) {
 	let for_word = translate_div.attr('data-for');
 	let service = $('#service').val();
 	$.ajax({
-		url: "/app/service/settings/" + service + "/" + id,
+		url: "/service/settings/" + service + "/" + id,
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1') {
@@ -500,7 +492,7 @@ function serverSettingsSave(id, name, service, dialog_id) {
 		service_restart = '1';
 	}
 	$.ajax({
-		url: "/app/service/settings/" + service,
+		url: "/service/settings/" + service,
 		data: {
 			serverSettingsSave: id,
 			serverSettingsEnterprise: haproxy_enterprise,
@@ -525,38 +517,41 @@ function check_service_status(id, ip, service) {
 		return false;
 	}
 	NProgress.configure({showSpinner: false});
-	if (service == 'keepalived') return false;
+	if (service === 'keepalived') return false;
+	let server_div = $('#div-server-' + id);
 	$.ajax({
-		url: "/app/service/action/" + service + "/check-service",
-		data: {
-			server_ip: ip
-		},
-		type: "POST",
-		success: function (data) {
-			if (data.indexOf('logout') != '-1') {
+		url: "/service/" + service + "/" + id + "/status",
+		contentType: "application/json; charset=utf-8",
+		statusCode: {
+			401: function (xhr) {
+				sessionStorage.setItem('check-service', 0)
+			},
+			404: function (xhr) {
 				sessionStorage.setItem('check-service', 0)
 			}
-			data = data.replace(/\s+/g, ' ');
-			if (cur_url[0] == 'service') {
-				if (data.indexOf('up') != '-1') {
-					$('#div-server-' + id).addClass('div-server-head-up');
-					$('#div-server-' + id).removeClass('div-server-head-down');
-				} else if (data.indexOf('down') != '-1') {
-					$('#div-server-' + id).removeClass('div-server-head-up');
-					$('#div-server-' + id).addClass('div-server-head-down');
-				}
-			} else if (cur_url[0] == '') {
+		},
+		success: function (data) {
+			if (cur_url[0] === 'overview') {
 				let span_id = $('#' + service + "_" + id);
-				if (data.indexOf('up') != '-1') {
+				if (data.status === 'failed') {
+					span_id.addClass('serverDown');
+					span_id.removeClass('serverUp');
+					span_id.attr('title', 'Service is down')
+				} else {
 					span_id.addClass('serverUp');
 					span_id.removeClass('serverDown');
 					if (span_id.attr('title').indexOf('Service is down') != '-1') {
 						span_id.attr('title', 'Service running')
 					}
-				} else if (data.indexOf('down') != '-1') {
-					span_id.addClass('serverDown');
-					span_id.removeClass('serverUp');
-					span_id.attr('title', 'Service is down')
+				}
+			} else {
+				console.log(data.length)
+				if (data.status === 'failed') {
+					server_div.removeClass('div-server-head-up');
+					server_div.addClass('div-server-head-down');
+				} else {
+					server_div.addClass('div-server-head-up');
+					server_div.removeClass('div-server-head-down');
 				}
 			}
 		}
@@ -565,10 +560,10 @@ function check_service_status(id, ip, service) {
 }
 function ShowOverviewLogs() {
 	$.ajax( {
-		url: "/app/overview/logs",
+		url: "/overview/logs",
 		type: "GET",
 		beforeSend: function() {
-			$("#overview-logs").html('<img class="loading_small_bin_bout" style="padding-left: 40%;padding-top: 40px;padding-bottom: 40px;" src="/app/static/images/loading.gif" />');
+			$("#overview-logs").html('<img class="loading_small_bin_bout" style="padding-left: 40%;padding-top: 40px;padding-bottom: 40px;" src="/static/images/loading.gif" />');
 		},
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');

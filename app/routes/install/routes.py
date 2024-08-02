@@ -1,8 +1,8 @@
 from flask import render_template, request, g, jsonify
-from flask_login import login_required
+from flask_jwt_extended import jwt_required
 
 from app.routes.install import bp
-from app.middleware import get_user_params, check_services
+from app.middleware import get_user_params
 import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
 import app.modules.common.common as common
@@ -11,10 +11,23 @@ import app.modules.server.server as server_mod
 import app.modules.service.common as service_common
 import app.modules.service.installation as service_mod
 import app.modules.service.exporter_installation as exp_installation
+from app.views.install.views import InstallView
 
+
+bp.add_url_rule(
+    '/<any(haproxy, nginx, apache, keepalived):service>',
+    view_func=InstallView.as_view('install'),
+    methods=['POST'],
+    defaults={'server_id': None}
+)
+bp.add_url_rule(
+    '/<any(haproxy, nginx, apache, keepalived):service>/<server_id>',
+    view_func=InstallView.as_view('install_ip'),
+    methods=['POST'],
+)
 
 @bp.before_request
-@login_required
+@jwt_required()
 def before_request():
     """ Protect all the admin endpoints. """
     pass
@@ -32,25 +45,14 @@ def install_monitoring():
     return render_template('install.html', **kwargs)
 
 
-@bp.post('/<service>')
-@check_services
-def install_service(service):
-    json_data = request.get_json()
-    try:
-        return service_mod.install_service(service, json_data)
-    except Exception as e:
-        return jsonify({'status': 'failed', 'error': f'{e}'})
-
-
-@bp.route('/<service>/version/<server_ip>')
-def get_service_version(service, server_ip):
-    if service in ('haproxy', 'nginx', 'apache'):
-        return service_common.show_service_version(server_ip, service)
-    elif service == 'keepalived':
-        cmd = "sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}'"
-        return server_mod.ssh_command(server_ip, cmd)
-    else:
-        return 'error: Wrong service'
+# @bp.post('/<service>')
+# @check_services
+# def install_service(service):
+#     json_data = request.get_json()
+#     try:
+#         return service_mod.install_service(service, json_data)
+#     except Exception as e:
+#         return jsonify({'status': 'failed', 'error': f'{e}'})
 
 
 @bp.post('/exporter/<exporter>')
@@ -140,13 +142,13 @@ def check_geoip(service, server_ip):
     cmd = f"ls {service_dir}geoip/"
     return server_mod.ssh_command(server_ip, cmd)
 
-
-@bp.post('/udp')
-def install_udp():
-    json_data = request.get_json()
-    listener_id = int(json_data['listener_id'])
-    try:
-        inv, server_ips = service_mod.generate_udp_inv(listener_id, 'install')
-        return service_mod.run_ansible(inv, server_ips, 'udp'), 201
-    except Exception as e:
-        return jsonify({'status': 'failed', 'error': f'Cannot create listener: {e}'})
+#
+# @bp.post('/udp')
+# def install_udp():
+#     json_data = request.get_json()
+#     listener_id = int(json_data['listener_id'])
+#     try:
+#         inv, server_ips = service_mod.generate_udp_inv(listener_id, 'install')
+#         return service_mod.run_ansible(inv, server_ips, 'udp'), 201
+#     except Exception as e:
+#         return jsonify({'status': 'failed', 'error': f'Cannot create listener: {e}'})

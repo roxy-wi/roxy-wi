@@ -1,5 +1,7 @@
 import os
 import json
+from typing import Union
+
 from packaging import version
 
 import ansible
@@ -15,6 +17,7 @@ import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 from app.modules.server.ssh import return_ssh_keys_path
+from app.modules.roxywi.class_models import ServiceInstall
 
 
 def generate_udp_inv(listener_id: int, action: str) -> object:
@@ -26,7 +29,6 @@ def generate_udp_inv(listener_id: int, action: str) -> object:
 	elif listener['server_id']:
 		server = server_sql.get_server_by_id(listener['server_id'])
 		server_ips.append(server.ip)
-
 	for server_ip in server_ips:
 		inv['server']['hosts'][server_ip] = {
 			'action': action,
@@ -66,6 +68,7 @@ def generate_grafana_inv() -> object:
 def generate_kp_inv(json_data: json, installed_service) -> object:
 	inv = {"server": {"hosts": {}}}
 	server_ips = []
+	print(json_data)
 	cluster_id = int(json_data['cluster_id'])
 	haproxy = json_data['services']['haproxy']['enabled']
 	nginx = json_data['services']['nginx']['enabled']
@@ -88,7 +91,7 @@ def generate_kp_inv(json_data: json, installed_service) -> object:
 			routers[router_id][slave_ip].setdefault('master', slave.master)
 			routers[router_id][slave_ip].setdefault('eth', slave.eth)
 
-	for k, v in json_data['servers'].items():
+	for v in json_data['servers']:
 		server_ip = v['ip']
 		inv['server']['hosts'][server_ip] = {
 			"HAPROXY": haproxy,
@@ -116,7 +119,7 @@ def generate_waf_inv(server_ip: str, installed_service: str) -> object:
 	return inv, server_ips
 
 
-def generate_haproxy_inv(json_data: json, installed_service: str) -> object:
+def generate_haproxy_inv(json_data: ServiceInstall, installed_service: str) -> object:
 	inv = {"server": {"hosts": {}}}
 	slaves = []
 	server_ips = []
@@ -130,13 +133,13 @@ def generate_haproxy_inv(json_data: json, installed_service: str) -> object:
 	container_name = sql.get_setting('haproxy_container_name')
 	haproxy_ver = '2.9.6-1'
 	is_docker = json_data['services']['haproxy']['docker']
-	for k, v in json_data['servers'].items():
+	for v in json_data['servers']:
 		if not v['master']:
 			slaves.append(v['ip'])
 		else:
 			master_ip = v['ip']
 
-	for k, v in json_data['servers'].items():
+	for v in json_data['servers']:
 		server_ip = v['ip']
 		is_master = v['master']
 
@@ -163,7 +166,7 @@ def generate_haproxy_inv(json_data: json, installed_service: str) -> object:
 	return inv, server_ips
 
 
-def generate_service_inv(json_data: json, installed_service: str) -> object:
+def generate_service_inv(json_data: ServiceInstall, installed_service: str) -> object:
 	inv = {"server": {"hosts": {}}}
 	server_ips = []
 	stats_user = sql.get_setting(f'{installed_service}_stats_user')
@@ -204,7 +207,7 @@ def generate_service_inv(json_data: json, installed_service: str) -> object:
 	return inv, server_ips
 
 
-def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> object:
+def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 	inventory_path = '/var/www/haproxy-wi/app/scripts/ansible/inventory'
 	inventory = f'{inventory_path}/{ansible_role}.json'
 	proxy = sql.get_setting('proxy')
@@ -325,7 +328,7 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 			service_sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
 
 
-def install_service(service: str, json_data: str) -> object:
+def install_service(service: str, json_data: Union[str, ServiceInstall]) -> dict:
 	generate_functions = {
 		'haproxy': generate_haproxy_inv,
 		'nginx': generate_service_inv,
@@ -333,13 +336,14 @@ def install_service(service: str, json_data: str) -> object:
 		'keepalived': generate_kp_inv,
 	}
 
+	json_data = json_data.model_dump(mode='json')
 	try:
 		inv, server_ips = generate_functions[service](json_data, service)
 	except Exception as e:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot generate inv {service}', roxywi=1)
 	try:
 		service_actions_after_install(server_ips, service, json_data)
-		return run_ansible(inv, server_ips, service), 201
+		return run_ansible(inv, server_ips, service)
 	except Exception as e:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot install {service}', roxywi=1)
 

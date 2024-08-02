@@ -25,30 +25,15 @@
 	</head>
 	<body>
 		{% if g.user_params['user'] %}
+            <input type="hidden" id="user_group_socket" value="{{ g.user_params['group_id'] }}">
+            <input type="hidden" id="user_id_socket" value="{{ g.user_params['user_id'] }}">
 		<script>show_version();</script>
 		{% include 'include/main_menu.html' %}
 		<div class="container">
 			<h2>
 				{% block h2 %}{% endblock %}
 				{% include 'include/login.html' %}
-				{% if autorefresh %}
-				<span class="auto-refresh">
-					<a onclick="pauseAutoRefresh()" class="auto-refresh-pause" style="display: none; margin-top: 3px; position: absolute;"></a>
-					<a onclick="pauseAutoResume()" class="auto-refresh-resume" style="display: none; margin-top: 4px; position: absolute;"></a>
-					<span id="0" class="auto-refresh-span">
-						<span class="auto-refresh-reload auto-refresh-reload-icon"></span>
-						{{lang.words.auto|title()}}-{{lang.words.refresh}}
-					</span>
-					<span id="1" style="display: none;" class="auto-refresh-span">
-						<span class="auto-refresh-reload auto-refresh-reload-icon"></span>
-						{{lang.words.auto|title()}}-{{lang.words.refresh}}
-					</span>
-				</span>
-				{% endif %}
 			</h2>
-			{% if autorefresh %}
-				{% include 'include/autorefresh_submenu.html' %}
-			{% endif %}
 			<ul id='browse_history'></ul>
 			{% if g.user_params['role'] %}
 				{% if g.user_params['role'] <= 2 %}
@@ -81,11 +66,11 @@
 				</a>
 			</div>
 			<div id="version"></div>
-			<div id="logo_footer">
-				<a href="https://roxy-wi.org" title="Roxy-WI official site" target="_blank">
-					<img src="{{ url_for('static', filename='images/logo_footer.png')}}" alt="logo" id="logo_footer_img" />
-				</a>
-			</div>
+{#			<div id="logo_footer">#}
+{#				<a href="https://roxy-wi.org" title="Roxy-WI official site" target="_blank">#}
+{#					<img src="{{ url_for('static', filename='images/logo_footer.png')}}" alt="logo" id="logo_footer_img" />#}
+{#				</a>#}
+{#			</div>#}
 			<div class="footer-div">
 				<div id="useful-links">
 					<a href="https://roxy-wi.org" class="footer-link" target="_blank" title="{{lang.words.about|title()}} Roxy-WI">{{lang.words.about|title()}}</a>
@@ -95,10 +80,11 @@
 					<a href="https://roxy-wi.org/contacts" class="footer-link" target="_blank">{{lang.words.contacts|title()}}</a>
 					<a href="https://roxy-wi.org/cabinet" class="footer-link" target="_blank" title="Private cabinet">{{lang.words.cabinet|title()}}</a>
 					<a href="https://roxy-wi.org/legal" class="footer-link" target="_blank" title="Legal Note">{{lang.words.legal|title()}}</a>
+					<a href="{{ url_for('api.swagger_ui') }}" class="footer-link" target="_blank" title="Swagger">Swagger</a>
 				</div>
 			</div>
 		</div>
-		<div id="show-user-settings">
+		<div id="show-user-settings" style="display: none;">
 			<table class="overview" id="show-user-settings-table" title="{{lang.words.user3|title()}} {{lang.words.settings}}">
 				<tr>
 					<td class="padding20" style="width: 70%">{{lang.words.alerts|title()}}</td>
