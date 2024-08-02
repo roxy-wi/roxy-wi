@@ -33,9 +33,7 @@ class ServiceView(MethodView):
         parameters:
           - in: path
             name: service
-            schema:
-              type: string
-              enum: [haproxy, nginx, apache, keepalived]
+            type: 'string'
             required: true
             description: The type of service (haproxy, nginx, apache, keepalived)
           - in: path
@@ -160,9 +158,7 @@ class ServiceActionView(MethodView):
         parameters:
           - in: path
             name: service
-            schema:
-              type: string
-              enum: [haproxy, nginx, apache, keepalived, waf_haproxy, waf_nginx]
+            type: 'integer'
             required: true
             description: The type of service (haproxy, nginx, apache, keepalived, waf_haproxy, waf_nginx)
           - in: path
@@ -172,9 +168,7 @@ class ServiceActionView(MethodView):
             description: The ID or IP of the server
           - in: path
             name: action
-            schema:
-              type: string
-              enum: [start, stop, reload, restart]
+            type: 'string'
             required: true
             description: The action to be performed on the service (start, stop, reload, restart)
         responses:
@@ -217,9 +211,7 @@ class ServiceBackendView(MethodView):
         parameters:
           - in: path
             name: service
-            schema:
-              type: string
-              enum: [haproxy, nginx, apache, keepalived]
+            type: 'integer'
             required: true
             description: The type of service (haproxy, nginx, apache, keepalived)
           - in: path
@@ -265,9 +257,7 @@ class ServiceConfigView(MethodView):
         parameters:
           - in: path
             name: service
-            schema:
-              type: string
-              enum: [haproxy, nginx, apache, keepalived]
+            type: 'integer'
             required: true
             description: The type of service (haproxy, nginx, apache, keepalived)
           - in: path
@@ -277,14 +267,12 @@ class ServiceConfigView(MethodView):
             description: The ID or IP of the server
           - in: query
             name: file_name
-            schema:
-              type: string
+            type: 'string'
             required: false
             description: The full path to the configuration file (used only for nginx and apache, replace "/" with 92)
           - in: query
             name: version
-            schema:
-              type: string
+            type: 'string'
             required: false
             description: The version of the configuration file
         responses:
@@ -423,15 +411,12 @@ class ServiceConfigVersionsView(MethodView):
         parameters:
           - in: path
             name: service
-            schema:
-              type: string
-              enum: [haproxy, nginx, apache, keepalived]
+            type: 'integer'
             required: true
             description: The type of service (haproxy, nginx, apache, keepalived)
           - in: path
             name: server_id
-            schema:
-              type: string
+            type: 'integer'
             required: true
             description: The ID or IP of the server
         responses:

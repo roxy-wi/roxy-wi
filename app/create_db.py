@@ -4,7 +4,11 @@ import sys
 import distro
 
 sys.path.append(os.path.join(sys.path[0], '/var/www/haproxy-wi/'))
-from app.modules.db.db_model import *
+from app.modules.db.db_model import (
+	connect, Setting, Role, User, UserGroups, Groups, Services, RoxyTool, Version, SmonHttpCheck, GeoipCodes, SmonTcpCheck, SMON,
+	SmonPingCheck, migrate, mysql_enable, create_tables
+)
+from peewee import DateTimeField, IntegerField, CharField, SQL
 
 
 conn = connect()
@@ -696,7 +700,7 @@ def update_db_v_7_4():
 
 def update_ver():
 	try:
-		Version.update(version='7.3.3.0').execute()
+		Version.update(version='8.0').execute()
 	except Exception:
 		print('Cannot update version')
 

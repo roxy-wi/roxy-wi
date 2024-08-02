@@ -283,7 +283,8 @@ class UserGroupView(MethodView):
     methods = ["GET", "POST", "PUT", "DELETE", "PATCH"]
     decorators = [jwt_required(), get_user_params(), page_for_admin(level=4), check_group()]
 
-    def get(self, user_id: int):
+    @staticmethod
+    def get(user_id: int):
         """
         Fetch a specific User Group.
         ---

@@ -32,9 +32,7 @@ class HAView(MethodView):
             name: 'service'
             description: 'Can be only "cluster"'
             required: true
-            schema:
-              type: 'string'
-              enum: ['cluster']
+            type: 'string'
           - in: 'path'
             name: 'cluster_id'
             description: 'ID of the HA cluster to retrieve information from.'
@@ -124,9 +122,7 @@ class HAView(MethodView):
             name: 'service'
             description: 'Can be only "cluster"'
             required: true
-            schema:
-              type: 'string'
-              enum: ['cluster']
+            type: 'string'
           - in: body
             name: body
             required: true
@@ -523,7 +519,7 @@ class HAVIPView(MethodView):
             required: true
             type: 'string'
           - in: 'path'
-            name: 'cluster_id'
+            name: 'router_id'
             description: 'ID of the VIP to delete'
             required: true
             type: 'integer'

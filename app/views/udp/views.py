@@ -41,7 +41,6 @@ class UDPListener(MethodView):
             type: integer
             required: true
             description: The listener's identifier
-
         responses:
           200:
             description: Listener configuration returned successfully
@@ -137,8 +136,7 @@ class UDPListener(MethodView):
             name: 'service'
             description: 'Can be only "udp"'
             required: true
-            schema:
-              type: 'string'
+            type: 'string'
           - in: body
             name: body
             required: true
@@ -221,14 +219,12 @@ class UDPListener(MethodView):
             name: 'service'
             description: 'Can be only "udp"'
             required: true
-            schema:
-              type: 'string'
+            type: 'string'
           - in: 'path'
             name: 'listener_id'
             description: 'ID of the UDP listener'
             required: true
-            schema:
-              type: 'integer'
+            type: 'integer'
           - in: body
             name: body
             required: true
@@ -310,14 +306,12 @@ class UDPListener(MethodView):
             name: 'service'
             description: 'Can be only "udp"'
             required: true
-            schema:
-              type: 'string'
+            type: 'string'
           - in: 'path'
             name: 'listener_id'
             description: 'ID of the UDP listener'
             required: true
-            schema:
-              type: 'integer'
+            type: 'integer'
         responses:
           204:
             description: UDP listener deletion successful
@@ -447,18 +441,16 @@ class UDPListenerActionView(MethodView):
           - in: path
             name: service
             required: true
+            type: 'string'
             description: Can be only "udp"
           - in: path
             name: listener_id
-            schema:
-              type: integer
+            type: 'integer'
             required: true
             description: The ID af the UDP listener
           - in: path
             name: action
-            schema:
-              type: string
-              enum: [start, stop, reload, restart]
+            type: 'string'
             required: true
             description: The action to be performed on the service (start, stop, reload, restart)
         responses:

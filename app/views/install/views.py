@@ -27,9 +27,7 @@ class InstallView(MethodView):
         parameters:
           - in: path
             name: service
-            schema:
-              type: string
-              enum: [haproxy, nginx, apache, keepalived]
+            type: 'integer'
             required: true
             description: The type of service (haproxy, nginx, apache, keepalived)
           - in: path

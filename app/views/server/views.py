@@ -270,8 +270,7 @@ class ServerView(MethodView):
             name: 'server_id'
             description: 'ID of server to delete'
             required: true
-            schema:
-              type: 'integer'
+            type: 'integer'
         responses:
           204:
             description: Server deletion successful
@@ -614,14 +613,6 @@ class CredView(MethodView):
                   description: 'Username associated with the credential'
           404:
             description: 'Credential not found'
-            content:
-              application/json:
-                schema:
-                  type: 'object'
-                  properties:
-                    error:
-                      type: 'string'
-                      description: 'Error message'
         """
         group_id = int(g.user_params['group_id'])
         try:
@@ -835,28 +826,26 @@ class CredsView(MethodView):
         responses:
           200:
             description: 'Credentials Information'
-            content:
-              application/json:
-                schema:
-                  type: 'array'
-                  items:
-                    type: 'object'
-                    properties:
-                      group_id:
-                        type: 'integer'
-                        description: 'Group ID the credential belongs to'
-                      id:
-                        type: 'integer'
-                        description: 'Credential ID'
-                      key_enabled:
-                        type: 'integer'
-                        description: 'Key status of the credential'
-                      name:
-                        type: 'string'
-                        description: 'Name of the credential'
-                      username:
-                        type: 'string'
-                        description: 'Username of the credential'
+            schema:
+              type: 'array'
+              items:
+                type: 'object'
+                properties:
+                  group_id:
+                    type: 'integer'
+                    description: 'Group ID the credential belongs to'
+                  id:
+                    type: 'integer'
+                    description: 'Credential ID'
+                  key_enabled:
+                    type: 'integer'
+                    description: 'Key status of the credential'
+                  name:
+                    type: 'string'
+                    description: 'Name of the credential'
+                  username:
+                    type: 'string'
+                    description: 'Username of the credential'
         """
         group_id = SupportClass.return_group_id(query)
         try:

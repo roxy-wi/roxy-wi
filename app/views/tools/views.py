@@ -29,15 +29,12 @@ class CheckerView(MethodView):
         parameters:
           - in: path
             name: service
-            schema:
-              type: string
-              enum: [haproxy, nginx, apache, keepalived]
+            type: 'integer'
             required: true
             description: The type of service (haproxy, nginx, apache, keepalived)
           - in: path
             name: server_id
-            schema:
-              type: string
+            type: 'integer'
             required: true
             description: The ID or IP of the server
         responses:
