@@ -3,7 +3,6 @@ from flask_jwt_extended import jwt_required
 
 from app.routes.channel import bp
 from app.middleware import get_user_params
-import app.modules.common.common as common
 import app.modules.tools.alerting as alerting
 import app.modules.roxywi.common as roxywi_common
 from app.views.channel.views import ChannelView
@@ -40,17 +39,6 @@ def load_channels():
         return alerting.load_channels()
     except Exception as e:
         return f'{e}'
-
-
-# @bp.route('/check/<int:channel_id>/<receiver_name>')
-# def check_receiver(channel_id, receiver_name):
-#     receiver_name = common.checkAjaxInput(receiver_name)
-#
-#     try:
-#         alerting.check_receiver(channel_id, receiver_name)
-#         return jsonify({'status': 'success'})
-#     except Exception as e:
-#         return roxywi_common.handle_json_exceptions(e, f'Cannot send message via {receiver_name}')
 
 
 @bp.post('/check')

@@ -156,24 +156,6 @@ def load_backup():
     return render_template('include/admin_backup.html', **kwargs)
 
 
-# @bp.post('/s3backup/create')
-# @bp.post('/s3backup/delete')
-# def create_s3_backup():
-#     server = common.is_ip_or_dns(request.form.get('s3_backup_server'))
-#     s3_server = common.checkAjaxInput(request.form.get('s3_server'))
-#     bucket = common.checkAjaxInput(request.form.get('s3_bucket'))
-#     secret_key = common.checkAjaxInput(request.form.get('s3_secret_key'))
-#     access_key = common.checkAjaxInput(request.form.get('s3_access_key'))
-#     time = common.checkAjaxInput(request.form.get('time'))
-#     deljob = common.checkAjaxInput(request.form.get('dels3job'))
-#     description = common.checkAjaxInput(request.form.get('description'))
-#
-#     try:
-#         return backup_mod.s3_backup(server, s3_server, bucket, secret_key, access_key, time, deljob, description)
-#     except Exception as e:
-#         return str(e)
-
-
 @bp.route('/git', methods=['DELETE', 'POST'])
 def create_git_backup():
     json_data = request.get_json()

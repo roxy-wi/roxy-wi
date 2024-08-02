@@ -185,24 +185,6 @@ def services(service, serv):
     return render_template('service.html', **kwargs)
 
 
-# @bp.post('/action/<service>/check-service')
-# def check_service(service):
-#     claims = get_jwt()
-#     server_ip = common.checkAjaxInput(request.form.get('server_ip'))
-#
-#     try:
-#         return service_action.check_service(server_ip, claims['user_id'], service)
-#     except Exception:
-#         return 'logout'
-#
-#
-# @bp.route('/action/<service>/<server_ip>/<action>', methods=['GET'])
-# def action_service(service, server_ip, action):
-#     server_ip = common.is_ip_or_dns(server_ip)
-#
-#     return service_action.common_action(server_ip, action, service)
-
-
 @bp.route('/<service>/<server_ip>/last-edit')
 @check_services
 def last_edit(service, server_ip):
@@ -277,26 +259,11 @@ def show_keepalived_become_master():
     server_ip = common.is_ip_or_dns(request.form.get('keepalivedBecameMaster'))
 
     return roxy_overview.keepalived_became_master(server_ip)
-#
-#
-# @bp.route('/<service>/backends/<server_ip>')
-# @cache.cached()
-# def show_service_backends(service, server_ip):
-#     server_ip = common.is_ip_or_dns(server_ip)
-#
-#     return service_common.overview_backends(server_ip, service)
 
 
 @bp.route('/position/<int:server_id>/<int:pos>')
 def change_pos(server_id, pos):
     return server_sql.update_server_pos(pos, server_id)
-
-#
-# @bp.route('/haproxy/version/<server_ip>')
-# def get_haproxy_v(server_ip):
-#     server_ip = common.is_ip_or_dns(server_ip)
-#
-#     return service_common.check_haproxy_version(server_ip)
 
 
 @bp.route('/settings/<service>/<int:server_id>')

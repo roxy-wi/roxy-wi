@@ -45,16 +45,6 @@ def install_monitoring():
     return render_template('install.html', **kwargs)
 
 
-# @bp.post('/<service>')
-# @check_services
-# def install_service(service):
-#     json_data = request.get_json()
-#     try:
-#         return service_mod.install_service(service, json_data)
-#     except Exception as e:
-#         return jsonify({'status': 'failed', 'error': f'{e}'})
-
-
 @bp.post('/exporter/<exporter>')
 def install_exporter(exporter):
     json_data = request.get_json()
@@ -141,14 +131,3 @@ def check_geoip(service, server_ip):
     service_dir = common.return_nice_path(sql.get_setting(f'{service}_dir'))
     cmd = f"ls {service_dir}geoip/"
     return server_mod.ssh_command(server_ip, cmd)
-
-#
-# @bp.post('/udp')
-# def install_udp():
-#     json_data = request.get_json()
-#     listener_id = int(json_data['listener_id'])
-#     try:
-#         inv, server_ips = service_mod.generate_udp_inv(listener_id, 'install')
-#         return service_mod.run_ansible(inv, server_ips, 'udp'), 201
-#     except Exception as e:
-#         return jsonify({'status': 'failed', 'error': f'Cannot create listener: {e}'})

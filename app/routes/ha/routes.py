@@ -9,20 +9,9 @@ import app.modules.db.service as service_sql
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.keepalived as keepalived
-from app.views.ha.views import HAView, HAVIPView, HAVIPsView
+from app.views.ha.views import HAView
 
-
-# def register_api(view, endpoint, url, pk='listener_id', pk_type='int'):
-#     view_func = view.as_view(endpoint)
-#     bp.add_url_rule(url, view_func=view_func, methods=['GET'], defaults={pk: None})
-#     bp.add_url_rule(url, view_func=view_func, methods=['POST'])
-#     bp.add_url_rule(f'{url}/<{pk_type}:{pk}>', view_func=view_func, methods=['GET', 'PUT', 'DELETE'])
-
-# register_api(HAView, 'ha_cluster', '/<service>', 'cluster_id')
-# bp.add_url_rule('/<service>/<int:cluster_id>/vip/<int:router_id>', view_func=HAVIPView.as_view('ha_vip_g'), methods=['GET'])
 bp.add_url_rule('/<service>', view_func=HAView.as_view('ha_cluster'), methods=['GET'], defaults={'cluster_id': None})
-# bp.add_url_rule('/<service>/<int:router_id>/vip', view_func=HAVIPView.as_view('ha_vip_d'), methods=['DELETE'])
-# bp.add_url_rule('/<service>/<int:cluster_id>/vips', view_func=HAVIPsView.as_view('ha_vips'), methods=['GET'])
 
 
 @bp.before_request

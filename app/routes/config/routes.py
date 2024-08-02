@@ -136,45 +136,6 @@ def config(service, serv, edit, config_file_name, new):
     return render_template('config.html', **kwargs)
 
 
-# @bp.route('/<service>/<server_ip>/save', methods=['POST'])
-# @check_services
-# @get_user_params()
-# def save_config(service, server_ip):
-#     roxywi_common.check_is_server_in_group(server_ip)
-#     config_file = request.form.get('config')
-#     oldcfg = request.form.get('oldconfig')
-#     save = request.form.get('save')
-#     config_file_name = request.form.get('config_file_name')
-#
-#     try:
-#         cfg = config_mod.return_cfg(service, server_ip, config_file_name)
-#     except Exception as e:
-#         return f'error: Cannot get config {e}'
-#
-#     try:
-#         with open(cfg, "a") as conf:
-#             conf.write(config_file)
-#     except IOError as e:
-#         return f"error: Cannot read imported config file: {e}", 200
-#
-#     try:
-#         if service == 'keepalived':
-#             stderr = config_mod.upload_and_restart(server_ip, cfg, save, service, oldcfg=oldcfg)
-#         else:
-#             stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, service, oldcfg=oldcfg,
-#                                                                 config_file_name=config_file_name)
-#     except Exception as e:
-#         return f'error: {e}', 200
-#
-#     if save != 'test':
-#         config_mod.diff_config(oldcfg, cfg)
-#
-#     if stderr:
-#         return stderr, 200
-#
-#     return
-
-
 @bp.route('/versions/<service>', defaults={'server_ip': None}, methods=['GET', 'POST'])
 @bp.route('/versions/<service>/<server_ip>', methods=['GET', 'POST'])
 @check_services
