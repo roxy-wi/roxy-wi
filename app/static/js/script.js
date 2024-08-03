@@ -430,10 +430,9 @@ function showUploadConfig() {
 }
 function showListOfVersion(for_delver) {
 	let cur_url = window.location.href.split('/').pop();
-	cur_url = cur_url.split('/');
 	let service = $('#service').val();
 	let serv = $("#serv").val();
-	let configver = cur_url[4];
+	let configver = cur_url;
 	clearAllAjaxFields();
 	$.ajax( {
 		url: "/config/version/" + service + "/list",

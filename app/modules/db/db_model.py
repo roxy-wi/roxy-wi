@@ -47,7 +47,7 @@ class User(BaseModel):
     username = CharField(constraints=[SQL('UNIQUE')])
     email = CharField(constraints=[SQL('UNIQUE')])
     password = CharField(null=True)
-    role = CharField()
+    role_id = CharField()
     group_id = CharField()
     ldap_user = IntegerField(constraints=[SQL('DEFAULT "0"')])
     enabled = IntegerField(constraints=[SQL('DEFAULT "1"')])

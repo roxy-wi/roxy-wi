@@ -90,7 +90,7 @@ def register_api_with_group(view, endpoint, url_beg, url_end, pk='user_id', pk_t
 
 
 register_api(UserView, 'user', '/user', 'user_id')
-register_api_with_group(UserGroupView, 'user_group', '/user', 'groups')
+register_api_with_group(UserGroupView, 'user_group', 'user', 'groups')
 bp.add_url_rule('/user/roles', view_func=UserRoles.as_view('roles'))
 
 def register_api_channel(view, endpoint, url_beg, pk='receiver', pk_type='int', pk_end='channel_id', pk_type_end='int'):

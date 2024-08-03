@@ -7,7 +7,6 @@
     <td>
         <input type="text" id="{{receiver}}-chanel-{{channel.id}}" class="form-control" value="{{channel.chanel_name}}" size="30">
     </td>
-{{ g.user_params['role'] }}
     {% if g.user_params['role'] == 1 %}
         <td>
             <select id="{{receiver}}group-{{channel.id}}" name="{{receiver}}group-{{channel.id}}">

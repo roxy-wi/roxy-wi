@@ -1,11 +1,9 @@
-#!/usr/bin/env python3.11
 import distro
 
 from app.modules.db.db_model import (
-	connect, Setting, Role, User, UserGroups, Groups, Services, RoxyTool, Version, SmonHttpCheck, GeoipCodes, SmonTcpCheck, SMON,
-	SmonPingCheck, migrate, mysql_enable
+	connect, Setting, Role, User, UserGroups, Groups, Services, RoxyTool, Version, GeoipCodes, migrate, mysql_enable
 )
-from peewee import DateTimeField, IntegerField, CharField, SQL
+from peewee import IntegerField, CharField, SQL
 
 
 conn = connect()
@@ -105,9 +103,9 @@ def default_values():
 		print(str(e))
 
 	data_source = [
-		{'username': 'admin', 'email': 'admin@localhost', 'password': '21232f297a57a5a743894a0e4a801fc3', 'role': '1', 'group_id': '1'},
-		{'username': 'editor', 'email': 'editor@localhost', 'password': '5aee9dbd2a188839105073571bee1b1f', 'role': '2', 'group_id': '1'},
-		{'username': 'guest', 'email': 'guest@localhost', 'password': '084e0343a0486ff05530df6c705c8bb4', 'role': '4', 'group_id': '1'}
+		{'username': 'admin', 'email': 'admin@localhost', 'password': '21232f297a57a5a743894a0e4a801fc3', 'role_id': '1', 'group_id': '1'},
+		{'username': 'editor', 'email': 'editor@localhost', 'password': '5aee9dbd2a188839105073571bee1b1f', 'role_id': '2', 'group_id': '1'},
+		{'username': 'guest', 'email': 'guest@localhost', 'password': '084e0343a0486ff05530df6c705c8bb4', 'role_id': '4', 'group_id': '1'}
 	]
 
 	try:
@@ -471,94 +469,6 @@ def update_db_v_4_3_0():
 			print("An error occurred:", e)
 
 
-def update_db_v_6_3_13_1():
-	try:
-		SmonTcpCheck.insert_from(
-			SMON.select(SMON.id, SMON.ip, SMON.port).where(
-				(SMON.http == '') & (SMON.check_type == 'tcp')
-			), fields=[SmonTcpCheck.smon_id, SmonTcpCheck.ip, SmonTcpCheck.port]
-		).on_conflict_ignore().execute()
-	except Exception as e:
-		if e.args[0] == 'no such column: t1.name' or str(e) == 'type object \'SMON\' has no attribute \'ip\'':
-			print('Updating... DB has been updated to version 6.3.13-1')
-		else:
-			print("An error occurred:", e)
-
-
-def update_db_v_6_3_13_2():
-	query = SMON.select().where(SMON.http != '')
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		for i in query_res:
-			try:
-				proto = i.http.split(':')[0]
-				uri = i.http.split(':')[1]
-			except Exception:
-				proto = ''
-				uri = ''
-			url = f'{proto}://{i.name}:{i.port}{uri}'
-			SmonHttpCheck.insert(smon_id=i.id, url=url, body=i.body).on_conflict_ignore().execute()
-
-
-def update_db_v_6_3_13_3():
-	try:
-		SmonPingCheck.insert_from(
-			SMON.select(SMON.id, SMON.ip).where(SMON.check_type == 'ping'), fields=[SmonPingCheck.smon_id, SmonPingCheck.ip]
-		).on_conflict_ignore().execute()
-	except Exception as e:
-		if e.args[0] == 'duplicate column name: haproxy' or str(e) == 'type object \'SMON\' has no attribute \'ip\'':
-			print('Updating... DB has been updated to version 6.3.13-2')
-		else:
-			print("An error occurred:", e)
-
-
-def update_db_v_6_3_13_4():
-	try:
-		migrate(
-			migrator.alter_column_type('smon', 'time_state', DateTimeField()),
-			migrator.rename_column('smon', 'ip', 'name'),
-			migrator.drop_column('smon', 'script', cascade=False),
-			migrator.drop_column('smon', 'http_status', cascade=False),
-		)
-	except Exception as e:
-		if e.args[0] == 'duplicate column name: check_type' or str(e) == '(1091, "Can\'t DROP COLUMN `script`; check that it exists")':
-			print('Updating... DB has been updated to version 6.3.13-3')
-		elif e.args[0] == 'duplicate column name: check_type' or str(e) == '(1091, "Can\'t DROP COLUMN `http_status`; check that it exists")':
-			print('Updating... DB has been updated to version 6.3.13-3')
-		elif e.args[0] == 'table smon__tmp__ has no column named UNIQUE' or str(e) == "'bool' object has no attribute 'sql'":
-			print('Updating... DB has been updated to version 6.3.13-3')
-		else:
-			print("An error occurred:", e)
-
-
-def update_db_v_6_3_13_5():
-	try:
-		SMON.update(check_type='http').where(SMON.http != '').execute()
-	except Exception as e:
-		print("An error occurred:", e)
-
-
-def update_db_v_6_3_17():
-	try:
-		Setting.delete().where(Setting.param == 'lists_path').execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 6.3.17")
-
-
-def update_db_v_6_3_18():
-	try:
-		Setting.delete().where(Setting.param == 'ssl_local_path').execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 6.3.18")
-
-
 def update_db_v_7_1_2():
 	try:
 		Setting.delete().where(Setting.param == 'stats_user').execute()
@@ -666,6 +576,7 @@ def update_db_v_7_3_1():
 def update_db_v_7_4():
 	try:
 		migrate(
+			migrator.rename_column('user', 'role', 'role_id'),
 			migrator.rename_column('backups', 'cred', 'cred_id'),
 			migrator.rename_column('backups', 'backup_type', 'type'),
 			migrator.rename_column('servers', 'active', 'haproxy_active'),
@@ -687,7 +598,7 @@ def update_db_v_7_4():
 			migrator.rename_column('cred', 'groups', 'group_id'),
 		)
 	except Exception as e:
-		if e.args[0] == 'no such column: "cred"' or str(e) == '(1060, no such column: "cred")':
+		if e.args[0] == 'no such column: "role"' or str(e) == '(1060, no such column: "role")':
 			print("Updating... DB has been updated to version 7.4")
 		elif e.args[0] == "'bool' object has no attribute 'sql'":
 			print("Updating... DB has been updated to version 7.4")
@@ -715,13 +626,6 @@ def update_all():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4_3_0()
-	update_db_v_6_3_13_1()
-	update_db_v_6_3_13_2()
-	update_db_v_6_3_13_3()
-	update_db_v_6_3_13_4()
-	update_db_v_6_3_13_5()
-	update_db_v_6_3_17()
-	update_db_v_6_3_18()
 	update_db_v_7_1_2()
 	update_db_v_7_1_2_1()
 	update_db_v_7_2_0()

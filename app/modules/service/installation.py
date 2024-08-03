@@ -68,7 +68,6 @@ def generate_grafana_inv() -> object:
 def generate_kp_inv(json_data: json, installed_service) -> object:
 	inv = {"server": {"hosts": {}}}
 	server_ips = []
-	print(json_data)
 	cluster_id = int(json_data['cluster_id'])
 	haproxy = json_data['services']['haproxy']['enabled']
 	nginx = json_data['services']['nginx']['enabled']
@@ -181,7 +180,7 @@ def generate_service_inv(json_data: ServiceInstall, installed_service: str) -> o
 	if installed_service == 'nginx' and not os.path.isdir('/var/www/haproxy-wi/app/scripts/ansible/roles/nginxinc.nginx'):
 		os.system('ansible-galaxy install nginxinc.nginx,0.24.3 -f --roles-path /var/www/haproxy-wi/app/scripts/ansible/roles/')
 
-	for k, v in json_data['servers'].items():
+	for v in json_data['servers']:
 		server_ip = v['ip']
 		if installed_service == 'apache':
 			correct_service_name = service_common.get_correct_apache_service_name(server_ip=server_ip, server_id=None)

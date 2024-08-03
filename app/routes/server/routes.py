@@ -1,7 +1,6 @@
 import json
-import time
 
-from flask import render_template, request, g, jsonify, Response
+from flask import render_template, request, g, jsonify
 from flask_jwt_extended import jwt_required
 
 from app.routes.server import bp
@@ -58,34 +57,26 @@ def check_ssh(server_ip):
 
 @bp.route('/check/server/<int:server_id>')
 def check_server(server_id):
-    def get_check():
-        while True:
-            try:
-                server = server_sql.get_server_by_id(server_id)
-            except Exception as e:
-                raise e
-            result = server_mod.server_is_up(server.ip)
-            status = {
-                "status": result,
-                'name': server.hostname,
-                'ip': server.ip,
-                'port': server.port,
-                'enabled': server.enabled,
-                'creds_id': server.cred_id,
-                'group_id': server.group_id,
-                'firewall': server.firewall_enable,
-                'slave': server.master,
-                'type_ip': server.type_ip,
-                'description': server.description,
-                'protected': server.protected,
-            }
-            yield f'data:{json.dumps(status)}\n\n'
-            time.sleep(10)
-
-    response = Response(get_check(), mimetype="text/event-stream")
-    response.headers["Cache-Control"] = "no-cache"
-    response.headers["X-Accel-Buffering"] = "no"
-    return response
+    try:
+        server = server_sql.get_server_by_id(server_id)
+    except Exception as e:
+        raise e
+    result = server_mod.server_is_up(server.ip)
+    status = {
+        "status": result,
+        'name': server.hostname,
+        'ip': server.ip,
+        'port': server.port,
+        'enabled': server.enabled,
+        'creds_id': server.cred_id,
+        'group_id': server.group_id,
+        'firewall': server.firewall_enable,
+        'slave': server.master,
+        'type_ip': server.type_ip,
+        'description': server.description,
+        'protected': server.protected,
+    }
+    return jsonify(status)
 
 
 @bp.route('/show/if/<server_ip>')

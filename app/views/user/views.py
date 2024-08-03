@@ -35,7 +35,8 @@ class UserView(MethodView):
         """
         self.is_api = is_api
 
-    def get(self, user_id: int):
+    @staticmethod
+    def get(user_id: int):
         """
         Get User information by ID
         ---
@@ -54,47 +55,33 @@ class UserView(MethodView):
               type: 'object'
               id: 'User'
               properties:
-                user_group_id:
-                  type: 'object'
-                  properties:
-                    description:
-                      type: 'string'
-                      description: 'Group description'
-                    group_id:
-                      type: 'integer'
-                      description: 'Group ID'
-                    name:
-                      type: 'string'
-                      description: 'Group name'
+                group_id:
+                  type: 'integer'
                 user_id:
-                  type: 'object'
-                  properties:
-                    email:
-                      type: 'string'
-                      description: 'User email'
-                    enabled:
-                      type: 'integer'
-                      description: 'User activation status'
-                    last_login_date:
-                      type: 'string'
-                      format: 'date-time'
-                      description: 'User last login date'
-                    last_login_ip:
-                      type: 'string'
-                      description: 'User last login IP'
-                    ldap_user:
-                      type: 'integer'
-                      description: 'Is User a LDAP user'
-                    role:
-                      type: 'string'
-                      description: 'User role'
-                    user_id:
-                      type: 'integer'
-                      description: 'User ID'
-                    username:
-                      type: 'string'
-                      description: 'Username'
-                user_role_id:
+                  type: 'integer'
+                email:
+                  type: 'string'
+                  description: 'User email'
+                enabled:
+                  type: 'integer'
+                  description: 'User activation status'
+                last_login_date:
+                  type: 'string'
+                  format: 'date-time'
+                  description: 'User last login date'
+                last_login_ip:
+                  type: 'string'
+                  description: 'User last login IP'
+                ldap_user:
+                  type: 'integer'
+                  description: 'Is User a LDAP user'
+                role_id:
+                  type: 'integer'
+                  description: 'User role'
+                username:
+                  type: 'string'
+                  description: 'Username'
+                role_id:
                   type: 'integer'
                   description: 'User role ID'
           '404':
@@ -106,9 +93,8 @@ class UserView(MethodView):
                   type: 'string'
                   description: 'Error message'
         """
-        users_list = []
         try:
-            users = user_sql.select_user_groups_with_names(user_id)
+            user = user_sql.get_user_id(user_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get user')
 
@@ -116,9 +102,7 @@ class UserView(MethodView):
             roxywi_common.is_user_has_access_to_its_group(user_id)
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot find user'), 404
-        for user in users:
-            users_list.append(model_to_dict(user, exclude={User_DB.group_id, User_DB.password, User_DB.user_services}))
-        return jsonify(users_list)
+        return jsonify(model_to_dict(user, exclude={User_DB.password, User_DB.user_services}))
 
     @validate(body=UserPost)
     def post(self, body: UserPost) -> Union[dict, tuple]:
@@ -135,10 +119,8 @@ class UserView(MethodView):
               required:
                 - email
                 - password
-                - role
                 - username
                 - enabled
-                - user_group
               properties:
                 email:
                   type: string
@@ -146,7 +128,7 @@ class UserView(MethodView):
                 password:
                   type: string
                   description: The password of the user
-                role:
+                role_id:
                   type: integer
                   description: The role of the user
                 username:
@@ -171,10 +153,10 @@ class UserView(MethodView):
                   type: integer
                   description: The ID of the created user
         """
-        if g.user_params['role'] > body.role:
+        if g.user_params['role'] > body.role_id:
             return roxywi_common.handle_json_exceptions('Wrong role', 'Cannot create user')
         try:
-            user_id = roxywi_user.create_user(body.username, body.email, body.password, body.role, body.enabled, body.user_group)
+            user_id = roxywi_user.create_user(body.username, body.email, body.password, body.role_id, body.enabled, body.group_id)
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot create a new user')
         else:
@@ -218,6 +200,9 @@ class UserView(MethodView):
                 username:
                   type: string
                   description: The username of the user
+                password:
+                  type: string
+                  description: The password of the user
                 enabled:
                   type: integer
                   description: 'Enable status (1 for enabled)'
@@ -232,7 +217,8 @@ class UserView(MethodView):
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot get user'), 404
         try:
-            user_sql.update_user_from_admin_area(user_id, **body.model_dump(mode='json'))
+            user_sql.update_user_from_admin_area(user_id, **body.model_dump(mode='json', exclude={'password'}))
+            user_sql.update_user_password(body.password, user_id)
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot update user')
         roxywi_common.logging(body.username, 'has been updated user', roxywi=1, login=1)
@@ -269,7 +255,7 @@ class UserView(MethodView):
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot get user'), 404
 
-        if g.user_params['role'] > int(user.role):
+        if g.user_params['role'] > int(user.role_id):
             return roxywi_common.handle_json_exceptions('Wrong role', 'Cannot delete user'), 404
 
         try:
@@ -480,7 +466,10 @@ class UserGroupView(MethodView):
           '404':
             description: 'User or Group not found'
         """
-        page_for_admin(level=2)
+        try:
+            roxywi_auth.page_for_admin(level=2)
+        except Exception as e:
+            return roxywi_common.handle_json_exceptions(e, 'Cannot get user or group'), 404
         try:
             self._check_is_user_and_group(user_id, group_id)
         except Exception as e:

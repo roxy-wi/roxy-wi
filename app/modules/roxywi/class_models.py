@@ -83,15 +83,16 @@ class UdpListenerRequest(BaseModel):
 
 class UserPost(BaseModel):
     username: EscapedString
-    password: str
+    password: EscapedString
     email: EscapedString
     enabled: Optional[bool] = 1
-    user_group: int
-    role: Annotated[int, Gt(0), Le(4)] = 4
+    group_id: Optional[int] = 0
+    role_id: Annotated[int, Gt(0), Le(4)] = 4
 
 
 class UserPut(BaseModel):
     username: EscapedString
+    password: Optional[EscapedString] = ''
     email: EscapedString
     enabled: Optional[bool] = 1
 

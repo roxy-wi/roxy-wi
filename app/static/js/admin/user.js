@@ -109,9 +109,9 @@ function addUser(dialog_id) {
 			"username": new_username_div.val(),
 			"password": password_div.val(),
 			"email": email_div.val(),
-			"role": $('#new-role').val(),
+			"role_id": $('#new-role').val(),
 			"enabled": enabled,
-			"user_group": user_group,
+			"group_id": user_group,
 		}
 		$.ajax({
 			url: "/user",

@@ -12,7 +12,7 @@ def add_user(user, email, password, role, enabled, group):
 		try:
 			hashed_pass = roxy_wi_tools.Tools.get_hash(password)
 			last_id = User.insert(
-				username=user, email=email, password=hashed_pass, role=role, enabled=enabled, group_id=group
+				username=user, email=email, password=hashed_pass, role_id=role, enabled=enabled, group_id=group
 			).execute()
 		except Exception as e:
 			out_error(e)
@@ -31,14 +31,16 @@ def add_user(user, email, password, role, enabled, group):
 
 def update_user(user, email, role, user_id, enabled):
 	try:
-		User.update(username=user, email=email, role=role, enabled=enabled).where(User.user_id == user_id).execute()
+		User.update(username=user, email=email, role_id=role, enabled=enabled).where(User.user_id == user_id).execute()
 	except Exception as e:
 		out_error(e)
 
 
 def update_user_from_admin_area(user_id, **kwargs):
 	try:
-		User.update(**kwargs).where(User.user_id == user_id).execute()
+		query = User.update(**kwargs).where(User.user_id == user_id)
+		print(query)
+		query.execute()
 	except Exception as e:
 		out_error(e)
 
@@ -70,6 +72,8 @@ def update_user_current_groups_by_id(groups, user_id):
 
 
 def update_user_password(password, user_id):
+	if password == '':
+		return
 	try:
 		hashed_pass = roxy_wi_tools.Tools.get_hash(password)
 		user_update = User.update(password=hashed_pass).where(User.user_id == user_id)
@@ -258,7 +262,7 @@ def get_super_admin_count() -> int:
 
 
 def select_users_emails_by_group_id(group_id: int):
-	query = User.select(User.email).where((User.group_id == group_id) & (User.role != 'guest'))
+	query = User.select(User.email).where((User.group_id == group_id) & (User.role_id != 'guest'))
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -280,50 +284,6 @@ def is_user_super_admin(user_id: int) -> bool:
 				return True
 		else:
 			return False
-
-
-def get_api_token(token):
-	try:
-		user_token = ApiToken.get(ApiToken.token == token)
-	except Exception as e:
-		return str(e)
-	else:
-		return True if token == user_token.token else False
-
-
-def get_user_id_by_api_token(token):
-	query = (User.select(User.user_id).join(ApiToken, on=(
-		ApiToken.user_name == User.username
-	)).where(ApiToken.token == token))
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		return str(e)
-	for i in query_res:
-		return i.user_id
-
-
-def write_api_token(user_token, group_id, user_role, user_name):
-	token_ttl = int(get_setting('token_ttl'))
-	get_date = roxy_wi_tools.GetDate()
-	cur_date = get_date.return_date('regular', timedelta=token_ttl)
-	cur_date_token_ttl = get_date.return_date('regular', timedelta=token_ttl)
-
-	try:
-		ApiToken.insert(
-			token=user_token, user_name=user_name, user_group_id=group_id, user_role=user_role,
-			create_date=cur_date, expire_date=cur_date_token_ttl).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def get_username_group_id_from_api_token(token):
-	try:
-		user_name = ApiToken.get(ApiToken.token == token)
-	except Exception as e:
-		return str(e)
-	else:
-		return user_name.user_name, user_name.user_group_id, user_name.user_role
 
 
 def get_role_id(user_id: int, group_id: int) -> int:

@@ -357,60 +357,57 @@ function showServerInfo(id, ip) {
 	});
 }
 async function serverIsUp(server_id) {
-	let random_sleep = getRandomArbitrary(1000, 10000);
-	await sleep(random_sleep);
-	const source = new EventSource(`/server/check/server/${server_id}`);
 	let server_div = $('#server_status-' + server_id);
-	source.onmessage = function (event) {
-		let data = JSON.parse(event.data);
-		if (data.status === 'up') {
-			server_div.removeClass('serverNone');
-			server_div.removeClass('serverDown');
-			server_div.addClass('serverUp');
-			server_div.attr('title', 'Server is reachable');
-		} else if (data.status === 'down') {
-			server_div.removeClass('serverNone');
-			server_div.removeClass('serverUp');
-			server_div.addClass('serverDown');
-			server_div.attr('title', 'Server is unreachable');
-		} else {
-			server_div.removeClass('serverDown');
-			server_div.removeClass('serverUp');
-			server_div.addClass('serverNone');
-			server_div.attr('title', 'Cannot get server status');
+	$.ajax({
+		url: "/server/check/server/" + server_id,
+		contentType: "application/json; charset=utf-8",
+		success: function (data) {
+			if (data.status === 'up') {
+				server_div.removeClass('serverNone');
+				server_div.removeClass('serverDown');
+				server_div.addClass('serverUp');
+				server_div.attr('title', 'Server is reachable');
+			} else if (data.status === 'down') {
+				server_div.removeClass('serverNone');
+				server_div.removeClass('serverUp');
+				server_div.addClass('serverDown');
+				server_div.attr('title', 'Server is unreachable');
+			} else {
+				server_div.removeClass('serverDown');
+				server_div.removeClass('serverUp');
+				server_div.addClass('serverNone');
+				server_div.attr('title', 'Cannot get server status');
+			}
+			$('#hostname-' + server_id).val(data.name);
+			$('#ip-' + server_id).val(data.ip);
+			$('#port-' + server_id).val(data.port);
+			$('#desc-' + server_id).val(data.description);
+			if (data.enabled === 1) {
+				$('#enable-' + server_id).prop('checked', true);
+			} else {
+				$('#enable-' + server_id).prop('checked', false);
+			}
+			if (data.protected === 1) {
+				$('#protected-' + server_id).prop('checked', true);
+			} else {
+				$('#protected-' + server_id).prop('checked', false);
+			}
+			if (data.type_ip === 1) {
+				$('#type_ip-' + server_id).prop('checked', true);
+			} else {
+				$('#type_ip-' + server_id).prop('checked', false);
+			}
+			$('#type_ip-' + server_id).checkboxradio("refresh");
+			$('#protected-' + server_id).checkboxradio("refresh");
+			$('#enable-' + server_id).checkboxradio("refresh");
+			$('#servergroup-' + server_id).val(data.group_id).change();
+			$('#credentials-' + server_id).val(data.creds_id).change();
+			$('#slavefor-' + server_id).val(data.slave).change();
+			$('#servergroup-' + server_id).selectmenu("refresh");
+			$('#credentials-' + server_id).selectmenu("refresh");
+			$('#slavefor-' + server_id).selectmenu("refresh");
 		}
-		$('#hostname-' + server_id).val(data.name);
-		$('#ip-' + server_id).val(data.ip);
-		$('#port-' + server_id).val(data.port);
-		$('#desc-' + server_id).val(data.description);
-		if (data.enabled === 1) {
-			$('#enable-' + server_id).prop('checked', true);
-		} else {
-			$('#enable-' + server_id).prop('checked', false);
-		}
-		if (data.protected === 1) {
-			$('#protected-' + server_id).prop('checked', true);
-		} else {
-			$('#protected-' + server_id).prop('checked', false);
-		}
-		if (data.type_ip === 1) {
-			$('#type_ip-' + server_id).prop('checked', true);
-		} else {
-			$('#type_ip-' + server_id).prop('checked', false);
-		}
-		$('#type_ip-' + server_id).checkboxradio("refresh");
-		$('#protected-' + server_id).checkboxradio("refresh");
-		$('#enable-' + server_id).checkboxradio("refresh");
-		$('#servergroup-' + server_id).val(data.group_id).change();
-		$('#credentials-' + server_id).val(data.creds_id).change();
-		$('#slavefor-' + server_id).val(data.slave).change();
-		$('#servergroup-' + server_id).selectmenu("refresh");
-		$('#credentials-' + server_id).selectmenu("refresh");
-		$('#slavefor-' + server_id).selectmenu("refresh");
-	}
-	source.onerror = function (event) {
-		source.close();
-	}
+	});
 }
 function openChangeServerServiceDialog(server_id) {
 	let user_groups_word = translate_div.attr('data-user_groups');
