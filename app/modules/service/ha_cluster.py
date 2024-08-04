@@ -148,7 +148,7 @@ def update_vip(cluster_id: int, router_id: int, cluster: Union[HAClusterRequest,
     servers = _get_servers_dict(cluster)
 
     try:
-        ha_sql.update_ha_cluster_vip(cluster_id, router_id, cluster.vip, cluster.return_master, cluster.use_src)
+        ha_sql.update_ha_cluster_vip(cluster_id, router_id, str(cluster.vip), cluster.return_master, cluster.use_src)
     except Exception as e:
         raise Exception(f'error: Cannot update VIP: {e}')
 
@@ -261,7 +261,7 @@ def add_or_update_virt(cluster: Union[HAClusterRequest, HAClusterVIP], servers: 
     nginx = 0
     apache = 0
     master_ip = None
-    vip = cluster.vip
+    vip = str(cluster.vip)
 
     for value in servers:
         if value['master']:

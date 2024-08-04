@@ -87,7 +87,7 @@ function addCreds(dialog_id) {
 					let id = data.id;
 					common_ajax_action_after_success(dialog_id, 'ssh-table-' + id, 'ssh_enable_table', data.data);
 					$('select:regex(id, credentials)').append('<option value=' + id + '>' + ssh_add_div.val() + '</option>').selectmenu("refresh");
-					$('select:regex(id, ssh-key-name)').append('<option value=' + ssh_add_div.val() + '_' + group_name + '>' + ssh_add_div.val() + '_' + group_name + '</option>').selectmenu("refresh");
+					$('select:regex(id, ssh-key-name)').append('<option value=' + id + '>' + ssh_add_div.val() + '_' + group_name + '</option>').selectmenu("refresh");
 					$("input[type=submit], button").button();
 					$("input[type=checkbox]").checkboxradio();
 					$("select").selectmenu();

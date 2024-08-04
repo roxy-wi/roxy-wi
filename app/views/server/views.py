@@ -166,7 +166,7 @@ class ServerView(MethodView):
 
         try:
             last_id = server_mod.create_server(
-                body.hostname, body.ip, group, body.type_ip, body.enabled, body.master, body.cred_id, body.port, body.description,
+                body.hostname, str(body.ip), group, body.type_ip, body.enabled, body.master, body.cred_id, body.port, body.description,
                 body.haproxy, body.nginx, body.apache, body.firewall_enable
             )
         except Exception as e:
@@ -174,7 +174,7 @@ class ServerView(MethodView):
 
         roxywi_common.logging(body.ip, f'A new server {body.hostname} has been created', login=1, keep_history=1, service='server')
         try:
-            server_mod.update_server_after_creating(body.hostname, body.ip, body.scan_server)
+            server_mod.update_server_after_creating(body.hostname, str(body.ip))
         except Exception as e:
             roxywi_common.logging(body.ip, f'Cannot get system info from {body.hostname}: {e}', login=1, keep_history=1, service='server', mes_type='error')
 
@@ -183,7 +183,7 @@ class ServerView(MethodView):
         else:
             try:
                 user_subscription = roxywi_common.return_user_status()
-            except Exception as e:
+            except Exception:
                 user_subscription = roxywi_common.return_unsubscribed_user_status()
             lang = roxywi_common.get_user_lang_for_flask()
             kwargs = {

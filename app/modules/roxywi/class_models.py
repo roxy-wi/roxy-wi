@@ -161,7 +161,7 @@ class HAClusterVIP(BaseModel):
     return_master: Optional[bool] = 1
     virt_server: Optional[bool] = 1
     router_id: Optional[int] = None
-    servers: Dict[int, HAClusterServer]
+    servers: List[HAClusterServer]
 
 
 class HAClusterRequest(BaseModel):

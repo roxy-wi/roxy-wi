@@ -171,14 +171,10 @@ def select_service(slug: str) -> object:
 
 
 def update_keepalived(serv):
-	query = Server.update(keepalived='1').where(Server.ip == serv)
 	try:
-		query.execute()
+		Server.update(keepalived='1').where(Server.ip == serv).execute()
 	except Exception as e:
 		out_error(e)
-		return False
-	else:
-		return True
 
 
 def select_apache(serv):
@@ -190,15 +186,11 @@ def select_apache(serv):
 		return apache
 
 
-def update_apache(serv: str) -> bool:
-	query = Server.update(apache='1').where(Server.ip == serv)
+def update_apache(serv: str) -> None:
 	try:
-		query.execute()
+		Server.update(apache='1').where(Server.ip == serv).execute()
 	except Exception as e:
 		out_error(e)
-		return False
-	else:
-		return True
 
 
 def select_nginx(serv):
@@ -210,14 +202,11 @@ def select_nginx(serv):
 		return query_res
 
 
-def update_nginx(serv: str) -> bool:
-	query = Server.update(nginx=1).where(Server.ip == serv)
+def update_nginx(serv: str) -> None:
 	try:
-		query.execute()
-		return True
+		Server.update(nginx=1).where(Server.ip == serv).execute()
 	except Exception as e:
 		out_error(e)
-		return False
 
 
 def select_haproxy(serv):
@@ -230,13 +219,10 @@ def select_haproxy(serv):
 
 
 def update_haproxy(serv):
-	query = Server.update(haproxy=1).where(Server.ip == serv)
 	try:
-		query.execute()
-		return True
+		Server.update(haproxy=1).where(Server.ip == serv).execute()
 	except Exception as e:
 		out_error(e)
-		return False
 
 
 def select_keepalived(serv):

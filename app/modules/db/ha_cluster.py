@@ -213,7 +213,9 @@ def update_cluster(cluster_id: int, name: str, desc: str, syn_flood: int) -> Non
 
 def update_ha_cluster_vip(cluster_id: int, router_id: int, vip: str, return_master: int, use_src: int) -> None:
 	try:
-		HaClusterVip.update(vip=vip, return_master=return_master, use_src=use_src).where((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.router_id == router_id)).execute()
+		HaClusterVip.update(vip=vip, return_master=return_master, use_src=use_src).where(
+			(HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.router_id == router_id)
+		).execute()
 	except Exception as e:
 		out_error(e)
 

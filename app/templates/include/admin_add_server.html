@@ -27,30 +27,6 @@
 	<td>{{ checkbox('type_ip') }}</td>
 </tr>
 <tr>
-	<td class="padding20 help_cursor" title="{{lang.phrases.add_to_smon_desc}}">{{lang.words.add|title()}} {{lang.words.in}} SMON</td>
-	<td>{{ checkbox('add_to_smon', checked='checked') }}</td>
-</tr>
-<tr>
-	<td class="padding20 help_cursor" title="{{lang.phrases.scan_title}}">{{lang.words.scan|title()}} {{lang.words.the}} {{lang.words.server}}</td>
-	<td>{{ checkbox('scan_server', checked='checked') }}</td>
-</tr>
-<tr class="services_for_scan" style="display: none">
-	<td class="padding20" title="{{lang.words.is_there}} HAProxy?">HAProxy</td>
-	<td>{{ checkbox('haproxy') }}	</td>
-</tr>
-<tr class="services_for_scan" style="display: none">
-	<td class="padding20" title="{{lang.words.is_there}} NGINX?">NGINX</td>
-	<td>{{ checkbox('nginx') }}</td>
-</tr>
-<tr class="services_for_scan" style="display: none">
-	<td class="padding20" title="{{lang.words.is_there}} Apache?">Apache</td>
-	<td>{{ checkbox('apache') }}</td>
-</tr>
-<tr class="services_for_scan" style="display: none">
-	<td class="padding20" title="{{lang.words.is_there}} Firewall?">Firewall</td>
-	<td>{{ checkbox('firewall') }}</td>
-</tr>
-<tr>
 	<td class="padding20 help_cursor" title="{{lang.phrases.slave_for_title}}">{{lang.words.slave_for}}</td>
 	<td>
 		<select id="slavefor">

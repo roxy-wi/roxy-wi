@@ -339,12 +339,12 @@ def install_service(service: str, json_data: Union[str, ServiceInstall]) -> dict
 	try:
 		inv, server_ips = generate_functions[service](json_data, service)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot generate inv {service}', roxywi=1)
+		raise Exception(f'Cannot generate inv {service}: {e}')
 	try:
 		service_actions_after_install(server_ips, service, json_data)
 		return run_ansible(inv, server_ips, service)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot install {service}', roxywi=1)
+		raise Exception(f'Cannot install {service}: {e}')
 
 
 def _install_ansible_collections():

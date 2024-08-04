@@ -108,10 +108,10 @@ def get_remote_files(server_ip: str, config_dir: str, file_format: str):
 	return config_files
 
 
-def get_system_info(server_ip: str) -> str:
+def get_system_info(server_ip: str) -> None:
 	server_ip = common.is_ip_or_dns(server_ip)
 	if server_ip == '':
-		return 'error: IP cannot be empty'
+		raise Exception('IP cannot be empty')
 
 	server_id = server_sql.select_server_id_by_ip(server_ip)
 	command = "sudo lshw -quiet -json"
@@ -120,7 +120,7 @@ def get_system_info(server_ip: str) -> str:
 	try:
 		sys_info_returned = ssh_command(server_ip, command, timeout=5)
 	except Exception as e:
-		raise Exception(e)
+		raise Exception(f'Cannot connect to the server to get system info: {server_ip}: {e}')
 
 	if 'not found' in sys_info_returned:
 		raise Exception(f'You should install lshw on the server {server_ip}. Update System info after installation.')
@@ -128,12 +128,12 @@ def get_system_info(server_ip: str) -> str:
 	try:
 		os_info = ssh_command(server_ip, command1)
 	except Exception as e:
-		raise Exception(e)
+		raise Exception(f'Cannot connect to the server to get OS info: {server_ip} : {e}')
 
 	os_info = os_info.strip()
 	try:
 		system_info = json.loads(sys_info_returned)
-		system_info['id']
+		_ = system_info['id']
 	except Exception:
 		sys_info_returned = json.loads(sys_info_returned)
 		try:
@@ -351,7 +351,7 @@ def get_system_info(server_ip: str) -> str:
 	try:
 		server_sql.insert_system_info(server_id, os_info, sys_info, cpu, ram, network, disks)
 	except Exception as e:
-		raise f'error: Cannot get system info from server: {e}'
+		raise e
 
 
 def show_system_info(server_ip: str, server_id: int) -> str:
@@ -359,7 +359,7 @@ def show_system_info(server_ip: str, server_id: int) -> str:
 		try:
 			get_system_info(server_ip)
 		except Exception as e:
-			return f'{e}'
+			return f'Cannot get system info: {e}'
 		try:
 			system_info = server_sql.select_one_system_info(server_id)
 		except Exception as e:
@@ -422,46 +422,44 @@ def create_server(hostname, ip, group, type_ip, enable, master, cred, port, desc
 	return last_id
 
 
-def update_server_after_creating(hostname: str, ip: str, scan_server: int) -> None:
+def update_server_after_creating(hostname: str, ip: str) -> None:
 	try:
 		checker_sql.insert_new_checker_setting_for_server(ip)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, ip, f'Cannot insert Checker settings for {hostname}', roxywi=1, login=1)
-
+		raise Exception(f'Cannot insert Checker settings for {hostname}: {e}')
 	try:
-		if scan_server:
-			nginx_config_path = sql.get_setting('nginx_config_path')
-			haproxy_config_path = sql.get_setting('haproxy_config_path')
-			haproxy_dir = sql.get_setting('haproxy_dir')
-			apache_config_path = sql.get_setting('apache_config_path')
-			keepalived_config_path = sql.get_setting('keepalived_config_path')
+		nginx_config_path = sql.get_setting('nginx_config_path')
+		haproxy_config_path = sql.get_setting('haproxy_config_path')
+		haproxy_dir = sql.get_setting('haproxy_dir')
+		apache_config_path = sql.get_setting('apache_config_path')
+		keepalived_config_path = sql.get_setting('keepalived_config_path')
 
-			if is_file_exists(ip, nginx_config_path):
-				service_sql.update_nginx(ip)
+		if is_file_exists(ip, nginx_config_path):
+			service_sql.update_nginx(ip)
 
-			if is_file_exists(ip, haproxy_config_path):
-				service_sql.update_haproxy(ip)
+		if is_file_exists(ip, haproxy_config_path):
+			service_sql.update_haproxy(ip)
 
-			if is_file_exists(ip, keepalived_config_path):
-				service_sql.update_keepalived(ip)
+		if is_file_exists(ip, keepalived_config_path):
+			service_sql.update_keepalived(ip)
 
-			if is_file_exists(ip, apache_config_path):
-				service_sql.update_apache(ip)
+		if is_file_exists(ip, apache_config_path):
+			service_sql.update_apache(ip)
 
-			if is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
-				waf_sql.insert_waf_metrics_enable(ip, "0")
-				waf_sql.insert_waf_rules(ip)
+		if is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
+			waf_sql.insert_waf_metrics_enable(ip, "0")
+			waf_sql.insert_waf_rules(ip)
 
-			if is_service_active(ip, 'firewalld'):
-				server_sql.update_firewall(ip)
+		if is_service_active(ip, 'firewalld'):
+			server_sql.update_firewall(ip)
 
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, ip, f'Cannot get scan the server {hostname}', roxywi=1, login=1)
+		raise Exception(f'Cannot get scan the server {hostname}: {e}')
 
 	try:
 		get_system_info(ip)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, ip, f'Cannot get information from {hostname}', roxywi=1, login=1)
+		raise Exception(f'Cannot get information from {hostname}: {e}')
 
 
 def delete_server(server_id: int) -> None:

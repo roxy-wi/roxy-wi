@@ -26,7 +26,7 @@
 			</td>
 			<td>
 				{% for r in roles %}
-					{% if r.role_id == USER.role|int() %}
+					{% if r.role_id == USER.role_id|int() %}
 						{{ r.name }}
 					{% endif %}
 				{% endfor %}
@@ -58,7 +58,7 @@
 			</td>
 			<td>
 				{% for r in roles %}
-					{% if r.role_id == USER.role|int() %}
+					{% if r.role_id == USER.role_id|int() %}
 						{{ r.name }}
 					{% endif %}
 				{% endfor %}

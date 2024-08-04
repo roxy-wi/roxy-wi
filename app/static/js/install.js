@@ -111,8 +111,7 @@ $( function() {
 				if (data.status === 'failed') {
 					toastr.error(data.error);
 				} else {
-					// parseAnsibleJsonOutput(data, service + ' GeoIP', '#geoip_service');
-					toastr.success('GeoIP has been installed');
+					parseAnsibleJsonOutput(data, service + ' GeoIP', '#geoip_service');
 					$("#geoip_service").trigger("selectmenuchange");
 				}
 			}
@@ -183,8 +182,8 @@ function installService(service) {
 			if (data.status === 'failed') {
 				toastr.error(data.error);
 			} else {
+				parseAnsibleJsonOutput(data, nice_names[service], select_id);
 				$(select_id).trigger("selectmenuchange");
-				toastr.success(nice_service_name[service] + ' has been installed');
 				$("#ajax").empty();
 			}
 		}
@@ -260,7 +259,6 @@ function showServiceVersion(service) {
 				ver_div.text(service + ' has not installed');
 				install_div.text('Install');
 				install_div.attr('title', 'Install');
-				toastr.warning('Cannot get version');
 			} else {
 				ver_div.text(data.Version);
 				ver_div.css('font-weight', 'bold');

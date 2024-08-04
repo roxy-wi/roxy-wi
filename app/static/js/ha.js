@@ -298,7 +298,7 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	let req_method = 'POST';
 	let url = api_prefix + '/ha/cluster';
 	if ($('#virt_server').is(':checked')) {
-		virt_server = '1';
+		virt_server = 1;
 	}
 	if ($('#return_master').is(':checked')) {
 		return_master = '1';
@@ -776,7 +776,7 @@ function createJsonCluster(div_id) {
 }
 function createJsonVip(div_id) {
 	let jsonData = {};
-	jsonData = {'servers': {}};
+	jsonData = {'servers': []};
 	$(div_id).each(function () {
 		let this_id = $(this).attr('id').split('-')[1];
 		let eth1 = $('#slave_int-' + this_id).val();
@@ -786,9 +786,9 @@ function createJsonVip(div_id) {
 		let ip = $('#master_int_div-' + this_id).attr('data-ip');
 		let name = $('#master_int_div-' + this_id).parent().text().replace('\n','').replace('\t','').trim();
 		if (eth) {
-			jsonData['servers'][this_id] = {'eth': eth, 'ip': ip, 'name': name, 'master': 1};
+			jsonData['servers'].push({'id': this_id, 'eth': eth, 'ip': ip, 'name': name, 'master': 1});
 		} else {
-			jsonData['servers'][this_id] = {'eth': eth1, 'ip': ip1, 'name': name1, 'master': 0};
+			jsonData['servers'].push({'id': this_id,'eth': eth1, 'ip': ip1, 'name': name1, 'master': 0});
 		}
 	});
 
@@ -819,7 +819,7 @@ function clearClusterDialog(edited=0) {
 	$('#vrrp-ip-edit').val('');
 	$('#cur_master_ver').text('');
 	$('#virt_server').prop('checked', true);
-	$('#return_master').prop('checked', false);
+	$('#return_master').prop('checked', true);
 	$('#use_src').prop('checked', false);
 	$('#hap').prop('checked', false);
 	$('#hap_docker').prop('checked', false);

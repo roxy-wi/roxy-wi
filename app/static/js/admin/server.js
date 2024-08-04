@@ -39,13 +39,6 @@ $( function() {
 		let id = $(this).attr('id').split('-');
 		updateServer(id[1])
 	});
-	$( "#scan_server" ).change(function() {
-		if ($('#scan_server').is(':checked')) {
-			$('.services_for_scan').hide();
-		} else {
-			$('.services_for_scan').show();
-		}
-	});
 });
 function addServer(dialog_id) {
     toastr.clear()
@@ -54,17 +47,12 @@ function addServer(dialog_id) {
     let ip = $('#new-ip').val();
     let server_group = $('#new-server-group-add').val();
     let cred = $('#credentials').val();
-    let scan_server = 0;
     let type_ip = 0;
     let enable = 0;
     let haproxy = 0;
     let nginx = 0;
     let apache = 0;
     let firewall = 0;
-    let add_to_smon = 0;
-    if ($('#scan_server').is(':checked')) {
-        scan_server = '1';
-    }
     if ($('#type_ip').is(':checked')) {
         type_ip = '1';
     }
@@ -82,9 +70,6 @@ function addServer(dialog_id) {
     }
     if ($('#firewall').is(':checked')) {
         firewall = '1';
-    }
-    if ($('#add_to_smon').is(':checked')) {
-        add_to_smon = '1';
     }
     let allFields = $([]).add($('#new-server-add')).add($('#new-ip')).add($('#new-port'))
     allFields.removeClass("ui-state-error");
@@ -113,7 +98,6 @@ function addServer(dialog_id) {
             'nginx': nginx,
             "apache": apache,
             "firewall_enable": firewall,
-            "add_to_smon": add_to_smon,
             "enabled": enable,
             "master": $('#slavefor').val(),
             "cred_id": cred,

@@ -80,13 +80,16 @@ class InstallView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, '')
         try:
             output = service_mod.install_service(service, body)
-            if len(output['failures']) > 0 or len(output['dark']) > 0:
-                raise Exception(f'Cannot install {service.title()}. Check Apache error log')
-            if 'api' in request.url:
-                try:
-                    service_sql.update_hapwi_server(server_id, body.checker, body.metrics, body.auto_start, service)
-                except Exception as e:
-                    return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot update Tools settings for {service.title()}')
-            return BaseResponse().model_dump(mode='json'), 201
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot install {service.title()}')
+
+        if 'api' in request.url:
+            try:
+                service_sql.update_hapwi_server(server_id, body.checker, body.metrics, body.auto_start, service)
+                if len(output['failures']) > 0 or len(output['dark']) > 0:
+                    raise Exception(f'Cannot install {service.title()}. Check Apache error log')
+            except Exception as e:
+                return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot update Tools settings for {service.title()}')
+        else:
+            return output
+        return BaseResponse().model_dump(mode='json'), 201

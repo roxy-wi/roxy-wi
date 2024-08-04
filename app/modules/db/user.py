@@ -38,9 +38,7 @@ def update_user(user, email, role, user_id, enabled):
 
 def update_user_from_admin_area(user_id, **kwargs):
 	try:
-		query = User.update(**kwargs).where(User.user_id == user_id)
-		print(query)
-		query.execute()
+		User.update(**kwargs).where(User.user_id == user_id).execute()
 	except Exception as e:
 		out_error(e)
 

@@ -95,6 +95,7 @@ class HAView(MethodView):
             settings.setdefault('vip', vip.vip)
             settings.setdefault('virt_server', is_virt)
             settings.setdefault('use_src', vip.use_src)
+            settings.setdefault('return_master', vip.return_master)
 
             for slave in slaves:
                 if slave[31]:
