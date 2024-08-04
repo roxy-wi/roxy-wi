@@ -1,6 +1,6 @@
 function showOverviewWaf(serv, hostname) {
 	let service = cur_url[0];
-	if (service == 'haproxy') {
+	if (service === 'haproxy') {
 		$.getScript('/static/js/chart.min-4.3.0.js');
 		showWafMetrics();
 	}
@@ -97,10 +97,11 @@ $( function() {
 });
 function waf_rules_en(id) {
 	let enable = 0;
+	let cur_url = window.location.href.split('/');
+	let serv = cur_url[5];
 	if ($('#rule_id-' + id).is(':checked')) {
 		enable = '1';
 	}
-	let serv = cur_url[2];
 	$.ajax({
 		url: "/waf/" + serv + "/rule/" + id + "/" + enable,
 		contentType: "application/json; charset=utf-8",

@@ -318,11 +318,10 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 			update_functions[service](server_ip)
 		except Exception as e:
 			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot activate {service} on server {server_ip}', roxywi=1)
-
 		if service != 'keepalived':
 			is_docker = json_data['services'][service]['docker']
 
-		if is_docker == '1' and service != 'keepalived':
+		if is_docker and service != 'keepalived':
 			service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', '1')
 			service_sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
 

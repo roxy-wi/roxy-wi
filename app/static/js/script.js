@@ -1,6 +1,5 @@
 var cur_url = window.location.href.split('/').pop();
 cur_url = cur_url.split('/');
-var intervalId;
 function validateEmail(email) {
 	const re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 	return re.test(email);
@@ -174,11 +173,11 @@ function openSection() {
 	win.focus();
 }
 function showLog() {
-	var waf = cur_url[2];
-	var file = $('#log_files').val();
-	var serv = $("#serv").val();
-	if ((file === undefined || file === null) && (waf == '' || waf === undefined)) {
-		var file_from_get = findGetParameter('file');
+	let waf = cur_url[0].split('?')[0];
+	let file = $('#log_files').val();
+	let serv = $("#serv").val();
+	if ((file === undefined || file === null) && (waf === '' || waf === undefined)) {
+		let file_from_get = findGetParameter('file');
 		if (file_from_get === undefined || file_from_get === null) {
 			toastr.warning('Select a log file first')
 			return false;
@@ -186,22 +185,21 @@ function showLog() {
 			file = file_from_get;
 		}
 	}
-	var rows = $('#rows').val();
-	var grep = $('#grep').val();
-	var exgrep = $('#exgrep').val();
-	var hour = $('#time_range_out_hour').val();
-	var minute = $('#time_range_out_minut').val();
-	var hour1 = $('#time_range_out_hour1').val();
-	var minute1 = $('#time_range_out_minut1').val();
-	var service = $('#service').val();
-	if (service == 'None') {
+	let rows = $('#rows').val();
+	let grep = $('#grep').val();
+	let exgrep = $('#exgrep').val();
+	let hour = $('#time_range_out_hour').val();
+	let minute = $('#time_range_out_minut').val();
+	let hour1 = $('#time_range_out_hour1').val();
+	let minute1 = $('#time_range_out_minut1').val();
+	let service = $('#service').val();
+	let url = "/logs/" + service + "/" + serv + "/" + rows;
+	if (service === 'None') {
 		service = 'haproxy';
 	}
 	if (waf) {
-		var url = "/logs/" + service + "/waf/" + serv + "/" + rows;
+		url = "/logs/" + service + "/waf/" + serv + "/" + rows;
 		waf = 1;
-	} else {
-		var url = "/logs/" + service + "/" + serv + "/" + rows;
 	}
 	$.ajax( {
 		url: url,

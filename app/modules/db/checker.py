@@ -37,6 +37,17 @@ def insert_new_checker_setting_for_server(server_ip: str) -> None:
 		).on_conflict_ignore().execute()
 
 
+def update_checker_setting_for_server(service_id: int, server_id: int, **kwargs) -> None:
+	try:
+		query = (CheckerSetting.update(**kwargs).where(
+			(CheckerSetting.service_id == service_id) & (CheckerSetting.server_id == server_id)
+		))
+		print(query)
+		query.execute()
+	except Exception as e:
+		out_error(e)
+
+
 def update_haproxy_checker_settings(
 	email: int, telegram_id: int, slack_id: int, pd_id: int, mm_id: int, service_alert: int, backend_alert: int,
 	maxconn_alert: int, setting_id: int

@@ -151,7 +151,7 @@ class ServiceView(MethodView):
 
 class ServiceActionView(MethodView):
     methods = ['GET']
-    decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
+    decorators = [jwt_required(), get_user_params(), page_for_admin(level=3), check_group()]
 
     @staticmethod
     def get(service: str, server_id: Union[int, str], action: str):
