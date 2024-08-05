@@ -18,7 +18,7 @@ import app.modules.config.section as section_mod
 import app.modules.service.haproxy as service_haproxy
 import app.modules.server.server as server_mod
 from app.views.service.views import ServiceConfigView
-
+from app.modules.roxywi.class_models import DataStrResponse
 
 bp.add_url_rule('/<service>/<server_id>', view_func=ServiceConfigView.as_view('config_view_ip'), methods=['POST'])
 
@@ -289,11 +289,11 @@ def haproxy_section_show(server_ip, section):
 def haproxy_section_save(server_ip):
     hap_configs_dir = config_common.get_config_dir('haproxy')
     cfg = config_common.generate_config_path('haproxy', server_ip)
-    config_file = request.form.get('config')
-    oldcfg = request.form.get('oldconfig')
-    save = request.form.get('save')
-    start_line = request.form.get('start_line')
-    end_line = request.form.get('end_line')
+    config_file = request.json.get('config')
+    oldcfg = request.json.get('oldconfig')
+    save = request.json.get('action')
+    start_line = request.json.get('start_line')
+    end_line = request.json.get('end_line')
 
     if save == 'delete':
         config_file = ''
@@ -316,7 +316,7 @@ def haproxy_section_save(server_ip):
     except IOError:
         pass
 
-    return stderr
+    return DataStrResponse(data=stderr).model_dump(mode='json'), 201
 
 
 @bp.route('/compare/<service>/<serv>')
