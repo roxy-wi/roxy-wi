@@ -4,7 +4,9 @@ from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
 def select_ssh(**kwargs):
-	if kwargs.get("name") is not None:
+	if kwargs.get("group") and kwargs.get("cred_id"):
+		query = Cred.select().where((Cred.id == kwargs.get('cred_id')) & (Cred.group_id == kwargs.get('group')))
+	elif kwargs.get("name") is not None:
 		query = Cred.select().where(Cred.name == kwargs.get('name'))
 	elif kwargs.get("id") is not None:
 		query = Cred.select().where(Cred.id == kwargs.get('id'))
@@ -16,6 +18,8 @@ def select_ssh(**kwargs):
 		query = Cred.select()
 	try:
 		query_res = query.execute()
+	except Cred.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 	else:

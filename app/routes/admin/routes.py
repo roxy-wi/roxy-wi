@@ -16,6 +16,7 @@ import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.smon as smon_mod
 import app.modules.tools.common as tools_common
+import app.modules.server.ssh as ssh_mod
 from app.views.admin.views import SettingsView
 
 bp.add_url_rule(
@@ -41,12 +42,12 @@ def admin():
         users = user_sql.select_users()
         servers = server_sql.select_servers(full=1)
         masters = server_sql.select_servers(get_master_servers=1)
-        sshs = cred_sql.select_ssh()
+        sshs = ssh_mod.get_creds()
     else:
         users = user_sql.select_users(group=user_group)
         servers = roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1)
         masters = server_sql.select_servers(get_master_servers=1, uuid=g.user_params['user_id'])
-        sshs = cred_sql.select_ssh(group=user_group)
+        sshs = ssh_mod.get_creds(group_id=user_group)
 
     kwargs = {
         'lang': g.user_params['lang'],

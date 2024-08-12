@@ -2,13 +2,12 @@ from flask_swagger import swagger
 from flask import jsonify, render_template, abort
 from flask_pydantic import validate
 
-from app import app, jwt
+from app import app
 from app.api.routes import bp
 from app.views.install.views import InstallView
-from app.views.server.views import (
-    ServerView, CredView, CredsView, ServerGroupView, ServerGroupsView, ServersView, ServerIPView
-)
-from app.views.server.backup_vews import BackupView, S3BackupView
+from app.views.server.views import ServerView, ServerGroupView, ServerGroupsView, ServersView, ServerIPView
+from app.views.server.cred_views import CredView, CredsView
+from app.views.server.backup_vews import BackupView, S3BackupView, GitBackupView
 from app.views.service.views import ServiceView, ServiceActionView, ServiceBackendView, ServiceConfigView, ServiceConfigVersionsView
 from app.views.ha.views import HAView, HAVIPView, HAVIPsView
 from app.views.user.views import UserView, UserGroupView, UserRoles
@@ -30,20 +29,10 @@ def before_request():
     pass
 
 
-@jwt.expired_token_loader
-def my_expired_token_callback(jwt_header, jwt_payload):
-    return jsonify(error="Token is expired"), 401
-
-
-@jwt.unauthorized_loader
-def custom_unauthorized_response(_err):
-    return jsonify(error="Authorize first"), 401
-
-
 def register_api(view, endpoint, url, pk='listener_id', pk_type='int'):
     view_func = view.as_view(endpoint)
     bp.add_url_rule(url, view_func=view_func, methods=['POST'])
-    bp.add_url_rule(f'{url}/<{pk_type}:{pk}>', view_func=view_func, methods=['GET', 'PUT', 'DELETE'])
+    bp.add_url_rule(f'{url}/<{pk_type}:{pk}>', view_func=view_func, methods=['GET', 'PUT', 'PATCH', 'DELETE'])
 
 
 def register_api_id_ip(view, endpoint, url: str = '', methods: list = ['GET', 'POST']):
@@ -73,9 +62,10 @@ register_api_id_ip(ServiceActionView, 'service_action', '/<any(start, stop, relo
 register_api(ServerView, 'server', '/server', 'server_id')
 register_api(BackupView, 'backup_fs', '/server/backup/fs', 'backup_id')
 register_api(S3BackupView, 'backup_s3', '/server/backup/s3', 'backup_id')
+register_api(GitBackupView, 'backup_git', '/server/backup/git', 'backup_id')
 bp.add_url_rule('/server/<server_id>/ip', view_func=ServerIPView.as_view('server_ip_ip'), methods=['GET'])
 bp.add_url_rule('/server/<int:server_id>/ip', view_func=ServerIPView.as_view('server_ip'), methods=['GET'])
-register_api(CredView, 'cred', '/server/cred', 'creds_id')
+register_api(CredView, 'cred', '/server/cred', 'cred_id')
 bp.add_url_rule('/server/creds', view_func=CredsView.as_view('creds'), methods=['GET'])
 bp.add_url_rule('/servers', view_func=ServersView.as_view('servers'), methods=['GET'])
 

@@ -4,7 +4,7 @@ from flask import render_template, request, g, abort, jsonify, redirect, url_for
 from flask_jwt_extended import jwt_required
 from flask_pydantic.exceptions import ValidationError
 
-from app import app, cache
+from app import app, cache, jwt
 from app.routes.main import bp
 import app.modules.db.user as user_sql
 import app.modules.db.server as server_sql
@@ -24,6 +24,16 @@ from app.modules.roxywi.class_models import ErrorResponse
 @app.template_filter('strftime')
 def _jinja2_filter_datetime(date, fmt=None):
     return common.get_time_zoned_date(date, fmt)
+
+
+@jwt.expired_token_loader
+def my_expired_token_callback(jwt_header, jwt_payload):
+    return jsonify(error="Token is expired"), 401
+
+
+@jwt.unauthorized_loader
+def custom_unauthorized_response(_err):
+    return jsonify(error="Authorize first"), 401
 
 
 @app.errorhandler(ValidationError)
@@ -70,6 +80,7 @@ def page_is_forbidden(e):
 def page_not_found(e):
     if 'api' in request.url:
         return jsonify({'error': str(e)}), 404
+    get_user_params()
     kwargs = {
         'user_params': g.user_params,
         'title': e,
@@ -79,23 +90,15 @@ def page_not_found(e):
 
 
 @app.errorhandler(405)
-@get_user_params()
 def method_not_allowed(e):
-    if 'api' in request.url:
-        return jsonify({'error': str(e)}), 405
-    kwargs = {
-        'user_params': g.user_params,
-        'title': e,
-        'e': e
-    }
-    return render_template('error.html', **kwargs), 405
+    return jsonify({'error': str(e)}), 405
 
 
 @app.errorhandler(500)
-@get_user_params()
 def internal_error(e):
     if 'api' in request.url:
         return jsonify({'error': str(e)}), 500
+    get_user_params()
     kwargs = {
         'user_params': g.user_params,
         'title': e,
@@ -224,4 +227,4 @@ def service_history(service, server_ip):
 @bp.route('/internal/show_version')
 @cache.cached()
 def show_roxywi_version():
-    return render_template('ajax/check_version.html', versions=roxy.versions())
+    return jsonify(roxy.versions())

@@ -1,8 +1,10 @@
 import os
+import base64
 from cryptography.fernet import Fernet
 
 import paramiko
 from flask import render_template
+from playhouse.shortcuts import model_to_dict
 
 import app.modules.db.cred as cred_sql
 import app.modules.db.group as group_sql
@@ -153,7 +155,7 @@ def upload_ssh_key(ssh_id: int, key: str, passphrase: str) -> None:
 		roxywi_common.logging('RMON server', e.args[0], roxywi=1)
 		raise Exception(e)
 
-	if passphrase != "''":
+	if passphrase:
 		try:
 			passphrase = crypt_password(passphrase)
 		except Exception as e:
@@ -244,3 +246,31 @@ def decrypt_password(password: str) -> str:
 	except Exception as e:
 		raise Exception(f'error: Cannot decrypt password: {e}')
 	return decryp_pass
+
+
+def get_creds(group_id: int = None, cred_id: int = None) -> list:
+	json_data = []
+	lib_path = get_config.get_config_var('main', 'lib_path')
+
+	if group_id and cred_id:
+		creds = cred_sql.select_ssh(group=group_id, cred_id=cred_id)
+	elif group_id:
+		creds = cred_sql.select_ssh(group=group_id)
+	else:
+		creds = cred_sql.select_ssh()
+
+	for cred in creds:
+		cred_dict = model_to_dict(cred)
+		cred_dict['name'] = cred_dict['name'].replace("'", "")
+		ssh_key_file = f'{lib_path}/keys/{cred_dict["name"]}.pem'
+		if os.path.isfile(ssh_key_file):
+			with open(ssh_key_file, 'rb') as key:
+				cred_dict['private_key'] = base64.b64encode(key.read()).decode('utf-8')
+		else:
+			cred_dict['private_key'] = ''
+		if cred_dict['password']:
+			cred_dict['password'] = decrypt_password(cred_dict['password'])
+		if cred_dict['passphrase']:
+			cred_dict['passphrase'] = decrypt_password(cred_dict['passphrase'])
+		json_data.append(cred_dict)
+	return json_data

@@ -171,6 +171,7 @@ def send_email(email_to: str, subject: str, message: str) -> None:
 def telegram_send_mess(mess, level, **kwargs):
 	token_bot = ''
 	channel_name = ''
+	proxy = sql.get_setting('proxy')
 
 	if kwargs.get('channel_id') == 0:
 		return
@@ -179,8 +180,6 @@ def telegram_send_mess(mess, level, **kwargs):
 		telegrams = channel_sql.get_receiver_by_id('telegram', kwargs.get('channel_id'))
 	else:
 		telegrams = channel_sql.get_receiver_by_ip('telegram', kwargs.get('ip'))
-
-	proxy = sql.get_setting('proxy')
 
 	for telegram in telegrams:
 		token_bot = telegram.token

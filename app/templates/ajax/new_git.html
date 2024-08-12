@@ -38,7 +38,7 @@
         </td>
 		<td style="width: 10%">
             {% for ssh in sshs %}
-                {% if ssh.enable == 1 %}
+                {% if ssh.key_enabled == 1 %}
                     {% if ssh.id == b.cred_id %}
                         <span id="git-credentials-id-{{b.id}}" style="display: none">{{ ssh.id }}</span>
                         <span id="git-credentials-{{b.id}}">{{ ssh.name }}</span>
@@ -47,7 +47,7 @@
             {% endfor %}
 		</td>
 		<td style="width: 100%">
-            <span type="text" id="git-description-{{b.id}}">
+            <span id="git-description-{{b.id}}">
 			{% if b.description %}
 				{{b.description}}
 			{% endif %}

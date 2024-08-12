@@ -25,10 +25,10 @@ def delete_server(server_id):
 		return True
 
 
-def update_server(hostname, group, type_ip, enable, master, server_id, cred, port, desc, firewall, protected):
+def update_server(hostname, ip, group, type_ip, enable, master, server_id, cred, port, desc, firewall, protected):
 	try:
 		server_update = Server.update(
-			hostname=hostname, group_id=group, type_ip=type_ip, enabled=enable, master=master, cred_id=cred,
+			hostname=hostname, ip=ip, group_id=group, type_ip=type_ip, enabled=enable, master=master, cred_id=cred,
 			port=port, description=desc, firewall_enable=firewall, protected=protected
 		).where(Server.server_id == server_id)
 		server_update.execute()

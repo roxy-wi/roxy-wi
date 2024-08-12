@@ -4,7 +4,7 @@ from typing import Optional, Annotated, Union, Literal, Any, Dict, List
 
 from shlex import quote
 from pydantic_core import CoreSchema, core_schema
-from pydantic import BaseModel, field_validator, StringConstraints, IPvAnyAddress, AnyUrl, root_validator, GetCoreSchemaHandler
+from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, AnyUrl, root_validator, GetCoreSchemaHandler
 
 DomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
 
@@ -110,7 +110,7 @@ class ServerRequest(BaseModel):
     description: Optional[EscapedString] = None
     group_id: Optional[int] = None
     protected: Optional[bool] = 0
-    master: Optional[int] = None
+    master: Optional[int] = 0
     port: Annotated[int, Gt(1), Le(65535)] = 22
     haproxy: Optional[bool] = 0
     nginx: Optional[bool] = 0
@@ -137,7 +137,7 @@ class CredRequest(BaseModel):
 
 
 class CredUploadRequest(BaseModel):
-    private_key: str
+    private_key: Union[Base64Str, str]
     passphrase: Optional[EscapedString] = None
 
 
@@ -251,4 +251,15 @@ class S3BackupRequest(BaseModel):
     secret_key: Optional[EscapedString] = None
     access_key: Optional[EscapedString] = None
     time: Optional[EscapedString] = None
+    description: Optional[EscapedString] = None
+
+
+class GitBackupRequest(BaseModel):
+    server_id: int
+    service_id: int
+    init: Optional[bool] = 0
+    repo: Optional[EscapedString] = None
+    branch: Optional[EscapedString] = 'main'
+    time: Optional[EscapedString] = 'weekly'
+    cred_id: Optional[int] = None
     description: Optional[EscapedString] = None

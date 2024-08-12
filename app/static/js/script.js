@@ -1163,21 +1163,26 @@ function show_version() {
 	NProgress.configure({showSpinner: false});
 	$.ajax( {
 		url: "/internal/show_version",
+		contentType: "application/json; charset=utf-8",
 		success: function( data ) {
-			$('#version').html(data);
-			var showUpdates = $( "#show-updates" ).dialog({
+			if (data.need_update) {
+				$('#version').html('<span id="show-updates-button" class="new-version-exists" style="cursor: pointer;">v' + data.current_ver + '</span>');
+			} else {
+				$('#version').html('v' + data.current_ver);
+			}
+			let showUpdates = $("#show-updates").dialog({
 				autoOpen: false,
 				width: 600,
 				modal: true,
 				title: 'There is a new Roxy-WI version',
 				buttons: {
-					Close: function() {
-						$( this ).dialog( "close" );
+					Close: function () {
+						$(this).dialog("close");
 						clearTips();
 					}
 				}
 			});
-			$('#show-updates-button').click(function() {
+			$('#show-updates-button').click(function () {
 				showUpdates.dialog('open');
 			});
 		}

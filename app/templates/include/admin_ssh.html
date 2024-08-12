@@ -20,7 +20,7 @@
     <tr style="width: 50%;" id="ssh-table-{{ssh.id}}" class="{{ loop.cycle('odd', 'even') }}">
         <td class="first-collumn padding10">
             {% set id = 'ssh_name-' + ssh.id|string() %}
-            {{ input(id, value=ssh.name, size='15') }}
+            {{ input(id, value=ssh.name.replace("'", ""), size='15') }}
         </td>
         <td class="first-collumn" valign="top" style="padding-top: 15px;">
             {% if ssh.key_enabled == 1 %}
@@ -48,9 +48,9 @@
                 {{ input(id, value=ssh.username, title='SSH user name') }}
             </p>
             {% if ssh.key_enabled == 1 %}
-            <input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" title="User password, if SSH key is disabled" placeholder="*****" style="display: none;" autocomplete="new-password">
+            <input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" title="User password, if SSH key is disabled" value="{{ ssh.password }}" style="display: none;" autocomplete="new-password">
             {% else %}
-            <input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" title="User password, if SSH key is disabled" placeholder="*****" autocomplete="new-password">
+            <input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" title="User password, if SSH key is disabled" value="{{ ssh.password }}" autocomplete="new-password">
             {% endif %}
             <br>
         </td>

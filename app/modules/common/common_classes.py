@@ -4,7 +4,6 @@ from flask import g
 
 import app.modules.db.server as server_sql
 import app.modules.roxywi.common as roxywi_common
-from app.modules.roxywi.exception import RoxywiResourceNotFound
 from app.modules.roxywi.class_models import ServerRequest, GroupQuery, CredRequest, ChannelRequest
 from app.middleware import get_user_params
 

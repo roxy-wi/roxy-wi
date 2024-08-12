@@ -7,14 +7,15 @@ from app.routes.server import bp
 import app.modules.db.cred as cred_sql
 import app.modules.db.server as server_sql
 import app.modules.db.backup as backup_sql
+import app.modules.db.service as service_sql
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
-import app.modules.service.backup as backup_mod
 from app.middleware import get_user_params
-from app.views.server.views import ServerView, CredView, CredsView, ServerGroupView, ServerGroupsView, ServerIPView
-from app.views.server.backup_vews import BackupView, S3BackupView
+from app.views.server.views import ServerView, ServerGroupView, ServerGroupsView, ServerIPView
+from app.views.server.cred_views import CredView, CredsView
+from app.views.server.backup_vews import BackupView, S3BackupView, GitBackupView
 
 
 def register_api(view, endpoint, url, pk='listener_id', pk_type='int'):
@@ -33,6 +34,7 @@ bp.add_url_rule('/<server_id>/ip', view_func=ServerIPView.as_view('server_ip_ip'
 bp.add_url_rule('/<int:server_id>/ip', view_func=ServerIPView.as_view('server_ip'), methods=['GET'])
 bp.add_url_rule('/backup', view_func=BackupView.as_view('backup', False), methods=['POST'])
 bp.add_url_rule('/backup/s3', view_func=S3BackupView.as_view('backup_s3', False), methods=['POST'])
+bp.add_url_rule('/backup/git', view_func=GitBackupView.as_view('backup_git', False), methods=['POST'])
 
 error_mess = roxywi_common.return_error_message()
 
@@ -137,6 +139,7 @@ def load_backup():
     kwargs = {
         'sshs': cred_sql.select_ssh(group=user_group),
         'servers': roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1),
+        'services': service_sql.select_services(),
         'backups': backup_sql.select_backups(),
         's3_backups': backup_sql.select_s3_backups(),
         'gits': backup_sql.select_gits(),
@@ -145,26 +148,3 @@ def load_backup():
         'user_subscription': roxywi_common.return_user_subscription(),
     }
     return render_template('include/admin_backup.html', **kwargs)
-
-
-@bp.route('/git', methods=['DELETE', 'POST'])
-def create_git_backup():
-    json_data = request.get_json()
-    server_id = int(json_data['server'])
-    service_id = int(json_data['service'])
-    git_init = int(json_data['init'])
-    repo = common.checkAjaxInput(json_data['repo'])
-    branch = common.checkAjaxInput(json_data['branch'])
-    period = common.checkAjaxInput(json_data['time'])
-    cred = int(json_data['cred'])
-    del_job = int(json_data['del_job'])
-    description = common.checkAjaxInput(json_data['desc'])
-    backup_id = ''
-    if request.method == 'DELETE':
-        backup_id = json_data['backup_id']
-
-    try:
-        data = backup_mod.git_backup(server_id, service_id, git_init, repo, branch, period, cred, del_job, description, backup_id)
-        return jsonify({'status': 'ok', 'data': data})
-    except Exception as e:
-        return roxywi_common.handle_json_exceptions(e, f'Cannot {request.method} git backup')

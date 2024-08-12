@@ -219,18 +219,17 @@ function addGit(dialog_id) {
 	valid = valid && checkLength(branch_div, "Branch name", 1);
 	if (valid) {
 		let jsonData = {
-			"server": server_div.val(),
-			"service": service_div.val(),
+			"server_id": server_div.val(),
+			"service_id": service_div.val(),
 			"init": git_init,
 			"repo": $('#git-repo').val(),
 			"branch": branch_div.val(),
 			"time": time_div.val(),
-			"cred": cred_div.val(),
-			"del_job": 0,
+			"cred_id": cred_div.val(),
 			"desc": $('#git-description').text(),
 		}
 		$.ajax({
-			url: "/server/git",
+			url: "/server/backup/git",
 			data: JSON.stringify(jsonData),
 			contentType: "application/json; charset=utf-8",
 			type: "POST",
@@ -388,34 +387,35 @@ function removeS3Backup(id) {
 function removeGit(id) {
 	$("#git-table-" + id).css("background-color", "#f2dede");
 	let jsonData = {
-		"backup_id": id,
-		"del_job": 1,
-		"init": 0,
-		"repo": 0,
-		"branch": 0,
-		"time": 0,
-		"cred": $('#git-credentials-id-' + id).text(),
-		"server": $('#git-server-id-' + id).text(),
-		"service": $('#git-service-id-' + id).text(),
-		"desc": '',
+		"cred_id": $('#git-credentials-id-' + id).text(),
+		"server_id": $('#git-server-id-' + id).text(),
+		"service_id": $('#git-service-id-' + id).text(),
 	}
 	$.ajax({
-		url: "/server/git",
+		url: api_prefix + "/server/backup/git/" + id,
 		data: JSON.stringify(jsonData),
 		contentType: "application/json; charset=utf-8",
 		type: "DELETE",
-		success: function (data) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
+		statusCode: {
+			204: function (xhr) {
 				$("#git-table-" + id).remove();
+			},
+			404: function (xhr) {
+				$("#git-table-" + id).remove();
+			}
+		},
+		success: function (data) {
+			if (data) {
+				if (data.status === "failed") {
+					toastr.error(data);
+				}
 			}
 		}
 	});
 }
 function updateBackup(id) {
 	toastr.clear();
-	if ($("#backup-type-" + id + " option:selected").val() == "-------" || $('#backup-rserver-' + id).val() == '' || $('#backup-rpath-' + id).val() == '') {
+	if ($("#backup-type-" + id + " option:selected").val() === "-------" || $('#backup-rserver-' + id).val() === '' || $('#backup-rpath-' + id).val() === '') {
 		toastr.error('All fields must be completed');
 	} else {
 		let jsonData = {

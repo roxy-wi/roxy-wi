@@ -1,5 +1,6 @@
 import os
 import re
+from packaging import version
 
 import distro
 import requests
@@ -26,33 +27,31 @@ def is_docker() -> bool:
 		return True
 	return False
 
+
 def check_ver():
 	return roxy_sql.get_ver()
 
 
 def versions():
+	json_data = {
+		'need_update': 0
+	}
 	try:
-		current_ver = check_ver()
-		current_ver_without_dots = current_ver.split('.')
-		current_ver_without_dots = ''.join(current_ver_without_dots)
-		current_ver_without_dots = current_ver_without_dots.replace('\n', '')
-		current_ver_without_dots = int(current_ver_without_dots)
-	except Exception:
-		current_ver = "Cannot get current version"
-		current_ver_without_dots = 0
+		current_ver = roxy_sql.get_ver()
+		json_data['current_ver'] = roxy_sql.get_ver()
+	except Exception as e:
+		raise Exception(f'Cannot get current version: {e}')
 
 	try:
 		new_ver = check_new_version('roxy-wi')
-		new_ver_without_dots = new_ver.split('.')
-		new_ver_without_dots = ''.join(new_ver_without_dots)
-		new_ver_without_dots = new_ver_without_dots.replace('\n', '')
-		new_ver_without_dots = int(new_ver_without_dots)
+		json_data['new_ver'] = new_ver
 	except Exception as e:
-		new_ver = "Cannot get a new version"
-		new_ver_without_dots = 0
-		roxywi_common.logging('Roxy-WI server', f' {e}', roxywi=1)
+		raise Exception(f'Cannot get new version: {e}')
 
-	return current_ver, new_ver, current_ver_without_dots, new_ver_without_dots
+	if version.parse(current_ver) < version.parse(new_ver):
+		json_data['need_update'] = 1
+
+	return json_data
 
 
 def check_new_version(service):

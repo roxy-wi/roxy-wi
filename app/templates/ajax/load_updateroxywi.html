@@ -1,8 +1,4 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
-{% set current_ver = versions.0 %}
-{% set new_ver = versions.1 %}
-{% set current_ver_without_dots = versions.2 %}
-{% set new_ver_without_dots = versions.3 %}
 {% set services_name = {
 	'roxy-wi-checker': { 'link': 'checker', 'name': 'Checker', 'desc': lang.admin_page.desc.checker_desc },
 	'roxy-wi-keep_alive': { 'link': 'auto_start', 'name': 'Auto start', 'desc': lang.admin_page.desc.auto_start_desc },
@@ -19,7 +15,7 @@
     </td>
     <td>
         <b
-                {% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
+                {% if versions.need_update %}
                 title=lang.admin_page.desc.a_new_version+" Roxy-WI"
                 style="color: var(--red-color)"
                 {% else %}
@@ -27,14 +23,14 @@
                 style="color: var(--green-color)"
                 {% endif %}
         >
-            {{current_ver}}
+            {{versions.current_ver}}
         </b>
     </td>
     <td class="padding10">
-        <b>{{new_ver}}</b>
+        <b>{{versions.new_ver}}</b>
     </td>
     <td>
-        {% if new_ver_without_dots > current_ver_without_dots and new_ver != "Sorry cannot get current version" %}
+        {% if versions.need_update %}
         <a class="ui-button ui-widget ui-corner-all" onclick="updateService('roxy-wi')" title="{{lang.words.w_update|title()}} Roxy-WI">{{lang.words.w_update|title()}}</a>
         {% endif %}
     </td>

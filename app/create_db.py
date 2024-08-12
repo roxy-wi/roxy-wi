@@ -147,7 +147,7 @@ def default_values():
 		print(str(e))
 
 	try:
-		Groups.insert(name='Default', description='All servers are included in this group by default', group_id=1).on_conflict_ignore().execute()
+		Groups.insert(name='Default', description='All servers are included in this group by default', id=1).on_conflict_ignore().execute()
 	except Exception as e:
 		print(str(e))
 

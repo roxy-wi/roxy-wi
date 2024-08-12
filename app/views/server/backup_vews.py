@@ -8,7 +8,7 @@ import app.modules.db.backup as backup_sql
 import app.modules.service.backup as backup_mod
 import app.modules.roxywi.common as roxywi_common
 from app.middleware import get_user_params, page_for_admin, check_group
-from app.modules.roxywi.class_models import BackupRequest, S3BackupRequest, BaseResponse
+from app.modules.roxywi.class_models import BackupRequest, S3BackupRequest, GitBackupRequest, BaseResponse
 
 
 class BackupView(MethodView):
@@ -209,7 +209,7 @@ class BackupView(MethodView):
 
 
 class S3BackupView(MethodView):
-    methods = ['GET', 'POST', 'PUT', 'DELETE']
+    methods = ['GET', 'POST', 'DELETE']
     decorators = [jwt_required(), get_user_params(), page_for_admin(), check_group()]
 
     def __init__(self, is_api=True):
@@ -352,3 +352,151 @@ class S3BackupView(MethodView):
             return BaseResponse().model_dump(mode='json'), 204
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete S3 backup')
+
+
+class GitBackupView(MethodView):
+    methods = ['GET', 'POST', 'DELETE']
+    decorators = [jwt_required(), get_user_params(), page_for_admin(), check_group()]
+
+    def __init__(self, is_api=True):
+        self.is_api = is_api
+
+    @staticmethod
+    def get(backup_id: int):
+        """
+        Retrieves the details of a specific Git backup configuration.
+        ---
+        tags:
+          - Git Backup
+        parameters:
+          - in: path
+            name: backup_id
+            type: 'integer'
+            required: true
+            description: The ID of the specific Git backup
+        responses:
+          200:
+            description: Successful operation
+            schema:
+              type: 'object'
+              properties:
+                branch:
+                    type: 'string'
+                    description: 'The branch the backup is on'
+                cred_id:
+                    type: 'integer'
+                    description: 'The ID of the credentials used for the backup'
+                description:
+                    type: 'string'
+                    description: 'Description for the Git backup configuration'
+                id:
+                    type: 'integer'
+                    description: 'The ID of the backup'
+                period:
+                    type: 'string'
+                    description: 'The timing for the Git backup task'
+                repo:
+                    type: 'string'
+                    description: 'The repository URL for the backup'
+                server_id:
+                    type: 'integer'
+                    description: 'The ID of the server that was backed up'
+                service_id:
+                    type: 'integer'
+                    description: 'The service ID of the backup'
+          default:
+            description: Unexpected error
+        """
+        try:
+            backup = backup_sql.get_backup(backup_id, 'git')
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, '')
+
+        return jsonify(model_to_dict(backup, recurse=False))
+
+    @validate(body=GitBackupRequest)
+    def post(self, body: GitBackupRequest):
+        """
+        Create a new Git backup.
+        ---
+        tags:
+          - Git Backup
+        parameters:
+          - name: config
+            in: body
+            required: true
+            description: The configuration for Git backup service
+            schema:
+              type: 'object'
+              properties:
+                server_id:
+                    type: 'integer'
+                    description: 'The ID of the server to backed up'
+                service_id:
+                    type: 'integer'
+                    description: 'Service ID'
+                init:
+                    type: 'integer'
+                    description: 'Indicates whether to initialize the repository'
+                repo:
+                    type: 'string'
+                    description: 'The repository from where to fetch the data for backup'
+                branch:
+                    type: 'string'
+                    description: 'The branch to pull for backup'
+                time:
+                    type: 'string'
+                    description: 'The timing for the Git backup task'
+                cred_id:
+                    type: 'integer'
+                    description: 'The ID of the credentials to be used for backup'
+                description:
+                    type: 'string'
+                    description: 'Description for the Git backup configuration'
+        responses:
+          201:
+            description: Successful operation
+          default:
+            description: Unexpected error
+        """
+        try:
+            return backup_mod.create_git_backup(body, self.is_api)
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create GIT backup')
+
+    @validate(body=GitBackupRequest)
+    def delete(self, backup_id: int, body: GitBackupRequest):
+        """
+        Deletes a specific Git based backup configuration.
+        ---
+        tags:
+          - Git Backup
+        parameters:
+          - in: path
+            name: backup_id
+            type: 'integer'
+            required: true
+            description: The ID of the specific Git backup
+          - name: config
+            in: body
+            required: true
+            description: The configuration for Git backup service delete operation
+            schema:
+              type: 'object'
+              properties:
+                server_id:
+                    type: 'integer'
+                    description: 'ID of the server from where the backup is to be deleted'
+                service_id:
+                    type: 'integer'
+                    description: 'Service ID of the backup to be deleted'
+        responses:
+          204:
+            description: Successful operation
+          default:
+            description: Unexpected error
+        """
+        try:
+            return backup_mod.delete_git_backup(body, backup_id)
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete GIT backup')

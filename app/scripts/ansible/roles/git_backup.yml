@@ -11,7 +11,7 @@
     - name: Fail if has been installed
       fail:
         msg="Git configuration not found. Initialize git at the beginning"
-      when: not register_name.stat.exists and not INIT and DELJOB
+      when: not register_name.stat.exists and not INIT and not DELJOB
 
     - name: Install git
       package:
@@ -34,15 +34,16 @@
     - name: Copy ssh file
       copy:
         src: '{{ KEY }}'
-        dest: '/home/{{ ansible_user }}/.ssh/id_rsa'
+        dest: '/home/{{ ansible_user }}/.ssh/git_{{ SERVICE }}_key'
         mode: 0600
         group: '{{ ansible_user }}'
         owner: '{{ ansible_user }}'
-        force: no
+        force: yes
       when: INIT
 
     - name: Add write permissions
       shell: "chmod o+wr -R {{ CONFIG_DIR }}"
+      when: not DELJOB
 
     - name: Git init
       shell: 'cd {{ CONFIG_DIR }} && git init'
@@ -58,13 +59,18 @@
           	email = roxy-wi@.com
       when: INIT
 
+    - name: Add dir exception
+      shell: 'git config --global --add safe.directory {{ CONFIG_DIR }}'
+      when: INIT
+      become: no
+
     - name: Git add remote
       shell: 'cd {{ CONFIG_DIR }} && git add --all . && git commit -m "Roxy-WI init repo" && git branch -M {{ BRANCH }} && git remote add origin {{ REPO }}'
       when: INIT
       become: no
 
     - name: Git add push
-      shell: 'cd {{ CONFIG_DIR }} && GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no" git push -u origin {{ BRANCH }}'
+      shell: 'cd {{ CONFIG_DIR }} && GIT_SSH_COMMAND="ssh -o StrictHostKeyChecking=no -i /home/{{ ansible_user }}/.ssh/git_{{ SERVICE }}_key" git push -u origin {{ BRANCH }}'
       when: INIT
       become: no
 
