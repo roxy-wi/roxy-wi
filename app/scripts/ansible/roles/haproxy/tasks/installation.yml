@@ -37,23 +37,23 @@
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
 
-- name: Try to install another HAProxy {{HAPVER}} on {{distr_short_name}}{{ansible_facts['distribution_major_version']}}
-  yum:
-    name:
-      - http://repo1.roxy-wi.org/haproxy/haproxy-{{HAPVER}}.{{distr_short_name}}{{ansible_facts['distribution_major_version']}}.x86_64.rpm
-      - socat
-      - rsyslog
-      - bind-utils
-    state: present
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ("'timed out' in install_result.stderr")
-  ignore_errors: yes
-  register: install_result1
-  retries: 3
-  until: install_result1.rc == 0
-  delay: 3
-  environment:
-    http_proxy: "{{PROXY}}"
-    https_proxy: "{{PROXY}}"
+#- name: Try to install another HAProxy {{HAPVER}} on {{distr_short_name}}{{ansible_facts['distribution_major_version']}}
+#  yum:
+#    name:
+#      - http://repo1.roxy-wi.org/haproxy/haproxy-{{HAPVER}}.{{distr_short_name}}{{ansible_facts['distribution_major_version']}}.x86_64.rpm
+#      - socat
+#      - rsyslog
+#      - bind-utils
+#    state: present
+#  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and ("'timed out' in install_result.stderr")
+#  ignore_errors: yes
+#  register: install_result1
+#  retries: 3
+#  until: install_result1.rc == 0
+#  delay: 3
+#  environment:
+#    http_proxy: "{{PROXY}}"
+#    https_proxy: "{{PROXY}}"
 
 
 - name: set_fact from wi

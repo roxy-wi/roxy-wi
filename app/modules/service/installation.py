@@ -3,7 +3,6 @@ import json
 from typing import Union
 from packaging import version
 
-import distro
 import ansible
 import ansible_runner
 
@@ -212,7 +211,6 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 	proxy = sql.get_setting('proxy')
 	proxy_serv = ''
 	tags = ''
-	python_int = '/usr/bin/python3' if distro.id() == 'ubuntu' else '/usr/bin/python3.11'
 
 	try:
 		agent_pid = server_mod.start_ssh_agent()
@@ -263,7 +261,7 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 		'AWX_DISPLAY': False,
 		'SSH_AUTH_PID': agent_pid['pid'],
 		'SSH_AUTH_SOCK': agent_pid['socket'],
-		'ANSIBLE_PYTHON_INTERPRETER': python_int
+		'ANSIBLE_PYTHON_INTERPRETER': '/usr/bin/python3'
 	}
 	kwargs = {
 		'private_data_dir': '/var/www/haproxy-wi/app/scripts/ansible/',
