@@ -5,7 +5,7 @@ import pdpyras
 import requests
 import telebot
 from telebot import apihelper
-from flask import render_template, request, abort, g
+from flask import render_template, abort, g
 
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
@@ -220,8 +220,7 @@ def slack_send_mess(mess, level, **kwargs):
 		channel_name = slack.chanel_name
 
 	if proxy is not None and proxy != '' and proxy != 'None':
-		proxies = dict(https=proxy, http=proxy)
-		client = WebClient(token=slack_token, proxies=proxies)
+		client = WebClient(token=slack_token, proxy=proxy)
 	else:
 		client = WebClient(token=slack_token)
 
@@ -331,12 +330,7 @@ def mm_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 
 def check_rabbit_alert() -> None:
 	try:
-		user_group_id = request.cookies.get('group')
-	except Exception as e:
-		raise Exception(f'Cannot get user group {e}')
-
-	try:
-		json_for_sending = {"user_group": user_group_id, "message": 'info: Test message'}
+		json_for_sending = {"user_group": g.user_params['group_id'], "message": 'info: Test message'}
 		send_message_to_rabbit(json.dumps(json_for_sending))
 	except Exception as e:
 		raise Exception(f'Cannot send message {e}')

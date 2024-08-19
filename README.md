@@ -46,7 +46,6 @@ Web interface (user-friendly web GUI, alerting, monitoring and secure) for manag
 35. Mobile-ready design
 36. [SMON](https://roxy-wi.org/services/smon) (Check: Ping, TCP/UDP, HTTP(s), SSL expiry, HTTP body answer, DNS records, Status pages)
 37. Backup HAProxy, Nginx, Apache and Keepalived config files through Roxy-WI
-38. Managing OpenVPN3 as a client via Roxy-WI
 
 
 

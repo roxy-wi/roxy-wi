@@ -12,9 +12,7 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
 from app.middleware import get_user_params, page_for_admin, check_group
 from app.modules.roxywi.exception import RoxywiResourceNotFound
-from app.modules.roxywi.class_models import (
-    BaseResponse, IdResponse, IdDataResponse, ServerRequest, GroupQuery, GroupRequest, CredRequest, CredUploadRequest
-)
+from app.modules.roxywi.class_models import BaseResponse, IdResponse, IdDataResponse, ServerRequest, GroupQuery, GroupRequest
 from app.modules.common.common_classes import SupportClass
 
 

@@ -4,7 +4,7 @@ from typing import Optional, Annotated, Union, Literal, Any, Dict, List
 
 from shlex import quote
 from pydantic_core import CoreSchema, core_schema
-from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, AnyUrl, root_validator, GetCoreSchemaHandler
+from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, GetCoreSchemaHandler
 
 DomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
 
@@ -263,3 +263,9 @@ class GitBackupRequest(BaseModel):
     time: Optional[EscapedString] = 'weekly'
     cred_id: Optional[int] = None
     description: Optional[EscapedString] = None
+
+
+class PortScannerRequest(BaseModel):
+    enabled: Optional[bool] = 1
+    history: Optional[bool] = 1
+    notify: Optional[bool] = 1

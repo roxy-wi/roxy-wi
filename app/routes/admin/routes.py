@@ -5,7 +5,6 @@ from flask_jwt_extended import jwt_required
 from app import scheduler
 from app.routes.admin import bp
 import app.modules.db.sql as sql
-import app.modules.db.cred as cred_sql
 import app.modules.db.user as user_sql
 import app.modules.db.group as group_sql
 import app.modules.db.server as server_sql

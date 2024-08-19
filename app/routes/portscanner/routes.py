@@ -5,7 +5,6 @@ from app.routes.portscanner import bp
 from app.middleware import get_user_params
 import app.modules.db.server as server_sql
 import app.modules.db.portscanner as ps_sql
-import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.common as tools_common
@@ -60,22 +59,17 @@ def portscanner_history(server_ip):
 
 @bp.post('/settings')
 def change_settings_portscanner():
-    server_id = common.checkAjaxInput(request.form.get('server_id'))
-    enabled = common.checkAjaxInput(request.form.get('enabled'))
-    notify = common.checkAjaxInput(request.form.get('notify'))
-    history = common.checkAjaxInput(request.form.get('history'))
-    user_group_id = [server[3] for server in server_sql.select_servers(id=server_id)]
+    server_id = int(request.form.get('server_id'))
+    enabled = int(request.form.get('enabled'))
+    notify = int(request.form.get('notify'))
+    history = int(request.form.get('history'))
+    server = server_sql.get_server_by_id(server_id)
 
     try:
-        if ps_sql.insert_port_scanner_settings(server_id, user_group_id[0], enabled, notify, history):
-            return 'ok'
-        else:
-            if ps_sql.update_port_scanner_settings(server_id, user_group_id[0], enabled, notify, history):
-                return 'ok'
+        ps_sql.insert_port_scanner_settings(server_id, server.group_id, enabled, notify, history)
+        return 'ok'
     except Exception as e:
         return f'error: Cannot save settings: {e}'
-    else:
-        return 'ok'
 
 
 @bp.post('/scan')

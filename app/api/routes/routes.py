@@ -14,6 +14,7 @@ from app.views.user.views import UserView, UserGroupView, UserRoles
 from app.views.udp.views import UDPListener, UDPListeners, UDPListenerActionView
 from app.views.channel.views import ChannelView, ChannelsView
 from app.views.tools.views import CheckerView
+from app.views.tools.port_scanner_views import PortScannerView, PortScannerPortsView
 from app.views.admin.views import SettingsView
 from app.modules.roxywi.class_models import LoginRequest
 import app.modules.roxywi.auth as roxywi_auth
@@ -67,6 +68,10 @@ bp.add_url_rule('/server/<server_id>/ip', view_func=ServerIPView.as_view('server
 bp.add_url_rule('/server/<int:server_id>/ip', view_func=ServerIPView.as_view('server_ip'), methods=['GET'])
 register_api(CredView, 'cred', '/server/cred', 'cred_id')
 bp.add_url_rule('/server/creds', view_func=CredsView.as_view('creds'), methods=['GET'])
+bp.add_url_rule('/server/portscanner/<server_id>', view_func=PortScannerView.as_view('port_scanner_ip'), methods=['GET', 'POST'])
+bp.add_url_rule('/server/portscanner/<int:server_id>', view_func=PortScannerView.as_view('port_scanner'), methods=['GET', 'POST'])
+bp.add_url_rule('/server/portscanner/<server_id>/ports', view_func=PortScannerPortsView.as_view('port_scanner_ports_ip'), methods=['GET'])
+bp.add_url_rule('/server/portscanner/<int:server_id>/ports', view_func=PortScannerPortsView.as_view('port_scanner_ports'), methods=['GET'])
 bp.add_url_rule('/servers', view_func=ServersView.as_view('servers'), methods=['GET'])
 
 register_api(ServerGroupView, 'group', '/group', 'group_id')

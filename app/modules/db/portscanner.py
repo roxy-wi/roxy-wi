@@ -1,6 +1,7 @@
-from app.modules.db.db_model import connect, fn, PortScannerPorts, PortScannerSettings, PortScannerHistory
+from app.modules.db.db_model import fn, PortScannerPorts, PortScannerSettings, PortScannerHistory
 from app.modules.db.common import out_error
 import app.modules.roxy_wi_tools as roxy_wi_tools
+from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
 def delete_port_scanner_settings(server_id):
@@ -25,14 +26,20 @@ def select_port_scanner_settings(user_group):
 		return query_res
 
 
-def select_port_scanner_settings_for_service():
-	query = PortScannerSettings.select()
+def get_port_scanner_settings(server_id: int) -> PortScannerSettings:
 	try:
-		query_res = query.execute()
+		return PortScannerSettings.get(PortScannerSettings.server_id == server_id)
+	except PortScannerSettings.DoesNotExist:
+		raise RoxywiResourceNotFound
+	except Exception as e:
+		return out_error(e)
+
+
+def select_port_scanner_settings_for_service():
+	try:
+		return PortScannerSettings.select().execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		return query_res
 
 
 def insert_port_scanner_port(serv, user_group_id, port, service_name):
@@ -48,17 +55,10 @@ def insert_port_scanner_port(serv, user_group_id, port, service_name):
 
 
 def select_ports(serv):
-	conn = connect()
-	cursor = conn.cursor()
-	sql = """select port from port_scanner_ports where serv = '%s' """ % serv
-
 	try:
-		cursor.execute(sql)
+		return PortScannerPorts.select(PortScannerPorts.port).where(PortScannerPorts.serv == serv).execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		conn.close()
-		return cursor.fetchall()
 
 
 def select_port_name(serv, port):
@@ -74,9 +74,8 @@ def select_port_name(serv, port):
 
 
 def delete_ports(serv):
-	query = PortScannerPorts.delete().where(PortScannerPorts.serv == serv)
 	try:
-		query.execute()
+		PortScannerPorts.delete().where(PortScannerPorts.serv == serv).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -96,21 +95,9 @@ def insert_port_scanner_settings(server_id, user_group_id, enabled, notify, hist
 	try:
 		PortScannerSettings.insert(
 			server_id=server_id, user_group_id=user_group_id, enabled=enabled, notify=notify, history=history
-		).execute()
-		return True
-	except Exception:
-		return False
-
-
-def update_port_scanner_settings(server_id, user_group_id, enabled, notify, history):
-	query = PortScannerSettings.update(
-		user_group_id=user_group_id, enabled=enabled, notify=notify, history=history
-	).where(PortScannerSettings.server_id == server_id)
-	try:
-		query.execute()
+		).on_conflict('replace').execute()
 	except Exception as e:
 		out_error(e)
-
 
 
 def select_count_opened_ports(serv):
@@ -140,10 +127,7 @@ def delete_portscanner_history(keep_interval: int):
 
 
 def select_port_scanner_history(serv):
-	query = PortScannerHistory.select().where(PortScannerHistory.serv == serv)
 	try:
-		query_res = query.execute()
+		return PortScannerHistory.select().where(PortScannerHistory.serv == serv).execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		return query_res

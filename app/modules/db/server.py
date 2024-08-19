@@ -111,12 +111,9 @@ def is_system_info(server_id):
 
 def select_os_info(server_id):
 	try:
-		query_res = SystemInfo.get(SystemInfo.server_id == server_id).os_info
+		return SystemInfo.get(SystemInfo.server_id == server_id).os_info
 	except Exception as e:
 		out_error(e)
-		return
-	else:
-		return query_res
 
 
 def update_firewall(serv):

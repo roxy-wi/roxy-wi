@@ -42,6 +42,7 @@ def load_channels():
 
 
 @bp.post('/check')
+@get_user_params()
 def check_sender():
     json_data = request.get_json()
     sender = json_data.get('sender')

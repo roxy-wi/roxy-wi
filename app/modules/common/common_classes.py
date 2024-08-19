@@ -7,6 +7,7 @@ import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi.class_models import ServerRequest, GroupQuery, CredRequest, ChannelRequest
 from app.middleware import get_user_params
 
+
 class SupportClass:
     def __init__(self, is_id=True):
         self.is_id = is_id
