@@ -2,6 +2,7 @@
 {% block title %}{{ lang.menu_links.versions.h2 }} {{ lang.words[service] }}{% endblock %}
 {% block h2 %}{{ lang.menu_links.versions.h2 }} {{ lang.words[service] }}{% endblock %}
 {% block content %}
+    <script src="/static/js/configshow.js"></script>
 	<p>
 		<form action="/config/versions/{{service}}/{{serv}}" method="post" class="left-space">
 			<input type="hidden" id="service" value="{{service}}">
@@ -9,19 +10,6 @@
 			<button type="submit" value="open" name="open" class="btn btn-default">{{lang.words.open|title()}}</button>
 		</form>
 	</p>
-	{% if not aftersave %}
-		{% if stderr %}
-			{% include 'include/errors.html' %}
-		{% endif %}
 		<div id="config_version_div"></div>
 		<script>showListOfVersion(0)</script>
-	{% endif %}
-	{% if aftersave %}
-		<div class="alert alert-info alert-two-row">{{lang.phrases.version_has_been_uploaded}}: {{ configver }} </div>
-		{% if 'is valid' not in stderr %}
-			{% include 'include/errors.html' %}	
-		{% else %}
-			<div class="alert alert-success">{{lang.words.config|title()}} {{lang.words.is}} {{lang.words.valid}}</div>
-		{% endif %}
-	{% endif %}
 {% endblock %}

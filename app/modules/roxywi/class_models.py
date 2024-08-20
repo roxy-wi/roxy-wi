@@ -181,6 +181,10 @@ class ConfigFileNameQuery(BaseModel):
     version: Optional[str] = None
 
 
+class VersionsForDelete(BaseModel):
+    versions: List[str]
+
+
 class ConfigRequest(BaseModel):
     action: Literal['save', 'test', 'reload', 'restart']
     file_name: Optional[str] = None

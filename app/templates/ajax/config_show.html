@@ -368,7 +368,7 @@
 	<br>
 		{% if role <= 3 %}
 		{% if not is_serv_protected or role <= 2 %}
-		<form action="/config/versions/{{service}}/{{serv}}/{{configver}}/save" method="post" class="left-space">
+		<form action="/config/versions/{{service}}/{{serv}}/{{configver}}/save" id="save_version" method="post" class="left-space">
 			<input type="hidden" value="{{serv}}" name="serv">
 			<input type="hidden" value="{{service}}" name="service">
 			<input type="hidden" value="{{configver}}" name="configver">
@@ -405,5 +405,4 @@
 		function expand_button(event) {
 			$("#expand_link").click();
 		}
-
 	</script>

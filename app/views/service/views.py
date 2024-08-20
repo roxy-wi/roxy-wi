@@ -1,3 +1,4 @@
+import os
 from typing import Union, Literal
 
 from flask.views import MethodView
@@ -6,6 +7,7 @@ from flask import jsonify, g
 from flask_jwt_extended import jwt_required
 
 import app.modules.db.sql as sql
+import app.modules.db.config as config_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
 import app.modules.roxywi.common as roxywi_common
@@ -16,7 +18,8 @@ import app.modules.service.action as service_action
 import app.modules.service.common as service_common
 from app.middleware import get_user_params, page_for_admin, check_group, check_services
 from app.modules.roxywi.exception import RoxywiResourceNotFound
-from app.modules.roxywi.class_models import BaseResponse, ErrorResponse, DataResponse, DataStrResponse, ConfigFileNameQuery, ConfigRequest
+from app.modules.roxywi.class_models import BaseResponse, ErrorResponse, DataResponse, DataStrResponse, \
+    ConfigFileNameQuery, ConfigRequest, VersionsForDelete
 from app.modules.common.common_classes import SupportClass
 
 
@@ -404,10 +407,10 @@ class ServiceConfigView(MethodView):
 
 
 class ServiceConfigVersionsView(MethodView):
-    methods = ['GET', 'POST']
+    methods = ['GET', 'POST', 'DELETE']
     decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=4), check_group()]
 
-    def get(self, service, server_id: Union[int, str]):
+    def get(self, service: str, server_id: Union[int, str]):
         """
         This endpoint returns a list of configuration file versions for a specified service on a specific server.
         ---
@@ -439,3 +442,74 @@ class ServiceConfigVersionsView(MethodView):
         file_format = config_common.get_file_format(service)
         files = roxywi_common.get_files(config_dir, file_format, server_ip)
         return DataResponse(data=files).model_dump(mode='json')
+
+    @validate(body=VersionsForDelete)
+    def delete(self, service: str, server_id: Union[int, str], body: VersionsForDelete):
+        """
+        This endpoint deletes specified configuration file versions for a particular service on a specific server.
+        ---
+        tags:
+          - Service config
+        parameters:
+          - in: path
+            name: service
+            type: string
+            enum: [haproxy, nginx, apache, keepalived]
+            required: true
+            description: The type of service (haproxy, nginx, apache, keepalived)
+          - in: path
+            name: server_id
+            type: string
+            required: true
+            description: The ID or IP of the server
+          - in: body
+            name: body
+            description: JSON array of paths to version files to be deleted
+            schema:
+              type: array
+              items:
+                type: string
+                description: Path to the version file
+            required: true
+        responses:
+          204:
+            description: 'Successful operation, specified configuration file versions are deleted'
+          400:
+            description: 'Invalid service type or server ID'
+          404:
+            description: 'Service or server not found'
+          500:
+            description: 'Internal server error'
+        """
+        file = set()
+        file_format = config_common.get_file_format(service)
+
+        try:
+            server_ip = SupportClass(False).return_server_ip_or_id(server_id)
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e ,'')
+
+        for get in body.versions:
+            if file_format in get and server_ip in get:
+                try:
+                    if config_sql.delete_config_version(service, get):
+                        try:
+                            os.remove(get)
+                        except OSError as e:
+                            if 'No such file or directory' in str(e):
+                                pass
+                    else:
+                        config_dir = config_common.get_config_dir('haproxy')
+                        os.remove(os.path.join(config_dir, get))
+                    try:
+                        file.add(get + "\n")
+                        roxywi_common.logging(
+                            server_ip, f"Version of config has been deleted: {get}", login=1, keep_history=1,
+                            service=service
+                        )
+                    except Exception:
+                        pass
+                except OSError as e:
+                    return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete config version')
+
+        return BaseResponse().model_dump(mode='json'), 204

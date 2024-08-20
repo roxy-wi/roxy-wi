@@ -17,10 +17,11 @@ import app.modules.config.common as config_common
 import app.modules.config.section as section_mod
 import app.modules.service.haproxy as service_haproxy
 import app.modules.server.server as server_mod
-from app.views.service.views import ServiceConfigView
+from app.views.service.views import ServiceConfigView, ServiceConfigVersionsView
 from app.modules.roxywi.class_models import DataStrResponse
 
 bp.add_url_rule('/<service>/<server_id>', view_func=ServiceConfigView.as_view('config_view_ip'), methods=['POST'])
+bp.add_url_rule('/<service>/<server_id>/versions', view_func=ServiceConfigVersionsView.as_view('config_version'), methods=['DELETE'])
 
 
 @bp.before_request
@@ -136,48 +137,16 @@ def config(service, serv, edit, config_file_name, new):
     return render_template('config.html', **kwargs)
 
 
-@bp.route('/versions/<service>', defaults={'server_ip': None}, methods=['GET', 'POST'])
-@bp.route('/versions/<service>/<server_ip>', methods=['GET', 'POST'])
+@bp.route('/versions/<service>', defaults={'server_ip': None}, methods=['GET'])
+@bp.route('/versions/<service>/<server_ip>', methods=['GET'])
 @check_services
 @get_user_params(disable=1)
 def versions(service, server_ip):
     roxywi_auth.page_for_admin(level=3)
-    after_save = ''
-    file = set()
-    stderr = ''
-    file_format = config_common.get_file_format(service)
-
-    if request.form.get('del'):
-        after_save = 1
-        for get in request.form.getlist('do_delete'):
-            if file_format in get and server_ip in get:
-                try:
-                    if config_sql.delete_config_version(service, get):
-                        try:
-                            os.remove(get)
-                        except OSError as e:
-                            if 'No such file or directory' in str(e):
-                                pass
-                    else:
-                        config_dir = config_common.get_config_dir('haproxy')
-                        os.remove(os.path.join(config_dir, get))
-                    try:
-                        file.add(get + "\n")
-                        roxywi_common.logging(
-                            server_ip, f"Version of config has been deleted: {get}", login=1, keep_history=1,
-                            service=service
-                        )
-                    except Exception:
-                        pass
-                except OSError as e:
-                    stderr = "Error: %s - %s." % (e.filename, e.strerror)
 
     kwargs = {
         'serv': server_ip,
-        'aftersave': after_save,
-        'file': file,
         'service': service,
-        'stderr': stderr,
         'lang': g.user_params['lang']
     }
     return render_template('delver.html', **kwargs)
@@ -193,46 +162,46 @@ def list_of_version(service):
     return config_mod.list_of_versions(server_ip, service, config_ver, for_delver)
 
 
-@bp.route('/versions/<service>/<server_ip>/<configver>', defaults={'save': None}, methods=['GET', 'POST'])
-@bp.route('/versions/<service>/<server_ip>/<configver>/save', defaults={'save': 1}, methods=['GET', 'POST'])
+@bp.route('/versions/<service>/<server_ip>/<configver>', methods=['GET'])
 @check_services
 @get_user_params(disable=1)
-def show_version(service, server_ip, configver, save):
+def show_version(service, server_ip, configver):
     roxywi_auth.page_for_admin(level=3)
-    service_desc = service_sql.select_service(service)
-    config_dir = config_common.get_config_dir('haproxy')
-    configver = config_dir + configver
-    aftersave = 0
-    stderr = ''
-
-    if save:
-        aftersave = 1
-        save_action = request.form.get('save')
-        try:
-            roxywi_common.logging(
-                server_ip, f"Version of config has been uploaded {configver}", login=1, keep_history=1, service=service
-            )
-        except Exception:
-            pass
-
-        if service == 'keepalived':
-            stderr = config_mod.upload_and_restart(server_ip, configver, save_action, service)
-        elif service in ('nginx', 'apache'):
-            config_file_name = config_sql.select_remote_path_from_version(server_ip=server_ip, service=service, local_path=configver)
-            stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service_desc.slug, config_file_name=config_file_name)
-        else:
-            stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service)
 
     kwargs = {
         'serv': server_ip,
-        'aftersave': aftersave,
-        'configver': configver,
         'service': service,
-        'stderr': stderr,
         'lang': g.user_params['lang']
     }
 
     return render_template('configver.html', **kwargs)
+
+
+@bp.route('/versions/<service>/<server_ip>/<configver>/save', methods=['POST'])
+@check_services
+@get_user_params()
+def save_version(service, server_ip, configver):
+    roxywi_auth.page_for_admin(level=3)
+    config_dir = config_common.get_config_dir('haproxy')
+    configver = config_dir + configver
+    service_desc = service_sql.select_service(service)
+    save_action = request.json.get('action')
+    try:
+        roxywi_common.logging(
+            server_ip, f"Version of config has been uploaded {configver}", login=1, keep_history=1, service=service
+        )
+    except Exception:
+        pass
+
+    if service == 'keepalived':
+        stderr = config_mod.upload_and_restart(server_ip, configver, save_action, service)
+    elif service in ('nginx', 'apache'):
+        config_file_name = config_sql.select_remote_path_from_version(server_ip=server_ip, service=service, local_path=configver)
+        stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service_desc.slug, config_file_name=config_file_name)
+    else:
+        stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service)
+
+    return DataStrResponse(data=stderr).model_dump(mode='json'), 201
 
 
 @bp.route('/section/haproxy/<server_ip>')

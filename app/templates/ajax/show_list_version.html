@@ -1,5 +1,6 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang1 %}
 {% from 'include/input_macros.html' import copy_to_clipboard %}
+<script src="/static/js/configshow.js"></script>
 {% if for_delver == '1' %}
 <script>
     $(document).ready(function() {
@@ -47,7 +48,7 @@
         margin: 0;
     }
 </style>
-<form action="{{action}}" method="post">
+<form action="/config/{{ service }}/{{ server_ip }}/versions" method="delete" id="delete_versions_form">
     <table class="overview hover order-column display compact" id="table_version">
         <thead>
         <tr class="overviewHead">
@@ -76,7 +77,7 @@
         <tr>
             <td style="padding-left: 15px">
                 <label for="{{c.id}}" id="select_{{c.id}}"></label>
-                <input type="checkbox" value="{{c.local_path}}" name="do_delete" id="{{c.id}}">
+                <input type="checkbox" value="{{c.local_path}}" name="versions" id="{{c.id}}">
             </td>
             <td>
                 {% for u in users %}

@@ -288,7 +288,7 @@ def select_table_metrics(group_id):
 				avg_cur_1h, avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
 				(select servers.ip from servers where haproxy_metrics = 1 ) as ip,
 
-				(select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.metrics = 1 %s) as hostname,
+				(select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.haproxy_metrics = 1 %s) as hostname,
 
 				(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_1h from servers
 				left join metrics as metr on metr.serv = servers.ip
@@ -383,7 +383,7 @@ def select_table_metrics(group_id):
 			avg_cur_24h, avg_cur_3d, max_con_1h, max_con_24h, max_con_3d from
 		(select servers.ip from servers where haproxy_metrics = 1 ) as ip,
 
-		(select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.metrics = 1 %s) as hostname,
+		(select servers.ip, servers.hostname as hostname from servers left join metrics as metr on servers.ip = metr.serv where servers.haproxy_metrics = 1 %s) as hostname,
 
 		(select servers.ip,round(avg(metr.sess_rate), 1) as avg_sess_1h from servers
 		left join metrics as metr on metr.serv = servers.ip

@@ -55,7 +55,7 @@ bp.add_url_rule('/ha/<service>/<int:cluster_id>/vips', view_func=HAVIPsView.as_v
 register_api_id_ip(ServiceView, 'service', '/status', ['GET'])
 register_api_id_ip(ServiceBackendView, 'service_backend', '/backend', ['GET'])
 register_api_id_ip(ServiceConfigView, 'config_view')
-register_api_id_ip(ServiceConfigVersionsView, 'config_version', '/versions', methods=['GET'])
+register_api_id_ip(ServiceConfigVersionsView, 'config_version', '/versions', methods=['GET', 'DELETE'])
 register_api_id_ip(CheckerView, 'checker', '/tools')
 register_api_id_ip(InstallView, 'install', '/install', methods=['POST'])
 register_api_id_ip(ServiceActionView, 'service_action', '/<any(start, stop, reload, restart):action>', methods=['GET'])

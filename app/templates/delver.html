@@ -18,25 +18,11 @@
 			{% endif %}
 		</form>
 	</p>
-	{% if aftersave %}
-		<div class="alert alert-info"><b>{{lang.phrases.files_been_deleted}}:</b><br /> </div>
-		{% if stderr %}
-			{% include 'include/errors.html' %}
-		{% else %}
-			<div class="alert alert-success" style="margin-left: var(--indent);">
-			{% for f in file %}
-				{{f}}
-			{% endfor %}
-			</div>
-		{% endif %}
-	{% endif %}
 	<div id="config_version_div"></div>
-	{% if not aftersave %}
 		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px; margin-top: 40%">
 			{{lang.phrases.work_with_prev}} {{ service[0]|upper}}{{service[1:] }}. {{lang.phrases.roll_back}}
 		</div>
-	{% endif %}
-	{% if serv and not aftersave %}
+	{% if serv %}
 	{% for select in g.user_params['servers'] %}
 		{% if select.2 == serv %}
 			<script>showListOfVersion(1)</script>
