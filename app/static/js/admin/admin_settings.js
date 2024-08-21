@@ -78,9 +78,6 @@ function updateSettings(param, section, val) {
 		'param': param,
 		'value': val
 	}
-	if (section === 'smon') {
-		section = 'rmon';
-	}
 	$.ajax({
 		url: "/admin/settings/" + section,
 		data: JSON.stringify(json_data),

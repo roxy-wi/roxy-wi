@@ -186,7 +186,7 @@ def telegram_send_mess(mess, level, **kwargs):
 		channel_name = telegram.chanel_name
 
 	if token_bot == '' or channel_name == '':
-		mess = " Can't send message. Add Telegram channel before use alerting at this servers group"
+		mess = "Can't send message. Add Telegram channel before use alerting at this servers group"
 		roxywi_common.logging('Roxy-WI server', mess, roxywi=1)
 
 	if proxy is not None and proxy != '' and proxy != 'None':
