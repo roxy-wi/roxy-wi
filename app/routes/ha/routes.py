@@ -1,6 +1,7 @@
 from flask import render_template, g, request
 from flask_jwt_extended import jwt_required
 
+from app.modules.roxywi.exception import RoxywiResourceNotFound
 from app.routes.ha import bp
 from app.middleware import get_user_params, check_services
 import app.modules.db.ha_cluster as ha_sql
@@ -25,11 +26,18 @@ def before_request():
 @check_services
 @get_user_params()
 def get_ha_cluster(service, cluster_id):
-    router_id = ha_sql.get_router_id(cluster_id, default_router=1)
+    try:
+        router_id = ha_sql.get_router_id(cluster_id, default_router=1)
+    except RoxywiResourceNotFound:
+        router_id = None
+    if router_id:
+        slaves = ha_sql.select_cluster_slaves(cluster_id, router_id)
+    else:
+        slaves = {}
     kwargs = {
         'servers': roxywi_common.get_dick_permit(virt=1),
         'clusters': ha_sql.select_cluster(cluster_id),
-        'slaves': ha_sql.select_cluster_slaves(cluster_id, router_id),
+        'slaves': slaves,
         'virts': ha_sql.select_clusters_virts(),
         'vips': ha_sql.select_cluster_vips(cluster_id),
         'cluster_services': ha_sql.select_cluster_services(cluster_id),
@@ -103,15 +111,17 @@ def show_ha_cluster(service, cluster_id):
     return render_template('service.html', **kwargs)
 
 
-@bp.route('/<service>/slaves/<int:cluster_id>', methods=['GET', 'POST'])
+@bp.route('/<service>/slaves/<int:cluster_id>/<int:vip_id>', methods=['GET', 'POST'])
 @check_services
 @get_user_params()
-def get_slaves(service, cluster_id):
+def get_slaves(service, cluster_id, vip_id):
     lang = g.user_params['lang']
     if request.method == 'GET':
         router_id = ha_sql.get_router_id(cluster_id, default_router=1)
     else:
-        router_id = int(request.form.get('router_id'))
+        # router_id = int(request.form.get('router_id'))
+        vip = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)
+        router_id = vip.router_id
     slaves = ha_sql.select_cluster_slaves(cluster_id, router_id)
 
     return render_template('ajax/ha/add_vip_slaves.html', lang=lang, slaves=slaves)

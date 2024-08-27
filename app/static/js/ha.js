@@ -116,11 +116,11 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 	if (edited && clean) {
 		let master_name = $('#master-server-'+cluster_id).text();
 		let master_ip = $('#master-ip-'+cluster_id).text();
+		let master_id = $('#master-id-'+cluster_id).text();
 		$("#ha-cluster-master option").not(master_name).each(function (index) {
 			$(this).prop('disabled', true);
 		});
-		$('#ha-cluster-master').append('<option value="' + master_ip + '" selected="selected">' + master_name + '</option>').selectmenu("refresh");
-		$('#ha-cluster-master').selectmenu("refresh");
+		$('#ha-cluster-master').append('<option value="' + master_ip + '" selected="selected" data-id="'+master_id+'">' + master_name + '</option>').selectmenu("refresh");
 		get_keepalived_ver($('#cur_master_ver'), master_ip);
 		$.ajax({
 			url: api_prefix + "/ha/cluster/" + cluster_id,
@@ -500,14 +500,14 @@ function increaseProgressValue(progress_step) {
 	}
 	$(progress_id).css('width', new_progress+'%');
 }
-function add_vip_ha_cluster(cluster_id, cluster_name, router_id='', vip='', edited=0) {
+function add_vip_ha_cluster(cluster_id, cluster_name, vip_id='', vip='', edited=0) {
 	let save_word = translate_div.attr('data-save');
 	let tabel_title = $("#add-vip-table").attr('title');
 	let buttons = [];
 	let req_method = 'GET';
 	if (edited) {
 		$.ajax({
-			url: api_prefix + "/ha/cluster/" + cluster_id + "/vip/" + router_id,
+			url: api_prefix + "/ha/cluster/" + cluster_id + "/vip/" + vip_id,
 			type: "GET",
 			async: false,
 			success: function (data) {
@@ -544,7 +544,7 @@ function add_vip_ha_cluster(cluster_id, cluster_name, router_id='', vip='', edit
 				if (!validateSlaves(jsonData)) {
 					return false;
 				}
-				saveVip(jsonData, cluster_id, $(this), cluster_name, edited, router_id, vip);
+				saveVip(jsonData, cluster_id, $(this), edited, vip_id);
 				toastr.clear();
 			}
 		}, {
@@ -555,7 +555,7 @@ function add_vip_ha_cluster(cluster_id, cluster_name, router_id='', vip='', edit
 					return false;
 				}
 				jsonData = createJsonVip('#vip_servers div span');
-				saveVip(jsonData, cluster_id, $(this), cluster_name, edited, router_id, vip, true);
+				saveVip(jsonData, cluster_id, $(this), edited, vip_id, true);
 				toastr.clear();
 			}
 		}, {
@@ -578,7 +578,7 @@ function add_vip_ha_cluster(cluster_id, cluster_name, router_id='', vip='', edit
 				if (!validateSlaves(jsonData)) {
 					return false;
 				}
-				saveVip(jsonData, cluster_id, $(this), cluster_name, edited, router_id, vip);
+				saveVip(jsonData, cluster_id, $(this), edited, vip_id);
 				toastr.clear();
 			}
 		}, {
@@ -591,10 +591,7 @@ function add_vip_ha_cluster(cluster_id, cluster_name, router_id='', vip='', edit
 		}]
 	}
 	$.ajax({
-		url: "/ha/cluster/slaves/" + cluster_id,
-		data: {
-			router_id: router_id,
-		},
+		url: "/ha/cluster/slaves/" + cluster_id + "/" + vip_id,
 		type: req_method,
 		success: function (data) {
 			if (data.indexOf('error:') != '-1') {
@@ -627,7 +624,7 @@ function add_vip_ha_cluster(cluster_id, cluster_name, router_id='', vip='', edit
 	});
 	dialog_div.dialog('open');
 }
-function saveVip(jsonData, cluster_id, dialog_id, cluster_name, edited, router_id='', vip='', deleted=false) {
+function saveVip(jsonData, cluster_id, dialog_id, edited, vip_id='', deleted=false) {
 	let req_type = 'POST'
 	let return_master = 0
 	let virt_server = 0
@@ -645,15 +642,14 @@ function saveVip(jsonData, cluster_id, dialog_id, cluster_name, edited, router_i
 	jsonData['return_master'] = return_master;
 	jsonData['virt_server'] = virt_server;
 	jsonData['use_src'] = use_src;
-	jsonData['name'] = cluster_name;
 	let url = api_prefix + "/ha/cluster/" + cluster_id + "/vip";
 	if (edited) {
 		req_type = 'PUT';
-		jsonData['router_id'] = router_id;
+		url = api_prefix + "/ha/cluster/" + cluster_id + "/vip/" + vip_id;
 	}
 	if (deleted) {
 		req_type = 'DELETE';
-		url = api_prefix + "/ha/cluster/" + router_id + "/vip"
+		url = api_prefix + "/ha/cluster/" + cluster_id + "/vip/" + vip_id;
 	}
 	$.ajax({
 		url: url,
@@ -759,18 +755,18 @@ function createJsonCluster(div_id) {
 	let jsonData = {};
 	jsonData = {'servers': []};
 	jsonData['servers'].push({
-		'id': 1,
+		'id': $('#ha-cluster-master option:selected').attr('data-id'),
 		'eth': $('#ha-cluster-master-interface').val(),
-		'ip': $('#ha-cluster-master option:selected').val(),
-		'name': $('#ha-cluster-master option:selected').text(),
+		// 'ip': $('#ha-cluster-master option:selected').val(),
+		// 'name': $('#ha-cluster-master option:selected').text(),
 		'master': 1
 	});
 	$(div_id).each(function () {
 		let this_id = $(this).attr('id').split('-')[1];
 		let eth = $('#slave_int-' + this_id).val();
-		let ip = $('#slave_int_div-' + this_id).attr('data-ip');
-		let name = $('#slave_int_div-' + this_id).parent().text().replace('\n','').replace('\t','').trim();
-		jsonData['servers'].push({'id': this_id, 'eth': eth, 'ip': ip, 'name': name, 'master': 0});
+		// let ip = $('#slave_int_div-' + this_id).attr('data-ip');
+		// let name = $('#slave_int_div-' + this_id).parent().text().replace('\n','').replace('\t','').trim();
+		jsonData['servers'].push({'id': this_id, 'eth': eth, 'master': 0});
 	});
 	return jsonData;
 }
@@ -780,21 +776,22 @@ function createJsonVip(div_id) {
 	$(div_id).each(function () {
 		let this_id = $(this).attr('id').split('-')[1];
 		let eth1 = $('#slave_int-' + this_id).val();
-		let ip1 = $('#slave_int_div-' + this_id).attr('data-ip');
-		let name1 = $('#slave_int_div-' + this_id).parent().text().replace('\n','').replace('\t','').trim();
+		// let ip1 = $('#slave_int_div-' + this_id).attr('data-ip');
+		// let name1 = $('#slave_int_div-' + this_id).parent().text().replace('\n','').replace('\t','').trim();
 		let eth = $('#master_int-' + this_id).val();
-		let ip = $('#master_int_div-' + this_id).attr('data-ip');
-		let name = $('#master_int_div-' + this_id).parent().text().replace('\n','').replace('\t','').trim();
+		// let ip = $('#master_int_div-' + this_id).attr('data-ip');
+		// let name = $('#master_int_div-' + this_id).parent().text().replace('\n','').replace('\t','').trim();
 		if (eth) {
-			jsonData['servers'].push({'id': this_id, 'eth': eth, 'ip': ip, 'name': name, 'master': 1});
+			jsonData['servers'].push({'id': this_id, 'eth': eth, 'master': 1});
 		} else {
-			jsonData['servers'].push({'id': this_id,'eth': eth1, 'ip': ip1, 'name': name1, 'master': 0});
+			jsonData['servers'].push({'id': this_id,'eth': eth1, 'master': 0});
 		}
 	});
 
 	return jsonData;
 }
 function validateSlaves(jsonData) {
+	console.log(jsonData)
 	if (Object.keys(jsonData['servers']).length === 1) {
 		toastr.error('error: There is must be at least one slave server');
 		return false;

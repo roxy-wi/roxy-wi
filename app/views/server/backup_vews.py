@@ -85,6 +85,14 @@ class BackupView(MethodView):
             description: The configuration for backup service
             schema:
               type: 'object'
+              required:
+                - cred_id
+                - rhost
+                - rpath
+                - server
+                - rserver
+                - time
+                - type
               properties:
                 server:
                     type: 'string'
@@ -92,15 +100,19 @@ class BackupView(MethodView):
                 rserver:
                     type: 'string'
                     description: 'The remote server where backup files should be stored'
+                    example: 10.0.0.1
                 rpath:
                     type: 'string'
                     description: 'The path on the remote server where backup files should be stored'
+                    example: /var/backup/
                 type:
                     type: 'string'
                     description: 'Type of the operation'
+                    enum: [backup, synchronization]
                 time:
                     type: 'string'
                     description: 'The timing for the backup task'
+                    enum: [hourly, daily, weekly, monthly]
                 cred_id:
                     type: 'string'
                     description: 'Credentials ID for the backup task'
@@ -137,6 +149,14 @@ class BackupView(MethodView):
             description: The configuration for backup service
             schema:
               type: 'object'
+              required:
+                - cred_id
+                - rhost
+                - rpath
+                - server
+                - rserver
+                - time
+                - type
               properties:
                 server:
                     type: 'string'
@@ -144,15 +164,19 @@ class BackupView(MethodView):
                 rserver:
                     type: 'string'
                     description: 'The remote server where backup files should be stored'
+                    example: 10.0.0.1
                 rpath:
                     type: 'string'
                     description: 'The path on the remote server where backup files should be stored'
+                    example: /var/backup/
                 type:
                     type: 'string'
                     description: 'Type of the operation'
+                    enum: [backup, synchronization]
                 time:
                     type: 'string'
                     description: 'The timing for the backup task'
+                    enum: [hourly, daily, weekly, monthly]
                 cred_id:
                     type: 'string'
                     description: 'Credentials ID for the backup task'
@@ -282,6 +306,13 @@ class S3BackupView(MethodView):
             description: The configuration for S3 backup service
             schema:
               type: 'object'
+              required:
+                - s3_server
+                - server
+                - bucket
+                - secret_key
+                - access_key
+                - time
               properties:
                 s3_server:
                     type: 'string'
@@ -301,6 +332,7 @@ class S3BackupView(MethodView):
                 time:
                     type: 'string'
                     description: 'The timing for the S3 backup task'
+                    enum: [hourly, daily, weekly, monthly]
                 description:
                     type: 'string'
                     description: 'Description for the S3 backup configuration'
@@ -428,25 +460,37 @@ class GitBackupView(MethodView):
             description: The configuration for Git backup service
             schema:
               type: 'object'
+              required:
+                - cred_id
+                - server_id
+                - service_id
+                - init
+                - repo
+                - branch
+                - time
               properties:
                 server_id:
                     type: 'integer'
                     description: 'The ID of the server to backed up'
                 service_id:
                     type: 'integer'
-                    description: 'Service ID'
+                    description: 'Service ID: 1: HAProxy, 2: NGINX, 3: Keepalived, 4: Apache'
+                    example: 1
                 init:
                     type: 'integer'
                     description: 'Indicates whether to initialize the repository'
                 repo:
                     type: 'string'
                     description: 'The repository from where to fetch the data for backup'
+                    example: git@github.com:Example/haproxy_configs
                 branch:
                     type: 'string'
                     description: 'The branch to pull for backup'
+                    example: 'master'
                 time:
                     type: 'string'
                     description: 'The timing for the Git backup task'
+                    enum: [hourly, daily, weekly, monthly]
                 cred_id:
                     type: 'integer'
                     description: 'The ID of the credentials to be used for backup'

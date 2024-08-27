@@ -150,24 +150,17 @@ def select_service_id_by_slug(service_slug: str) -> int:
 
 
 def select_services():
-	query = Services.select()
 	try:
-		query_res = query.execute()
+		return Services.select().execute()
 	except Exception as e:
 		out_error(e)
-		return
-	else:
-		return query_res
 
 
-def select_service(slug: str) -> object:
+def select_service(slug: str) -> Services:
 	try:
-		query_res = Services.get(Services.slug == slug)
+		return Services.get(Services.slug == slug)
 	except Exception as e:
 		out_error(e)
-		return 'there is no service'
-	else:
-		return query_res
 
 
 def update_keepalived(serv):
@@ -179,11 +172,9 @@ def update_keepalived(serv):
 
 def select_apache(serv):
 	try:
-		apache = Server.get(Server.ip == serv).apache
+		return Server.get(Server.ip == serv).apache
 	except Exception as e:
 		out_error(e)
-	else:
-		return apache
 
 
 def update_apache(serv: str) -> None:
@@ -195,11 +186,9 @@ def update_apache(serv: str) -> None:
 
 def select_nginx(serv):
 	try:
-		query_res = Server.get(Server.ip == serv).nginx
+		return Server.get(Server.ip == serv).nginx
 	except Exception as e:
 		out_error(e)
-	else:
-		return query_res
 
 
 def update_nginx(serv: str) -> None:

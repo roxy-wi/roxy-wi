@@ -79,6 +79,9 @@ class UdpListenerRequest(BaseModel):
     lb_algo: Literal['rr', 'wrr', 'lc', 'wlc', 'sh', 'dh', 'wlc', 'lblc']
     check_enabled: Optional[bool] = 1
     reconfigure: Optional[bool] = 0
+    delay_loop: Optional[int] = 10
+    delay_before_retry: Optional[int] = 10
+    retry: Optional[int] = 3
 
 
 class UserPost(BaseModel):
@@ -144,9 +147,11 @@ class CredUploadRequest(BaseModel):
 class HAClusterServer(BaseModel):
     eth: EscapedString
     id: int
-    ip: Union[IPvAnyAddress, DomainName]
-    name: EscapedString
     master: Optional[bool] = 1
+
+
+class HAClusterServersRequest(BaseModel):
+    servers: List[HAClusterServer]
 
 
 class HAClusterService(BaseModel):
@@ -155,12 +160,10 @@ class HAClusterService(BaseModel):
 
 
 class HAClusterVIP(BaseModel):
-    name: EscapedString
     use_src: Optional[bool] = 1
     vip: IPvAnyAddress
     return_master: Optional[bool] = 1
     virt_server: Optional[bool] = 1
-    router_id: Optional[int] = None
     servers: List[HAClusterServer]
 
 
@@ -168,16 +171,16 @@ class HAClusterRequest(BaseModel):
     name: EscapedString
     description: Optional[EscapedString] = None
     return_master: Optional[bool] = 1
-    servers: List[HAClusterServer]
+    servers: Optional[List[HAClusterServer]] = None
     services: Dict[str, HAClusterService]
     syn_flood: Optional[bool] = 1
     use_src: Optional[bool] = 1
-    vip: IPvAnyAddress
+    vip: Optional[IPvAnyAddress] = None
     virt_server: Optional[bool] = 1
 
 
 class ConfigFileNameQuery(BaseModel):
-    file_name: Optional[str] = None
+    file_path: Optional[str] = None
     version: Optional[str] = None
 
 

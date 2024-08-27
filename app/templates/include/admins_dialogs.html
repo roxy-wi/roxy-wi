@@ -359,7 +359,9 @@
                 <select id="git-service" required>
                     <option disabled selected>------</option>
                     {% for s in services %}
+                        {% if s.service_id in (1, 2, 3, 4) %}
                         <option value="{{s.service_id}}">{{s.service}}</option>
+                        {% endif %}
                     {% endfor %}
                 </select>
 			</td>

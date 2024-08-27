@@ -9,9 +9,7 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.common.common as common
 import app.modules.service.ha_cluster as ha_cluster
 from app.middleware import get_user_params, page_for_admin, check_group, check_services
-from app.modules.roxywi.class_models import (
-    BaseResponse, IdResponse, HAClusterRequest, HAClusterVIP
-)
+from app.modules.roxywi.class_models import BaseResponse, IdResponse, HAClusterRequest, HAClusterVIP
 
 
 class HAView(MethodView):
@@ -128,6 +126,9 @@ class HAView(MethodView):
             name: body
             required: true
             schema:
+              required:
+                - name
+                - services
               type: object
               properties:
                 servers:
@@ -140,8 +141,8 @@ class HAView(MethodView):
                         type: 'string'
                       master:
                         type: 'integer'
-                      name:
-                        type: 'string'
+                      id:
+                        type: 'integer'
                 name:
                   type: string
                 description:
@@ -203,6 +204,9 @@ class HAView(MethodView):
             name: body
             required: true
             schema:
+              required:
+                - name
+                - services
               type: object
               properties:
                 servers:
@@ -215,8 +219,8 @@ class HAView(MethodView):
                         type: 'string'
                       master:
                         type: 'integer'
-                      name:
-                        type: 'string'
+                      id:
+                        type: 'integer'
                 name:
                   type: string
                 description:
@@ -240,8 +244,6 @@ class HAView(MethodView):
                         type: string
                       docker:
                         type: integer
-                router_id:
-                  type: string
         responses:
           201:
             description: HA cluster updated successfully
@@ -299,7 +301,7 @@ class HAVIPView(MethodView):
         self.group_id = g.user_params['group_id']
 
     @staticmethod
-    def get(service: str, cluster_id: int, router_id: int):
+    def get(service: str, cluster_id: int, vip_id: int):
         """
         This endpoint retrieves information about the specified VIP.
         ---
@@ -317,8 +319,8 @@ class HAVIPView(MethodView):
             required: true
             type: 'integer'
           - in: 'path'
-            name: 'router_id'
-            description: 'ID of the Router to retrieve'
+            name: 'vip_id'
+            description: 'ID of the VIP to retrieve'
             required: true
             type: 'integer'
         responses:
@@ -328,29 +330,13 @@ class HAVIPView(MethodView):
               type: object
               properties:
                 cluster_id:
-                  type: 'object'
-                  properties:
-                    description:
-                      type: 'string'
-                    group_id:
-                      type: 'integer'
-                    id:
-                      type: 'integer'
-                    name:
-                      type: 'string'
-                    pos:
-                      type: 'integer'
-                    syn_flood:
-                      type: 'integer'
+                  type: 'integer'
                 id:
                   type: 'integer'
                 return_master:
                   type: 'integer'
                 router_id:
-                  type: 'object'
-                  properties:
-                    id:
-                      type: 'integer'
+                  type: 'integer'
                 use_src:
                   type: 'integer'
                 vip:
@@ -359,8 +345,8 @@ class HAVIPView(MethodView):
             description: Unexpected error
         """
         try:
-            vip = ha_sql.select_cluster_vip(cluster_id, router_id)
-            settings = model_to_dict(vip)
+            vip = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)
+            settings = model_to_dict(vip, recurse=False)
             is_virt = ha_sql.check_ha_virt(vip.id)
             settings.setdefault('virt_server', is_virt)
             return jsonify(settings)
@@ -389,37 +375,29 @@ class HAVIPView(MethodView):
             name: body
             required: true
             schema:
+              required:
+                - servers
+                - vip
               type: object
               properties:
                 servers:
-                  type: object
-                  additionalProperties:
-                    type: object
+                  type: 'array'
+                  description: Must be at least 2 servers. One of them must be master = 1
+                  items:
+                    type: 'object'
                     properties:
-                      eth:
-                        type: string
-                      ip:
-                        type: string
-                      name:
-                        type: string
+                      id:
+                        type: 'integer'
                       master:
-                        type: integer
-                name:
-                  type: string
-                description:
-                  type: string
+                        type: 'integer'
                 vip:
                   type: string
                 virt_server:
                   type: integer
                 return_master:
-                  type: string
-                syn_flood:
                   type: integer
                 use_src:
                   type: integer
-                router_id:
-                  type: string
         responses:
           201:
             description: VIP created successfully
@@ -431,14 +409,14 @@ class HAVIPView(MethodView):
             description: Unexpected error
         """
         try:
-            ha_cluster.insert_vip(cluster_id, body, self.group_id)
-            return BaseResponse().model_dump(mode='json'), 201
+            vip_id = ha_cluster.insert_vip(cluster_id, body, self.group_id)
+            return IdResponse(id=vip_id).model_dump(mode='json'), 201
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create VIP')
 
 
     @validate(body=HAClusterVIP)
-    def put(self, service: str, cluster_id: int, body: HAClusterVIP):
+    def put(self, service: str, cluster_id: int, vip_id: int, body: HAClusterVIP):
         """
         This endpoint allows to update a VIP for HA cluster.
         ---
@@ -455,41 +433,38 @@ class HAVIPView(MethodView):
             description: 'ID of the HA cluster to update'
             required: true
             type: 'integer'
+          - in: 'path'
+            name: 'vip_id'
+            description: 'ID of the VIP to update'
+            required: true
+            type: 'integer'
           - in: body
             name: body
             required: true
             schema:
+              required:
+                - servers
+                - vip
               type: object
               properties:
                 servers:
-                  type: object
-                  additionalProperties:
-                    type: object
+                  type: 'array'
+                  description: Must be at least 2 servers. One of them must be master = 1
+                  items:
+                    type: 'object'
                     properties:
-                      eth:
-                        type: string
-                      ip:
-                        type: string
-                      name:
-                        type: string
+                      id:
+                        type: 'integer'
                       master:
-                        type: integer
-                name:
-                  type: string
-                description:
-                  type: string
+                        type: 'integer'
                 vip:
                   type: string
                 virt_server:
                   type: integer
                 return_master:
                   type: string
-                syn_flood:
-                  type: integer
                 use_src:
                   type: integer
-                router_id:
-                  type: string
         responses:
           201:
             description: VIP updated successfully
@@ -500,14 +475,15 @@ class HAVIPView(MethodView):
           default:
             description: Unexpected error
         """
+        vip = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)
         try:
-            ha_cluster.update_vip(cluster_id, body.router_id, body, self.group_id)
+            ha_cluster.update_vip(cluster_id, vip.router_id, body, self.group_id)
             return BaseResponse().model_dump(mode='json'), 201
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update VIP')
 
     @staticmethod
-    def delete(service: str, router_id: int):
+    def delete(service: str, cluster_id: int, vip_id: int):
         """
         Delete a VIP
         ---
@@ -520,7 +496,12 @@ class HAVIPView(MethodView):
             required: true
             type: 'string'
           - in: 'path'
-            name: 'router_id'
+            name: 'cluster_id'
+            description: 'ID of the HA cluster to delete VIP from'
+            required: true
+            type: 'integer'
+          - in: 'path'
+            name: 'vip_id'
             description: 'ID of the VIP to delete'
             required: true
             type: 'integer'
@@ -532,11 +513,12 @@ class HAVIPView(MethodView):
           404:
              description: VIP not found
         """
-        router = ha_sql.get_router(router_id)
+        vip = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)
+        router = ha_sql.get_router(vip.router_id)
         if router.default == 1:
             return roxywi_common.handler_exceptions_for_json_data(Exception(''), 'You cannot delete default VIP')
         try:
-            ha_sql.delete_ha_router(router_id)
+            ha_sql.delete_ha_router(vip.router_id)
             return BaseResponse().model_dump(mode='json'), 204
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete VIP')
@@ -592,10 +574,7 @@ class HAVIPsView(MethodView):
                   return_master:
                     type: 'integer'
                   router_id:
-                    type: 'object'
-                    properties:
-                      id:
-                        type: 'integer'
+                    type: 'integer'
                   use_src:
                     type: 'integer'
                   vip:
@@ -604,5 +583,5 @@ class HAVIPsView(MethodView):
             description: Unexpected error
         """
         vips = ha_sql.select_cluster_vips(cluster_id)
-        vips = [model_to_dict(vip) for vip in vips]
+        vips = [model_to_dict(vip, recurse=False) for vip in vips]
         return jsonify(vips)

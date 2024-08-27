@@ -274,10 +274,10 @@ class ServiceConfigView(MethodView):
             required: true
             description: The ID or IP of the server
           - in: query
-            name: file_name
+            name: file_path
             type: 'string'
             required: false
-            description: The full path to the configuration file (used only for nginx and apache, replace "/" with 92)
+            description: The full path to the configuration file
           - in: query
             name: version
             type: 'string'
@@ -289,10 +289,10 @@ class ServiceConfigView(MethodView):
           default:
             description: Unexpected error
         """
-        if service in ('nginx', 'apache') and (query.file_name is None and query.version is None):
+        if service in ('nginx', 'apache') and (query.file_path is None and query.version is None):
             return ErrorResponse(error=f'There is must be "file_name" as query parameter for {service.title()}')
-        if query.file_name:
-            query.file_name = query.file_name.replace('/', '92')
+        if query.file_path:
+            query.file_path = query.file_path.replace('/', '92')
 
         try:
             server_ip = SupportClass(False).return_server_ip_or_id(server_id)

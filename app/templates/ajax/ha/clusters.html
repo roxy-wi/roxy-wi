@@ -21,6 +21,7 @@
             {% if slave.31 %}
                 Master name: {{ copy_to_clipboard(id='master-server-'+cluster.id|string(), value=slave.1) }}<br>
                 Master IP: {{ copy_to_clipboard(id='master-ip-'+cluster.id|string(), value=slave.2) }}<br>
+                <span style="display: none;" id="master-id-{{ cluster.id }}">{{ slave.0 }}</span>
             {% endif %}
          {% endfor %}
         {{lang.words.slaves|title()}}:
@@ -46,7 +47,7 @@
             <span id="cluster-vip">
             {%- for vip in vips %}
                 {% if g.user_params['role'] <= 2 %}
-                    <a style="cursor: pointer;" onclick="add_vip_ha_cluster('{{vip.cluster_id}}', '{{cluster.name}}', '{{vip.router_id}}', '{{vip.vip}}', 1)" title="{{lang.words.edit|title()}} VIP">{{vip.vip}}</a>
+                    <a style="cursor: pointer;" onclick="add_vip_ha_cluster('{{vip.cluster_id}}', '{{cluster.name}}', '{{vip.id}}', '{{vip.vip}}', 1)" title="{{lang.words.edit|title()}} VIP">{{vip.vip}}</a>
                 {% else %}
                     {{vip.vip}}
                 {%- endif -%}

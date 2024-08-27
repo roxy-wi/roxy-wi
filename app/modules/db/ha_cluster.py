@@ -1,5 +1,6 @@
 from app.modules.db.db_model import connect, HaCluster, HaClusterVirt, HaClusterVip, HaClusterService, HaClusterSlave, Server, HaClusterRouter
 from app.modules.db.common import out_error
+from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
 def select_clusters(group_id: int):
@@ -22,6 +23,13 @@ def create_cluster(name: str, syn_flood: int, group_id: int, desc: str) -> int:
 def select_cluster(cluster_id: int):
 	try:
 		return HaCluster.select().where(HaCluster.id == cluster_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def get_cluster(cluster_id: int):
+	try:
+		return HaCluster.get(HaCluster.id == cluster_id)
 	except Exception as e:
 		out_error(e)
 
@@ -54,6 +62,13 @@ def select_cluster_vip(cluster_id: int, router_id: int) -> HaClusterVip:
 		out_error(e)
 
 
+def select_cluster_vip_by_vip_id(cluster_id: int, vip_id: int) -> HaClusterVip:
+	try:
+		return HaClusterVip.get((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.id == vip_id))
+	except Exception as e:
+		out_error(e)
+
+
 def select_clusters_vip_id(cluster_id: int, router_id):
 	try:
 		return HaClusterVip.get((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.router_id == router_id)).id
@@ -71,6 +86,15 @@ def delete_cluster_services(cluster_id: int):
 def insert_cluster_services(cluster_id: int, service_id: int):
 	try:
 		return HaClusterService.insert(cluster_id=cluster_id, service_id=service_id).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_count_cluster_slaves(cluster_id: int) -> int:
+	try:
+		return HaClusterSlave.select().where(HaClusterSlave.cluster_id == cluster_id).count()
+	except HaClusterSlave.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 
@@ -149,6 +173,8 @@ def get_router_id(cluster_id: int, default_router=0) -> int:
 	"""
 	try:
 		return HaClusterRouter.get((HaClusterRouter.cluster_id == cluster_id) & (HaClusterRouter.default == default_router)).id
+	except HaClusterRouter.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 
@@ -160,21 +186,22 @@ def get_router(router_id: int) -> HaClusterRouter:
 		out_error(e)
 
 
-def create_ha_router(cluster_id: int) -> int:
+def create_ha_router(cluster_id: int, default: int = 0) -> int:
 	"""
-	Create HA Router
+    Create HA Router
 
-	This method is used to create a HA (High Availability) router for a given cluster.
+    This method is used to create a HA (High Availability) router for a given cluster.
 
-	:param cluster_id: The ID of the cluster for which the HA router needs to be created.
-	:return: The ID of the created HA router.
-	:rtype: int
+    :param default:
+    :param cluster_id: The ID of the cluster for which the HA router needs to be created.
+    :return: The ID of the created HA router.
+    :rtype: int
 
-	:raises Exception: If an error occurs while creating the HA router.
+    :raises Exception: If an error occurs while creating the HA router.
 
-	"""
+    """
 	try:
-		last_id = HaClusterRouter.insert(cluster_id=cluster_id).execute()
+		last_id = HaClusterRouter.insert(cluster_id=cluster_id, default=default).on_conflict_ignore().execute()
 		return last_id
 	except Exception as e:
 		out_error(e)
@@ -254,15 +281,6 @@ def select_cluster_services(cluster_id: int):
 		return HaClusterService.select().where(HaClusterService.cluster_id == cluster_id).execute()
 	except Exception as e:
 		out_error(e)
-
-
-def update_server_master(master, slave):
-	try:
-		master_id = Server.get(Server.ip == master).server_id
-	except Exception as e:
-		out_error(e)
-
-	update_master_server_by_slave_ip(master_id, slave)
 
 
 def update_master_server_by_slave_ip(master_id: int, slave_ip: str) -> None:
