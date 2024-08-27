@@ -100,11 +100,14 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 			url: "/ha/cluster/masters",
 			async: false,
 			type: "GET",
+			contentType: "application/json; charset=utf-8",
 			success: function (data) {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
+				if (data.status === 'failed') {
+					toastr.error(data.error);
 				} else {
-					$("#ha-cluster-master").html(data);
+					for (let i in data) {
+						$('#ha-cluster-master').append('<option value="' + data[i]['ip'] + '" selected="selected" data-id="'+data[i]['server_id']+'">' + data[i]['hostname'] + '</option>');
+					}
 					$('#ha-cluster-master').selectmenu("refresh");
 				}
 			}
@@ -757,15 +760,11 @@ function createJsonCluster(div_id) {
 	jsonData['servers'].push({
 		'id': $('#ha-cluster-master option:selected').attr('data-id'),
 		'eth': $('#ha-cluster-master-interface').val(),
-		// 'ip': $('#ha-cluster-master option:selected').val(),
-		// 'name': $('#ha-cluster-master option:selected').text(),
 		'master': 1
 	});
 	$(div_id).each(function () {
 		let this_id = $(this).attr('id').split('-')[1];
 		let eth = $('#slave_int-' + this_id).val();
-		// let ip = $('#slave_int_div-' + this_id).attr('data-ip');
-		// let name = $('#slave_int_div-' + this_id).parent().text().replace('\n','').replace('\t','').trim();
 		jsonData['servers'].push({'id': this_id, 'eth': eth, 'master': 0});
 	});
 	return jsonData;
@@ -776,11 +775,7 @@ function createJsonVip(div_id) {
 	$(div_id).each(function () {
 		let this_id = $(this).attr('id').split('-')[1];
 		let eth1 = $('#slave_int-' + this_id).val();
-		// let ip1 = $('#slave_int_div-' + this_id).attr('data-ip');
-		// let name1 = $('#slave_int_div-' + this_id).parent().text().replace('\n','').replace('\t','').trim();
 		let eth = $('#master_int-' + this_id).val();
-		// let ip = $('#master_int_div-' + this_id).attr('data-ip');
-		// let name = $('#master_int_div-' + this_id).parent().text().replace('\n','').replace('\t','').trim();
 		if (eth) {
 			jsonData['servers'].push({'id': this_id, 'eth': eth, 'master': 1});
 		} else {
@@ -825,6 +820,7 @@ function clearClusterDialog(edited=0) {
 	$("input[type=checkbox]").checkboxradio("refresh");
 	$('#ha-cluster-master option:selected').remove();
 	$("#ha-cluster-master option").each(function (index) {
+		$(this).remove();
 		$(this).prop('disabled', false);
 	});
 	$('#ha-cluster-master option').attr('selected', false);

@@ -8,6 +8,7 @@ import app.modules.db.portscanner as ps_sql
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.common as tools_common
+import app.modules.common.common as common
 
 
 @bp.before_request
@@ -76,9 +77,9 @@ def change_settings_portscanner():
 def scan_port():
     json_data = request.get_json()
     if 'id' in json_data:
-        ip = server_sql.select_server_ip_by_id(json_data['id'])
+        ip = server_sql.select_server_ip_by_id(int(json_data['id']))
     else:
-        ip = json_data['ip']
+        ip = common.is_ip_or_dns(json_data['ip'])
 
     cmd = f"sudo nmap -sS {ip} |grep -E '^[[:digit:]]'|sed 's/  */ /g'"
     cmd1 = f"sudo nmap -sS {ip} |head -5|tail -2"
@@ -91,4 +92,4 @@ def scan_port():
     else:
         lang = roxywi_common.get_user_lang_for_flask()
         temp = render_template('ajax/scan_ports.html', ports=stdout, info=stdout1, lang=lang)
-        return jsonify({'status': 'success', 'data': temp})
+        return jsonify({'status': 'Ok', 'data': temp})

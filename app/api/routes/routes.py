@@ -44,13 +44,12 @@ def register_api_id_ip(view, endpoint, url: str = '', methods: list = ['GET', 'P
 
 
 register_api(HAView, 'ha_cluster', '/ha/<service>', 'cluster_id')
+register_api(HAVIPView, 'ha_vip', '/ha/<service>/<int:cluster_id>/vip', 'vip_id')
+bp.add_url_rule('/ha/<service>/<int:cluster_id>/vips', view_func=HAVIPsView.as_view('ha_vips'), methods=['GET'])
 register_api(UDPListener, 'udp_listener', '/<service>/listener', 'listener_id')
 bp.add_url_rule('/<service>/listener/<int:listener_id>/<any(start, stop, reload, restart):action>', view_func=UDPListenerActionView.as_view('listener_action'), methods=['GET'])
 bp.add_url_rule('/<service>/listeners', view_func=UDPListeners.as_view('listeners'), methods=['GET'])
-bp.add_url_rule('/ha/<service>/<int:cluster_id>/vip/<int:router_id>', view_func=HAVIPView.as_view('ha_vip_g'), methods=['GET'])
-bp.add_url_rule('/ha/<service>/<int:cluster_id>/vip', view_func=HAVIPView.as_view('ha_vip'), methods=['POST', 'PUT'])
-bp.add_url_rule('/ha/<service>/<int:router_id>/vip', view_func=HAVIPView.as_view('ha_vip_d'), methods=['DELETE'])
-bp.add_url_rule('/ha/<service>/<int:cluster_id>/vips', view_func=HAVIPsView.as_view('ha_vips'), methods=['GET'])
+
 
 register_api_id_ip(ServiceView, 'service', '/status', ['GET'])
 register_api_id_ip(ServiceBackendView, 'service_backend', '/backend', ['GET'])

@@ -105,7 +105,7 @@ def waf_rule_edit(service, server_ip, rule_id):
     try:
         cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}-{waf_rule_file}"
         config_mod.get_config(server_ip, cfg, waf=service, waf_rule_file=waf_rule_file)
-    except Exception as e:
+    except Exception:
         pass
     config_file_name = common.return_nice_path(config_path) + 'waf/rules/' + waf_rule_file
 

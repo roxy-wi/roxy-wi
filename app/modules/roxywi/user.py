@@ -157,7 +157,7 @@ def get_ldap_email(username) -> str:
 
         results = [entry for dn, entry in result if isinstance(entry, dict)]
         try:
-            return f'["' + results[0][ldap_search_field][0].decode("utf-8") + '","' + domain + '"]'
+            return f'["{results[0][ldap_search_field][0].decode("utf-8")}","{domain}"]'
         except Exception:
             raise Exception('user not found')
     except Exception as e:

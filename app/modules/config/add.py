@@ -97,7 +97,7 @@ def show_userlist(server_ip: str) -> str:
 		except Exception as e:
 			roxywi_common.logging('Roxy-WI server', f' Cannot generate a cfg path {e}', roxywi=1)
 		try:
-			error = config_mod.get_config(server_ip, cfg)
+			config_mod.get_config(server_ip, cfg)
 		except Exception as e:
 			roxywi_common.logging('Roxy-WI server', f' Cannot download a config {e}', roxywi=1)
 		try:

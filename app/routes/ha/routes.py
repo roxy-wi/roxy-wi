@@ -1,5 +1,6 @@
-from flask import render_template, g, request
+from flask import render_template, g, request, jsonify
 from flask_jwt_extended import jwt_required
+from playhouse.shortcuts import model_to_dict
 
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 from app.routes.ha import bp
@@ -119,7 +120,6 @@ def get_slaves(service, cluster_id, vip_id):
     if request.method == 'GET':
         router_id = ha_sql.get_router_id(cluster_id, default_router=1)
     else:
-        # router_id = int(request.form.get('router_id'))
         vip = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)
         router_id = vip.router_id
     slaves = ha_sql.select_cluster_slaves(cluster_id, router_id)
@@ -148,6 +148,9 @@ def get_server_slaves(service, cluster_id):
 @get_user_params()
 def get_masters(service):
     group_id = g.user_params['group_id']
-    free_servers = ha_sql.select_ha_cluster_not_masters_not_slaves(group_id)
+    try:
+        free_servers = ha_sql.select_ha_cluster_not_masters_not_slaves(group_id)
+    except Exception as e:
+        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get free servers')
 
-    return render_template('ajax/ha/masters.html', free_servers=free_servers)
+    return jsonify([model_to_dict(free) for free in free_servers])
