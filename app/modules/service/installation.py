@@ -178,15 +178,15 @@ def generate_service_inv(json_data: ServiceInstall, installed_service: str) -> o
 		os.system('ansible-galaxy install nginxinc.nginx,0.24.3 -f --roles-path /var/www/haproxy-wi/app/scripts/ansible/roles/')
 
 	for v in json_data['servers']:
-		server_ip = v['ip']
+		s = server_sql.get_server_by_id(v['id'])
 		if installed_service == 'apache':
-			correct_service_name = service_common.get_correct_apache_service_name(server_ip=server_ip, server_id=None)
+			correct_service_name = service_common.get_correct_apache_service_name(server_id=v['id'])
 			if service_dir == '/etc/httpd' and correct_service_name == 'apache2':
 				service_dir = '/etc/apache2'
 			elif service_dir == '/etc/apache2' and correct_service_name == 'httpd':
 				service_dir = '/etc/httpd'
 
-		inv['server']['hosts'][server_ip] = {
+		inv['server']['hosts'][s.ip] = {
 			"STAT_PORT": stats_port,
 			"DOCKER": is_docker,
 			"STATS_USER": stats_user,
@@ -198,7 +198,7 @@ def generate_service_inv(json_data: ServiceInstall, installed_service: str) -> o
 			"STAT_PAGE": stats_page,
 			"service": installed_service,
 		}
-		server_ips.append(server_ip)
+		server_ips.append(s.ip)
 
 	return inv, server_ips
 

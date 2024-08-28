@@ -112,6 +112,8 @@ def is_system_info(server_id):
 def select_os_info(server_id):
 	try:
 		return SystemInfo.get(SystemInfo.server_id == server_id).os_info
+	except SystemInfo.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 

@@ -12,6 +12,7 @@ import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.config.section as section_mod
 import app.modules.config.common as config_common
+from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
 def get_correct_service_name(service: str, server_id: int) -> str:
@@ -109,6 +110,8 @@ def get_correct_apache_service_name(server_ip=None, server_id=None) -> str:
 
 	try:
 		os_info = server_sql.select_os_info(server_id)
+	except RoxywiResourceNotFound:
+		raise RoxywiResourceNotFound('Cannot find system information')
 	except Exception as e:
 		raise Exception(f'error: cannot get server info: {e}')
 
