@@ -475,7 +475,10 @@ class HAVIPView(MethodView):
           default:
             description: Unexpected error
         """
-        vip = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)
+        try:
+            vip = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find VIP')
         try:
             ha_cluster.update_vip(cluster_id, vip.router_id, body, self.group_id)
             return BaseResponse().model_dump(mode='json'), 201

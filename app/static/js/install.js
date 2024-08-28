@@ -151,9 +151,10 @@ function installService(service) {
 	}
 	let jsonData = {};
 	let server = {
-		"ip": $(select_id).val(),
+		// "ip": $(select_id).val(),
         "master": '0',
-        "name": $(select_id + ' option:selected').text(),
+        "id": $(select_id + ' option:selected').attr('data-id'),
+        // "name": $(select_id + ' option:selected').text(),
 	}
 	if (service === 'haproxy') {
 		server['version'] = $('#hapver option:selected').val();

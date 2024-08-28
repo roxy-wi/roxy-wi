@@ -46,8 +46,8 @@ class InstallView(MethodView):
                   items:
                     type: 'object'
                     properties:
-                      ip:
-                        type: 'string'
+                      id:
+                        type: 'integer'
                       name:
                         type: 'string'
                 services:

@@ -46,7 +46,7 @@
 					<select autofocus required name="haproxyaddserv" id="haproxyaddserv">
 						<option disabled selected>------</option>
 						{% for select in g.user_params['servers'] %}
-                            <option value="{{ select.2 }}">{{ select.1 }}</option>
+                            <option value="{{ select.2 }}" data-id="{{ select.0 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
 				</td>
@@ -81,7 +81,7 @@
 					<select autofocus required name="nginxaddserv" id="nginxaddserv">
 						<option disabled selected>------</option>
 						{% for select in g.user_params['servers'] %}
-                            <option value="{{ select.2 }}">{{ select.1 }}</option>
+                            <option value="{{ select.2 }}" data-id="{{ select.0 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
 				</td>
@@ -116,7 +116,7 @@
 					<select autofocus required name="apacheaddserv" id="apacheaddserv">
 						<option disabled selected>------</option>
 						{% for select in g.user_params['servers'] %}
-                            <option value="{{ select.2 }}">{{ select.1 }}</option>
+                            <option value="{{ select.2 }}" data-id="{{ select.0 }}">{{ select.1 }}</option>
 						{% endfor %}
 					</select>
 				</td>
@@ -223,8 +223,8 @@
                 <td id="cur_nginx_exp_ver" class="padding10 first-collumn"></td>
                 <td class="padding10 first-collumn" style="width: 20%;">
                     {% set values = dict() %}
-                    {% set values = {'0.7.0':'0.7.0', '0.9.0':'0.9.0', '0.10.0':'0.10.0', '0.11.0':'0.11.0', '1.0.0':'1.0.0', '1.1.0':'1.1.0'} %}
-                    {{ select('nginxexpver',  values=values, selected='1.1.0') }}
+                    {% set values = {'0.11.0':'0.11.0', '1.0.0':'1.0.0', '1.1.0':'1.1.0', '1.2.0':'1.2.0', '1.3.0':'1.3.0'} %}
+                    {{ select('nginxexpver',  values=values, selected='1.3.0') }}
                 </td>
                 <td class="padding10 first-collumn">
                     <select autofocus required name="nginx_exp_addserv" id="nginx_exp_addserv">
@@ -316,8 +316,8 @@
                 <td id="cur_node_exp_ver" class="padding10 first-collumn"></td>
                 <td class="padding10 first-collumn" style="width: 20%;">
                     {% set values = dict() %}
-                    {% set values = {'1.2.0':'1.2.0', '1.2.2':'1.2.2', '1.3.0':'1.3.0', '1.3.1':'1.3.1', '1.5.0':'1.5.0', '1.6.1':'1.6.1', '1.7.0':'1.7.0'} %}
-                    {{ select('nodeexpver',  values=values, selected='1.7.0') }}
+                    {% set values = {'1.3.0':'1.3.0', '1.3.1':'1.3.1', '1.5.0':'1.5.0', '1.6.1':'1.6.1', '1.7.0':'1.7.0', '1.8.0':'1.8.0', '1.8.2':'1.8.2'} %}
+                    {{ select('nodeexpver',  values=values, selected='1.8.2') }}
                 </td>
                 <td class="padding10 first-collumn">
                     <select autofocus required name="node_exp_addserv" id="node_exp_addserv">

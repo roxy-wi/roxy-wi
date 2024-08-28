@@ -284,7 +284,7 @@ def _create_or_update_master_slaves_servers(cluster_id: int, servers: dict, rout
                 roxywi_common.logging(cluster_id, f'New server {s.hostname} has been added to the cluster', keep_history=1,
                                   roxywi=1, service='HA cluster')
         except Exception as e:
-            raise Exception(f'error: Cannot update slave server {server["ip"]}: {e}')
+            raise Exception(f'error: Cannot update slave server {s.hostname}: {e}')
 
         if server['master']:
             continue

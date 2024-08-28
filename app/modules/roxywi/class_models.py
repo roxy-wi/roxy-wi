@@ -207,9 +207,8 @@ class ChannelRequest(BaseModel):
 
 
 class ServerInstall(BaseModel):
-    ip: Union[IPvAnyAddress, DomainName]
+    id: int
     master: Optional[bool] = 0
-    name: EscapedString
 
 
 class ServiceInstall(BaseModel):

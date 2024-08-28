@@ -65,6 +65,8 @@ def select_cluster_vip(cluster_id: int, router_id: int) -> HaClusterVip:
 def select_cluster_vip_by_vip_id(cluster_id: int, vip_id: int) -> HaClusterVip:
 	try:
 		return HaClusterVip.get((HaClusterVip.cluster_id == cluster_id) & (HaClusterVip.id == vip_id))
+	except HaClusterVip.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 
