@@ -507,7 +507,6 @@ function add_vip_ha_cluster(cluster_id, cluster_name, vip_id='', vip='', edited=
 	let save_word = translate_div.attr('data-save');
 	let tabel_title = $("#add-vip-table").attr('title');
 	let buttons = [];
-	let req_method = 'GET';
 	if (edited) {
 		$.ajax({
 			url: api_prefix + "/ha/cluster/" + cluster_id + "/vip/" + vip_id,
@@ -534,7 +533,6 @@ function add_vip_ha_cluster(cluster_id, cluster_name, vip_id='', vip='', edited=
 			}
 		});
 		$('#vrrp-ip-add').val(vip);
-		req_method = 'POST';
 		tabel_title = $("#add-vip-table").attr('data-edit');
 		buttons = [{
 			text: save_word,
@@ -593,9 +591,12 @@ function add_vip_ha_cluster(cluster_id, cluster_name, vip_id='', vip='', edited=
 			}
 		}]
 	}
+	let url = "/ha/cluster/slaves/" + cluster_id;
+	if (vip_id) {
+		url = "/ha/cluster/slaves/" + cluster_id + "/" + vip_id;
+	}
 	$.ajax({
-		url: "/ha/cluster/slaves/" + cluster_id + "/" + vip_id,
-		type: req_method,
+		url: url,
 		success: function (data) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);

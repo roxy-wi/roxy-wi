@@ -112,12 +112,13 @@ def show_ha_cluster(service, cluster_id):
     return render_template('service.html', **kwargs)
 
 
-@bp.route('/<service>/slaves/<int:cluster_id>/<int:vip_id>', methods=['GET', 'POST'])
+@bp.route('/<service>/slaves/<int:cluster_id>', defaults={'vip_id': False}, methods=['GET'])
+@bp.route('/<service>/slaves/<int:cluster_id>/<int:vip_id>', methods=['GET'])
 @check_services
 @get_user_params()
 def get_slaves(service, cluster_id, vip_id):
     lang = g.user_params['lang']
-    if request.method == 'GET':
+    if not vip_id:
         router_id = ha_sql.get_router_id(cluster_id, default_router=1)
     else:
         vip = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)

@@ -144,7 +144,6 @@ def update_vip(cluster_id: int, router_id: int, cluster: Union[HAClusterRequest,
             s = server_sql.get_server_by_id(value['id'])
             raise Exception(f'error: Cannot add server {s.hostname}: {e}')
 
-    print('cluster.virt_server',cluster.virt_server)
     if cluster.virt_server:
         add_or_update_virt(cluster, servers, cluster_id, vip_id, group_id)
     else:
