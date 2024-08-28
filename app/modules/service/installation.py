@@ -90,8 +90,8 @@ def generate_kp_inv(json_data: json, installed_service) -> object:
 			routers[router_id][slave_ip].setdefault('eth', slave.eth)
 
 	for v in json_data['servers']:
-		server_ip = v['ip']
-		inv['server']['hosts'][server_ip] = {
+		s = server_sql.get_server_by_id(v['id'])
+		inv['server']['hosts'][s.ip] = {
 			"HAPROXY": haproxy,
 			"NGINX": nginx,
 			"APACHE": apache,
@@ -100,7 +100,7 @@ def generate_kp_inv(json_data: json, installed_service) -> object:
 			"keepalived_path_logs": keepalived_path_logs,
 			"routers": routers
 		}
-		server_ips.append(server_ip)
+		server_ips.append(s.ip)
 
 	return inv, server_ips
 
@@ -131,20 +131,18 @@ def generate_haproxy_inv(json_data: ServiceInstall, installed_service: str) -> o
 	container_name = sql.get_setting('haproxy_container_name')
 	haproxy_ver = '2.9.6-1'
 	is_docker = json_data['services']['haproxy']['docker']
-	for v in json_data['servers']:
-		if not v['master']:
-			slaves.append(v['ip'])
-		else:
-			master_ip = v['ip']
 
 	for v in json_data['servers']:
-		server_ip = v['ip']
-		is_master = v['master']
+		s = server_sql.get_server_by_id(v['id'])
+		if not v['master']:
+			slaves.append(s.ip)
+		else:
+			master_ip = s.ip
 
 		if 'version' in v:
 			haproxy_ver = v['version']
 
-		inv['server']['hosts'][server_ip] = {
+		inv['server']['hosts'][s.ip] = {
 			"SOCK_PORT": hap_sock_p,
 			"STAT_PORT": stats_port,
 			"STAT_FILE": server_state_file,
@@ -154,12 +152,12 @@ def generate_haproxy_inv(json_data: ServiceInstall, installed_service: str) -> o
 			"STATS_PASS": stats_password,
 			"HAPVER": haproxy_ver,
 			"SYN_FLOOD": '0',
-			"M_OR_S": is_master,
+			"M_OR_S": v['master'],
 			"MASTER": master_ip,
 			"slaves": slaves,
 			"DOCKER": is_docker
 		}
-		server_ips.append(server_ip)
+		server_ips.append(s.ip)
 
 	return inv, server_ips
 

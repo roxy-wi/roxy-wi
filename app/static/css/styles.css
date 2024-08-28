@@ -503,7 +503,7 @@ ul{
 }
 .menu {
 	min-height: calc(100vh - 95px);
-	font-size: 1.1em;
+	font-size: 1.2em;
 }
 .menu a {
 	background-color: var(--color-gray-light);
