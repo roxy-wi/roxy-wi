@@ -111,6 +111,9 @@
         url: "https://github.com/SpiderLabs/ModSecurity/releases/download/v{{ modsec_ver }}/modsecurity-{{ modsec_ver }}.tar.gz"
         dest: /tmp/modsecurity.tar.gz
         owner: "{{ ansible_user }}"
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
 
     - name: Create HAProxy directory
       become: false
@@ -192,6 +195,9 @@
       get_url:
         url: https://github.com/SpiderLabs/ModSecurity/raw/v2/master/modsecurity.conf-recommended
         dest: "{{ SERVICE_PATH }}/waf/modsecurity.conf"
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
 
     - name: Insert Modsec rules
       blockinfile:
@@ -237,11 +243,17 @@
       get_url:
         url: https://github.com/SpiderLabs/ModSecurity/raw/v2/master/unicode.mapping
         dest: "{{ SERVICE_PATH }}/waf/unicode.mapping"
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
 
     - name: Download owasp-modsecurity-crs
       get_url:
         url: https://github.com/SpiderLabs/owasp-modsecurity-crs/archive/2.2.9.tar.gz
         dest: /tmp/owasp.tar.gz
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
 
     - name: Create owasp directory
       file:

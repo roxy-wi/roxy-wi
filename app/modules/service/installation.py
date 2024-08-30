@@ -348,12 +348,17 @@ def _install_ansible_collections():
 	old_ansible_server = ''
 	collections = ('community.general', 'ansible.posix', 'community.docker', 'community.grafana', 'ansible.netcommon')
 	trouble_link = 'Read <a href="https://roxy-wi.org/troubleshooting#ansible_collection" target="_blank" class="link">troubleshooting</a>'
+	proxy = sql.get_setting('proxy')
+	proxy_cmd = ''
+	if proxy is not None and proxy != '' and proxy != 'None':
+		proxy_cmd = f'HTTPS_PROXY={proxy} &&'
+
 	for collection in collections:
 		if not os.path.isdir(f'/usr/share/httpd/.ansible/collections/ansible_collections/{collection.replace(".", "/")}'):
 			try:
 				if version.parse(ansible.__version__) < version.parse('2.13.9'):
 					old_ansible_server = '--server https://old-galaxy.ansible.com/'
-				exit_code = os.system(f'ansible-galaxy collection install {collection} {old_ansible_server}')
+				exit_code = os.system(f'{proxy_cmd} ansible-galaxy collection install {collection} {old_ansible_server}')
 			except Exception as e:
 				roxywi_common.handle_exceptions(e,
 												'Roxy-WI server',

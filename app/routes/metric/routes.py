@@ -101,13 +101,13 @@ def table_metrics(service):
 @bp.post('/<service>/<server_ip>')
 def show_metric(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
-    hostname = server_sql.get_hostname_by_server_ip(server_ip)
+    server = server_sql.get_server_by_ip(server_ip)
     time_range = common.checkAjaxInput(request.form.get('time_range'))
 
     if service in ('nginx', 'apache', 'waf'):
-        return jsonify(metric.service_metrics(server_ip, hostname, service, time_range))
+        return jsonify(metric.service_metrics(server_ip, server.hostname, service, time_range))
     elif service == 'haproxy':
-        return jsonify(metric.haproxy_metrics(server_ip, hostname, time_range))
+        return jsonify(metric.haproxy_metrics(server_ip, server.hostname, time_range))
 
     return 'error: Wrong service'
 
@@ -116,11 +116,11 @@ def show_metric(service, server_ip):
 @check_services
 def show_http_metric(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
-    hostname = server_sql.get_hostname_by_server_ip(server_ip)
+    server = server_sql.get_server_by_ip(server_ip)
     time_range = common.checkAjaxInput(request.form.get('time_range'))
 
     if service == 'haproxy':
-        return jsonify(metric.haproxy_http_metrics(server_ip, hostname, time_range))
+        return jsonify(metric.haproxy_http_metrics(server_ip, server.hostname, time_range))
 
     return 'error: Wrong service'
 

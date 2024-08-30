@@ -36,15 +36,6 @@ def update_server(hostname, ip, group, type_ip, enable, master, server_id, cred,
 		out_error(e)
 
 
-def get_hostname_by_server_ip(server_ip):
-	try:
-		hostname = Server.get(Server.ip == server_ip)
-	except Exception as e:
-		return out_error(e)
-	else:
-		return hostname.hostname
-
-
 def get_server_by_id(server_id: int) -> Server:
 	try:
 		return Server.get(Server.server_id == server_id)

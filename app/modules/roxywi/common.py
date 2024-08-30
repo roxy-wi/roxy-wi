@@ -166,6 +166,7 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 			hostname = ha_sql.select_cluster_name(int(server_id))
 		except Exception as e:
 			logging('Roxy-WI server', f'Cannot get info about cluster {server_ip} for history: {e}', roxywi=1)
+			return
 	elif service == 'UDP listener':
 		try:
 			server_id = int(server_ip)
@@ -173,12 +174,15 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 			hostname = listener.name
 		except Exception as e:
 			logging('Roxy-WI server', f'Cannot get info about Listener {server_ip} for history: {e}', roxywi=1)
+			return
 	else:
 		try:
-			server_id = server_sql.select_server_id_by_ip(server_ip=server_ip)
-			hostname = server_sql.get_hostname_by_server_ip(server_ip)
+			server = server_sql.get_server_by_ip(server_ip)
+			server_id = server.server_id
+			hostname = server.hostname
 		except Exception as e:
 			logging('Roxy-WI server', f'Cannot get info about {server_ip} for history: {e}', roxywi=1)
+			return
 
 	try:
 		history_sql.insert_action_history(service, action, server_id, user_id, user_ip, server_ip, hostname)

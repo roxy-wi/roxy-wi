@@ -82,11 +82,6 @@ class CredView(MethodView):
         tags:
           - SSH credentials
         parameters:
-          - in: 'path'
-            name: 'creds_id'
-            description: 'ID of the credential to retrieve'
-            required: true
-            type: 'integer'
           - in: body
             name: body
             schema:
@@ -124,7 +119,7 @@ class CredView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create new cred')
 
     @validate(body=CredRequest)
-    def put(self, creds_id: int, body: CredRequest):
+    def put(self, cred_id: int, body: CredRequest):
         """
         Update a credential entry
         ---
@@ -132,7 +127,7 @@ class CredView(MethodView):
           - SSH credentials
         parameters:
           - in: 'path'
-            name: 'creds_id'
+            name: 'cred_id'
             description: 'ID of the credential to retrieve'
             required: true
             type: 'integer'
@@ -167,17 +162,17 @@ class CredView(MethodView):
         """
         group_id = SupportClass.return_group_id(body)
         try:
-            self._check_is_correct_group(creds_id)
+            self._check_is_correct_group(cred_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, ''), 404
 
         try:
-            ssh_mod.update_ssh_key(creds_id, body.name, body.password, body.key_enabled, body.username, group_id)
+            ssh_mod.update_ssh_key(cred_id, body.name, body.password, body.key_enabled, body.username, group_id)
             return BaseResponse().model_dump(mode='json'), 201
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update SSH key')
 
-    def delete(self, creds_id: int):
+    def delete(self, cred_id: int):
         """
         Delete a credential entry
         ---
@@ -185,7 +180,7 @@ class CredView(MethodView):
           - SSH credentials
         parameters:
           - in: 'path'
-            name: 'creds_id'
+            name: 'cred_id'
             description: 'ID of the credential to retrieve'
             required: true
             type: 'integer'
@@ -194,18 +189,18 @@ class CredView(MethodView):
             description: Credential deletion successful
         """
         try:
-            self._check_is_correct_group(creds_id)
+            self._check_is_correct_group(cred_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, ''), 404
 
         try:
-            ssh_mod.delete_ssh_key(creds_id)
+            ssh_mod.delete_ssh_key(cred_id)
             return BaseResponse().model_dump(mode='json'), 204
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete SSH key')
 
     @validate(body=CredUploadRequest)
-    def patch(self, creds_id: int, body: CredUploadRequest):
+    def patch(self, cred_id: int, body: CredUploadRequest):
         """
         Upload an SSH private key
         ---
@@ -213,7 +208,7 @@ class CredView(MethodView):
           - SSH credentials
         parameters:
          - in: 'path'
-           name: 'creds_id'
+           name: 'cred_id'
            description: 'ID of the credential to retrieve'
            required: true
            type: 'integer'
@@ -236,7 +231,7 @@ class CredView(MethodView):
             description: SSH key upload successful
         """
         try:
-            self._check_is_correct_group(creds_id)
+            self._check_is_correct_group(cred_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, ''), 404
         try:
@@ -244,17 +239,17 @@ class CredView(MethodView):
         except Exception:
             pass
         try:
-            ssh_mod.upload_ssh_key(creds_id, body.private_key, body.passphrase)
+            ssh_mod.upload_ssh_key(cred_id, body.private_key, body.passphrase)
             return BaseResponse().model_dump(mode='json'), 201
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot upload SSH key')
 
     @staticmethod
-    def _check_is_correct_group(creds_id: int):
+    def _check_is_correct_group(cred_id: int):
         if g.user_params['role'] == 1:
             return True
         try:
-            ssh = cred_sql.get_ssh(creds_id)
+            ssh = cred_sql.get_ssh(cred_id)
         except RoxywiResourceNotFound:
             raise RoxywiResourceNotFound
         if ssh.group_id != g.user_params['group_id']:

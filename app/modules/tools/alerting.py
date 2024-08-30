@@ -52,9 +52,12 @@ def send_message_to_rabbit(message: str, **kwargs) -> None:
 def alert_routing(
 	server_ip: str, service_id: int, group_id: int, level: str, mes: str, alert_type: str
 ) -> None:
-	subject: str = level + ': ' + mes
-	server_id: int = server_sql.select_server_id_by_ip(server_ip)
-	checker_settings = checker_sql.select_checker_settings_for_server(service_id, server_id)
+	try:
+		subject: str = level + ': ' + mes
+		server_id: int = server_sql.select_server_id_by_ip(server_ip)
+		checker_settings = checker_sql.select_checker_settings_for_server(service_id, server_id)
+	except Exception as e:
+		raise Exception(f'Cannot get settings: {e}')
 
 	try:
 		json_for_sending = {"user_group": group_id, "message": subject}
@@ -254,11 +257,13 @@ def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 	try:
 		proxy = sql.get_setting('proxy')
 		session = pdpyras.EventsAPISession(token)
-		dedup_key = f'{server_ip} {service_id} {alert_type}'
+		if server_ip:
+			dedup_key = f'{server_ip} {service_id} {alert_type}'
+		else:
+			dedup_key = f'{level}: {mess}'
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		raise Exception(e)
-
 	if proxy is not None and proxy != '' and proxy != 'None':
 		proxies = dict(https=proxy, http=proxy)
 		session.proxies.update(proxies)

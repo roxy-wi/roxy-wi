@@ -26,7 +26,7 @@ def register_api(view, endpoint, url, pk='listener_id', pk_type='int'):
 
 register_api(ServerView, 'server', '', 'server_id')
 register_api(ServerGroupView, 'group', '/group', 'group_id')
-register_api(CredView, 'cred', '/cred', 'creds_id')
+register_api(CredView, 'cred', '/cred', 'cred_id')
 bp.add_url_rule('/groups', view_func=ServerGroupsView.as_view('groups'), methods=['GET'])
 bp.add_url_rule('/creds', view_func=CredsView.as_view('creds'), methods=['GET'])
 
