@@ -409,19 +409,21 @@ function showUploadConfig() {
 	let service = $('#service').val();
 	let configver = $('#configver').val();
 	let serv = $("#serv").val()
+	let jsonData = {
+		"serv": serv,
+		"configver": configver
+	}
 	$.ajax( {
 		url: "/config/" + service + "/show",
-		data: {
-			serv: serv,
-			configver: configver
-		},
+		data: JSON.stringify(jsonData),
+		contentType: "application/json; charset=utf-8",
 		type: "POST",
 		success: function( data ) {
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
 			} else {
 				toastr.clear();
-				$("#ajax").html(data);
+				$("#ajax").html(data.data);
 				window.history.pushState("Show config", "Show config", "/config/versions/" + service + "/" + serv + "/" + configver);
 				$.getScript(configShow);
 			}

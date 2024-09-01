@@ -11,8 +11,8 @@
 		<form action="{{ action }}" method="post" class="left-space">
 			<input type="hidden" value="{{service}}" name="service" id="service">
 			{{ select('serv', values=g.user_params['servers'], is_servers='true', selected=serv) }}
-				<a class="ui-button ui-widget ui-corner-all" title="Open versions" onclick="showListOfVersion(1)">{{lang.words.open|title()}}</a>
-				<a href="/config/{{service}}" class="ui-button ui-widget ui-corner-all" title="Configs page">{{lang.words.configs|title()}}</a>
+            <a class="ui-button ui-widget ui-corner-all" title="Open versions" onclick="showListOfVersion(1)">{{lang.words.open|title()}}</a>
+            <a href="/config/{{service}}" class="ui-button ui-widget ui-corner-all" title="Configs page">{{lang.words.configs|title()}}</a>
 			{% if service != 'keepalived' %}
 				<a class="ui-button ui-widget ui-corner-all" title="View stat" onclick="openStats()">{{lang.words.stats|title()}}</a>
 			{% endif %}

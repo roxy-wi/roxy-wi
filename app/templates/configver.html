@@ -7,7 +7,7 @@
 		<form action="/config/versions/{{service}}/{{serv}}" method="post" class="left-space">
 			<input type="hidden" id="service" value="{{service}}">
 			{{ select('serv', values=g.user_params['servers'], is_servers='true', selected=serv) }}
-			<button type="submit" value="open" name="open" class="btn btn-default">{{lang.words.open|title()}}</button>
+            <a href="/config/versions/{{service}}/{{ serv }}" class="ui-button ui-widget ui-corner-all" title="Open versions">{{lang.words.open|title()}}</a>
 		</form>
 	</p>
 		<div id="config_version_div"></div>
