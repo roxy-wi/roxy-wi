@@ -13,6 +13,7 @@ from app.modules.roxywi.exception import RoxywiGroupMismatch, RoxywiResourceNotF
 from app.modules.roxywi.class_models import BaseResponse, GroupQuery, CredRequest, CredUploadRequest
 from app.modules.common.common_classes import SupportClass
 
+
 class CredView(MethodView):
     methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']
     decorators = [jwt_required(), get_user_params(), page_for_admin(level=2), check_group()]

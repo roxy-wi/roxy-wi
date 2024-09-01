@@ -34,12 +34,16 @@ def before_request():
 @bp.route('/<service>/show', methods=['POST'])
 @check_services
 def show_config(service):
-    config_file_name = request.form.get('config_file_name')
-    configver = request.form.get('configver')
-    server_ip = request.form.get('serv')
+    config_file_name = request.json.get('config_file_name')
+    configver = request.json.get('configver')
+    server_ip = request.json.get('serv')
     claims = get_jwt()
 
-    return config_mod.show_config(server_ip, service, config_file_name, configver, claims)
+    try:
+        data = config_mod.show_config(server_ip, service, config_file_name, configver, claims)
+        return DataStrResponse(data=data).model_dump(mode='json'), 200
+    except Exception as e:
+        return roxywi_common.handler_exceptions_for_json_data(e, '')
 
 
 @bp.route('/<service>/show-files', methods=['POST'])
@@ -48,7 +52,10 @@ def show_config_files(service):
     server_ip = request.form.get('serv')
     config_file_name = request.form.get('config_file_name')
 
-    return config_mod.show_config_files(server_ip, service, config_file_name)
+    try:
+        return config_mod.show_config_files(server_ip, service, config_file_name)
+    except Exception as e:
+        return f'error: {e}'
 
 
 @bp.route('/<service>/find-in-config', methods=['POST'])

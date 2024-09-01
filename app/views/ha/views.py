@@ -137,8 +137,9 @@ class HAView(MethodView):
                   items:
                     type: 'object'
                     properties:
-                      ip:
+                      eth:
                         type: 'string'
+                        description: Ethernet interface to bind VIP address
                       master:
                         type: 'integer'
                       id:
@@ -163,11 +164,11 @@ class HAView(MethodView):
                     type: object
                     properties:
                       enabled:
-                        type: string
+                        type: integer
                       docker:
                         type: integer
                 router_id:
-                  type: string
+                  type: integer
         responses:
           201:
             description: HA cluster created successfully
@@ -215,8 +216,9 @@ class HAView(MethodView):
                   items:
                     type: 'object'
                     properties:
-                      ip:
+                      eth:
                         type: 'string'
+                        description: Ethernet interface to bind VIP address
                       master:
                         type: 'integer'
                       id:
@@ -241,7 +243,7 @@ class HAView(MethodView):
                     type: object
                     properties:
                       enabled:
-                        type: string
+                        type: integer
                       docker:
                         type: integer
         responses:

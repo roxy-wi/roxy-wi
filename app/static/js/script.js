@@ -338,20 +338,22 @@ function showConfig() {
 		}
 	}
 	clearAllAjaxFields();
+	let json_data = {
+		"serv": $("#serv").val(),
+		"service": service,
+		"config_file_name": config_file_name
+	}
 	$.ajax( {
 		url: "/config/" + service + "/show",
-		data: {
-			serv: $("#serv").val(),
-			service: service,
-			config_file_name: config_file_name
-		},
+		data: JSON.stringify(json_data),
 		type: "POST",
+		contentType: "application/json; charset=utf-8",
 		success: function( data ) {
-			if (data.indexOf('error:') != '-1') {
+			if (data.status === 'failed') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
-				$("#ajax").html(data);
+				$("#ajax").html(data.data);
 				$.getScript(configShow);
 				window.history.pushState("Show config", "Show config", "/config/" + service + "/" + $("#serv").val() + "/show/" + config_file_name);
 			}

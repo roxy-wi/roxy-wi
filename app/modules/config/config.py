@@ -477,9 +477,12 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 	configs_dir = config_common.get_config_dir(service)
 	server = server_sql.get_server_by_ip(server_ip)
 
-	try:
-		config_file_name = config_file_name.replace('/', '92')
-	except Exception:
+	if config_file_name != 'undefined':
+		try:
+			config_file_name = config_file_name.replace('/', '92')
+		except Exception:
+			config_file_name = ''
+	else:
 		config_file_name = ''
 
 	if '..' in configs_dir:

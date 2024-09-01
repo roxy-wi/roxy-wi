@@ -9,7 +9,12 @@
 	<div id="top-link" class="top-link">
 		<nav id="menu">
 			<ul class="menu">
-				<li><a href="{{ url_for('overview.index') }}" title="{{lang.menu_links.overview.title}}" class="overview-link {% if request.url_rule.endpoint == 'overview.index' %} menu-active{% endif %}">{{lang.menu_links.overview.link}}</a></li>
+				<li>
+                    <a href="{{ url_for('overview.index') }}" title="{{lang.menu_links.overview.title}}" class="{% if request.url_rule.endpoint == 'overview.index' %} menu-active{% endif %}">
+                        <img src="{{ url_for('static', filename='images/roxy_icon.png') }}" class="menu-vendor-logo" style="width: 19px;">
+                        {{lang.menu_links.overview.link}}
+                    </a>
+                </li>
 				{% if '5' in g.user_params['user_services'] %}
 				{% if g.user_params['role'] <= 3 %}
 				{% endif %}
@@ -83,7 +88,10 @@
 				{% if '3' in g.user_params['user_services'] %}
 				{% if g.user_params['role'] <= 2 %}
 				<li class="p_menu">
-					<a href="{{ url_for('service.services', service='keepalived') }}" title="{{lang.menu_links.hapservers.keepalived.title}}" class="ha">Keepalived</a>
+                    <a href="{{ url_for('service.services', service='keepalived') }}" title="{{lang.menu_links.hapservers.keepalived.title}}">
+                        <img src="{{ url_for('static', filename='images/keepalived_icon.png') }}" class="menu-vendor-logo" style="margin: 0 5px 0 0;">
+                        Keepalived
+                    </a>
 					<ul class="v_menu">
 						<li><a href="{{ url_for('service.services', service='keepalived') }}" title="{{lang.menu_links.hapservers.keepalived.title}}" class="head-submenu">{{lang.menu_links.hapservers.link}}</a> </li>
 						<li><a href="{{ url_for('config.config', service='keepalived') }}" title="{{lang.menu_links.config.keepalived.title}}" class="head-submenu">{{lang.menu_links.config.link}}</a></li>

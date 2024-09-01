@@ -20,11 +20,11 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f04b";
 }
-.overview-link::before {
-	display: none;
-	font-family: "Font Awesome 5 Solid";
-	content: "\f21e";
-}
+/*.overview-link::before {*/
+/*	display: none;*/
+/*	font-family: "Font Awesome 5 Solid";*/
+/*	content: "\f21e";*/
+/*}*/
 .stats::before {
 	display: none;
 	font-family: "Font Awesome 5 Regular";
@@ -35,11 +35,6 @@
 	font-family: "Font Awesome 5 Regular";
 	content: "\f080";
 }
-/*.logs::before {*/
-/*	display: none;*/
-/*	font-family: "Font Awesome 5 Solid";*/
-/*	content: "\f02d";*/
-/*}*/
 .map::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
@@ -50,16 +45,6 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f233";
 }
-/*.metrics::before {*/
-/*	display: none;*/
-/*	font-family: "Font Awesome 5 Solid";*/
-/*	content: "\f1fe";*/
-/*}*/
-/*.config-show::before {*/
-/*	display: none;*/
-/*	font-family: "Font Awesome 5 Solid";*/
-/*	content: "\f6ff";*/
-/*}*/
 .compare::before {
 	display: none;
 	font-family: "Font Awesome 5 Regular";
@@ -76,16 +61,6 @@
 .plus-after > .fa-plus, .minus-after > .fa-minus, .minus > .fa-minus, .plus > .fa-plus {
 	color: var(--blue-color);
 }
-/*.add-proxy::before {*/
-/*	display: none;*/
-/*	font-family: "Font Awesome 5 Solid";*/
-/*	content: "\f067";*/
-/*}*/
-/*.cert::before {*/
-/*	display: none;*/
-/*	font-family: "Font Awesome 5 Solid";*/
-/*	content: "\f0a3";*/
-/*}*/
 .option::before {
 	display: none;
 	font-family: "Font Awesome 5 Regular";
@@ -101,11 +76,6 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f0cb";
 }
-/*.waf-menu::before {*/
-/*	display: none;*/
-/*	font-family: "Font Awesome 5 Solid";*/
-/*	content: "\f06d";*/
-/*}*/
 .hap-menu::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
@@ -116,26 +86,16 @@
 	font-family: "Font Awesome 5 Regular";
 	content: "\f074";
 }
-/*.backup::before {*/
+/*.ha::before {*/
 /*	display: none;*/
-/*	font-family: "Font Awesome 5 Regular";*/
-/*	content: "\f24d";*/
+/*	font-family: "Font Awesome 5 Solid";*/
+/*	content: "\f0c2";*/
 /*}*/
-.ha::before {
-	display: none;
-	font-family: "Font Awesome 5 Solid";
-	content: "\f0c2";
-}
 .keepalived::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
 	content: "\f126";
 }
-/*.nginx-menu::before {*/
-/*	display: none;*/
-/*	font-family: "Font Awesome 5 Solid";*/
-/*	content: "\f0e8";*/
-/*}*/
 .apache-menu::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
@@ -185,11 +145,6 @@
 	font-family: "Font Awesome 5 Solid";
 	content: "\f21b";
 }
-/*.users::before {*/
-/*	display: none;*/
-/*	font-family: "Font Awesome 5 Solid";*/
-/*	content: "\f234";*/
-/*}*/
 .group::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
@@ -200,11 +155,6 @@
 	font-family: "Font Awesome 5 Regular";
 	content: "\f2b9";
 }
-/*.settings::before {*/
-/*	display: none;*/
-/*	font-family: "Font Awesome 5 Solid";*/
-/*	content: "\f0ad";*/
-/*}*/
 .add-admin::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
@@ -362,16 +312,6 @@
 .note-symbol .question-circle {
 	padding-left: 5px;
 }
-/*.port-scanner::before {*/
-/*	display: none;*/
-/*	font-family: "Font Awesome 5 Solid";*/
-/*	content: "\f796";*/
-/*}*/
-/*.net-tools::before {*/
-/*	display: none;*/
-/*	font-family: "Font Awesome 5 Solid";*/
-/*	content: "\f7d9";*/
-/*}*/
 .shield::before {
 	display: none;
 	font-family: "Font Awesome 5 Solid";
