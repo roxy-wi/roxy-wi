@@ -66,7 +66,6 @@
 		{% if g.user_params['role'] <= 3 %}
 			<h4 class="left-space">{{lang.words.config|title()}} {% if config_file_name and config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} {{lang.words.from}} {{ serv }}</h4>
 			<form action="/config/{{service}}/{{serv}}" name="saveconfig" id="saveconfig" method="post" class="left-space">
-{#				<input type="hidden" value="{{ serv }}" name="server_id">#}
 				<input type="hidden" value="{{ cfg }}.old" name="config_local_path">
 				<input type="hidden" value="{{ service }}" name="service">
 				<input type="hidden" value="{{ config_file_name }}" name="file_name">

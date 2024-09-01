@@ -95,14 +95,12 @@ def config(service, serv, edit, config_file_name, new):
     is_serv_protected = ''
     new_config = new
 
-    if serv and config_file_name:
-        cfg = config_mod.return_cfg(service, serv, config_file_name)
-
     if serv and edit and new_config is None:
         roxywi_common.check_is_server_in_group(serv)
         is_serv_protected = server_sql.is_serv_protected(serv)
         server_id = server_sql.select_server_id_by_ip(serv)
         is_restart = service_sql.select_service_setting(server_id, service, 'restart')
+        cfg = config_mod.return_cfg(service, serv, config_file_name)
 
         try:
             error = config_mod.get_config(serv, cfg, service=service, config_file_name=config_file_name)
