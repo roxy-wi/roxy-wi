@@ -205,12 +205,10 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	:return: Error message or service title
 
 	"""
-	user_id = g.user_params['user_id']
-	user = user_sql.get_user_id(user_id)
-	file_format = config_common.get_file_format(service)
+	user = user_sql.get_user_id(g.user_params['user_id'])
 	config_path = kwargs.get('config_file_name')
-	config_date = get_date.return_date('config')
 	server_id = server_sql.select_server_id_by_ip(server_ip=server_ip)
+	tmp_file = f"{sql.get_setting('tmp_config_path')}/{get_date.return_date('config')}.{config_common.get_file_format(service)}"
 
 	if config_path and config_path != 'undefined':
 		config_path = _replace_config_path_to_correct(kwargs.get('config_file_name'))
@@ -219,8 +217,6 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 		config_path = sql.get_setting(f'{service}_config_path')
 
 	common.check_is_conf(config_path)
-
-	tmp_file = f"{sql.get_setting('tmp_config_path')}/{config_date}.{file_format}"
 
 	try:
 		os.system(f"dos2unix -q {cfg}")
@@ -231,12 +227,6 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 		upload(server_ip, tmp_file, cfg)
 	except Exception as e:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot upload config', login=user.username)
-
-	try:
-		if just_save != 'test':
-			roxywi_common.logging(server_ip, 'A new config file has been uploaded', login=user.username, keep_history=1, service=service)
-	except Exception as e:
-		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 
 	# If master then save a version of config in a new way
 	if not kwargs.get('slave') and service != 'waf':
@@ -252,11 +242,10 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	except Exception as e:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot {just_save} {service}', roxywi=1)
 
-	try:
-		if just_save in ('reload', 'restart'):
-			roxywi_common.logging(server_ip, f'Service has been {just_save}ed', login=user.username, keep_history=1, service=service)
-	except Exception as e:
-		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
+	if just_save in ('reload', 'restart'):
+		roxywi_common.logging(server_ip, f'Service has been {just_save}ed', login=user.username, keep_history=1, service=service)
+	if just_save != 'test':
+		roxywi_common.logging(server_ip, 'A new config file has been uploaded', login=user.username, keep_history=1, service=service)
 
 	if error.strip() != 'haproxy' and error.strip() != 'nginx':
 		return error.strip() or service.title()
@@ -265,7 +254,8 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 def master_slave_upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, **kwargs: Any) -> str:
 	"""
 
-	This method `master_slave_upload_and_restart` performs the upload and restart operation on a master server and its associated slave servers. It takes the following parameters:
+	This method `master_slave_upload_and_restart` performs the upload and restart operation on a master server and its
+	associated slave servers. It takes the following parameters:
 
 	:param server_ip: The IP address of the server to perform the operation on.
 	:param cfg: The configuration file to upload and restart.
@@ -281,7 +271,7 @@ def master_slave_upload_and_restart(server_ip: str, cfg: str, just_save: str, se
 	config_file_name = kwargs.get('config_file_name')
 	old_cfg = kwargs.get('oldcfg')
 	waf = kwargs.get('waf')
-	server_name = server_sql.get_hostname_by_server_ip(server_ip)
+	server = server_sql.get_server_by_ip(server_ip)
 
 	for master in masters:
 		if master[0] is not None:
@@ -299,7 +289,7 @@ def master_slave_upload_and_restart(server_ip: str, cfg: str, just_save: str, se
 	except Exception as e:
 		output = f'error: {e}'
 
-	output = server_name + ':\n' + output
+	output = server.hostname + ':\n' + output
 	output = output + slave_output
 
 	return output
@@ -485,7 +475,7 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 	user_id = claims['user_id']
 	group_id = claims['group']
 	configs_dir = config_common.get_config_dir(service)
-	server_id = server_sql.select_server_id_by_ip(server_ip)
+	server = server_sql.get_server_by_ip(server_ip)
 
 	try:
 		config_file_name = config_file_name.replace('/', '92')
@@ -521,9 +511,9 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 		'service': service,
 		'config_file_name': config_file_name,
 		'is_serv_protected': server_sql.is_serv_protected(server_ip),
-		'is_restart': service_sql.select_service_setting(server_id, service, 'restart'),
+		'is_restart': service_sql.select_service_setting(server.server_id, service, 'restart'),
 		'lang': roxywi_common.get_user_lang_for_flask(),
-		'hostname': server_sql.get_hostname_by_server_ip(server_ip)
+		'hostname': server.hostname
 	}
 
 	return render_template('ajax/config_show.html', **kwargs)
