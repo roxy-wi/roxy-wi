@@ -576,32 +576,45 @@ def update_db_v_7_3_1():
 def update_db_v_7_4():
 	try:
 		migrate(
-			migrator.rename_column('user', 'role', 'role_id'),
 			migrator.rename_column('backups', 'cred', 'cred_id'),
 			migrator.rename_column('backups', 'backup_type', 'type'),
-			migrator.rename_column('servers', 'active', 'haproxy_active'),
-			migrator.rename_column('servers', 'metrics', 'haproxy_metrics'),
-			migrator.rename_column('servers', 'alert', 'haproxy_alert'),
-			migrator.rename_column('udp_balancers', 'desc', 'description'),
-			migrator.rename_column('ha_clusters', 'desc', 'description'),
-			migrator.rename_column('servers', 'desc', 'description'),
+		)
+	except Exception as e:
+		if e.args[0] == 'no such column: "cred"' or str(e) == '(1060, no such column: "cred")':
+			print("Updating... DB has been updated to version 7.4")
+		elif e.args[0] == "'bool' object has no attribute 'sql'":
+			print("Updating... DB has been updated to version 7.4")
+		else:
+			print("An error occurred:", e)
+
+def update_db_v_8():
+	try:
+		migrate(
 			migrator.rename_column('telegram', 'groups', 'group_id'),
 			migrator.rename_column('slack', 'groups', 'group_id'),
 			migrator.rename_column('mattermost', 'groups', 'group_id'),
 			migrator.rename_column('pd', 'groups', 'group_id'),
 			migrator.rename_column('servers', 'groups', 'group_id'),
-			migrator.rename_column('servers', 'cred', 'cred_id'),
-			migrator.rename_column('servers', 'enable', 'enabled'),
-			migrator.rename_column('user', 'activeuser', 'enabled'),
-			migrator.rename_column('user', 'groups', 'group_id'),
+			migrator.rename_column('udp_balancers', 'desc', 'description'),
+			migrator.rename_column('ha_clusters', 'desc', 'description'),
 			migrator.rename_column('cred', 'enable', 'key_enabled'),
 			migrator.rename_column('cred', 'groups', 'group_id'),
+			migrator.rename_column('servers', 'desc', 'description'),
+			migrator.rename_column('servers', 'active', 'haproxy_active'),
+			migrator.rename_column('servers', 'metrics', 'haproxy_metrics'),
+			migrator.rename_column('servers', 'alert', 'haproxy_alert'),
+			migrator.rename_column('servers', 'cred', 'cred_id'),
+			migrator.rename_column('servers', 'enable', 'enabled'),
+			migrator.rename_column('servers', 'groups', 'group_id'),
+			migrator.rename_column('user', 'activeuser', 'enabled'),
+			migrator.rename_column('user', 'groups', 'group_id'),
+			migrator.rename_column('user', 'role', 'role_id'),
 		)
 	except Exception as e:
-		if e.args[0] == 'no such column: "role"' or str(e) == '(1060, no such column: "role")':
-			print("Updating... DB has been updated to version 7.4")
+		if e.args[0] == 'no such column: "groups"' or str(e) == '(1060, no such column: "groups")':
+			print("Updating... DB has been updated to version 8")
 		elif e.args[0] == "'bool' object has no attribute 'sql'":
-			print("Updating... DB has been updated to version 7.4")
+			print("Updating... DB has been updated to version 8")
 		else:
 			print("An error occurred:", e)
 
@@ -633,4 +646,5 @@ def update_all():
 	update_db_v_7_2_3()
 	update_db_v_7_3_1()
 	update_db_v_7_4()
+	update_db_v_8()
 	update_ver()

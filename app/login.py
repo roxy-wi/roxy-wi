@@ -52,6 +52,7 @@ def login_page():
         try:
             user_params = roxywi_auth.check_user_password(login, password)
         except Exception as e:
+            print(str(e))
             return roxywi_common.handle_json_exceptions(e, 'Cannot check login password'), 401
         try:
             return roxywi_auth.do_login(user_params, next_url)

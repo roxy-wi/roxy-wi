@@ -136,7 +136,8 @@ def check_user_password(login: str, password: str) -> dict:
         raise Exception('There is no login or password')
     try:
         user = user_sql.get_user_by_username(login)
-    except Exception:
+    except Exception as e:
+        roxywi_common.logging('Roxy-WI server', f'error: Cannot login user {e}', roxywi=1)
         raise Exception('ban')
     if user.enabled == 0:
         raise Exception('Your login is disabled')
