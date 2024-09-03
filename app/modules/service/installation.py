@@ -36,6 +36,10 @@ def generate_udp_inv(listener_id: int, action: str) -> object:
 			"id": listener['id'],
 			"config": listener['config'],
 			"lb_algo": listener['lb_algo'],
+			"check_enabled": listener['check_enabled'],
+			"delay_before_retry": listener['delay_before_retry'],
+			"delay_loop": listener['delay_loop'],
+			"retry": listener['retry'],
 		}
 	return inv, server_ips
 

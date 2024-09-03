@@ -1,27 +1,24 @@
 from app.modules.db.db_model import SavedServer, Option
 from app.modules.db.common import out_error
+from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
 def update_saved_server(server, description, saved_id):
-	query_update = SavedServer.update(server=server, description=description).where(SavedServer.id == saved_id)
 	try:
-		query_update.execute()
+		SavedServer.update(server=server, description=description).where(SavedServer.id == saved_id).execute()
+	except SavedServer.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
-		return False
-	else:
-		return True
 
 
 def delete_saved_server(saved_id):
-	query = SavedServer.delete().where(SavedServer.id == saved_id)
 	try:
-		query.execute()
+		SavedServer.delete().where(SavedServer.id == saved_id).execute()
+	except SavedServer.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
-		return False
-	else:
-		return True
 
 
 def delete_option(option_id):

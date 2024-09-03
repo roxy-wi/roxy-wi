@@ -166,10 +166,10 @@ class UDPListener(MethodView):
                 name:
                   type: string
                 cluster_id:
-                  type: int
+                  type: integer
                   description: Cluster ID where the UDP listener is located. Must be determined if server_id empty
                 server_id:
-                  type: int
+                  type: integer
                   description: Standalone mode. Server ID where the UDP listener is located. Must be determined if cluster_id empty
                 group_id:
                   type: string
@@ -180,6 +180,22 @@ class UDPListener(MethodView):
                   description: "'rr': 'Round robin', 'wrr': 'Weighted Round Robin', 'lc': 'Least Connection', 'wlc': 'Weighted Least Connection', 'sh': 'Source Hashing', 'dh': 'Destination Hashing', 'lblc': 'Locality-Based Least Connection'"
                   schema:
                     enum: [rr, wrr, lc, wlc, sh, dh, wlc, lblc]
+                check_enabled:
+                  type: integer
+                  default: 1
+                  description: Enable backend servers checking
+                delay_before_retry:
+                  type: integer
+                  default: 10
+                  description: Delay between two successive retries
+                delay_loop:
+                  type: integer
+                  default: 10
+                  description: Specify in seconds the interval between checks
+                retry:
+                  type: integer
+                  default: 3
+                  description: Maximum number of retries before mark a backend server as down
                 description:
                   type: string
                 vip:
@@ -254,10 +270,10 @@ class UDPListener(MethodView):
                 name:
                   type: string
                 cluster_id:
-                  type: int
+                  type: integer
                   description: Cluster ID where the UDP listener is located. Must be determined if server_id empty
                 server_id:
-                  type: int
+                  type: integer
                   description: Standalone mode. Server ID where the UDP listener is located. Must be determined if cluster_id empty
                 group_id:
                   type: string
@@ -268,6 +284,22 @@ class UDPListener(MethodView):
                   description: "'rr': 'Round robin', 'wrr': 'Weighted Round Robin', 'lc': 'Least Connection', 'wlc': 'Weighted Least Connection', 'sh': 'Source Hashing', 'dh': 'Destination Hashing', 'lblc': 'Locality-Based Least Connection'"
                   schema:
                     enum: [rr, wrr, lc, wlc, sh, dh, wlc, lblc]
+                check_enabled:
+                  type: integer
+                  default: 1
+                  description: Enable backend servers checking
+                delay_before_retry:
+                  type: integer
+                  default: 10
+                  description: Delay between two successive retries
+                delay_loop:
+                  type: integer
+                  default: 10
+                  description: Specify in seconds the interval between checks
+                retry:
+                  type: integer
+                  default: 3
+                  description: Maximum number of retries before mark a backend server as down
                 description:
                   type: string
                 vip:
@@ -418,11 +450,11 @@ class UDPListeners(MethodView):
         try:
             group_id = SupportClass.return_group_id(query)
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e, f'Cannot get UDP listeners')
+            return roxywi_common.handle_json_exceptions(e, 'Cannot get UDP listeners')
         try:
             listeners = udp_sql.select_listeners(group_id)
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e, f'Cannot get UDP listeners')
+            return roxywi_common.handle_json_exceptions(e, 'Cannot get UDP listeners')
         return jsonify([model_to_dict(listener, recurse=False) for listener in listeners])
 
 

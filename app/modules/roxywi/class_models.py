@@ -17,6 +17,8 @@ class EscapedString(str):
         if isinstance(field_value, str):
             if cls.pattern.search(field_value):
                 return re.sub(cls.pattern, '', field_value)
+            elif '..' in field_value:
+                raise ValueError('nice try')
             elif field_value == '':
                 return field_value
             else:
@@ -275,3 +277,14 @@ class PortScannerRequest(BaseModel):
     enabled: Optional[bool] = 1
     history: Optional[bool] = 1
     notify: Optional[bool] = 1
+
+
+class SSLCertUploadRequest(BaseModel):
+    server_ip: Union[IPvAnyAddress, DomainName]
+    name: EscapedString
+    cert: EscapedString
+
+
+class SavedServerRequest(BaseModel):
+    server: EscapedString
+    description: Optional[EscapedString] = None

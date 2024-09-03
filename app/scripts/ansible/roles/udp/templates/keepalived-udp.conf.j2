@@ -2,18 +2,22 @@ virtual_server {{ vip }} {{ port }} {
     lb_algo {{ lb_algo }}
     lb_kind NAT
     protocol UDP
-    delay_loop 10
-    delay_before_retry 10
-    retry 3
+    {% if check_enabled %}
+    delay_loop {{ delay_loop }}
+    delay_before_retry {{ delay_before_retry }}
+    retry {{ retry }}
+    {% endif %}
 
 
 {% for server in config %}
     real_server {{ server.backend_ip }} {{ server.port }} {
         weight {{ server.weight }}
+        {% if check_enabled %}
         MISC_CHECK {
             misc_path "{{ service_dir }}/checks/udp_check.sh {{ server.backend_ip }} {{ server.port }}"
             misc_timeout 5
         }
+        {% endif %}
     }
 {% endfor %}
 }

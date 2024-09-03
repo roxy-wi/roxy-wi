@@ -521,7 +521,8 @@ def del_ssl_cert(server_ip: str, cert_id: str) -> str:
 def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str) -> str:
 	cert_path = sql.get_setting('cert_path')
 	tmp_path = sql.get_setting('tmp_config_path')
-	slave_output = ''
+	output = []
+	server_ip = str(server_ip)
 
 	if ssl_name is None:
 		return 'error: Please enter a desired name'
@@ -539,12 +540,13 @@ def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str) -> str:
 	for master in masters:
 		if master[0] is not None:
 			config_mod.upload(master[0], f'{cert_path}/{name}', path_to_file)
-			slave_output += f'success: the SSL file has been uploaded to {master[0]} into: {cert_path}/{name} \n'
+			output.append(f'success: the SSL file has been uploaded to {master[0]} into: {cert_path}/{name}')
 	try:
 		config_mod.upload(server_ip, f'{cert_path}/{name}', path_to_file)
+		output.append(f'success: the SSL file has been uploaded to {server_ip} into: {cert_path}/{name}')
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		return f'error: cannot upload SSL cert: {e}'
 
 	roxywi_common.logging(server_ip, f"add#ssl uploaded a new SSL cert {name}", roxywi=1, login=1)
-	return f'success: the SSL file has been uploaded to {server_ip} into: {cert_path}/{name} \n {slave_output}'
+	return output

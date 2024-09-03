@@ -501,17 +501,18 @@ $( function() {
 	});
 	$('#add-saved-server-new').click(function () {
 		$.ajax({
-			url: "/add/server/save",
-			data: {
+			url: "/add/server",
+			data: JSON.stringify({
 				server: $('#new-saved-servers').val(),
-				desc: $('#new-saved-servers-description').val()
-			},
+				description: $('#new-saved-servers-description').val()
+			}),
 			type: "POST",
+			contentType: "application/json; charset=utf-8",
 			success: function (data) {
-				if (data.indexOf('error:') != '-1') {
+				if (data.status === 'failed') {
 					toastr.error(data);
 				} else {
-					$("#servers_table").append(data);
+					$("#servers_table").append(data.data);
 					setTimeout(function () {
 						$(".newsavedserver").removeClass("update");
 					}, 2500);
@@ -866,22 +867,25 @@ $( function() {
 		if (!checkIsServerFiled('#serv4')) return false;
 		if (!checkIsServerFiled('#ssl_name', 'Enter the Certificate name')) return false;
 		if (!checkIsServerFiled('#ssl_cert', 'Paste the contents of the certificate file')) return false;
+		let jsonData = {
+			server_ip: $('#serv4').val(),
+			cert: $('#ssl_cert').val(),
+			name: $('#ssl_name').val()
+		}
 		$.ajax({
 			url: "/add/cert/add",
-			data: {
-				serv: $('#serv4').val(),
-				ssl_cert: $('#ssl_cert').val(),
-				ssl_name: $('#ssl_name').val()
-			},
+			data: JSON.stringify(jsonData),
+			contentType: "application/json; charset=utf-8",
 			type: "POST",
 			success: function (data) {
-				data = data.split("\n");
-				for (i = 0; i < data.length; i++) {
-					if (data[i]) {
-						if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
-							toastr.error(data[i]);
-						} else {
-							if (data[i] != '\n') {
+				if (data.error === 'failed') {
+					toastr.error(data.error);
+				} else {
+					for (let i = 0; i < data.length; i++) {
+						if (data[i]) {
+							if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
+								toastr.error(data[i]);
+							} else {
 								toastr.success(data[i]);
 							}
 						}
@@ -1379,31 +1383,38 @@ function confirmDeleteSavedServer(id) {
 	});
 }
 function removeSavedServer(id) {
-	$("#servers-saved-"+id).css("background-color", "#f2dede");
-	$.ajax( {
-		url: "/add/server/delete/"+id,
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if(data.indexOf('ok') != '-1') {
-				$("#servers-saved-"+id).remove();
+	$("#servers-saved-" + id).css("background-color", "#f2dede");
+	$.ajax({
+		url: "/add/server/" + id,
+		type: "DELETE",
+		contentType: "application/json; charset=utf-8",
+		statusCode: {
+			204: function (xhr) {
+				$("#servers-saved-" + id).remove();
+			},
+			404: function (xhr) {
+				$("#servers-saved-" + id).remove();
+			}
+		},
+		success: function (data) {
+			if (data) {
+				if (data.status === "failed") {
+					toastr.error(data);
+				}
 			}
 		}
-	} );
+	});
 }
 function updateSavedServer(id) {
 	toastr.clear();
 	$.ajax( {
-		url: "/add/server/update",
-		data: {
-			server: $('#servers-ip-'+id).val(),
-			desc: $('#servers-desc-'+id).val(),
-			id: id,
-		},
-		type: "POST",
+		url: "/add/server/" + id,
+		type: "PUT",
+		data: JSON.stringify({"server": $('#servers-ip-'+id).val(), description: $('#servers-desc-'+id).val(),}),
+		contentType: "application/json; charset=utf-8",
 		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
 			} else {
 				$("#servers-saved-"+id).addClass( "update", 1000 );
 				setTimeout(function() {

@@ -28,6 +28,13 @@ $( function() {
 			$('#new-listener-port').focus();
 		}
 	});
+	$('#check_enabled').click(function () {
+		if ($('#check_enabled').is(':checked')) {
+			$('.check_backends').show();
+		} else {
+			$('.check_backends').hide();
+		}
+	});
 });
 function getHAClusterVIPS(cluster_id) {
 	let vip_id = $('#vip');
@@ -76,9 +83,20 @@ function createUDPListener(edited=false, listener_id=0, clean=true) {
 				$('#name').val(data.name.replaceAll("'", ""));
 				$('#new-listener-type').val(place);
 				$('#port').val(data.port);
+				$('#delay_loop').val(data.delay_loop);
+				$('#delay_before_retry').val(data.delay_before_retry);
+				$('#retry').val(data.retry);
 				$('#lb_algo').val(data.lb_algo).change();
 				$('#lb_algo').selectmenu('refresh');
 				$('#desc').val(data.description.replaceAll("'", ""));
+				if (data.check_enabled) {
+					$('#check_enabled').prop('checked', true);
+					$('.check_backends').show();
+				} else {
+					$('#check_enabled').prop('checked', false);
+					$('.check_backends').hide();
+				}
+				$("#check_enabled").checkboxradio("refresh");
 				if (place === 'cluster') {
 					$.when(getHAClusterVIPS(data.cluster_id)).done(function () {
 						$("#vip option").filter(function () {
@@ -99,7 +117,7 @@ function createUDPListener(edited=false, listener_id=0, clean=true) {
 				$('#new-udp-servers-td').append('<a class="link add-server" title="Add backend server" onclick="createBackendServer()"></a>');
 				data.config = JSON.stringify(data.config);
 				let config = JSON.parse(data.config)
-				for(let server of config) {
+				for (let server of config) {
 					createBackendServer(server.backend_ip, server.port, server.weight);
 				}
 			}
@@ -262,10 +280,15 @@ function getFormData($form) {
 	let unindexed_array = $form.serializeArray();
 	let indexed_array = {};
 	indexed_array['config'] = [];
+	indexed_array['check_enabled'] = 0;
 
 	$.map(unindexed_array, function (n, i) {
 		if (n['name'] === 'serv') {
 			indexed_array['server_id'] = n['value'];
+		} else if (n['name'] === 'check_enabled') {
+			if ($('#check_enabled').is(':checked')) {
+				indexed_array['check_enabled'] = 1;
+			}
 		} else {
 			indexed_array[n['name']] = n['value'];
 		}
@@ -324,15 +347,7 @@ function saveUdpListener(jsonData, dialog_id, listener_id=0, edited=0, reconfigu
 					listener_id = data.id;
 					getUDPListener(listener_id, true);
 				}
-				// if (reconfigure) {
-				// 	NProgress.start();
-				// 	$.when(Reconfigure(listener_id)).done(function () {
-				// 		dialog_id.dialog("close");
-				// 		NProgress.done();
-				// 	});
-				// } else {
-					dialog_id.dialog("close");
-				// }
+				dialog_id.dialog("close");
 				toastr.success('Listener ' + data.status);
 			}
 		}
@@ -421,9 +436,15 @@ function clearListenerDialog(edited=0) {
 	$('#new-listener-desc').val('');
 	$('#new-udp-ip').val('');
 	$('#vrrp-ip').prop("readonly", false);
+	$('#delay_loop').val(10);
+	$('#delay_before_retry').val(10);
+	$('#retry').val(3);
 	$('#new-listener-port').val('');
 	$("#cluster_id").attr('disabled', false);
 	$("#serv").attr('disabled', false);
+	$('#check_enabled').prop('checked', true);
+	$('.check_backends').show();
+	$("#check_enabled").checkboxradio("refresh");
 	clearUdpVip()
 	$('#new-udp-servers-td').empty();
 	$('#new-udp-servers-td').append('<a class="link add-server" title="Add backend server" onclick="createBackendServer()"></a>');

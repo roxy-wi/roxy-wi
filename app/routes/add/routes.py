@@ -2,7 +2,9 @@ import os
 
 from flask import render_template, request, jsonify, redirect, url_for, g
 from flask_jwt_extended import jwt_required, get_jwt
+from flask_pydantic import validate
 
+from app.modules.roxywi.class_models import SSLCertUploadRequest, DataStrResponse, SavedServerRequest, BaseResponse
 from app.routes.add import bp
 import app.modules.db.sql as sql
 import app.modules.db.add as add_sql
@@ -516,43 +518,40 @@ def delete_option(option_id):
 
 @bp.route('/server/get/<int:group>')
 def get_saved_server(group):
-    term = request.args.get('term')
+    term = common.checkAjaxInput(request.args.get('term'))
 
     return jsonify(add_mod.get_saved_servers(group, term))
 
 
-@bp.post('/server/save')
+@bp.post('/server')
 @get_user_params()
-def save_saved_server():
-    server = common.checkAjaxInput(request.form.get('server'))
+@validate(body=SavedServerRequest)
+def saved_server(body: SavedServerRequest):
     group = g.user_params['group_id']
-    desc = common.checkAjaxInput(request.form.get('desc'))
-
-    return add_mod.create_saved_server(server, group, desc)
-
-
-@bp.post('/server/update')
-def update_saved_server():
-    server = common.checkAjaxInput(request.form.get('server'))
-    server_id = int(request.form.get('id'))
-    desc = common.checkAjaxInput(request.form.get('desc'))
-
     try:
-        add_sql.update_saved_server(server, desc, server_id)
+        data = add_mod.create_saved_server(body.server, group, body.description)
+        return DataStrResponse(data=data).model_dump(mode='json'), 201
     except Exception as e:
-        return str(e)
-    else:
-        return 'ok'
+        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create server')
 
 
-@bp.route('/server/delete/<int:server_id>')
+@bp.put('/server/<int:server_id>')
+@validate(body=SavedServerRequest)
+def update_saved_server(server_id: int, body: SavedServerRequest):
+    try:
+        add_sql.update_saved_server(body.server, body.description, server_id)
+        return BaseResponse().model_dump(mode='json'), 201
+    except Exception as e:
+        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update server')
+
+
+@bp.delete('/server/<int:server_id>')
 def delete_saved_server(server_id):
     try:
         add_sql.delete_saved_server(server_id)
+        return BaseResponse().model_dump(mode='json'), 204
     except Exception as e:
-        return str(e)
-    else:
-        return 'ok'
+        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete server')
 
 
 @bp.route('/certs/<server_ip>')
@@ -572,12 +571,13 @@ def get_cert(server_ip, cert_id):
 
 
 @bp.post('/cert/add')
-def upload_cert():
-    server_ip = common.is_ip_or_dns(request.form.get('serv'))
-    ssl_name = request.form.get('ssl_name')
-    ssl_cont = request.form.get('ssl_cert')
-
-    return add_mod.upload_ssl_cert(server_ip, ssl_name, ssl_cont)
+@validate(body=SSLCertUploadRequest)
+def upload_cert(body: SSLCertUploadRequest):
+    try:
+        data = add_mod.upload_ssl_cert(body.server_ip, body.name, body.cert)
+        return jsonify(data), 201
+    except Exception as e:
+        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot upload SSL certificate')
 
 
 @bp.route('/cert/get/raw/<server_ip>/<cert_id>')

@@ -130,6 +130,39 @@
         </tr>
         <tr>
             <td class="padding20">
+                {{ lang.udp_page.check_backends }}
+                <span class="need-field">*</span>
+            </td>
+            <td>
+                {{ checkbox('check_enabled', title=lang.udp_page.check_backends, checked='checked') }}
+            </td>
+        </tr>
+        <tr class="check_backends">
+            <td class="padding20">
+                {{ lang.udp_page.delay_loop }}
+            </td>
+            <td>
+                {{ input('delay_loop', title=lang.udp_page.delay_loop_title, value='10', type='number') }}
+            </td>
+        </tr>
+        <tr class="check_backends">
+            <td class="padding20">
+                {{ lang.udp_page.delay_before_retry }}
+            </td>
+            <td>
+                {{ input('delay_before_retry', title=lang.udp_page.delay_before_retry_title, value='10', type='number') }}
+            </td>
+        </tr>
+        <tr class="check_backends">
+            <td class="padding20">
+                {{ lang.udp_page.retry }}
+            </td>
+            <td>
+                {{ input('retry', title=lang.udp_page.retry_title, value='3', type='number') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20">
                 {{lang.words.desc|title()}}
             </td>
             <td>
