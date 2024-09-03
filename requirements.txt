@@ -26,3 +26,4 @@ ansible-core==2.16.3
 ansible-runner==2.3.1
 python-whois>=0.8.0
 netaddr>=0.10.1
+retry>=0.9.2
