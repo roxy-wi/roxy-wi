@@ -7,6 +7,7 @@ from playhouse.shortcuts import model_to_dict
 from flask_jwt_extended import jwt_required
 
 import app.modules.db.sql as sql
+import app.modules.roxywi.roxy as roxy
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.smon as smon_mod
 from app.middleware import get_user_params, page_for_admin, check_group
@@ -143,4 +144,6 @@ class SettingsView(MethodView):
                 smon_mod.change_smon_port(int(val))
             except Exception as e:
                 return f'{e}'
+        if body.param == 'license':
+            roxy.update_plan()
         return BaseResponse().model_dump(mode='json'), 201

@@ -10,7 +10,6 @@ import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
-import app.modules.service.keepalived as keepalived
 from app.views.ha.views import HAView
 
 bp.add_url_rule('/<service>', view_func=HAView.as_view('ha_cluster'), methods=['GET'], defaults={'cluster_id': None})
@@ -71,10 +70,6 @@ def show_ha_cluster(service, cluster_id):
         servers_with_status.append(s[1])
         servers_with_status.append(s[2])
         servers_with_status.append(s[11])
-        status1, status2 = keepalived.get_status(s[2])
-        servers_with_status.append(status1)
-        servers_with_status.append(status2)
-        servers_with_status.append(s[22])
         servers_with_status.append(server_sql.is_master(s[2]))
         servers_with_status.append(server_sql.select_servers(server=s[2]))
 

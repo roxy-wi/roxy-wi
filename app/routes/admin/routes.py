@@ -126,23 +126,3 @@ def get_settings():
         'timezones': pytz.all_timezones,
     }
     return render_template('include/admin_settings.html', **kwargs)
-
-
-@bp.post('/setting/<param>')
-def update_settings(param):
-    roxywi_auth.page_for_admin(level=2)
-    val = request.form.get('val').replace('92', '/')
-    user_group = roxywi_common.get_user_group(id=1)
-    try:
-        sql.update_setting(param, val, user_group)
-    except Exception as e:
-        roxywi_common.handle_json_exceptions(e, 'Cannot update settings')
-    roxywi_common.logging('Roxy-WI server', f'The {param} setting has been changed to: {val}', roxywi=1, login=1)
-
-    if param == 'master_port':
-        try:
-            smon_mod.change_smon_port(int(val))
-        except Exception as e:
-            return f'{e}'
-
-        return 'Ok'

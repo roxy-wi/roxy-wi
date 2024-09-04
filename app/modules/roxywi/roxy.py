@@ -86,8 +86,9 @@ def update_user_status() -> None:
 	try:
 		status = roxy_wi_get_plan.json()
 		roxy_sql.update_user_status(status['status'], status['plan'], status['method'])
+		roxywi_common.logging('Roxy-WI server', 'Update Roxy-WI user status', roxywi=1)
 	except Exception as e:
-		roxywi_common.logging('Roxy-WI server', f'error: Cannot get user status {e}', roxywi=1)
+		roxywi_common.logging('Roxy-WI server', f'error: Cannot get Roxy-WI user status {e}', roxywi=1)
 
 
 def action_service(action: str, service: str) -> str:

@@ -74,6 +74,12 @@ class ServiceView(MethodView):
                 Version:
                   type: 'string'
                   description: 'Version of the service'
+                Process:
+                  type: 'string'
+                  description: 'Number of processes launched by the service'
+                Status:
+                  type: 'string'
+                  description: 'Status of the service'
           default:
             description: Unexpected error
         """
@@ -88,12 +94,15 @@ class ServiceView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find a server')
 
         if service == 'haproxy':
-            cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:"' % (
-            server.ip, sql.get_setting('haproxy_sock_port'))
+            cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:\|Process_num"' % (
+                server.ip, sql.get_setting('haproxy_sock_port')
+            )
             out = server_mod.subprocess_execute(cmd)
             data = self.return_dict_from_out(out[0])
             if len(data) == 0:
                 data = ErrorResponse(error='Cannot get information').model_dump(mode='json')
+            else:
+                data['Status'] = self._service_status(data['Process'])
         elif service == 'nginx':
             is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
             if is_dockerized == '1':
@@ -105,7 +114,13 @@ class ServiceView(MethodView):
             try:
                 out = server_mod.ssh_command(server.ip, cmd)
                 out1 = out.split()
-                data = {"Version": out1[0].split('/')[1], "Uptime": out1[2], "Process": out1[3]}
+                data = {
+                    "Version": out1[0].split('/')[1],
+                    "Uptime": out1[2],
+                    "Process": out1[3],
+                    "Status": self._service_status(out1[3])}
+            except IndexError:
+                return ErrorResponse(error='NGINX service not found').model_dump(mode='json'), 404
             except Exception as e:
                 data = ErrorResponse(error=str(e)).model_dump(mode='json')
         elif service == 'apache':
@@ -124,19 +139,24 @@ class ServiceView(MethodView):
                 data = {
                     "Version": servers_with_status[0][0].split('/')[1],
                     "Uptime": servers_with_status[0][1].split(':')[1].strip(),
-                    "Process": servers_with_status[0][2].split(' ')[1]
+                    "Process": servers_with_status[0][2].split(' ')[1],
+                    "Status": self._service_status(servers_with_status[0][2].split(' ')[1])
                 }
+            except IndexError:
+                return ErrorResponse(error='Apache service not found').model_dump(mode='json'), 404
             except Exception as e:
                 data = ErrorResponse(error=str(e)).model_dump(mode='json')
         elif service == 'keepalived':
-            cmd = "sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}'"
+            cmd = ("sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}' && sudo systemctl status keepalived |grep -e 'Active'"
+                   "|awk '{print $2, $9$10$11$12$13}' && ps ax |grep 'keepalived -D'|grep -v grep |wc -l")
             try:
-                version = server_mod.ssh_command(server.ip, cmd)
+                out = server_mod.ssh_command(server.ip, cmd)
+                out1 = out.split()
+                data = {"Version": out1[0].split('\r')[0], "Uptime": out1[2], "Process": out1[3], 'Status': self._service_status(out1[3])}
+            except IndexError:
+                return ErrorResponse(error='Keepalived service not found').model_dump(mode='json'), 404
             except Exception as e:
                 return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get version')
-            if version == '/usr/sbin/keepalived:\r\n':
-                return ErrorResponse(error='Cannot get keepalived').model_dump(mode='json')
-            data = {'Version': version}
         return jsonify(data)
 
     @staticmethod
@@ -145,11 +165,20 @@ class ServiceView(MethodView):
         for k in out:
             if "Ncat:" not in k:
                 k = k.split(':')
-                data[k[0]] = k[1].strip()
+                if k[0] == 'Process_num':
+                    data['Process'] = k[1].strip()
+                else:
+                    data[k[0]] = k[1].strip()
             else:
                 data = {"error": "Cannot connect to HAProxy"}
 
         return data
+
+    @staticmethod
+    def _service_status(process_num: int) -> str:
+        if process_num == '0':
+            return 'stopped'
+        return 'running'
 
 
 class ServiceActionView(MethodView):
@@ -290,7 +319,7 @@ class ServiceConfigView(MethodView):
             description: Unexpected error
         """
         if service in ('nginx', 'apache') and (query.file_path is None and query.version is None):
-            return ErrorResponse(error=f'There is must be "file_name" as query parameter for {service.title()}')
+            return ErrorResponse(error=f'There is must be "file_path" as query parameter for {service.title()}')
         if query.file_path:
             query.file_path = query.file_path.replace('/', '92')
 
@@ -307,7 +336,7 @@ class ServiceConfigView(MethodView):
         else:
             cfg = config_common.generate_config_path(service, server_ip)
             try:
-                config_mod.get_config(server_ip, cfg, service=service, config_file_name=query.file_name)
+                config_mod.get_config(server_ip, cfg, service=service, config_file_name=query.file_path)
             except Exception as e:
                 return ErrorResponse(error=str(e)).model_dump(mode='json')
 
@@ -350,7 +379,7 @@ class ServiceConfigView(MethodView):
                   type: string
                   description: The configuration to be saved.
                   required: true
-                file_name:
+                file_path:
                   type: string
                   description: Path to the configuration file. Only for NGINX and Apache services.
                 config_local_path:
@@ -372,15 +401,15 @@ class ServiceConfigView(MethodView):
           default:
             description: Unexpected error
         """
-        if service in ('nginx', 'apache') and (body.file_name is None):
-            return ErrorResponse(error=f'There is must be "file_name" as json parameter for {service.title()}')
+        if service in ('nginx', 'apache') and (body.file_path is None):
+            return ErrorResponse(error=f'There is must be "file_path" as json parameter for {service.title()}')
         try:
             server_ip = SupportClass(False).return_server_ip_or_id(server_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
         try:
-            cfg = config_mod.return_cfg(service, server_ip, body.file_name)
+            cfg = config_mod.return_cfg(service, server_ip, body.file_path)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get config')
 
@@ -395,7 +424,7 @@ class ServiceConfigView(MethodView):
                 stderr = config_mod.upload_and_restart(server_ip, cfg, body.action, service, oldcfg=body.config_local_path)
             else:
                 stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, body.action, service, oldcfg=body.config_local_path,
-                                                                    config_file_name=body.file_name)
+                                                                    config_file_name=body.file_path)
         except Exception as e:
             return f'error: {e}', 200
 

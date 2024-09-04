@@ -7,26 +7,22 @@ function showHapservers(serv, hostnamea, service) {
 	}
 }
 function showHapserversCallBack(serv, hostnamea, service) {
-	$.ajax( {
+	$.ajax({
 		url: "/service/" + service + "/" + serv + "/last-edit",
-		beforeSend: function() {
-			$("#edit_date_"+hostnamea).html('<img class="loading_small_haproxyservers" src="/static/images/loading.gif" />');
+		beforeSend: function () {
+			$("#edit_date_" + hostnamea).html('<img class="loading_small_haproxyservers" src="/static/images/loading.gif" />');
 		},
 		type: "GET",
-		success: function( data ) {
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
+		success: function (data) {
+			if (data.indexOf('ls: cannot access') != '-1') {
+				$("#edit_date_" + hostnamea).empty();
+				$("#edit_date_" + hostnamea).html();
 			} else {
-				if (data.indexOf('ls: cannot access') != '-1') {
-					$("#edit_date_" + hostnamea).empty();
-					$("#edit_date_" + hostnamea).html();
-				} else {
-					$("#edit_date_" + hostnamea).empty();
-					$("#edit_date_" + hostnamea).html(data);
-				}
+				$("#edit_date_" + hostnamea).empty();
+				$("#edit_date_" + hostnamea).html(data);
 			}
 		}
-	} );
+	});
 }
 function overviewHapserverBackends(serv, hostname, service) {
 	let div = '';
@@ -294,10 +290,6 @@ function updateHapWIServer(id, service_name) {
 function change_pos(pos, id) {
 	$.ajax({
 		url: "/service/position/" + id + "/" + pos,
-		// data: {
-		// 	token: $('#token').val()
-		// },
-		// type: "POST",
 		error: function () {
 			console.log(w.data_error);
 		}
@@ -391,10 +383,6 @@ function keepalivedBecameMaster(serv) {
 function showUsersOverview() {
 	$.ajax( {
 		url: "overview/users",
-		// data: {
-		// 	show_users_ovw: 1,
-		// 	token: $('#token').val()
-		// },
 		type: "GET",
 		beforeSend: function() {
 			$("#users-table").html('<img class="loading_small_bin_bout" style="padding-left: 100%;padding-top: 40px;padding-bottom: 40px;" src="/static/images/loading.gif" />');
@@ -412,10 +400,6 @@ function showUsersOverview() {
 function showSubOverview() {
 	$.ajax( {
 		url: "/overview/sub",
-		// data: {
-		// 	show_sub_ovw: 1,
-		// 	token: $('#token').val()
-		// },
 		type: "GET",
 		beforeSend: function() {
 			$("#sub-table").html('<img class="loading_small_bin_bout" style="padding-left: 40%;padding-top: 40px;padding-bottom: 40px;" src="/static/images/loading.gif" />');
@@ -513,21 +497,23 @@ function serverSettingsSave(id, name, service, dialog_id) {
 	});
 }
 function check_service_status(id, ip, service) {
-	if (sessionStorage.getItem('check-service') == 0) {
+	if (sessionStorage.getItem('check-service-'+service+'-'+id) === '0') {
 		return false;
 	}
 	NProgress.configure({showSpinner: false});
-	if (service === 'keepalived') return false;
 	let server_div = $('#div-server-' + id);
 	$.ajax({
 		url: "/service/" + service + "/" + id + "/status",
 		contentType: "application/json; charset=utf-8",
 		statusCode: {
 			401: function (xhr) {
-				sessionStorage.setItem('check-service', 0)
+				sessionStorage.setItem('check-service-'+service+'-'+id, '0')
 			},
 			404: function (xhr) {
-				sessionStorage.setItem('check-service', 0)
+				sessionStorage.setItem('check-service-'+service+'-'+id, '0')
+			},
+			500: function (xhr) {
+				sessionStorage.setItem('check-service-'+service+'-'+id, '0')
 			}
 		},
 		success: function (data) {
@@ -545,13 +531,25 @@ function check_service_status(id, ip, service) {
 					}
 				}
 			} else {
-				console.log(data.length)
 				if (data.status === 'failed') {
+					server_div.removeClass('div-server-head-unknown');
 					server_div.removeClass('div-server-head-up');
 					server_div.addClass('div-server-head-down');
 				} else {
-					server_div.addClass('div-server-head-up');
-					server_div.removeClass('div-server-head-down');
+					if (data.Status === 'running') {
+						server_div.addClass('div-server-head-up');
+						server_div.removeClass('div-server-head-down');
+						server_div.removeClass('div-server-head-unknown');
+						$('#uptime-word-'+id).text(translate_div.attr('data-uptime'));
+					} else {
+						server_div.removeClass('div-server-head-up');
+						server_div.removeClass('div-server-head-unknown');
+						server_div.addClass('div-server-head-down');
+						$('#uptime-word-'+id).text(translate_div.attr('data-downtime'));
+					}
+					$('#service-version-'+id).text(data.Version);
+					$('#service-process_num-'+id).text(data.Process);
+					$('#service-uptime-'+id).text(data.Uptime);
 				}
 			}
 		}
