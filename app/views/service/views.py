@@ -435,6 +435,78 @@ class ServiceConfigView(MethodView):
         return DataStrResponse(data=stderr).model_dump(mode='json'), 201
 
 
+class ServiceConfigList(MethodView):
+    methods = ['GET']
+    decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
+
+    def get(self, service: str, server_id: Union[int, str]):
+        """
+        Retrieve the list of configuration files for the given service
+        ---
+        tags:
+          - Service configs list
+        parameters:
+          - name: service
+            in: path
+            type: string
+            required: true
+            enum: ['nginx', 'apache']
+            description: Type of service (nginx or apache)
+          - name: server_id
+            in: path
+            type: string
+            required: true
+            description: Server ID or IP address
+        responses:
+          200:
+            description: List of configuration files
+            schema:
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: string
+                  example: [
+                    "/etc/nginx/conf.d/default.conf",
+                    "/etc/nginx/waf/modsecurity.conf",
+                    "/etc/nginx/waf/rulescrs-setup.conf",
+                    "/etc/nginx/waf/waf.conf",
+                    "/etc/nginx/nginx.conf"
+                  ]
+        """
+        try:
+            server_ip = SupportClass(False).return_server_ip_or_id(server_id)
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find the server')
+
+        files = []
+        service_config_dir = sql.get_setting(f'{service}_dir')
+
+        try:
+            return_files = server_mod.get_remote_files(server_ip, service_config_dir, 'conf')
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get configs')
+
+        return_files = return_files.split('\t\t')
+        for file in return_files:
+            if '\r\n' in file:
+                for f in file.split('\r\n'):
+                    if f == '':
+                        continue
+                    elif '\t' in f:
+                        for f1 in f.split('\t'):
+                            files.append(f1)
+                    else:
+                        files.append(f)
+            elif file == '':
+                continue
+            else:
+                files.append(file)
+        files.append(sql.get_setting(f'{service}_config_path'))
+        return DataResponse(data=files).model_dump(mode='json')
+
+
 class ServiceConfigVersionsView(MethodView):
     methods = ['GET', 'POST', 'DELETE']
     decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=4), check_group()]

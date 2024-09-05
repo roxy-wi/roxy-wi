@@ -8,7 +8,8 @@ from app.views.install.views import InstallView
 from app.views.server.views import ServerView, ServerGroupView, ServerGroupsView, ServersView, ServerIPView
 from app.views.server.cred_views import CredView, CredsView
 from app.views.server.backup_vews import BackupView, S3BackupView, GitBackupView
-from app.views.service.views import ServiceView, ServiceActionView, ServiceBackendView, ServiceConfigView, ServiceConfigVersionsView
+from app.views.service.views import (ServiceView, ServiceActionView, ServiceBackendView, ServiceConfigView,
+                                     ServiceConfigVersionsView, ServiceConfigList)
 from app.views.ha.views import HAView, HAVIPView, HAVIPsView
 from app.views.user.views import UserView, UserGroupView, UserRoles
 from app.views.udp.views import UDPListener, UDPListeners, UDPListenerActionView
@@ -53,8 +54,10 @@ bp.add_url_rule('/<service>/listeners', view_func=UDPListeners.as_view('listener
 
 register_api_id_ip(ServiceView, 'service', '/status', ['GET'])
 register_api_id_ip(ServiceBackendView, 'service_backend', '/backend', ['GET'])
-register_api_id_ip(ServiceConfigView, 'config_view')
+register_api_id_ip(ServiceConfigView, 'config_view', '/config')
 register_api_id_ip(ServiceConfigVersionsView, 'config_version', '/versions', methods=['GET', 'DELETE'])
+bp.add_url_rule('/service/<any(nginx, apache):service>/<server_id>/config/list', view_func=ServiceConfigList.as_view('config_list_ip'), methods=['GET'])
+bp.add_url_rule('/service/<any(nginx, apache):service>/<int:server_id>/config/list', view_func=ServiceConfigList.as_view('config_list'), methods=['GET'])
 register_api_id_ip(CheckerView, 'checker', '/tools')
 register_api_id_ip(InstallView, 'install', '/install', methods=['POST'])
 register_api_id_ip(ServiceActionView, 'service_action', '/<any(start, stop, reload, restart):action>', methods=['GET'])
