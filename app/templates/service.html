@@ -397,7 +397,7 @@
 	{% endif %}
 	showHapservers(ip, hostnamea, '{{service}}');
     {% for s in servers %}
-        sessionStorage.removeItem('check-service-{{ service }}-{{s.2}}')
+        sessionStorage.removeItem('check-service-{{ service }}-{{s.0}}')
         check_service_status({{s.0}}, '{{s.2}}', '{{service}}');
     {% endfor %}
 </script>

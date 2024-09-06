@@ -3,6 +3,8 @@ from flask_caching import Cache
 from flask_jwt_extended import JWTManager
 from flask_apscheduler import APScheduler
 
+from app.modules.common.common import set_correct_owner
+
 app = Flask(__name__)
 app.config.from_object('app.config.Configuration')
 app.jinja_env.add_extension('jinja2.ext.do')
@@ -23,6 +25,8 @@ from app.create_db import default_values, update_all
 create_tables()
 default_values()
 update_all()
+
+set_correct_owner('/var/lib/roxy-wi')
 
 from app.api.routes import bp as api_bp
 

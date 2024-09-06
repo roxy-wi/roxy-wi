@@ -106,19 +106,31 @@ class ServiceView(MethodView):
         elif service == 'nginx':
             is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
             if is_dockerized == '1':
-                cmd = ("docker exec -it {container_name} /usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx "
-                       "|grep -e 'Active'|awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l")
+                container_name = sql.get_setting(f'{service}_container_name')
+                cmd = (f"sudo docker exec -it {container_name} /usr/sbin/nginx -v 2>&1|awk '{{print $3}}' && "
+                       f"docker ps -a -f name={container_name} --format '{{{{.Status}}}}' && ps ax |grep nginx:|grep -v grep |wc -l")
+                out = server_mod.ssh_command(server.ip, cmd)
+                out = out.replace('\n', '')
+                out1 = out.split('\r')
+                if out1[0] == 'from':
+                    out1[0] = ''
+                    out1[1] = out1[1].split(')')[1]
+                else:
+                    out1[0] = out1[0].split('/')[1]
             else:
                 cmd = ("/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active'"
                        "|awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l")
-            try:
                 out = server_mod.ssh_command(server.ip, cmd)
-                out1 = out.split()
+                out = out.replace('\n', '')
+                out1 = out.split('\r')
+                out1[0] = out1[0].split('/')[1]
+                out1[1] = out1[1].split(';')[1]
+            try:
                 data = {
-                    "Version": out1[0].split('/')[1],
-                    "Uptime": out1[2],
-                    "Process": out1[3],
-                    "Status": self._service_status(out1[3])}
+                    "Version": out1[0],
+                    "Uptime": out1[1],
+                    "Process": out1[2],
+                    "Status": self._service_status(out1[2])}
             except IndexError:
                 return ErrorResponse(error='NGINX service not found').model_dump(mode='json'), 404
             except Exception as e:
@@ -137,13 +149,18 @@ class ServiceView(MethodView):
                     for k in out:
                         servers_with_status.append(k)
                 data = {
-                    "Version": servers_with_status[0][0].split('/')[1],
+                    "Version": servers_with_status[0][0].split('/')[1].split(' ')[0],
                     "Uptime": servers_with_status[0][1].split(':')[1].strip(),
                     "Process": servers_with_status[0][2].split(' ')[1],
                     "Status": self._service_status(servers_with_status[0][2].split(' ')[1])
                 }
             except IndexError:
-                return ErrorResponse(error='Apache service not found').model_dump(mode='json'), 404
+                data = {
+                    "Version": '',
+                    "Uptime": '',
+                    "Process": 0,
+                    "Status": self._service_status('0')
+                }
             except Exception as e:
                 data = ErrorResponse(error=str(e)).model_dump(mode='json')
         elif service == 'keepalived':
@@ -175,7 +192,7 @@ class ServiceView(MethodView):
         return data
 
     @staticmethod
-    def _service_status(process_num: int) -> str:
+    def _service_status(process_num: str) -> str:
         if process_num == '0':
             return 'stopped'
         return 'running'
