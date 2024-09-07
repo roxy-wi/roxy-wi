@@ -573,6 +573,7 @@ def update_db_v_7_3_1():
 		else:
 			print("An error occurred:", e)
 
+
 def update_db_v_7_4():
 	try:
 		migrate(
@@ -621,7 +622,7 @@ def update_db_v_8():
 
 def update_ver():
 	try:
-		Version.update(version='8.0').execute()
+		Version.update(version='8.0.1').execute()
 	except Exception:
 		print('Cannot update version')
 
