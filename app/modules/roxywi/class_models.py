@@ -192,7 +192,7 @@ class VersionsForDelete(BaseModel):
 
 class ConfigRequest(BaseModel):
     action: Literal['save', 'test', 'reload', 'restart']
-    file_name: Optional[str] = None
+    file_path: Optional[str] = None
     config_local_path: Optional[str] = None
     config: str
 

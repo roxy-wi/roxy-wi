@@ -1102,17 +1102,17 @@ function returnNiceCheckingConfig(data) {
 	data = data.replaceAll('nginx: the configuration file /etc/nginx/nginx.conf syntax is ok', '');
 	data = data.replaceAll('nginx: configuration file /etc/nginx/nginx.conf test is successful', '');
 	data = data.replaceAll('Syntax OK', '');
-	output = data.split('<br>')
-	var alerts = [];
-	var alert_warning = '';
-	var alert_warning2 = '';
-	var alert_error = '';
-	var second_alert = false;
+	let output = data.split('<br>')
+	let alerts = [];
+	let alert_warning = '';
+	let alert_warning2 = '';
+	let alert_error = '';
+	let second_alert = false;
 	alerts.push(output[0] + '\n' + output[1]);
-	var server_name = output[0];
-	var server_name2 = '';
+	let server_name = output[0];
+	let server_name2 = '';
 	try {
-		for (var i = 0; i < output.length; i++) {
+		for (let i = 0; i < output.length; i++) {
 			if (i > 1) {
 				if (output[i] !== undefined) {
 					alerts.push(output[i])
@@ -1123,13 +1123,16 @@ function returnNiceCheckingConfig(data) {
 		console.log(err);
 	}
 	alerts.forEach((element) => {
-		if (element.indexOf('error: ') != '-1' || element.indexOf('Fatal') != '-1' || element.indexOf('Error') != '-1' || element.indexOf('failed ') != '-1' || element.indexOf('emerg] ') != '-1' || element.indexOf('Syntax error ') != '-1' || element.indexOf('Parsing') != '-1' || element.indexOf('Unknown') != '-1') {
+		if (element.indexOf('error: ') != '-1' || element.indexOf('Fatal') != '-1' || element.indexOf('Error') != '-1'
+			|| element.indexOf('failed ') != '-1' || element.indexOf('emerg] ') != '-1' || element.indexOf('Syntax error ') != '-1'
+			|| element.indexOf('Parsing') != '-1' || element.indexOf('Unknown') != '-1' || element.indexOf('Unexpected') != '-1'
+			|| element.indexOf('unknown') != '-1') {
 			alert_error = alert_error + element;
 			return
 		}
 		if (element.indexOf('[WARNING]') != '-1' || element.indexOf('[ALER]') != '-1' || element.indexOf('[warn]') != '-1') {
 			element = removeEmptyLines(element);
-			if (second_alert == false) {
+			if (second_alert === false) {
 				alert_warning = alert_warning + element;
 			} else {
 				alert_warning2 = alert_warning2 + element;

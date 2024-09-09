@@ -68,7 +68,7 @@
 			<form action="/config/{{service}}/{{serv}}" name="saveconfig" id="saveconfig" method="post" class="left-space">
 				<input type="hidden" value="{{ cfg }}.old" name="config_local_path">
 				<input type="hidden" value="{{ service }}" name="service">
-				<input type="hidden" value="{{ config_file_name }}" name="file_name">
+				<input type="hidden" value="{{ config_file_name }}" name="file_path">
 				<div>
 					<textarea name="config" id="config_text_area" class="config" rows="35" cols="100">{{ config }}</textarea>
 				</div>
