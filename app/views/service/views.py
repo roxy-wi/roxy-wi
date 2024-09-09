@@ -125,7 +125,10 @@ class ServiceView(MethodView):
                 out1 = out.split('\r')
                 try:
                     out1[0] = out1[0].split('/')[1]
-                    out1[1] = out1[1].split(';')[1]
+                    try:
+                        out1[1] = out1[1].split(';')[1]
+                    except IndexError:
+                        out1[1] = out1[1].split(' ')[1]
                 except IndexError:
                     return ErrorResponse(error='NGINX service not found').model_dump(mode='json'), 404
             try:
