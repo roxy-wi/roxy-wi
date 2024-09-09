@@ -132,7 +132,7 @@ $.ajaxSetup({
 	headers: {"X-CSRF-TOKEN": csrf_token},
 });
 $(document).ajaxError(function myErrorHandler(event, xhr, ajaxOptions, thrownError) {
-	if (xhr.status != 401) {
+	if (xhr.status != 401 && xhr.status != 404) {
 		toastr.error(xhr.responseJSON.error);
 	}
 });

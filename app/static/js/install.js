@@ -254,7 +254,7 @@ function showServiceVersion(service) {
 			}
 		},
 		success: function (data) {
-			if (data.status === 'failed') {
+			if (data.status === 'failed' || !data.Version) {
 				ver_div.text(service + ' has not installed');
 				install_div.text('Install');
 				install_div.attr('title', 'Install');

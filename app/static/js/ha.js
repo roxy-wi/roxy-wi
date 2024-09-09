@@ -708,10 +708,13 @@ function get_keepalived_ver(div_id, server_ip) {
 	$.ajax({
 		url: api_prefix + "/service/keepalived/" + server_ip + "/status",
 		contentType: "application/json; charset=utf-8",
-		success: function (data) {
-			if (data.status === 'failed') {
+		statusCode: {
+			404: function (xhr) {
 				div_id.text('Keepalived has not installed');
-			} else if (!data.Version) {
+			}
+		},
+		success: function (data) {
+			if (!data.Version) {
 				div_id.text('Keepalived has not installed');
 			} else {
 				div_id.text(data.Version);
