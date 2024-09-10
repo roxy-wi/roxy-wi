@@ -16,7 +16,7 @@ import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 from app.modules.server.ssh import return_ssh_keys_path
-from app.modules.roxywi.class_models import ServiceInstall
+from app.modules.roxywi.class_models import ServiceInstall, HAClusterRequest
 
 
 def generate_udp_inv(listener_id: int, action: str) -> object:
@@ -328,7 +328,7 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 			service_sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
 
 
-def install_service(service: str, json_data: Union[str, ServiceInstall]) -> dict:
+def install_service(service: str, json_data: Union[str, ServiceInstall, HAClusterRequest], cluster_id: int = None) -> dict:
 	generate_functions = {
 		'haproxy': generate_haproxy_inv,
 		'nginx': generate_service_inv,
@@ -337,6 +337,8 @@ def install_service(service: str, json_data: Union[str, ServiceInstall]) -> dict
 	}
 
 	json_data = json_data.model_dump(mode='json')
+	if cluster_id:
+		json_data['cluster_id'] = cluster_id
 	try:
 		inv, server_ips = generate_functions[service](json_data, service)
 	except Exception as e:

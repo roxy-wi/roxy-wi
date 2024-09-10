@@ -18,7 +18,7 @@ def _get_servers_dict(cluster: Union[HAClusterRequest, HAClusterVIP, HAClusterSe
     return servers
 
 
-def _get_services_dict(cluster: HAClusterRequest) -> dict:
+def get_services_dict(cluster: HAClusterRequest) -> dict:
     for i, k in cluster.model_dump(mode='json').items():
         if i == 'services':
             services = k
@@ -27,7 +27,7 @@ def _get_services_dict(cluster: HAClusterRequest) -> dict:
 
 def create_cluster(cluster: HAClusterRequest, group_id: int) -> int:
     servers = _get_servers_dict(cluster)
-    services = _get_services_dict(cluster)
+    services = get_services_dict(cluster)
 
     try:
         cluster_id = ha_sql.create_cluster(cluster.name, cluster.syn_flood, group_id, cluster.description)
@@ -70,7 +70,7 @@ def create_cluster(cluster: HAClusterRequest, group_id: int) -> int:
 
 def update_cluster(cluster: HAClusterRequest, cluster_id: int, group_id: int) -> None:
     servers = _get_servers_dict(cluster)
-    services = _get_services_dict(cluster)
+    services = get_services_dict(cluster)
 
     try:
         ha_sql.update_cluster(cluster_id, cluster.name, cluster.description, cluster.syn_flood)

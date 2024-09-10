@@ -8,8 +8,10 @@ import app.modules.db.ha_cluster as ha_sql
 import app.modules.roxywi.common as roxywi_common
 import app.modules.common.common as common
 import app.modules.service.ha_cluster as ha_cluster
+import app.modules.service.installation as service_mod
 from app.middleware import get_user_params, page_for_admin, check_group, check_services
 from app.modules.roxywi.class_models import BaseResponse, IdResponse, HAClusterRequest, HAClusterVIP
+from app.routes.service.routes import services
 
 
 class HAView(MethodView):
@@ -179,9 +181,16 @@ class HAView(MethodView):
         """
         try:
             cluster_id = ha_cluster.create_cluster(body, self.group_id)
-            return IdResponse(id=cluster_id).model_dump(mode='json'), 201
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create cluster')
+
+        if body.reconfigure:
+            try:
+                self._install_service(body, cluster_id)
+            except Exception as e:
+                return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot reconfigure cluster')
+
+        return IdResponse(id=cluster_id).model_dump(mode='json'), 201
 
     @validate(body=HAClusterRequest)
     def put(self, service: str, cluster_id: int, body: HAClusterRequest):
@@ -258,9 +267,16 @@ class HAView(MethodView):
         """
         try:
             ha_cluster.update_cluster(body, cluster_id, self.group_id)
-            return BaseResponse().model_dump(mode='json'), 201
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update cluster')
+
+        if body.reconfigure:
+            try:
+                self._install_service(body, cluster_id)
+            except Exception as e:
+                return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot reconfigure cluster')
+
+        return BaseResponse().model_dump(mode='json'), 201
 
     @staticmethod
     def delete(service: str, cluster_id: int):
@@ -293,6 +309,29 @@ class HAView(MethodView):
             return BaseResponse().model_dump(mode='json'), 204
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete cluster')
+
+    @staticmethod
+    def _install_service(body: HAClusterRequest, cluster_id: int):
+        try:
+            output = service_mod.install_service('keepalived', body, cluster_id)
+        except Exception as e:
+            raise e
+
+        if len(output['failures']) > 0 or len(output['dark']) > 0:
+            raise Exception('Cannot install Keepalived. Check Apache error log')
+
+        cluster_services = ha_cluster.get_services_dict(body)
+        for service, value in cluster_services.items():
+            if not value['enabled']:
+                continue
+            else:
+                try:
+                    output = service_mod.install_service(service, body)
+                except Exception as e:
+                    raise e
+
+                if len(output['failures']) > 0 or len(output['dark']) > 0:
+                    raise Exception(f'Cannot install {service.title()}. Check Apache error log')
 
 
 class HAVIPView(MethodView):

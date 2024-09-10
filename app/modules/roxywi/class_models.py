@@ -179,6 +179,7 @@ class HAClusterRequest(BaseModel):
     use_src: Optional[bool] = 1
     vip: Optional[IPvAnyAddress] = None
     virt_server: Optional[bool] = 1
+    reconfigure: Optional[bool] = 0
 
 
 class ConfigFileNameQuery(BaseModel):
