@@ -574,7 +574,7 @@ def get_cert(server_ip, cert_id):
 @validate(body=SSLCertUploadRequest)
 def upload_cert(body: SSLCertUploadRequest):
     try:
-        data = add_mod.upload_ssl_cert(body.server_ip, body.name, body.cert)
+        data = add_mod.upload_ssl_cert(body.server_ip, body.name, body.cert.replace("'", ""))
         return jsonify(data), 201
     except Exception as e:
         return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot upload SSL certificate')

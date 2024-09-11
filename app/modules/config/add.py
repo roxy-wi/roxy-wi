@@ -518,14 +518,14 @@ def del_ssl_cert(server_ip: str, cert_id: str) -> str:
 		return f'error: Cannot delete the certificate {e}'
 
 
-def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str) -> str:
+def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str) -> list[str]:
 	cert_path = sql.get_setting('cert_path')
 	tmp_path = sql.get_setting('tmp_config_path')
 	output = []
 	server_ip = str(server_ip)
 
 	if ssl_name is None:
-		return 'error: Please enter a desired name'
+		raise Exception('Please enter a desired name')
 	else:
 		name = f"{ssl_name}.pem"
 		path_to_file = f"{tmp_path}/{ssl_name}.pem"
@@ -534,7 +534,7 @@ def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str) -> str:
 		with open(path_to_file, "w") as ssl_cert:
 			ssl_cert.write(ssl_cont)
 	except IOError as e:
-		return f'error: Cannot save the SSL key file: {e}'
+		raise IOError(f'Cannot save the SSL key file: {e}')
 
 	masters = server_sql.is_master(server_ip)
 	for master in masters:
@@ -546,7 +546,7 @@ def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str) -> str:
 		output.append(f'success: the SSL file has been uploaded to {server_ip} into: {cert_path}/{name}')
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
-		return f'error: cannot upload SSL cert: {e}'
+		raise Exception(f'Cannot upload SSL cert: {e}')
 
-	roxywi_common.logging(server_ip, f"add#ssl uploaded a new SSL cert {name}", roxywi=1, login=1)
+	roxywi_common.logging(server_ip, f"A new certificate {name} has been uploaded to {server_ip}", roxywi=1, login=1)
 	return output
