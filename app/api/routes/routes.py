@@ -27,7 +27,7 @@ def before_request():
     """ Protect all the API endpoints. """
     user_subscription = roxywi_common.return_user_subscription()
     if user_subscription['user_status'] == 0 or user_subscription['user_plan'] == 'user':
-        abort(403, 'Your subscription is not active or you are on a Home plan.')
+        abort(401, 'Your subscription is not active or you are on a Home plan.')
     pass
 
 
