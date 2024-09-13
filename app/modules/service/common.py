@@ -1,5 +1,7 @@
+from typing import Union
+
 import requests
-from flask import render_template, request
+from flask import render_template
 from flask_jwt_extended import get_jwt
 from flask_jwt_extended import verify_jwt_in_request
 
@@ -191,7 +193,7 @@ def check_service_config(server_ip: str, server_id: int, service: str) -> None:
 
 
 
-def overview_backends(server_ip: str, service: str) -> str:
+def overview_backends(server_ip: str, service: str) -> Union[str, dict]:
 	import app.modules.config.config as config_mod
 
 	if service not in ('nginx', 'apache'):
@@ -236,11 +238,12 @@ def get_overview_last_edit(server_ip: str, service: str) -> str:
 		return f'error: Cannot get last date {e} for server {server_ip}'
 
 
-def get_stat_page(server_ip: str, service: str) -> str:
-	stats_user = sql.get_setting(f'{service}_stats_user')
-	stats_pass = sql.get_setting(f'{service}_stats_password')
-	stats_port = sql.get_setting(f'{service}_stats_port')
-	stats_page = sql.get_setting(f'{service}_stats_page')
+def get_stat_page(server_ip: str, service: str, group_id: int) -> str:
+	stats_user = sql.get_setting(f'{service}_stats_user', group_id=group_id)
+	stats_pass = sql.get_setting(f'{service}_stats_password', group_id=group_id)
+	stats_pass = stats_pass.replace("'", "")
+	stats_port = sql.get_setting(f'{service}_stats_port', group_id=group_id)
+	stats_page = sql.get_setting(f'{service}_stats_page', group_id=group_id)
 
 	try:
 		response = requests.get(f'http://{server_ip}:{stats_port}/{stats_page}', auth=(stats_user, stats_pass), timeout=5)

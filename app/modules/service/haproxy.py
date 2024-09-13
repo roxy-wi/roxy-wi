@@ -13,6 +13,7 @@ import app.modules.roxywi.common as roxywi_common
 def stat_page_action(server_ip: str, group_id: int) -> bytes:
     haproxy_user = sql.get_setting('haproxy_stats_user', group_id=group_id)
     haproxy_pass = sql.get_setting('haproxy_stats_password', group_id=group_id)
+    haproxy_pass = haproxy_pass.replace("'", "")
     stats_port = sql.get_setting('haproxy_stats_port', group_id=group_id)
     stats_page = sql.get_setting('haproxy_stats_page', group_id=group_id)
 
