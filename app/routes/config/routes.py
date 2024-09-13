@@ -331,5 +331,6 @@ def show_compare(service, server_ip):
 
 
 @bp.route('/map/haproxy/<server_ip>/show')
+@get_user_params()
 def show_map(server_ip):
-    return service_haproxy.show_map(server_ip)
+    return service_haproxy.show_map(server_ip, g.user_params['group_id'])

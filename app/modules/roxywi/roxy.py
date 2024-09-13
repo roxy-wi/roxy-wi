@@ -48,8 +48,11 @@ def versions():
 	except Exception as e:
 		raise Exception(f'Cannot get new version: {e}')
 
-	if version.parse(current_ver) < version.parse(new_ver):
-		json_data['need_update'] = 1
+	try:
+		if version.parse(current_ver) < version.parse(new_ver):
+			json_data['need_update'] = 1
+	except version.InvalidVersion as e:
+		roxywi_common.handle_json_exceptions(e, 'Cannot check new version')
 
 	return json_data
 

@@ -118,6 +118,7 @@ def change_maxconn(type_maxconn, server_ip):
 
 
 @bp.route('/action/<server_ip>', methods=['POST'])
+@get_user_params()
 def action(server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
     enable = common.checkAjaxInput(request.form.get('servaction'))
@@ -131,9 +132,10 @@ def action(server_ip):
 
 
 @bp.post('/stats/action/<server_ip>')
+@get_user_params()
 def stat_page_action(server_ip):
     try:
-        return service_haproxy.stat_page_action(server_ip)
+        return service_haproxy.stat_page_action(server_ip, g.user_params['group_id'])
     except Exception as e:
         return f'{e}'
 

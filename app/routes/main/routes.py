@@ -131,17 +131,18 @@ def stats(service, serv):
 @bp.route('/stats/view/<service>/<server_ip>')
 @jwt_required()
 @check_services
+@get_user_params()
 def show_stats(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
 
     if service in ('nginx', 'apache'):
         try:
-            return service_common.get_stat_page(server_ip, service)
+            return service_common.get_stat_page(server_ip, service, g.user_params['group_id'])
         except Exception as e:
             return f'error: {e}'
     else:
         try:
-            return service_haproxy.stat_page_action(server_ip)
+            return service_haproxy.stat_page_action(server_ip, g.user_params['group_id'])
         except Exception as e:
             return f'error: {e}'
 

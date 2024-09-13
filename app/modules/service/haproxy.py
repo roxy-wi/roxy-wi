@@ -1,7 +1,7 @@
 import os
 import requests
 
-from flask import request
+from flask import request, g
 
 import app.modules.db.sql as sql
 import app.modules.server.server as server_mod
@@ -10,11 +10,11 @@ import app.modules.config.common as config_common
 import app.modules.roxywi.common as roxywi_common
 
 
-def stat_page_action(server_ip: str) -> bytes:
-    haproxy_user = sql.get_setting('haproxy_stats_user')
-    haproxy_pass = sql.get_setting('haproxy_stats_password')
-    stats_port = sql.get_setting('haproxy_stats_port')
-    stats_page = sql.get_setting('haproxy_stats_page')
+def stat_page_action(server_ip: str, group_id: int) -> bytes:
+    haproxy_user = sql.get_setting('haproxy_stats_user', group_id=group_id)
+    haproxy_pass = sql.get_setting('haproxy_stats_password', group_id=group_id)
+    stats_port = sql.get_setting('haproxy_stats_port', group_id=group_id)
+    stats_page = sql.get_setting('haproxy_stats_page', group_id=group_id)
 
     postdata = {
         'action': request.form.get('action'),
@@ -33,7 +33,7 @@ def stat_page_action(server_ip: str) -> bytes:
     return data.content
 
 
-def show_map(serv: str) -> str:
+def show_map(serv: str, group_id: int) -> str:
     import networkx as nx
     import matplotlib
 
@@ -41,7 +41,7 @@ def show_map(serv: str) -> str:
     import matplotlib.pyplot as plt
 
     service = 'haproxy'
-    stats_port = sql.get_setting(f'{service}_stats_port')
+    stats_port = sql.get_setting(f'{service}_stats_port', group_id=group_id)
     cfg = config_common.generate_config_path(service, serv)
     output = f'<center><h4 style="margin-bottom: 0;">Map from {serv}</h4>'
     error = config_mod.get_config(serv, cfg, service=service)
@@ -244,8 +244,8 @@ def show_map(serv: str) -> str:
 
 
 def runtime_command(serv: str, enable: str, backend: str, save: str) -> str:
-    server_state_file = sql.get_setting('server_state_file')
-    haproxy_sock = sql.get_setting('haproxy_sock')
+    server_state_file = sql.get_setting('server_state_file', group_id=g.user_params['group_id'])
+    haproxy_sock = sql.get_setting('haproxy_sock', group_id=g.user_params['group_id'])
     cmd = f"echo {enable} {backend} |sudo socat stdio {haproxy_sock}"
 
     if save == "on":

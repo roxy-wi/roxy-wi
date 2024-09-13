@@ -204,6 +204,8 @@ def update_last_act_user(user_id: int, ip: str) -> None:
 def get_user_by_username(username: str) -> User:
 	try:
 		return User.get(User.username == username)
+	except User.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 
