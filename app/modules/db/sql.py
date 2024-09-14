@@ -1,3 +1,5 @@
+from flask import g
+
 from app.modules.db.db_model import GeoipCodes, Setting, Role
 from app.modules.db.common import out_error
 
@@ -6,7 +8,10 @@ def get_setting(param, **kwargs):
 	if kwargs.get('group_id'):
 		user_group_id = kwargs.get('group_id')
 	else:
-		user_group_id = 1
+		try:
+			user_group_id = g.user_params['group_id']
+		except Exception:
+			user_group_id = 1
 
 	if kwargs.get('all') and not kwargs.get('section'):
 		query = Setting.select().where(Setting.group == user_group_id).order_by(Setting.section.desc())
