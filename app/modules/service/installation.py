@@ -225,20 +225,21 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 		raise Exception(f'{e}')
 
 	for server_ip in server_ips:
-		ssh_settings = return_ssh_keys_path(server_ip)
-		if ssh_settings['enabled']:
-			inv['server']['hosts'][server_ip]['ansible_ssh_private_key_file'] = ssh_settings['key']
-		inv['server']['hosts'][server_ip]['ansible_password'] = ssh_settings['password']
-		inv['server']['hosts'][server_ip]['ansible_user'] = ssh_settings['user']
-		inv['server']['hosts'][server_ip]['ansible_port'] = ssh_settings['port']
-		inv['server']['hosts'][server_ip]['ansible_become'] = True
+		if server_ip != 'localhost':
+			ssh_settings = return_ssh_keys_path(server_ip)
+			if ssh_settings['enabled']:
+				inv['server']['hosts'][server_ip]['ansible_ssh_private_key_file'] = ssh_settings['key']
+			inv['server']['hosts'][server_ip]['ansible_password'] = ssh_settings['password']
+			inv['server']['hosts'][server_ip]['ansible_user'] = ssh_settings['user']
+			inv['server']['hosts'][server_ip]['ansible_port'] = ssh_settings['port']
+			inv['server']['hosts'][server_ip]['ansible_become'] = True
 
-		if ssh_settings['enabled']:
-			try:
-				server_mod.add_key_to_agent(ssh_settings, agent_pid)
-			except Exception as e:
-				server_mod.stop_ssh_agent(agent_pid)
-				raise Exception(f'{e}')
+			if ssh_settings['enabled']:
+				try:
+					server_mod.add_key_to_agent(ssh_settings, agent_pid)
+				except Exception as e:
+					server_mod.stop_ssh_agent(agent_pid)
+					raise Exception(f'{e}')
 
 		if proxy is not None and proxy != '' and proxy != 'None':
 			proxy_serv = proxy
