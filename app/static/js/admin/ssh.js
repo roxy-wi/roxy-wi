@@ -61,6 +61,10 @@ function addCreds(dialog_id) {
 	if ($('#new-ssh_enable').is(':checked')) {
 		ssh_enable = '1';
 	}
+	let ssh_shared = 0;
+	if ($('#new-ssh_shared').is(':checked')) {
+		ssh_shared = '1';
+	}
 	let valid = true;
     let allFields = $([]).add(ssh_add_div).add($('#ssh_user'))
 	allFields.removeClass("ui-state-error");
@@ -71,7 +75,8 @@ function addCreds(dialog_id) {
             "name": ssh_add_div.val(),
             "group_id": $('#new-sshgroup').val(),
             "username": $('#ssh_user').val(),
-            "pass": $('#ssh_pass').val(),
+            "password": $('#ssh_pass').val(),
+            "shared": ssh_shared,
             "key_enabled": ssh_enable,
         }
 		$.ajax({
@@ -113,9 +118,13 @@ function sshKeyEnableShow(id) {
 function updateSSH(id) {
 	toastr.clear();
 	let ssh_enable = 0;
+	let ssh_shared = 0;
 	let ssh_name_val = $('#ssh_name-' + id).val();
 	if ($('#ssh_enable-' + id).is(':checked')) {
 		ssh_enable = '1';
+	}
+	if ($('#ssh_shared-' + id).is(':checked')) {
+		ssh_shared = '1';
 	}
 	let group = $('#sshgroup-' + id).val();
 	if (group === undefined || group === null) {
@@ -127,6 +136,7 @@ function updateSSH(id) {
 		"key_enabled": ssh_enable,
 		"username": $('#ssh_user-' + id).val(),
 		"password": $('#ssh_pass-' + id).val(),
+		"shared": ssh_shared,
 	}
 	$.ajax({
 		url: "/server/cred/" + id,

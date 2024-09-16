@@ -127,6 +127,12 @@
                 <label for="new-ssh_enable">{{lang.words.enabled|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="new-ssh_enable" checked>
             </td>
         </tr>
+        <tr>
+            <td class="padding20">{{lang.words.shared|title()}}</td>
+            <td>
+                <label for="new-ssh_shared"></label><input type="checkbox" id="new-ssh_shared">
+            </td>
+        </tr>
         {% if g.user_params['role'] == 1 %}
         <tr>
             <td class="padding20">{{lang.words.group|title()}}</td>

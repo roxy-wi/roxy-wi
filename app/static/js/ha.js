@@ -221,7 +221,7 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 					toastr.error('error: Wrong VIP');
 					return false;
 				}
-				jsonData = createJsonCluster('#enabled-check div div span');
+				let jsonData = createJsonCluster('#enabled-check div div span');
 				if (!validateSlaves(jsonData)) {
 					return false;
 				}

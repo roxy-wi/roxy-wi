@@ -31,3 +31,17 @@ class RoxywiValidationError(Exception):
 
     def __init__(self, message='Validation error'):
         super(RoxywiValidationError, self).__init__(message)
+
+
+class RoxywiPermissionError(Exception):
+    """ This class represents an exception raised when a permission error occurs. """
+
+    def __init__(self, message='Forbidden'):
+        super(RoxywiPermissionError, self).__init__(message)
+
+
+class RoxywiConflictError(Exception):
+    """ This class represents an exception raised when a conflict error occurs."""
+
+    def __init__(self, message='Conflict'):
+        super(RoxywiConflictError, self).__init__(message)

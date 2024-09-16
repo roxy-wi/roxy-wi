@@ -139,6 +139,7 @@ class CredRequest(BaseModel):
     password: Optional[EscapedString] = None
     key_enabled: Optional[bool] = 1
     group_id: Optional[int] = None
+    shared: Optional[int] = 0
 
 
 class CredUploadRequest(BaseModel):

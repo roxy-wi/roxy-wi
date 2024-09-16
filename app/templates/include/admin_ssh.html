@@ -11,54 +11,13 @@
         {% if g.user_params['role'] == 1 %}
         <td style="width: 25%;">{{lang.words.group|title()}}</td>
         {% endif %}
+        <td>{{ lang.words.shared|title() }}</td>
         <td style="width: 100%;" class="help_cursor" id="ssh-user-name-td">
             <span title="Enter SSH user name. If SSH key disabled, enter password for SSH user">{{lang.words.username|title()}}</span>
         </td>
         <td></td>
     </tr>
-    {% for ssh in sshs %}
-    <tr style="width: 50%;" id="ssh-table-{{ssh.id}}" class="{{ loop.cycle('odd', 'even') }}">
-        <td class="first-collumn padding10">
-            {% set id = 'ssh_name-' + ssh.id|string() %}
-            {{ input(id, value=ssh.name.replace("'", ""), size='15') }}
-        </td>
-        <td class="first-collumn" valign="top" style="padding-top: 15px;">
-            {% if ssh.key_enabled == 1 %}
-            <label for="ssh_enable-{{ssh.id}}">{{lang.words.enable|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="ssh_enable-{{ssh.id}}" checked>
-            {% else %}
-            <label for="ssh_enable-{{ssh.id}}">{{lang.words.enable|title()}} SSH {{lang.words.key}}</label><input type="checkbox" id="ssh_enable-{{ssh.id}}">
-            {% endif %}
-        </td>
-        {% if g.user_params['role'] == 1 %}
-        <td>
-            <select id="sshgroup-{{ssh.id}}" name="sshgroup-{{ssh.id}}">
-                {% for group in groups %}
-                {% if ssh.group_id == group.group_id %}
-                <option value="{{ group.group_id }}" selected>{{ group.name }}</option>
-                {% else %}
-                <option value="{{ group.group_id }}">{{ group.name }}</option>
-                {% endif %}
-                {% endfor %}
-            </select>
-        </td>
-        {% endif %}
-        <td style="padding-top: 15px;">
-            <p>
-                {% set id = 'ssh_user-' + ssh.id|string() %}
-                {{ input(id, value=ssh.username, title='SSH user name') }}
-            </p>
-            {% if ssh.key_enabled == 1 %}
-            <input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" title="User password, if SSH key is disabled" value="{{ ssh.password }}" style="display: none;" autocomplete="new-password">
-            {% else %}
-            <input type="password" id="ssh_pass-{{ssh.id}}" class="form-control" title="User password, if SSH key is disabled" value="{{ ssh.password }}" autocomplete="new-password">
-            {% endif %}
-            <br>
-        </td>
-        <td>
-            <a class="delete" onclick="confirmDeleteSsh({{ssh.id}})" title="{{lang.words.delete|title()}} SSH {{lang.words.creds}} {{ssh.name}}" style="cursor: pointer;"></a>
-        </td>
-    </tr>
-    {% endfor %}
+    {% include 'ajax/new_ssh.html' %}
 </table>
 <br /><span class="add-button" title="{{lang.words.add|title()}} SSH" id="add-ssh-button">+ {{lang.words.add|title()}}</span>
 <br /><br />

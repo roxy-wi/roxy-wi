@@ -1,5 +1,7 @@
+from peewee import IntegrityError
+
 from app.modules.db.db_model import mysql_enable, connect, Server, SystemInfo
-from app.modules.db.common import out_error
+from app.modules.db.common import out_error, not_unique_error
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
@@ -10,9 +12,10 @@ def add_server(hostname, ip, group, type_ip, enable, master, cred, port, desc, h
 			port=port, description=desc, haproxy=haproxy, nginx=nginx, apache=apache, firewall_enable=firewall
 		).execute()
 		return server_id
+	except IntegrityError as e:
+		not_unique_error(e)
 	except Exception as e:
 		out_error(e)
-		return False
 
 
 def delete_server(server_id):

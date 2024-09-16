@@ -469,30 +469,6 @@ def update_db_v_4_3_0():
 			print("An error occurred:", e)
 
 
-def update_db_v_7_1_2():
-	try:
-		Setting.delete().where(Setting.param == 'stats_user').execute()
-		Setting.delete().where(Setting.param == 'stats_password').execute()
-		Setting.delete().where(Setting.param == 'stats_port').execute()
-		Setting.delete().where(Setting.param == 'stats_page').execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 7.1.2")
-
-
-def update_db_v_7_1_2_1():
-	try:
-		migrate(
-			migrator.add_column('cred', 'passphrase', CharField(null=True))
-		)
-	except Exception as e:
-		if e.args[0] == 'duplicate column name: passphrase' or str(e) == '(1060, "Duplicate column name \'passphrase\'")':
-			print('Updating... DB has been updated to version 7.1.2-1')
-		else:
-			print("An error occurred:", e)
-
-
 def update_db_v_7_2_0():
 	try:
 		if mysql_enable:
@@ -620,9 +596,26 @@ def update_db_v_8():
 			print("An error occurred:", e)
 
 
+def update_db_v_8_0_2():
+	try:
+		if mysql_enable:
+			migrate(
+				migrator.add_column('cred', 'shared', IntegerField(default=0)),
+			)
+		else:
+			migrate(
+				migrator.add_column('cred', 'shared', IntegerField(constraints=[SQL('DEFAULT 0')])),
+			)
+	except Exception as e:
+		if e.args[0] == 'duplicate column name: shared' or str(e) == '(1060, "Duplicate column name \'shared\'")':
+			print('Updating... DB has been updated to version 8.0.2')
+		else:
+			print("An error occurred:", e)
+
+
 def update_ver():
 	try:
-		Version.update(version='8.0.1').execute()
+		Version.update(version='8.0.2').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -640,12 +633,11 @@ def update_all():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4_3_0()
-	update_db_v_7_1_2()
-	update_db_v_7_1_2_1()
 	update_db_v_7_2_0()
 	update_db_v_7_2_0_1()
 	update_db_v_7_2_3()
 	update_db_v_7_3_1()
 	update_db_v_7_4()
 	update_db_v_8()
+	update_db_v_8_0_2()
 	update_ver()

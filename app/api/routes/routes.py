@@ -32,7 +32,7 @@ def before_request():
 
 
 def register_api(view, endpoint, url, pk='listener_id', pk_type='int'):
-    view_func = view.as_view(endpoint)
+    view_func = view.as_view(endpoint, True)
     bp.add_url_rule(url, view_func=view_func, methods=['POST'])
     bp.add_url_rule(f'{url}/<{pk_type}:{pk}>', view_func=view_func, methods=['GET', 'PUT', 'PATCH', 'DELETE'])
 

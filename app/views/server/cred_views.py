@@ -9,8 +9,9 @@ import app.modules.db.cred as cred_sql
 import app.modules.roxywi.common as roxywi_common
 import app.modules.server.ssh as ssh_mod
 from app.middleware import get_user_params, page_for_admin, check_group
-from app.modules.roxywi.exception import RoxywiGroupMismatch, RoxywiResourceNotFound
-from app.modules.roxywi.class_models import BaseResponse, GroupQuery, CredRequest, CredUploadRequest
+from app.modules.db.db_model import Cred
+from app.modules.roxywi.exception import RoxywiGroupMismatch, RoxywiResourceNotFound, RoxywiPermissionError
+from app.modules.roxywi.class_models import BaseResponse, GroupQuery, CredRequest, CredUploadRequest, ErrorResponse
 from app.modules.common.common_classes import SupportClass
 
 
@@ -65,12 +66,15 @@ class CredView(MethodView):
                 private_key:
                   type: 'string'
                   description: 'SSH private key in base64 encoded format'
+                shared:
+                  type: 'integer'
+                  description: 'Is shared credential for other groups or not'
           404:
             description: 'Credential not found'
         """
         group_id = SupportClass.return_group_id(query)
         try:
-            creds = ssh_mod.get_creds(group_id=group_id, cred_id=cred_id)
+            creds = ssh_mod.get_creds(group_id=group_id, cred_id=cred_id, not_shared=True)
             return jsonify(creds), 200
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get credentials')
@@ -109,13 +113,16 @@ class CredView(MethodView):
                 password:
                   type: string
                   description: The password
+                shared:
+                  type: 'integer'
+                  description: 'Is shared credential for other groups or not'
         responses:
           201:
             description: Credential addition successful
         """
         group_id = SupportClass.return_group_id(body)
         try:
-            return ssh_mod.create_ssh_cred(body.name, body.password, group_id, body.username, body.key_enabled, self.is_api)
+            return ssh_mod.create_ssh_cred(body.name, body.password, group_id, body.username, body.key_enabled, self.is_api, body.shared)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create new cred')
 
@@ -157,18 +164,24 @@ class CredView(MethodView):
                 password:
                   type: string
                   description: The password
+                shared:
+                  type: 'integer'
+                  description: 'Is shared credential for other groups or not'
         responses:
           201:
             description: Credential update successful
         """
         group_id = SupportClass.return_group_id(body)
+        ssh = self._get_ssh(cred_id)
+        if ssh.shared and g.user_params['role'] != 1 and int(group_id) != int(ssh.group_id):
+            return roxywi_common.handler_exceptions_for_json_data(RoxywiPermissionError(), 'You cannot change shared parameters')
         try:
             self._check_is_correct_group(cred_id)
         except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, ''), 404
+            return roxywi_common.handler_exceptions_for_json_data(e, '')
 
         try:
-            ssh_mod.update_ssh_key(cred_id, body.name, body.password, body.key_enabled, body.username, group_id)
+            ssh_mod.update_ssh_key(body, group_id, cred_id)
             return BaseResponse().model_dump(mode='json'), 201
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update SSH key')
@@ -192,7 +205,7 @@ class CredView(MethodView):
         try:
             self._check_is_correct_group(cred_id)
         except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, ''), 404
+            return roxywi_common.handler_exceptions_for_json_data(e, '')
 
         try:
             ssh_mod.delete_ssh_key(cred_id)
@@ -245,16 +258,19 @@ class CredView(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot upload SSH key')
 
-    @staticmethod
-    def _check_is_correct_group(cred_id: int):
+    def _check_is_correct_group(self, cred_id: int):
         if g.user_params['role'] == 1:
             return True
+        ssh = self._get_ssh(cred_id)
+        if int(ssh.group_id) != int(g.user_params['group_id']):
+            raise RoxywiGroupMismatch
+
+    @staticmethod
+    def _get_ssh(cred_id: int) -> Cred:
         try:
-            ssh = cred_sql.get_ssh(cred_id)
+            return cred_sql.get_ssh(cred_id)
         except RoxywiResourceNotFound:
             raise RoxywiResourceNotFound
-        if ssh.group_id != g.user_params['group_id']:
-            raise RoxywiGroupMismatch
 
 
 class CredsView(MethodView):
@@ -306,6 +322,9 @@ class CredsView(MethodView):
                   private_key:
                     type: 'string'
                     description: 'SSH private key in base64 encoded format'
+                  shared:
+                    type: 'integer'
+                    description: 'Is shared credential for other groups or not'
         """
         group_id = SupportClass.return_group_id(query)
         try:
