@@ -436,8 +436,6 @@ def default_values():
 		{'name': 'roxy-wi-socket', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
 		{'name': 'roxy-wi-prometheus-exporter', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
 		{'name': 'roxy-wi-smon', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
-		{'name': 'prometheus', 'current_version': '1.0', 'new_version': '1.0', 'is_roxy': 0, 'desc': 'Prometheus service'},
-		{'name': 'grafana-server', 'current_version': '1.0', 'new_version': '1.0', 'is_roxy': 0, 'desc': 'Grafana service'},
 		{'name': 'fail2ban', 'current_version': '1.0', 'new_version': '1.0', 'is_roxy': 0, 'desc': 'Fail2ban service'},
 		{'name': 'rabbitmq-server', 'current_version': '1.0', 'new_version': '1.0', 'is_roxy': 0, 'desc': 'Rabbitmq service'},
 	]
@@ -613,6 +611,16 @@ def update_db_v_8_0_2():
 			print("An error occurred:", e)
 
 
+def update_db_v_8_0_2_1():
+	try:
+		RoxyTool.delete().where(RoxyTool.name == 'prometheus').execute()
+		RoxyTool.delete().where(RoxyTool.name == 'grafana-server').execute()
+	except Exception as e:
+		print("An error occurred:", e)
+	else:
+		print("Updating... DB has been updated to version 8.0.2-1")
+
+
 def update_ver():
 	try:
 		Version.update(version='8.0.2').execute()
@@ -640,4 +648,5 @@ def update_all():
 	update_db_v_7_4()
 	update_db_v_8()
 	update_db_v_8_0_2()
+	update_db_v_8_0_2_1()
 	update_ver()

@@ -32,6 +32,12 @@ def before_request():
 
 
 def register_api(view, endpoint, url, pk='listener_id', pk_type='int'):
+    view_func = view.as_view(endpoint)
+    bp.add_url_rule(url, view_func=view_func, methods=['POST'])
+    bp.add_url_rule(f'{url}/<{pk_type}:{pk}>', view_func=view_func, methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+
+
+def register_api_for_not_api(view, endpoint, url, pk='listener_id', pk_type='int'):
     view_func = view.as_view(endpoint, True)
     bp.add_url_rule(url, view_func=view_func, methods=['POST'])
     bp.add_url_rule(f'{url}/<{pk_type}:{pk}>', view_func=view_func, methods=['GET', 'PUT', 'PATCH', 'DELETE'])
@@ -68,7 +74,7 @@ register_api(S3BackupView, 'backup_s3', '/server/backup/s3', 'backup_id')
 register_api(GitBackupView, 'backup_git', '/server/backup/git', 'backup_id')
 bp.add_url_rule('/server/<server_id>/ip', view_func=ServerIPView.as_view('server_ip_ip'), methods=['GET'])
 bp.add_url_rule('/server/<int:server_id>/ip', view_func=ServerIPView.as_view('server_ip'), methods=['GET'])
-register_api(CredView, 'cred', '/server/cred', 'cred_id')
+register_api_for_not_api(CredView, 'cred', '/server/cred', 'cred_id')
 bp.add_url_rule('/server/creds', view_func=CredsView.as_view('creds'), methods=['GET'])
 bp.add_url_rule('/server/portscanner/<server_id>', view_func=PortScannerView.as_view('port_scanner_ip'), methods=['GET', 'POST'])
 bp.add_url_rule('/server/portscanner/<int:server_id>', view_func=PortScannerView.as_view('port_scanner'), methods=['GET', 'POST'])

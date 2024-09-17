@@ -1,5 +1,5 @@
 import pytz
-from flask import render_template, request, g
+from flask import render_template, g
 from flask_jwt_extended import jwt_required
 
 from app import scheduler
@@ -13,7 +13,6 @@ from app.middleware import get_user_params
 import app.modules.roxywi.roxy as roxy
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
-import app.modules.tools.smon as smon_mod
 import app.modules.tools.common as tools_common
 import app.modules.server.ssh as ssh_mod
 from app.views.admin.views import SettingsView

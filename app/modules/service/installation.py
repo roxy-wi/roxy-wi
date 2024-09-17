@@ -59,15 +59,6 @@ def generate_geoip_inv(server_ip: str, installed_service: str, geoip_update: int
 	return inv, server_ips
 
 
-def generate_grafana_inv() -> object:
-	inv = {"server": {"hosts": {}}}
-	server_ips = []
-	inv['server']['hosts']['localhost'] = {}
-	server_ips.append('localhost')
-
-	return inv, server_ips
-
-
 def generate_kp_inv(json_data: json, installed_service) -> object:
 	inv = {"server": {"hosts": {}}}
 	server_ips = []

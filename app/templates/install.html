@@ -145,46 +145,12 @@
             </h4>
         </div>
         {% else %}
-        {% if g.user_params['role']|int() == 1 %}
-        <table id="grafana-table">
-            <caption><i class="fas fa-chart-bar caption-icon2"></i><h3>Grafana {{lang.words.and}} Prometheus {{lang.words.servers}}</h3></caption>
-            <tr class="overviewHead">
-                <td class="padding10 first-collumn">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
-                <td class="padding10 first-collumn" style="width: 40%;">{{lang.words.available|title()}} {{lang.words.versions}}</td>
-                <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.note|title()}}</td>
-                <td></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td id="cur_grafana_ver" class="padding10 first-collumn">
-                    {% if grafana == "active" %}
-                    Grafana {{lang.words.and}} Prometheus {{lang.admin_page.desc.been_installed}}
-                    {% else %}
-                    {{lang.admin_page.desc.there_are_no}}
-                    {% endif %}
-                </td>
-                <td class="padding10 first-collumn" style="width: 20%;">
-                    {{lang.admin_page.desc.latest_repo}} Grafana {{lang.words.and}} Prometheus
-                </td>
-                <td class="padding10 first-collumn">
-                    {{lang.admin_page.desc.before_install}} Grafana {{lang.words.and}} Prometheus {{lang.words.servers}}
-                </td>
-                <td></td>
-                <td>
-                    {% if grafana != "active" %}
-                    <span class="ui-button ui-widget ui-corner-all" id="grafana_install" title="{{lang.words.install|title()}} Grafana {{lang.words.and}} Prometheus {{lang.words.servers}}">{{lang.words.install|title()}}</span>
-                    {% endif %}
-                </td>
-            </tr>
-        </table>
-    {% endif %}
         <table id="haproxy-table">
             <caption><i class="fas fa-network-wired caption-icon2"></i><h3>HAProxy Exporter</h3></caption>
             <tr class="overviewHead">
                 <td class="padding10 first-collumn" style="width: 20%;">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
                 <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.available|title()}} {{lang.words.versions}}</td>
                 <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.server|title()}}</td>
-                <td class="help_cursor" style="width: 20%;" data-intro="{{lang.admin_page.desc.ext_prom}}">{{lang.words.external|title()}} Prometheus</td>
                 <td></td>
                 <td></td>
             </tr>
@@ -203,7 +169,6 @@
                         {% endfor %}
                     </select>
                 </td>
-                <td style="padding-left: 50px;">{{ checkbox('haproxy_ext_prom', title=lang.admin_page.desc.ext_prom) }}</td>
                 <td>
                     <span class="ui-button ui-widget ui-corner-all" id="haproxy_exp_install" title="{{lang.words.install|title()}} HAProxy Exporter">{{lang.words.install|title()}}</span>
                 </td>
@@ -215,7 +180,6 @@
                 <td class="padding10 first-collumn" style="width: 20%;">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
                 <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.available|title()}} {{lang.words.versions}}</td>
                 <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.server|title()}}</td>
-                <td class="help_cursor" style="width: 20%;" data-help="lang.admin_page.desc.ext_prom">{{lang.words.external|title()}} Prometheus</td>
                 <td></td>
                 <td></td>
             </tr>
@@ -234,7 +198,6 @@
                         {% endfor %}
                     </select>
                 </td>
-                <td style="padding-left: 50px;">{{ checkbox('nginx_ext_prom', title=lang.admin_page.desc.ext_prom) }}</td>
                 <td>
                     <span class="ui-button ui-widget ui-corner-all" id="nginx_exp_install" title="{{lang.words.install|title()}} NGINX Exporter">{{lang.words.install|title()}}</span>
                 </td>
@@ -246,7 +209,6 @@
                 <td class="padding10 first-collumn" style="width: 20%;">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
                 <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.available|title()}} {{lang.words.versions}}</td>
                 <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.server|title()}}</td>
-                <td class="help_cursor" style="width: 20%;" data-help="{{lang.admin_page.desc.ext_prom}}">{{lang.words.external|title()}} Prometheus</td>
                 <td></td>
                 <td></td>
             </tr>
@@ -265,7 +227,6 @@
                         {% endfor %}
                     </select>
                 </td>
-                <td style="padding-left: 50px;">{{ checkbox('apache_ext_prom', title=lang.admin_page.desc.ext_prom) }}</td>
                 <td>
                     <span class="ui-button ui-widget ui-corner-all" id="apache_exp_install" title="{{lang.words.install|title()}} Apache Exporter">{{lang.words.install|title()}}</span>
                 </td>
@@ -277,7 +238,6 @@
                 <td class="padding10 first-collumn" style="width: 20%;">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
                 <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.available|title()}} {{lang.words.versions}}</td>
                 <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.server|title()}}</td>
-                <td class="help_cursor" style="width: 20%;" title="{{lang.admin_page.desc.ext_prom}}">{{lang.words.external|title()}} Prometheus</td>
                 <td></td>
                 <td></td>
             </tr>
@@ -296,7 +256,6 @@
                         {% endfor %}
                     </select>
                 </td>
-                <td style="padding-left: 50px;">{{ checkbox('keepalived_ext_prom', title=lang.admin_page.desc.ext_prom) }}</td>
                 <td>
                     <span class="ui-button ui-widget ui-corner-all" id="keepalived_exp_install" title="{{lang.words.install|title()}} Keepalived Exporter">{{lang.words.install|title()}}</span>
                 </td>
@@ -308,7 +267,6 @@
                 <td class="padding10 first-collumn" style="width: 20%;">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
                 <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.available|title()}} {{lang.words.versions}}</td>
                 <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.server|title()}}</td>
-                <td class="help_cursor" style="width: 20%;" title="{{lang.admin_page.desc.ext_prom}}">{{lang.words.external|title()}} Prometheus</td>
                 <td></td>
                 <td></td>
             </tr>
@@ -327,7 +285,6 @@
                         {% endfor %}
                     </select>
                 </td>
-                <td style="padding-left: 50px;">{{ checkbox('node_ext_prom', title=lang.admin_page.desc.ext_prom) }}</td>
                 <td>
                     <span class="ui-button ui-widget ui-corner-all" id="node_exp_install" title="{{lang.words.install|title()}} Node Exporter">{{lang.words.install|title()}}</span>
                 </td>

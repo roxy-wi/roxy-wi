@@ -7,8 +7,6 @@
 	'roxy-wi-smon': { 'name': 'SMON', 'desc': lang.admin_page.desc.smon_desc },
 	'roxy-wi-socket': { 'name': 'Socket', 'desc': lang.admin_page.desc.socket_desc },
 	'roxy-wi-prometheus-exporter': { 'name': 'Prometheus exporter', 'desc': 'Prometheus exporter exports Roxy-WI metrics' },
-	'prometheus': { 'name': 'Prometheus', 'desc': 'Prometheus server' },
-	'grafana-server': { 'name': 'Grafana', 'desc': 'Grafana server' },
 	'fail2ban': { 'name': 'Fail2ban', 'desc': 'Fail2ban scans log files (e.g. /var/log/apache/error_log) and bans IPs that show the malicious signs' },
     'rabbitmq-server': { 'name': 'RabbitMQ', 'desc': 'RabbitMQ server' },
     }
@@ -41,9 +39,7 @@
     </td>
     <td class="padding10 first-collumn">
         {% if 'is not installed' in service.2['current_version'] or not service.2['current_version'] or service.2['current_version'] == '0' %}
-            {% if service.0 in ('prometheus', 'grafana-server') %}
-                <a href="/install#monitoring" class="ui-button ui-widget ui-corner-all" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>
-            {% elif service.0 in ('rabbitmq-server', 'fail2ban') %}
+            {% if service.0 in ('rabbitmq-server', 'fail2ban') %}
                 <a class="ui-button ui-widget ui-corner-all" href="https://roxy-wi.org/tools/{{service.0.split('-')[0]}}" title="{{lang.words.install|title()}} {{services_name[service.0]['name']}}" target="_blank">{{lang.words.install|title()}}</a>
             {% else %}
                 <a class="ui-button ui-widget ui-corner-all" onclick="updateService('{{service.0}}', 'install')" title="{{lang.words.install|title()}} {{service_name}}">{{lang.words.install|title()}}</a>

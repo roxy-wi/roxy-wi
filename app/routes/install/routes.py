@@ -50,13 +50,12 @@ def install_exporter(exporter):
     json_data = request.get_json()
     server_ip = common.is_ip_or_dns(json_data['server_ip'])
     ver = common.checkAjaxInput(json_data['exporter_v'])
-    ext_prom = common.checkAjaxInput(json_data['ext_prom'])
 
     if exporter not in ('haproxy', 'nginx', 'apache', 'keepalived', 'node'):
         return jsonify({'status': 'failed', 'error': 'Wrong exporter'})
 
     try:
-        return exp_installation.install_exporter(server_ip, ver, ext_prom, exporter)
+        return exp_installation.install_exporter(server_ip, ver, exporter)
     except Exception as e:
         return jsonify({'status': 'failed', 'error': f'Cannot install {exporter.title()} exporter: {e}'})
 
@@ -65,15 +64,6 @@ def install_exporter(exporter):
 def get_exporter_version(exporter, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
     return service_common.get_exp_version(server_ip, exporter)
-
-
-@bp.route('/grafana')
-def install_grafana():
-    try:
-        inv, server_ips = service_mod.generate_grafana_inv()
-        return service_mod.run_ansible(inv, server_ips, 'grafana'), 201
-    except Exception as e:
-        return f'{e}'
 
 
 @bp.post('/waf/<service>/<server_ip>')

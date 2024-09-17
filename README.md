@@ -12,7 +12,6 @@ Web interface (user-friendly web GUI, alerting, monitoring and secure) for manag
 # Features:
 1. Installing and updating HAProxy, Nginx, Apache and Keepalived with Roxy-WI as a system service
 2. Installing and updating HAProxy and Nginx with Roxy-WI as a Docker service
-3. Installing and updating Grafana, Prometheus servers with Roxy-WI
 4. Installing and updating HAProxy, Nginx, Apache, Keepalived and Node exporters with Roxy-WI
 6. Downloading, updating and formatting GeoIP to the acceptable format for HAProxy with Roxy-WI
 7. Dynamic change of Maxconn, Black/white lists, add, edit or delete backend's IP address and port with saving changes to the config file

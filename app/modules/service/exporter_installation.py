@@ -4,11 +4,10 @@ import app.modules.db.sql as sql
 from app.modules.service.installation import run_ansible
 
 
-def generate_exporter_inc(server_ip: str, ext_prom: int, ver: str, exporter: str) -> object:
+def generate_exporter_inc(server_ip: str,ver: str, exporter: str) -> object:
     inv = {"server": {"hosts": {}}}
     server_ips = [server_ip]
     inv['server']['hosts'][server_ip] = {
-        'EXP_PROM': ext_prom,
         f'{exporter}_exporter_version': ver,
         'service': f'{exporter} exporter'
     }
@@ -28,10 +27,10 @@ def generate_exporter_inc(server_ip: str, ext_prom: int, ver: str, exporter: str
     return inv, server_ips
 
 
-def install_exporter(server_ip: str, ver: str, ext_prom: int, exporter: str) -> object:
+def install_exporter(server_ip: str, ver: str, exporter: str) -> object:
     service = f'{exporter.title()} exporter'
     try:
-        inv, server_ips = generate_exporter_inc(server_ip, ext_prom, ver, exporter)
+        inv, server_ips = generate_exporter_inc(server_ip, ver, exporter)
         return run_ansible(inv, server_ips, f'{exporter}_exporter'), 201
     except Exception as e:
         raise Exception(f'error: Cannot install {service}: {e}')
