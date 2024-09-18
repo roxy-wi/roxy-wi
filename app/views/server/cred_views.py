@@ -11,7 +11,7 @@ import app.modules.server.ssh as ssh_mod
 from app.middleware import get_user_params, page_for_admin, check_group
 from app.modules.db.db_model import Cred
 from app.modules.roxywi.exception import RoxywiGroupMismatch, RoxywiResourceNotFound, RoxywiPermissionError
-from app.modules.roxywi.class_models import BaseResponse, GroupQuery, CredRequest, CredUploadRequest, ErrorResponse
+from app.modules.roxywi.class_models import BaseResponse, GroupQuery, CredRequest, CredUploadRequest
 from app.modules.common.common_classes import SupportClass
 
 
