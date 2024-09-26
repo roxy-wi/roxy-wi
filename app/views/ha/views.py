@@ -11,7 +11,6 @@ import app.modules.service.ha_cluster as ha_cluster
 import app.modules.service.installation as service_mod
 from app.middleware import get_user_params, page_for_admin, check_group, check_services
 from app.modules.roxywi.class_models import BaseResponse, IdResponse, HAClusterRequest, HAClusterVIP
-from app.routes.service.routes import services
 
 
 class HAView(MethodView):

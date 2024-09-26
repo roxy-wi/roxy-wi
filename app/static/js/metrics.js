@@ -73,7 +73,7 @@ function stream_chart(chart_id, service, service_ip, is_http=0) {
         }
         chart_id.data.labels.push(data.time);
         chart_id.data.datasets[0].data.push(data.value);
-        if (service == 'haproxy') {
+        if (service === 'haproxy') {
             chart_id.data.datasets[1].data.push(data.value1);
             chart_id.data.datasets[2].data.push(data.value2);
         }
@@ -85,7 +85,7 @@ function stream_chart(chart_id, service, service_ip, is_http=0) {
 }
 function getHttpChartData(server) {
     let hide_http_metrics = localStorage.getItem('hide_http_metrics');
-    if (hide_http_metrics == 'disabled') {
+    if (hide_http_metrics === 'disabled') {
         return false;
     }
     $.ajax({
@@ -94,7 +94,7 @@ function getHttpChartData(server) {
             time_range: $( "#time-range option:selected" ).val(),
 		},
 		type: "POST",
-        success: function (result) {    
+        success: function (result) {
             let data = [];
             data.push(result.chartData.http_2xx);
             data.push(result.chartData.http_3xx);
@@ -207,6 +207,7 @@ function renderHttpChart(data, labels, server) {
             },
         },
     });
+    charts.push(myChart)
     stream_chart(myChart, 'haproxy', server, 1);
 }
 function getChartData(server) {
@@ -311,6 +312,7 @@ function renderChart(data, labels, server) {
 			}
         }
     });
+    charts.push(myChart)
     stream_chart(myChart, 'haproxy', server);
 }
 function getWafChartData(server) {
@@ -343,7 +345,7 @@ function renderServiceChart(data, labels, server, service) {
     if (service === 'waf') {
         additional_title = 'WAF ';
     }
-    config = return_service_chart_config();
+    let config = return_service_chart_config();
     for (let i=0; i<label.length; i++) {
         config.data.labels.push(label[i])
         config.data.datasets[0].data.push(dataArray[i])

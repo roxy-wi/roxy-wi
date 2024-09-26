@@ -170,16 +170,8 @@ class ServiceView(MethodView):
             except Exception as e:
                 data = ErrorResponse(error=str(e)).model_dump(mode='json')
         elif service == 'keepalived':
-            try:
-                os_info = server_sql.select_os_info(server_id)
-            except RoxywiResourceNotFound:
-                raise RoxywiResourceNotFound('Cannot find system information')
-            if "CentOS" in os_info or "Redhat" in os_info:
-                kp_proc_name = 'keepalived -D'
-            else:
-                kp_proc_name = 'keepalived --dont-fork'
             cmd = ("sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}' && sudo systemctl status keepalived |grep -e 'Active'"
-                   f"|awk '{{print $2, $9$10$11$12$13}}' && ps ax |grep '{kp_proc_name}'|grep -v grep |wc -l")
+                   f"|awk '{{print $2, $9$10$11$12$13}}' && ps ax |grep keepalived|grep -v udp|grep -v grep |wc -l")
             try:
                 out = server_mod.ssh_command(server.ip, cmd)
                 out1 = out.split()

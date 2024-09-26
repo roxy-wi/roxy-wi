@@ -1,6 +1,6 @@
 import json
 
-from flask import render_template
+from flask import render_template, jsonify
 
 import app.modules.db.sql as sql
 import app.modules.db.server as server_sql
@@ -438,14 +438,14 @@ def clear_stick_table(serv, table) -> str:
 		return 'ok'
 
 
-def list_of_lists(serv) -> str:
+def list_of_lists(serv) -> dict:
 	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
 	cmd = f'echo "show acl"|nc {serv} {haproxy_sock_port} |grep "loaded from" |awk \'{{print $1,$2}}\''
 	output, stderr = server_mod.subprocess_execute(cmd)
-	try:
-		return output[0]
-	except Exception:
-		return '------'
+	acl_lists = []
+	for i in output:
+		acl_lists.append(i)
+	return jsonify(acl_lists)
 
 
 def show_lists(serv, list_id, color, list_name) -> str:

@@ -255,33 +255,29 @@ $( function() {
 	$("#list_serv_select").on('selectmenuchange', function () {
 		$.ajax({
 			url: "/runtimeapi/list/" + $('#list_serv_select').val(),
+			contentType: "application/json; charset=utf-8",
 			success: function (data) {
-				data = data.replace(/, /g, ',');
-				if (data.indexOf('error: ') != '-1') {
-					toastr.error(data);
+				if (data.status === 'failed') {
+					toastr.error(data.error);
 				} else {
-					let value = data.split(',');
 					$('#list_select').find('option').remove();
-
-					for (let i = 0; i < data.split(',').length; i++) {
-						if (value[i] != '') {
-							try {
-								value[i] = value[i].replace(/\'/g, '');
-								value[i] = value[i].replace('(', '');
-								value[i] = value[i].replace(')', '');
-								value[i] = value[i].replace('[', '');
-								value[i] = value[i].replace(']', '');
-								id = value[i].split(' ')[0];
-								full_text_option = value[i].split(' ')[1]
-								text_option = full_text_option.split('/').slice(-2)[0];
-								text_option = text_option + '/' + full_text_option.split('/').slice(-1)[0];
-							} catch (err) {
-								text_option = value[i];
-							}
-							$('#list_select').append($("<option title=\"Show list " + text_option + "\"></option>")
-								.attr("value", id)
-								.text(text_option));
+					for (let value of data ) {
+						try {
+							value = value.replace(/\'/g, '');
+							value = value.replace('(', '');
+							value = value.replace(')', '');
+							value = value.replace('[', '');
+							value = value.replace(']', '');
+							id = value.split(' ')[0];
+							full_text_option = value.split(' ')[1]
+							text_option = full_text_option.split('/').slice(-2)[0];
+							text_option = text_option + '/' + full_text_option.split('/').slice(-1)[0];
+						} catch (err) {
+							text_option = value;
 						}
+						$('#list_select').append($("<option title=\"Show list " + text_option + "\"></option>")
+							.attr("value", id)
+							.text(text_option));
 					}
 					$('#list_select').selectmenu("refresh");
 				}
@@ -333,7 +329,6 @@ function getTable() {
 function getList() {
 	let color = $('#list_select  option:selected').text().split('/')[0];
 	let list_name = $('#list_select  option:selected').text().split('/')[1];
-	console.log(list_name)
 	$.ajax({
 		url: "/runtimeapi/list/" + $('#list_serv_select').val() + "/" + $('#list_select').val() + "/" + color + "/" + list_name,
 		success: function (data) {

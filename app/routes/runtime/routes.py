@@ -5,6 +5,7 @@ from app.routes.runtime import bp
 from app.middleware import get_user_params
 import app.modules.common.common as common
 import app.modules.config.runtime as runtime
+import app.modules.db.server as server_sql
 import app.modules.service.haproxy as service_haproxy
 
 
@@ -21,10 +22,14 @@ def runtimeapi():
     return render_template('runtimeapi.html', lang=g.user_params['lang'])
 
 
+@bp.route('/backends/<int:server_ip>')
 @bp.route('/backends/<server_ip>')
 def show_backends(server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
-
+    if isinstance(server_ip, str):
+        server_ip = common.is_ip_or_dns(server_ip)
+    elif isinstance(server_ip, int):
+        server = server_sql.get_server_by_id(server_ip)
+        server_ip = server.ip
     try:
         return runtime.show_backends(server_ip)
     except Exception as e:
