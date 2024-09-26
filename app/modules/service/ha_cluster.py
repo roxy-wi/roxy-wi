@@ -35,6 +35,16 @@ def create_cluster(cluster: HAClusterRequest, group_id: int) -> int:
     except Exception as e:
         raise Exception(f'error: Cannot create new HA cluster: {e}')
 
+    for service, value in services.items():
+        if not value['enabled']:
+            continue
+        try:
+            service_id = service_sql.select_service_id_by_slug(service)
+            ha_sql.insert_cluster_services(cluster_id, service_id)
+            roxywi_common.logging(cluster_id, f'Service {service} has been enabled on the cluster', keep_history=1, roxywi=1, service='HA cluster')
+        except Exception as e:
+            raise Exception(f'error: Cannot add service {service}: {e}')
+
     if not servers is None:
         try:
             router_id = ha_sql.create_ha_router(cluster_id, default=1)
@@ -54,16 +64,6 @@ def create_cluster(cluster: HAClusterRequest, group_id: int) -> int:
 
             if cluster.virt_server and not servers is None:
                 add_or_update_virt(cluster, servers, cluster_id, vip_id, group_id)
-
-    for service, value in services.items():
-        if not value['enabled']:
-            continue
-        try:
-            service_id = service_sql.select_service_id_by_slug(service)
-            ha_sql.insert_cluster_services(cluster_id, service_id)
-            roxywi_common.logging(cluster_id, f'Service {service} has been enabled on the cluster', keep_history=1, roxywi=1, service='HA cluster')
-        except Exception as e:
-            raise Exception(f'error: Cannot add service {service}: {e}')
 
     return int(cluster_id)
 
