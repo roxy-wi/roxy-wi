@@ -171,7 +171,7 @@ class ServiceView(MethodView):
                 data = ErrorResponse(error=str(e)).model_dump(mode='json')
         elif service == 'keepalived':
             cmd = ("sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}' && sudo systemctl status keepalived |grep -e 'Active'"
-                   f"|awk '{{print $2, $9$10$11$12$13}}' && ps ax |grep keepalived|grep -v udp|grep -v grep |wc -l")
+                   f"|awk '{{print $2, $9$10$11$12$13}}' && ps ax |grep 'keepalived '|grep -v udp|grep -v grep |wc -l")
             try:
                 out = server_mod.ssh_command(server.ip, cmd)
                 out1 = out.split()
