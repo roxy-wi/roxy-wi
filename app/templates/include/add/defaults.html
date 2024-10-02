@@ -1,0 +1,83 @@
+<form name="add-defaults" id="add-defaults" action="/add/haproxy/defaults" method="post">
+    <table>
+        <tr>
+            <td class="addOption">
+                {{ select('defaults_serv', name='server', values=g.user_params['servers'], is_servers='true', by_id=1) }}
+                <div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
+            </td>
+        </tr>
+        <tr>
+            <td class="addOption">
+                {{ input('defaults-name', name='name', title="defaults "+lang.words.name, value="name") }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">{{lang.words.log|title()}}:</td>
+            <td class="addOption">
+                {{ input('defaults-log', name='log', placeholder="global") }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">{{lang.words.retries|title()}}:</td>
+            <td class="addOption">
+                {{ input('defaults-retries', name='retries', type='number') }}
+                <div class="tooltip tooltipTop">Set the number of retries to perform on a server after a failure</div>
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Maxconn:</td>
+            <td class="addOption">
+                {{ input('defaults-maxconn', name='maxconn', type='number') }}
+                <div class="tooltip tooltipTop">Sets the maximum per-process number of concurrent connections to number.</div>
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Timeout http request:</td>
+            <td class="addOption">
+                {{ input('defaults-timeout_http_request', name='http_request', placeholder="10", type="number") }}{{ lang.words.seconds2 }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Timeout queue:</td>
+            <td class="addOption">
+                {{ input('defaults-timeout_queue', name='queue', placeholder="60", type="number") }}{{ lang.words.seconds2 }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Timeout connect:</td>
+            <td class="addOption">
+                {{ input('defaults-timeout_connect', name='connect', placeholder="10", type="number") }}{{ lang.words.seconds2 }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Timeout client:</td>
+            <td class="addOption">
+                {{ input('defaults-timeout_client', name='client', placeholder="60", type="number") }}{{ lang.words.seconds2 }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Timeout server:</td>
+            <td class="addOption">
+                {{ input('defaults-timeout_server', name='server', placeholder="60", type="number") }}{{ lang.words.seconds2 }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Timeout check:</td>
+            <td class="addOption">
+                {{ input('defaults-timeout_check', name='check', placeholder="10", type="number") }}{{ lang.words.seconds2 }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Timeout http keep alive:</td>
+            <td class="addOption">
+                {{ input('defaults-timeout_http_keep_alive', name='http_keep_alive', placeholder="10", type="number") }}{{ lang.words.seconds2 }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">{{ lang.add_page.buttons.set_options }}:</td>
+            <td class="addOption">
+                <textarea name="option" title="Options thru" cols=80 rows=5 placeholder="ssl-default-bind-options ssl-min-ver TLSv1.0 no-tls-tickets"></textarea>
+            </td>
+        </tr>
+    </table>
+</form>

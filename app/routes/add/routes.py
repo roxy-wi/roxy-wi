@@ -6,16 +6,33 @@ from flask_pydantic import validate
 
 from app.modules.roxywi.class_models import SSLCertUploadRequest, DataStrResponse, SavedServerRequest, BaseResponse
 from app.routes.add import bp
-import app.modules.db.sql as sql
 import app.modules.db.add as add_sql
+import app.modules.db.server as server_sql
 from app.middleware import check_services, get_user_params
 import app.modules.config.add as add_mod
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
+from app.views.service.haproxy_section_views import (GlobalSectionView, DefaultsSectionView, ListenSectionView,
+                                                     UserListSectionView, PeersSectionView)
 
 get_config = roxy_wi_tools.GetConfigVar()
+
+def register_api_id_ip(view, endpoint, url: str = '', methods: list = ['GET', 'POST']):
+    for point in ('_id', '_ip'):
+        view_func = view.as_view(f'{endpoint}_{point}')
+        pk = 'int:' if point == '_id' else ''
+        bp.add_url_rule(f'/<any(haproxy, nginx, apache, keepalived):service>/<{pk}server_id>{url}', view_func=view_func, methods=methods)
+
+register_api_id_ip(ListenSectionView, 'haproxy_section_post_a', '/section/<any(listen, frontend, backend):section_type>', methods=['POST'])
+register_api_id_ip(ListenSectionView, 'haproxy_section_a', '/section/<any(listen, frontend, backend):section_type>/<section_name>', methods=['GET', 'PUT', 'DELETE'])
+register_api_id_ip(UserListSectionView, 'haproxy_userlist_post_a', '/section/userlist', methods=['POST'])
+register_api_id_ip(UserListSectionView, 'haproxy_userlist_a', '/section/userlist/<section_name>', methods=['GET', 'PUT', 'DELETE'])
+register_api_id_ip(PeersSectionView, 'haproxy_peers_post_a', '/section/peers', methods=['POST'])
+register_api_id_ip(PeersSectionView, 'haproxy_peers_a', '/section/peers/<section_name>', methods=['GET', 'PUT', 'DELETE'])
+register_api_id_ip(GlobalSectionView, 'haproxy_global_a', '/section/global', methods=['GET', 'PUT'])
+register_api_id_ip(DefaultsSectionView, 'haproxy_defaults_a', '/section/defaults', methods=['GET', 'PUT'])
 
 
 @bp.before_request
@@ -72,325 +89,11 @@ def add(service):
         return redirect(url_for('index'))
 
 
-@bp.route('/haproxy/add', methods=['POST'])
+@bp.route('/haproxy/get_section_html')
 @get_user_params()
-def add_haproxy():
-    """
-    Add HAProxy sections
-    :return: Generated section or output of adding status
-    """
-    roxywi_auth.page_for_admin(level=3)
-
-    haproxy_dir = sql.get_setting('haproxy_dir')
-    generate = request.form.get('generateconfig')
-    server_ip = request.form.get('serv')
-    port = request.form.getlist('port')
-    bind = ""
-    ip = ""
-    force_close = request.form.get('force_close')
-    balance = ""
-    mode = f"    mode {request.form.get('mode')}\n"
-    maxconn = ""
-    options_split = ""
-    ssl = ""
-    ssl_check = ""
-    backend = ""
-    headers = ""
-    acl = ""
-    servers_split = ""
-    new_listener = request.form.get('listener')
-    new_frontend = request.form.get('frontend')
-    new_backend = request.form.get('new_backend')
-
-    if request.form.get('balance') is not None:
-        balance = "    balance " + request.form.get('balance') + "\n"
-
-    if request.form.get('health_check') is not None:
-        health_check = request.form.get('health_check')
-        if health_check == 'option httpchk' and request.form.get('checks_http_domain') is not None:
-            health_check = health_check + ' GET ' + request.form.get(
-                'checks_http_path') + ' "HTTP/1.0\\r\\nHost: ' + request.form.get('checks_http_domain') + '"'
-        balance += f"    {health_check}\n"
-
-    if request.form.get('ip') is not None:
-        ip = request.form.getlist('ip')
-
-    if new_listener is not None:
-        name = f"listen {new_listener}"
-        end_name = new_listener
-    elif new_frontend is not None:
-        name = f"frontend {new_frontend}"
-        end_name = new_frontend
-        server_ip = request.form.get('serv2')
-    elif new_backend is not None:
-        name = f"backend {new_backend}"
-        end_name = new_backend
-        server_ip = request.form.get('serv3')
-    else:
-        return 'error: The name cannot be empty'
-
-    if request.form.get('backends') != '' and request.form.get('backends'):
-        backend = f"    default_backend {request.form.get('backends')}\n"
-
-    if request.form.get('maxconn'):
-        maxconn = f"    maxconn {request.form.get('maxconn')}\n"
-
-    if request.form.get('ssl') == "https" and request.form.get('mode') != "tcp":
-        cert_path = sql.get_setting('cert_path')
-        if request.form.get('cert') is not None:
-            ssl = f"ssl crt {cert_path}{request.form.get('cert')}"
-        if request.form.get('ssl-dis-check') is None:
-            if request.form.get('ssl-check') == "ssl-check":
-                ssl_check = " ssl verify none"
-            else:
-                ssl_check = " ssl verify"
-
-    if ip or port:
-        if type(port) is list:
-            i = 0
-            for _p in port:
-                if ip[i] == 'IsEmptY':
-                    if ip[i] == 'IsEmptY' and port[i] == 'IsEmptY':
-                        i += 1
-                        continue
-                    else:
-                        port_value = port[i]
-                    bind += f"    bind *:{port_value} {ssl}\n"
-                else:
-                    if port[i] == 'IsEmptY':
-                        return 'error: IP cannot be bind without a port'
-                    else:
-                        port_value = port[i]
-                    bind += f"    bind {ip[i]}:{port_value} {ssl}\n"
-                i += 1
-
-    if request.form.get('default-check') == "1":
-        if request.form.get('check-servers') == "1":
-            check = f" check inter {request.form.get('inter')} rise {request.form.get('rise')} fall {request.form.get('fall')}{ssl_check}"
-        else:
-            check = ""
-    else:
-        if request.form.get('check-servers') != "1":
-            check = ""
-        else:
-            check = f" check{ssl_check}"
-
-    if request.form.get('option') is not None:
-        options = request.form.get('option')
-        i = options.split("\n")
-        for j in i:
-            options_split += f"    {j}\n"
-
-    if force_close == "1":
-        options_split += "    option http-server-close\n"
-    elif force_close == "2":
-        options_split += "    option forceclose\n"
-    elif force_close == "3":
-        options_split += "    option http-pretend-keepalive\n"
-
-    if request.form.get('whitelist'):
-        options_split += "    tcp-request connection accept if { src -f " + haproxy_dir + "/white/" + request.form.get(
-            'whitelist') + " }\n"
-
-    if request.form.get('blacklist'):
-        options_split += "    tcp-request connection reject if { src -f " + haproxy_dir + "/black/" + request.form.get(
-            'blacklist') + " }\n"
-
-    if request.form.get('cookie'):
-        cookie = f"    cookie {request.form.get('cookie_name')}"
-        if request.form.get('cookie_domain'):
-            cookie += f" domain {request.form.get('cookie_domain')}"
-        if request.form.get('rewrite'):
-            rewrite = request.form.get('rewrite')
-        else:
-            rewrite = ""
-        if request.form.get('prefix'):
-            prefix = request.form.get('prefix')
-        else:
-            prefix = ""
-        if request.form.get('nocache'):
-            nocache = request.form.get('nocache')
-        else:
-            nocache = ""
-        if request.form.get('postonly'):
-            postonly = request.form.get('postonly')
-        else:
-            postonly = ""
-        if request.form.get('dynamic'):
-            dynamic = request.form.get('dynamic')
-        else:
-            dynamic = ""
-        cookie += f" {rewrite} {prefix} {nocache} {postonly} {dynamic}\n"
-        options_split += cookie
-        if request.form.get('dynamic'):
-            options_split += f"    dynamic-cookie-key {request.form.get('dynamic-cookie-key')}\n"
-
-    if request.form.get('headers_res'):
-        headers_res = request.form.getlist('headers_res')
-        headers_method = request.form.getlist('headers_method')
-        header_name = request.form.getlist('header_name')
-        header_value = request.form.getlist('header_value')
-        i = 0
-
-        for _h in headers_method:
-            if headers_method[i] != 'del-header':
-                headers += f'    {headers_res[i]} {headers_method[i]} {header_name[i]} {header_value[i]}\n'
-            else:
-                headers += f'    {headers_res[i]} {headers_method[i]} {header_name[i]}\n'
-            i += 1
-
-    if request.form.get('acl_if'):
-        acl_if = request.form.getlist('acl_if')
-        acl_value = request.form.getlist('acl_value')
-        acl_then = request.form.getlist('acl_then')
-        acl_then_values = request.form.getlist('acl_then_value')
-        i = 0
-
-        for a in acl_if:
-            acl_then_value = '' if acl_then_values[i] == 'IsEmptY' else acl_then_values[i]
-
-            try:
-                if a == '1':
-                    acl_if_word = 'hdr_beg(host) -i '
-                    if request.form.get('ssl') == "https" and request.form.get('mode') != "tcp":
-                        acl_if_word = 'ssl_fc_sni -i '
-                    if request.form.get('mode') == "tcp":
-                        acl_if_word = 'req.ssl_sni -i '
-                elif a == '2':
-                    acl_if_word = 'hdr_end(host) -i '
-                    if request.form.get('ssl') == "https" and request.form.get('mode') != "tcp":
-                        acl_if_word = 'ssl_fc_sni -i '
-                    if request.form.get('mode') == "tcp":
-                        acl_if_word = 'req.ssl_sni -i '
-                elif a == '3':
-                    acl_if_word = 'path_beg -i '
-                elif a == '4':
-                    acl_if_word = 'path_end -i '
-                elif a == '6':
-                    acl_if_word = 'src ip '
-                else:
-                    acl_if_word = ''
-
-                if acl_then[i] == '5':
-                    acl += '    use_backend '
-                elif acl_then[i] == '2':
-                    acl += '    http-request redirect location '
-                elif acl_then[i] == '3':
-                    acl += '    http-request allow'
-                    acl_then_value = ''
-                elif acl_then[i] == '4':
-                    acl += '    http-request deny'
-                    acl_then_value = ''
-                elif acl_then[i] == '6':
-                    acl += f'    acl return_{acl_value[i]} {acl_if_word} {acl_value[i]}\n'
-                    acl += f'    http-request return if return_{acl_value[i]}\n'
-                elif acl_then[i] == '7':
-                    acl += f'    acl set_header_{acl_value[i]} {acl_if_word} {acl_value[i]}\n'
-                    acl += f'    http-request set-header if set_header_{acl_value[i]}\n'
-
-                if acl_then[i] in ('2', '3', '4', '5'):
-                    acl += acl_then_value + ' if { ' + acl_if_word + acl_value[i] + ' } \n'
-            except Exception:
-                acl = ''
-
-            i += 1
-
-    if request.form.get('circuit_breaking') == "1":
-        observe = 'observe ' + request.form.get('circuit_breaking_observe')
-        error_limit = ' error-limit ' + request.form.get('circuit_breaking_error_limit')
-        circuit_breaking_on_error = ' on-error ' + request.form.get('circuit_breaking_on_error')
-        default_server = '    default-server ' + observe + error_limit + circuit_breaking_on_error + '\n'
-        servers_split += default_server
-
-    if request.form.get('servers'):
-        servers = request.form.getlist('servers')
-        server_port = request.form.getlist('server_port')
-        send_proxy = request.form.getlist('send_proxy')
-        backup = request.form.getlist('backup')
-        server_maxconn = request.form.getlist('server_maxconn')
-        port_check = request.form.getlist('port_check')
-        i = 0
-        for server in servers:
-            if server == '':
-                continue
-            if request.form.get('template') is None:
-                try:
-                    if send_proxy[i] == '1':
-                        send_proxy_param = 'send-proxy'
-                    else:
-                        send_proxy_param = ''
-                except Exception:
-                    send_proxy_param = ''
-
-                try:
-                    if backup[i] == '1':
-                        backup_param = 'backup'
-                    else:
-                        backup_param = ''
-                except Exception:
-                    backup_param = ''
-
-                try:
-                    maxconn_val = server_maxconn[i]
-                except Exception:
-                    maxconn_val = '200'
-
-                try:
-                    port_check_val = port_check[i]
-                    if port_check_val == '':
-                        port_check_val = server_port[i]
-                except Exception:
-                    port_check_val = server_port[i]
-
-                servers_split += "    server {0} {0}:{1}{2} port {6} maxconn {5} {3} {4} \n".format(
-                    server, server_port[i], check, send_proxy_param, backup_param, maxconn_val, port_check_val
-                )
-            else:
-                servers_split += "    server-template {0} {1} {2}:{3} {4} \n".format(
-                    request.form.get('prefix'), request.form.get('template-number'), server, server_port[i], check
-                )
-            i += 1
-
-    compression = request.form.get("compression")
-    cache = request.form.get("cache")
-    compression_s = ""
-    cache_s = ""
-    cache_set = ""
-    filter_com = ""
-    if compression == "1" or cache == "2":
-        filter_com = "    filter compression\n"
-        if cache == "2":
-            cache_s = f"    http-request cache-use {end_name}\n    http-response cache-store {end_name}\n"
-            cache_set = f"cache {end_name}\n    total-max-size 4\n    max-age 240\n"
-        if compression == "1":
-            compression_s = "    compression algo gzip\n    compression type text/html text/plain text/css\n"
-
-    waf = ""
-    if request.form.get('waf'):
-        waf = f"    filter spoe engine modsecurity config {haproxy_dir}/waf.conf\n"
-        waf += "    http-request deny if { var(txn.modsec.code) -m int gt 0 }\n"
-
-    config_add = f"\n{name}\n{bind}{mode}{maxconn}{balance}{options_split}{cache_s}{filter_com}{compression_s}" \
-                 f"{waf}{headers}{acl}{backend}{servers_split}\n{cache_set}\n"
-
-    if generate:
-        return config_add
-    else:
-        try:
-            return add_mod.save_to_haproxy_config(config_add, server_ip, name)
-        except Exception as e:
-            return f'error: Cannot add to config: {e}'
-
-
-@bp.post('/haproxy/userlist')
-@get_user_params()
-def add_userlist():
-    """
-    Add HAProxy section userlist
-    :return: Output of adding status
-    """
-    roxywi_auth.page_for_admin(level=3)
-    return add_mod.add_userlist()
+def get_section_html():
+    lang = g.user_params['lang']
+    return render_template('ajax/config_show_add_sections.html', lang=lang)
 
 
 @bp.post('/haproxy/bwlist/create')
@@ -439,42 +142,6 @@ def get_bwlists(color, group):
     color = common.checkAjaxInput(color)
 
     return add_mod.get_bwlists_for_autocomplete(color, group)
-
-
-@bp.route('/haproxy/userlist/<server_ip>')
-def show_userlist(server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
-    return add_mod.show_userlist(server_ip)
-
-
-@bp.post('/haproxy/peers')
-def add_peers():
-    roxywi_auth.page_for_admin(level=3)
-
-    generate = request.form.get('generateconfig')
-    server_ip = request.form.get('serv')
-    servers_split = ''
-    name = "peers " + request.form.get('peers-name') + "\n"
-    servers = request.form.getlist('servers')
-    server_port = request.form.getlist('server_port')
-    servers_name = request.form.getlist('servers_name')
-    i = 0
-
-    for server in servers:
-        if server == '':
-            continue
-        servers_split += "    peer {0} {1}:{2} \n".format(servers_name[i], server, server_port[i])
-        i += 1
-
-    config_add = "\n" + name + servers_split
-
-    if generate:
-        return config_add, 200
-    else:
-        try:
-            return add_mod.save_to_haproxy_config(config_add, server_ip, name)
-        except Exception as e:
-            return f'error: Cannot add to config: {e}'
 
 
 @bp.route('/option/get/<group>')
@@ -554,9 +221,14 @@ def delete_saved_server(server_id):
         return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete server')
 
 
+@bp.route('/certs/<int:server_ip>')
 @bp.route('/certs/<server_ip>')
 def get_certs(server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
+    if isinstance(server_ip, str):
+        server_ip = common.is_ip_or_dns(server_ip)
+    elif isinstance(server_ip, int):
+        server = server_sql.get_server_by_id(server_ip)
+        server_ip = server.ip
     return add_mod.get_ssl_certs(server_ip)
 
 

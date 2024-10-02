@@ -9,6 +9,11 @@ import app.modules.roxy_wi_tools as roxy_wi_tools
 get_config = roxy_wi_tools.GetConfigVar()
 mysql_enable = get_config.get_config_var('mysql', 'enable')
 
+if mysql_enable == '1':
+    from playhouse.mysql_ext import JSONField
+else:
+    from playhouse.sqlite_ext import JSONField
+
 
 class ReconnectMySQLDatabase(ReconnectMixin, MySQLDatabase):
     pass
@@ -767,15 +772,27 @@ class UDPBalancer(BaseModel):
         constraints = [SQL('UNIQUE (vip, port)')]
 
 
+class HaproxySection(BaseModel):
+    id = AutoField
+    server_id = ForeignKeyField(Server, on_delete='Cascade')
+    type = CharField()
+    name = CharField()
+    config = JSONField()
+
+    class Meta:
+        table_name = 'haproxy_sections'
+        constraints = [SQL('UNIQUE (server_id, type, name)')]
+
+
 def create_tables():
     conn = connect()
     with conn:
         conn.create_tables(
-            [User, Server, Role, Telegram, Slack, ApiToken, Groups, UserGroups, ConfigVersion, Setting,
+            [User, Server, Role, Telegram, Slack, ApiToken, Groups, UserGroups, ConfigVersion, Setting, RoxyTool, Alerts,
              Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
-             PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, Alerts, GeoipCodes,
+             PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, GeoipCodes,
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
-             KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup, RoxyTool,
+             KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
-             HaClusterRouter, MM, UDPBalancer]
+             HaClusterRouter, MM, UDPBalancer, HaproxySection]
         )

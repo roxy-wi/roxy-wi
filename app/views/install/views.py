@@ -11,6 +11,70 @@ import app.modules.service.installation as service_mod
 from app.middleware import get_user_params, check_services, page_for_admin, check_group
 from app.modules.common.common_classes import SupportClass
 from app.modules.roxywi.class_models import BaseResponse, ServiceInstall
+from app.views.service.views import ServiceView
+
+
+class InstallGetStatus(ServiceView):
+    methods = ['GET']
+    decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
+
+    def get(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str]):
+        """
+        This endpoint retrieves information about a specific service.
+        ---
+        tags:
+          - Service Installation
+        parameters:
+          - in: path
+            name: service
+            type: 'string'
+            required: true
+            description: The type of service (haproxy, nginx, apache, keepalived)
+          - in: path
+            name: server_id
+            type: 'integer'
+            required: true
+            description: The ID or IP of the server
+        responses:
+          200:
+            description: Successful operation
+            schema:
+              type: 'object'
+              properties:
+                CurrConns:
+                  type: 'string'
+                  description: 'Current connections to HAProxy (only for HAProxy service)'
+                Maxconn:
+                  type: 'string'
+                  description: 'Maximum connections to HAProxy (only for HAProxy service)'
+                MaxconnReached:
+                  type: 'string'
+                  description: 'Max connections reached (only for HAProxy service)'
+                Memmax_MB:
+                  type: 'string'
+                  description: 'Maximum memory in MB (only for HAProxy service)'
+                PoolAlloc_MB:
+                  type: 'string'
+                  description: 'Memory pool allocated in MB (only for HAProxy service)'
+                PoolUsed_MB:
+                  type: 'string'
+                  description: 'Memory pool used in MB (only for HAProxy service)'
+                Uptime:
+                  type: 'string'
+                  description: 'Time the service has been active'
+                Version:
+                  type: 'string'
+                  description: 'Version of the service'
+                Process:
+                  type: 'string'
+                  description: 'Number of processes launched by the service'
+                Status:
+                  type: 'string'
+                  description: 'Status of the service'
+          default:
+            description: Unexpected error
+        """
+        return super().get(service=service, server_id=server_id)
 
 
 class InstallView(MethodView):

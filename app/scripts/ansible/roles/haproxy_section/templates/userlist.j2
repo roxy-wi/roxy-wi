@@ -1,0 +1,11 @@
+userlist {{ config.name }}
+    {% if config.userlist_groups -%}
+        {% for group in config.userlist_groups %}
+    group {{ group }}
+        {% endfor %}
+    {% endif %}
+
+    {% for user in config.userlist_users -%}
+    user {{ user.user }} insecure-password {{ user.password }}{% if user.group %} groups {{ user.group }}{% endif %}
+
+    {% endfor -%}

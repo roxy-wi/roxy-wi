@@ -33,6 +33,7 @@ def before_request():
 
 @bp.route('/<service>/show', methods=['POST'])
 @check_services
+@get_user_params()
 def show_config(service):
     config_file_name = request.json.get('config_file_name')
     configver = request.json.get('configver')

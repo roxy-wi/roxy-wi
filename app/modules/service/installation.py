@@ -7,6 +7,7 @@ import ansible
 import ansible_runner
 
 import app.modules.db.sql as sql
+import app.modules.db.add as add_sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
@@ -16,7 +17,8 @@ import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 from app.modules.server.ssh import return_ssh_keys_path
-from app.modules.roxywi.class_models import ServiceInstall, HAClusterRequest
+from app.modules.roxywi.class_models import ServiceInstall, HAClusterRequest, HaproxyGlobalRequest, \
+	HaproxyDefaultsRequest, HaproxyConfigRequest
 
 
 def generate_udp_inv(listener_id: int, action: str) -> object:
@@ -155,6 +157,33 @@ def generate_haproxy_inv(json_data: ServiceInstall, installed_service: str) -> o
 		server_ips.append(s.ip)
 
 	return inv, server_ips
+
+
+def generate_haproxy_section_inv(json_data: dict, cfg: str) -> dict:
+	cert_path = sql.get_setting('cert_path')
+	haproxy_dir = sql.get_setting('haproxy_dir')
+	inv = {"server": {"hosts": {}}}
+	inv['server']['hosts']['localhost'] = {
+		"config": json_data,
+		"cert_path": cert_path,
+		"haproxy_dir": haproxy_dir,
+		"cfg": cfg,
+		"action": 'create'
+	}
+
+	return inv
+
+
+def generate_haproxy_section_inv_for_del(cfg: str, section_type: str, section_name: str) -> dict:
+	config = {'type': section_type, 'name': section_name}
+	inv = {"server": {"hosts": {}}}
+	inv['server']['hosts']['localhost'] = {
+		"config": config,
+		"cfg": cfg,
+		"action": 'delete'
+	}
+
+	return inv
 
 
 def generate_service_inv(json_data: ServiceInstall, installed_service: str) -> object:
@@ -297,6 +326,55 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 	return result.stats
 
 
+def run_ansible_locally(inv: dict, ansible_role: str) -> dict:
+	inventory_path = '/var/www/haproxy-wi/app/scripts/ansible/inventory'
+	inventory = f'{inventory_path}/{ansible_role}.json'
+	# proxy = sql.get_setting('proxy')
+	# proxy_serv = ''
+
+	envvars = {
+		'ANSIBLE_DISPLAY_OK_HOSTS': 'no',
+		'ANSIBLE_SHOW_CUSTOM_STATS': 'no',
+		'ANSIBLE_DISPLAY_SKIPPED_HOSTS': "no",
+		'ANSIBLE_DEPRECATION_WARNINGS': "no",
+		'ANSIBLE_HOST_KEY_CHECKING': "no",
+		'ACTION_WARNINGS': "no",
+		'LOCALHOST_WARNING': "no",
+		'COMMAND_WARNINGS': "no",
+		'AWX_DISPLAY': False,
+		'ANSIBLE_PYTHON_INTERPRETER': '/usr/bin/python3'
+	}
+	kwargs = {
+		'private_data_dir': '/var/www/haproxy-wi/app/scripts/ansible/',
+		'inventory': inventory,
+		'envvars': envvars,
+		'playbook': f'/var/www/haproxy-wi/app/scripts/ansible/roles/{ansible_role}.yml',
+	}
+	if os.path.isfile(inventory):
+		os.remove(inventory)
+
+	if not os.path.isdir(inventory_path):
+		os.makedirs(inventory_path)
+
+	try:
+		with open(inventory, 'a') as invent:
+			invent.write(str(inv))
+	except Exception as e:
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot save inventory file', roxywi=1)
+
+	try:
+		result = ansible_runner.run(**kwargs)
+	except Exception as e:
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot run Ansible', roxywi=1)
+
+	os.remove(inventory)
+
+	if result.rc != 0:
+		raise Exception('Something wrong with installation, check <a href="/app/logs/internal?log_file=roxy-wi.error.log" target="_blank" class="link">Apache logs</a> for details')
+
+	return result.stats
+
+
 def service_actions_after_install(server_ips: str, service: str, json_data) -> None:
 	is_docker = None
 	update_functions = {
@@ -318,6 +396,35 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 		if is_docker and service != 'keepalived':
 			service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', '1')
 			service_sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
+
+		if service == 'haproxy':
+			try:
+				_create_default_config_in_db(server_id)
+			except Exception:
+				pass
+
+
+def _create_default_config_in_db(server_id: int) -> None:
+	hap_sock_p = sql.get_setting('haproxy_sock_port')
+	stats_port = sql.get_setting('haproxy_stats_port')
+	stats_user = sql.get_setting('haproxy_stats_user')
+	stats_password = sql.get_setting('haproxy_stats_password')
+	config = HaproxyGlobalRequest(
+		socket=[f'*:{hap_sock_p} level admin', '/var/run/haproxy.sock mode 600 level admin', '/var/lib/haproxy/stats']
+	)
+	add_sql.insert_or_update_new_section(server_id, 'global', 'global', config)
+	add_sql.insert_or_update_new_section(server_id, 'default', 'defaults', HaproxyDefaultsRequest())
+	option = (
+		'http-request use-service prometheus-exporter if { path /metrics }\r\nstats enable\r\nstats uri /stats\r\n'
+		f'stats realm HAProxy-04\ Statistics\r\nstats auth {stats_user}:{stats_password}\r\nstats admin if TRUE'
+	)
+	stats_config = HaproxyConfigRequest(
+		binds=[{'ip': '', 'port': stats_port}],
+		option=option,
+		type='listen',
+		name='stats',
+	)
+	add_sql.insert_new_section(server_id, 'listen', 'stats', stats_config)
 
 
 def install_service(service: str, json_data: Union[str, ServiceInstall, HAClusterRequest], cluster_id: int = None) -> dict:

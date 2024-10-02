@@ -1,0 +1,5 @@
+peers {{ config.name }}
+    {% for peer in config.peers -%}
+    peer {{ peer.name }} {{ peer.ip }}:{{ peer.port }}
+
+    {% endfor -%}

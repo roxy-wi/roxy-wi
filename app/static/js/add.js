@@ -1,6 +1,3 @@
-let ssl_offloading_var = "http-request set-header X-Forwarded-Port %[dst_port] \n"+
-						"http-request add-header X-Forwarded-Proto https if { ssl_fc } \n"+
-						"redirect scheme https if !{ ssl_fc } \n"
 $( function() {
 	$("#listen-mode-select").on('selectmenuchange', function () {
 		if ($("#listen-mode-select option:selected").val() == "tcp") {
@@ -9,16 +6,16 @@ $( function() {
 			$("#compression").checkboxradio("disable");
 			$("#cache").checkboxradio("disable");
 			$("#ssl_offloading").checkboxradio("disable");
-			$("#cookie").checkboxradio("disable");
-			$("#slow_atack").checkboxradio("disable");
+			$("#listen_cookie").checkboxradio("disable");
+			$("#slow_attack").checkboxradio("disable");
 			$("#https-listen").prop("checked", false);
 		} else {
 			$("#https-listen-span").show("fast");
 			$("#compression").checkboxradio("enable");
 			$("#cache").checkboxradio("enable");
 			$("#ssl_offloading").checkboxradio("enable");
-			$("#cookie").checkboxradio("enable");
-			$("#slow_atack").checkboxradio("enable");
+			$("#listen_cookie").checkboxradio("enable");
+			$("#slow_attack").checkboxradio("enable");
 		}
 	});
 	$("#frontend-mode-select").on('selectmenuchange', function () {
@@ -28,15 +25,13 @@ $( function() {
 			$("#compression2").checkboxradio("disable");
 			$("#cache2").checkboxradio("disable");
 			$("#ssl_offloading2").checkboxradio("disable");
-			$("#cookie2").checkboxradio("disable");
-			$("#slow_atack1").checkboxradio("disable");
+			$("#slow_attack1").checkboxradio("disable");
 		} else {
 			$("#https-frontend-span").show("fast");
 			$("#compression2").checkboxradio("enable");
 			$("#cache2").checkboxradio("enable");
 			$("#ssl_offloading2").checkboxradio("enable");
-			$("#cookie2").checkboxradio("enable");
-			$("#slow_atack1").checkboxradio("enable");
+			$("#slow_attack1").checkboxradio("enable");
 		}
 	});
 	$("#backend-mode-select").on('selectmenuchange', function () {
@@ -46,83 +41,15 @@ $( function() {
 			$("#compression3").checkboxradio("disable");
 			$("#cache3").checkboxradio("disable");
 			$("#ssl_offloading3").checkboxradio("disable");
-			$("#cookie3").checkboxradio("disable");
-			$("#slow_atack2").checkboxradio("disable");
+			$("#backend_cookie").checkboxradio("disable");
+			$("#slow_attack2").checkboxradio("disable");
 		} else {
 			$("#https-backend-span").show("fast");
 			$("#compression3").checkboxradio("enable");
 			$("#cache3").checkboxradio("enable");
 			$("#ssl_offloading3").checkboxradio("enable");
-			$("#cookie3").checkboxradio("enable");
-			$("#slow_atack2").checkboxradio("enable");
-		}
-	});
-	$("#https-listen").click(function () {
-		if ($('#https-listen').is(':checked')) {
-			$("#https-hide-listen").show("fast");
-			$("#path-cert-listen").attr('required', true);
-		} else {
-			$("#https-hide-listen").hide("fast");
-			$("#path-cert-listen").prop('required', false);
-		}
-	});
-	$("#https-frontend").click(function () {
-		if ($('#https-frontend').is(':checked')) {
-			$("#https-hide-frontend").show("fast");
-			$("#path-cert-frontend").attr('required', true);
-		} else {
-			$("#https-hide-frontend").hide("fast");
-			$("#path-cert-frontend").prop('required', false);
-		}
-	});
-	$("#https-backend").click(function () {
-		if ($('#https-backend').is(':checked')) {
-			$("#https-hide-backend").show("fast");
-		} else {
-			$("#https-hide-backend").hide("fast");
-		}
-	});
-	$("#ssl-dis-check-listen").click(function () {
-		if ($('#ssl-dis-check-listen').is(':checked')) {
-			$("#ssl-check-listen").checkboxradio("disable");
-			$("#ssl-check-listen").prop("checked", false);
-			$("#ssl-check-listen").checkboxradio("refresh");
-		} else {
-			$("#ssl-check-listen").checkboxradio("enable");
-			$("#ssl-check-listen").prop("checked", true);
-			$("#ssl-check-listen").checkboxradio("refresh");
-		}
-	});
-	$("#ssl-dis-check-backend").click(function () {
-		if ($('#ssl-dis-check-backend').is(':checked')) {
-			$("#ssl-check-backend").checkboxradio("disable");
-			$("#ssl-check-backend").prop("checked", false);
-			$("#ssl-check-backend").checkboxradio("refresh");
-		} else {
-			$("#ssl-check-backend").checkboxradio("enable");
-			$("#ssl-check-backend").prop("checked", true);
-			$("#ssl-check-backend").checkboxradio("refresh");
-		}
-	});
-	$("#options-listen-show").click(function () {
-		if ($('#options-listen-show').is(':checked')) {
-			$("#options-listen-show-div").show("fast");
-		} else {
-			$("#options-listen-show-div").hide("fast");
-		}
-	});
-	$("#options-frontend-show").click(function () {
-		if ($('#options-frontend-show').is(':checked')) {
-			$("#options-frontend-show-div").show("fast");
-		} else {
-			$("#options-frontend-show-div").hide("fast");
-		}
-	});
-	$("#options-backend-show").click(function () {
-		if ($('#options-backend-show').is(':checked')) {
-			$("#options-backend-show-div").show("fast");
-		} else {
-			$("#options-backend-show-div").hide("fast");
+			$("#backend_cookie").checkboxradio("enable");
+			$("#slow_attack2").checkboxradio("enable");
 		}
 	});
 	$("#controlgroup-listen-show").click(function () {
@@ -167,70 +94,18 @@ $( function() {
 			$("#controlgroup-backend").hide("fast");
 		}
 	});
-	$("#circuit_breaking_listen").click(function () {
-		if ($('#circuit_breaking_listen').is(':checked')) {
-			$("#circuit_breaking_listen_div").show("fast");
+	$("#frontend_rewrite").on('selectmenuchange', function () {
+		if ($("#frontend_rewrite option:selected").val() == "insert" || $("#frontend_rewrite option:selected").val() == "rewrite") {
+			$("#frontend_prefix").checkboxradio("disable");
 		} else {
-			$("#circuit_breaking_listen_div").hide("fast");
+			$("#frontend_prefix").checkboxradio("enable");
 		}
 	});
-	$("#circuit_breaking_backend").click(function () {
-		if ($('#circuit_breaking_backend').is(':checked')) {
-			$("#circuit_breaking_backend_div").show("fast");
+	$("#backend_rewrite").on('selectmenuchange', function () {
+		if ($("#backend_rewrite option:selected").val() == "insert" || $("#backend_rewrite option:selected").val() == "rewrite") {
+			$("#backend_prefix").checkboxradio("disable");
 		} else {
-			$("#circuit_breaking_backend_div").hide("fast");
-		}
-	});
-	$("#cookie").click(function () {
-		if ($('#cookie').is(':checked')) {
-			$("#cookie_name").attr('required', true);
-			$("#cookie_div").show("fast");
-		} else {
-			$("#cookie_name").attr('required', false);
-			$("#cookie_div").hide("fast");
-			$("#dynamic-cookie-key").attr('required', false);
-		}
-	});
-	$("#cookie2").click(function () {
-		if ($('#cookie2').is(':checked')) {
-			$("#cookie_name2").attr('required', true);
-			$("#cookie_div2").show("fast");
-		} else {
-			$("#cookie_name2").attr('required', false);
-			$("#cookie_div2").hide("fast");
-			$("#dynamic-cookie-key2").attr('required', false);
-		}
-	});
-	$("#rewrite").on('selectmenuchange', function () {
-		if ($("#rewrite option:selected").val() == "insert" || $("#rewrite option:selected").val() == "rewrite") {
-			$("#prefix").checkboxradio("disable");
-		} else {
-			$("#prefix").checkboxradio("enable");
-		}
-	});
-	$("#rewrite2").on('selectmenuchange', function () {
-		if ($("#rewrite2 option:selected").val() == "insert" || $("#rewrite2 option:selected").val() == "rewrite") {
-			$("#prefix2").checkboxradio("disable");
-		} else {
-			$("#prefix2").checkboxradio("enable");
-		}
-	});
-	$("#dynamic").click(function () {
-		if ($('#dynamic').is(':checked')) {
-			$("#dynamic-cookie-key").attr('required', true);
-			$("#dynamic_div").show("slide", "fast");
-		} else {
-			$("#dynamic-cookie-key").attr('required', false);
-			$("#dynamic_div").hide("slide", "fast");
-		}
-	});
-	$("#dynamic2").click(function () {
-		if ($('#dynamic2').is(':checked')) {
-			$("#dynamic-cookie-key2").attr('required', true);
-			$("#dynamic_div2").show("slide", "fast");
-		} else {
-			$("#dynamic-cookie-key2").attr('required', false);
-			$("#dynamic_div2").hide("slide", "fast");
+			$("#backend_prefix").checkboxradio("enable");
 		}
 	});
 	$("#check-servers-backend").click(function () {
@@ -297,78 +172,14 @@ $( function() {
 	});
 	$("#backends").autocomplete({
 		source: function (request, response) {
-			if (!checkIsServerFiled('#serv2')) return false;
-			if (request.term == "") {
+			if (!checkIsServerFiled('#serv')) return false;
+			if (request.term === "") {
 				request.term = 1
 			}
 			$.ajax({
 				url: "/runtimeapi/backends/" + $("#serv2").val(),
 				success: function (data) {
 					response(data.split('<br>'));
-				}
-			});
-		},
-		autoFocus: true,
-		minLength: -1
-	});
-	$("#blacklist-hide-input").autocomplete({
-		source: function (request, response) {
-			if (request.term == "") {
-				request.term = 1
-			}
-			$.ajax({
-				url: "/add/haproxy/bwlists/black/" + $("#group_id").val(),
-				success: function (data) {
-					data = data.replace(/\s+/g, ' ');
-					response(data.split(" "));
-				}
-			});
-		},
-		autoFocus: true,
-		minLength: -1
-	});
-	$("#blacklist-hide-input1").autocomplete({
-		source: function (request, response) {
-			if (request.term == "") {
-				request.term = 1
-			}
-			$.ajax({
-				url: "/add/haproxy/bwlists/black/" + $("#group_id").val(),
-				success: function (data) {
-					data = data.replace(/\s+/g, ' ');
-					response(data.split(" "));
-				}
-			});
-		},
-		autoFocus: true,
-		minLength: -1
-	});
-	$("#whitelist-hide-input").autocomplete({
-		source: function (request, response) {
-			if (request.term == "") {
-				request.term = 1
-			}
-			$.ajax({
-				url: "/add/haproxy/bwlists/white/" + $("#group_id").val(),
-				success: function (data) {
-					data = data.replace(/\s+/g, ' ');
-					response(data.split(" "));
-				}
-			});
-		},
-		autoFocus: true,
-		minLength: -1
-	});
-	$("#whitelist-hide-input1").autocomplete({
-		source: function (request, response) {
-			if (request.term == "") {
-				request.term = 1
-			}
-			$.ajax({
-				url: "/add/haproxy/bwlists/white/" + $("#group_id").val(),
-				success: function (data) {
-					data = data.replace(/\s+/g, ' ');
-					response(data.split(" "));
 				}
 			});
 		},
@@ -521,185 +332,6 @@ $( function() {
 			}
 		});
 	});
-	let forward_for_var = "option forwardfor if-none\n";
-	$('#forward_for').click(function () {
-		if ($('#optionsInput').val().indexOf(forward_for_var) == '-1') {
-			$("#optionsInput").append(forward_for_var)
-		} else {
-			replace_text("#optionsInput", forward_for_var);
-		}
-	});
-	$('#forward_for1').click(function () {
-		if ($('#optionsInput1').val().indexOf(forward_for_var) == '-1') {
-			$("#optionsInput1").append(forward_for_var)
-		} else {
-			replace_text("#optionsInput1", forward_for_var);
-		}
-	});
-	$('#forward_for2').click(function () {
-		if ($('#optionsInput2').val().indexOf(forward_for_var) == '-1') {
-			$("#optionsInput2").append(forward_for_var)
-		} else {
-			replace_text("#optionsInput2", forward_for_var);
-		}
-	});
-	let redispatch_var = "option redispatch\n";
-	$('#redispatch').click(function () {
-		if ($('#optionsInput').val().indexOf(redispatch_var) == '-1') {
-			$("#optionsInput").append(redispatch_var)
-		} else {
-			replace_text("#optionsInput", redispatch_var);
-		}
-	});
-	$('#redispatch2').click(function () {
-		if ($('#optionsInput2').val().indexOf(redispatch_var) == '-1') {
-			$("#optionsInput2").append(redispatch_var)
-		} else {
-			replace_text("#optionsInput2", redispatch_var);
-		}
-	});
-	let slow_atack = "option http-buffer-request\ntimeout http-request 10s\n"
-	$('#slow_atack').click(function () {
-		if ($('#optionsInput').val().indexOf(slow_atack) == '-1') {
-			$("#optionsInput").append(slow_atack)
-		} else {
-			replace_text("#optionsInput", slow_atack);
-		}
-	});
-	$('#slow_atack1').click(function () {
-		if ($('#optionsInput1').val().indexOf(slow_atack) == '-1') {
-			$("#optionsInput1").append(slow_atack)
-		} else {
-			replace_text("#optionsInput1", slow_atack);
-		}
-	});
-	$("#ddos").checkboxradio("disable");
-	$("#ddos1").checkboxradio("disable");
-	$("#ddos2").checkboxradio("disable");
-	$("#name").change(function () {
-		table_name = $('#name').val();
-		table_name = $.trim(table_name)
-		if ($('#name').val() != "") {
-			$("#ddos").checkboxradio("enable");
-		} else {
-			$("#ddos").checkboxradio("disable");
-		}
-	});
-	$("#new_frontend").change(function () {
-		table_name = $('#new_frontend').val();
-		table_name = $.trim(table_name)
-		if ($('#new_frontend').val() != "") {
-			$("#ddos1").checkboxradio("enable");
-		} else {
-			$("#ddos1").checkboxradio("disable");
-		}
-	});
-
-	$('#ddos').click(function () {
-		if ($('#name').val() == "") {
-			$("#optionsInput").append(ddos_var)
-		}
-		let ddos_var = "#Start config for DDOS atack protect\n" +
-			"stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n" +
-			"tcp-request connection track-sc1 src\n" +
-			"tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n" +
-			"# Abuser means more than 100reqs/10s\n" +
-			"acl abuse sc1_http_req_rate(" + table_name + ") ge 100\n" +
-			"acl flag_abuser sc1_inc_gpc0(" + table_name + ")\n" +
-			"tcp-request content reject if abuse flag_abuser\n" +
-			"#End config for DDOS\n";
-		if ($('#optionsInput').val().indexOf(ddos_var) == '-1') {
-			if ($('#name').val() == "") {
-				alert("First set Listen name")
-			} else {
-				$("#optionsInput").append(ddos_var);
-			}
-		} else {
-			replace_text("#optionsInput", ddos_var);
-		}
-	});
-	$('#ddos1').click(function () {
-		ddos_var = escapeHtml(ddos_var);
-		table_name = escapeHtml(table_name);
-		if ($('#new_frontend').val() == "") {
-			$("#optionsInput1").append(ddos_var)
-		}
-		let ddos_var = "#Start config for DDOS atack protect\n" +
-			"stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)\n" +
-			"tcp-request connection track-sc1 src\n" +
-			"tcp-request connection reject if { sc1_get_gpc0 gt 0 }\n" +
-			"# Abuser means more than 100reqs/10s\n" +
-			"acl abuse sc1_http_req_rate(" + table_name + ") ge 100\n" +
-			"acl flag_abuser sc1_inc_gpc0(" + table_name + ")\n" +
-			"tcp-request content reject if abuse flag_abuser\n" +
-			"#End config for DDOS\n";
-		if ($('#optionsInput1').val().indexOf(ddos_var) == '-1') {
-			if ($('#new_frontend').val() == "") {
-				alert("First set Frontend name")
-			} else {
-				$("#optionsInput1").append(ddos_var)
-			}
-		} else {
-			replace_text("#optionsInput1", ddos_var);
-		}
-	});
-	let antibot_var = "#Start config for Antibot protection\n" +
-		"http-request track-sc0 src table per_ip_rates\n" +
-		"http-request track-sc1 url32+src table per_ip_and_url_rates unless { path_end .css .js .png .jpeg .gif }\n" +
-		"acl exceeds_limit sc_gpc0_rate(0) gt 15 \n" +
-		"http-request sc-inc-gpc0(0) if { sc_http_req_rate(1) eq 1 } !exceeds_limit\n" +
-		"http-request deny if exceeds_limit\n" +
-		"#End config for Antibot\n";
-	$('#antibot').click(function () {
-		if ($('#optionsInput').val().indexOf(antibot_var) == '-1') {
-			$("#optionsInput").append(antibot_var)
-		} else {
-			replace_text("#optionsInput", antibot_var);
-		}
-	});
-	$('#antibot1').click(function () {
-		if ($('#optionsInput1').val().indexOf(antibot_var) == '-1') {
-			$("#optionsInput1").append(antibot_var)
-		} else {
-			replace_text("#optionsInput1", antibot_var);
-		}
-	});
-	$("#blacklist_checkbox").click(function () {
-		if ($('#blacklist_checkbox').is(':checked')) {
-			$("#blacklist-hide").show("fast");
-			$("#blacklist-hide-input").attr('required', true);
-		} else {
-			$("#blacklist-hide").hide("fast");
-			$("#blacklist-hide-input").prop('required', false);
-		}
-	});
-	$("#blacklist_checkbox1").click(function () {
-		if ($('#blacklist_checkbox1').is(':checked')) {
-			$("#blacklist-hide1").show("fast");
-			$("#blacklist-hide-input1").attr('required', true);
-		} else {
-			$("#blacklist-hide1").hide("fast");
-			$("#blacklist-hide-input1").prop('required', false);
-		}
-	});
-	$("#whitelist_checkbox").click(function () {
-		if ($('#whitelist_checkbox').is(':checked')) {
-			$("#whitelist-hide").show("fast");
-			$("#whitelist-hide-input").attr('required', true);
-		} else {
-			$("#whitelist-hide").hide("fast");
-			$("#whitelist-hide-input").prop('required', false);
-		}
-	});
-	$("#whitelist_checkbox1").click(function () {
-		if ($('#whitelist_checkbox1').is(':checked')) {
-			$("#whitelist-hide1").show("fast");
-			$("#whitelist-hide-input1").attr('required', true);
-		} else {
-			$("#whitelist-hide1").hide("fast");
-			$("#whitelist-hide-input1").prop('required', false);
-		}
-	});
 	$(":regex(id, template)").click(function () {
 		if ($(':regex(id, template)').is(':checked')) {
 			$(".prefix").show("fast");
@@ -834,35 +466,6 @@ $( function() {
 			$("#tabs").tabs("option", "active", 9);
 		});
 	}
-
-	$("#path-cert-listen").autocomplete({
-		source: function (request, response) {
-			if (!checkIsServerFiled('#serv')) return false;
-			$.ajax({
-				url: "/add/certs/" + $('#serv').val(),
-				success: function (data) {
-					data = data.replace(/\s+/g, ' ');
-					response(data.split(" "));
-				}
-			});
-		},
-		autoFocus: true,
-		minLength: -1
-	});
-	$("#path-cert-frontend").autocomplete({
-		source: function (request, response) {
-			if (!checkIsServerFiled('#serv2')) return false;
-			$.ajax({
-				url: "/add/certs/" + $('#serv2').val(),
-				success: function (data) {
-					data = data.replace(/\s+/g, ' ');
-					response(data.split(" "));
-				}
-			});
-		},
-		autoFocus: true,
-		minLength: -1
-	});
 	$("#ssl_key_upload").click(function () {
 		if (!checkIsServerFiled('#serv4')) return false;
 		if (!checkIsServerFiled('#ssl_name', 'Enter the Certificate name')) return false;
@@ -961,10 +564,6 @@ $( function() {
 			toastr.error('Wrong e-mail format');
 		}
 	});
-	let add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server" style="margin: 2px 0 4px 0;">: ' +
-		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number"> ' +
-		'Port check: <input name="port_check" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">' +
-		' maxconn: <input name="server_maxconn" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">'
 	$('[name=add-server-input]').click(function () {
 		$("[name=add_servers]").append(add_server_var);
 		changePortCheckFromServerPort();
@@ -975,17 +574,12 @@ $( function() {
 		$('[name=server_port]').val(iNum);
 	});
 	changePortCheckFromServerPort();
-	let add_userlist_var = '<br /><input name="userlist-user" title="User name" placeholder="user_name" class="form-control"> <input name="userlist-password" required title="User password. By default it insecure-password" placeholder="password" class="form-control"> <input name="userlist-user-group" title="User`s group" placeholder="user`s group" class="form-control">'
 	$('#add-userlist-user').click(function () {
 		$('#userlist-users').append(add_userlist_var);
 	});
-	let add_userlist_group_var = '<br /><input name="userlist-group" title="User`s group" placeholder="group_name" class="form-control">'
 	$('#add-userlist-group').click(function () {
 		$('#userlist-groups').append(add_userlist_group_var);
 	});
-	let add_peer_var = '<br /><input name="servers_name" required title="Peer name" size=14 placeholder="haproxyN" class="form-control">: ' +
-		'<input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server">: ' +
-		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">'
 	$('[name=add-peer-input]').click(function () {
 		$("[name=add_peers]").append(add_peer_var);
 	});
@@ -1000,27 +594,6 @@ $( function() {
 		$('.advance-show-button').css('display', 'block');
 		$('.advance-hide-button').css('display', 'none');
 		return false;
-	});
-	$('#ssl_offloading').click(function () {
-		if ($('#optionsInput').val().indexOf('ssl_fc ') == '-1') {
-			$("#optionsInput").append(ssl_offloading_var)
-		} else {
-			replace_text("#optionsInput", ssl_offloading_var);
-		}
-	});
-	$('#ssl_offloading1').click(function () {
-		if ($('#optionsInput1').val().indexOf('ssl_fc ') == '-1') {
-			$("#optionsInput1").append(ssl_offloading_var)
-		} else {
-			replace_text("#optionsInput1", ssl_offloading_var);
-		}
-	});
-	$('#ssl_offloading2').click(function () {
-		if ($('#optionsInput2').val().indexOf('ssl_fc ') == '-1') {
-			$("#optionsInput2").append(ssl_offloading_var)
-		} else {
-			replace_text("#optionsInput2", ssl_offloading_var);
-		}
 	});
 	$(".redirectListen").on("click", function () {
 		resetProxySettings();
@@ -1043,42 +616,6 @@ $( function() {
 		$("#tabs").tabs("option", "active", 4);
 		$("#serv5").selectmenu("open");
 	});
-	$("#create-http-listen").on("click", function () {
-		resetProxySettings();
-		createHttp(1, 'listen');
-	});
-	$("#create-http-frontend").on("click", function () {
-		resetProxySettings();
-		createHttp(2, 'frontend');
-	});
-	$("#create-http-backend").on("click", function () {
-		resetProxySettings();
-		createHttp(3, 'backend');
-	});
-	$("#create-ssl-listen").on("click", function () {
-		resetProxySettings();
-		createSsl(1, 'listen');
-	});
-	$("#create-ssl-frontend").on("click", function () {
-		resetProxySettings();
-		createSsl(2, 'frontend');
-	});
-	$("#create-ssl-backend").on("click", function () {
-		resetProxySettings();
-		createSsl(3, 'backend');
-	});
-	$("#create-https-listen").on("click", function () {
-		resetProxySettings();
-		createHttps(1, 'listen');
-	});
-	$("#create-https-frontend").on("click", function () {
-		resetProxySettings();
-		createHttps(2, 'frontend');
-	});
-	$("#create-https-backend").on("click", function () {
-		resetProxySettings();
-		createHttps(3, 'backend');
-	});
 	let tcp_note = 'The check is valid when the server answers with a <b>SYN/ACK</b> packet'
 	let ssl_note = 'The check is valid if the server answers with a valid SSL server <b>hello</b> message'
 	let httpchk_note = 'The check is valid if the server answers with a status code of <b>2xx</b> or <b>3xx</b>. You can ' +
@@ -1090,144 +627,207 @@ $( function() {
 	let pgsql_note = 'The check is valid if the server response contains a successful <b>Authentication</b> request'
 	let redis_note = 'The check is valid if the server response contains the string <b>+PONG</b>'
 	let smtpchk_note = 'The check is valid if the server response code starts with <b>\'2\'</b>'
-	$("#listener_checks").on('selectmenuchange', function () {
-		if ($("#listener_checks option:selected").val() == "option tcp-check") {
-			$("#listener_checks_note").html(tcp_note)
+	for (let section_type of ['listen', 'frontend']) {
+		$("#" + section_type + "_blacklist-hide-input").autocomplete({
+			source: function (request, response) {
+				if (request.term === "") {
+					request.term = 1
+				}
+				$.ajax({
+					url: "/add/haproxy/bwlists/black/" + $("#group_id").val(),
+					success: function (data) {
+						data = data.replace(/\s+/g, ' ');
+						response(data.split(" "));
+					}
+				});
+			},
+			autoFocus: true,
+			minLength: -1
+		});
+		$("#" + section_type + "_whitelist-hide-input").autocomplete({
+			source: function (request, response) {
+				if (request.term == "") {
+					request.term = 1
+				}
+				$.ajax({
+					url: "/add/haproxy/bwlists/white/" + $("#group_id").val(),
+					success: function (data) {
+						data = data.replace(/\s+/g, ' ');
+						response(data.split(" "));
+					}
+				});
+			},
+			autoFocus: true,
+			minLength: -1
+		});
+
+		$("#" + section_type + "_blacklist_checkbox").click(function () {
+			if ($('#frontend_blacklist_checkbox').is(':checked')) {
+				$("#" + section_type + "_blacklist-hide").show("fast");
+				$("#" + section_type + "_blacklist-hide-input").attr('required', true);
+			} else {
+				$("#" + section_type + "_blacklist-hide").hide("fast");
+				$("#" + section_type + "_blacklist-hide-input").prop('required', false);
+			}
+		});
+
+		$("#" + section_type + "_whitelist_checkbox").click(function () {
+			if ($('#frontend_whitelist_checkbox').is(':checked')) {
+				$("#" + section_type + "_whitelist-hide").show("fast");
+				$("#" + section_type + "_whitelist-hide-input").attr('required', true);
+			} else {
+				$("#" + section_type + "_whitelist-hide").hide("fast");
+				$("#" + section_type + "_whitelist-hide-input").prop('required', false);
+			}
+		});
+		$("#path-cert-" + section_type).autocomplete({
+			source: function (request, response) {
+				if (!checkIsServerFiled("#add-" + section_type + " select[name='server'] option:selected")) return false;
+				$.ajax({
+					url: "/add/certs/" + $('#serv2').val(),
+					success: function (data) {
+						data = data.replace(/\s+/g, ' ');
+						response(data.split(" "));
+					}
+				});
+			},
+			autoFocus: true,
+			minLength: -1
+		});
+	}
+	for (let section_type of ['listen', 'backend']) {
+		$("#" + section_type + "_checks").on('selectmenuchange', function () {
+			let health_check_val = health_check_val;
+			if (health_check_val === "tcp-check") {
+				$("#" + section_type + "_checks_note").html(tcp_note)
+			}
+			if (health_check_val === "ssl-hello-chk") {
+				$("#" + section_type + "_checks_note").html(ssl_note)
+			}
+			if (health_check_val === "httpchk") {
+				$("#" + section_type + "_checks_note").html(httpchk_note);
+				$("#" + section_type + "_checks_http").show();
+				$("#" + section_type + "_checks_http_path").attr('required', 'true');
+			} else {
+				$("#" + section_type + "_checks_http").hide();
+				$("#" + section_type + "_checks_http_path").removeAttr('required');
+				$("#" + section_type + "_checks_http_domain").removeAttr('required');
+			}
+			if (health_check_val === "ldap-check") {
+				$("#" + section_type + "_checks_note").html(ldap_note)
+			}
+			if (health_check_val === "mysql-check") {
+				$("#" + section_type + "_checks_note").html(mysql_note)
+			}
+			if (health_check_val === "pgsql-check") {
+				$("#" + section_type + "_checks_note").html(pgsql_note)
+			}
+			if (health_check_val === "redis-check") {
+				$("#" + section_type + "_checks_note").html(redis_note)
+			}
+			if (health_check_val === "smtpchk") {
+				$("#" + section_type + "_checks_note").html(smtpchk_note)
+			}
+			if (health_check_val === "") {
+				$("#" + section_type + "_checks_note").html('')
+			}
+		});
+		$("#ssl-dis-check-" + section_type).click(function () {
+			if ($('#ssl-dis-check-' + section_type).is(':checked')) {
+				$("#ssl-check-" + section_type).checkboxradio("disable");
+				$("#ssl-check-" + section_type).prop("checked", false);
+				$("#ssl-check-" + section_type).checkboxradio("refresh");
+			} else {
+				$("#ssl-check-" + section_type).checkboxradio("enable");
+				$("#ssl-check-" + section_type).prop("checked", true);
+				$("#ssl-check-" + section_type).checkboxradio("refresh");
+			}
+		});
+		$("#" + section_type + "_circuit_breaking").click(function () {
+			if ($("#" + section_type + "_circuit_breaking").is(':checked')) {
+				$("#" + section_type + "_circuit_breaking_div").show("fast");
+			} else {
+				$("#" + section_type + "_circuit_breaking_div").hide("fast");
+			}
+		});
+		$("#" + section_type + "_cookie").click(function () {
+			if ($("#" + section_type + "_cookie").is(':checked')) {
+				$("#" + section_type + "_cookie_name").attr('required', true);
+				$("#" + section_type + "_cookie_div").show("fast");
+			} else {
+				$("#" + section_type + "_cookie_name").attr('required', false);
+				$("#" + section_type + "_cookie_div").hide("fast");
+				$("#" + section_type + "_dynamic-cookie-key").attr('required', false);
+			}
+		});
+		$("#" + section_type + "_dynamic").click(function () {
+			if ($("#" + section_type + "_dynamic").is(':checked')) {
+				$("#" + section_type + "_dynamic-cookie-key").attr('required', true);
+				$("#" + section_type + "_dynamic_div").show("slide", "fast");
+			} else {
+				$("#" + section_type + "_dynamic-cookie-key").attr('required', false);
+				$("#" + section_type + "_dynamic_div").hide("slide", "fast");
+			}
+		});
+	}
+	for (let section_type of ['listen', 'frontend', 'backend']) {
+		$("#add_" + section_type + "_header").on("click", function () {
+			$("#" + section_type + "_header_div").show();
+			$("#" + section_type + "_add_header").show();
+			$("#add_" + section_type + "_header").hide();
+		});
+		$("#" + section_type + "_add_header").click(function () {
+			make_actions_for_adding_header('#' + section_type + '_header_div');
+		});
+		$("#add_" + section_type + "_acl").on("click", function () {
+			$("#" + section_type + "_acl").show();
+			$("#" + section_type + "_add_acl").show();
+			$("#add_" + section_type + "_acl").hide();
+		});
+		$("#" + section_type + "_add_acl").click(function () {
+			make_actions_for_adding_acl_rule('#' + section_type + '_acl');
+			if (section_type === 'listen') {
+				$("#" + section_type + "_acl").find('option[value=5]').remove();
+			}
+		});
+		$("#add_bind_" + section_type).click(function () {
+			make_actions_for_adding_bind('#' + section_type + '_bind');
+		});
+		$("#https-" + section_type).click(function () {
+			if ($('#https-' + section_type).is(':checked')) {
+				$("#https-hide-" + section_type).show("fast");
+				$("#path-cert-" + section_type).attr('required', true);
+			} else {
+				$("#https-hide-" + section_type).hide("fast");
+				$("#path-cert-" + section_type).prop('required', false);
+			}
+		});
+		$("#options-" + section_type + "-show").click(function () {
+			if ($("#options-"+section_type+"-show").is(':checked')) {
+				$("#options-" + section_type + "-show-div").show("fast");
+			} else {
+				$("#options-" + section_type + "-show-div").hide("fast");
+			}
+		});
+		let tableId = 3;
+		if (section_type === 'listen') {
+			tableId = 1;
+		} else if (section_type === 'frontend') {
+			tableId = 2
 		}
-		if ($("#listener_checks option:selected").val() == "option ssl-hello-chk") {
-			$("#listener_checks_note").html(ssl_note)
-		}
-		if ($("#listener_checks option:selected").val() == "option httpchk") {
-			$("#listener_checks_note").html(httpchk_note)
-		}
-		if ($("#listener_checks option:selected").val() == "option ldap-check") {
-			$("#listener_checks_note").html(ldap_note)
-		}
-		if ($("#listener_checks option:selected").val() == "option mysql-check") {
-			$("#listener_checks_note").html(mysql_note)
-		}
-		if ($("#listener_checks option:selected").val() == "option pgsql-check") {
-			$("#listener_checks_note").html(pgsql_note)
-		}
-		if ($("#listener_checks option:selected").val() == "option redis-check") {
-			$("#listener_checks_note").html(redis_note)
-		}
-		if ($("#listener_checks option:selected").val() == "option smtpchk") {
-			$("#listener_checks_note").html(smtpchk_note)
-		}
-		if ($("#listener_checks option:selected").val() == "") {
-			$("#listener_checks_note").html('')
-		}
-	});
-	$("#backend_checks").on('selectmenuchange', function () {
-		if ($("#backend_checks option:selected").val() == "") {
-			$("#backend_checks_note").html('')
-		}
-		if ($("#backend_checks option:selected").val() == "option tcp-check") {
-			$("#backend_checks_note").html(tcp_note)
-		}
-		if ($("#backend_checks option:selected").val() == "option ssl-hello-chk") {
-			$("#backend_checks_note").html(ssl_note)
-		}
-		if ($("#backend_checks option:selected").val() == "option httpchk") {
-			$("#backend_checks_note").html(httpchk_note)
-		}
-		if ($("#backend_checks option:selected").val() == "option ldap-check") {
-			$("#backend_checks_note").html(ldap_note)
-		}
-		if ($("#backend_checks option:selected").val() == "option mysql-check") {
-			$("#backend_checks_note").html(mysql_note)
-		}
-		if ($("#backend_checks option:selected").val() == "option pgsql-check") {
-			$("#backend_checks_note").html(pgsql_note)
-		}
-		if ($("#backend_checks option:selected").val() == "option redis-check") {
-			$("#backend_checks_note").html(redis_note)
-		}
-		if ($("#backend_checks option:selected").val() == "option smtpchk") {
-			$("#backend_checks_note").html(smtpchk_note)
-		}
-		if ($("#backend_checks option:selected").val() == "") {
-			$("#backend_checks_note").html('')
-		}
-	});
-	$("#listener_checks").on('selectmenuchange', function () {
-		if ($("#listener_checks").val() == 'option httpchk') {
-			$("#listener_checks_http").show();
-			$("#listener_checks_http_path").attr('required', 'true');
-		} else {
-			$("#listener_checks_http").hide();
-			$("#listener_checks_http_path").removeAttr('required');
-			$("#listener_checks_http_domain").removeAttr('required');
-		}
-	});
-	$("#backend_checks").on('selectmenuchange', function () {
-		if ($("#backend_checks").val() == 'option httpchk') {
-			$("#backend_checks_http").show();
-			$("#backend_checks_http_path").attr('required', 'true');
-		} else {
-			$("#backend_checks_http").hide();
-			$("#backend_checks_http_path").removeAttr('required');
-			$("#backend_checks_http_domain").removeAttr('required');
-		}
-	});
-	$("#add_listener_header").on("click", function () {
-		$("#listener_header_div").show();
-		$("#listener_add_header").show();
-		$("#add_listener_header").hide();
-	});
-	$("#add_frontend_header").on("click", function () {
-		$("#frontend_header_div").show();
-		$("#frontend_add_header").show();
-		$("#add_frontend_header").hide();
-	});
-	$("#add_backend_header").on("click", function () {
-		$("#backend_header_div").show();
-		$("#backend_add_header").show();
-		$("#add_backend_header").hide();
-	});
-	$("#listener_add_header").click(function () {
-		make_actions_for_adding_header('#listener_header_div');
-	});
-	$("#frontend_add_header").click(function () {
-		make_actions_for_adding_header('#frontend_header_div');
-	});
-	$("#backend_add_header").click(function () {
-		make_actions_for_adding_header('#backend_header_div');
-	});
-	$("#add_listener_acl").on("click", function () {
-		$("#listener_acl").show();
-		$("#listener_add_acl").show();
-		$("#add_listener_acl").hide();
-	});
-	$("#add_frontend_acl").on("click", function () {
-		$("#frontend_acl").show();
-		$("#frontend_add_acl").show();
-		$("#add_frontend_acl").hide();
-	});
-	$("#add_backend_acl").on("click", function () {
-		$("#backend_acl").show();
-		$("#backend_add_acl").show();
-		$("#add_backend_acl").hide();
-	});
-	$("#listener_add_acl").click(function () {
-		make_actions_for_adding_acl_rule('#listener_acl');
-		$("#listener_acl").find('option[value=5]').remove();
-	});
-	$("#frontend_add_acl").click(function () {
-		make_actions_for_adding_acl_rule('#frontend_acl');
-	});
-	$("#backend_add_acl").click(function () {
-		make_actions_for_adding_acl_rule('#backend_acl');
-	});
-	$("#add_bind_listener").click(function () {
-		make_actions_for_adding_bind('#listener_bind');
-		$("#listener_bind").show();
-	});
-	$("#add_bind_frontend").click(function () {
-		make_actions_for_adding_bind('#frontend_bind');
-		$("#frontend_bind").show();
-	});
+		$("#create-http-" + section_type).on("click", function () {
+			resetProxySettings();
+			createHttp(tableId, section_type);
+		});
+		$("#create-ssl-" + section_type).on("click", function () {
+			resetProxySettings();
+			createSsl(tableId, section_type);
+		});
+		$("#create-https-" + section_type).on("click", function () {
+			resetProxySettings();
+			createHttps(tableId, section_type);
+		});
+	}
 	$("#serv").on('selectmenuchange', function () {
 		$('#name').focus();
 	});
@@ -1257,9 +857,6 @@ function resetProxySettings() {
 	$('select').selectmenu('refresh');
 	$("#path-cert-listen" ).attr('required',false);
 	$("#path-cert-frontend" ).attr('required',false);
-	replace_text("#optionsInput", ssl_offloading_var);
-	replace_text("#optionsInput1", ssl_offloading_var);
-	replace_text("#optionsInput2", ssl_offloading_var);
 }
 function createHttp(TabId, proxy) {
 	$('[name=port]').val('80');
@@ -1269,7 +866,7 @@ function createHttp(TabId, proxy) {
 		TabId = '';
 	}
 	$( "#serv"+TabId ).selectmenu( "open" );
-	history.pushState('Add '+proxy, 'Add '+proxy, 'add/haproxy#'+proxy)
+	history.pushState('Add '+proxy, 'Add '+proxy, '#'+proxy)
 }
 function createSsl(TabId, proxy) {
 	$('[name=port]').val('443');
@@ -1288,7 +885,7 @@ function createSsl(TabId, proxy) {
 		TabId = '';
 	}
 	$( "#serv"+TabId ).selectmenu( "open" );
-	history.pushState('Add'+proxy, 'Add'+proxy, 'add/haproxy#'+proxy)
+	history.pushState('Add'+proxy, 'Add'+proxy, 'haproxy#'+proxy)
 }
 function createHttps(TabId, proxy) {
 	$('[name=port]').val('443');
@@ -1302,7 +899,7 @@ function createHttps(TabId, proxy) {
 		TabId = '';
 	}
 	$( "#serv"+TabId ).selectmenu( "open" );
-	history.pushState('Add'+proxy, 'Add'+proxy, 'add/haproxy#'+proxy)
+	history.pushState('Add'+proxy, 'Add'+proxy, 'haproxy#'+proxy)
 }
 function confirmDeleteOption(id) {
 	$("#dialog-confirm").dialog({
@@ -1797,160 +1394,6 @@ function deleteMap(map) {
 		}
 	});
 }
-function generateConfig(form_name) {
-	let frm = $('#'+form_name);
-	if (form_name == 'add-listener') {
-		serv = '#serv'
-		name_id = '#name'
-	} else if (form_name == 'add-frontend') {
-		serv = '#serv2'
-		name_id = '#new_frontend'
-	} else if (form_name == 'add-backend') {
-		serv = '#serv3'
-		name_id = '#new_backend'
-	} else if (form_name == 'add-userlist') {
-		serv = '#userlist_serv'
-		name_id = '#new_userlist'
-	} else {
-		serv = '#peers_serv'
-		name_id = '#peers-name'
-	}
-	if(!checkIsServerFiled(serv)) return false;
-	let empty_name = translate_div.attr('data-empty_name');
-	let generated_title = translate_div.attr('data-generated_config');
-	if(!checkIsServerFiled(name_id, empty_name)) return false;
-	let input = $("<input>")
-		.attr("name", "generateconfig").val("1").attr("type", "hidden").attr("id", "generateconfig");
-	$('#'+form_name +' input[name=acl_then_value]').each(function(){
-		if (!$(this).val()){
-			$(this).val('IsEmptY')
-		}
-	});
-	$('#'+form_name +' input[name=ip]').each(function(){
-		if (!$(this).val()){
-			$(this).val('IsEmptY')
-		}
-	});
-	$('#'+form_name +' input[name=port]').each(function(){
-		if (!$(this).val()){
-			$(this).val('IsEmptY')
-		}
-	});
-	frm.append(input);
-	$.ajax({
-		url: frm.attr('action'),
-		data: frm.serialize(),
-		type: frm.attr('method'),
-		success: function (data) {
-			if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1') {
-				toastr.clear();
-				toastr.error(data);
-			} else {
-				$('#dialog-confirm-body').text(data);
-				$("#dialog-confirm-cert").dialog({
-					resizable: false,
-					height: "auto",
-					width: 650,
-					modal: true,
-					title: generated_title,
-					buttons: {
-						Ok: function () {
-							$(this).dialog("close");
-						}
-					}
-				});
-			}
-		}
-	});
-	$("#generateconfig").remove();
-	$('#'+form_name +' input[name=acl_then_value]').each(function(){
-		if ($(this).val() == 'IsEmptY'){
-			$(this).val('')
-		}
-	});
-		$('#'+form_name +' input[name=ip]').each(function(){
-		if ($(this).val() == 'IsEmptY'){
-			$(this).val('')
-		}
-	});
-	$('#'+form_name +' input[name=port]').each(function(){
-		if ($(this).val() == 'IsEmptY'){
-			$(this).val('')
-		}
-	});
-}
-function addProxy(form_name) {
-	let frm = $('#'+form_name);
-	if (form_name == 'add-listener') {
-		serv = '#serv'
-		name_id = '#name'
-	} else if (form_name == 'add-frontend') {
-		serv = '#serv2'
-		name_id = '#new_frontend'
-	} else if (form_name == 'add-backend') {
-		serv = '#serv3'
-		name_id = '#new_backend'
-	} else if (form_name == 'add-userlist') {
-		serv = '#userlist_serv'
-		name_id = '#new_userlist'
-	} else {
-		serv = '#peers_serv'
-		name_id = '#peers-name'
-	}
-	if(!checkIsServerFiled(serv)) return false;
-	if(!checkIsServerFiled(name_id, 'The name cannot be empty')) return false;
-	$('#'+form_name +' input[name=acl_then_value]').each(function(){
-		if ($(this).val().length === 0){
-			$(this).val('IsEmptY')
-		}
-	});
-	$('#'+form_name +' input[name=ip]').each(function(){
-		if ($(this).val().length === 0){
-			$(this).val('IsEmptY')
-		}
-	});
-	$('#'+form_name +' input[name=port]').each(function(){
-		if ($(this).val().length === 0){
-			$(this).val('IsEmptY')
-		}
-	});
-	$.ajax({
-		url: frm.attr('action'),
-		data: frm.serialize(),
-		type: frm.attr('method'),
-		success: function( data ) {
-			data = data.replace(/\n/g, "<br>");
-			if (data.indexOf('error: ') != '-1' || data.indexOf('Error(s)') != '-1' || data.indexOf('Fatal') != '-1') {
-				returnNiceCheckingConfig(data);
-			} else if (data == '') {
-				toastr.clear();
-				toastr.error('error: Something went wrong. Check configuration');
-			} else {
-				toastr.clear();
-				returnNiceCheckingConfig(data);
-				toastr.info('Section has been added. Do not forget to restart the server');
-				let ip = frm.find('select[name=serv]').val();
-				localStorage.setItem('restart', ip);
-				resetProxySettings();
-			}
-		}
-	});
-	$('#'+form_name +' input[name=acl_then_value]').each(function(){
-		if ($(this).val() == 'IsEmptY'){
-			$(this).val('')
-		}
-	});
-	$('#'+form_name +' input[name=ip]').each(function(){
-		if ($(this).val() == 'IsEmptY'){
-			$(this).val('')
-		}
-	});
-	$('#'+form_name +' input[name=port]').each(function(){
-		if ($(this).val() == 'IsEmptY'){
-			$(this).val('')
-		}
-	});
-}
 function confirmDeleting(deleting_thing, id, dialog_id, color) {
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
@@ -1984,18 +1427,21 @@ function confirmDeleting(deleting_thing, id, dialog_id, color) {
 }
 function deleteId(id) {
 	$('#'+id).remove();
-	if ($('#listener_bind  > p').length == 0) {
-		$('#listener_bind').hide();
+	if ($('#listen_bind  > p').length == 0) {
+		$('#listen_bind').hide();
 	}
 	if ($('#frontend_bind  > p').length == 0) {
 		$('#frontend_bind').hide();
 	}
+	if ($('#backend_bind  > p').length == 0) {
+		$('#backend_bind').hide();
+	}
 }
-let if_word = translate_div.attr('data-if-title');
-let then_word = translate_div.attr('data-then');
-let value_word = translate_div.attr('data-value');
-let name_word = translate_div.attr('data-name');
-let acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">\n' +
+var if_word = translate_div.attr('data-if-title');
+var then_word = translate_div.attr('data-then');
+var value_word = translate_div.attr('data-value');
+var name_word = translate_div.attr('data-name');
+var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">\n' +
 		'<b class="padding10">'+if_word+'</b>\n' +
 		'<select name="acl_if">\n' +
 		'\t<option selected>Select if</option>\n' +
@@ -2028,12 +1474,12 @@ function make_actions_for_adding_acl_rule(section_id) {
 	$('#new_acl_rule_minus').attr('id', '');
 	$('#new_acl_p').attr('id', random_id);
 	$('#new_acl_rule_minus').attr('id', '');
-	$.getScript(overview);
+	$.getScript(awesome);
 	$( "select" ).selectmenu();
 	$('[name=acl_if]').selectmenu({width: 180});
 	$('[name=acl_then]').selectmenu({width: 180});
 }
-let header_option = '<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="new_header_p">\n' +
+var header_option = '<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="new_header_p">\n' +
 	'<select name="headers_res">' +
 	'<option value="http-response">response</option>' +
 	'<option value="http-request">request</option>' +
@@ -2056,11 +1502,11 @@ function make_actions_for_adding_header(section_id) {
 	$('#new_header_minus').attr('id', '');
 	$('#new_header_p').attr('id', random_id);
 	$('#new_header_minus').attr('id', '');
-	$.getScript(overview);
+	$.getScript(awesome);
 	$( "select" ).selectmenu();
 	$('[name=headers_method]').selectmenu({width: 180});
 }
-let bind_option = '<p id="new_bind_p"><input type="text" name="ip" size="15" placeholder="Any" class="form-control ui-autocomplete-input" autocomplete="off">' +
+var bind_option = '<p id="new_bind_p"><input type="text" name="ip" size="15" placeholder="Any" class="form-control ui-autocomplete-input" autocomplete="off">' +
 	'<b>:</b> ' +
 	'<input type="text" name="port" size="5" style="" required="" placeholder="8080" title="Port for bind listen" class="form-control" autocomplete="off"> ' +
 	'<span class="minus minus-style" id="new_bind_minus" title="Remove the IP-port pair"></span>'
@@ -2071,10 +1517,10 @@ function make_actions_for_adding_bind(section_id) {
 	$('#new_bind_minus').attr('id', '');
 	$('#new_bind_p').attr('id', random_id);
 	$('#new_bind_minus').attr('id', '');
-	$.getScript(overview);
+	$.getScript(awesome);
 	$( "select" ).selectmenu();
 	let serv = 'serv2'
-	if(section_id == '#listener_bind') {
+	if(section_id == '#listen_bind') {
 		serv = 'serv'
 	}
 	$( "#"+random_id + " > input[name=ip]").autocomplete({
@@ -2105,29 +1551,6 @@ function makeid(length) {
       result += characters.charAt(Math.floor(Math.random() * charactersLength));
    }
    return result;
-}
-function showUserlists() {
-	let serv = $("#existing_userlist_serv option:selected").val();
-	let select_id = $("#existing_userlist_serv");
-	if (!checkIsServerFiled(select_id)) return false;
-	$.ajax({
-		url: "/add/haproxy/userlist/" + serv,
-		success: function (data) {
-			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
-				toastr.error(data);
-			} else {
-				$('#existing_userlist_tr').show();
-				$('#existing_userlist_ajax').text('');
-				data = data.split(",");
-				for (i = 0; i < data.length; i++) {
-					let existing_userlist_ajax = $.find("#existing_userlist_ajax");
-					existing_userlist_ajax = existing_userlist_ajax[0].id;
-					data[i] = escapeHtml(data[i]);
-					$('#' + existing_userlist_ajax).append('<a href="/config/section/haproxy/' + serv + '/' + data[i] + '" title="Edit/Delete this userlist" target="_blank">' + data[i] + '</a> ');
-				}
-			}
-		}
-	});
 }
 function changePortCheckFromServerPort() {
 	$('[name=server_port]').on('input', function () {

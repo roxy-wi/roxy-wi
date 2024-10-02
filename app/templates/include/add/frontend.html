@@ -1,0 +1,184 @@
+<form name="add-frontend" id="add-frontend" action="/add/haproxy/add" method="post">
+		<table>
+			<caption><h3>{{lang.words.add|title()}} {{lang.words.frontend}}</h3></caption>
+			<tr>
+				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
+				<td class="addOption">
+					{{ select('serv2', name='server', values=g.user_params['servers'], is_servers='true', by_id=1) }}
+					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
+				</td>
+				<td rowspan="5" class="add-note addName alert-info">
+						{{lang.add_page.desc.front_desc1}}
+						<br /><br />
+						{{lang.add_page.desc.listener_desc2}}
+						<br /><br />
+						{{lang.add_page.desc.listener_desc1}}
+				</td>
+			</tr>
+			<tr>
+				<td class="addName">{{lang.words.name|title()}}:</td>
+				<td class="addOption">
+					<input type="text" name="name" id="new_frontend" required title="{{lang.words.name|title()}} {{lang.words.frontend}}"  placeholder="web_80" class="form-control">
+				</td>
+			</tr>
+			<tr>
+				<td class="addName">IP and {{lang.words.port|title()}}:</td>
+				<td class="addOption">
+                    <div id="frontend_bind">
+                        <p>
+					<input type="text" name="ip" id="ip1" size="15" placeholder="Any" class="form-control"><b>:</b>
+					<input type="text" name="port" size="5" required title="{{lang.add_page.desc.port_for_bind}} {{lang.words.frontend}}" placeholder="8080" class="form-control">
+                        </p>
+					</div>
+					<a class="link add-server" id="add_bind_frontend" title="{{lang.add_page.desc.bind_ip_pair}}"></a>
+					<div class="tooltip tooltipTop">
+						{{lang.add_page.desc.ip_port}}
+					</div>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName">{{lang.words.mode|title()}}: </td>
+				<td class="addOption">
+					{% set values = dict() %}
+					{% set values = {'http':'http','tcp':'tcp'} %}
+					{{ select('frontend-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
+					<span id="https-frontend-span">
+						{{ checkbox('https-frontend', name='ssl', title=lang.add_page.desc.ssl_offloading, desc='SSL Offloading') }}
+					</span>
+					<div id="https-hide-frontend" style="display: none;">
+						<br /><span class="tooltip tooltipTop">{{lang.words.enter2|title()}} {{lang.words.name}} {{lang.words.of}} pem {{lang.words.file2}}, {{lang.add_page.desc.press_down}}:</span><br />
+						{{ input('path-cert-frontend', name="cert", placeholder="some_cert.pem", size='39') }}
+					</div>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName">Maxconn: </td>
+				<td class="addOption">
+					{{ input('maxconn', value='2000', type="number", title=lang.add_page.desc.maxconn_fix, size='5', required='required') }}
+					<div class="tooltip tooltipTop">{{lang.add_page.desc.maxconn_desc}}: 2000</div>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName">{{lang.words.headers|title()}}: </td>
+				<td class="addOption">
+					<span title="{{lang.words.add|title()}} {{lang.words.headers}}" id="add_frontend_header" class="link add-server"></span>
+					<div id="frontend_header_div" style="display: none;">
+						<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="frontend_header_p">
+							{{ select('frontend_header_res_method', name='headers_res', values=header_res, first='------', class='force_close') }}
+							{{ select('frontend_header_method', name='headers_method', values=header_params, selected='add-header', class='force_close') }}
+							<b class="padding10">{{lang.words.name}}</b>
+							{{ input('frontend_header_name', name="header_name") }}
+							<b class="padding10">{{lang.words.value}}</b>
+							{{ input('frontend_header_value', name="header_value", placeholder='Leave blank if using del-header') }}
+							<span class="minus minus-style" onclick="deleteId('frontend_header_p')" title="{{lang.words.delete|title()}}"></span>
+						</p>
+					</div>
+					<span>
+						<a class="link add-server" id="frontend_add_header" title="{{lang.words.add|title()}} {{lang.words.headers}}" style="display: none;"></a>
+					</span>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName" title="Access control list">ACL: </td>
+				<td class="addOption">
+					<span title="{{lang.words.add|title()}} ACL" id="add_frontend_acl" class="link add-server"></span>
+					<div id="frontend_acl" style="display: none;">
+						<p id="frontend_acl_rule" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                            <b class="padding10">{{lang.words.if|title()}}</b>
+							{{ select('frontend_acl_if', name='acl_if', values=if_values, first='Select if', class='force_close', disabled=false) }}
+							<b class="padding10">{{ lang.words.value }}</b>
+							{{ input('frontend_acl_value', name='acl_value') }}
+							<b class="padding10">{{ lang.words.then }}</b>
+							{% set values = dict() %}
+							{% set values = {'5':'Use backend','2':'Redirect to','3':'Allow','4':'Deny', '6': 'Return', '7': 'Set-header'} %}
+							{{ select('frontend_acl_then', name='acl_then', values=values, first='Select then', class='force_close', disabled=false) }}
+							<b class="padding10">{{ lang.words.value }}</b>
+							{{ input('frontend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\' or \'Redirect\', \'Return\', or \'Set-header\'") }}
+							<span class="minus minus-style" onclick="deleteId('frontend_acl_rule')" title="{{lang.words.delete|title()}}"></span>
+						</p>
+					</div>
+					<span>
+						<a class="link add-server" id="frontend_add_acl" title="{{lang.words.add|title()}} ACL" style="cursor: pointer; display: none;"></a>
+					</span>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName"><span title="Cache support start 1.8 and latter" class="help_cursor">Web {{lang.words.acceleration}}:</span></td>
+				<td class="addOption">
+					<span class="controlgroup">
+						{{ checkbox('compression2', name="compression", title=lang.add_page.desc.http_compression, value='1', desc=lang.words.compression|title()) }}
+						{{ checkbox('cache2', name="cache", title=lang.words.enable|title()+' '+lang.words.cache, value='2', desc=lang.words.cache|title()) }}
+						{{ checkbox('ssl_offloading1', name='ssl_offloading', title=lang.add_page.desc.http_https, desc='HTTP->HTTPS') }}
+					</span>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName"><span title="Web application firewall" class="help_cursor">WAF:</span></td>
+				<td class="addOption">
+					<span class="controlgroup">
+						{{ checkbox('slow_attack1', title=lang.add_page.desc.slow_attack,
+						desc='Slow attack') }}
+						{{ checkbox('ddos1', title='DDOS attack protect', desc='DDOS') }}
+						{{ checkbox('frontend_whitelist_checkbox', name='whitelist_checkbox', title=lang.words.enable|title()+' '+ lang.words.whitelist, desc=lang.words.whitelist|title())  }}
+						{{ checkbox('frontend_blacklist_checkbox', name='blacklist_checkbox', title=lang.words.enable|title()+' '+ lang.words.blacklist, desc=lang.words.blacklist|title()) }}
+						{{ checkbox('waf2', name='waf', title='Web application firewall', desc='WAF', value='1') }}
+						{{ checkbox('antibot1', name='antibot', title=lang.add_page.desc.antibot, desc='Antibot', value='1') }}
+					</span>
+					<div id="frontend_blacklist-hide" style="display: none;">
+						<br /><span class="tooltip tooltipTop">{{lang.words.enter2|title()}} {{lang.words.w_a}} {{lang.words.blacklist}} {{lang.words.name}}, {{lang.add_page.desc.press_down}}:</span><br />
+						{{ input('frontend_blacklist-hide-input', size='39', name="blacklist", placeholder="blacklist.lst") }}
+					</div>
+					<div id="frontend_whitelist-hide" style="display: none;">
+						<br /><span class="tooltip tooltipTop">{{lang.words.enter2|title()}} {{lang.words.w_a}} {{lang.words.whitelist}} {{lang.words.name}}, {{lang.add_page.desc.press_down}}:</span><br />
+						{{ input('frontend_whitelist-hide-input', size='39', name="whitelist", placeholder="whitelist.lst") }}
+					</div>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName">{{lang.words.options|title()}}:</td>
+				<td class="addOption">
+					<span class="controlgroup">
+						{{ checkbox('forward_for1', name='forward_for', title=lang.add_page.desc.forward_for, desc='Forward for') }}
+						{{ checkbox('options-frontend-show', title=lang.add_page.buttons.set_options_m, desc=lang.add_page.buttons.set_options) }}
+					</span>
+					<div id="options-frontend-show-div" style="display: none;">
+						<div style="font-size: 12px; padding-bottom: 10px;">
+							<span style="padding-right: 10px;">{{lang.words.start2|title()}} {{lang.words.typing}} {{lang.words.options}}: </span>
+							{{ input('options1') }}
+							<span style="padding-left: 10px;">
+									{{lang.add_page.desc.press_down}}. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAProxy docs">{{lang.words.read|title()}} {{lang.words.more}} {{lang.words.about}} {{lang.words.options}}</a>
+							</span>
+							<br />
+							<span style="padding-right: 10px;">{{lang.words.start2|title()}} {{lang.words.typing}} {{lang.words.saved}} {{lang.words.options}}:</span>
+							{{ input('saved-options1') }}
+								{{lang.add_page.desc.saved_options}}
+						</div>
+						<textarea name="option" title="Options thru" cols=80 rows=5 id="optionsInput1" placeholder="acl test hdr_beg(host) -i some_host"></textarea>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="addName">{{lang.words.default_backend}}</td>
+				<td class="addOption">
+					{{ input('backends', name='backends', placeholder="some_backend", size='30', title=lang.add_page.desc.no_def_backend) }}
+					<div class="tooltip tooltipTop">
+						<b>{{lang.words.note|title()}}</b>: {{lang.add_page.desc.def_backend}}, <span title="{{lang.words.create|title()}} {{lang.words.backend}}" class="redirectBackend link">{{lang.add_page.desc.def_backend_exit}}</span>.
+					</div>
+				</td>
+			</tr>
+			<tr class="advance-show">
+				<td class="addOption" colspan="2">
+					<button title="{{lang.add_page.buttons.show_full_settings}}" class="row-down advance-show-button">{{lang.words.show|title()}} {{lang.words.advanced}} {{lang.words.settings}}</button>
+					<button title="{{lang.add_page.buttons.hide_full_settings}}" class="row-up advance-hide-button" style="display: none">{{lang.words.hide|title()}} {{lang.words.advanced}} {{lang.words.settings}}</button>
+				</td>
+			</tr>
+            <tr id="frontend-add-buttons">
+				<td class="addButton">
+					<a class="ui-button ui-widget ui-corner-all" id="frontend-add-button" title="{{lang.words.add|title()}} {{lang.words.frontend|title()}}" onclick="addProxy('add-frontend')">{{lang.words.add|title()}} {{lang.words.frontend|title()}}</a>
+				</td>
+				<td class="addButton">
+					<a class="ui-button ui-widget ui-corner-all" id="frontend-generate-button" title="{{lang.words.generate|title()}} {{lang.words.and}} {{lang.words.display}} {{lang.words.config}}" onclick="addProxy('add-frontend', 'true')">{{lang.words.generate|title()}} {{lang.words.config}}</a>
+				</td>
+			</tr>
+		</table>
+		</form>

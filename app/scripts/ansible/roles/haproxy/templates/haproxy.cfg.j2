@@ -1,3 +1,4 @@
+# BEGIN Roxy-WI MANAGED global do not edit it directly
 global
     log         127.0.0.2 local0
     log         127.0.0.1 local1 notice
@@ -11,7 +12,9 @@ global
     stats socket *:{{SOCK_PORT}} level admin
     stats socket /var/run/haproxy.sock mode 600 level admin
     server-state-file {{STAT_FILE}}
+# END Roxy-WI MANAGED global do not edit it directly
 
+# BEGIN Roxy-WI MANAGED defaults do not edit it directly
 defaults
     mode                    http
     log                     global
@@ -29,7 +32,9 @@ defaults
     timeout http-keep-alive 10s
     timeout check           10s
     maxconn                 3000
+# END Roxy-WI MANAGED defaults do not edit it directly
 
+# BEGIN Roxy-WI MANAGED listen stats do not edit it directly
 listen stats 
     bind *:{{STAT_PORT}}
     http-request use-service prometheus-exporter if { path /metrics }
@@ -38,6 +43,7 @@ listen stats
     stats realm HAProxy-04\ Statistics
     stats auth {{STATS_USER}}:{{STATS_PASS}}
     stats admin if TRUE
+# END Roxy-WI MANAGED listen stats do not edit it directly
 
 {% if M_OR_S != 'None' %}
 peers default_peers

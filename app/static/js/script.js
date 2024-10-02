@@ -1152,6 +1152,7 @@ function returnNiceCheckingConfig(data) {
 	if (alert_error) {
 		toastr.error(server_name + '<pre style="padding: 0; margin: 0;">' + alert_error + '</pre>');
 		toastr.info('Config not applied');
+		return 1;
 	} else if (alert_warning) {
 		toastr.warning(server_name + '<pre style="padding: 0; margin: 0;">' + alert_warning + '</pre>');
 		toastr.success('<b>' + server_name + ' Configuration file is valid</b>');
@@ -1165,6 +1166,7 @@ function returnNiceCheckingConfig(data) {
 	} else if (server_name2) {
 		toastr.success('<b>' + server_name2 + ' Configuration file is valid</b>');
 	}
+	return 0;
 }
 function show_version() {
 	NProgress.configure({showSpinner: false});
@@ -1346,9 +1348,8 @@ function showPassword(input) {
   }
 }
 function removeData() {
-    let chart;
     for (let i = 0; i < charts.length; i++) {
-        chart = charts[i];
+        let chart = charts[i];
         chart.destroy();
     }
 }

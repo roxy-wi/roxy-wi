@@ -597,7 +597,8 @@ class ServerIPView(MethodView):
         methods = ["GET"]
         decorators = [jwt_required(), get_user_params(), page_for_admin(level=3), check_group()]
 
-    def get(self, server_id: int):
+    @staticmethod
+    def get(server_id: int):
         """
         Retrieves IPs associated with a certain server.
         ---

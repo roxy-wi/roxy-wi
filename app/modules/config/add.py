@@ -1,6 +1,6 @@
 import os
 
-from flask import render_template, request
+from flask import render_template
 
 import app.modules.db.sql as sql
 import app.modules.db.add as add_sql
@@ -15,34 +15,6 @@ import app.modules.service.common as service_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 
 get_config = roxy_wi_tools.GetConfigVar()
-
-
-def save_to_haproxy_config(config: str, server_ip: str, name: str) -> str:
-	roxywi_common.check_is_server_in_group(server_ip)
-	cfg = config_common.generate_config_path('haproxy', server_ip)
-
-	config_mod.get_config(server_ip, cfg)
-
-	try:
-		with open(cfg, "a") as conf:
-			conf.write(config)
-	except IOError as e:
-		raise Exception(f"error: Cannot read import config file {e}")
-
-	try:
-		output = config_mod.master_slave_upload_and_restart(server_ip, cfg, "save", 'haproxy')
-	except Exception as e:
-		raise Exception(e)
-
-	try:
-		roxywi_common.logging(server_ip, f"Add has been added a new {name}")
-	except Exception:
-		pass
-
-	if output:
-		return output
-	else:
-		return name
 
 
 def save_nginx_config(config_add: str, server_ip: str, config_name: str) -> str:
@@ -71,83 +43,6 @@ def save_nginx_config(config_add: str, server_ip: str, config_name: str) -> str:
 		return output
 	else:
 		return config_name
-
-
-def get_userlists(config):
-	return_config = ''
-	with open(config, 'r') as f:
-		for line in f:
-			if line.startswith('userlist'):
-				line = line.strip()
-				return_config += line + ','
-
-	return return_config
-
-
-def show_userlist(server_ip: str) -> str:
-	configs_dir = get_config.get_config_var('configs', 'haproxy_save_configs_dir')
-	format_file = 'cfg'
-
-	try:
-		sections = get_userlists(configs_dir + roxywi_common.get_files(configs_dir, format_file)[0])
-	except Exception as e:
-		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
-		try:
-			cfg = config_common.generate_config_path('haproxy', server_ip)
-		except Exception as e:
-			roxywi_common.logging('Roxy-WI server', f' Cannot generate a cfg path {e}', roxywi=1)
-		try:
-			config_mod.get_config(server_ip, cfg)
-		except Exception as e:
-			roxywi_common.logging('Roxy-WI server', f' Cannot download a config {e}', roxywi=1)
-		try:
-			sections = get_userlists(cfg)
-		except Exception as e:
-			roxywi_common.logging('Roxy-WI server', f' Cannot get Userlists from the config file {e}', roxywi=1)
-			sections = 'error: Cannot get Userlists'
-
-	return sections
-
-
-def add_userlist() -> str:
-	generate = request.form.get('generateconfig')
-	server_ip = request.form.get('serv')
-	name = f"userlist {request.form.get('new_userlist')}\n"
-
-	new_userlist_groups = ""
-	if request.form.get('userlist-group') is not None:
-		groups = request.form.getlist('userlist-group')
-		for group in groups:
-			if group == '':
-				continue
-			new_userlist_groups += f"    group {group}\n"
-
-	new_users_list = ""
-	if request.form.get('userlist-user') is not None:
-		users = request.form.getlist('userlist-user')
-		passwords = request.form.getlist('userlist-password')
-		userlist_user_group = request.form.getlist('userlist-user-group')
-		i = 0
-
-		for user in users:
-			if user == '':
-				continue
-			try:
-				group = f' groups {userlist_user_group[i]}'
-			except Exception:
-				group = ''
-			new_users_list += f"    user {user} insecure-password {passwords[i]} {group}\n"
-			i += 1
-
-	config_add = "\n" + name + new_userlist_groups + new_users_list
-
-	if generate:
-		return config_add
-	else:
-		try:
-			return save_to_haproxy_config(config_add, server_ip, name)
-		except Exception as e:
-			return str(e)
 
 
 def get_bwlist(color: str, group: str, list_name: str) -> str:
@@ -409,15 +304,6 @@ def get_saved_option(group: str, term: str) -> dict:
 		v = v + 1
 
 	return a
-
-
-def update_saved_option(option, option_id) -> bool:
-	try:
-		add_sql.update_options(option, option_id)
-	except Exception as e:
-		raise Exception(e)
-	else:
-		return True
 
 
 def create_saved_server(server: str, group: str, desc: str) -> str:

@@ -1,0 +1,28 @@
+global
+    {% if config.log != '' -%}
+        {% for log in config.log -%}
+    log {{ log }}
+        {% endfor -%}
+    {% endif %}
+
+    chroot {{ config.chroot }}
+    pidfile {{ config.pidfile }}
+    maxconn {{ config.maxconn }}
+    user {{ config.user }}
+    group {{ config.group }}
+
+    {% if config.daemon -%}
+    daemon
+    {% endif -%}
+
+    {% if config.socket != '' -%}
+        {% for o in config.socket -%}
+    stats socket {{ o }}
+        {% endfor -%}
+    {% endif -%}
+
+    {% if config.option != '' -%}
+        {% for o in config.option.split('\\r\\n') -%}
+    {{ o }}
+        {% endfor -%}
+    {% endif -%}

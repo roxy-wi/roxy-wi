@@ -1,0 +1,49 @@
+<form name="add-peers" id="add-peers" action="/add/haproxy/peers" method="post">
+    <table>
+        <caption><h3>{{lang.words.add|title()}} Peer</h3></caption>
+        <tr>
+            <td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
+            <td class="addOption">
+                {{ select('peers_serv', name='server', values=g.user_params['servers'], is_servers='true', by_id=1) }}
+                <div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
+            </td>
+            <td rowspan="4" class="add-note addName alert-info">
+                {{lang.add_page.desc.peers}}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Peers {{lang.words.name}}:</td>
+            <td class="addOption">
+                {{ input('peers-name', name='name', title="Peers "+lang.words.name,  placeholder="peers name") }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Peers {{lang.words.servers}}:</td>
+            <td class="addOption">
+                <span name="add_peers" id="add_peers">
+                    <p>
+                    <input name="servers_name" required title="Peer {{lang.words.name}}" size=14 placeholder="haproxy1" class="form-control">:
+                    <input name="servers" required title="Peer IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
+                    <input name="server_port" required title="Peer {{lang.words.port}}" size=3 placeholder="yyy" class="form-control add_server_number" type="number">
+                    </p>
+                    <p>
+                    <input name="servers_name" required title="Peer {{lang.words.name}}" size=14 placeholder="haproxy2" class="form-control">:
+                    <input name="servers" title="Peer IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server"><span class="second-server">:</span>
+                    <input name="server_port" title="Peer {{lang.words.port}}" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">
+                    </p>
+                </span>
+                <span>
+                    <a class="link add-server backend_server" name="add-peer-input" title="{{lang.words.add|title()}} peer {{lang.words.server}}" style="cursor: pointer;"></a>
+                </span>
+            </td>
+        </tr>
+        <tr id="peers-add-buttons">
+            <td class="addButton">
+                <a class="ui-button ui-widget ui-corner-all" id="peers-add-button" title="{{lang.words.add|title()}} peer" onclick="addProxy('add-peers')">{{lang.words.add|title()}} peer</a>
+            </td>
+            <td class="addButton">
+                <a class="ui-button ui-widget ui-corner-all" id="peers-generate-button" title="{{lang.words.generate|title()}} {{lang.words.and}} {{lang.words.display}} {{lang.words.config}}" onclick="addProxy('add-peers', 'true')">{{lang.words.generate|title()}} {{lang.words.config}}</a>
+            </td>
+        </tr>
+    </table>
+</form>

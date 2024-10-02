@@ -1,0 +1,37 @@
+acl_if:
+  1: 'hdr_beg(host) -i'
+  2: 'hdr_end(host) -i'
+  3: 'path_beg -i'
+  4: 'path_end -i'
+  6: 'src ip'
+acl_then:
+  2: 'http-request redirect location'
+  3: 'http-request allow'
+  4: 'http-request deny'
+  5: 'use_backend'
+forward_for: 'option forwardfor if-none'
+redispatch: 'option redispatch'
+slow_attack: |
+ option http-buffer-request
+     timeout http-request 10s
+ddos: |
+    # Start config for DDOS atack protect
+        stick-table type ip size 1m expire 1m store gpc0,http_req_rate(10s),http_err_rate(10s)
+        tcp-request connection track-sc1 src
+        tcp-request connection reject if { sc1_get_gpc0 gt 0 }
+        # Abuser means more than 100reqs/10s
+ssl_offloading: |
+    http-request set-header X-Forwarded-Port %[dst_port]
+        http-request add-header X-Forwarded-Proto https if { ssl_fc }
+        redirect scheme https if !{ ssl_fc }
+compression: |
+    compression algo gzip
+        compression type text/html text/plain text/css
+antibot: |
+    # Start config for Antibot protection
+        http-request track-sc0 src table per_ip_rates
+        http-request track-sc1 url32+src table per_ip_and_url_rates unless { path_end .css .js .png .jpeg .gif }
+        acl exceeds_limit sc_gpc0_rate(0) gt 15 
+        http-request sc-inc-gpc0(0) if { sc_http_req_rate(1) eq 1 } !exceeds_limit
+        http-request deny if exceeds_limit
+        # End config for Antibot

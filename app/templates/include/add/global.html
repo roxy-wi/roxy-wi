@@ -1,0 +1,79 @@
+<form name="add-global" id="add-global" action="/add/haproxy/global" method="post">
+    <table>
+        <tr>
+{#            <td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>#}
+            <td class="addOption">
+                {{ select('global_serv', name='server', values=g.user_params['servers'], is_servers='true', by_id=1) }}
+                <div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
+            </td>
+        </tr>
+        <tr>
+{#            <td class="addName">global {{lang.words.name}}:</td>#}
+            <td class="addOption">
+                {{ input('global-name', name='name', title="global "+lang.words.name, value="name") }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">{{lang.words.log|title()}}:</td>
+            <td class="addOption">
+                <textarea name="log" cols=60 rows=3></textarea>
+                <div class="tooltip tooltipTop">Adds a global syslog server. Several global servers can be defined. They will receive logs for starts and exits</div>
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Chroot:</td>
+            <td class="addOption">
+                {{ input('global-chroot', name='chroot', placeholder="/var/lib/haproxy") }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Pidfile:</td>
+            <td class="addOption">
+                {{ input('global-pidfile', name='pidfile', placeholder="/var/run/haproxy.pid") }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Maxconn:</td>
+            <td class="addOption">
+                {{ input('global-maxconn', name='maxconn', placeholder="5000", type="number") }}
+                <div class="tooltip tooltipTop">Sets the maximum per-process number of concurrent connections to number.</div>
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">{{lang.words.user|title()}}:</td>
+            <td class="addOption">
+                {{ input('global-user', name='user', placeholder="haproxy") }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">{{lang.words.group|title()}}:</td>
+            <td class="addOption">
+                {{ input('global-group', name='group', placeholder="haproxy") }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Stats socket:</td>
+            <td class="addOption">
+                <textarea name="socket" title="Binds a UNIX socket" cols=60 rows=4 placeholder="*:1999 level admin"></textarea>
+                <div class="tooltip tooltipTop">
+                    Binds a UNIX socket to path or a TCPv4/v6 address to address:port.
+                    Connections to this socket will return various statistics outputs and even allow some commands to
+                    be issued to change some runtime settings.
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Daemon:</td>
+            <td class="addOption">
+                {{ checkbox('global-daemon', name='daemon') }}
+                <div class="tooltip tooltipTop">Makes the process fork into background. This is the recommended mode of operation.</div>
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">{{ lang.add_page.buttons.set_options }}:</td>
+            <td class="addOption">
+                <textarea name="option" title="Options thru" cols=80 rows=5 placeholder="ssl-default-bind-options ssl-min-ver TLSv1.0 no-tls-tickets"></textarea>
+            </td>
+        </tr>
+    </table>
+</form>

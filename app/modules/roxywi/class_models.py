@@ -290,3 +290,157 @@ class SSLCertUploadRequest(BaseModel):
 class SavedServerRequest(BaseModel):
     server: EscapedString
     description: Optional[EscapedString] = None
+
+
+class HaproxyBinds(BaseModel):
+    ip: Optional[str] = None
+    port: Annotated[int, Gt(1), Le(65535)]
+
+
+class HaproxyHeaders(BaseModel):
+    path: Literal['http-request', 'http-response']
+    name: str
+    method: Literal['add-header', 'set-header', 'del-header', 'replace-header', 'pass-header']
+    value: Optional[str] = None
+
+
+class HaproxyAcls(BaseModel):
+    acl_if: int
+    acl_then: int
+    acl_then_value: Optional[str] = None
+    acl_value: str
+
+
+class HaproxyBackendServer(BaseModel):
+    server: Union[IPvAnyAddress, DomainName]
+    port: Annotated[int, Gt(1), Le(65535)]
+    port_check: Annotated[int, Gt(1), Le(65535)]
+    maxconn: Optional[int] = 2000
+    send_proxy: Optional[bool] = 0
+    backup: Optional[bool] = 0
+
+
+class HaproxyCookie(BaseModel):
+    dynamic: str
+    dynamicKey: str
+    domain: Optional[str] = None
+    name: Optional[str] = None
+    nocache: Optional[str] = None
+    postonly: Optional[str] = None
+    prefix: Optional[str] = None
+    rewrite: Optional[str] = None
+
+
+class HaproxyHealthCheck(BaseModel):
+    check: str
+    domain: Optional[str] = None
+    path: str
+
+
+class HaproxySSL(BaseModel):
+    cert: str
+    ssl_check_backend: Optional[bool] = 1
+
+
+class HaproxyServersCheck(BaseModel):
+    check_enabled: Optional[bool] = 1
+    fall: Optional[int] = 5
+    rise: Optional[int] = 2
+    inter: Optional[int] = 2000
+
+
+class HaproxyCircuitBreaking(BaseModel):
+    observe: Literal['layer7', 'layer4']
+    error_limit: int
+    on_error: Literal['mark-down', 'fastinter', 'fail-check', 'sudden-death']
+
+
+class HaproxyConfigRequest(BaseModel):
+    balance: Optional[Literal['roundrobin', 'source', 'leastconn', 'first', 'rdp-cookie', 'uri', 'uri whole', 'static-rr']] = None
+    mode: Literal['tcp', 'http'] = 'http'
+    type: Literal['listen', 'frontend', 'backend']
+    name: EscapedString
+    option: Optional[str] = None
+    maxconn: Optional[int] = 2000
+    waf: Optional[bool] = 0
+    binds: List[HaproxyBinds]
+    headers: List[HaproxyHeaders] = None
+    acls: List[HaproxyAcls] = None
+    backend_servers: List[HaproxyBackendServer] = None
+    blacklist: Optional[str] = ''
+    whitelist: Optional[str] = ''
+    ssl: Optional[HaproxySSL] = None
+    cache: Optional[bool] = 0
+    compression: Optional[bool] = 0
+    cookie: Optional[HaproxyCookie] = None
+    health_check: Optional[HaproxyHealthCheck] = None
+    servers_check: Optional[HaproxyServersCheck] = None
+    ssl_offloading: Optional[bool] = 0
+    redispatch: Optional[bool] = 0
+    forward_for: Optional[bool] = 0
+    slow_attack: Optional[bool] = 0
+    ddos: Optional[bool] = 0
+    antibot: Optional[bool] = 0
+    backends: Optional[str] = None
+    circuit_breaking: Optional[HaproxyCircuitBreaking] = None
+
+
+class HaproxyUserListUser(BaseModel):
+    user: str
+    password: str
+    group: Optional[str] = ''
+
+
+class HaproxyUserListRequest(BaseModel):
+    name: EscapedString
+    type: Literal['userlist']
+    userlist_users: Optional[List[HaproxyUserListUser]] = ''
+    userlist_groups: Optional[List[str]] = ''
+
+
+class HaproxyPeers(BaseModel):
+    name: str
+    ip: Union[IPvAnyAddress, DomainName]
+    port: Annotated[int, Gt(1), Le(65535)]
+
+
+class HaproxyPeersRequest(BaseModel):
+    name: EscapedString
+    type: Literal['peers']
+    peers: List[HaproxyPeers]
+
+
+class GenerateConfigRequest(BaseModel):
+    generate: Optional[bool] = 0
+
+
+class HaproxyGlobalRequest(BaseModel):
+    log: Optional[List[str]] = ['127.0.0.1 local', '127.0.0.1 local1 notice']
+    chroot: Optional[str] = '/var/lib/haproxy'
+    pidfile: Optional[str] = '/var/run/haproxy.pid'
+    maxconn: Optional[int] = 5000
+    user: Optional[str] = 'haproxy'
+    group: Optional[str] = 'haproxy'
+    daemon: Optional[bool] = 1
+    socket: Optional[List[str]] = ['*:1999 level admin', '/var/run/haproxy.sock mode 600 level admin', '/var/lib/haproxy/stats']
+    type: Optional[Literal['global']] = 'global'
+    option: Optional[str] = ''
+
+
+class HaproxyDefaultsTimeout(BaseModel):
+    http_request: Optional[int] = 10
+    queue: Optional[int] = 60
+    connect: Optional[int] = 10
+    client: Optional[int] = 60
+    server: Optional[int] = 60
+    check: Optional[int] = 10
+    http_keep_alive: Optional[int] = 10
+
+
+class HaproxyDefaultsRequest(BaseModel):
+    log: Optional[str] = 'global'
+    retries: Optional[int] = 3
+    timeout: Optional[HaproxyDefaultsTimeout] = HaproxyDefaultsTimeout().model_dump(mode='json')
+    option: Optional[str] = ''
+    maxconn: Optional[int] = 5000
+    type: Optional[Literal['defaults']] = 'defaults'

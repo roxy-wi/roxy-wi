@@ -1,0 +1,57 @@
+<form name="add-userlist" id="add-userlist" action="/add/haproxy/userlist" method="post">
+		<table>
+			<caption><h3>{{lang.words.add|title()}} {{lang.words.userlists}}</h3></caption>
+			<tr>
+				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
+				<td class="addOption">
+					{{ select('userlist_serv', name='server', values=g.user_params['servers'], is_servers='true') }}
+					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
+				</td>
+				<td rowspan="4" class="add-note addName alert-info">{{lang.add_page.desc.userlist_desc}}</td>
+			</tr>
+			<tr>
+				<td class="addName">{{lang.words.name|title()}}:</td>
+				<td class="addOption">
+					{{ input('new_userlist', name='name', required='required', title=lang.add_page.desc.userlist_name, placeholder="basic-auth-list") }}
+				</td>
+			</tr>
+			<tr>
+				<td class="addName">{{lang.words.groups|title()}}:</td>
+				<td class="addOption">
+					<span id="userlist-groups">
+                        <p>
+						{{ input('userlist-group', title=lang.add_page.desc.userlist_user_grp, placeholder="group_name") }}
+                        </p>
+					</span>
+					<span>
+						<span class="link add-server" id="add-userlist-group" title="Add extra group" style="cursor: pointer;"></span>
+					</span>
+					<div class="tooltip tooltipTop">{{lang.add_page.desc.userlist_group}}</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="addName">{{lang.words.user|title()}}:</td>
+				<td class="addOption">
+					<span id="userlist-users">
+                        <p>
+						{{ input('userlist-user', required='required', title=lang.words.username|title(), placeholder="user_name") }}
+						{{ input('userlist-password', required='required', title=lang.add_page.desc.userlist_pass, placeholder="password") }}
+						{{ input('userlist-user-group', title=lang.add_page.desc.userlist_user_grp,  placeholder="group") }}
+                        </p>
+					</span>
+					<span>
+						<span class="link add-server" id="add-userlist-user" title="Add extra user" style="cursor: pointer;"></span>
+					</span>
+					<div class="tooltip tooltipTop">{{lang.add_page.desc.userlist_user}}</div>
+				</td>
+			</tr>
+            <tr id="userlist-add-buttons">
+				<td class="addButton">
+					<a class="ui-button ui-widget ui-corner-all" id="userlist-add-button" title="Add Userlist" onclick="addProxy('add-userlist')">{{lang.words.add|title()}} {{lang.words.userlist|title()}}</a>
+				</td>
+				<td class="addButton">
+					<a class="ui-button ui-widget ui-corner-all" id="userlist-generate-button" title="{{lang.words.generate|title()}} {{lang.words.and}} {{lang.words.display}} {{lang.words.config}}" onclick="addProxy('add-userlist', 'true')">{{lang.words.generate|title()}} {{lang.words.config}}</a>
+				</td>
+			</tr>
+		</table>
+		</form>

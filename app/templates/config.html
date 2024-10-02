@@ -25,6 +25,8 @@
 <script src="/static/js/codemirror/mode/haproxy.js"></script>
 <script src="/static/js/codemirror/keymap/sublime.js"></script>
 <script src="/static/js/configshow.js"></script>
+<script src="/static/js/add.js"></script>
+<script src="/static/js/edit_config.js"></script>
 {% if is_serv_protected and g.user_params['role'] > 2 %}
 <meta http-equiv="refresh" content="0; url=/service">
 {% else %}
@@ -129,7 +131,7 @@
     				gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "breakpoints"],
 					highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true}
 				});
-	} else {
+	} else if (cur_url[6] === 'edit') {
 		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
 				{
 					mode: "nginx",

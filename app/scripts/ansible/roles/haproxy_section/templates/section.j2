@@ -1,0 +1,148 @@
+{{ config.type }} {{ config.name }}
+    {% for bind in config.binds -%}
+    bind {{ bind.ip }}:{{ bind.port }} {% if config.ssl != 'None' and config.mode == 'http' and config.ssl.cert %} ssl crt {{cert_path}}/{{ config.ssl.cert }}{% endif %}
+
+    {% endfor %}
+
+    mode {{ config.mode }}
+    {% if config.balance != 'None' -%}
+    balance {{ config.balance }}
+    {% endif -%}
+    maxconn {{ config.maxconn }}
+
+    {% if config.health_check != 'None' -%}
+        {% if config.health_check.check == 'httpchk' and config.health_check.domain -%}
+    option {{ config.health_check.check }} GET {{ config.health_check.path }} "HTTP/1.0\\r\\nHost: {{ config.health_check.domain }}
+        {% else -%}
+    option {{ config.health_check.check }}
+        {% endif -%}
+    {% endif %}
+
+    {% if config.headers != 'None' -%}
+        {%- for header in config.headers -%}
+    {{ header.path }} {{ header.method }} {{ header.name }} {{ header.value }}
+        {% endfor %}
+    {% endif %}
+
+    {% if config.whitelist -%}
+    acl white_list_{{ whitelist }} src -f {{ haproxy_dir }}/white/{{ config.whitelist }}
+    tcp-request content accept if white_list_{{ whitelist }}
+    tcp-request content reject
+    {% endif %}
+    {% if config.blacklist -%}
+    tcp-request connection reject if { src -f {{ haproxy_dir }}/white/{{ config.blacklist }} }
+    {% endif %}
+
+    {% if config.acls -%}
+        {% for acl in config.acls -%}
+            {% if acl.acl_if in (1, 2)  -%}
+                {% if config.mode == 'tcp' -%}
+                    {% set acl_then_hdr = 'ssl_fc_sni -i' -%}
+                 {% elif config.mode == 'http' and config.ssl == 'None' -%}
+                    {% set acl_then_hdr = 'hdr_beg(host) -i' -%}
+                 {% else -%}
+                    {% set acl_then_hdr = 'ssl_fc_sni -i' -%}
+                 {% endif %}
+    {{ acl_then[acl.acl_then] }} {{ acl.acl_then_value }} if { {{ acl_then_hdr }} {{ acl.acl_value }} }
+            {% elif acl.acl_if in (3, 4, 5) -%}
+    {{ acl_then[acl.acl_then] }} {{ acl.acl_then_value }} if { {{ acl_if[acl.acl_if] }} {{ acl.acl_value }} }
+            {% elif acl.acl_if == 6 -%}
+    acl return_{{ acl.acl_value }} {{ acl_if[acl.acl_if] }} {{ acl.acl_value }}
+    http-request return if return_{{ acl.acl_value }}
+            {% elif acl.acl_if == 7 -%}
+    acl set_header_{{ acl.acl_value }} {{ acl_if[acl.acl_if] }} {{ acl.acl_value }}
+    http-request set_header_ if set_header_{{ acl.acl_value }}
+            {% endif -%}
+        {% endfor -%}
+    {% endif -%}
+
+
+    {% if config.slow_attack -%}
+    {{ slow_attack }}
+    {% endif -%}
+    {% if config.forward_for -%}
+    {{ forward_for }}
+    {% endif -%}
+    {% if config.redispatch -%}
+    {{ redispatch }}
+    {% endif -%}
+    {% if config.ssl_offloading -%}
+    {{ ssl_offloading }}
+    {% endif -%}
+
+    {% if config.ddos -%}
+    {{ ddos }}
+    acl abuse sc1_http_req_rate({{ config.name }}) ge 100
+    acl flag_abuser sc1_inc_gpc0({{ config.name }})
+    tcp-request content reject if abuse flag_abuser
+    # End config for DDOS
+    {% endif -%}
+
+    {% if config.waf -%}
+    filter spoe engine modsecurity config {{ haproxy_dir }}/waf.conf
+    http-request deny if { var(txn.modsec.code) -m int gt 0 }
+    {% endif -%}
+
+    {% if config.compression -%}
+    {{ compression }}
+    {% endif -%}
+
+    {% if config.antibot -%}
+    {{ antibot }}
+    {% endif -%}
+
+    {% if config.cookie != 'None' -%}
+    cookie {{ config.cookie.name }} {% if config.cookie.domain != 'None' %} {{ config.cookie.domain }}{% endif %} {{ config.cookie.rewrite }} {{ config.cookie.prefix }} {{ config.cookie.nocache }} {{ config.cookie.postonly }} {{ config.cookie.dynamic }}
+        {% if config.cookie.dynamicKey -%}
+    dynamic-cookie-key {{ config.cookie.dynamicKey }}
+        {% endif -%}
+    {% endif -%}
+
+    {% if config.ssl != 'None' and config.mode == 'http' -%}
+        {%- if config.ssl.ssl_check_backend -%}
+            {%- set ssl_check_option = 'ssl verify' -%}
+        {%- else -%}
+            {%- set ssl_check_option = 'ssl verify none' -%}
+        {%- endif -%}
+    {% else -%}
+        {%- set ssl_check_option = '' -%}
+    {% endif -%}
+    {% if config.servers_check != 'None' and config.servers_check.check_enabled -%}
+        {%- set check_option = ' check inter ' + config.servers_check.inter|string() + ' rise ' + config.servers_check.rise|string() + ' fall ' + config.servers_check.fall|string() %}
+    {% else -%}
+        {% if config.servers_check != 'None' and config.servers_check.check_enabled == 'None' -%}
+            {% set check_option = '' -%}
+        {% endif -%}
+    {% endif -%}
+
+    {% if config.option != '' -%}
+        {% for o in config.option.split('\\r\\n') -%}
+    {{ o }}
+        {% endfor -%}
+    {% endif -%}
+
+    {% if config.cache -%}
+    http-request cache-use {{ config.name }}
+    http-response cache-store {{ config.name }}
+    {% endif -%}
+
+    {% if config.circuit_breaking != 'None' -%}
+    default-server observe {{ config.circuit_breaking.observe }} error-limit {{ config.circuit_breaking.error_limit }} on-error {{ config.circuit_breaking.on_error }}
+    {% endif -%}
+
+    {% for backend in config.backend_servers -%}
+    server {{ backend.server }} {{ backend.server }}:{{ backend.port }} port {{ backend.port_check }} {{ check_option }} {{ ssl_check_option }} maxconn {{ backend.maxconn }}{% if backend.send_proxy %} send-proxy{% endif %}{% if backend.backup %} backup {% endif %}
+
+    {% endfor -%}
+
+    {% if config.backends and config.backends != 'None' -%}
+    use_backend {{ config.backends }}
+    {% endif %}
+
+
+{% if config.cache %}
+cache {{ config.name }}
+    total-max-size 4
+    max-age 240
+{% endif %}
+

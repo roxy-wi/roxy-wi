@@ -1,0 +1,208 @@
+<form name="add-backend" id="add-backend" action="/add/haproxy/add" method="post">
+		<table>
+			<caption><h3>{{lang.words.add|title()}} {{lang.words.backend}}</h3></caption>
+			<tr>
+				<td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
+				<td class="addOption">
+					{{ select('serv3', name='server', values=g.user_params['servers'], is_servers='true', by_id=1) }}
+					<div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
+				</td>
+				<td rowspan="4" class="add-note addName alert-info">
+						{{lang.add_page.desc.back_des1}}
+						<br /><br />
+						{{lang.add_page.desc.listener_desc2}}
+						<br /><br />
+						{{lang.add_page.desc.listener_desc3}}
+				</td>
+			</tr>
+			<tr>
+				<td class="addName">{{lang.words.name|title()}}:</td>
+				<td class="addOption">
+					{{ input('new_backend', name='name', title=lang.words.name|title() + ' ' +lang.words.backend, placeholder="web_80", required='required') }}
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName">{{lang.words.mode|title()}}: </td>
+				<td class="addOption">
+					{% set values = dict() %}
+					{% set values = {'http':'http','tcp':'tcp'} %}
+					{{ select('backend-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
+					<span id="https-backend-span">
+						<label for="https-backend" style="margin-top: 5px;">Is SSL enabled on frontend?</label>
+						<input type="checkbox" name="ssl" id="https-backend" value="https">
+					</span>
+					<div id="https-hide-backend" style="display: none;">
+						<label for="ssl-check-backend" style="margin-top: 5px;">{{lang.add_page.buttons.disable_ssl_verify}}</label><input type="checkbox" id="ssl-check-backend" name="ssl-check" value="ssl-check" checked>
+					</div>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName">{{lang.words.balance|title()}}: </td>
+					<td class="addOption">
+						{{ select('backend-balance', name="balance", values=balance_params, selected='roundrobin', required='required', class='force_close') }}
+					</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName">{{lang.words.health|title()}} {{lang.words.check}}: </td>
+				<td class="addOption">
+					{{ select('backend_checks', name='health_check', values=checks, selected='', class='force_close') }}
+					<span id="backend_checks_note" class="tooltip tooltipTop"></span>
+					<br />
+					<span id="backend_checks_http" style="display: none;">
+							URI path for checking: {{ input('backend_checks_http_path', name='checks_http_path', value='/',  title="URI for checking e.g. /check") }}
+							Domain name: {{ input('backend_checks_http_domain', name='checks_http_domain', placeholder='domain.com',  title="Domain name for checking e.g. domain.com") }}
+						</span>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName">{{lang.words.headers|title()}}: </td>
+				<td class="addOption">
+					<span title="{{lang.words.add|title()}} {{lang.words.headers}}" id="add_backend_header" class="link add-server"></span>
+					<div id="backend_header_div" style="display: none;">
+						<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="backend_header_p">
+							{{ select('backend_header_res_method', name='headers_res', values=header_res, first='------', class='force_close') }}
+							{{ select('backend_header_method', name='headers_method', values=header_params, selected='add-header', class='force_close') }}
+							<b class="padding10">{{lang.words.name}}</b>
+							{{ input('backend_header_name', name="header_name") }}
+							<b class="padding10">{{lang.words.value}}</b>
+							{{ input('backend_header_value', name="header_value", placeholder='Leave blank if using del-header') }}
+							<span class="minus minus-style" onclick="deleteId('backend_header_p')" title="{{lang.words.delete|title()}}"></span>
+						</p>
+					</div>
+					<span>
+						<a class="link add-server" id="backend_add_header" title="{{lang.words.add|title()}} {{lang.words.headers}}" style="display: none;"></a>
+					</span>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName" title="Access control list">ACL: </td>
+				<td class="addOption">
+					<span title="{{lang.words.add|title()}} ACL" id="add_backend_acl" class="link add-server"></span>
+					<div id="backend_acl" style="display: none;">
+						<p id="backend_acl_rule" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">
+                            <b class="padding10">{{lang.words.if|title()}}</b>
+							{{ select('backend_acl_if', name='acl_if', values=if_values, first='Select if', class='force_close', disabled=false) }}
+							<b class="padding10">{{ lang.words.value }}</b>
+							{{ input('backend_acl_value', name="acl_value") }}
+							<b class="padding10">{{ lang.words.then }}</b>
+							{% set values = dict() %}
+							{% set values = {'2':'Redirect to','3':'Allow','4':'Deny', '6': 'Return', '7': 'Set-header'} %}
+							{{ select('backend_acl_then', name='acl_then', values=values, first='Select then', class='force_close', disabled=false) }}
+							<b class="padding10">{{ lang.words.value }}</b>
+							{{ input('backend_acl_then_value', name='acl_then_value', title="Required if \'then\' is \'Use backend\', \'Redirect\', \'Return\', or \'Set-header\'") }}
+							<span class="minus minus-style" onclick="deleteId('backend_acl_rule')" title="{{lang.words.delete|title()}} {{lang.words.this}} {{lang.words.rule}}"></span>
+						</p>
+					</div>
+					<span>
+						<a class="link add-server" id="backend_add_acl" title="{{lang.words.add|title()}} ACL" style="cursor: pointer; display: none;"></a>
+					</span>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName"><span title="Cache support start 1.8 and latter" class="help_cursor">Web {{lang.words.acceleration}}:</span></td>
+				<td class="addOption">
+					<span class="controlgroup">
+						{{ checkbox('compression3', name="compression", title=lang.add_page.desc.http_compression, value='1', desc=lang.words.compression|title()) }}
+						{{ checkbox('cache3', name="cache", title=lang.words.enable|title()+' '+lang.words.cache, value='2', desc=lang.words.cache|title()) }}
+						{{ checkbox('ssl_offloading2', name='ssl_offloading', title=lang.add_page.desc.http_https, desc='SSL Offloading') }}
+					</span>
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName">{{lang.words.options|title()}}:</td>
+				<td class="addOption">
+					<span class="controlgroup">
+						{{ checkbox('forward_for2', name='forward_for', title=lang.add_page.desc.forward_for, desc='Forward for') }}
+						{{ checkbox('redispatch2', name='redispatch', title=lang.add_page.desc.redispatch, desc='Redispatch') }}
+						{{ checkbox('backend_cookie', name='cookie', title=lang.add_page.desc.cookie, desc=lang.words.set|title()+' cookie', value='1') }}
+                        {{ checkbox('options-backend-show', title=lang.add_page.buttons.set_options_m, desc=lang.add_page.buttons.set_options) }}
+						</span>
+						<br>
+						<span id="backend_cookie_div" style="display: none;">
+							<input type="text" placeholder="name" name="cookie_name" id="backend_cookie_name" class="form-control"><br><br>
+							<input type="text" placeholder="domain" name="cookie_domain" class="form-control"><br><br>
+							<span class="controlgroup">
+								{% set values = dict() %}
+								{% set values = {'None':'None','rewrite':'rewrite','indirect':'indirect','insert':'insert'} %}
+								{{ select('backend_rewrite', name='rewrite', values=values, first='rewrite/indirect/insert', class='force_close') }}
+								{{ checkbox('backend_prefix', name='prefix', title=lang.add_page.desc.c_prefix, desc='prefix', value='prefix') }}
+								{{ checkbox('backend_nocache', name='nocache', title=lang.add_page.desc.c_nocache, desc='nocache', value='nocache') }}
+								{{ checkbox('backend_postonly', name='postonly', title=lang.add_page.desc.c_postonly, desc='postonly', value='postonly') }}
+								{{ checkbox('backend_dynamic', name='dynamic', title=lang.add_page.desc.c_dynamic, desc='dynamic', value='dynamic') }}
+								<span id="backend_dynamic_div" style="display: none;">
+									dynamic-cookie-key: {{ input('backend_dynamic-cookie-key', name='dynamic-cookie-key', placeholder="your-custom-key") }}
+								</span>
+							</span>
+						</span>
+					<div id="options-backend-show-div" style="display: none;">
+						<div style="font-size: 12px; padding-bottom: 10px;">
+							<span style="padding-right: 10px;">{{lang.words.start2|title()}} {{lang.words.typing}} {{lang.words.options}}: </span>
+							{{ input('options2') }}
+							<span style="padding-left: 10px;">
+								{{lang.add_page.desc.press_down}}. <a href="http://cbonte.github.io/haproxy-dconv/1.7/configuration.html" target="_blanck" style="color: #23527c" title="HAproxy docs">{{lang.words.read|title()}} {{lang.words.more}} {{lang.words.about}} {{lang.words.options}}</a>
+							</span>
+							<br />
+							<span style="padding-right: 10px;">{{lang.words.start2|title()}} {{lang.words.typing}} {{lang.words.saved}} {{lang.words.options}}: </span>
+							<input type="text" id="saved-options2" class="form-control">
+								{{lang.add_page.desc.saved_options}}
+						</div>
+						<textarea name="option" title="Options thru" cols=80 rows=5 id="optionsInput2" placeholder="acl test hdr_beg(host) -i some_host"></textarea>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td class="addName">{{lang.words.servers|title()}}:</td>
+				<td class="addOption">
+					{% include 'include/add/add_servers.html' %}
+					<br>
+					<br>
+					{{ checkbox('template-backend', name='template', title=lang.add_page.desc.server_template, value='template', desc=lang.add_page.desc.server_template) }}
+				</td>
+			</tr>
+			<tr class="advance">
+				<td class="addName">{{lang.words.check|title()}}:</td>
+				<td class="addOption">
+					<div>
+						<label for="controlgroup-backend-show" style="margin-top: 5px;" title="Set custom check parameters">{{lang.words.custom|title()}} {{lang.words.check}} {{lang.words.params}}</label>
+						<input type="checkbox" id="controlgroup-backend-show" name="default-check">
+						<span class="tooltip tooltipTop">{{lang.add_page.desc.def_check}}: inter 2000 rise 2 fall 5</span>
+					</div>
+					<div class="controlgroup" id="controlgroup-backend" style="display: none;">
+						<label for="check-servers-backend" title="Enable servers check">{{lang.words.check|title()}}</label>
+						<input type="checkbox" id="check-servers-backend" name="check-servers" checked value="1">
+						{% set values = {'1000':'1000','2000':'2000','3000':'3000'} %}
+						{{ select('inter-backend', name='inter', values=values, first='2000', class='force_close') }}
+						{% set values = {'1':'1','2':'2','3':'3'} %}
+						{{ select('rise-backend', name='rise', values=values, first='2', class='force_close') }}
+						{% set values = {'4':'4','5':'5','6':'6'} %}
+						{{ select('fall-backend', name='fall', values=values, first='5', class='force_close') }}
+					</div>
+					<div style="display: block">
+						{{ checkbox('backend_circuit_breaking', name="circuit_breaking", desc='Circuit Breaking', title=lang.add_page.desc.circuit_breaking, value='1') }}
+					</div>
+					<div id="backend_circuit_breaking" style="display: none">
+						Observe:
+						{{ select('circuit_breaking_observe', values=observe, class='force_close') }}
+						error-limit: {{ input('circuit_breaking_error_limit', type='number', value='50', style='width: 50px;') }}
+						on-error:
+						{{ select('circuit_breaking_on_error', values=on_error, class='force_close') }}
+						<div class="tooltip tooltipTop">{{lang.words.read|title()}} {{lang.words.more}} {{lang.words.about}} Circuit Breaking <a href="https://roxy-wi.org/description/circuit-breaking" title="Circuit Breaking" target="_blank">{{lang.words.here}}</a></div>
+					</div>
+				</td>
+			</tr>
+			<tr class="advance-show">
+				<td class="addOption" colspan="2">
+					<button title="{{lang.add_page.buttons.show_full_settings}}" class="row-down advance-show-button">{{lang.words.show|title()}} {{lang.words.advanced}} {{lang.words.settings}}</button>
+					<button title="{{lang.add_page.buttons.hide_full_settings}}" class="row-up advance-hide-button" style="display: none">{{lang.words.hide|title()}} {{lang.words.advanced}} {{lang.words.settings}}</button>
+				</td>
+			</tr>
+			<tr id="backend-add-buttons">
+				<td class="addButton">
+					<a class="ui-button ui-widget ui-corner-all" id="backend-add-button" title="{{lang.words.add|title()}} {{lang.words.backend|title()}}" onclick="addProxy('add-backend')">{{lang.words.add|title()}} {{lang.words.backend|title()}}</a>
+				</td>
+				<td class="addButton">
+					<a class="ui-button ui-widget ui-corner-all" id="backend-generate-button" title="{{lang.words.generate|title()}} {{lang.words.and}} {{lang.words.display}} {{lang.words.config}}" onclick="addProxy('add-backend', 'true')">{{lang.words.generate|title()}} {{lang.words.config}}</a>
+				</td>
+			</tr>
+		</table>
+		</form>

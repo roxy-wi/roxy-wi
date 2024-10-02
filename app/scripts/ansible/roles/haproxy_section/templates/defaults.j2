@@ -1,0 +1,16 @@
+defaults
+    log {{ config.log }}
+    retries {{ config.retries }}
+    maxconn {{ config.maxconn }}
+
+    {% if config.timeout != '' -%}
+        {% for key, value in config.timeout.items() -%}
+    timeout {{ key.replace('_', '-') }} {{ value }}s
+        {% endfor %}
+    {% endif %}
+
+    {% if config.option != '' -%}
+        {% for o in config.option.split('\\r\\n') -%}
+    {{ o }}
+        {% endfor -%}
+    {% endif -%}

@@ -1,0 +1,50 @@
+- name: Create HAProxy section
+  blockinfile:
+    block: "{{ lookup('template', 'section.j2') }}"
+    dest: "{{ cfg }}"
+    marker: "# {mark} Roxy-WI MANAGED {{ config.type }} {{ config.name }} do not edit it directly"
+  when: config.type in ('listen', 'frontend', 'backend') and action == 'create'
+
+- name: Create Userlist
+  blockinfile:
+    block: "{{ lookup('template', 'userlist.j2') }}"
+    dest: "{{ cfg }}"
+    marker: "# {mark} Roxy-WI MANAGED {{ config.type }} {{ config.name }} do not edit it directly"
+  when: config.type == 'userlist' and action == 'create'
+
+- name: Create Peers
+  blockinfile:
+    block: "{{ lookup('template', 'peers.j2') }}"
+    dest: "{{ cfg }}"
+    marker: "# {mark} Roxy-WI MANAGED {{ config.type }} {{ config.name }} do not edit it directly"
+  when: config.type == 'peers' and action == 'create'
+
+- name: Create Global
+  blockinfile:
+    block: "{{ lookup('template', 'global.j2') }}"
+    dest: "{{ cfg }}"
+    marker: "# {mark} Roxy-WI MANAGED {{ config.type }} do not edit it directly"
+  when: config.type == 'global' and action == 'create'
+
+- name: Create Defaults
+  blockinfile:
+    block: "{{ lookup('template', 'defaults.j2') }}"
+    dest: "{{ cfg }}"
+    marker: "# {mark} Roxy-WI MANAGED {{ config.type }} do not edit it directly"
+  when: config.type == 'defaults' and action == 'create'
+
+- name: Delete section
+  blockinfile:
+    block: ""
+    dest: "{{ cfg }}"
+    marker: "# {mark} Roxy-WI MANAGED {{ config.type }} {{ config.name }} do not edit it directly"
+  when: action == 'delete' and config.name
+
+- name: Delete Global or Defaults
+  blockinfile:
+    block: ""
+    dest: "{{ cfg }}"
+    marker: "# {mark} Roxy-WI MANAGED {{ config.type }} do not edit it directly"
+  when:
+  - action == 'delete'
+  - config.type == 'global' or config.type == 'defaults

@@ -4,12 +4,14 @@ from flask_pydantic import validate
 
 from app import app
 from app.api.routes import bp
-from app.views.install.views import InstallView
+from app.views.install.views import InstallView, InstallGetStatus
 from app.views.server.views import ServerView, ServerGroupView, ServerGroupsView, ServersView, ServerIPView
 from app.views.server.cred_views import CredView, CredsView
 from app.views.server.backup_vews import BackupView, S3BackupView, GitBackupView
 from app.views.service.views import (ServiceView, ServiceActionView, ServiceBackendView, ServiceConfigView,
                                      ServiceConfigVersionsView, ServiceConfigList)
+from app.views.service.haproxy_section_views import ListenSectionView, UserListSectionView, PeersSectionView, \
+    GlobalSectionView, DefaultsSectionView
 from app.views.ha.views import HAView, HAVIPView, HAVIPsView
 from app.views.user.views import UserView, UserGroupView, UserRoles
 from app.views.udp.views import UDPListener, UDPListeners, UDPListenerActionView
@@ -56,12 +58,22 @@ bp.add_url_rule('/ha/<service>/<int:cluster_id>/vips', view_func=HAVIPsView.as_v
 register_api(UDPListener, 'udp_listener', '/<service>/listener', 'listener_id')
 bp.add_url_rule('/<service>/listener/<int:listener_id>/<any(start, stop, reload, restart):action>', view_func=UDPListenerActionView.as_view('listener_action'), methods=['GET'])
 bp.add_url_rule('/<service>/listeners', view_func=UDPListeners.as_view('listeners'), methods=['GET'])
+bp.add_url_rule('/service/<service>/<int:server_id>/install', view_func=InstallGetStatus.as_view('install_status'), methods=['GET'])
+bp.add_url_rule('/service/<service>/<server_id>/install', view_func=InstallGetStatus.as_view('install_status_ip'), methods=['GET'])
 
 
 register_api_id_ip(ServiceView, 'service', '/status', ['GET'])
 register_api_id_ip(ServiceBackendView, 'service_backend', '/backend', ['GET'])
 register_api_id_ip(ServiceConfigView, 'config_view', '/config')
 register_api_id_ip(ServiceConfigVersionsView, 'config_version', '/versions', methods=['GET', 'DELETE'])
+register_api_id_ip(ListenSectionView, 'haproxy_section_post', '/section/<any(listen, frontend, backend):section_type>', methods=['POST'])
+register_api_id_ip(ListenSectionView, 'haproxy_section', '/section/<any(listen, frontend, backend):section_type>/<section_name>', methods=['GET', 'PUT', 'DELETE'])
+register_api_id_ip(UserListSectionView, 'haproxy_userlist_post', '/section/userlist', methods=['POST'])
+register_api_id_ip(UserListSectionView, 'haproxy_userlist', '/section/userlist/<section_name>', methods=['GET', 'PUT', 'DELETE'])
+register_api_id_ip(PeersSectionView, 'haproxy_peers_post', '/section/peers', methods=['POST'])
+register_api_id_ip(PeersSectionView, 'haproxy_peers', '/section/peers/<section_name>', methods=['GET', 'PUT', 'DELETE'])
+register_api_id_ip(GlobalSectionView, 'haproxy_global', '/section/global', methods=['GET', 'PUT'])
+register_api_id_ip(DefaultsSectionView, 'haproxy_defaults', '/section/defaults', methods=['GET', 'PUT'])
 bp.add_url_rule('/service/<any(nginx, apache):service>/<server_id>/config/list', view_func=ServiceConfigList.as_view('config_list_ip'), methods=['GET'])
 bp.add_url_rule('/service/<any(nginx, apache):service>/<int:server_id>/config/list', view_func=ServiceConfigList.as_view('config_list'), methods=['GET'])
 register_api_id_ip(CheckerView, 'checker', '/tools')

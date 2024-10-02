@@ -1,5 +1,8 @@
-from app.modules.db.db_model import SavedServer, Option
+from typing import Union
+
+from app.modules.db.db_model import SavedServer, Option, HaproxySection
 from app.modules.db.common import out_error
+from app.modules.roxywi.class_models import HaproxyConfigRequest, HaproxyGlobalRequest, HaproxyDefaultsRequest
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
@@ -26,9 +29,6 @@ def delete_option(option_id):
 		Option.delete().where(Option.id == option_id).execute()
 	except Exception as e:
 		out_error(e)
-		return False
-	else:
-		return True
 
 
 def insert_new_saved_server(server, description, group):
@@ -91,3 +91,53 @@ def select_saved_servers(**kwargs):
 		out_error(e)
 	else:
 		return query_res
+
+
+def insert_new_section(server_id: int, section_type: str, section_name: str, body: HaproxyConfigRequest):
+	try:
+		HaproxySection.insert(
+			server_id=server_id,
+			type=section_type,
+			name=section_name,
+			config=body.model_dump(mode='json')
+		).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def insert_or_update_new_section(server_id: int, section_type: str, section_name: str, body: Union[HaproxyGlobalRequest, HaproxyDefaultsRequest]):
+	try:
+		HaproxySection.insert(
+			server_id=server_id,
+			type=section_type,
+			name=section_name,
+			config=body.model_dump(mode='json')
+		).on_conflict('replace').execute()
+	except Exception as e:
+		out_error(e)
+
+
+def update_section(server_id: int, section_type: str, section_name: str, body: HaproxyConfigRequest):
+	try:
+		HaproxySection.update(
+			config=body.model_dump(mode='json')
+		).where(
+			(HaproxySection.server_id == server_id) & (HaproxySection.type == section_type) & (HaproxySection.name == section_name)
+		).execute()
+	except HaproxySection.DoesNotExist:
+		raise RoxywiResourceNotFound
+	except Exception as e:
+		out_error(e)
+
+
+def get_section(server_id: int, section_type: str, section_name: str) -> HaproxySection:
+	try:
+		return HaproxySection.get(
+			(HaproxySection.server_id == server_id)
+			& (HaproxySection.type == section_type)
+			& (HaproxySection.name == section_name)
+		)
+	except HaproxySection.DoesNotExist:
+		raise RoxywiResourceNotFound
+	except Exception as e:
+		out_error(e)

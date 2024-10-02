@@ -1,0 +1,36 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
+{% set balance_params = {'roundrobin':'roundrobin','source':'source','leastconn':'leastconn','first':'first',
+'rdp-cookie':'rdp-cookie', 'uri':'uri', 'uri whole':'uri whole', 'static-rr': 'static-rr',
+'url_param userid':'url_param userid'} %}
+{% set checks = {'':'Choose a custom health check','tcp-check':'Check a TCP Port', 'ssl-hello-chk':'Check a SSL Port',
+'httpchk':'Check a HTTP service', 'ldap-check':'Check a LDAP service', 'mysql-check':'Check a MySql Service',
+'pgsql-check':'Check a PgSQL Service', 'redis-check': 'Check a Redis Service', 'smtpchk':'Check a SMTP service'} %}
+{% set observe = {'layer7':'layer7', 'layer4': 'layer4'} %}
+{% set on_error = {'mark-down':'mark-down', 'fastinter': 'fastinter', 'fail-check':'fail-check',
+'sudden-death':'sudden-death'} %}
+{% set header_res = {'http-response': 'response', 'http-request': 'request'} %}
+{% set header_params = {'add-header': 'add-header', 'set-header': 'set-header', 'del-header': 'del-header'} %}
+{% set if_values = {'1':'Host name starts with','2':'Host name ends with','3':'Path starts with','4':'Path ends with', '6': 'Src ip'} %}
+{% set force_close = {'0':'Off','1':'Server only','2':'Force close','3':'Pretend keep alive'} %}
+<div id="edit-listen" style="display: none;">
+    {% include 'include/add/listen.html' %}
+</div>
+<div id="edit-frontend" style="display: none;">
+    {% include 'include/add/frontend.html' %}
+</div>
+<div id="edit-backend" style="display: none;">
+    {% include 'include/add/backend.html' %}
+</div>
+<div id="edit-userlist" style="display: none;">
+    {% include 'include/add/userlist.html' %}
+</div>
+<div id="edit-peers" style="display: none;">
+    {% include 'include/add/peers.html' %}
+</div>
+<div id="edit-global" style="display: none;">
+    {% include 'include/add/global.html' %}
+</div>
+<div id="edit-defaults" style="display: none;">
+    {% include 'include/add/defaults.html' %}
+</div>

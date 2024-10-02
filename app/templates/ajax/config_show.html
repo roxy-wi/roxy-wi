@@ -1,4 +1,5 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
 	<div class="left-space">
 		<h4>{{lang.words.config|title()}} {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} {{lang.words.from}} {{serv}} ({{hostname}})</h4>
 		<p class="accordion-expand-holder">
@@ -206,12 +207,16 @@
 				</span><br />
 			{% endif %}
 		{% else %}
+            {% if line.startswith('# BEGIN') or line.startswith('# END') %}
+                {% continue %}
+            {% endif %}
 			{% if line.startswith('global') %}
 				<span class="param">{{ line }}
 					{% if role %}
 						{% if service != 'keepalived' %}
-						<span class="accordion-link">
-							<a href="/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}</a>
+                            <span class="accordion-link" onclick="openSection('{{ line| trim }}')">
+                                {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
+						    </span>
 						</span>
 						{% endif %}
 					{% endif %}
@@ -221,8 +226,8 @@
 			{% if line.startswith('defaults') %}
 				</div><span class="param">{{ line }}
 					{% if role %}
-						<span class="accordion-link">
-						<a href="/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}</a>
+						<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
+                            {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
 						</span>
 					{% endif %}
 					</span><div>
@@ -231,8 +236,8 @@
 			{%- if line.startswith('listen') -%}
 				</div><span class="param">{{- line -}}
 					{% if role %}
-					<span class="accordion-link">
-						<a href="/config/section/haproxy/{{serv}}/{{ line }}" target="_blank">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+					<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
+                        {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
 					</span>
 					{% endif %}
 					{%- set backend = line.split(' ') -%}
@@ -241,15 +246,15 @@
 					</span>
 					{%- set backend = backend|join('_') -%}
 					{%- do section_name.update({i: backend}) -%}
-					<span id="{{-section_name[i]|replace('\n', '')-}}" class="accordion-link" target="_blank"></span>
+					<span id="{{-section_name[i]|replace('\n', '')-}}" class="accordion-link"></span>
 					</span><div>
 					{% continue %}
 			{%- endif -%}
 			{%- if line.startswith('frontend') -%}
 				</div><span class="param">{{ line }}
 					{% if role %}
-						<span class="accordion-link">
-							<a href="/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+						<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
+                            {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
 						</span>
 					{% endif %}
 					{% set backend = line.split(' ') %}
@@ -265,8 +270,8 @@
 			{% if line.startswith('backend') %}
 				</div><span class="param">{{ line }}
 					{% if role %}
-						<span class="accordion-link">
-							<a href="/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+						<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
+                            {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
 						</span>
 					{% endif %}
 					{% set backend = line.split(' ') %}
@@ -289,8 +294,8 @@
 			{% if line.startswith('peers') %}
 				</div><span class="param">{{ line }}
 					{% if role %}
-						<span class="accordion-link">
-							<a href="/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+						<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
+                            {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
 						</span>
 					{% endif %}
 				</span><div>
@@ -309,8 +314,8 @@
 			{% if line.startswith('userlist') %}
 				</div><span class="param">{{ line }}
 					{% if role %}
-						<span class="accordion-link">
-							<a href="/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+						<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
+                            {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
 						</span>
 					{% endif %}
 				</span><div>
@@ -406,3 +411,4 @@
 			$("#expand_link").click();
 		}
 	</script>
+<div id="edit-section" style="display: none;"></div>
