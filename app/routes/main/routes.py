@@ -225,6 +225,7 @@ def service_history(service, server_ip):
 
     return render_template('history.html', **kwargs)
 
+
 @bp.route('/internal/show_version')
 @cache.cached()
 def show_roxywi_version():

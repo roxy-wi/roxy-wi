@@ -1448,9 +1448,9 @@ class DefaultsSectionView(HaproxySectionView):
     def put(self, service: Literal['haproxy'], server_id: Union[int, str], body: HaproxyDefaultsRequest):
         """
         DefaultsSectionView API
-        
+
         This is the DefaultsSectionView API where you can update the defaults configuration of HAProxy.
-        
+
         ---
         tags:
           - HAProxy defaults section

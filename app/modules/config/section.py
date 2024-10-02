@@ -6,8 +6,8 @@ from app.modules.common.common import return_nice_path
 
 
 SECTION_NAMES = (
-    'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', '#HideBlockStart',
-    '#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors'
+	'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', '#HideBlockStart',
+	'#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors'
 )
 
 
@@ -17,7 +17,7 @@ def _extract_section_name(line: str):
 
 	:param line: The line to extract the section name from.
 	:return: The extracted section name as a string if it starts with one of the SECTION_NAMES,
-	         None otherwise.
+			 None otherwise.
 	"""
 	line = line.strip()
 	if line.startswith(SECTION_NAMES):

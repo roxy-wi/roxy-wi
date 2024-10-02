@@ -37,17 +37,6 @@ def get_correct_service_name(service: str, server_id: int) -> str:
 	return service
 
 
-# def check_haproxy_version(server_ip):
-# 	hap_sock_p = sql.get_setting('haproxy_sock_port')
-# 	ver = ""
-# 	cmd = f"echo 'show info' |nc {server_ip} {hap_sock_p} |grep Version |awk '{{print $2}}'"
-# 	output, stderr = server_mod.subprocess_execute(cmd)
-# 	for line in output:
-# 		ver = line
-#
-# 	return ver
-
-
 def is_protected(server_ip: str, action: str) -> None:
 	"""
 	Check if the server is protected and the user has the required role.
@@ -192,7 +181,6 @@ def check_service_config(server_ip: str, server_id: int, service: str) -> None:
 		raise Exception(e)
 
 
-
 def overview_backends(server_ip: str, service: str) -> Union[str, dict]:
 	import app.modules.config.config as config_mod
 
@@ -273,26 +261,3 @@ def get_stat_page(server_ip: str, service: str, group_id: int) -> str:
 		return render_template('ajax/nginx_stats.html', out=servers_with_status, lang=lang)
 	else:
 		return data.decode('utf-8')
-
-
-# def show_service_version(server_ip: str, service: str) -> str:
-# 	if service == 'haproxy':
-# 		return check_haproxy_version(server_ip)
-#
-# 	server_id = server_sql.select_server_id_by_ip(server_ip)
-# 	service_name = get_correct_service_name(service, server_id)
-# 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
-#
-# 	if is_dockerized == '1':
-# 		container_name = sql.get_setting(f'{service}_container_name')
-# 		if service == 'apache':
-# 			cmd = f'docker exec -it {container_name} /usr/local/apache2/bin/httpd -v 2>&1|head -1|awk -F":" \'{{print $2}}\''
-# 		else:
-# 			cmd = f'docker exec -it {container_name} /usr/sbin/{service_name} -v 2>&1|head -1|awk -F":" \'{{print $2}}\''
-# 	else:
-# 		cmd = [f'sudo /usr/sbin/{service_name} -v|head -1|awk -F":" \'{{print $2}}\'']
-#
-# 	try:
-# 		return server_mod.ssh_command(server_ip, cmd, timeout=5)
-# 	except Exception as e:
-# 		return f'{e}'

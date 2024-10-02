@@ -26,6 +26,7 @@ bp.add_url_rule('/<service>/<int:server_id>/backend', view_func=ServiceBackendVi
 bp.add_url_rule('/<service>/<server_id>/status', view_func=ServiceView.as_view('service_ip'), methods=['GET'])
 bp.add_url_rule('/<service>/<int:server_id>/status', view_func=ServiceView.as_view('service'), methods=['GET'])
 
+
 @bp.before_request
 @jwt_required()
 def before_request():

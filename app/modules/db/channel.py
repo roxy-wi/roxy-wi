@@ -18,7 +18,7 @@ def get_user_receiver_by_group(receiver: str, group: int):
 		out_error(e)
 
 
-def get_receiver_by_ip(receiver:str, ip: str):
+def get_receiver_by_ip(receiver: str, ip: str):
 	model = models[receiver]
 	try:
 		return model.select().join(Server, on=(Server.group_id == model.group_id)).where(Server.ip == ip).execute()

@@ -68,7 +68,6 @@ def check_user_group_for_socket(user_id: int, group_id: int) -> bool:
 		return False
 
 
-
 def check_is_server_in_group(server_ip: str) -> bool:
 	group_id = get_user_group(id=1)
 	servers = server_sql.select_servers(server=server_ip)
@@ -318,6 +317,7 @@ def is_user_has_access_to_its_group(user_id: int) -> None:
 def is_user_has_access_to_group(user_id: int, group_id: int) -> None:
 	if not user_sql.check_user_group(user_id, group_id) and g.user_params['role'] != 1:
 		raise RoxywiGroupMismatch
+
 
 def handle_json_exceptions(ex: Exception, message: str, server_ip='Roxy-WI server') -> dict:
 	logging(server_ip, f'{message}: {ex}', login=1, roxywi=1)

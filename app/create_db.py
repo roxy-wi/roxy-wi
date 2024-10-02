@@ -562,6 +562,7 @@ def update_db_v_7_4():
 		else:
 			print("An error occurred:", e)
 
+
 def update_db_v_8():
 	try:
 		migrate(

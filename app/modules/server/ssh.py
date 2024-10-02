@@ -85,8 +85,7 @@ def create_ssh_cred(name: str, password: str, group: int, username: str, enable:
 		return IdResponse(id=last_id).model_dump(mode='json')
 	else:
 		data = render_template('ajax/new_ssh.html',
-							   groups=group_sql.select_groups(), sshs=cred_sql.select_ssh(name=name), lang=lang, adding=1
-							   )
+							   groups=group_sql.select_groups(), sshs=cred_sql.select_ssh(name=name), lang=lang, adding=1)
 		return IdDataResponse(id=last_id, data=data).model_dump(mode='json')
 
 

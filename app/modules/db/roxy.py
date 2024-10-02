@@ -18,7 +18,6 @@ def select_user_name():
 		return query_res
 
 
-
 def update_user_name(user_name):
 	user_update = UserName.update(UserName=user_name)
 	try:

@@ -55,7 +55,6 @@ def create_s3_backup_inv(data: S3BackupRequest, tag: str) -> None:
 def create_git_backup_inv(data: GitBackupRequest, server_ip: str, service: str, del_job: int = 0) -> None:
     service_config_dir = sql.get_setting(service + '_dir')
     ssh_settings = ssh_mod.return_ssh_keys_path(server_ip, id=data.cred_id)
-    print('del_job',del_job)
     inv = {"server": {"hosts": {}}}
     inv["server"]["hosts"][server_ip] = {
         "REPO": data.repo,
@@ -72,7 +71,6 @@ def create_git_backup_inv(data: GitBackupRequest, server_ip: str, service: str, 
         installation_mod.run_ansible(inv, [server_ip], 'git_backup')
     except Exception as e:
         raise Exception(f'error: {e}')
-
 
 
 def create_backup(json_data: BackupRequest, is_api: bool) -> tuple:

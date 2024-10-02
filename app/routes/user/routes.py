@@ -12,6 +12,7 @@ from app.middleware import get_user_params
 from app.modules.roxywi.class_models import BaseResponse, ErrorResponse
 from app.views.user.views import UserView, UserGroupView
 
+
 def register_api_with_group(view, endpoint, url_beg, url_end, pk='user_id', pk_type='int', pk_end='group_id', pk_type_end='int'):
     view_func = view.as_view(endpoint)
     bp.add_url_rule(f'/<{pk_type}:{pk}>/{url_end}', view_func=view_func, methods=['GET'])
@@ -26,6 +27,7 @@ def register_api(view, endpoint, url, pk='listener_id', pk_type='int'):
 
 register_api(UserView, 'user', '', 'user_id')
 register_api_with_group(UserGroupView, 'user_group', '', 'groups')
+
 
 @bp.before_request
 @jwt_required()

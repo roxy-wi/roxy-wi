@@ -45,7 +45,7 @@ def create_cluster(cluster: HAClusterRequest, group_id: int) -> int:
         except Exception as e:
             raise Exception(f'error: Cannot add service {service}: {e}')
 
-    if not servers is None:
+    if servers is not None:
         try:
             router_id = ha_sql.create_ha_router(cluster_id, default=1)
         except Exception as e:
@@ -62,7 +62,7 @@ def create_cluster(cluster: HAClusterRequest, group_id: int) -> int:
             except Exception as e:
                 raise Exception(f'error: Cannon add VIP: {e}')
 
-            if cluster.virt_server and not servers is None:
+            if cluster.virt_server and servers is not None:
                 add_or_update_virt(cluster, servers, cluster_id, vip_id, group_id)
 
     return int(cluster_id)

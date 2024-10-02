@@ -95,7 +95,7 @@ def check_in_ldap(user, password):
     except ldap.SERVER_DOWN:
         raise Exception('error: LDAP server is down')
     except ldap.LDAPError as e:
-        if type(e.message) == dict and 'desc' in e.message:
+        if isinstance(e.message, dict) and 'desc' in e.message:
             raise Exception(f'error: {e.message["desc"]}')
         else:
             raise Exception(f'error: {e}')

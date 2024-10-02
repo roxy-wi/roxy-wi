@@ -45,7 +45,6 @@ def _return_listener_servers(listener_id: int, group_id=None):
     return servers, listener
 
 
-
 def listener_actions(listener_id: int, action: str, group_id: int) -> None:
     cmd = f'sudo systemctl {action} keepalived-udp-{listener_id}.service'
     try:

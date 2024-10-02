@@ -79,6 +79,7 @@ def select_gits(**kwargs):
 	else:
 		return query_res
 
+
 def select_backups(**kwargs):
 	if kwargs.get("server") is not None and kwargs.get("rserver") is not None:
 		query = Backup.select().where((Backup.server == kwargs.get("server")) & (Backup.rhost == kwargs.get("rserver")))

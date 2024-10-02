@@ -353,12 +353,12 @@ class UDPListener(MethodView):
             self._reconfigure(listener_id, 'uninstall')
             roxywi_common.logging(listener_id, f'UDP listener has been deleted {listener_id}', roxywi=1, keep_history=1, login=1, service='UDP listener')
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e,f'Cannot create inventory for UDP listener deleting {listener_id}')
+            return roxywi_common.handle_json_exceptions(e, f'Cannot create inventory for UDP listener deleting {listener_id}')
         try:
             udp_sql.delete_listener(listener_id)
             return BaseResponse().model_dump(mode='json'), 204
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e,f'Cannot delete UDP listener {listener_id}')
+            return roxywi_common.handle_json_exceptions(e, f'Cannot delete UDP listener {listener_id}')
 
     @staticmethod
     def _reconfigure(listener_id, action):

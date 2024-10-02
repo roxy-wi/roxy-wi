@@ -171,7 +171,7 @@ class ServiceView(MethodView):
                 data = ErrorResponse(error=str(e)).model_dump(mode='json')
         elif service == 'keepalived':
             cmd = ("sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}' && sudo systemctl status keepalived |grep -e 'Active'"
-                   f"|awk '{{print $2, $9$10$11$12$13}}' && ps ax |grep 'keepalived '|grep -v udp|grep -v grep |wc -l")
+                   "|awk '{print $2, $9$10$11$12$13}' && ps ax |grep 'keepalived '|grep -v udp|grep -v grep |wc -l")
             try:
                 out = server_mod.ssh_command(server.ip, cmd)
                 out1 = out.split()
@@ -562,7 +562,7 @@ class ServiceConfigVersionsView(MethodView):
         try:
             server_ip = SupportClass(False).return_server_ip_or_id(server_id)
         except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e ,'')
+            return roxywi_common.handler_exceptions_for_json_data(e, '')
 
         config_dir = config_common.get_config_dir(service)
         file_format = config_common.get_file_format(service)
@@ -613,7 +613,7 @@ class ServiceConfigVersionsView(MethodView):
         try:
             server_ip = SupportClass(False).return_server_ip_or_id(server_id)
         except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e ,'')
+            return roxywi_common.handler_exceptions_for_json_data(e, '')
 
         for get in body.versions:
             if file_format in get and server_ip in get:

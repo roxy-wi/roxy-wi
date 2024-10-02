@@ -4,7 +4,7 @@ import app.modules.db.sql as sql
 from app.modules.service.installation import run_ansible
 
 
-def generate_exporter_inc(server_ip: str,ver: str, exporter: str) -> object:
+def generate_exporter_inc(server_ip: str, ver: str, exporter: str) -> object:
     inv = {"server": {"hosts": {}}}
     server_ips = [server_ip]
     inv['server']['hosts'][server_ip] = {

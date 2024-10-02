@@ -108,6 +108,7 @@ register_api(UserView, 'user', '/user', 'user_id')
 register_api_with_group(UserGroupView, 'user_group', 'user', 'groups')
 bp.add_url_rule('/user/roles', view_func=UserRoles.as_view('roles'))
 
+
 def register_api_channel(view, endpoint, url_beg, pk='receiver', pk_type='int', pk_end='channel_id', pk_type_end='int'):
     view_func = view.as_view(endpoint, True)
     bp.add_url_rule(f'/{url_beg}/<any(telegram, slack, pd, mm):{pk}>', view_func=view_func, methods=['POST'])

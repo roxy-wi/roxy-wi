@@ -26,6 +26,7 @@ bp.add_url_rule(
     methods=['POST'],
 )
 
+
 @bp.before_request
 @jwt_required()
 def before_request():

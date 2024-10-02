@@ -7,6 +7,7 @@ import app.modules.tools.alerting as alerting
 import app.modules.roxywi.common as roxywi_common
 from app.views.channel.views import ChannelView
 
+
 def register_api_channel(view, endpoint, url_beg, pk='receiver', pk_type='int', pk_end='channel_id', pk_type_end='int'):
     view_func = view.as_view(endpoint, False)
     bp.add_url_rule(f'/{url_beg}/<any(telegram, slack, pd, mm):{pk}>', view_func=view_func, methods=['POST'])

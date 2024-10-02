@@ -174,7 +174,7 @@ def is_tool(name):
 	return True if is_tool_installed is not None else False
 
 
-def wrap_line(content: str, css_class: str="line") -> str:
+def wrap_line(content: str, css_class: str = "line") -> str:
 	"""
 	Wraps the provided content into a div HTML element with the given CSS class.
 	"""
