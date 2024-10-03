@@ -1,6 +1,6 @@
 from functools import wraps
 
-from flask import redirect, url_for, abort, g
+from flask import abort, g
 
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
@@ -25,7 +25,8 @@ def get_user_params(virt=0, disable=0):
             try:
                 user_params = roxywi_common.get_users_params(virt=virt, disable=disable, service=kwargs.get('service'))
                 g.user_params = user_params
-            except Exception:
+            except Exception as e:
+                print(e)
                 return abort(401)
             return fn(*args, **kwargs)
         return decorated_views

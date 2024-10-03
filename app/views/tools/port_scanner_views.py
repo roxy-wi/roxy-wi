@@ -64,7 +64,6 @@ class PortScannerView(MethodView):
 
         return jsonify(model_to_dict(ps_settings, recurse=False, exclude=[PortScannerSettings.user_group_id]))
 
-
     @validate(body=PortScannerRequest)
     def post(self, server_id: Union[int, str], body: PortScannerRequest):
         """

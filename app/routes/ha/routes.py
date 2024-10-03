@@ -1,4 +1,4 @@
-from flask import render_template, g, request, jsonify
+from flask import render_template, g, jsonify
 from flask_jwt_extended import jwt_required
 from playhouse.shortcuts import model_to_dict
 

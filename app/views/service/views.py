@@ -456,7 +456,6 @@ class ServiceConfigView(MethodView):
         if body.action != 'test':
             config_mod.diff_config(body.config_local_path, cfg)
 
-
         return DataStrResponse(data=stderr).model_dump(mode='json'), 201
 
 

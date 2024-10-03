@@ -1258,7 +1258,6 @@ class GlobalSectionView(HaproxySectionView):
         """
         return super().get(service, 'global', 'global', server_id)
 
-
     @validate(body=HaproxyGlobalRequest, query=GenerateConfigRequest)
     def put(self, service: Literal['haproxy'], server_id: Union[int, str], body: HaproxyGlobalRequest):
         """
@@ -1442,7 +1441,6 @@ class DefaultsSectionView(HaproxySectionView):
             description: Internal server error.
         """
         return super().get(service, 'defaults', 'defaults', server_id)
-
 
     @validate(body=HaproxyDefaultsRequest, query=GenerateConfigRequest)
     def put(self, service: Literal['haproxy'], server_id: Union[int, str], body: HaproxyDefaultsRequest):

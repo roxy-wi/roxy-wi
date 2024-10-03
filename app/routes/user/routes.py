@@ -70,7 +70,6 @@ def update_user_password(user_id):
         return ErrorResponse(error=str(e)).model_dump(mode='json'), 501
 
 
-
 @bp.route('/services/<int:user_id>', methods=['GET', 'POST'])
 def show_user_services(user_id):
     if request.method == 'GET':

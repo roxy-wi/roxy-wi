@@ -118,10 +118,7 @@ def do_login(user_params: dict, next_url: str):
     except Exception:
         user_group_name = ''
 
-    try:
-        roxywi_common.logging('RMON server', f' user: {user_params["name"]}, group: {user_group_name} login', roxywi=1)
-    except Exception as e:
-        print(f'error: {e}')
+    roxywi_common.logging('Roxy-WI server', f' user: {user_params["name"]}, group: {user_group_name} login', roxywi=1)
 
     return response
 

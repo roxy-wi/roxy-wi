@@ -454,7 +454,6 @@ class HAVIPView(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create VIP')
 
-
     @validate(body=HAClusterVIP)
     def put(self, service: str, cluster_id: int, vip_id: int, body: HAClusterVIP):
         """
