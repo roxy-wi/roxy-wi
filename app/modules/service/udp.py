@@ -1,3 +1,5 @@
+import ast
+
 from playhouse.shortcuts import model_to_dict
 
 import app.modules.db.udp as udp_sql
@@ -10,7 +12,7 @@ import app.modules.roxywi.common as roxywi_common
 def get_listener_config(listener_id: int) -> dict:
     listener = udp_sql.get_listener(listener_id)
     listener_json = model_to_dict(listener, recurse=False)
-    listener_json['config'] = eval(listener_json['config'])
+    listener_json['config'] = ast.literal_eval(listener_json['config'])
     return listener_json
 
 

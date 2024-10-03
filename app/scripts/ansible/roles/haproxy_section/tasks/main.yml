@@ -39,12 +39,3 @@
     dest: "{{ cfg }}"
     marker: "# {mark} Roxy-WI MANAGED {{ config.type }} {{ config.name }} do not edit it directly"
   when: action == 'delete' and config.name
-
-- name: Delete Global or Defaults
-  blockinfile:
-    block: ""
-    dest: "{{ cfg }}"
-    marker: "# {mark} Roxy-WI MANAGED {{ config.type }} do not edit it directly"
-  when:
-  - action == 'delete'
-  - config.type == 'global' or config.type == 'defaults

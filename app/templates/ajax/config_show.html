@@ -215,7 +215,7 @@
 					{% if role %}
 						{% if service != 'keepalived' %}
                             <span class="accordion-link" onclick="openSection('{{ line| trim }}')">
-                                {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
+                                {{lang.words.edit|title()}}
 						    </span>
 						</span>
 						{% endif %}
@@ -227,7 +227,7 @@
 				</div><span class="param">{{ line }}
 					{% if role %}
 						<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
-                            {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
+                            {{lang.words.edit|title()}}
 						</span>
 					{% endif %}
 					</span><div>
@@ -412,3 +412,6 @@
 		}
 	</script>
 <div id="edit-section" style="display: none;"></div>
+<div id="dialog-confirm" style="display: none;">
+    <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
+</div>

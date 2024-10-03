@@ -227,6 +227,37 @@ function openSection(section) {
 			$(section_id + ' select[name="server"]').val(data.server_id).change();
 			$(section_id + ' select[name="server"]').selectmenu('disable').parent().parent().hide();
 			$(section_id + ' input[name="name"]').prop("readonly", true).parent().parent().hide();
+			let buttons = [{
+					text: edit_word,
+					click: function () {
+						editProxy('add-' + section_type, $(this));
+					}
+				}, {
+					text: delete_word,
+					click: function () {
+						confirmDeleteSection(section_type, section_name, $('#serv').val(), $(this));
+					}
+				}, {
+					text: cancel_word,
+					click: function () {
+						$(this).dialog("close");
+						$('#edit-' + section_type).hide();
+					}
+				}]
+			if (section_type === 'defaults' || section_type === 'global') {
+				buttons = [{
+					text: edit_word,
+					click: function () {
+						editProxy('add-' + section_type, $(this));
+					}
+				}, {
+					text: cancel_word,
+					click: function () {
+						$(this).dialog("close");
+						$('#edit-' + section_type).hide();
+					}
+				}]
+			}
 			$("#edit-section").dialog({
 				resizable: false,
 				height: "auto",
@@ -236,25 +267,7 @@ function openSection(section) {
 				close: function () {
 					$('#edit-' + section_type).hide();
 				},
-				buttons: [{
-					text: edit_word,
-					click: function () {
-						editProxy('add-' + section_type, $(this));
-					}
-				}, {
-					text: delete_word,
-					click: function () {
-						delete_section(section_type, section_name, $('#serv').val());
-						$(this).dialog("close");
-						$('#edit-' + section_type).hide();
-					}
-				}, {
-					text: cancel_word,
-					click: function () {
-						$(this).dialog("close");
-						$('#edit-' + section_type).hide();
-					}
-				}]
+				buttons: buttons
 			});
 		}
 	});
@@ -621,4 +634,26 @@ function getFormData($form, form_name) {
 		delete indexed_array[element]
 	}
 	return indexed_array;
+}
+function confirmDeleteSection(section_type, section_name, serv_val, dialog_id) {
+	 $( "#dialog-confirm" ).dialog({
+      resizable: false,
+      height: "auto",
+      width: 400,
+      modal: true,
+	  title: delete_word + " " + section_name + "?",
+      buttons: [{
+		  text: delete_word,
+		  click: function () {
+			  $(this).dialog("close");
+			  delete_section(section_type, section_name, serv_val);
+			  dialog_id.dialog("close");
+		  }
+	  }, {
+		  text: cancel_word,
+		  click: function () {
+			  $(this).dialog("close");
+		  }
+	  }]
+    });
 }

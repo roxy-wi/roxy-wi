@@ -180,10 +180,7 @@
 	});
 </script>
 <link href="{{ url_for('static', filename='css/servers.css') }}" rel="stylesheet"/>
-{% if g.user_params['role'] == 1 %}
-    {% include 'include/intro/admin.html' %}
-{% else %}
-    {% include 'include/intro/servers.html' %}
+{% if g.user_params['role'] != 1 %}
     <input id="new-sshgroup" type="hidden" value="{{ g.user_params['group_id'] }}">
 {% endif %}
 {% include 'include/intro/js_script.html' %}
