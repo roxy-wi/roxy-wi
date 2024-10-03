@@ -12,7 +12,7 @@ function ValidateIPaddress(ipaddress) {
 }
 var select_server = translate_div.attr('data-select_server');
 function checkIsServerFiled(select_id, message = select_server) {
-	if ($(select_id).val() == null || $(select_id).val() == '') {
+	if ($(select_id).val() == null || $(select_id).val() === '') {
 		toastr.warning(message);
 		return false;
 	}
