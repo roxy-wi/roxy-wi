@@ -126,8 +126,8 @@ def change_ip_and_port(serv, backend_backend, backend_server, backend_ip, backen
 
 	for master in masters:
 		if master[0] is not None:
-			cmd = f'echo "set server {backend_backend}/{backend_server} addr {backend_ip} port {backend_port} ' \
-				  f'check-port {backend_port}" |nc {master[0]} {sock_port}'
+			cmd = (f'echo "set server {backend_backend}/{backend_server} addr {backend_ip} port {backend_port} '
+				   f'check-port {backend_port}" |nc {master[0]} {sock_port}')
 			output, stderr = server_mod.subprocess_execute(cmd)
 			lines += output[0]
 			roxywi_common.logging(
