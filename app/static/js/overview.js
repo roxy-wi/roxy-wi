@@ -228,15 +228,15 @@ function confirmAjaxAction(action, service, id, name) {
 			text: action_word,
 			click: function () {
 				$(this).dialog("close");
-				if (service == "haproxy") {
+				if (service === "haproxy") {
 					ajaxActionServers(action, id, service);
-					if (action == "restart" || action == "reload") {
+					if (action === "restart" || action === "reload") {
 						if (localStorage.getItem('restart')) {
 							localStorage.removeItem('restart');
 							$("#apply").css('display', 'none');
 						}
 					}
-				} else if (service == "waf") {
+				} else if (service === "waf") {
 					ajaxActionServers(action, id, 'waf_haproxy');
 				} else {
 					ajaxActionServers(action, id, service);

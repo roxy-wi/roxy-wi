@@ -44,13 +44,12 @@ def show_log(stdout, **kwargs):
 
 
 def show_roxy_log(
-		serv, rows='10', waf='0', grep=None, exgrep=None, hour='00',
+		serv, rows='10', waf=0, grep=None, exgrep=None, hour='00',
 		minute='00', hour1='24', minute1='00', service='haproxy', log_file='123', **kwargs
 ) -> str:
 	date = checkAjaxInput(hour) + ':' + checkAjaxInput(minute)
 	date1 = checkAjaxInput(hour1) + ':' + checkAjaxInput(minute1)
 	rows = checkAjaxInput(rows)
-	waf = checkAjaxInput(waf)
 	cmd = ''
 	awk_column = 3
 	grep_act = ''
@@ -90,7 +89,7 @@ def show_roxy_log(
 			if syslog_server is None or syslog_server == '':
 				raise Exception('error: Syslog server is enabled, but there is no IP for syslog server')
 
-		if waf == "1":
+		if waf:
 			local_path_logs = '/var/log/waf.log'
 			commands = "sudo cat %s |tail -%s %s %s" % (local_path_logs, rows, grep_act, exgrep_act)
 

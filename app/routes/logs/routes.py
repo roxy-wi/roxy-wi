@@ -112,8 +112,8 @@ def show_remote_log_files(service, serv):
     )
 
 
-@bp.route('/<service>/<serv>/<rows>', defaults={'waf': '0'}, methods=['GET', 'POST'])
-@bp.route('/<service>/waf/<serv>/<rows>', defaults={'waf': '1'}, methods=['GET', 'POST'])
+@bp.route('/<service>/<serv>/<rows>', defaults={'waf': 0}, methods=['GET', 'POST'])
+@bp.route('/<service>/waf/<serv>/<rows>', defaults={'waf': 1}, methods=['GET', 'POST'])
 def show_logs(service, serv, rows, waf):
     grep = request.form.get('grep') or request.args.get('grep')
     exgrep = request.form.get('exgrep') or request.args.get('exgrep')

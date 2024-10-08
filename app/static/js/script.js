@@ -165,13 +165,6 @@ function openVersions() {
 	let win = window.open(url,"_self");
 	win.focus();
 }
-function openSection() {
-	let serv = $("#serv").val();
-	let section = $("#section").val();
-	let url = "/config/section/haproxy/"+serv+"/"+section;
-	let win = window.open(url,"_self");
-	win.focus();
-}
 function showLog() {
 	let waf = cur_url[0].split('?')[0];
 	let file = $('#log_files').val();
@@ -197,7 +190,7 @@ function showLog() {
 	if (service === 'None') {
 		service = 'haproxy';
 	}
-	if (waf) {
+	if (waf && waf != 'haproxy' && waf != 'nginx' && waf != 'apache' && waf != 'keepalived') {
 		url = "/logs/" + service + "/waf/" + serv + "/" + rows;
 		waf = 1;
 	}
