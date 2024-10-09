@@ -18,7 +18,7 @@ import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 from app.modules.server.ssh import return_ssh_keys_path
 from app.modules.roxywi.class_models import ServiceInstall, HAClusterRequest, HaproxyGlobalRequest, \
-	HaproxyDefaultsRequest, HaproxyConfigRequest
+	HaproxyDefaultsRequest, HaproxyConfigRequest, ServiceInstallFromApi
 
 
 def generate_udp_inv(listener_id: int, action: str) -> object:
@@ -427,7 +427,7 @@ def _create_default_config_in_db(server_id: int) -> None:
 	add_sql.insert_new_section(server_id, 'listen', 'stats', stats_config)
 
 
-def install_service(service: str, json_data: Union[str, ServiceInstall, HAClusterRequest], cluster_id: int = None) -> dict:
+def install_service(service: str, json_data: Union[str, ServiceInstall, HAClusterRequest, ServiceInstallFromApi], cluster_id: int = None) -> dict:
 	generate_functions = {
 		'haproxy': generate_haproxy_inv,
 		'nginx': generate_service_inv,

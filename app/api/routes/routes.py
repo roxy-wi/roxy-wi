@@ -77,7 +77,7 @@ register_api_id_ip(DefaultsSectionView, 'haproxy_defaults', '/section/defaults',
 bp.add_url_rule('/service/<any(nginx, apache):service>/<server_id>/config/list', view_func=ServiceConfigList.as_view('config_list_ip'), methods=['GET'])
 bp.add_url_rule('/service/<any(nginx, apache):service>/<int:server_id>/config/list', view_func=ServiceConfigList.as_view('config_list'), methods=['GET'])
 register_api_id_ip(CheckerView, 'checker', '/tools')
-register_api_id_ip(InstallView, 'install', '/install', methods=['POST'])
+register_api_id_ip(InstallView, 'install', '/install', methods=['POST', 'PUT', 'DELETE'])
 register_api_id_ip(ServiceActionView, 'service_action', '/<any(start, stop, reload, restart):action>', methods=['GET'])
 
 register_api(ServerView, 'server', '/server', 'server_id')
