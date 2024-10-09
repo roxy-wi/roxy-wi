@@ -413,7 +413,7 @@ def _create_default_config_in_db(server_id: int) -> None:
 		socket=[f'*:{hap_sock_p} level admin', '/var/run/haproxy.sock mode 600 level admin', '/var/lib/haproxy/stats']
 	)
 	add_sql.insert_or_update_new_section(server_id, 'global', 'global', config)
-	add_sql.insert_or_update_new_section(server_id, 'default', 'defaults', HaproxyDefaultsRequest())
+	add_sql.insert_or_update_new_section(server_id, 'defaults', 'defaults', HaproxyDefaultsRequest())
 	option = (
 		'http-request use-service prometheus-exporter if { path /metrics }\r\nstats enable\r\nstats uri /stats\r\n'
 		f'stats realm HAProxy-04\ Statistics\r\nstats auth {stats_user}:{stats_password}\r\nstats admin if TRUE'
