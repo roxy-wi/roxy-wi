@@ -662,7 +662,7 @@ $( function() {
 		});
 
 		$("#" + section_type + "_blacklist_checkbox").click(function () {
-			if ($('#frontend_blacklist_checkbox').is(':checked')) {
+			if ($("#" + section_type + "_blacklist_checkbox").is(':checked')) {
 				$("#" + section_type + "_blacklist-hide").show("fast");
 				$("#" + section_type + "_blacklist-hide-input").attr('required', true);
 			} else {
@@ -672,7 +672,7 @@ $( function() {
 		});
 
 		$("#" + section_type + "_whitelist_checkbox").click(function () {
-			if ($('#frontend_whitelist_checkbox').is(':checked')) {
+			if ($("#" + section_type + "_whitelist_checkbox").is(':checked')) {
 				$("#" + section_type + "_whitelist-hide").show("fast");
 				$("#" + section_type + "_whitelist-hide-input").attr('required', true);
 			} else {

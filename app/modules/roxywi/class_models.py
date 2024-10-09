@@ -221,21 +221,12 @@ class ServerInstall(BaseModel):
 
 class ServiceInstall(BaseModel):
     cluster_id: Optional[int] = None
-    servers: List[ServerInstall]
-    services: Dict[str, HAClusterService]
-    checker: Optional[bool] = 0
-    metrics: Optional[bool] = 0
-    auto_start: Optional[bool] = 0
-    syn_flood: Optional[bool] = 0
-
-
-class ServiceInstallFromApi(BaseModel):
-    checker: Optional[bool] = 0
-    metrics: Optional[bool] = 0
-    auto_start: Optional[bool] = 0
-    syn_flood: Optional[bool] = 0
     servers: Optional[List[ServerInstall]] = None
     services: Optional[Dict[str, HAClusterService]] = None
+    checker: Optional[bool] = 0
+    metrics: Optional[bool] = 0
+    auto_start: Optional[bool] = 0
+    syn_flood: Optional[bool] = 0
     docker: Optional[bool] = 0
 
 

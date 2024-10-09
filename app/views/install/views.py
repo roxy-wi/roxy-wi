@@ -10,7 +10,7 @@ import app.modules.db.service as service_sql
 import app.modules.service.installation as service_mod
 from app.middleware import get_user_params, check_services, page_for_admin, check_group
 from app.modules.common.common_classes import SupportClass
-from app.modules.roxywi.class_models import ServiceInstallFromApi, IdStrResponse, BaseResponse, ServerInstall, HAClusterService
+from app.modules.roxywi.class_models import ServiceInstall, IdStrResponse, BaseResponse, ServerInstall, HAClusterService
 from app.views.service.views import ServiceView
 
 
@@ -81,8 +81,8 @@ class InstallView(MethodView):
     methods = ['POST', 'PUT', 'DELETE']
     decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
 
-    @validate(body=ServiceInstallFromApi)
-    def post(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str, None], body: ServiceInstallFromApi):
+    @validate(body=ServiceInstall)
+    def post(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str, None], body: ServiceInstall):
         """
         Install a specific service.
         ---
@@ -147,8 +147,8 @@ class InstallView(MethodView):
             return output
         return IdStrResponse(id=f'{server_id}-{service}').model_dump(mode='json'), 201
 
-    @validate(body=ServiceInstallFromApi)
-    def put(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str, None], body: ServiceInstallFromApi):
+    @validate(body=ServiceInstall)
+    def put(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str, None], body: ServiceInstall):
         """
         Update service Tools settings.
         ---
