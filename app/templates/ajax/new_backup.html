@@ -1,77 +1,54 @@
 {% for b in backups %}
-	<tr class="newbackup" id="backup-table-{{b.id}}">
-		<td class="padding10 first-collumn">
-			<span id="backup-server-{{b.id}}">{{ b.server }}</span>
-		</td>
-		<td>
-			<input type="text" id="backup-rserver-{{b.id}}" value="{{b.rhost}}" size="14" class="form-control">
-		</td>
-		<td>
-			<input type="text" id="backup-rpath-{{b.id}}" value="{{b.rpath}}" class="form-control">
-		</td>
-		<td>
-			{% set values = {'backup':'backup','synchronization':'synchronization'} %}
-			<select name="backup-type-{{b.id}}" id="backup-type-{{b.id}}" class="force_close">
-			{% for v, des in values|dictsort(false, 'value') %}
-				{% if v == b.backup_type %}
-					<option value="{{v}}" selected>{{des}}</option>
-				{% else %}
-					<option value="{{v}}">{{des}}</option>
-				{% endif %}
-			{% endfor %}
-			</select>
-		</td>
-		<td>
-			{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
-			<select name="backup-time-{{b.id}}" id="backup-time-{{b.id}}" class="force_close">
-			{% for v, des in values|dictsort(false, 'value') %}
-				{% if v == b.time %}
-					<option value="{{v}}" selected>{{des}}</option>
-				{% else %}
-					<option value="{{v}}">{{des}}</option>
-				{% endif %}
-			{% endfor %}
-			</select>
-		</td>			
-		<td>
-			<select id="backup-credentials-{{b.id}}" required>
-				<option disabled selected>Choose credentials</option>
-				{% for ssh in sshs %}
-					{% if ssh.key_enabled == 1 %}
-						{% if ssh.id == b.cred %}
-							<option value="{{ssh.id}}" selected="selected">{{ssh.name}}</option>
-						{% else %}
-							<option value="{{ssh.id}}">{{ssh.name}}</option>
-						{% endif %}
-					{% endif %}
-				{% endfor %}
-			</select>
-		</td>
-		<td>	
-			{% if b.description != 'None' %}
-				<input type="text" id="backup-description-{{b.id}}" value="{{b.description.replace("'", "")}}" class="form-control">
-			{% else %}
-				<input type="text" id="backup-description-{{b.id}}" class="form-control">
-			{% endif %}
-		</td>
-		<td>
-			<a class="add" onclick="cloneBackup({{b.id}})" id="clone-backup{{b.id}}" title="Clone {{b.server}}" style="cursor: pointer;"></a>
-		</td> 
-		<td>
-			<a class="delete" onclick="confirmDeleteBackup({{b.id}})" title="Delete backup {{b.server}}" style="cursor: pointer;"></a>
-		</td> 
-	</tr>
-	<script>
-		$( function() {
-			$("#backup-time-{{ b.id}}" ).selectmenu({
-				width: 100
-			});
-			$("#backup-type-{{b.id}}" ).selectmenu({
-				width: 130
-			});
-			$("#backup-credentials-{{b.id}}" ).selectmenu({
-				width: 150
-			});
-		});
-	</script>
+    {% for s in servers %}
+    {% if b.server_id|string() == s.0|string() %}
+        <tr id="backup-table-{{b.id}}">
+                <td class="padding10 first-collumn">
+                    {% set id = 'backup-server-' + b.id|string() %}
+                    {{ input('backup-server-id-'+b.id|string(), value=s.0, type='hidden') }}
+                    {{ copy_to_clipboard(id=id, value=s.1) }}
+                </td>
+                <td>
+                    {{ input('backup-rserver-'+b.id|string(), value=b.rhost, size='14') }}
+                </td>
+                <td>
+                    {{ input('backup-rpath-'+b.id|string(), value=b.rpath) }}
+                </td>
+                <td>
+                    {% set values = {'backup':'backup','synchronization':'synchronization'} %}
+                    {{ select('backup-type-'+b.id|string(), values=values, selected=b.type, required='required', class='force_close') }}
+                </td>
+                <td>
+                    {% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
+                    {{ select('backup-time-'+b.id|string(), values=values, selected=b.time, required='required', class='force_close') }}
+                </td>
+                <td>
+                    <select id="backup-credentials-{{b.id}}" required>
+                        <option disabled selected>------</option>
+                        {% for ssh in sshs %}
+                            {% if ssh.key_enabled == 1 %}
+                                {% if ssh.id == b.cred_id %}
+                                    <option value="{{ssh.id}}" selected="selected">{{ssh.name}}</option>
+                                {% else %}
+                                    <option value="{{ssh.id}}">{{ssh.name}}</option>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    {% if b.description is not none %}
+                        {{ input('backup-description-'+b.id|string(), value=b.description.replace("'", "")) }}
+                    {% else %}
+                        {{ input('backup-description-'+b.id|string()) }}
+                    {% endif %}
+                </td>
+                <td>
+                <a class="add" onclick="cloneBackup({{b.id}})" id="clone-backup{{b.id}}" title="{{lang.words.clone|title()}} {{b.server_id}}" style="cursor: pointer;"></a>
+            </td>
+            <td>
+                <a class="delete" onclick="confirmDeleteBackup({{b.id}})" title="{{lang.words.delete|title()}} {{lang.words.backup}} {{b.server_id}}" style="cursor: pointer;"></a>
+            </td>
+    </tr>
+    {% endif %}
+    {% endfor %}
 {% endfor %}

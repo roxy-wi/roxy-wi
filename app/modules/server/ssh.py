@@ -19,10 +19,10 @@ error_mess = common.error_mess
 get_config = roxy_wi_tools.GetConfigVar()
 
 
-def return_ssh_keys_path(server_ip: str, **kwargs) -> dict:
+def return_ssh_keys_path(server_ip: str, cred_id: int = None) -> dict:
 	ssh_settings = {}
-	if kwargs.get('id'):
-		sshs = cred_sql.select_ssh(id=kwargs.get('id'))
+	if cred_id:
+		sshs = cred_sql.select_ssh(id=cred_id)
 	else:
 		sshs = cred_sql.select_ssh(serv=server_ip)
 

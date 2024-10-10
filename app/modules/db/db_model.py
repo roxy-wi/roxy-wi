@@ -210,7 +210,7 @@ class Cred(BaseModel):
 
 class Backup(BaseModel):
     id = AutoField()
-    server = CharField()
+    server_id = CharField()
     rhost = CharField()
     rpath = CharField()
     type = CharField(column_name='type')
@@ -224,7 +224,7 @@ class Backup(BaseModel):
 
 class S3Backup(BaseModel):
     id = AutoField()
-    server = CharField()
+    server_id = CharField()
     s3_server = CharField()
     bucket = CharField()
     secret_key = CharField()

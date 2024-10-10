@@ -182,6 +182,7 @@ class ServiceView(MethodView):
                 return ErrorResponse(error='Keepalived service not found').model_dump(mode='json'), 404
             except Exception as e:
                 return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get version')
+        data['id'] = f'{server_id}-{service}'
         return jsonify(data)
 
     @staticmethod

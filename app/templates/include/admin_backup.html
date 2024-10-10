@@ -60,59 +60,7 @@
 				<td style="margin-left: 5px;"></td>
 				<td></td>
 			</tr>
-			{% for b in backups %}
-			{% for s in servers %}
-			{% if b.server in s.2 %}
-				<tr id="backup-table-{{b.id}}">
-						<td class="padding10 first-collumn">
-							{% set id = 'backup-server-' + b.id|string() %}
-							{{ copy_to_clipboard(id=id, value=b.server) }}
-						</td>
-						<td>
-							{{ input('backup-rserver-'+b.id|string(), value=b.rhost, size='14') }}
-						</td>
-						<td>
-							{{ input('backup-rpath-'+b.id|string(), value=b.rpath) }}
-						</td>
-						<td>
-							{% set values = {'backup':'backup','synchronization':'synchronization'} %}
-							{{ select('backup-type-'+b.id|string(), values=values, selected=b.type, required='required', class='force_close') }}
-						</td>
-						<td>
-							{% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
-							{{ select('backup-time-'+b.id|string(), values=values, selected=b.time, required='required', class='force_close') }}
-						</td>
-						<td>
-							<select id="backup-credentials-{{b.id}}" required>
-								<option disabled selected>------</option>
-								{% for ssh in sshs %}
-									{% if ssh.key_enabled == 1 %}
-										{% if ssh.id == b.cred_id %}
-											<option value="{{ssh.id}}" selected="selected">{{ssh.name}}</option>
-										{% else %}
-											<option value="{{ssh.id}}">{{ssh.name}}</option>
-										{% endif %}
-									{% endif %}
-								{% endfor %}
-							</select>
-						</td>
-						<td>
-							{% if b.description is not none %}
-								{{ input('backup-description-'+b.id|string(), value=b.description.replace("'", "")) }}
-							{% else %}
-								{{ input('backup-description-'+b.id|string()) }}
-							{% endif %}
-						</td>
-						<td>
-						<a class="add" onclick="cloneBackup({{b.id}})" id="clone-backup{{b.id}}" title="{{lang.words.clone|title()}} {{b.server}}" style="cursor: pointer;"></a>
-					</td>
-					<td>
-						<a class="delete" onclick="confirmDeleteBackup({{b.id}})" title="{{lang.words.delete|title()}} {{lang.words.backup}} {{b.server}}" style="cursor: pointer;"></a>
-					</td>
-			</tr>
-			{% endif %}
-			{% endfor %}
-			{% endfor %}
+			{% include 'ajax/new_backup.html' %}
 		</table>
 		<br /><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.backup}} {{lang.words.job}}" id="add-backup-button">+ {{lang.words.add|title()}} {{lang.words.backup}}</span>
 		<br /><br />
@@ -132,10 +80,10 @@
 			<tbody id="tbody-s3">
 			{% for b in s3_backups %}
 			{% for s in servers %}
-			{% if b.server in s.2 %}
+            {% if b.server_id|string() == s.0|string() %}
 				<tr id="s3-backup-table-{{b.id}}">
 					<td class="padding10 first-collumn">
-						<span id="backup-s3-server-{{b.id}}" style="display: none">{{ b.server }}</span>
+						<span id="backup-s3-server-{{b.id}}" style="display: none">{{ s.0 }}</span>
 						{{s.1}}
 					</td>
 					<td>
@@ -155,10 +103,10 @@
 						{% endif %}
 					</td>
 					<td>
-						<a class="add" onclick="cloneS3Backup({{b.id}})" id="clone-s3-backup{{b.id}}" title="{{lang.words.clone|title()}} S3 {{b.server}}" style="cursor: pointer;"></a>
+						<a class="add" onclick="cloneS3Backup({{b.id}})" id="clone-s3-backup{{b.id}}" title="{{lang.words.clone|title()}} S3 {{s.2}}" style="cursor: pointer;"></a>
 					</td>
 					<td>
-						<a class="delete" onclick="confirmDeleteS3Backup({{b.id}})" title="{{lang.words.delete|title()}} S3 {{lang.words.backup}} {{b.server}}" style="cursor: pointer;"></a>
+						<a class="delete" onclick="confirmDeleteS3Backup({{b.id}})" title="{{lang.words.delete|title()}} S3 {{lang.words.backup}} {{s.2}}" style="cursor: pointer;"></a>
 					</td>
 				</tr>
 			{% endif %}

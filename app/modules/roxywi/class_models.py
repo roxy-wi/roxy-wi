@@ -4,7 +4,7 @@ from typing import Optional, Annotated, Union, Literal, Any, Dict, List
 
 from shlex import quote
 from pydantic_core import CoreSchema, core_schema
-from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, GetCoreSchemaHandler
+from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, GetCoreSchemaHandler, AnyUrl
 
 DomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
 
@@ -251,21 +251,21 @@ class SettingsRequest(BaseModel):
 
 class BackupRequest(BaseModel):
     cred_id: int
-    server: Union[IPvAnyAddress, DomainName]
+    server_id: int
     rserver: Optional[Union[IPvAnyAddress, DomainName]] = None
     description: Optional[EscapedString] = None
     rpath: Optional[EscapedString] = None
-    type: Optional[EscapedString] = None
-    time: Optional[EscapedString] = None
+    type: Literal['backup', 'synchronization'] = None
+    time: Literal['hourly', 'daily', 'weekly', 'monthly'] = None
 
 
 class S3BackupRequest(BaseModel):
-    server: Union[IPvAnyAddress, DomainName]
-    s3_server: Optional[Union[IPvAnyAddress, DomainName]] = None
+    server_id: int
+    s3_server: Optional[Union[IPvAnyAddress, AnyUrl]] = None
     bucket: EscapedString
     secret_key: Optional[EscapedString] = None
     access_key: Optional[EscapedString] = None
-    time: Optional[EscapedString] = None
+    time: Literal['hourly', 'daily', 'weekly', 'monthly'] = None
     description: Optional[EscapedString] = None
 
 

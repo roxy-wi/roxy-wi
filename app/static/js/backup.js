@@ -139,7 +139,7 @@ function addBackup(dialog_id) {
 	valid = valid && checkLength($('#backup-credentials'), "backup credentials", 1);
 	if (valid) {
 		let jsonData = {
-			"server": $('#backup-server').val(),
+			"server_id": $('#backup-server').val(),
 			"rserver": $('#rserver').val(),
 			"rpath": $('#rpath').val(),
 			"type": $('#backup-type').val(),
@@ -175,8 +175,8 @@ function addS3Backup(dialog_id) {
 	valid = valid && checkLength($('#s3_access_key'), "S3 access key", 1);
 	if (valid) {
 		let json_data = {
-			"s3_server": $('#s3-backup-server').val(),
-			"server": $('#s3_server').val(),
+			"s3_server": $('#s3_server').val(),
+			"server_id": $('#s3-backup-server').val(),
 			"bucket": $('#s3_bucket').val(),
 			"secret_key": $('#s3_secret_key').val(),
 			"access_key": $('#s3_access_key').val(),
@@ -332,7 +332,7 @@ function removeBackup(id) {
 	$("#backup-table-" + id).css("background-color", "#f2dede");
 	let jsonData = {
 		"cred_id": $('#backup-credentials-' + id).val(),
-		"server": $('#backup-server-' + id).text(),
+		"server_id": $('#backup-server-id-' + id).val(),
 	}
 	$.ajax({
 		url: api_prefix + "/server/backup/fs/" + id,
@@ -360,7 +360,7 @@ function removeS3Backup(id) {
 	$("#backup-table-s3-" + id).css("background-color", "#f2dede");
 	let jsonData = {
 		"bucket": $('#bucket-' + id).text(),
-		"server": $('#backup-s3-server-' + id).text(),
+		"server_id": $('#backup-s3-server-' + id).text(),
 	}
 	$.ajax({
 		url: api_prefix + "/server/backup/s3/" + id,
@@ -419,7 +419,7 @@ function updateBackup(id) {
 		toastr.error('All fields must be completed');
 	} else {
 		let jsonData = {
-			"server": $('#backup-server-' + id).text(),
+			"server_id": $('#backup-server-id-' + id).val(),
 			"rserver": $('#backup-rserver-' + id).val(),
 			"rpath": $('#backup-rpath-' + id).val(),
 			"type": $('#backup-type-' + id).val(),

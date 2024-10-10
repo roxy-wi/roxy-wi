@@ -8,19 +8,15 @@
       path: "{{ RPATH }}/roxy-wi-configs-backup/configs"
       state: directory
       owner: "{{ ansible_user }}"
-    when: not DELJOB
 
-- hosts: localhost
-  become: yes
-  become_method: sudo
-  gather_facts: no
-  tasks:
+    when: not DELJOB and ansible_host != "localhost"
   - name: Creates backup jobs
     cron:
       name: "Roxy-WI Backup configs for server {{ SERVER }} {{ item }}"
       special_time: "{{ TIME }}"
-      job: "rsync -arv {{ TYPE }} /var/lib/roxy-wi/configs/{{ item }}/{{ SERVER }}* {{ ansible_user }}@{{ HOST }}:{{ RPATH }}/roxy-wi-configs-backup/configs/{{ item }} -e 'ssh -i {{ KEY }} -o StrictHostKeyChecking=no' --log-file=/var/www/haproxy-wi/log/backup.log"
+      job: "rsync -arv {{ TYPE }} /var/lib/roxy-wi/configs/{{ item }}/{{ SERVER }}* {{ USER }}@{{ HOST }}:{{ RPATH }}/roxy-wi-configs-backup/configs/{{ item }} -e 'ssh -i {{ KEY }} -o StrictHostKeyChecking=no' --log-file=/var/www/haproxy-wi/log/backup.log"
     when: not DELJOB
+    delegate_to: localhost
     with_items:
       - kp_config
       - hap_config
@@ -32,6 +28,7 @@
       name: "Roxy-WI Backup configs for server {{ SERVER }} {{ item }}"
       state: absent
     when: DELJOB
+    delegate_to: localhost
     with_items:
       - kp_config
       - hap_config

@@ -1,4 +1,3 @@
-from docutils.parsers.rst.directives import body
 from flask import render_template
 
 import app.modules.db.sql as sql
@@ -10,15 +9,17 @@ import app.modules.server.ssh as ssh_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.installation as installation_mod
 from app.modules.roxywi.class_models import BackupRequest, IdResponse, IdDataResponse, BaseResponse, S3BackupRequest, GitBackupRequest
+from app.modules.roxywi.exception import RoxywiConflictError
 
 
 def create_backup_inv(json_data: BackupRequest, del_id: int = 0) -> None:
-    ssh_settings = ssh_mod.return_ssh_keys_path(str(json_data.server), id=json_data.cred_id)
+    server = server_sql.get_server_by_id(json_data.server_id)
+    ssh_settings = ssh_mod.return_ssh_keys_path(server.ip, json_data.cred_id)
     inv = {"server": {"hosts": {}}}
     server_ips = []
-    inv['server']['hosts'][str(json_data.server)] = {
+    inv['server']['hosts'][server.ip] = {
         'HOST': str(json_data.rserver),
-        "SERVER": str(json_data.server),
+        "SERVER": server.ip,
         "TYPE": json_data.type,
         "TIME": json_data.time,
         "RPATH": json_data.rpath,
@@ -26,7 +27,7 @@ def create_backup_inv(json_data: BackupRequest, del_id: int = 0) -> None:
         "USER": ssh_settings['user'],
         "KEY": ssh_settings['key']
     }
-    server_ips.append(str(json_data.server))
+    server_ips.append(str(server.ip))
 
     try:
         installation_mod.run_ansible(inv, server_ips, 'backup')
@@ -35,9 +36,10 @@ def create_backup_inv(json_data: BackupRequest, del_id: int = 0) -> None:
 
 
 def create_s3_backup_inv(data: S3BackupRequest, tag: str) -> None:
+    server = server_sql.get_server_by_id(data.server_id)
     inv = {"server": {"hosts": {}}}
     inv["server"]["hosts"]["localhost"] = {
-        "SERVER": str(data.server),
+        "SERVER": server.hostname,
         "S3_SERVER": str(data.s3_server),
         "BUCKET": data.bucket,
         "SECRET_KEY": data.secret_key,
@@ -54,7 +56,7 @@ def create_s3_backup_inv(data: S3BackupRequest, tag: str) -> None:
 
 def create_git_backup_inv(data: GitBackupRequest, server_ip: str, service: str, del_job: int = 0) -> None:
     service_config_dir = sql.get_setting(service + '_dir')
-    ssh_settings = ssh_mod.return_ssh_keys_path(server_ip, id=data.cred_id)
+    ssh_settings = ssh_mod.return_ssh_keys_path(server_ip, data.cred_id)
     inv = {"server": {"hosts": {}}}
     inv["server"]["hosts"][server_ip] = {
         "REPO": data.repo,
@@ -74,43 +76,44 @@ def create_git_backup_inv(data: GitBackupRequest, server_ip: str, service: str, 
 
 
 def create_backup(json_data: BackupRequest, is_api: bool) -> tuple:
-    if backup_sql.check_exists_backup(json_data.server):
-        raise Exception(f'warning: Backup job for {json_data.server} already exists')
+    if backup_sql.check_exists_backup(json_data.server_id, 'fs'):
+        raise RoxywiConflictError('FS backup for this server already exists')
 
     create_backup_inv(json_data)
 
-    last_id = backup_sql.insert_backup_job(json_data.server, json_data.rserver, json_data.rpath, json_data.type,
+    last_id = backup_sql.insert_backup_job(json_data.server_id, json_data.rserver, json_data.rpath, json_data.type,
                                            json_data.time, json_data.cred_id, json_data.description)
-    roxywi_common.logging('backup ', f' a new backup job for server {json_data.server} has been created', roxywi=1, login=1)
+    roxywi_common.logging('backup ', f'A new backup job for server {json_data.server_id} has been created', roxywi=1, login=1)
     if is_api:
         return IdResponse(id=last_id).model_dump(mode='json'), 201
     else:
         data = render_template(
             'ajax/new_backup.html',
-            backups=backup_sql.select_backups(server=json_data.server, rserver=json_data.rserver),
-            sshs=cred_sql.select_ssh()
+            backups=backup_sql.select_backups(backup_id=last_id),
+            sshs=cred_sql.select_ssh(),
+            servers=roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1),
         )
         return IdDataResponse(data=data, id=last_id).model_dump(mode='json'), 201
 
 
 def delete_backup(json_data: BackupRequest, backup_id: int) -> tuple:
-    create_backup_inv(json_data, backup_id)
-    backup_sql.delete_backups(backup_id)
-    roxywi_common.logging('backup ', f' a backup job for server {json_data.server} has been deleted', roxywi=1, login=1)
+    create_backup_inv(json_data, 1)
+    backup_sql.delete_backup(backup_id, 'fs')
+    roxywi_common.logging('backup ', f'A backup job for server {json_data.server_id} has been deleted', roxywi=1, login=1)
     return BaseResponse().model_dump(mode='json'), 204
 
 
 def update_backup(json_data: BackupRequest, backup_id: int) -> tuple:
     create_backup_inv(json_data)
-    backup_sql.update_backup(json_data.server, json_data.rserver, json_data.rpath, json_data.type,
+    backup_sql.update_backup(json_data.server_id, json_data.rserver, json_data.rpath, json_data.type,
                              json_data.time, json_data.cred_id, json_data.description, backup_id)
-    roxywi_common.logging('backup ', f' a backup job for server {json_data.server} has been updated', roxywi=1, login=1)
+    roxywi_common.logging('backup ', f'A backup job for server {json_data.server_id} has been updated', roxywi=1, login=1)
     return BaseResponse().model_dump(mode='json'), 201
 
 
 def create_s3_backup(data: S3BackupRequest, is_api: bool) -> tuple:
-    if backup_sql.check_exists_s3_backup(data.server):
-        raise Exception(f'Backup job for {data.server} already exists')
+    if backup_sql.check_exists_backup(data.server_id, 's3'):
+        raise RoxywiConflictError('S3 backup for this server already exists')
 
     try:
         create_s3_backup_inv(data, 'add')
@@ -119,7 +122,7 @@ def create_s3_backup(data: S3BackupRequest, is_api: bool) -> tuple:
 
     try:
         last_id = backup_sql.insert_s3_backup_job(**data.model_dump(mode='json'))
-        roxywi_common.logging('backup ', f'a new S3 backup job for server {data.server} has been created', roxywi=1, login=1)
+        roxywi_common.logging('backup ', f'A new S3 backup job for server {data.server_id} has been created', roxywi=1, login=1)
     except Exception as e:
         raise Exception(e)
 
@@ -133,8 +136,8 @@ def create_s3_backup(data: S3BackupRequest, is_api: bool) -> tuple:
 def delete_s3_backup(data: S3BackupRequest, backup_id: int) -> None:
     try:
         create_s3_backup_inv(data, 'delete')
-        backup_sql.delete_s3_backups(backup_id)
-        roxywi_common.logging('backup ', f'a S3 backup job for server {data.server} has been deleted', roxywi=1, login=1)
+        backup_sql.delete_backup(backup_id, 's3')
+        roxywi_common.logging('backup ', f'The S3 backup job for server {data.server_id} has been deleted', roxywi=1, login=1)
     except Exception as e:
         raise e
 
@@ -180,7 +183,7 @@ def delete_git_backup(data: GitBackupRequest, backup_id: int) -> tuple:
         raise Exception(e)
 
     try:
-        backup_sql.delete_git(backup_id)
+        backup_sql.delete_backup(backup_id, 'git')
     except Exception as e:
         raise Exception(e)
 

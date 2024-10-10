@@ -7,7 +7,7 @@
 				<select autofocus required name="s3-backup-server" id="s3-backup-server">
 					<option disabled>------</option>
 						{% for s in servers %}}
-							<option value="{{ s.2 }}">{{ s.1 }}</option>
+							<option value="{{ s.0 }}">{{ s.1 }}</option>
 						{% endfor %}
 				</select>
 			</td>

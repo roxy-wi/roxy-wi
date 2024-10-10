@@ -622,6 +622,33 @@ def update_db_v_8_0_2_1():
 		print("Updating... DB has been updated to version 8.0.2-1")
 
 
+def update_db_v_8_1():
+	try:
+		migrate(
+			migrator.rename_column('backups', 'server', 'server_id')
+		)
+	except Exception as e:
+		if e.args[0] == 'no such column: "server"' or str(e) == '(1060, no such column: "server")':
+			print("Updating... DB has been updated to version 8.2")
+		elif e.args[0] == "'bool' object has no attribute 'sql'":
+			print("Updating... DB has been updated to version 8.2")
+		else:
+			print("An error occurred:", e)
+
+def update_db_v_8_1_0_1():
+	try:
+		migrate(
+			migrator.rename_column('s3_backups', 'server', 'server_id')
+		)
+	except Exception as e:
+		if e.args[0] == 'no such column: "server"' or str(e) == '(1060, no such column: "server")':
+			print("Updating... DB has been updated to version 8.2")
+		elif e.args[0] == "'bool' object has no attribute 'sql'":
+			print("Updating... DB has been updated to version 8.2")
+		else:
+			print("An error occurred:", e)
+
+
 def update_ver():
 	try:
 		Version.update(version='8.1.0').execute()
@@ -650,4 +677,6 @@ def update_all():
 	update_db_v_8()
 	update_db_v_8_0_2()
 	update_db_v_8_0_2_1()
+	update_db_v_8_1()
+	update_db_v_8_1_0_1()
 	update_ver()

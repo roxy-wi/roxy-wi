@@ -89,14 +89,14 @@ class BackupView(MethodView):
                 - cred_id
                 - rhost
                 - rpath
-                - server
+                - server_id
                 - rserver
                 - time
                 - type
               properties:
-                server:
+                server_id:
                     type: 'string'
-                    description: 'The server to be backed up'
+                    description: 'The server ID to be backed up'
                 rserver:
                     type: 'string'
                     description: 'The remote server where backup files should be stored'
@@ -153,14 +153,14 @@ class BackupView(MethodView):
                 - cred_id
                 - rhost
                 - rpath
-                - server
+                - server_id
                 - rserver
                 - time
                 - type
               properties:
-                server:
-                    type: 'string'
-                    description: 'The server to be backed up'
+                server_id:
+                    type: 'integer'
+                    description: 'The server ID to be backed up'
                 rserver:
                     type: 'string'
                     description: 'The remote server where backup files should be stored'
@@ -214,9 +214,9 @@ class BackupView(MethodView):
             schema:
               type: 'object'
               properties:
-                server:
-                    type: 'string'
-                    description: 'The server to be backed up'
+                server_id:
+                    type: 'integer'
+                    description: 'The server ID to be backed up'
                 cred_id:
                     type: 'string'
                     description: 'Credentials ID for the backup task'
@@ -276,9 +276,9 @@ class S3BackupView(MethodView):
                 secret_key:
                     type: 'string'
                     description: 'The secret key for S3 access'
-                server:
-                    type: 'string'
-                    description: 'The server that was backed up'
+                server_id:
+                    type: 'integer'
+                    description: 'The server ID that was backed up'
                 time:
                     type: 'string'
                     description: 'The timing for the S3 backup task'
@@ -308,7 +308,7 @@ class S3BackupView(MethodView):
               type: 'object'
               required:
                 - s3_server
-                - server
+                - server_id
                 - bucket
                 - secret_key
                 - access_key
@@ -317,9 +317,9 @@ class S3BackupView(MethodView):
                 s3_server:
                     type: 'string'
                     description: 'The S3 server where the backup should be stored'
-                server:
-                    type: 'string'
-                    description: 'The server to be backed up'
+                server_id:
+                    type: 'integer'
+                    description: 'The server ID to be backed up'
                 bucket:
                     type: 'string'
                     description: 'The S3 bucket where the backup should be stored'
@@ -348,6 +348,67 @@ class S3BackupView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create S3 backup')
 
     @validate(body=S3BackupRequest)
+    def put(self, backup_id: int, body: S3BackupRequest):
+        """
+        Update the S3 backup.
+        ---
+        tags:
+          - S3 Backup
+        parameters:
+          - in: path
+            name: backup_id
+            type: 'integer'
+            required: true
+            description: The ID of the specific S3 backup
+          - name: config
+            in: body
+            required: true
+            description: The configuration for S3 backup service
+            schema:
+              type: 'object'
+              required:
+                - s3_server
+                - server_id
+                - bucket
+                - secret_key
+                - access_key
+                - time
+              properties:
+                s3_server:
+                    type: 'string'
+                    description: 'The S3 server where the backup should be stored'
+                server_id:
+                    type: 'integer'
+                    description: 'The server ID to be backed up'
+                bucket:
+                    type: 'string'
+                    description: 'The S3 bucket where the backup should be stored'
+                secret_key:
+                    type: 'string'
+                    description: 'The secret key for S3 access'
+                access_key:
+                    type: 'string'
+                    description: 'The access key for S3'
+                time:
+                    type: 'string'
+                    description: 'The timing for the S3 backup task'
+                    enum: [hourly, daily, weekly, monthly]
+                description:
+                    type: 'string'
+                    description: 'Description for the S3 backup configuration'
+        responses:
+          201:
+            description: Successful operation
+          default:
+            description: Unexpected error
+        """
+        try:
+            backup_mod.create_s3_backup_inv(body, 'add')
+            backup_sql.update_s3_backup_job(backup_id, 's3')
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update S3 backup')
+
+    @validate(body=S3BackupRequest)
     def delete(self, backup_id: int, body: S3BackupRequest):
         """
         Deletes a specific S3 based backup configuration.
@@ -370,9 +431,9 @@ class S3BackupView(MethodView):
                 bucket:
                     type: 'string'
                     description: 'The S3 bucket where the backup is stored'
-                server:
-                    type: 'string'
-                    description: 'The server that was backed up'
+                server_id:
+                    type: 'integer'
+                    description: 'The server ID that was backed up'
         responses:
           200:
             description: Successful operation

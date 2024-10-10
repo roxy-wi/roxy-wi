@@ -17,7 +17,7 @@ import app.modules.db.ha_cluster as ha_sql
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.modules.roxywi.class_models import ErrorResponse
 from app.modules.roxywi.exception import RoxywiResourceNotFound, RoxywiGroupMismatch, RoxywiGroupNotFound, \
-	RoxywiPermissionError
+	RoxywiPermissionError, RoxywiConflictError
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 
@@ -337,5 +337,7 @@ def handler_exceptions_for_json_data(ex: Exception, main_ex_mes: str) -> tuple[d
 		return handle_json_exceptions(ex, 'Resource not found in group'), 404
 	elif isinstance(ex, RoxywiPermissionError):
 		return handle_json_exceptions(ex, 'You cannot edit this resource'), 403
+	elif isinstance(ex, RoxywiConflictError):
+		return handle_json_exceptions(ex, 'Conflict'), 429
 	else:
 		return handle_json_exceptions(ex, main_ex_mes), 500
