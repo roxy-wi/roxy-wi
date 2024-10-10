@@ -463,26 +463,20 @@ def update_server_after_creating(hostname: str, ip: str) -> None:
 
 
 def delete_server(server_id: int) -> None:
-	server = server_sql.select_servers(id=server_id)
-	server_ip = ''
-	hostname = ''
+	server = server_sql.get_server_by_id(server_id)
 
-	for s in server:
-		hostname = s[1]
-		server_ip = s[2]
-
-	if backup_sql.check_exists_backup(server_ip):
-		raise 'warning: Delete the backup first'
-	if backup_sql.check_exists_s3_backup(server_ip):
-		raise 'warning: Delete the S3 backup first'
+	if backup_sql.check_exists_backup(server.ip, 'fs'):
+		raise 'warning: Delete the backups first'
+	if backup_sql.check_exists_backup(server.ip, 's3'):
+		raise 'warning: Delete the S3 backups first'
 	if server_sql.delete_server(server_id):
 		waf_sql.delete_waf_server(server_id)
 		ps_sql.delete_port_scanner_settings(server_id)
-		waf_sql.delete_waf_rules(server_ip)
+		waf_sql.delete_waf_rules(server.ip)
 		history_sql.delete_action_history(server_id)
 		server_sql.delete_system_info(server_id)
 		service_sql.delete_service_settings(server_id)
-		roxywi_common.logging(server_ip, f'The server {hostname} has been deleted', roxywi=1, login=1)
+		roxywi_common.logging(server.ip, f'The server {server.hostname} has been deleted', roxywi=1, login=1)
 
 
 def server_is_up(server_ip: str) -> str:
