@@ -190,6 +190,7 @@ class InstallView(MethodView):
         """
         try:
             service_sql.update_hapwi_server(server_id, body.checker, body.metrics, body.auto_start, service)
+            service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', int(body.docker))
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot update Tools settings for {service.title()}')
         return IdStrResponse(id=f'{server_id}-{service}').model_dump(mode='json'), 201

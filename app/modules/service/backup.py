@@ -105,8 +105,7 @@ def delete_backup(json_data: BackupRequest, backup_id: int) -> tuple:
 
 def update_backup(json_data: BackupRequest, backup_id: int) -> tuple:
     create_backup_inv(json_data)
-    backup_sql.update_backup(json_data.server_id, json_data.rserver, json_data.rpath, json_data.type,
-                             json_data.time, json_data.cred_id, json_data.description, backup_id)
+    backup_sql.update_backup_job(backup_id, 'fs', **json_data.model_dump(mode='json'))
     roxywi_common.logging('backup ', f'A backup job for server {json_data.server_id} has been updated', roxywi=1, login=1)
     return BaseResponse().model_dump(mode='json'), 201
 
@@ -151,7 +150,7 @@ def create_git_backup(data: GitBackupRequest, is_api: bool) -> tuple:
         raise Exception(e)
 
     try:
-        last_id = backup_sql.insert_new_git(server_id=data.server_id, service_id=data.service_id, repo=data.repo, branch=data.branch, period=data.time,
+        last_id = backup_sql.insert_new_git(server_id=data.server_id, service_id=data.service_id, repo=data.repo, branch=data.branch, time=data.time,
                                             cred=data.cred_id, description=data.description)
         roxywi_common.logging(server_ip, 'A new git job has been created', roxywi=1, login=1, keep_history=1,
                               service=service_name)

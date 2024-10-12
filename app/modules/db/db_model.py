@@ -211,7 +211,7 @@ class Cred(BaseModel):
 class Backup(BaseModel):
     id = AutoField()
     server_id = CharField()
-    rhost = CharField()
+    rserver = CharField()
     rpath = CharField()
     type = CharField(column_name='type')
     time = CharField()
@@ -514,7 +514,7 @@ class GitSetting(BaseModel):
     id = AutoField()
     server_id = ForeignKeyField(Server, on_delete='Cascade')
     service_id = IntegerField()
-    period = CharField()
+    time = CharField()
     repo = CharField(null=True)
     branch = CharField(null=True)
     cred_id = IntegerField()

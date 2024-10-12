@@ -103,6 +103,10 @@ class ServiceView(MethodView):
                 data = ErrorResponse(error='Cannot get information').model_dump(mode='json')
             else:
                 data['Status'] = self._service_status(data['Process'])
+            data['auto_start'] = int(server.haproxy_active)
+            data['checker'] = int(server.haproxy_alert)
+            data['metrics'] = int(server.haproxy_metrics)
+            data['docker'] = int(service_sql.select_service_setting(server_id, service, 'dockerized'))
         elif service == 'nginx':
             is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
             if is_dockerized == '1':
@@ -141,6 +145,10 @@ class ServiceView(MethodView):
                 return ErrorResponse(error='NGINX service not found').model_dump(mode='json'), 404
             except Exception as e:
                 data = ErrorResponse(error=str(e)).model_dump(mode='json')
+            data['auto_start'] = int(server.nginx_active)
+            data['checker'] = int(server.nginx_alert)
+            data['metrics'] = int(server.nginx_metrics)
+            data['docker'] = int(is_dockerized)
         elif service == 'apache':
             apache_stats_user = sql.get_setting('apache_stats_user')
             apache_stats_password = sql.get_setting('apache_stats_password')
@@ -169,6 +177,11 @@ class ServiceView(MethodView):
                 }
             except Exception as e:
                 data = ErrorResponse(error=str(e)).model_dump(mode='json')
+
+            data['auto_start'] = int(server.apache_active)
+            data['checker'] = int(server.apache_alert)
+            data['metrics'] = int(server.apache_metrics)
+            data['docker'] = int(service_sql.select_service_setting(server_id, service, 'dockerized'))
         elif service == 'keepalived':
             cmd = ("sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}' && sudo systemctl status keepalived |grep -e 'Active'"
                    "|awk '{print $2, $9$10$11$12$13}' && ps ax |grep 'keepalived '|grep -v udp|grep -v grep |wc -l")
@@ -182,6 +195,8 @@ class ServiceView(MethodView):
                 return ErrorResponse(error='Keepalived service not found').model_dump(mode='json'), 404
             except Exception as e:
                 return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get version')
+        data['service'] = service
+        data['server_id'] = server_id
         data['id'] = f'{server_id}-{service}'
         return jsonify(data)
 

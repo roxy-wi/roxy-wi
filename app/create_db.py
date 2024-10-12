@@ -635,6 +635,7 @@ def update_db_v_8_1():
 		else:
 			print("An error occurred:", e)
 
+
 def update_db_v_8_1_0_1():
 	try:
 		migrate(
@@ -642,6 +643,34 @@ def update_db_v_8_1_0_1():
 		)
 	except Exception as e:
 		if e.args[0] == 'no such column: "server"' or str(e) == '(1060, no such column: "server")':
+			print("Updating... DB has been updated to version 8.2")
+		elif e.args[0] == "'bool' object has no attribute 'sql'":
+			print("Updating... DB has been updated to version 8.2")
+		else:
+			print("An error occurred:", e)
+
+
+def update_db_v_8_1_0_2():
+	try:
+		migrate(
+			migrator.rename_column('backups', 'rhost', 'rserver')
+		)
+	except Exception as e:
+		if e.args[0] == 'no such column: "rhost"' or str(e) == '(1060, no such column: "rhost")':
+			print("Updating... DB has been updated to version 8.2")
+		elif e.args[0] == "'bool' object has no attribute 'sql'":
+			print("Updating... DB has been updated to version 8.2")
+		else:
+			print("An error occurred:", e)
+
+
+def update_db_v_8_1_0_3():
+	try:
+		migrate(
+			migrator.rename_column('git_setting', 'period', 'time')
+		)
+	except Exception as e:
+		if e.args[0] == 'no such column: "period"' or str(e) == '(1060, no such column: "period")':
 			print("Updating... DB has been updated to version 8.2")
 		elif e.args[0] == "'bool' object has no attribute 'sql'":
 			print("Updating... DB has been updated to version 8.2")
@@ -679,4 +708,6 @@ def update_all():
 	update_db_v_8_0_2_1()
 	update_db_v_8_1()
 	update_db_v_8_1_0_1()
+	update_db_v_8_1_0_2()
+	update_db_v_8_1_0_3()
 	update_ver()

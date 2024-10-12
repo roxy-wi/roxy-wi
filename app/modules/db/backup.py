@@ -12,7 +12,7 @@ models = {
 def insert_backup_job(server_id, rserver, rpath, backup_type, time, cred, description):
 	try:
 		return Backup.insert(
-			server_id=server_id, rhost=rserver, rpath=rpath, type=backup_type, time=time,
+			server_id=server_id, rserver=rserver, rpath=rpath, type=backup_type, time=time,
 			cred_id=cred, description=description
 		).execute()
 	except Exception as e:
@@ -26,21 +26,12 @@ def insert_s3_backup_job(**kwargs):
 		out_error(e)
 
 
-def update_s3_backup_job(backup_id: int, model: str, **kwargs):
+def update_backup_job(backup_id: int, model: str, **kwargs):
 	model = models[model]
 	try:
-		return model.update(**kwargs).where(model.id == backup_id).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def update_backup(server_id, rserver, rpath, backup_type, time, cred, description, backup_id):
-	backup_update = Backup.update(
-		server_id=server_id, rhost=rserver, rpath=rpath, type=backup_type, time=time,
-		cred_id=cred, description=description
-	).where(Backup.id == backup_id)
-	try:
-		backup_update.execute()
+		model.update(**kwargs).where(model.id == backup_id).execute()
+	except model.DoesNotExist:
+		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 
@@ -53,10 +44,10 @@ def delete_backup(backup_id: int, model: str) -> None:
 		out_error(e)
 
 
-def insert_new_git(server_id, service_id, repo, branch, period, cred, description) -> int:
+def insert_new_git(server_id, service_id, repo, branch, time, cred, description) -> int:
 	try:
 		return GitSetting.insert(
-			server_id=server_id, service_id=service_id, repo=repo, branch=branch, period=period,
+			server_id=server_id, service_id=service_id, repo=repo, branch=branch, time=time,
 			cred_id=cred, description=description
 		).execute()
 	except Exception as e:
@@ -93,7 +84,7 @@ def select_backups(**kwargs):
 def select_s3_backups(**kwargs):
 	if kwargs.get("server") is not None and kwargs.get("bucket") is not None:
 		query = S3Backup.select().where(
-			(S3Backup.server == kwargs.get("server")) &
+			(S3Backup.server_id == kwargs.get("server")) &
 			(S3Backup.s3_server == kwargs.get("s3_server")) &
 			(S3Backup.bucket == kwargs.get("bucket"))
 		)

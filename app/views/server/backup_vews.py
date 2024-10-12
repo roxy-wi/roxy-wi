@@ -5,6 +5,8 @@ from playhouse.shortcuts import model_to_dict
 from flask_jwt_extended import jwt_required
 
 import app.modules.db.backup as backup_sql
+import app.modules.db.server as server_sql
+import app.modules.db.service as service_sql
 import app.modules.service.backup as backup_mod
 import app.modules.roxywi.common as roxywi_common
 from app.middleware import get_user_params, page_for_admin, check_group
@@ -66,6 +68,8 @@ class BackupView(MethodView):
         """
         try:
             backup = backup_sql.get_backup(backup_id, 'fs')
+            backup.server_id = int(backup.server_id)
+            backup.description = str(backup.description).replace("'", "")
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
@@ -287,6 +291,8 @@ class S3BackupView(MethodView):
         """
         try:
             backup = backup_sql.get_backup(backup_id, 's3')
+            backup.server_id = int(backup.server_id)
+            backup.description = str(backup.description).replace("'", "")
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
@@ -404,7 +410,7 @@ class S3BackupView(MethodView):
         """
         try:
             backup_mod.create_s3_backup_inv(body, 'add')
-            backup_sql.update_s3_backup_job(backup_id, 's3')
+            backup_sql.update_backup_job(backup_id, 's3', **body.model_dump(mode='json'))
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update S3 backup')
 
@@ -568,6 +574,72 @@ class GitBackupView(MethodView):
             return backup_mod.create_git_backup(body, self.is_api)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create GIT backup')
+
+    @validate(body=GitBackupRequest)
+    def put(self, backup_id: int, body: GitBackupRequest):
+        """
+        Update a new Git backup.
+        ---
+        tags:
+          - Git Backup
+        parameters:
+          - name: config
+            in: body
+            required: true
+            description: The configuration for Git backup service
+            schema:
+              type: 'object'
+              required:
+                - cred_id
+                - server_id
+                - service_id
+                - init
+                - repo
+                - branch
+                - time
+              properties:
+                server_id:
+                    type: 'integer'
+                    description: 'The ID of the server to backed up'
+                service_id:
+                    type: 'integer'
+                    description: 'Service ID: 1: HAProxy, 2: NGINX, 3: Keepalived, 4: Apache'
+                    example: 1
+                init:
+                    type: 'integer'
+                    description: 'Indicates whether to initialize the repository'
+                repo:
+                    type: 'string'
+                    description: 'The repository from where to fetch the data for backup'
+                    example: git@github.com:Example/haproxy_configs
+                branch:
+                    type: 'string'
+                    description: 'The branch to pull for backup'
+                    example: 'master'
+                time:
+                    type: 'string'
+                    description: 'The timing for the Git backup task'
+                    enum: [hourly, daily, weekly, monthly]
+                cred_id:
+                    type: 'integer'
+                    description: 'The ID of the credentials to be used for backup'
+                description:
+                    type: 'string'
+                    description: 'Description for the Git backup configuration'
+        responses:
+          201:
+            description: Successful operation
+          default:
+            description: Unexpected error
+        """
+        try:
+            server = server_sql.get_server_by_id(body.server_id)
+            service_name = service_sql.select_service_name_by_id(body.service_id).lower()
+            backup_mod.create_git_backup_inv(body, server.ip, service_name)
+            backup_sql.update_backup_job(backup_id, 'git', **body.model_dump(mode='json', exclude={'init'}))
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update GIT backup')
+        return BaseResponse().model_dump(mode='json'), 201
 
     @validate(body=GitBackupRequest)
     def delete(self, backup_id: int, body: GitBackupRequest):
