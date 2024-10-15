@@ -95,24 +95,24 @@ def select_saved_servers(**kwargs):
 
 def insert_new_section(server_id: int, section_type: str, section_name: str, body: HaproxyConfigRequest):
 	try:
-		HaproxySection.insert(
+		return (HaproxySection.insert(
 			server_id=server_id,
 			type=section_type,
 			name=section_name,
 			config=body.model_dump(mode='json')
-		).execute()
+		).execute())
 	except Exception as e:
 		out_error(e)
 
 
 def insert_or_update_new_section(server_id: int, section_type: str, section_name: str, body: Union[HaproxyGlobalRequest, HaproxyDefaultsRequest]):
 	try:
-		HaproxySection.insert(
+		return (HaproxySection.insert(
 			server_id=server_id,
 			type=section_type,
 			name=section_name,
 			config=body.model_dump(mode='json')
-		).on_conflict('replace').execute()
+		).on_conflict('replace').execute())
 	except Exception as e:
 		out_error(e)
 
@@ -137,6 +137,19 @@ def get_section(server_id: int, section_type: str, section_name: str) -> Haproxy
 			& (HaproxySection.type == section_type)
 			& (HaproxySection.name == section_name)
 		)
+	except HaproxySection.DoesNotExist:
+		raise RoxywiResourceNotFound
+	except Exception as e:
+		out_error(e)
+
+
+def delete_section(server_id: int, section_type: str, section_name: str):
+	try:
+		HaproxySection.delete().where(
+			(HaproxySection.server_id == server_id)
+			& (HaproxySection.type == section_type)
+			& (HaproxySection.name == section_name)
+		).execute()
 	except HaproxySection.DoesNotExist:
 		raise RoxywiResourceNotFound
 	except Exception as e:

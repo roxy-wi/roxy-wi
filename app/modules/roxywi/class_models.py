@@ -54,6 +54,10 @@ class IdDataResponse(IdResponse):
     data: str
 
 
+class IdDataStrResponse(IdStrResponse):
+    data: str
+
+
 class DataResponse(BaseModel):
     data: Union[list, dict]
 
@@ -388,6 +392,7 @@ class HaproxyConfigRequest(BaseModel):
     antibot: Optional[bool] = 0
     backends: Optional[str] = None
     circuit_breaking: Optional[HaproxyCircuitBreaking] = None
+    action: Optional[Literal['save', 'test', 'reload', 'restart']] = "save"
 
 
 class HaproxyUserListUser(BaseModel):
@@ -401,6 +406,7 @@ class HaproxyUserListRequest(BaseModel):
     type: Literal['userlist']
     userlist_users: Optional[List[HaproxyUserListUser]] = ''
     userlist_groups: Optional[List[str]] = ''
+    action: Optional[Literal['save', 'test', 'reload', 'restart']] = "save"
 
 
 class HaproxyPeers(BaseModel):
@@ -413,6 +419,7 @@ class HaproxyPeersRequest(BaseModel):
     name: EscapedString
     type: Literal['peers']
     peers: List[HaproxyPeers]
+    action: Optional[Literal['save', 'test', 'reload', 'restart']] = "save"
 
 
 class GenerateConfigRequest(BaseModel):
@@ -430,6 +437,7 @@ class HaproxyGlobalRequest(BaseModel):
     socket: Optional[List[str]] = ['*:1999 level admin', '/var/run/haproxy.sock mode 600 level admin', '/var/lib/haproxy/stats']
     type: Optional[Literal['global']] = 'global'
     option: Optional[str] = ''
+    action: Optional[Literal['save', 'test', 'reload', 'restart']] = "save"
 
 
 class HaproxyDefaultsTimeout(BaseModel):
@@ -449,3 +457,4 @@ class HaproxyDefaultsRequest(BaseModel):
     option: Optional[str] = ''
     maxconn: Optional[int] = 5000
     type: Optional[Literal['defaults']] = 'defaults'
+    action: Optional[Literal['save', 'test', 'reload', 'restart']] = "save"

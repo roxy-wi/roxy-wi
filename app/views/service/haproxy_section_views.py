@@ -16,7 +16,7 @@ import app.modules.roxywi.common as roxywi_common
 from app.middleware import get_user_params, page_for_admin, check_group, check_services
 from app.modules.db.db_model import Server
 from app.modules.roxywi.class_models import BaseResponse, DataStrResponse, HaproxyConfigRequest, GenerateConfigRequest, \
-    HaproxyUserListRequest, HaproxyPeersRequest, HaproxyGlobalRequest, HaproxyDefaultsRequest
+    HaproxyUserListRequest, HaproxyPeersRequest, HaproxyGlobalRequest, HaproxyDefaultsRequest, IdDataStrResponse
 from app.modules.common.common_classes import SupportClass
 
 
@@ -37,7 +37,10 @@ class HaproxySectionView(MethodView):
 
         try:
             section = add_sql.get_section(server_id, section_type, section_name)
-            return jsonify(model_to_dict(section, recurse=False))
+            output = {'server_id': section.server_id.server_id, **model_to_dict(section, recurse=False)}
+            output['id'] = f'{server_id}-{section_name}'
+            output.update(section.config)
+            return jsonify(output)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get HAProxy section')
 
@@ -86,7 +89,9 @@ class HaproxySectionView(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot add HAProxy section')
 
-        return DataStrResponse(data=output).model_dump(mode='json'), 201
+        res = IdDataStrResponse(data=output, id=f'{server_id}-{body.name}').model_dump(mode='json')
+        print(res)
+        return res, 201
 
     def put(self,
             service: Literal['haproxy'],
@@ -136,8 +141,9 @@ class HaproxySectionView(MethodView):
 
         try:
             self._edit_config(service, server, '', 'delete', section_type=section_type, section_name=section_name)
+            add_sql.delete_section(server_id, section_type, section_name)
         except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create HAProxy section')
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete HAProxy section')
 
         return BaseResponse().model_dump(mode='json'), 204
 
@@ -162,7 +168,7 @@ class HaproxySectionView(MethodView):
         if len(output['failures']) > 0 or len(output['dark']) > 0:
             raise Exception('Cannot create HAProxy section. Check Apache error log')
 
-        output = config_mod.master_slave_upload_and_restart(server.ip, cfg, 'save', 'haproxy')
+        output = config_mod.master_slave_upload_and_restart(server.ip, cfg, str(body.action), 'haproxy')
 
         return output
 
@@ -840,21 +846,29 @@ class UserListSectionView(HaproxySectionView):
               properties:
                 type:
                   type: string
-                server:
-                  type: string
-                name:
-                  type: string
+                  example: "userlist"
                 userlist_users:
-                  type: object
-                  properties:
-                    user:
-                      type: string
-                    password:
-                      type: string
-                    group:
-                      type: string
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      user:
+                        type: string
+                        example: "admin"
+                      password:
+                        type: string
+                        example: "secretpassword"
+                      group:
+                        type: string
+                        example: ""
                 userlist_groups:
                   type: array
+                  items:
+                    type: string
+                    example: "ops"
+                name:
+                  type: string
+                  example: "ops_users"
         responses:
           200:
             description: Haproxy section successfully created.
@@ -899,21 +913,29 @@ class UserListSectionView(HaproxySectionView):
               properties:
                 type:
                   type: string
-                server:
-                  type: string
-                name:
-                  type: string
+                  example: "userlist"
                 userlist_users:
-                  type: object
-                  properties:
-                    user:
-                      type: string
-                    password:
-                      type: string
-                    group:
-                      type: string
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      user:
+                        type: string
+                        example: "admin"
+                      password:
+                        type: string
+                        example: "secretpassword"
+                      group:
+                        type: string
+                        example: ""
                 userlist_groups:
                   type: array
+                  items:
+                    type: string
+                    example: "ops"
+                name:
+                  type: string
+                  example: "ops_users"
         responses:
           200:
             description: Haproxy section successfully created.
@@ -1055,21 +1077,24 @@ class PeersSectionView(HaproxySectionView):
               properties:
                 type:
                   type: string
-                server:
-                  type: string
+                  description: The type of the section.
+                peers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the peer.
+                      ip:
+                        type: string
+                        description: The IP address of the peer.
+                      port:
+                        type: string
+                        description: The port of the peer.
                 name:
                   type: string
-                userlist_users:
-                  type: object
-                  properties:
-                    user:
-                      type: string
-                    password:
-                      type: string
-                    group:
-                      type: string
-                userlist_groups:
-                  type: array
+                  description: The name of the section.
         responses:
           200:
             description: Haproxy section successfully created.
@@ -1114,21 +1139,24 @@ class PeersSectionView(HaproxySectionView):
               properties:
                 type:
                   type: string
-                server:
-                  type: string
+                  description: The type of the section.
+                peers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        description: The name of the peer.
+                      ip:
+                        type: string
+                        description: The IP address of the peer.
+                      port:
+                        type: string
+                        description: The port of the peer.
                 name:
                   type: string
-                userlist_users:
-                  type: object
-                  properties:
-                    user:
-                      type: string
-                    password:
-                      type: string
-                    group:
-                      type: string
-                userlist_groups:
-                  type: array
+                  description: The name of the section.
         responses:
           200:
             description: Haproxy section successfully created.
@@ -1287,40 +1315,34 @@ class GlobalSectionView(HaproxySectionView):
             schema:
               type: object
               properties:
-                config:
-                  type: object
-                  properties:
-                    chroot:
-                      type: string
-                      default: "/var/lib/haproxy"
-                    daemon:
-                      type: integer
-                      default: 1
-                    group:
-                      type: string
-                      default: "haproxy"
-                    log:
-                      type: array
-                      items:
-                        type: string
-                      default: ["127.0.0.1 local", "127.0.0.1 local1 notice"]
-                    maxconn:
-                      type: integer
-                      default: 5000
-                    pidfile:
-                      type: string
-                      default: "/var/run/haproxy.pid"
-                    socket:
-                      type: array
-                      items:
-                        type: string
-                      default: ["*:1999 level admin", "/var/run/haproxy.sock mode 600 level admin", "/var/lib/haproxy/stats"]
-                    type:
-                      type: string
-                      default: "global"
-                    user:
-                      type: string
-                      default: "haproxy"
+                chroot:
+                  type: string
+                  default: "/var/lib/haproxy"
+                daemon:
+                  type: integer
+                  default: 1
+                group:
+                  type: string
+                  default: "haproxy"
+                log:
+                  type: array
+                  items:
+                    type: string
+                    default: ["127.0.0.1 local", "127.0.0.1 local1 notice"]
+                maxconn:
+                  type: integer
+                  default: 5000
+                pidfile:
+                  type: string
+                  default: "/var/run/haproxy.pid"
+                socket:
+                  type: array
+                  items:
+                    type: string
+                    default: ["*:1999 level admin", "/var/run/haproxy.sock mode 600 level admin", "/var/lib/haproxy/stats"]
+                user:
+                  type: string
+                  default: "haproxy"
                 id:
                   type: integer
                   default: 20
