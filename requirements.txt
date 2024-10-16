@@ -27,3 +27,7 @@ ansible-runner==2.3.1
 python-whois>=0.8.0
 netaddr>=0.10.1
 retry>=0.9.2
+aio-pika>=7.1.0
+pika>=1.2.0
+websockets>=9.0
+python3-nmap<=1.5.1
