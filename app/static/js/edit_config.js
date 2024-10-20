@@ -430,12 +430,12 @@ function getFormData($form, form_name) {
 				let name = $('input[name="cookie_name"]').val();
 				let domain = $('input[name="cookie_domain"]').val();
 				let dynamic = $('input[name="dynamic"]').val();
-				let dynamicKey = $('input[name="dynamic-cookie-key"]').val();
+				let dynamic_key = $('input[name="dynamic-cookie-key"]').val();
 				let nocache = $('input[name="nocache"]').val();
 				let postonly = $('input[name="postonly"]').val();
 				let rewrite = $('select[name="rewrite"] option:selected').val();
 				let prefix = $('input[name="prefix"]').val();
-				indexed_array['cookie'] = {name, domain, dynamic, dynamicKey, nocache, postonly, rewrite, prefix}
+				indexed_array['cookie'] = {name, domain, dynamic, dynamic_key, nocache, postonly, rewrite, prefix}
 			}
 		} else if (n['name'] === 'whitelist_checkbox') {
 			if ($('input[name="whitelist_checkbox"]').is(':checked')) {
@@ -444,11 +444,11 @@ function getFormData($form, form_name) {
 		} else if (n['name'] === 'ssl') {
 			if ($('input[name="ssl"]').is(':checked')) {
 				let cert = $('input[name="cert"]').val();
-				let ssl_check_backend = 1;
+				let ssl_check_backend = true;
 				if ($('input[name="ssl-check"]').is(':checked')) {
 					ssl_check_backend = 0;
 				} else {
-					ssl_check_backend = 1;
+					ssl_check_backend = true;
 				}
 				indexed_array['ssl'] = {cert, ssl_check_backend};
 			}
@@ -466,31 +466,31 @@ function getFormData($form, form_name) {
 			}
 		} else if (n['name'] === 'ssl_offloading') {
 			if ($('input[name="ssl_offloading"]').is(':checked')) {
-				indexed_array['ssl_offloading'] = 1;
+				indexed_array['ssl_offloading'] = true;
 			}
 		} else if (n['name'] === 'forward_for') {
 			if ($('input[name="forward_for"]').is(':checked')) {
-				indexed_array['forward_for'] = 1;
+				indexed_array['forward_for'] = true;
 			}
 		} else if (n['name'] === 'redispatch') {
 			if ($('input[name="redispatch"]').is(':checked')) {
-				indexed_array['redispatch'] = 1;
+				indexed_array['redispatch'] = true;
 			}
 		} else if (n['name'] === 'slow_attack') {
 			if ($('input[name="slow_attack"]').is(':checked')) {
-				indexed_array['slow_attack'] = 1;
+				indexed_array['slow_attack'] = true;
 			}
 		} else if (n['name'] === 'ddos') {
 			if ($('input[name="ddos"]').is(':checked')) {
-				indexed_array['ddos'] = 1;
+				indexed_array['ddos'] = true;
 			}
 		} else if (n['name'] === 'antibot') {
 			if ($('input[name="antibot"]').is(':checked')) {
-				indexed_array['antibot'] = 1;
+				indexed_array['antibot'] = true;
 			}
 		} else if (n['name'] === 'cache') {
 			if ($('input[name="cache"]').is(':checked')) {
-				indexed_array['cache'] = 1;
+				indexed_array['cache'] = true;
 			}
 		} else if (n['name'] === 'circuit_breaking') {
 			if ($('input[name="circuit_breaking"]').is(':checked')) {
@@ -501,7 +501,7 @@ function getFormData($form, form_name) {
 			}
 		} else if (n['name'] === 'check-servers') {
 			if ($('input[name="check-servers"]').is(':checked')) {
-				let check_enabled = 1;
+				let check_enabled = true;
 				let inter = $('select[name="inter"] option:selected').val();
 				let rise = $('select[name="rise"] option:selected').val();
 				let fall = $('select[name="fall"] option:selected').val();
@@ -534,7 +534,7 @@ function getFormData($form, form_name) {
 			}
 		} else if (n['name'] === 'daemon') {
 			if ($('input[name="daemon"]').is(':checked')) {
-				indexed_array['daemon'] = 1;
+				indexed_array['daemon'] = true;
 			}
 		} else {
 			indexed_array[n['name']] = n['value'];
@@ -607,10 +607,10 @@ function getFormData($form, form_name) {
 		let send_proxy = 0;
 		let backup = 0;
 		if ($(this).children().children('input[name="send_proxy"]').is(':checked')) {
-			send_proxy = 1;
+			send_proxy = true;
 		}
 		if ($(this).children().children('input[name="backup"]').is(':checked')) {
-			backup = 1;
+			backup = true;
 		}
 		let test_var = {server, port, port_check, maxconn, send_proxy, backup};
 		indexed_array['backend_servers'].push(test_var);

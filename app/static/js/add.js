@@ -697,7 +697,7 @@ $( function() {
 	}
 	for (let section_type of ['listen', 'backend']) {
 		$("#" + section_type + "_checks").on('selectmenuchange', function () {
-			let health_check_val = health_check_val;
+			let health_check_val = $("#" + section_type + "_checks").val();
 			if (health_check_val === "tcp-check") {
 				$("#" + section_type + "_checks_note").html(tcp_note)
 			}

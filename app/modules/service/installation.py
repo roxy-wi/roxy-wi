@@ -1,5 +1,6 @@
 import os
 import json
+import random
 from typing import Union
 from packaging import version
 
@@ -328,7 +329,7 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 
 def run_ansible_locally(inv: dict, ansible_role: str) -> dict:
 	inventory_path = '/var/www/haproxy-wi/app/scripts/ansible/inventory'
-	inventory = f'{inventory_path}/{ansible_role}.json'
+	inventory = f'{inventory_path}/{ansible_role}-{random.randint(0, 35)}.json'
 	# proxy = sql.get_setting('proxy')
 	# proxy_serv = ''
 

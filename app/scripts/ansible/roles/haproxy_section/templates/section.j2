@@ -1,8 +1,10 @@
 {{ config.type }} {{ config.name }}
+    {% if config.binds != 'None' -%}
     {% for bind in config.binds -%}
     bind {{ bind.ip }}:{{ bind.port }} {% if config.ssl != 'None' and config.mode == 'http' and config.ssl.cert %} ssl crt {{cert_path}}/{{ config.ssl.cert }}{% endif %}
 
     {% endfor %}
+    {% endif %}
 
     mode {{ config.mode }}
     {% if config.balance != 'None' -%}
@@ -24,16 +26,16 @@
         {% endfor %}
     {% endif %}
 
-    {% if config.whitelist -%}
-    acl white_list_{{ whitelist }} src -f {{ haproxy_dir }}/white/{{ config.whitelist }}
-    tcp-request content accept if white_list_{{ whitelist }}
+    {% if config.whitelist and config.whitelist != 'None' -%}
+    acl white_list_{{ config.whitelist }} src -f {{ haproxy_dir }}/white/{{ config.whitelist }}
+    tcp-request content accept if white_list_{{ config.whitelist }}
     tcp-request content reject
     {% endif %}
-    {% if config.blacklist -%}
+    {% if config.blacklist and config.blacklist != 'None' -%}
     tcp-request connection reject if { src -f {{ haproxy_dir }}/white/{{ config.blacklist }} }
     {% endif %}
 
-    {% if config.acls -%}
+    {% if config.acls != 'None' -%}
         {% for acl in config.acls -%}
             {% if acl.acl_if in (1, 2)  -%}
                 {% if config.mode == 'tcp' -%}
@@ -66,7 +68,7 @@
     {% if config.redispatch -%}
     {{ redispatch }}
     {% endif -%}
-    {% if config.ssl_offloading -%}
+    {% if config.ssl_offloading and config.ssl_offloading != 'None' -%}
     {{ ssl_offloading }}
     {% endif -%}
 
@@ -93,8 +95,8 @@
 
     {% if config.cookie != 'None' -%}
     cookie {{ config.cookie.name }} {% if config.cookie.domain != 'None' %} {{ config.cookie.domain }}{% endif %} {{ config.cookie.rewrite }} {{ config.cookie.prefix }} {{ config.cookie.nocache }} {{ config.cookie.postonly }} {{ config.cookie.dynamic }}
-        {% if config.cookie.dynamicKey -%}
-    dynamic-cookie-key {{ config.cookie.dynamicKey }}
+        {% if config.cookie.dynamic_key -%}
+    dynamic-cookie-key {{ config.cookie.dynamic_key }}
         {% endif -%}
     {% endif -%}
 
@@ -110,12 +112,10 @@
     {% if config.servers_check != 'None' and config.servers_check.check_enabled -%}
         {%- set check_option = ' check inter ' + config.servers_check.inter|string() + ' rise ' + config.servers_check.rise|string() + ' fall ' + config.servers_check.fall|string() %}
     {% else -%}
-        {% if config.servers_check != 'None' and config.servers_check.check_enabled == 'None' -%}
-            {% set check_option = '' -%}
-        {% endif -%}
+        {% set check_option = '' -%}
     {% endif -%}
 
-    {% if config.option != '' -%}
+    {% if config.option != '' and config.option != 'None' -%}
         {% for o in config.option.split('\\r\\n') -%}
     {{ o }}
         {% endfor -%}
@@ -130,10 +130,12 @@
     default-server observe {{ config.circuit_breaking.observe }} error-limit {{ config.circuit_breaking.error_limit }} on-error {{ config.circuit_breaking.on_error }}
     {% endif -%}
 
+    {% if config.backend_servers != 'None' -%}
     {% for backend in config.backend_servers -%}
     server {{ backend.server }} {{ backend.server }}:{{ backend.port }} port {{ backend.port_check }} {{ check_option }} {{ ssl_check_option }} maxconn {{ backend.maxconn }}{% if backend.send_proxy %} send-proxy{% endif %}{% if backend.backup %} backup {% endif %}
 
     {% endfor -%}
+    {% endif -%}
 
     {% if config.backends and config.backends != 'None' -%}
     use_backend {{ config.backends }}

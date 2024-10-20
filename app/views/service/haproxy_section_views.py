@@ -16,7 +16,8 @@ import app.modules.roxywi.common as roxywi_common
 from app.middleware import get_user_params, page_for_admin, check_group, check_services
 from app.modules.db.db_model import Server
 from app.modules.roxywi.class_models import BaseResponse, DataStrResponse, HaproxyConfigRequest, GenerateConfigRequest, \
-    HaproxyUserListRequest, HaproxyPeersRequest, HaproxyGlobalRequest, HaproxyDefaultsRequest, IdDataStrResponse
+    HaproxyUserListRequest, HaproxyPeersRequest, HaproxyGlobalRequest, HaproxyDefaultsRequest, IdDataStrResponse, \
+    ErrorResponse
 from app.modules.common.common_classes import SupportClass
 
 
@@ -84,14 +85,15 @@ class HaproxySectionView(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create HAProxy section')
 
+        if 'Fatal' in output or 'error' in output:
+            return ErrorResponse(error=output).model_dump(mode='json'), 500
+
         try:
             add_sql.insert_new_section(server_id, section_type, body.name, body)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot add HAProxy section')
 
-        res = IdDataStrResponse(data=output, id=f'{server_id}-{body.name}').model_dump(mode='json')
-        print(res)
-        return res, 201
+        return IdDataStrResponse(data=output, id=f'{server_id}-{body.name}').model_dump(mode='json'), 201
 
     def put(self,
             service: Literal['haproxy'],
@@ -116,7 +118,7 @@ class HaproxySectionView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create HAProxy section')
 
         if 'Fatal' in output or 'error' in output:
-            return DataStrResponse(data=output).model_dump(mode='json'), 201
+            return ErrorResponse(error=output).model_dump(mode='json'), 500
         else:
             try:
                 if section_name in ('global', 'defaults'):
@@ -168,7 +170,13 @@ class HaproxySectionView(MethodView):
         if len(output['failures']) > 0 or len(output['dark']) > 0:
             raise Exception('Cannot create HAProxy section. Check Apache error log')
 
-        output = config_mod.master_slave_upload_and_restart(server.ip, cfg, str(body.action), 'haproxy')
+        if body:
+            if body.action:
+                action = str(body.action)
+        else:
+            action = 'save'
+
+        output = config_mod.master_slave_upload_and_restart(server.ip, cfg, action, 'haproxy')
 
         return output
 
@@ -285,8 +293,6 @@ class ListenSectionView(HaproxySectionView):
                       type: string
                     redispatch:
                       type: integer
-                    server:
-                      type: integer
                     servers_check:
                       type: object
                     slow_attack:
@@ -296,6 +302,10 @@ class ListenSectionView(HaproxySectionView):
                     type:
                       type: string
                     waf:
+                      type: integer
+                    antibot:
+                      type: integer
+                    ddos:
                       type: integer
                     whitelist:
                       type: string
@@ -403,9 +413,9 @@ class ListenSectionView(HaproxySectionView):
                       server:
                         type: string
                       port:
-                        type: string
+                        type: integer
                       port_check:
-                        type: string
+                        type: integer
                       maxconn:
                         type: string
                       send_proxy:
@@ -413,8 +423,6 @@ class ListenSectionView(HaproxySectionView):
                       backup:
                         type: integer
                 type:
-                  type: string
-                server:
                   type: string
                 name:
                   type: string
@@ -456,8 +464,10 @@ class ListenSectionView(HaproxySectionView):
                   type: string
                 forward_for:
                   type: integer
-                force_close:
-                  type: string
+                antibot:
+                  type: integer
+                ddos:
+                  type: integer
                 cookie:
                   type: object
                   properties:
@@ -467,7 +477,7 @@ class ListenSectionView(HaproxySectionView):
                       type: string
                     dynamic:
                       type: string
-                    dynamicKey:
+                    dynamic_key:
                       type: string
                     nocache:
                       type: string
@@ -481,13 +491,11 @@ class ListenSectionView(HaproxySectionView):
                   type: object
                   properties:
                     inter:
-                      type: string
+                      type: integer
                     rise:
-                      type: string
+                      type: integer
                     fall:
-                      type: string
-                inter:
-                  type: string
+                      type: integer
                 circuit_breaking:
                   type: object
                   properties:
@@ -592,18 +600,16 @@ class ListenSectionView(HaproxySectionView):
                       server:
                         type: string
                       port:
-                        type: string
+                        type: integer
                       port_check:
                         type: string
                       maxconn:
-                        type: string
+                        type: integer
                       send_proxy:
                         type: integer
                       backup:
                         type: integer
                 type:
-                  type: string
-                server:
                   type: string
                 name:
                   type: string
@@ -645,8 +651,10 @@ class ListenSectionView(HaproxySectionView):
                   type: string
                 forward_for:
                   type: integer
-                force_close:
-                  type: string
+                antibot:
+                  type: integer
+                ddos:
+                  type: integer
                 cookie:
                   type: object
                   properties:
@@ -656,7 +664,7 @@ class ListenSectionView(HaproxySectionView):
                       type: string
                     dynamic:
                       type: string
-                    dynamicKey:
+                    dynamic_key:
                       type: string
                     nocache:
                       type: string
@@ -670,13 +678,11 @@ class ListenSectionView(HaproxySectionView):
                   type: object
                   properties:
                     inter:
-                      type: string
+                      type: integer
                     rise:
-                      type: string
+                      type: integer
                     fall:
-                      type: string
-                inter:
-                  type: string
+                      type: integer
                 circuit_breaking:
                   type: object
                   properties:

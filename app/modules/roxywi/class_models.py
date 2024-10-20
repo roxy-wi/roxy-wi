@@ -331,7 +331,7 @@ class HaproxyBackendServer(BaseModel):
 
 class HaproxyCookie(BaseModel):
     dynamic: str
-    dynamicKey: str
+    dynamic_key: str
     domain: Optional[str] = None
     name: Optional[str] = None
     nocache: Optional[str] = None
@@ -371,25 +371,25 @@ class HaproxyConfigRequest(BaseModel):
     name: EscapedString
     option: Optional[str] = None
     maxconn: Optional[int] = 2000
-    waf: Optional[bool] = 0
-    binds: List[HaproxyBinds]
-    headers: List[HaproxyHeaders] = None
-    acls: List[HaproxyAcls] = None
-    backend_servers: List[HaproxyBackendServer] = None
+    waf: Optional[bool] = False
+    binds: Optional[List[HaproxyBinds]] = None
+    headers: Optional[List[HaproxyHeaders]] = None
+    acls: Optional[List[HaproxyAcls]] = None
+    backend_servers: Optional[List[HaproxyBackendServer]] = None
     blacklist: Optional[str] = ''
     whitelist: Optional[str] = ''
     ssl: Optional[HaproxySSL] = None
-    cache: Optional[bool] = 0
-    compression: Optional[bool] = 0
+    cache: Optional[bool] = False
+    compression: Optional[bool] = False
     cookie: Optional[HaproxyCookie] = None
     health_check: Optional[HaproxyHealthCheck] = None
     servers_check: Optional[HaproxyServersCheck] = None
-    ssl_offloading: Optional[bool] = 0
-    redispatch: Optional[bool] = 0
-    forward_for: Optional[bool] = 0
-    slow_attack: Optional[bool] = 0
-    ddos: Optional[bool] = 0
-    antibot: Optional[bool] = 0
+    ssl_offloading: Optional[bool] = False
+    redispatch: Optional[bool] = False
+    forward_for: Optional[bool] = False
+    slow_attack: Optional[bool] = False
+    ddos: Optional[bool] = False
+    antibot: Optional[bool] = False
     backends: Optional[str] = None
     circuit_breaking: Optional[HaproxyCircuitBreaking] = None
     action: Optional[Literal['save', 'test', 'reload', 'restart']] = "save"
