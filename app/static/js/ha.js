@@ -637,7 +637,7 @@ function saveVip(jsonData, cluster_id, dialog_id, edited, vip_id='', deleted=fal
 		return_master = '1';
 	}
 	if ($('#vrrp-ip-add-virt_server').is(':checked')) {
-		virt_server = '1';
+		virt_server = true;
 	}
 	if ($('#vrrp-ip-add-use_src').is(':checked')) {
 		use_src = '1';

@@ -249,9 +249,9 @@ def update_ha_cluster_vip(cluster_id: int, router_id: int, vip: str, return_mast
 		out_error(e)
 
 
-def update_ha_virt_ip(vip_id: int, vip: str) -> None:
+def update_ha_virt_ip(vip_id: int, **kwargs) -> None:
 	try:
-		Server.update(ip=vip).where(Server.server_id == HaClusterVirt.get(HaClusterVirt.vip_id == vip_id).virt_id).execute()
+		Server.update(**kwargs).where(Server.server_id == HaClusterVirt.get(HaClusterVirt.vip_id == vip_id).virt_id).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -269,6 +269,15 @@ def check_ha_virt(vip_id: int) -> bool:
 	except Exception:
 		return False
 	return True
+
+
+def select_ha_virts(cluster_id: int) -> HaClusterVirt:
+	try:
+		return HaClusterVirt.select().where(HaClusterVirt.cluster_id == cluster_id).execute()
+	except HaClusterVirt.DoesNotExist:
+		pass
+	except Exception as e:
+		out_error(e)
 
 
 def select_ha_cluster_name_and_slaves() -> object:
@@ -290,12 +299,3 @@ def update_master_server_by_slave_ip(master_id: int, slave_ip: str) -> None:
 		Server.update(master=master_id).where(Server.ip == slave_ip).execute()
 	except Exception as e:
 		out_error(e)
-
-
-def get_cred_id_by_server_ip(server_ip):
-	try:
-		cred = Server.get(Server.ip == server_ip)
-	except Exception as e:
-		return out_error(e)
-	else:
-		return cred.cred_id

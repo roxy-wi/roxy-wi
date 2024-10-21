@@ -171,11 +171,24 @@ class ServerView(MethodView):
         """
         group = SupportClass.return_group_id(body)
 
+        kwargs = {
+            'hostname': body.hostname,
+            'ip': str(body.ip),
+            'group_id': group,
+            'type_ip': body.type_ip,
+            'enabled': body.enabled,
+            'master': body.master,
+            'cred_id': body.cred_id,
+            'port': body.port,
+            'description': body.description,
+            'firewall_enable': body.firewall_enable,
+            'haproxy': body.haproxy,
+            'nginx': body.nginx,
+            'apache': body.apache
+        }
+
         try:
-            last_id = server_mod.create_server(
-                body.hostname, str(body.ip), group, body.type_ip, body.enabled, body.master, body.cred_id, body.port, body.description,
-                body.haproxy, body.nginx, body.apache, body.firewall_enable
-            )
+            last_id = server_mod.create_server(**kwargs)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create a server')
 

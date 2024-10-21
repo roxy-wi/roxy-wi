@@ -1,5 +1,7 @@
 from typing import Union
 
+from matplotlib.artist import kwdoc
+
 import app.modules.db.server as server_sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.service as service_sql
@@ -106,6 +108,14 @@ def update_cluster(cluster: HAClusterRequest, cluster_id: int, group_id: int) ->
             ha_sql.insert_cluster_services(cluster_id, service_id)
         except Exception as e:
             raise Exception(f'error: Cannot add service {service}: {e}')
+
+    virts = ha_sql.select_ha_virts(cluster_id)
+    if virts:
+        for virt in virts:
+            try:
+                add_or_update_virt(cluster, servers, cluster_id, virt.vip_id, group_id)
+            except Exception as e:
+                roxywi_common.logging(cluster_id, f'Cannot update cluster virtual server for VIP {virt.vip}: {e}', roxywi=1, service='HA cluster')
 
     roxywi_common.logging(cluster_id, f'Cluster {cluster.name} has been updated', keep_history=1, roxywi=1, service='HA cluster')
 
@@ -248,30 +258,50 @@ def add_or_update_virt(cluster: Union[HAClusterRequest, HAClusterVIP], servers: 
         if value['master']:
             master_id = value['id']
 
+    services = ha_sql.select_cluster_services(cluster_id)
+    for service in services:
+        haproxy = 1 if service.service_id == '1' else 0
+        nginx = 1 if service.service_id == '2' else 0
+        apache = 1 if service.service_id == '4' else 0
+
+    kwargs = {
+        'haproxy': haproxy,
+        'nginx': nginx,
+        'apache': apache,
+        'ip': vip,
+    }
+
     if ha_sql.check_ha_virt(vip_id):
+        vip_from_db = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)
+        vip = vip_from_db.vip
+        kwargs['ip'] = vip
         try:
-            ha_sql.update_ha_virt_ip(vip_id, vip)
+            ha_sql.update_ha_virt_ip(vip_id, **kwargs)
             roxywi_common.logging(cluster_id, f'Cluster virtual server for VIP {vip} has been updated', keep_history=1, roxywi=1, service='HA cluster')
         except Exception as e:
             roxywi_common.logging(cluster_id, f'Cannot update cluster virtual server for VIP {vip}: {e}', roxywi=1, service='HA cluster')
     else:
-        services = ha_sql.select_cluster_services(cluster_id)
-        for service in services:
-            haproxy = 1 if service.service_id == '1' else 0
-            nginx = 1 if service.service_id == '2' else 0
-            apache = 1 if service.service_id == '4' else 0
         try:
             server = server_sql.get_server_by_id(master_id)
             c = ha_sql.get_cluster(cluster_id)
-            virt_id = server_sql.add_server(
-                f'{vip}-VIP', vip, group_id, '1', '1', '0', server.cred_id, server.port,
-                f'VRRP IP for {c.name} cluster', haproxy, nginx, apache, server.firewall_enable
-            )
-            HaClusterVirt.insert(cluster_id=cluster_id, virt_id=virt_id, vip_id=vip_id).execute()
+            kwargs.setdefault('cred_id', server.cred_id)
+            kwargs.setdefault('hostname', f'{vip}-VIP')
+            kwargs.setdefault('type_ip', 1)
+            kwargs.setdefault('enabled', 1)
+            kwargs.setdefault('master', 0)
+            kwargs.setdefault('port', server.port)
+            kwargs.setdefault('description', f'VRRP IP for {c.name} cluster')
+            kwargs.setdefault('firewall_enable', server.firewall_enable)
+            kwargs.setdefault('group_id', group_id)
+            virt_id = server_sql.add_server(**kwargs)
             roxywi_common.logging(cluster_id, f'New cluster virtual server for VIP: {vip} has been created', keep_history=1, roxywi=1,
                                   service='HA cluster')
         except Exception as e:
             roxywi_common.logging(cluster_id, f'error: Cannot create new cluster virtual server for VIP: {vip}: {e}', roxywi=1, service='HA cluster')
+        try:
+            HaClusterVirt.insert(cluster_id=cluster_id, virt_id=virt_id, vip_id=vip_id).execute()
+        except Exception as e:
+            roxywi_common.logging(cluster_id, f'error: Cannot save cluster virtual server for VIP: {vip}: {e}', roxywi=1, service='HA cluster')
 
 
 def _create_or_update_master_slaves_servers(cluster_id: int, servers: dict, router_id: int, create: bool = False) -> None:

@@ -5,13 +5,9 @@ from app.modules.db.common import out_error, not_unique_error
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
-def add_server(hostname, ip, group, type_ip, enable, master, cred, port, desc, haproxy, nginx, apache, firewall):
+def add_server(**kwargs):
 	try:
-		server_id = Server.insert(
-			hostname=hostname, ip=ip, group_id=group, type_ip=type_ip, enabled=enable, master=master, cred_id=cred,
-			port=port, description=desc, haproxy=haproxy, nginx=nginx, apache=apache, firewall_enable=firewall
-		).execute()
-		return server_id
+		return Server.insert(**kwargs).execute()
 	except IntegrityError as e:
 		not_unique_error(e)
 	except Exception as e:
