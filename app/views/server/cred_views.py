@@ -172,11 +172,14 @@ class CredView(MethodView):
             description: Credential update successful
         """
         group_id = SupportClass.return_group_id(body)
-        ssh = self._get_ssh(cred_id)
-        if ssh.shared and g.user_params['role'] != 1 and int(group_id) != int(ssh.group_id):
-            return roxywi_common.handler_exceptions_for_json_data(RoxywiPermissionError(), 'You cannot change shared parameters')
+
         try:
             self._check_is_correct_group(cred_id)
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, '')
+
+        try:
+            self._is_editing_shared_ssh(cred_id, g.user_params['group_id'])
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
@@ -186,7 +189,8 @@ class CredView(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update SSH key')
 
-    def delete(self, cred_id: int):
+    @validate(query=GroupQuery)
+    def delete(self, cred_id: int, query: GroupQuery):
         """
         Delete a credential entry
         ---
@@ -198,12 +202,27 @@ class CredView(MethodView):
             description: 'ID of the credential to retrieve'
             required: true
             type: 'integer'
+          - in: 'query'
+            name: 'group_id'
+            description: 'ID of the group to list users. For superAdmin only'
+            required: false
+            type: 'integer'
         responses:
           204:
             description: Credential deletion successful
         """
+        group_id = SupportClass.return_group_id(query)
+        try:
+            self._is_editing_shared_ssh(cred_id, group_id)
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, '')
         try:
             self._check_is_correct_group(cred_id)
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, '')
+
+        try:
+            self._is_editing_shared_ssh(cred_id, g.user_params['group_id'])
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
@@ -247,7 +266,13 @@ class CredView(MethodView):
         try:
             self._check_is_correct_group(cred_id)
         except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, ''), 404
+            return roxywi_common.handler_exceptions_for_json_data(e, '')
+
+        try:
+            self._is_editing_shared_ssh(cred_id, g.user_params['group_id'])
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, '')
+
         try:
             body.private_key = base64.b64decode(body.private_key).decode("ascii")
         except Exception:
@@ -271,6 +296,11 @@ class CredView(MethodView):
             return cred_sql.get_ssh(cred_id)
         except RoxywiResourceNotFound:
             raise RoxywiResourceNotFound
+
+    def _is_editing_shared_ssh(self, cred_id: int, group_id: int):
+        ssh = self._get_ssh(cred_id)
+        if ssh.shared and g.user_params['role'] != 1 and int(group_id) != int(ssh.group_id):
+            raise RoxywiPermissionError('You cannot change shared parameters')
 
 
 class CredsView(MethodView):

@@ -21,12 +21,14 @@ class ReconnectMySQLDatabase(ReconnectMixin, MySQLDatabase):
 
 def connect(get_migrator=None):
     if mysql_enable == '1':
-        mysql_user = get_config.get_config_var('mysql', 'mysql_user')
-        mysql_password = get_config.get_config_var('mysql', 'mysql_password')
         mysql_db = get_config.get_config_var('mysql', 'mysql_db')
-        mysql_host = get_config.get_config_var('mysql', 'mysql_host')
-        mysql_port = get_config.get_config_var('mysql', 'mysql_port')
-        conn = ReconnectMySQLDatabase(mysql_db, user=mysql_user, password=mysql_password, host=mysql_host, port=int(mysql_port))
+        kwargs = {
+            "user": get_config.get_config_var('mysql', 'mysql_user'),
+            "password": get_config.get_config_var('mysql', 'mysql_password'),
+            "host": get_config.get_config_var('mysql', 'mysql_host'),
+            "port": int(get_config.get_config_var('mysql', 'mysql_port'))
+        }
+        conn = ReconnectMySQLDatabase(mysql_db, **kwargs)
         migrator = MySQLMigrator(conn)
     else:
         db = "/var/lib/roxy-wi/roxy-wi.db"

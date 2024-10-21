@@ -45,7 +45,11 @@
 			<br>
 		</td>
 		<td>
+			{% if ssh.shared and g.user_params['group_id']|string() != ssh.group_id|string() %}
+                <!-- continue -->
+            {% else %}
 			<a class="delete" onclick="confirmDeleteSsh({{ssh.id}})" title="{{lang.words.delete|title()}} {{ssh.name}}" style="cursor: pointer;"></a>
+            {% endif %}
 		</td>
 	</tr>
     {% if ssh.shared and g.user_params['group_id']|string() != ssh.group_id|string() %}
