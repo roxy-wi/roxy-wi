@@ -52,15 +52,16 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
                                  waf_process,
                                  waf_mode,
                                  metrics_en,
-                                 waf_len)
+                                 waf_len,
+                                 server[0])
             else:
                 server_status = (server[1],
                                  server[2],
                                  waf_process,
                                  waf_mode,
                                  metrics_en,
-                                 waf_len)
-
+                                 waf_len,
+                                 server[0])
         returned_servers.append(server_status)
 
     lang = roxywi_common.get_user_lang_for_flask()
@@ -69,8 +70,8 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
     return render_template('ajax/overviewWaf.html', service_status=servers_sorted, role=role, waf_service=waf_service, lang=lang)
 
 
-def change_waf_mode(waf_mode: str, server_hostname: str, service: str):
-    serv = server_sql.select_server_by_name(server_hostname)
+def change_waf_mode(waf_mode: str, server_id: int, service: str):
+    serv = server_sql.get_server_by_id(server_id)
 
     if service == 'haproxy':
         config_dir = sql.get_setting('haproxy_dir')
@@ -80,11 +81,11 @@ def change_waf_mode(waf_mode: str, server_hostname: str, service: str):
     commands = f"sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine {waf_mode}/' {config_dir}/waf/modsecurity.conf"
 
     try:
-        server_mod.ssh_command(serv, commands)
+        server_mod.ssh_command(serv.ip, commands)
     except Exception as e:
         return str(e)
 
-    roxywi_common.logging(serv, f'Has been changed WAF mod to {waf_mode}', roxywi=1, login=1)
+    roxywi_common.logging(serv.hostname, f'Has been changed WAF mod to {waf_mode}', roxywi=1, login=1)
 
 
 def switch_waf_rule(serv: str, enable: int, rule_id: int):

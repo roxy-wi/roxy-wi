@@ -252,34 +252,28 @@ def select_waf_rules(serv, service):
 		& (WafRules.service == service)
 	)
 	try:
-		query_res = query.execute()
+		return query.execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		return query_res
 
 
 def delete_waf_rules(serv):
-	query = WafRules.delete().where(WafRules.serv == serv)
 	try:
-		query.execute()
+		WafRules.delete().where(WafRules.serv == serv).execute()
 	except Exception as e:
 		out_error(e)
 
 
 def select_waf_rule_by_id(rule_id):
 	try:
-		query = WafRules.get(WafRules.id == rule_id)
+		return WafRules.get(WafRules.id == rule_id).rule_file
 	except Exception as e:
 		out_error(e)
-	else:
-		return query.rule_file
 
 
 def update_enable_waf_rules(rule_id, serv, en):
-	query = WafRules.update(en=en).where((WafRules.id == rule_id) & (WafRules.serv == serv))
 	try:
-		query.execute()
+		WafRules.update(en=en).where((WafRules.id == rule_id) & (WafRules.serv == serv)).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -300,20 +294,13 @@ def insert_new_waf_rule(rule_name: str, rule_file: str, rule_description: str, s
 
 
 def delete_waf_server(server_id):
-	query = Waf.delete().where(Waf.server_id == server_id)
 	try:
-		query.execute()
+		Waf.delete().where(Waf.server_id == server_id).execute()
 	except Exception as e:
 		out_error(e)
 
 
-def update_waf_metrics_enable(name, enable):
-	server_id = 0
-	try:
-		server_id = Server.get(Server.hostname == name).server_id
-	except Exception as e:
-		out_error(e)
-
+def update_waf_metrics_enable(server_id, enable):
 	try:
 		Waf.update(metrics=enable).where(Waf.server_id == server_id).execute()
 	except Exception as e:

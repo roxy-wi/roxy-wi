@@ -53,15 +53,6 @@ def get_server_by_ip(server_ip: str) -> Server:
 		return out_error(e)
 
 
-def select_server_by_name(name):
-	try:
-		ip = Server.get(Server.hostname == name)
-	except Exception as e:
-		return out_error(e)
-	else:
-		return ip.ip
-
-
 def insert_system_info(
 	server_id: int, os_info: str, sys_info: dict, cpu: dict, ram: dict, network: dict, disks: dict
 ):

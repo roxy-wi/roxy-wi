@@ -33,9 +33,9 @@ function metrics_waf(name) {
 	if ($('#' + name).is(':checked')) {
 		enable = '1';
 	}
-	name = name.split('metrics')[1]
+	let server_id = name.split('-')[1]
 	$.ajax({
-		url: "/waf/metric/enable/" + enable + "/" + name,
+		url: "/waf/metric/enable/" + enable + "/" + server_id,
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
 			if (data.status === 'failed') {
@@ -70,7 +70,7 @@ function installWaf(ip1) {
 	});
 }
 function changeWafMode(id) {
-	let waf_mode = $('#' + id + ' option:selected').val();
+	let waf_mode = $('#' + id).val();
 	let server_hostname = id.split('_')[0];
 	let service = cur_url[0];
 	$.ajax({

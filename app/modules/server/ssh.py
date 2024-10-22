@@ -11,6 +11,7 @@ import app.modules.db.group as group_sql
 import app.modules.db.server as server_sql
 import app.modules.common.common as common
 from app.modules.server import ssh_connection
+from app.modules.db.db_model import Cred
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.modules.roxywi.class_models import IdResponse, IdDataResponse, CredRequest
@@ -212,10 +213,20 @@ def get_creds(group_id: int = None, cred_id: int = None, not_shared: bool = Fals
 		creds = cred_sql.select_ssh()
 
 	for cred in creds:
-		cred_dict = model_to_dict(cred)
+		if cred.shared and group_id != cred.group_id:
+			cred_dict = model_to_dict(cred, exclude={Cred.password, Cred.passphrase})
+		else:
+			cred_dict = model_to_dict(cred)
+			if cred_dict['password']:
+				try:
+					cred_dict['password'] = decrypt_password(cred_dict['password'])
+				except Exception:
+					pass
+			if cred_dict['passphrase']:
+				cred_dict['passphrase'] = decrypt_password(cred_dict['passphrase'])
 		cred_dict['name'] = cred_dict['name'].replace("'", "")
 
-		if cred.key_enabled == 1:
+		if cred.key_enabled == 1 and group_id == cred.group_id:
 			ssh_key_file = _return_correct_ssh_file(cred)
 			if os.path.isfile(ssh_key_file):
 				with open(ssh_key_file, 'rb') as key:
@@ -224,13 +235,6 @@ def get_creds(group_id: int = None, cred_id: int = None, not_shared: bool = Fals
 				cred_dict['private_key'] = ''
 		else:
 			cred_dict['private_key'] = ''
-		if cred_dict['password']:
-			try:
-				cred_dict['password'] = decrypt_password(cred_dict['password'])
-			except Exception:
-				pass
-		if cred_dict['passphrase']:
-			cred_dict['passphrase'] = decrypt_password(cred_dict['passphrase'])
 		json_data.append(cred_dict)
 	return json_data
 

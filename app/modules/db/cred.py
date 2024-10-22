@@ -6,7 +6,8 @@ from app.modules.roxywi.exception import RoxywiResourceNotFound
 def select_ssh(**kwargs):
 	if kwargs.get("group") and kwargs.get("cred_id") and kwargs.get("not_shared"):
 		query = Cred.select().where(
-			((Cred.id == kwargs.get('cred_id')) & (Cred.group_id == kwargs.get('group')))
+			((Cred.id == kwargs.get('cred_id')) & (Cred.group_id == kwargs.get('group'))) |
+			((Cred.id == kwargs.get('cred_id')) & (Cred.shared == 1))
 		)
 	elif kwargs.get("group") and kwargs.get("cred_id"):
 		query = Cred.select().where(

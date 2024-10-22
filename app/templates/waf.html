@@ -155,7 +155,7 @@
 	{% if servers_all|length == 0 %}
 		{% include 'include/getstarted.html' %}
 	{% else %}
-	<table class="overview">
+	<table class="overview" id="waf_servers_table">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
 			<td>{{lang.words.actions|title()}}</td>

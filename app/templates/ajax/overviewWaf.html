@@ -21,7 +21,6 @@
 		<span class="serverNone server-status" title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}"></span> <span title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}">{{ service.0 }}</span>
 	{% endif %}
 	</td>
-{{service.3}}
 	{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
 		<td>
 		{% if role <= 2 %}
@@ -44,7 +43,7 @@
 		</td>
 		<td>
 		{% if role <= 2 %}
-			<select class="waf_mode" id="{{ service.0 }}_select">
+			<select class="waf_mode" id="{{ service.6 }}_select">
 				{% for waf_mode in waf_modes %}
 					{% if service.3 == waf_mode %}
 					<option value={{waf_mode}} selected="selected">{{waf_mode}}</option>
@@ -60,9 +59,9 @@
 		{% if waf_service == 'haproxy' %}
 		<td class="ajaxwafstatus">
 		{% if service.4|int() == 1 %}
-			<label for="metrics{{ service.0 }}"></label><input type="checkbox" id="metrics{{ service.0 }}" checked />
+			<label for="metrics-{{ service.6 }}"></label><input type="checkbox" id="metrics-{{ service.6 }}" checked />
 		{% else %}
-			<label for="metrics{{ service.0 }}"></label><input type="checkbox" id="metrics{{ service.0 }}" />
+			<label for="metrics-{{ service.6 }}"></label><input type="checkbox" id="metrics-{{ service.6 }}" />
 		{% endif %}
 		</td>
 		{% endif %}
@@ -94,7 +93,7 @@
 		$( ".waf_mode" ).on('selectmenuchange',function() {
 			var id = $(this).attr('id');
 			changeWafMode(id)
-		});	
+		});
 		$( ".ajaxwafstatus input" ).change(function() {
 			var id = $(this).attr('id');
 			metrics_waf(id);

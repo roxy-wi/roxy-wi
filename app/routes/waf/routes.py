@@ -194,19 +194,13 @@ def create_rule(service, server_ip):
         return roxywi_common.handle_json_exceptions(e, 'Cannot create WAF rule', server_ip,)
 
 
-@bp.route('/<service>/mode/<server_name>/<waf_mode>')
-def change_waf_mode(service, server_name, waf_mode):
-    if service not in ('haproxy', 'nginx'):
-        return roxywi_common.handle_json_exceptions('Wrong service', '', server_name)
-
-    server_name = common.checkAjaxInput(server_name)
-    waf_mode = common.checkAjaxInput(waf_mode)
-
+@bp.route('/<any(haproxy, nginx):service>/mode/<int:server_id>/<any(On, Off, DetectionOnly):waf_mode>')
+def change_waf_mode(service, server_id, waf_mode):
     try:
-        roxy_waf.change_waf_mode(waf_mode, server_name, service)
-        return jsonify({'status': 'updated'})
+        roxy_waf.change_waf_mode(waf_mode, server_id, service)
+        return jsonify({'status': 'Ok'})
     except Exception as e:
-        return roxywi_common.handle_json_exceptions(e, 'Cannot change WAF mode', server_name)
+        return roxywi_common.handle_json_exceptions(e, 'Cannot change WAF mode', server_id)
 
 
 @bp.route('/overview/<service>/<server_ip>')
@@ -223,11 +217,10 @@ def overview_waf(service, server_ip):
     return roxy_waf.waf_overview(server_ip, service, claims)
 
 
-@bp.route('/metric/enable/<int:enable>/<server_name>')
-def enable_metric(enable, server_name):
-    server_name = common.checkAjaxInput(server_name)
+@bp.route('/metric/enable/<int:enable>/<int:server_id>')
+def enable_metric(enable, server_id):
     try:
-        waf_sql.update_waf_metrics_enable(server_name, enable)
+        waf_sql.update_waf_metrics_enable(server_id, enable)
         return jsonify({'status': 'updated'})
     except Exception as e:
-        return roxywi_common.handle_json_exceptions(e, 'Cannot enable WAF metrics', server_name)
+        return roxywi_common.handle_json_exceptions(e, 'Cannot enable WAF metrics', server_id)
