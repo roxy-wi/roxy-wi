@@ -174,12 +174,12 @@ class CredView(MethodView):
         group_id = SupportClass.return_group_id(body)
 
         try:
-            self._check_is_correct_group(cred_id)
+            self._is_editing_shared_ssh(cred_id, g.user_params['group_id'])
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
         try:
-            self._is_editing_shared_ssh(cred_id, g.user_params['group_id'])
+            self._check_is_correct_group(cred_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
