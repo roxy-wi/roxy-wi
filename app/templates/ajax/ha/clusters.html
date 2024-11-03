@@ -4,16 +4,16 @@
 <div id="cluster-{{cluster.id}}" class="div-server-hapwi">
     <div class="server-name">
         <a href="/ha/cluster/{{cluster.id}}" title="{{lang.words.open|title()}} {{lang.words.cluster|replace("'", "")}}">
-            <span id="cluster-name-{{cluster.id}}">{{cluster.name}}</span>
+            <span id="cluster-name-{{cluster.id}}">{{cluster.name|replace("'", "")}}</span>
             <span id="cluster-desc-{{cluster.id}}">{% if cluster.desc != '' %} ({{cluster.description|replace("'", "")}}) {% endif %}</span>
         </a>
         <span class="server-action">
             {% if g.user_params['role'] <= 3 %}
-            <a class="plus" onclick="add_vip_ha_cluster('{{cluster.id}}', '{{cluster.name}}')"></a>
+            <a class="plus" onclick="add_vip_ha_cluster('{{cluster.id}}', '{{cluster.name|replace("'", "")}}')"></a>
             <a class="edit" onclick="createHaClusterStep1(true, '{{cluster.id}}')"></a>
             <a class="delete" onclick="confirmDeleteCluster('{{cluster.id}}')"></a>
             {% endif %}
-            <a href="{{ url_for('main.service_history', service='cluster', server_ip=cluster.id) }}" title="{{lang.words.view|title()}} {{lang.words.history3}} {{cluster.name}}" class="history" style="margin: 0 5px 0 10px;"></a>
+            <a href="{{ url_for('main.service_history', service='cluster', server_ip=cluster.id) }}" title="{{lang.words.view|title()}} {{lang.words.history3}} {{cluster.name|replace("'", "")}}" class="history" style="margin: 0 5px 0 10px;"></a>
         </span>
     </div>
     <div class="server-desc">
@@ -47,7 +47,7 @@
             <span id="cluster-vip">
             {%- for vip in vips %}
                 {% if g.user_params['role'] <= 2 %}
-                    <a style="cursor: pointer;" onclick="add_vip_ha_cluster('{{vip.cluster_id}}', '{{cluster.name}}', '{{vip.id}}', '{{vip.vip}}', 1)" title="{{lang.words.edit|title()}} VIP">{{vip.vip}}</a>
+                    <a style="cursor: pointer;" onclick="add_vip_ha_cluster('{{vip.cluster_id}}', '{{cluster.name|replace("'", "")}}', '{{vip.id}}', '{{vip.vip}}', 1)" title="{{lang.words.edit|title()}} VIP">{{vip.vip}}</a>
                 {% else %}
                     {{vip.vip}}
                 {%- endif -%}

@@ -786,6 +786,20 @@ class HaproxySection(BaseModel):
         constraints = [SQL('UNIQUE (server_id, type, name)')]
 
 
+class LetsEncrypt(BaseModel):
+    id = AutoField
+    server_id = ForeignKeyField(Server, null=True, on_delete='SET NULL')
+    domains = CharField()
+    email = CharField()
+    api_key = CharField()
+    api_token = CharField()
+    type = CharField()
+    description = CharField()
+
+    class Meta:
+        table_name = 'lets_encrypt'
+
+
 def create_tables():
     conn = connect()
     with conn:
@@ -796,5 +810,5 @@ def create_tables():
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
              KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
-             HaClusterRouter, MM, UDPBalancer, HaproxySection]
+             HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt]
         )

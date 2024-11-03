@@ -73,9 +73,9 @@ def update_ssh_passphrase(cred_id: int, passphrase: str):
 		out_error(e)
 
 
-def get_ssh_by_id_and_group(creds_id: int, group_id: int) -> Cred:
+def get_ssh_by_id_and_group(cred_id: int, group_id: int) -> Cred:
 	try:
-		return Cred.select().where((Cred.group_id == group_id) & (Cred.id == creds_id)).execute()
+		return Cred.select().where((Cred.group_id == group_id) & (Cred.id == cred_id)).execute()
 	except Cred.DoesNotExist:
 		raise RoxywiResourceNotFound
 	except Exception as e:

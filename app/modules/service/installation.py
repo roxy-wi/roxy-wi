@@ -230,7 +230,7 @@ def generate_service_inv(json_data: ServiceInstall, installed_service: str) -> o
 
 def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 	inventory_path = '/var/www/haproxy-wi/app/scripts/ansible/inventory'
-	inventory = f'{inventory_path}/{ansible_role}.json'
+	inventory = f'{inventory_path}/{ansible_role}-{random.randint(0, 35)}.json'
 	proxy = sql.get_setting('proxy')
 	proxy_serv = ''
 	tags = ''
@@ -330,8 +330,13 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 def run_ansible_locally(inv: dict, ansible_role: str) -> dict:
 	inventory_path = '/var/www/haproxy-wi/app/scripts/ansible/inventory'
 	inventory = f'{inventory_path}/{ansible_role}-{random.randint(0, 35)}.json'
-	# proxy = sql.get_setting('proxy')
-	# proxy_serv = ''
+	proxy_serv = ''
+	proxy = sql.get_setting('proxy')
+
+	if proxy is not None and proxy != '' and proxy != 'None':
+		proxy_serv = proxy
+
+	inv['server']['hosts']['localhost']['PROXY'] = proxy_serv
 
 	envvars = {
 		'ANSIBLE_DISPLAY_OK_HOSTS': 'no',

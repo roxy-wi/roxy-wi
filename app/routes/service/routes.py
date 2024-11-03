@@ -17,7 +17,7 @@ import app.modules.service.common as service_common
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxywi.overview as roxy_overview
 from app.views.service.views import ServiceActionView, ServiceBackendView, ServiceView
-
+from app.views.service.lets_encrypt_views import LetsEncryptView, LetsEncryptsView
 
 bp.add_url_rule('/<service>/<server_id>/<any(start, stop, reload, restart):action>', view_func=ServiceActionView.as_view('service_action_ip'), methods=['GET'])
 bp.add_url_rule('/<service>/<int:server_id>/<any(start, stop, reload, restart):action>', view_func=ServiceActionView.as_view('service_action'), methods=['GET'])
@@ -25,6 +25,9 @@ bp.add_url_rule('/<service>/<server_id>/backend', view_func=ServiceBackendView.a
 bp.add_url_rule('/<service>/<int:server_id>/backend', view_func=ServiceBackendView.as_view('service_backend'), methods=['GET'])
 bp.add_url_rule('/<service>/<server_id>/status', view_func=ServiceView.as_view('service_ip'), methods=['GET'])
 bp.add_url_rule('/<service>/<int:server_id>/status', view_func=ServiceView.as_view('service'), methods=['GET'])
+bp.add_url_rule('/letsencrypt', view_func=LetsEncryptView.as_view('le_web'), methods=['POST'])
+bp.add_url_rule('/letsencrypt/<int:le_id>', view_func=LetsEncryptView.as_view('le_web_id'), methods=['GET', 'PUT', 'DELETE'])
+bp.add_url_rule('/letsencrypts', view_func=LetsEncryptsView.as_view('le_webs'), methods=['GET'])
 
 
 @bp.before_request

@@ -1,0 +1,125 @@
+---
+- name: Kill cerbot standalone
+  shell: ps ax |grep 'certbot certonly --standalone' |grep -v grep |awk '{print $1}' |xargs kill
+  ignore_errors: yes
+  failed_when: false
+  no_log: True
+
+- name: Creates certbot directory
+  file:
+    path: ~/.secrets/certbot/
+    state: directory
+
+- name: Install Standalone
+  when: cert_type == "standalone"
+  block:
+    - name: install EPEL Repository
+      yum:
+        name: epel-release
+        state: latest
+      when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
+      ignore_errors: yes
+      failed_when: false
+      no_log: True
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+
+    - name: Install certbot
+      package:
+        name: certbot
+        state: present
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+
+    - name: Get cert
+      command: certbot certonly --standalone "{{domains_command}}" --non-interactive --agree-tos --email "{{email}}" --http-01-port=8888
+
+    - name: Combine into pem file
+      shell: "cat /etc/letsencrypt/live/{{main_domain}}/fullchain.pem /etc/letsencrypt/live/{{main_domain}}/privkey.pem > {{ssl_path}}/{{main_domain}}.pem"
+
+    - name: Creates directory
+      file:
+        path: "{{haproxy_dir}}/scripts"
+        state: directory
+
+    - name: Copy renew script
+      template:
+        src: renew_letsencrypt.j2
+        dest: "{{haproxy_dir}}/scripts/renew_letsencrypt.sh"
+        mode: '0755'
+      ignore_errors: yes
+      failed_when: false
+      no_log: True
+
+    - name: Creates cron jobs
+      cron:
+        name: "Let's encrypt renew script"
+        special_time: "monthly"
+        job: '{{haproxy_dir}}/scripts/renew_letsencrypt.sh'
+
+- name: Install DNS cert
+  when: cert_type != "standalone"
+  block:
+    - name: install EPEL Repository
+      yum:
+        name: epel-release
+        state: latest
+      when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS')
+      ignore_errors: yes
+      failed_when: false
+      no_log: True
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+
+    - name: Install certbot
+      package:
+        name: certbot
+        state: present
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"
+
+    - name: Install cert bot plugin
+      pip:
+        name: "certbot-dns-{{ cert_type }}"
+        executable: /usr/local/bin/pip3
+        state: latest
+
+    - name: Copy DNS secret file
+      template:
+        src: "{{ cert_type }}.j2"
+        dest: "~/.secrets/certbot/{{ cert_type }}-{{ main_domain }}.ini"
+
+    - name: Obtain certificate
+      shell: "certbot certonly --dns-{{ cert_type }} {{domains_command}} --dns-{{ cert_type }}-credentials ~/.secrets/certbot/{{ cert_type }}-{{ main_domain }}.ini --dns-{{ cert_type }}-propagation-seconds 60"
+      environment:
+        AWS_CONFIG_FILE: "~/.secrets/certbot/{{ cert_type }}.ini"
+
+#    - name: Obtain certificate
+#      shell: "touch /etc/letsencrypt/live/{{main_domain}}/fullchain.pem & touch /etc/letsencrypt/live/{{main_domain}}/privkey.pem"
+#      environment:
+#        AWS_CONFIG_FILE: "~/.secrets/certbot/{{ cert_type }}.ini"
+
+    - name: Combine into pem file
+      shell: cat /etc/letsencrypt/live/{{main_domain}}/fullchain.pem /etc/letsencrypt/live/{{main_domain}}/privkey.pem > /etc/letsencrypt/live/{{main_domain}}/{{main_domain}}.pem
+
+    - name: Copy certificate
+      shell: "scp -o StrictHostKeyChecking=no -i {{ item.value.split('@')[1] }} /etc/letsencrypt/live/{{main_domain}}/* {{ item.value.split('@')[0] }}@{{ item.key }}:{{ ssl_path }}"
+      loop: "{{ servers | dict2items }}"
+
+    - name: Create certbot certificate renew job
+      cron:
+        name: "Roxy-WI certbot certificate renew"
+        minute: "0"
+        hour: "0,12"
+        job: "root /opt/certbot/bin/python -c 'import random; import time; time.sleep(random.random() * 3600)' && sudo certbot renew -q"
+
+    - name: Create RSYNC job
+      cron:
+        name: "Roxy-WI le certificate {{ main_domain }} {{ item.key }}"
+        special_time: monthly
+        job: "rsync -arv /etc/letsencrypt/live/{{main_domain}}/* {{ item.value.split('@')[0] }}@{{ item.key }}:{{ ssl_path }} -e 'ssh -i {{ item.value.split('@')[1] }} -o StrictHostKeyChecking=no' --log-file=/var/www/roxy-wi/log/letsencrypt.log"
+      loop: "{{ servers | dict2items }}"

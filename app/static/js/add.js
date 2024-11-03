@@ -1,6 +1,25 @@
+window.onload = function() {
+	var cur_url = window.location.href.split('/').pop();
+	let activeTabIdx = $('#tabs').tabs('option','active');
+	if (cur_url.split('#')[1] === 'ssl') {
+		if (activeTabIdx === 4) {
+			getLes();
+		}
+	}
+}
 $( function() {
+	$("#tabs ul li").click(function () {
+        let activeTab = $(this).find("a").attr("href");
+        let activeTabClass = activeTab.replace('#', '');
+        $('.menu li ul li').each(function () {
+            activeSubMenu($(this), activeTabClass)
+        });
+        if (activeTab === '#ssl') {
+            getLes();
+        }
+    });
 	$("#listen-mode-select").on('selectmenuchange', function () {
-		if ($("#listen-mode-select option:selected").val() == "tcp") {
+		if ($("#listen-mode-select option:selected").val() === "tcp") {
 			$("#https-listen-span").hide("fast");
 			$("#https-hide-listen").hide("fast");
 			$("#compression").checkboxradio("disable");
@@ -19,7 +38,7 @@ $( function() {
 		}
 	});
 	$("#frontend-mode-select").on('selectmenuchange', function () {
-		if ($("#frontend-mode-select option:selected").val() == "tcp") {
+		if ($("#frontend-mode-select option:selected").val() === "tcp") {
 			$("#https-frontend-span").hide("fast");
 			$("#https-hide-frontend").hide("fast");
 			$("#compression2").checkboxradio("disable");
@@ -442,6 +461,7 @@ $( function() {
 				$(this).children("#add3").css('border-left', '4px solid #5D9CEB');
 				$(this).children("#add3").css('background-color', 'var(--right-menu-blue-rolor)');
 			});
+			getLes();
 			$("#tabs").tabs("option", "active", 4);
 		});
 		$("#add4").on("click", function () {
@@ -529,40 +549,6 @@ $( function() {
 				}
 			}
 		});
-	});
-	$('#lets_button').click(function () {
-		let lets_domain = $('#lets_domain').val();
-		let lets_email = $('#lets_email').val();
-		if (lets_email == '' || lets_domain == '') {
-			toastr.error('Fields cannot be empty');
-		} else if (validateEmail(lets_email)) {
-			$("#ajax-ssl").html(wait_mess);
-			$.ajax({
-				url: "/add/lets",
-				data: {
-					serv: $('#serv_for_lets').val(),
-					lets_domain: lets_domain,
-					lets_email: lets_email
-				},
-				type: "POST",
-				success: function (data) {
-					if (data.indexOf('error:') != '-1' || data.indexOf('ERROR') != '-1' || data.indexOf('FAILED') != '-1') {
-						toastr.clear();
-						toastr.error(data);
-					} else if (data.indexOf('WARNING') != '-1') {
-						toastr.clear();
-						toastr.warning(data);
-					} else {
-						toastr.clear();
-						toastr.success(data);
-					}
-					$("#ajax-ssl").html('');
-				}
-			});
-		} else {
-			toastr.clear();
-			toastr.error('Wrong e-mail format');
-		}
 	});
 	$('[name=add-server-input]').click(function () {
 		$("[name=add_servers]").append(add_server_var);

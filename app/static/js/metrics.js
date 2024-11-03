@@ -353,7 +353,10 @@ function renderServiceChart(data, labels, server, service) {
     config.options.plugins.title.text = data[1] + ' ' + additional_title;
     let myChart = new Chart(ctx, config);
     myChart.update();
-    stream_chart(myChart, service, server);
+    charts.push(myChart)
+    if (service !== 'waf') {
+        stream_chart(myChart, service, server);
+    }
 }
 function getNginxChartData(server) {
     $.ajax({

@@ -12,6 +12,7 @@ from app.views.service.views import (ServiceView, ServiceActionView, ServiceBack
                                      ServiceConfigVersionsView, ServiceConfigList)
 from app.views.service.haproxy_section_views import ListenSectionView, UserListSectionView, PeersSectionView, \
     GlobalSectionView, DefaultsSectionView
+from app.views.service.lets_encrypt_views import LetsEncryptsView, LetsEncryptView
 from app.views.ha.views import HAView, HAVIPView, HAVIPsView
 from app.views.user.views import UserView, UserGroupView, UserRoles
 from app.views.udp.views import UDPListener, UDPListeners, UDPListenerActionView
@@ -87,6 +88,8 @@ register_api(GitBackupView, 'backup_git', '/server/backup/git', 'backup_id')
 bp.add_url_rule('/server/<server_id>/ip', view_func=ServerIPView.as_view('server_ip_ip'), methods=['GET'])
 bp.add_url_rule('/server/<int:server_id>/ip', view_func=ServerIPView.as_view('server_ip'), methods=['GET'])
 register_api_for_not_api(CredView, 'cred', '/server/cred', 'cred_id')
+register_api(LetsEncryptView, 'le_api', '/service/letsencrypt', 'le_id')
+bp.add_url_rule('service/letsencrypts', view_func=LetsEncryptsView.as_view('les_api'), methods=['GET'])
 bp.add_url_rule('/server/creds', view_func=CredsView.as_view('creds'), methods=['GET'])
 bp.add_url_rule('/server/portscanner/<server_id>', view_func=PortScannerView.as_view('port_scanner_ip'), methods=['GET', 'POST'])
 bp.add_url_rule('/server/portscanner/<int:server_id>', view_func=PortScannerView.as_view('port_scanner'), methods=['GET', 'POST'])

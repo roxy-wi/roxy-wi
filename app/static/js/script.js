@@ -41,40 +41,13 @@ function show_current_page(id) {
 $( function() {		
    $('.menu li ul li').each(function () {
 	   let link = $(this).find('a').attr('href');
-	   let link2 = link.split('#')[1];
-	   let link3 = link.split('/')[2];
-	   let link4 = link.split('/')[3];
-	   // if (cur_url[1] == null) {
-		//    cur_url[1] = 'haproxy';
-	   // }
 	   let full_uri = window.location.pathname
 	   let full_uri1 = window.location.hash
-	   let full_uri2 = cur_url[0] + '/' + cur_url[1] + '/' + cur_url[2]
-	   let full_uri3 = link2 + '/' + link3 + '/' + link4
-	   // console.log(link)
-	   // console.log(window.location.hash)
 	   let params = new URL(document.location.toString()).searchParams;
-	   // console.log(params.get("service"))
-	   // console.log(link)
-	   // console.log(full_uri)
-	   // console.log(full_uri1)
-	   // console.log(full_uri + "/" + full_uri1)
-	   // if (full_uri1 === '/service/haproxy') {
-		   // console.log(full_uri)
-		   // console.log(full_uri1)
-	   // }
 	   if (full_uri === link) {
 		   show_current_page($(this))
-	   // } else if (window.location.pathname.indexOf('add/haproxy#') != '-1' && link.indexOf('add/haproxy#proxy') != '-1') {
-		//    show_current_page($(this))
 	   } else if (link === full_uri + full_uri1) {
 		   show_current_page($(this))
-	   // } else if (link === '/admin#servers' && full_uri1 === '#servers') {
-		//    show_current_page($(this))
-	   // } else if (link === '/admin#ssh' && full_uri1 === '#ssh') {
-		//    show_current_page($(this))
-	   // } else if (link === '/add/haproxy#proxy' && full_uri1 === '#proxy') {
-		//    show_current_page($(this))
 	   } else if (link === '/add/haproxy#ssl' && full_uri1 === '#ssl' && params.get("service") != 'nginx') {
 		   show_current_page($(this))
 	   } else if (link === '/add/haproxy#ssl' && full_uri1 === '#ssl' && params.get("service") === 'nginx') {
@@ -1007,15 +980,20 @@ function changePassword() {
 			effect: "fade",
 			duration: 200
 		},
-		buttons: {
-			"Change": function () {
-				changeUserPasswordItOwn($(this));
-			},
-			Cancel: function () {
-				$(this).dialog("close");
-				$('#missmatchpass').hide();
+		buttons: [
+			{
+				text: $('#translate').attr('data-change'),
+				click: function () {
+					changeUserPasswordItOwn($(this));
+				}
+			}, {
+				text: cancel_word,
+				click: function () {
+					$(this).dialog("close");
+					$('#missmatchpass').hide();
+				}
 			}
-		}
+		]
 	});
 }
 function changeUserPasswordItOwn(d) {

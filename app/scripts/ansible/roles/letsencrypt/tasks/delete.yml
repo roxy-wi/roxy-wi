@@ -1,0 +1,13 @@
+---
+- name: Delete RSYNC job
+  cron:
+    name: "Roxy-WI le certificate {{ main_domain }} {{ item.key }}"
+    special_time: monthly
+    state: absent
+    job: "rsync -arv /etc/letsencrypt/live/{{main_domain}}/* {{ item.value.split('@')[0] }}@{{ item.key }}:{{ ssl_path }} -e 'ssh -i {{ item.value.split('@')[1] }} -o StrictHostKeyChecking=no' --log-file=/var/www/roxy-wi/log/letsencrypt.log"
+  loop: "{{ servers | dict2items }}"
+
+- name: Delete DNS secret file
+  file:
+    path: "~/.secrets/certbot/{{ cert_type }}-{{ main_domain }}.ini"
+    state: absent

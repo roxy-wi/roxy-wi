@@ -263,12 +263,14 @@ def delete_ha_virt(vip_id: int) -> None:
 		pass
 
 
-def check_ha_virt(vip_id: int) -> bool:
+def check_ha_virt(vip_id: int) -> int:
 	try:
-		HaClusterVirt.get(HaClusterVirt.vip_id == vip_id).virt_id
-	except Exception:
-		return False
-	return True
+		_ = HaClusterVirt.get(HaClusterVirt.vip_id == vip_id).virt_id
+		return 1
+	except HaClusterVirt.DoesNotExist:
+		return 0
+	except Exception as e:
+		out_error(e)
 
 
 def select_ha_virts(cluster_id: int) -> HaClusterVirt:

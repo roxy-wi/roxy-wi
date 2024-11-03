@@ -12,7 +12,6 @@ import app.modules.db.history as history_sql
 import app.modules.db.portscanner as ps_sql
 import app.modules.server.ssh as mod_ssh
 import app.modules.common.common as common
-import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 
 

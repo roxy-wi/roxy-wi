@@ -193,7 +193,7 @@ def insert_vip(cluster_id: int, cluster: HAClusterVIP, group_id: int) -> int:
         raise Exception(f'Cannot get servers: {e}')
 
     try:
-        vip_id = HaClusterVip.insert(cluster_id=cluster_id, router_id=router_id, vip=vip, return_master=cluster.return_master).execute()
+        vip_id = HaClusterVip.insert(cluster_id=cluster_id, router_id=router_id, vip=vip, use_src=cluster.use_src, return_master=cluster.return_master).execute()
     except Exception as e:
         raise Exception(f'error: Cannot save VIP {vip}: {e}')
 

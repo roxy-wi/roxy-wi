@@ -135,9 +135,10 @@ def default_values():
 		print(str(e))
 
 	data_source = [
-		{'name': 'superAdmin', 'description': 'Has the highest level of administrative permissions and controls the actions of all other users'},
-		{'name': 'admin', 'description': 'Has access everywhere except the Admin area'},
-		{'name': 'user', 'description': 'Has the same rights as the admin but has no access to the Servers page'},
+		{'name': 'superAdmin',
+		 'description': 'Has the highest level of administrative permissions and controls the actions of all other users'},
+		{'name': 'admin', 'description': 'Has admin access to its groups'},
+		{'name': 'user', 'description': 'Has the same rights as the admin but has no access to the Admin area'},
 		{'name': 'guest', 'description': 'Read-only access'}
 	]
 
@@ -680,7 +681,7 @@ def update_db_v_8_1_0_3():
 
 def update_ver():
 	try:
-		Version.update(version='8.1.0.1').execute()
+		Version.update(version='8.1.2').execute()
 	except Exception:
 		print('Cannot update version')
 

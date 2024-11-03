@@ -14,7 +14,7 @@
     cron:
       name: "Roxy-WI Backup configs for server {{ SERVER }} {{ item }}"
       special_time: "{{ TIME }}"
-      job: "rsync -arv {{ TYPE }} /var/lib/roxy-wi/configs/{{ item }}/{{ SERVER }}* {{ USER }}@{{ HOST }}:{{ RPATH }}/roxy-wi-configs-backup/configs/{{ item }} -e 'ssh -i {{ KEY }} -o StrictHostKeyChecking=no' --log-file=/var/www/haproxy-wi/log/backup.log"
+      job: "rsync -arv {{ TYPE }} /var/lib/roxy-wi/configs/{{ item }}/{{ SERVER }}* {{ USER }}@{{ HOST }}:{{ RPATH }}/roxy-wi-configs-backup/configs/{{ item }} -e 'ssh -i {{ KEY }} -o StrictHostKeyChecking=no' --log-file=/var/www/roxy-wi/log/backup.log"
     when: not DELJOB
     delegate_to: localhost
     with_items:

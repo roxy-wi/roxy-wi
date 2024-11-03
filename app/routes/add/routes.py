@@ -284,15 +284,6 @@ def create_map():
         return add_mod.edit_map(map_name, group)
 
 
-@bp.post('lets')
-def lets():
-    server_ip = common.checkAjaxInput(request.form.get('serv'))
-    lets_domain = common.checkAjaxInput(request.form.get('lets_domain'))
-    lets_email = common.checkAjaxInput(request.form.get('lets_email'))
-
-    return add_mod.get_le_cert(server_ip, lets_domain, lets_email)
-
-
 @bp.post('/nginx/upstream')
 @get_user_params()
 def add_nginx_upstream():

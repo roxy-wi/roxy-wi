@@ -5,7 +5,6 @@ from flask import render_template
 import app.modules.db.sql as sql
 import app.modules.db.add as add_sql
 import app.modules.db.server as server_sql
-import app.modules.server.ssh as ssh_mod
 import app.modules.common.common as common
 import app.modules.config.config as config_mod
 import app.modules.config.common as config_common
@@ -324,45 +323,6 @@ def get_saved_servers(group: str, term: str) -> dict:
 		v = v + 1
 
 	return a
-
-
-def get_le_cert(server_ip: str, lets_domain: str, lets_email: str) -> str:
-	proxy = sql.get_setting('proxy')
-	ssl_path = common.return_nice_path(sql.get_setting('cert_path'), is_service=0)
-	haproxy_dir = sql.get_setting('haproxy_dir')
-	script = "letsencrypt.sh"
-	proxy_serv = ''
-	ssh_settings = ssh_mod.return_ssh_keys_path(server_ip)
-	full_path = '/var/www/haproxy-wi/app'
-
-	os.system(f"cp {full_path}/scripts/{script} {full_path}/{script}")
-
-	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_serv = proxy
-
-	commands = [
-		f"chmod +x {full_path}/{script} && {full_path}/{script} PROXY={proxy_serv} haproxy_dir={haproxy_dir} DOMAIN={lets_domain} "
-		f"EMAIL={lets_email} SSH_PORT={ssh_settings['port']} SSL_PATH={ssl_path} HOST={server_ip} USER={ssh_settings['user']} "
-		f"PASS='{ssh_settings['password']}' KEY={ssh_settings['key']}"
-	]
-
-	output, error = server_mod.subprocess_execute(commands[0])
-
-	if error:
-		roxywi_common.logging('Roxy-WI server', error, roxywi=1)
-		return error
-	else:
-		for line in output:
-			if any(s in line for s in ("msg", "FAILED")):
-				try:
-					line = line.split(':')[1]
-					line = line.split('"')[1]
-					return line + "<br>"
-				except Exception:
-					return output
-		else:
-			os.remove(f'{full_path}/{script}')
-			return 'success: Certificate has been created'
 
 
 def get_ssl_cert(server_ip: str, cert_id: int) -> str:

@@ -5,6 +5,7 @@ from flask import render_template, request, jsonify, g
 from playhouse.shortcuts import model_to_dict
 
 import app.modules.db.ha_cluster as ha_sql
+import app.modules.db.service as service_sql
 import app.modules.roxywi.common as roxywi_common
 import app.modules.common.common as common
 import app.modules.service.ha_cluster as ha_cluster
@@ -39,36 +40,87 @@ class HAView(MethodView):
             type: 'integer'
         responses:
           200:
-            description: Successful operation
+            description: HA details retrieved successfully
             schema:
-              type: 'object'
+              type: object
               properties:
                 description:
-                  type: 'string'
+                  type: string
+                  description: Description of the HA
                 eth:
-                  type: 'string'
+                  type: string
+                  description: Ethernet interface
                 group_id:
-                  type: 'integer'
-                haproxy:
-                  type: 'integer'
+                  type: integer
+                  description: Group ID
                 id:
-                  type: 'integer'
+                  type: integer
+                  description: ID of the HA
                 name:
-                  type: 'string'
-                nginx:
-                  type: 'integer'
+                  type: string
+                  description: Name of the listener
                 pos:
-                  type: 'integer'
+                  type: integer
+                  description: Position
+                return_master:
+                  type: integer
+                  description: Return master flag
+                servers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      eth:
+                        type: string
+                        description: Ethernet interface
+                      id:
+                        type: integer
+                        description: Server ID
+                      master:
+                        type: integer
+                        description: Master flag
+                services:
+                  type: object
+                  properties:
+                    apache:
+                      type: object
+                      properties:
+                        docker:
+                          type: integer
+                          description: Docker flag for Apache
+                        enabled:
+                          type: integer
+                          description: Enabled flag for Apache
+                    haproxy:
+                      type: object
+                      properties:
+                        docker:
+                          type: integer
+                          description: Docker flag for HAProxy
+                        enabled:
+                          type: integer
+                          description: Enabled flag for HAProxy
+                    nginx:
+                      type: object
+                      properties:
+                        docker:
+                          type: integer
+                          description: Docker flag for NGINX
+                        enabled:
+                          type: integer
+                          description: Enabled flag for NGINX
                 syn_flood:
-                  type: 'integer'
+                  type: integer
+                  description: SYN Flood protection flag
                 use_src:
-                  type: 'integer'
+                  type: integer
+                  description: Use source flag
                 vip:
-                  type: 'string'
+                  type: string
+                  description: Virtual IP address
                 virt_server:
-                  type: 'boolean'
-          default:
-            description: Unexpected error
+                  type: integer
+                  description: Virtual server flag
         """
         if not cluster_id:
             if request.method == 'GET':
@@ -88,25 +140,48 @@ class HAView(MethodView):
             cluster_services = ha_sql.select_cluster_services(cluster_id)
             vip = ha_sql.select_cluster_vip(cluster_id, router_id)
             is_virt = ha_sql.check_ha_virt(vip.id)
+            if vip.use_src:
+                use_src = 1
+            else:
+                use_src = 0
 
             for cluster in clusters:
                 settings = model_to_dict(cluster)
             settings.setdefault('vip', vip.vip)
             settings.setdefault('virt_server', is_virt)
-            settings.setdefault('use_src', vip.use_src)
+            settings.setdefault('use_src', use_src)
             settings.setdefault('return_master', vip.return_master)
+            settings['servers'] = []
+            settings['services'] = {
+                'haproxy': {
+                    'enabled': 0,
+                    'docker': 0
+                },
+                'nginx': {
+                    'enabled': 0,
+                    'docker': 0
+                },
+                'apache': {
+                    'enabled': 0,
+                    'docker': 0
+                }
+            }
 
             for slave in slaves:
+                server_id = slave[0]
                 if slave[31]:
                     settings.setdefault('eth', slave[32])
+                server_settings = {'id': server_id, 'eth': slave[32], 'master': slave[31]}
+                settings['servers'].append(server_settings)
 
             for c_s in cluster_services:
+                is_dockerized = int(service_sql.select_service_setting(server_id, c_s.service_id, 'dockerized'))
                 if int(c_s.service_id) == 1:
-                    settings.setdefault('haproxy', 1)
-                elif int(c_s.service_id) == 2:
-                    settings.setdefault('nginx', 1)
-                elif int(c_s.service_id) == 4:
-                    settings.setdefault('apache', 1)
+                    settings['services']['haproxy'] = {'enabled': 1, 'docker': is_dockerized}
+                if int(c_s.service_id) == 2:
+                    settings['services']['nginx'] = {'enabled': 1, 'docker': is_dockerized}
+                if int(c_s.service_id) == 4:
+                    settings['services']['apache'] = {'enabled': 1, 'docker': is_dockerized}
 
             return jsonify(settings)
 
@@ -353,42 +428,74 @@ class HAVIPView(MethodView):
             description: 'Can be only "cluster"'
             required: true
             type: 'string'
-          - in: 'path'
-            name: 'cluster_id'
-            description: 'ID of the HA cluster to retrieve'
+          - name: cluster_id
+            in: path
+            type: integer
             required: true
-            type: 'integer'
-          - in: 'path'
-            name: 'vip_id'
-            description: 'ID of the VIP to retrieve'
+            description: ID of the cluster
+          - name: vip_id
+            in: path
+            type: integer
             required: true
-            type: 'integer'
+            description: ID of the VIP
         responses:
           200:
-            description: Successful operation
+            description: HAVIP details retrieved successfully
             schema:
               type: object
               properties:
                 cluster_id:
-                  type: 'integer'
+                  type: integer
+                  description: ID of the cluster
+                eth:
+                  type: string
+                  description: Ethernet interface
                 id:
-                  type: 'integer'
+                  type: integer
+                  description: ID of the HAVIP
                 return_master:
-                  type: 'integer'
+                  type: integer
+                  description: Return master flag
                 router_id:
-                  type: 'integer'
+                  type: integer
+                  description: ID of the router
+                servers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      eth:
+                        type: string
+                        description: Ethernet interface
+                      id:
+                        type: integer
+                        description: Server ID
+                      master:
+                        type: integer
+                        description: Master flag
                 use_src:
-                  type: 'integer'
+                  type: integer
+                  description: Use source flag
                 vip:
-                  type: 'string'
-          default:
-            description: Unexpected error
+                  type: string
+                  description: Virtual IP address
+                virt_server:
+                  type: integer
+                  description: Virtual server flag
         """
         try:
             vip = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)
+            slaves = ha_sql.select_cluster_slaves(cluster_id, vip.router_id)
             settings = model_to_dict(vip, recurse=False)
             is_virt = ha_sql.check_ha_virt(vip.id)
             settings.setdefault('virt_server', is_virt)
+            settings['servers'] = []
+            for slave in slaves:
+                server_id = slave[0]
+                if slave[31]:
+                    settings.setdefault('eth', slave[32])
+                server_settings = {'id': server_id, 'eth': slave[32], 'master': slave[31]}
+                settings['servers'].append(server_settings)
             return jsonify(settings)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get VIP')

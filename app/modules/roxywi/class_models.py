@@ -4,9 +4,10 @@ from typing import Optional, Annotated, Union, Literal, Any, Dict, List
 
 from shlex import quote
 from pydantic_core import CoreSchema, core_schema
-from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, GetCoreSchemaHandler, AnyUrl
+from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, GetCoreSchemaHandler, AnyUrl, root_validator, EmailStr
 
 DomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
+WildcardDomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9\*](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
 
 
 class EscapedString(str):
@@ -134,6 +135,7 @@ class ServerRequest(BaseModel):
 
 class GroupQuery(BaseModel):
     group_id: Optional[int] = None
+    recurse: Optional[bool] = False
 
 
 class GroupRequest(BaseModel):
@@ -298,6 +300,52 @@ class SSLCertUploadRequest(BaseModel):
 
 class SavedServerRequest(BaseModel):
     server: EscapedString
+    description: Optional[EscapedString] = None
+
+
+class LetsEncryptRequest(BaseModel):
+    server_id: int
+    domains: List[WildcardDomainName]
+    email: Optional[EmailStr] = None
+    type: Literal['standalone', 'route53', 'cloudflare', 'digitalocean', 'linode']
+    api_key: Optional[EscapedString] = None
+    api_token: EscapedString
+    description: Optional[EscapedString] = None
+
+    @root_validator(pre=True)
+    @classmethod
+    def is_email_when_standalone(cls, values):
+        cert_type = ''
+        email = ''
+        if 'type' in values:
+            cert_type = values['type']
+        if 'email' in values:
+            email = values['email']
+        if cert_type == 'standalone' and email == '':
+            raise ValueError('Email must be when type is standalone')
+        return values
+
+    @root_validator(pre=True)
+    @classmethod
+    def is_api_key_when_route53(cls, values):
+        cert_type = ''
+        api_key = ''
+        if 'type' in values:
+            cert_type = values['type']
+        if 'api_key' in values:
+            api_key = values['api_key']
+        if cert_type == 'route53' and api_key == '':
+            raise ValueError('api_key(secret key) must be when type is route53')
+        return values
+
+
+class LetsEncryptDeleteRequest(BaseModel):
+    server_id: int
+    domains: List[WildcardDomainName]
+    email: Optional[str] = None
+    type: Literal['standalone', 'route53', 'cloudflare', 'digitalocean', 'linode']
+    api_key: Optional[EscapedString] = None
+    api_token: EscapedString
     description: Optional[EscapedString] = None
 
 
