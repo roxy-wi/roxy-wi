@@ -11,18 +11,15 @@ import app.modules.roxywi.common as roxywi_common
 
 
 def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
-    # servers = server_sql.select_servers(server=serv)
     server = server_sql.get_server_by_ip(serv)
     role = user_sql.get_user_role_in_group(claims['user_id'], claims['group'])
     returned_servers = []
     waf = ''
-    waf_len = 0
     metrics_en = 0
     waf_process = ''
     waf_mode = ''
     is_waf_on_server = 0
 
-    # for server in servers:
     if waf_service == 'haproxy':
         is_waf_on_server = service_sql.select_haproxy(server.ip)
     elif waf_service == 'nginx':
@@ -56,14 +53,14 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
                              metrics_en,
                              waf_len,
                              server.server_id)
-    else:
-        server_status = (server.hostname,
-                         server.ip,
-                         waf_process,
-                         waf_mode,
-                         metrics_en,
-                         waf_len,
-                         server.server_id)
+        else:
+            server_status = (server.hostname,
+                             server.ip,
+                             waf_process,
+                             waf_mode,
+                             metrics_en,
+                             waf_len,
+                             server.server_id)
     returned_servers.append(server_status)
 
     lang = roxywi_common.get_user_lang_for_flask()

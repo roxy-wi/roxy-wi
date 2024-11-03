@@ -667,6 +667,9 @@ class HAVIPView(MethodView):
         if router.default == 1:
             return roxywi_common.handler_exceptions_for_json_data(Exception(''), 'You cannot delete default VIP')
         try:
+            if ha_sql.check_ha_virt(vip_id):
+                ha_sql.delete_ha_virt(vip_id)
+                roxywi_common.logging(cluster_id, f'Cluster virtual server for VIP: {vip.vip} has been deleted', keep_history=1, roxywi=1, service='HA cluster')
             ha_sql.delete_ha_router(vip.router_id)
             return BaseResponse().model_dump(mode='json'), 204
         except Exception as e:

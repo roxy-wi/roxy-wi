@@ -372,7 +372,7 @@ def change_maxconn_backend(serv, backend, backend_server, maxconn) -> str:
 	for master in masters:
 		if master[0] is not None:
 			cmd = f'echo "set maxconn server {backend}/{backend_server} {maxconn}" |nc {master[0]} {haproxy_sock_port}'
-			output, stderr = server_mod.subprocess_execute(cmd)
+			server_mod.subprocess_execute(cmd)
 		roxywi_common.logging(master[0], f'Maxconn has been changed. On: {backend}/{backend_server} to {maxconn}', login=1, keep_history=1, service='haproxy')
 
 	cmd = f'echo "set maxconn server {backend}/{backend_server} {maxconn}" |nc {serv} {haproxy_sock_port}'
