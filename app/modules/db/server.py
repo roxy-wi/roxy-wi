@@ -1,4 +1,4 @@
-from peewee import IntegrityError
+from peewee import IntegrityError, DoesNotExist
 
 from app.modules.db.db_model import mysql_enable, connect, Server, SystemInfo
 from app.modules.db.common import out_error, not_unique_error
@@ -38,7 +38,7 @@ def update_server(hostname, ip, group, type_ip, enable, master, server_id, cred,
 def get_server_by_id(server_id: int) -> Server:
 	try:
 		return Server.get(Server.server_id == server_id)
-	except Server.DoesNotExist:
+	except DoesNotExist:
 		raise RoxywiResourceNotFound
 	except Exception as e:
 		return out_error(e)
@@ -47,7 +47,7 @@ def get_server_by_id(server_id: int) -> Server:
 def get_server_by_ip(server_ip: str) -> Server:
 	try:
 		return Server.get(Server.ip == server_ip)
-	except Server.DoesNotExist:
+	except DoesNotExist:
 		raise RoxywiResourceNotFound
 	except Exception as e:
 		return out_error(e)
@@ -93,7 +93,7 @@ def is_system_info(server_id):
 def select_os_info(server_id):
 	try:
 		return SystemInfo.get(SystemInfo.server_id == server_id).os_info
-	except SystemInfo.DoesNotExist:
+	except DoesNotExist:
 		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
@@ -159,51 +159,15 @@ def select_servers(**kwargs):
 	cursor = conn.cursor()
 
 	if mysql_enable == '1':
-		sql = """select * from `servers` where `enabled` = 1 ORDER BY servers.group_id """
+		sql = """select * from `servers` ORDER BY hostname """
 
 		if kwargs.get("server") is not None:
 			sql = """select * from `servers` where `ip` = '{}' """.format(kwargs.get("server"))
-		if kwargs.get("full") is not None:
-			sql = """select * from `servers` ORDER BY hostname """
-		if kwargs.get("get_master_servers") is not None:
-			sql = """select id,hostname from `servers` where `master` = 0 and type_ip = 0 and enabled = 1 ORDER BY servers.group_id """
-		if kwargs.get("get_master_servers") is not None and kwargs.get('user_id') is not None:
-			sql = """ select servers.id, servers.hostname from `servers`
-				left join user as user on servers.group_id = user.group_id
-				where user.user_id = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enabled = 1 ORDER BY servers.group_id
-				""".format(kwargs.get('user_id'))
-		if kwargs.get("id"):
-			sql = """select * from `servers` where `id` = '{}' """.format(kwargs.get("id"))
-		if kwargs.get("hostname"):
-			sql = """select * from `servers` where `hostname` = '{}' """.format(kwargs.get("hostname"))
-		if kwargs.get("id_hostname"):
-			sql = """select * from `servers` where `hostname` ='{}' or id = '{}' or ip = '{}'""".format(
-				kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
-		if kwargs.get("server") and kwargs.get("keep_alive"):
-			sql = """select haproxy_active from `servers` where `ip` = '{}' """.format(kwargs.get("server"))
 	else:
-		sql = """select * from servers where enabled = '1' ORDER BY servers.group_id """
+		sql = """select * from servers ORDER BY hostname """
 
 		if kwargs.get("server") is not None:
 			sql = """select * from servers where ip = '{}' """.format(kwargs.get("server"))
-		if kwargs.get("full") is not None:
-			sql = """select * from servers ORDER BY hostname """
-		if kwargs.get("get_master_servers") is not None:
-			sql = """select id,hostname from servers where master = 0 and type_ip = 0 and enabled = 1 ORDER BY servers.group_id """
-		if kwargs.get("get_master_servers") is not None and kwargs.get('user_id') is not None:
-			sql = """ select servers.id, servers.hostname from servers
-				left join user as user on servers.group_id = user.group_id
-				where user.user_id = '{}' and servers.master = 0 and servers.type_ip = 0 and servers.enabled = 1 ORDER BY servers.group_id
-				""".format(kwargs.get('user_id'))
-		if kwargs.get("id"):
-			sql = """select * from servers where id = '{}' """.format(kwargs.get("id"))
-		if kwargs.get("hostname"):
-			sql = """select * from servers where hostname = '{}' """.format(kwargs.get("hostname"))
-		if kwargs.get("id_hostname"):
-			sql = """select * from servers where hostname = '{}' or id = '{}' or ip = '{}'""".format(
-				kwargs.get("id_hostname"), kwargs.get("id_hostname"), kwargs.get("id_hostname"))
-		if kwargs.get("server") and kwargs.get("keep_alive"):
-			sql = """select haproxy_active from servers where ip = '{}' """.format(kwargs.get("server"))
 
 	try:
 		cursor.execute(sql)
@@ -286,7 +250,7 @@ def is_master(ip, **kwargs):
 def get_server_with_group(server_id: int, group_id: int) -> Server:
 	try:
 		return Server.get((Server.server_id == server_id) & (Server.group_id == group_id))
-	except Server.DoesNotExist:
+	except DoesNotExist:
 		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
@@ -295,7 +259,7 @@ def get_server_with_group(server_id: int, group_id: int) -> Server:
 def select_servers_with_group(group_id: int) -> Server:
 	try:
 		return Server.select().where(Server.group_id == group_id)
-	except Server.DoesNotExist:
+	except DoesNotExist:
 		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)

@@ -38,13 +38,11 @@ def admin():
     user_group = roxywi_common.get_user_group(id=1)
     if g.user_params['role'] == 1:
         users = user_sql.select_users()
-        servers = server_sql.select_servers(full=1)
-        masters = server_sql.select_servers(get_master_servers=1)
+        servers = server_sql.select_servers()
         sshs = ssh_mod.get_creds()
     else:
         users = user_sql.select_users(group=user_group)
         servers = roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1)
-        masters = server_sql.select_servers(get_master_servers=1, uuid=g.user_params['user_id'])
         sshs = ssh_mod.get_creds(group_id=user_group)
 
     kwargs = {
@@ -57,8 +55,6 @@ def admin():
         'roles': sql.select_roles(),
         'ldap_enable': sql.get_setting('ldap_enable'),
         'services': service_sql.select_services(),
-        'masters': masters,
-        'guide_me': 1,
         'user_subscription': roxywi_common.return_user_subscription(),
         'users_roles': user_sql.select_users_roles(),
         'user_roles': user_sql.select_user_roles_by_group(user_group),

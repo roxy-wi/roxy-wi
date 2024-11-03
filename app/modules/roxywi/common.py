@@ -70,13 +70,12 @@ def check_user_group_for_socket(user_id: int, group_id: int) -> bool:
 
 def check_is_server_in_group(server_ip: str) -> bool:
 	group_id = get_user_group(id=1)
-	servers = server_sql.select_servers(server=server_ip)
-	for s in servers:
-		if (s[2] == server_ip and int(s[3]) == int(group_id)) or group_id == 1:
-			return True
-		else:
-			logging('Roxy-WI server', 'has tried to actions in not his group server', roxywi=1, login=1)
-			return False
+	server = server_sql.get_server_by_ip(server_ip)
+	if (server.ip == server_ip and int(server.group_id) == int(group_id)) or group_id == 1:
+		return True
+	else:
+		logging('Roxy-WI server', 'has tried to actions in not his group server', roxywi=1, login=1)
+		return False
 
 
 def get_files(folder, file_format, server_ip=None) -> list:

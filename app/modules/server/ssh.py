@@ -99,21 +99,22 @@ def upload_ssh_key(ssh_id: int, key: str, passphrase: str) -> None:
 	name = ssh.name
 	ssh_keys = f'{full_dir}{name}_{group_name}.pem'
 
-	if key != '':
-		try:
-			key = paramiko.pkey.load_private_key(key, password=passphrase)
-		except Exception as e:
-			raise Exception(e)
+	if key == '':
+		raise ValueError('Private key cannot be empty')
+	try:
+		key = paramiko.pkey.load_private_key(key, password=passphrase)
+	except Exception as e:
+		raise e
 
-		try:
-			key.write_private_key_file(ssh_keys)
-		except Exception as e:
-			raise Exception(e)
+	try:
+		key.write_private_key_file(ssh_keys)
+	except Exception as e:
+		raise e
 
-		try:
-			os.chmod(ssh_keys, 0o600)
-		except IOError as e:
-			raise Exception(e)
+	try:
+		os.chmod(ssh_keys, 0o600)
+	except IOError as e:
+		raise Exception(e)
 
 	if passphrase:
 		try:

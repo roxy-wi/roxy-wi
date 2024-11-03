@@ -11,58 +11,60 @@ import app.modules.roxywi.common as roxywi_common
 
 
 def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
-    servers = server_sql.select_servers(server=serv)
+    # servers = server_sql.select_servers(server=serv)
+    server = server_sql.get_server_by_ip(serv)
     role = user_sql.get_user_role_in_group(claims['user_id'], claims['group'])
     returned_servers = []
     waf = ''
+    waf_len = 0
     metrics_en = 0
     waf_process = ''
     waf_mode = ''
     is_waf_on_server = 0
 
-    for server in servers:
+    # for server in servers:
+    if waf_service == 'haproxy':
+        is_waf_on_server = service_sql.select_haproxy(server.ip)
+    elif waf_service == 'nginx':
+        is_waf_on_server = service_sql.select_nginx(server.ip)
+
+    if is_waf_on_server == 1:
+        config_path = sql.get_setting(f'{waf_service}_dir')
         if waf_service == 'haproxy':
-            is_waf_on_server = service_sql.select_haproxy(server[2])
+            waf = waf_sql.select_waf_servers(server.ip)
+            metrics_en = waf_sql.select_waf_metrics_enable_server(server.ip)
         elif waf_service == 'nginx':
-            is_waf_on_server = service_sql.select_nginx(server[2])
+            waf = waf_sql.select_waf_nginx_servers(server.ip)
+        try:
+            waf_len = len(waf)
+        except Exception:
+            waf_len = 0
 
-        if is_waf_on_server == 1:
-            config_path = sql.get_setting(f'{waf_service}_dir')
+        if waf_len >= 1:
             if waf_service == 'haproxy':
-                waf = waf_sql.select_waf_servers(server[2])
-                metrics_en = waf_sql.select_waf_metrics_enable_server(server[2])
+                command = "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"
             elif waf_service == 'nginx':
-                waf = waf_sql.select_waf_nginx_servers(server[2])
-            try:
-                waf_len = len(waf)
-            except Exception:
-                waf_len = 0
+                command = f"grep 'modsecurity on' {common.return_nice_path(config_path)}* --exclude-dir=waf -Rs |wc -l"
+            commands1 = f"grep SecRuleEngine {config_path}/waf/modsecurity.conf |grep -v '#' |awk '{{print $2}}'"
+            waf_process = server_mod.ssh_command(server.ip, command)
+            waf_mode = server_mod.ssh_command(server.ip, commands1).strip()
 
-            if waf_len >= 1:
-                if waf_service == 'haproxy':
-                    command = "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"
-                elif waf_service == 'nginx':
-                    command = f"grep 'modsecurity on' {common.return_nice_path(config_path)}* --exclude-dir=waf -Rs |wc -l"
-                commands1 = f"grep SecRuleEngine {config_path}/waf/modsecurity.conf |grep -v '#' |awk '{{print $2}}'"
-                waf_process = server_mod.ssh_command(server[2], command)
-                waf_mode = server_mod.ssh_command(server[2], commands1).strip()
-
-                server_status = (server[1],
-                                 server[2],
-                                 waf_process,
-                                 waf_mode,
-                                 metrics_en,
-                                 waf_len,
-                                 server[0])
-            else:
-                server_status = (server[1],
-                                 server[2],
-                                 waf_process,
-                                 waf_mode,
-                                 metrics_en,
-                                 waf_len,
-                                 server[0])
-        returned_servers.append(server_status)
+            server_status = (server.hostname,
+                             server.ip,
+                             waf_process,
+                             waf_mode,
+                             metrics_en,
+                             waf_len,
+                             server.server_id)
+    else:
+        server_status = (server.hostname,
+                         server.ip,
+                         waf_process,
+                         waf_mode,
+                         metrics_en,
+                         waf_len,
+                         server.server_id)
+    returned_servers.append(server_status)
 
     lang = roxywi_common.get_user_lang_for_flask()
     servers_sorted = sorted(returned_servers, key=common.get_key)

@@ -46,7 +46,7 @@ def show_overview(serv) -> str:
     claims = get_jwt()
     lang = roxywi_common.get_user_lang_for_flask()
     role = user_sql.get_user_role_in_group(claims['user_id'], claims['group'])
-    server = [server for server in server_sql.select_servers(server=serv)]
+    server = server_sql.get_server_by_ip(serv)
     user_services = user_sql.select_user_services(claims['user_id'])
 
     haproxy = service_sql.select_haproxy(serv) if '1' in user_services else 0
@@ -54,7 +54,7 @@ def show_overview(serv) -> str:
     keepalived = service_sql.select_keepalived(serv) if '3' in user_services else 0
     apache = service_sql.select_apache(serv) if '4' in user_services else 0
 
-    waf = waf_sql.select_waf_servers(server[0][2])
+    waf = waf_sql.select_waf_servers(server.ip)
     haproxy_process = ''
     keepalived_process = ''
     nginx_process = ''
@@ -67,43 +67,43 @@ def show_overview(serv) -> str:
         waf_len = 0
 
     if haproxy:
-        cmd = f'echo "show info" |nc {server[0][2]} {sql.get_setting("haproxy_sock_port")} -w 1|grep -e "Process_num"'
+        cmd = f'echo "show info" |nc {server.ip} {sql.get_setting("haproxy_sock_port")} -w 1|grep -e "Process_num"'
         try:
             haproxy_process = service_common.server_status(server_mod.subprocess_execute(cmd))
         except Exception as e:
-            return f'error: {e} for server {server[0][2]}'
+            return f'error: {e} for server {server.hostname}'
 
     if nginx:
-        nginx_cmd = f'echo "something" |nc {server[0][2]} {sql.get_setting("nginx_stats_port")} -w 1'
+        nginx_cmd = f'echo "something" |nc {server.ip} {sql.get_setting("nginx_stats_port")} -w 1'
         try:
             nginx_process = service_common.server_status(server_mod.subprocess_execute(nginx_cmd))
         except Exception as e:
-            return f'error: {e} for server {server[0][2]}'
+            return f'error: {e} for server {server.hostname}'
 
     if apache:
-        apache_cmd = f'echo "something" |nc {server[0][2]} {sql.get_setting("apache_stats_port")} -w 1'
+        apache_cmd = f'echo "something" |nc {server.ip} {sql.get_setting("apache_stats_port")} -w 1'
         try:
             apache_process = service_common.server_status(server_mod.subprocess_execute(apache_cmd))
         except Exception as e:
-            return f'error: {e} for server {server[0][2]}'
+            return f'error: {e} for server {server.hostname}'
 
     if keepalived:
         command = "ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"
         try:
-            keepalived_process = server_mod.ssh_command(server[0][2], command)
+            keepalived_process = server_mod.ssh_command(server.ip, command)
         except Exception as e:
-            return f'error: {e} for server {server[0][2]}'
+            return f'error: {e} for server {server.hostname}'
 
     if waf_len >= 1:
         command = "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"
         try:
-            waf_process = server_mod.ssh_command(server[0][2], command)
+            waf_process = server_mod.ssh_command(server.ip, command)
         except Exception as e:
-            return f'error: {e} for server {server[0][2]}'
+            return f'error: {e} for server {server.hostname}'
 
     server_status = (
-        server[0][1], server[0][2], haproxy, haproxy_process, waf_process, waf, keepalived, keepalived_process, nginx,
-        nginx_process, server[0][0], apache, apache_process
+        server.hostname, server.ip, haproxy, haproxy_process, waf_process, waf, keepalived, keepalived_process, nginx,
+        nginx_process, server.server_id, apache, apache_process
     )
 
     servers.append(server_status)
