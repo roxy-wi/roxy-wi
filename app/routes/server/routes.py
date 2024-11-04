@@ -62,7 +62,7 @@ def check_server(server_id):
     try:
         server = server_sql.get_server_by_id(server_id)
     except Exception as e:
-        raise e
+        return roxywi_common.handler_exceptions_for_json_data(e)
     result = server_mod.server_is_up(server.ip)
     status = {
         "status": result,

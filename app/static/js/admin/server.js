@@ -341,10 +341,23 @@ function showServerInfo(id, ip) {
 	});
 }
 async function serverIsUp(server_id) {
+	if (sessionStorage.getItem('server-' + server_id) === '0') {
+		return false;
+	}
 	let server_div = $('#server_status-' + server_id);
 	$.ajax({
 		url: "/server/check/server/" + server_id,
 		contentType: "application/json; charset=utf-8",
+		statusCode: {
+			204: function (xhr) {
+				$("#server-" + server_id).remove();
+				sessionStorage.setItem('server-'+server_id, '0');
+			},
+			404: function (xhr) {
+				$("#server-" + server_id).remove();
+				sessionStorage.setItem('server-'+server_id, '0');
+			}
+		},
 		success: function (data) {
 			if (data.status === 'up') {
 				server_div.removeClass('serverNone');

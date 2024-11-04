@@ -81,7 +81,7 @@ register_api_id_ip(CheckerView, 'checker', '/tools')
 register_api_id_ip(InstallView, 'install', '/install', methods=['POST', 'PUT', 'DELETE'])
 register_api_id_ip(ServiceActionView, 'service_action', '/<any(start, stop, reload, restart):action>', methods=['GET'])
 
-register_api(ServerView, 'server', '/server', 'server_id')
+register_api_for_not_api(ServerView, 'server', '/server', 'server_id')
 register_api(BackupView, 'backup_fs', '/server/backup/fs', 'backup_id')
 register_api(S3BackupView, 'backup_s3', '/server/backup/s3', 'backup_id')
 register_api(GitBackupView, 'backup_git', '/server/backup/git', 'backup_id')

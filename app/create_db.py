@@ -722,4 +722,5 @@ def update_all():
 	update_db_v_8_1_0_1()
 	update_db_v_8_1_0_2()
 	update_db_v_8_1_0_3()
+	update_db_v_8_1_2()
 	update_ver()

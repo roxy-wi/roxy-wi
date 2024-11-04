@@ -323,7 +323,7 @@ def handle_json_exceptions(ex: Exception, message: str, server_ip='Roxy-WI serve
 	return ErrorResponse(error=f'{message}: {ex}').model_dump(mode='json')
 
 
-def handler_exceptions_for_json_data(ex: Exception, main_ex_mes: str) -> tuple[dict, int]:
+def handler_exceptions_for_json_data(ex: Exception, main_ex_mes: str = '') -> tuple[dict, int]:
 	if isinstance(ex, KeyError):
 		return handle_json_exceptions(ex, 'Missing key in JSON data'), 500
 	elif isinstance(ex, ValueError):
