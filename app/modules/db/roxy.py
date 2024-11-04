@@ -1,5 +1,3 @@
-from typing import Union
-
 from app.modules.db.db_model import UserName, RoxyTool, Version
 from app.modules.db.common import out_error
 
@@ -28,11 +26,18 @@ def update_user_status(status, plan, method):
 		out_error(e)
 
 
-def get_user() -> Union[UserName, bool]:
+def get_user() -> UserName:
 	try:
 		return UserName.get()
+	except Exception as e:
+		print(str(e))
+
+
+def get_user_status() -> int:
+	try:
+		return UserName.get().Status
 	except Exception:
-		return False
+		return 0
 
 
 def get_roxy_tools():

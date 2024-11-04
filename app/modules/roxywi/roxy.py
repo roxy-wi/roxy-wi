@@ -2,7 +2,6 @@ import os
 import re
 from packaging import version
 
-import distro
 import requests
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
@@ -102,7 +101,7 @@ def action_service(action: str, service: str) -> str:
 		'restart': 'restart',
 	}
 	cmd = f"sudo systemctl {actions[action]} {service}"
-	if not roxy_sql.get_user().Status:
+	if not roxy_sql.get_user_status():
 		return 'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing" ' \
 				   'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions'
 	if is_in_docker:
@@ -113,36 +112,5 @@ def action_service(action: str, service: str) -> str:
 
 
 def update_plan():
-	try:
-		if distro.id() == 'ubuntu':
-			path_to_repo = '/etc/apt/auth.conf.d/roxy-wi.conf'
-			cmd = "grep login /etc/apt/auth.conf.d/roxy-wi.conf |awk '{print $2}'"
-			cmd2 = "grep password /etc/apt/auth.conf.d/roxy-wi.conf |awk '{print $2}'"
-		else:
-			path_to_repo = '/etc/yum.repos.d/roxy-wi.repo'
-			cmd = "grep base /etc/yum.repos.d/roxy-wi.repo |grep -v '#' |awk -F\":\" '{print $2}'|awk -F\"/\" '{print $3}'"
-			cmd2 = "grep base /etc/yum.repos.d/roxy-wi.repo |grep -v '#' |awk -F\":\" '{print $3}'|awk -F\"@\" '{print $1}'"
-		if os.path.exists(path_to_repo):
-			get_user_name, stderr = server_mod.subprocess_execute(cmd)
-			user_name = get_user_name[0]
-			cur_license = sql.get_setting('license')
-			if not cur_license:
-				get_license, stderr = server_mod.subprocess_execute(cmd2)
-				user_license = get_license[0]
-
-				if user_license:
-					try:
-						sql.update_setting('license', user_license, 1)
-					except Exception as e:
-						roxywi_common.logging('Roxy-WI server', f'error: Cannot update license {e}', roxywi=1)
-		else:
-			user_name = 'git'
-
-		if roxy_sql.get_user().UserName:
-			roxy_sql.update_user_name(user_name)
-		else:
-			roxy_sql.insert_user_name(user_name)
-	except Exception as e:
-		roxywi_common.logging('Cannot update subscription: ', str(e), roxywi=1)
-
+	roxy_sql.insert_user_name('user')
 	update_user_status()
