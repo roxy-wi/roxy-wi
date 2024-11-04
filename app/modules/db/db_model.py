@@ -167,12 +167,12 @@ class Setting(BaseModel):
     value = CharField(null=True)
     section = CharField()
     desc = CharField()
-    group = IntegerField(null=True, constraints=[SQL('DEFAULT 1')])
+    group_id = IntegerField(null=True, constraints=[SQL('DEFAULT 1')])
 
     class Meta:
         table_name = 'settings'
         primary_key = False
-        constraints = [SQL('UNIQUE (param, `group`)')]
+        constraints = [SQL('UNIQUE (param, group_id)')]
 
 
 class Groups(BaseModel):

@@ -14,11 +14,11 @@ def get_setting(param, **kwargs):
 			user_group_id = 1
 
 	if kwargs.get('all') and not kwargs.get('section'):
-		query = Setting.select().where(Setting.group == user_group_id).order_by(Setting.section.desc())
+		query = Setting.select().where(Setting.group_id == user_group_id).order_by(Setting.section.desc())
 	elif kwargs.get('section'):
-		query = Setting.select().where((Setting.group == user_group_id) & (Setting.section == kwargs.get('section')))
+		query = Setting.select().where((Setting.group_id == user_group_id) & (Setting.section == kwargs.get('section')))
 	else:
-		query = Setting.select().where((Setting.param == param) & (Setting.group == user_group_id))
+		query = Setting.select().where((Setting.param == param) & (Setting.group_id == user_group_id))
 
 	try:
 		query_res = query.execute()
@@ -41,7 +41,7 @@ def get_setting(param, **kwargs):
 
 
 def update_setting(param: str, val: str, user_group: int) -> None:
-	query = Setting.update(value=val).where((Setting.param == param) & (Setting.group == user_group))
+	query = Setting.update(value=val).where((Setting.param == param) & (Setting.group_id == user_group))
 	try:
 		query.execute()
 	except Exception as e:
