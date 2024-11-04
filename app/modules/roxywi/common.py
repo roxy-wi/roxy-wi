@@ -33,13 +33,12 @@ def get_user_group(**kwargs) -> int:
 		verify_jwt_in_request()
 		claims = get_jwt()
 		user_group_id = claims['group']
-		groups = group_sql.select_groups(id=user_group_id)
-		for group in groups:
-			if group.group_id == int(user_group_id):
-				if kwargs.get('id'):
-					user_group = group.group_id
-				else:
-					user_group = group.name
+		group = group_sql.get_group(user_group_id)
+		if group.group_id == int(user_group_id):
+			if kwargs.get('id'):
+				user_group = group.group_id
+			else:
+				user_group = group.name
 	except Exception as e:
 		raise Exception(f'error: {e}')
 	return user_group
@@ -273,8 +272,8 @@ def get_user_lang_for_flask() -> str:
 
 def return_user_status() -> dict:
 	user_subscription = {}
-	user_subscription.setdefault('user_status', roxy_sql.select_user_status())
-	user_subscription.setdefault('user_plan', roxy_sql.select_user_plan())
+	user_subscription.setdefault('user_status', roxy_sql.get_user().Status)
+	user_subscription.setdefault('user_plan', roxy_sql.get_user().Plan)
 
 	return user_subscription
 

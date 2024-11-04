@@ -93,7 +93,7 @@ def create_ssh_cred(name: str, password: str, group: int, username: str, enable:
 def upload_ssh_key(ssh_id: int, key: str, passphrase: str) -> None:
 	key = key.replace("'", "")
 	ssh = cred_sql.get_ssh(ssh_id)
-	group_name = group_sql.get_group_name_by_id(ssh.group_id)
+	group_name = group_sql.get_group(ssh.group_id).name
 	lib_path = get_config.get_config_var('main', 'lib_path')
 	full_dir = f'{lib_path}/keys/'
 	name = ssh.name
@@ -242,7 +242,7 @@ def get_creds(group_id: int = None, cred_id: int = None, not_shared: bool = Fals
 
 def _return_correct_ssh_file(cred: CredRequest) -> str:
 	lib_path = get_config.get_config_var('main', 'lib_path')
-	group_name = group_sql.get_group_name_by_id(cred.group_id)
+	group_name = group_sql.get_group(cred.group_id).name
 	if group_name not in cred.name:
 		return f'{lib_path}/keys/{cred.name}_{group_name}.pem'
 	else:

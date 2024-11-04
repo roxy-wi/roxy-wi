@@ -3,20 +3,11 @@ from app.modules.db.common import out_error
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
-def select_groups(**kwargs):
-	if kwargs.get("group") is not None:
-		query = Groups.select().where(Groups.name == kwargs.get('group'))
-	elif kwargs.get("id") is not None:
-		query = Groups.select().where(Groups.group_id == kwargs.get('id'))
-	else:
-		query = Groups.select().order_by(Groups.group_id)
-
+def select_groups():
 	try:
-		query_res = query.execute()
+		return Groups.select().order_by(Groups.group_id).execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		return query_res
 
 
 def add_group(name: str, description: str) -> int:
@@ -107,8 +98,6 @@ def delete_group_settings(group_id):
 		group_for_delete.execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		return True
 
 
 def update_group(name, descript, group_id):
@@ -117,24 +106,12 @@ def update_group(name, descript, group_id):
 		group_update.execute()
 	except Exception as e:
 		out_error(e)
-		return False
-	else:
-		return True
 
 
-def get_group_name_by_id(group_id):
+def get_group(group_id: int) -> Groups:
 	try:
-		return Groups.get(Groups.group_id == group_id).name
+		return Groups.get(Groups.group_id == group_id)
 	except Groups.DoesNotExist:
 		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
-
-
-def get_group_id_by_name(group_name):
-	try:
-		group_id = Groups.get(Groups.name == group_name)
-	except Exception as e:
-		out_error(e)
-	else:
-		return group_id.group_id

@@ -1,14 +1,13 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
-{% for s in sub %}
-    {% if s.Plan == 'user' %}
+    {% if sub.Plan == 'user' %}
         {% set plan = 'Home' %}
-    {% elif s.Plan == 'company' %}
+    {% elif sub.Plan == 'company' %}
         {% set plan = 'Enterprise' %}
-    {% elif s.Plan == 'cloud' %}
+    {% elif sub.Plan == 'cloud' %}
         {% set plan = 'Cloud' %}
-    {% elif s.Plan == 'support' %}
+    {% elif sub.Plan == 'support' %}
         {% set plan = 'Premium' %}
-    {% elif s.Plan == 'Trial' %}
+    {% elif sub.Plan == 'Trial' %}
         {% set plan = 'Trial' %}
     {% else %}
         {% set plan = 'Free' %}
@@ -24,7 +23,7 @@
                 N/A
             {% else %}
             <span
-            {% if s.Status|int() == 1 %}
+            {% if sub.Status|int() == 1 %}
                 style="color: var(--green-color); font-weight: bold">{{lang.words.active|title()}}
             {% else %}
                 style="color: var(--red-color); font-weight: bold">Blocked
@@ -39,14 +38,13 @@
             {% if plan == 'Free' %}
                 N/A
             {% else %}
-                {% if s.Method == 'Boosty' %}
+                {% if sub.Method == 'Boosty' %}
                     <a href="https://boosty.to/roxy-wi" title="Boosty.to" class="logs_link" target="_blank">Boosty</a>
-                {% elif s.Method == 'Patreon' %}
+                {% elif sub.Method == 'Patreon' %}
                     <a href="https://www.patreon.com/roxy_wi" title="Patreon.con" class="logs_link" target="_blank">Patreon</a>
                 {% else %}
-                    {{s.Method}}
+                    {{sub.Method}}
                 {% endif %}
             {% endif %}
         </td>
     </tr>
-{% endfor %}

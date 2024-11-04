@@ -1,4 +1,5 @@
 import os
+from typing import Union
 
 from flask import render_template, make_response
 
@@ -9,27 +10,27 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.alerting as alerting
 
 
-def create_user(new_user: str, email: str, password: str, role: int, enabled: int, group: int) -> int:
+def create_user(new_user: str, email: str, password: str, role: int, enabled: int, group: int) -> Union[int, tuple]:
     try:
         user_id = user_sql.add_user(new_user, email, password, role, enabled, group)
         roxywi_common.logging(f'a new user {new_user}', 'has been created', roxywi=1, login=1)
-        try:
-            user_sql.update_user_role(user_id, group, role)
-        except Exception as e:
-            raise Exception(f'error: cannot update user role {e}')
-        try:
-            if password == 'aduser':
-                password = 'your domain password'
-            message = f"A user has been created for you on Roxy-WI portal!\n\n" \
-                      f"Now you can login to https://{os.environ.get('HTTP_HOST', '')}\n\n" \
-                      f"Your credentials are:\n" \
-                      f"Login: {new_user}\n" \
-                      f"Password: {password}"
-            alerting.send_email(email, 'A user has been created for you', message)
-        except Exception as e:
-            roxywi_common.logging('error: Cannot send email for a new user', e, roxywi=1, login=1)
     except Exception as e:
-        roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot create a new user', roxywi=1, login=1)
+        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create a new user')
+    try:
+        user_sql.update_user_role(user_id, group, role)
+    except Exception as e:
+        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update user role')
+    try:
+        if password == 'aduser':
+            password = 'your domain password'
+        message = f"A user has been created for you on Roxy-WI portal!\n\n" \
+                  f"Now you can login to https://{os.environ.get('HTTP_HOST', '')}\n\n" \
+                  f"Your credentials are:\n" \
+                  f"Login: {new_user}\n" \
+                  f"Password: {password}"
+        alerting.send_email(email, 'A user has been created for you', message)
+    except Exception as e:
+        roxywi_common.logging('error: Cannot send email for a new user', str(e), roxywi=1, login=1)
 
     return user_id
 
@@ -39,10 +40,13 @@ def delete_user(user_id: int):
         count_super_admin_users = user_sql.get_super_admin_count()
         if count_super_admin_users < 2:
             raise Exception('error: you cannot delete a last user with superAdmin role')
-    user = user_sql.get_user_id(user_id)
-    if user_sql.delete_user(user_id):
+    try:
+        user = user_sql.get_user_id(user_id)
+        user_sql.delete_user(user_id)
         user_sql.delete_user_groups(user_id)
         roxywi_common.logging(user.username, 'has been deleted user', roxywi=1, login=1)
+    except Exception as e:
+        return roxywi_common.handler_exceptions_for_json_data(e)
 
 
 def update_user_password(password, user_id):
@@ -83,24 +87,9 @@ def change_user_active_group(group_id: int, user_id: int) -> str:
 
 
 def get_user_active_group(group_id: int, user_id: int) -> str:
-    # group_id = user_sql.get_user_id_by_uuid(uuid)
     groups = user_sql.select_user_groups_with_names(user_id)
     lang = roxywi_common.get_user_lang_for_flask()
     return render_template('ajax/user_current_group.html', groups=groups, group=group_id, lang=lang)
-
-
-# def show_user_groups_and_roles(user_id: int, lang: str) -> str:
-#     groups = user_sql.select_user_groups_with_names(user_id, user_not_in_group=1)
-#     roles = sql.select_roles()
-#     user_groups = user_sql.select_user_groups_with_names(user_id)
-#     return render_template('ajax/user_groups_and_roles.html', groups=groups, user_groups=user_groups, roles=roles, lang=lang)
-
-
-# def is_current_user(user_id: int, user_uuid: str) -> bool:
-#     current_user_id = user_sql.get_user_id_by_uuid(user_uuid)
-#     if current_user_id == user_id:
-#         return True
-#     return False
 
 
 def save_user_group_and_role(user: str, groups_and_roles: dict):

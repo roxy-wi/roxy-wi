@@ -102,7 +102,7 @@ def action_service(action: str, service: str) -> str:
 		'restart': 'restart',
 	}
 	cmd = f"sudo systemctl {actions[action]} {service}"
-	if not roxy_sql.select_user_status():
+	if not roxy_sql.get_user().Status:
 		return 'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing" ' \
 				   'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions'
 	if is_in_docker:
@@ -138,7 +138,7 @@ def update_plan():
 		else:
 			user_name = 'git'
 
-		if roxy_sql.select_user_name():
+		if roxy_sql.get_user().UserName:
 			roxy_sql.update_user_name(user_name)
 		else:
 			roxy_sql.insert_user_name(user_name)

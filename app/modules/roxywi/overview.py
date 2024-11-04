@@ -37,7 +37,7 @@ def user_owv() -> str:
 def show_sub_ovw() -> str:
     lang = roxywi_common.get_user_lang_for_flask()
 
-    return render_template('ajax/show_sub_ovw.html', sub=roxy_sql.select_user_all(), lang=lang)
+    return render_template('ajax/show_sub_ovw.html', sub=roxy_sql.get_user(), lang=lang)
 
 
 def show_overview(serv) -> str:

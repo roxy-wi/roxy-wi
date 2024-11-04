@@ -485,9 +485,7 @@ class UserGroupView(MethodView):
     def _check_is_user_and_group(user_id: int, group_id: int):
         try:
             _ = user_sql.get_user_id(user_id)
-            groups = group_sql.get_group_name_by_id(group_id)
-            if len(groups) == 0:
-                raise RoxywiResourceNotFound
+            group_sql.get_group(group_id)
         except Exception as e:
             raise e
 

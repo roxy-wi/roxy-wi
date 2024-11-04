@@ -458,9 +458,8 @@ class ServerGroupView(MethodView):
             description: 'Server group not found'
         """
         try:
-            groups = group_sql.select_groups(id=group_id)
-            for group in groups:
-                return model_to_dict(group)
+            group = group_sql.get_group(group_id)
+            return model_to_dict(group)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get group')
 
@@ -564,9 +563,7 @@ class ServerGroupView(MethodView):
     @staticmethod
     def _check_is_user_and_group(group_id: int):
         try:
-            groups = group_sql.get_group_name_by_id(group_id)
-            if len(groups) == 0:
-                raise RoxywiResourceNotFound
+            group_sql.get_group(group_id)
         except Exception as e:
             raise e
 
