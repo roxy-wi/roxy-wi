@@ -33,7 +33,7 @@ def get_user() -> UserName:
 		print(str(e))
 
 
-def get_user_status() -> int:
+def select_user_status() -> int:
 	try:
 		return UserName.get().Status
 	except Exception:
