@@ -182,7 +182,7 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 		}
 	});
 	$.getScript(ha);
-	let regx = /^[a-z0-9_-]+$/;
+	let regx = /^[a-zA-Z0-9_-]+$/;
 	let dialog_div = $("#create-ha-cluster-step-1").dialog({
 		autoOpen: false,
 		resizable: false,

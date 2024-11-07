@@ -162,8 +162,25 @@ function renderHttpChart(data, labels, server) {
             ],
         },
         options: {
-            maintainAspectRatio: false,
-            plugins: {
+			maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                },
+                x: {
+                    ticks: {
+                        major: {
+                            enabled: true,
+                            fontStyle: 'bold'
+                        },
+                        source: 'data',
+                        autoSkip: true,
+                        autoSkipPadding: 45,
+                        maxRotation: 0
+                    }
+                }
+            },
+			plugins: {
                 title: {
                     display: true,
                     text: data[4],
@@ -171,41 +188,19 @@ function renderHttpChart(data, labels, server) {
                         size: 20,
                     },
                 },
-                legend: {
+				legend: {
+					display: true,
+					labels: {
+						color: 'rgb(255, 99, 132)',
+						font: {
+                            size: 10,
+                            family: 'BlinkMacSystemFont'
+                        }
+					},
                     position: 'bottom'
-                }
-            },
-            scales: {
-                y: {
-                    ticks: {
-                        beginAtZero: true,
-                    },
-                },
-                x: {
-                    ticks: {
-                        beginAtZero: true,
-                        major: {
-                            enabled: true,
-                            fontStyle: 'bold',
-                        },
-                        source: 'data',
-                        autoSkip: true,
-                        autoSkipPadding: 45,
-                        maxRotation: 0,
-                    },
-                },
-            },
-            legend: {
-                display: true,
-                labels: {
-                    color: 'rgb(255, 99, 132)',
-                    font: {
-                        size: 10,
-                        family: 'BlinkMacSystemFont',
-                    },
-                },
-            },
-        },
+				}
+			}
+        }
     });
     charts.push(myChart)
     stream_chart(myChart, 'haproxy', server, 1);

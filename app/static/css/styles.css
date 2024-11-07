@@ -1338,13 +1338,8 @@ label {
 	float: left;
     margin-top: var(--indent);
     margin-left: var(--indent);
+	margin-bottom: 20px;
 }
-/*.metrics-refresh {*/
-/*	text-align: right;*/
-/*    margin-top: -25px;*/
-/*    margin-right: 10px;*/
-/*    margin-bottom: 20px;*/
-/*}*/
 .ajaxwafstatus {
 	padding-top: 2px;
 	padding-left: 10px;
