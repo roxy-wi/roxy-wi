@@ -16,27 +16,29 @@
 		{% else %}
 		<span class="serverDown server-status" title="WAF {{lang.words.is}} {{lang.words.stopped}} "></span>
 		{% endif %}
-			{{ service.0 }}
+        <input type="hidden" id="server-name-{{ service.6 }}" value="{{ service.0 }}">
+        {{ service.0 }}
 	{% else %}
-		<span class="serverNone server-status" title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}"></span> <span title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}">{{ service.0 }}</span>
+		<span class="serverNone server-status" title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}"></span>
+        <span title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}">{{ service.0 }}</span>
 	{% endif %}
 	</td>
 	{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
 		<td>
 		{% if role <= 2 %}
 			<a id="{{ service.1 }}" class="start-waf" title="{{lang.words.start|title()}} WAF {{lang.words.service}}">
-				<span class="service-start" onclick="confirmAjaxAction('start', '{{service_name}}', '{{service.1}}')"></span>
+				<span class="service-start" onclick="confirmAjaxAction('start', '{{service_name}}', '{{service.6}}')"></span>
 			</a>
 			<a id="{{ service.1 }}" class="stop-waf" title="{{lang.words.stop|title()}} WAF {{lang.words.service}}">
-				<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service_name}}', '{{service.1}}')"></span>
+				<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service_name}}', '{{service.6}}')"></span>
 			</a>
 			{% if waf_service == 'haproxy' %}
 			<a id="{{ service.1 }}" class="restart-waf" title="{{lang.words.restart|title()}} WAF {{lang.words.service}}">
-				<span class="service-reload" onclick="confirmAjaxAction('restart', 'waf', '{{service.1}}')"></span>
+				<span class="service-reload" onclick="confirmAjaxAction('restart', 'waf', '{{service.6}}')"></span>
 			</a>
 			{% else %}
 			<a id="{{ service.1 }}" class="reload-waf" title="{{lang.words.reload|title()}} WAF {{lang.words.service}}">
-				<span class="service-reload" onclick="confirmAjaxAction('reload', 'nginx', '{{service.1}}')"></span>
+				<span class="service-reload" onclick="confirmAjaxAction('reload', 'nginx', '{{service.6}}')"></span>
 			</a>
 			{% endif %}
 		{% endif %}

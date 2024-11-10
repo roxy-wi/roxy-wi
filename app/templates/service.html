@@ -208,25 +208,25 @@
 				{% if g.user_params['role'] <= 3 %}
 				<span class="server-action">
 					<a id="start-{{ s.2 }}" class="start" title="{{lang.words.start|title()}} {{service}} {{lang.words.service}}">
-						<span class="service-start" onclick="confirmAjaxAction('start', '{{service}}', '{{s.0}}', '{{s.1}}')"></span>
+						<span class="service-start" onclick="confirmAjaxAction('start', '{{service}}', '{{s.0}}')"></span>
 					</a>
 					<a id="reload-{{ s.2 }}" class="reload" title="{{lang.words.reload|title()}} {{service}} {{lang.words.service}}">
-						<span class="service-reload" onclick="confirmAjaxAction('reload', '{{service}}', '{{s.0}}', '{{s.1}}')"></span>
+						<span class="service-reload" onclick="confirmAjaxAction('reload', '{{service}}', '{{s.0}}')"></span>
 					</a>
 					{% for set in restart_settings %}
 						{% if set.server_id == s.0 and set.setting == 'restart' and set.value|int == 0 %}
 						<a id="restart-{{ s.2 }}" class="restart" title="{{lang.words.restart|title()}} {{service}} {{lang.words.service}}">
-							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{service}}', '{{s.0}}', '{{s.1}}')"></span>
+							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{service}}', '{{s.0}}')"></span>
 						</a>
 						{% endif %}
 					{% endfor %}
 					{% if restart_settings|length == 0 %}
 						<a id="restart-{{ s.2 }}" class="restart" title="{{lang.words.restart|title()}} {{service}} {{lang.words.service}}">
-							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{service}}', '{{s.0}}', '{{s.1}}')"></span>
+							<span class="service-reload service-restart" onclick="confirmAjaxAction('restart', '{{service}}', '{{s.0}}')"></span>
 						</a>
 					{% endif %}
 					<a id="stop-{{ s.2 }}" class="stop" title="{{lang.words.stop|title()}} {{service}} {{lang.words.service}}">
-						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service}}', '{{s.0}}', '{{s.1}}')"></span>
+						<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service}}', '{{s.0}}')"></span>
 					</a>
 					<a href="{{ url_for('main.service_history', service=service, server_ip=s.2) }}" title="{{lang.words.view|title()}} {{lang.words.history3}} {{s.1}}" class="history" style="margin: 0 5px 0 10px;"></a>
 					{% if service != 'keepalived' %}

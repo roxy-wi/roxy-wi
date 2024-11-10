@@ -40,7 +40,6 @@ def waf(service):
 
     kwargs = {
         'title': 'Web application firewall',
-        'autorefresh': 1,
         'serv': '',
         'servers': waf_sql.select_waf_servers_metrics(g.user_params['group_id']),
         'servers_all': servers,
@@ -84,11 +83,9 @@ def waf_rules(service, server_ip):
     return render_template('waf.html', **kwargs)
 
 
-@bp.route('/<service>/<server_ip>/rule/<int:rule_id>')
+@bp.route('/<any(haproxy, nginx):service>/<server_ip>/rule/<int:rule_id>')
 @get_user_params()
 def waf_rule_edit(service, server_ip, rule_id):
-    if service not in ('haproxy', 'nginx'):
-        abort(404)
     roxywi_auth.page_for_admin(level=2)
     if not roxywi_auth.is_access_permit_to_service(service):
         abort(403, f'You do not have needed permissions to access to {service.title()} service')
@@ -180,16 +177,14 @@ def enable_rule(server_ip, rule_id, enable):
         return roxywi_common.handle_json_exceptions(e, f'Cannot enable WAF rule {rule_id}', server_ip)
 
 
-@bp.route('/<service>/<server_ip>/rule/create', methods=['POST'])
+@bp.route('/<any(haproxy, nginx):service>/<server_ip>/rule/create', methods=['POST'])
 def create_rule(service, server_ip):
     server_ip = common.is_ip_or_dns(server_ip)
     json_data = request.get_json()
-    if service not in ('haproxy', 'nginx'):
-        return roxywi_common.handle_json_exceptions('Wrong service', '', server_ip)
 
     try:
         last_id = roxy_waf.create_waf_rule(server_ip, service, json_data)
-        return jsonify({'status': 'created', 'id': last_id})
+        return jsonify({'status': 'Ok', 'id': last_id})
     except Exception as e:
         return roxywi_common.handle_json_exceptions(e, 'Cannot create WAF rule', server_ip,)
 
@@ -203,15 +198,9 @@ def change_waf_mode(service, server_id, waf_mode):
         return roxywi_common.handle_json_exceptions(e, 'Cannot change WAF mode', server_id)
 
 
-@bp.route('/overview/<service>/<server_ip>')
+@bp.route('/overview/<any(haproxy, nginx):service>/<server_ip>')
 def overview_waf(service, server_ip):
-    if service not in ('haproxy', 'nginx'):
-        abort(404)
     server_ip = common.is_ip_or_dns(server_ip)
-
-    if service not in ('haproxy', 'nginx'):
-        return 'error: Wrong service'
-
     claims = get_jwt()
 
     return roxy_waf.waf_overview(server_ip, service, claims)
@@ -221,6 +210,6 @@ def overview_waf(service, server_ip):
 def enable_metric(enable, server_id):
     try:
         waf_sql.update_waf_metrics_enable(server_id, enable)
-        return jsonify({'status': 'updated'})
+        return jsonify({'status': 'Ok'})
     except Exception as e:
         return roxywi_common.handle_json_exceptions(e, 'Cannot enable WAF metrics', server_id)

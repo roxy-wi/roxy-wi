@@ -94,16 +94,14 @@ def delete_group(group_id):
 
 def delete_group_settings(group_id):
 	try:
-		group_for_delete = Setting.delete().where(Setting.group_id == group_id)
-		group_for_delete.execute()
+		Setting.delete().where(Setting.group_id == group_id).execute()
 	except Exception as e:
 		out_error(e)
 
 
 def update_group(name, descript, group_id):
 	try:
-		group_update = Groups.update(name=name, description=descript).where(Groups.group_id == group_id)
-		group_update.execute()
+		Groups.update(name=name, description=descript).where(Groups.group_id == group_id).execute()
 	except Exception as e:
 		out_error(e)
 

@@ -216,8 +216,9 @@ $( function() {
 		}
 	});
 });
-function confirmAjaxAction(action, service, id, name) {
+function confirmAjaxAction(action, service, id) {
 	let action_word = translate_div.attr('data-'+action);
+	let name = $('#server-name-'+id).val();
 	$( "#dialog-confirm" ).dialog({
 		resizable: false,
 		height: "auto",
