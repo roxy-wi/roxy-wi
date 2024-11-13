@@ -9,16 +9,6 @@ def insert_user_name(user_name):
 		pass
 
 
-def update_user_name(user_name):
-	try:
-		UserName.update(UserName=user_name).execute()
-	except Exception as e:
-		out_error(e)
-		return False
-	else:
-		return True
-
-
 def update_user_status(status, plan, method):
 	try:
 		UserName.update(Status=status, Method=method, Plan=plan).execute()

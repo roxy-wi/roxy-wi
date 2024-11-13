@@ -35,7 +35,7 @@ def update_server(hostname, ip, group, type_ip, enable, master, server_id, cred,
 		out_error(e)
 
 
-def get_server_by_id(server_id: int) -> Server:
+def get_server(server_id: int) -> Server:
 	try:
 		return Server.get(Server.server_id == server_id)
 	except DoesNotExist:
@@ -100,13 +100,10 @@ def select_os_info(server_id):
 
 
 def update_firewall(serv):
-	query = Server.update(firewall_enable=1).where(Server.ip == serv)
 	try:
-		query.execute()
-		return True
+		Server.update(firewall_enable=1).where(Server.ip == serv).execute()
 	except Exception as e:
 		out_error(e)
-		return False
 
 
 def return_firewall(serv):
@@ -119,9 +116,8 @@ def return_firewall(serv):
 
 
 def update_server_pos(pos, server_id) -> str:
-	query = Server.update(pos=pos).where(Server.server_id == server_id)
 	try:
-		query.execute()
+		Server.update(pos=pos).where(Server.server_id == server_id).execute()
 		return 'ok'
 	except Exception as e:
 		out_error(e)
@@ -134,24 +130,6 @@ def is_serv_protected(serv):
 		return ""
 	else:
 		return True if query_res.protected else False
-
-
-def select_server_ip_by_id(server_id: int) -> str:
-	try:
-		server_ip = Server.get(Server.server_id == server_id).ip
-	except Exception as e:
-		return out_error(e)
-	else:
-		return server_ip
-
-
-def select_server_id_by_ip(server_ip):
-	try:
-		server_id = Server.get(Server.ip == server_ip).server_id
-	except Exception:
-		return None
-	else:
-		return server_id
 
 
 def select_servers(**kwargs):

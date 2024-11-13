@@ -13,7 +13,7 @@ from app.modules.roxywi.exception import RoxywiConflictError
 
 
 def create_backup_inv(json_data: BackupRequest, del_id: int = 0) -> None:
-    server = server_sql.get_server_by_id(json_data.server_id)
+    server = server_sql.get_server(json_data.server_id)
     ssh_settings = ssh_mod.return_ssh_keys_path(server.ip, json_data.cred_id)
     inv = {"server": {"hosts": {}}}
     server_ips = []
@@ -36,7 +36,7 @@ def create_backup_inv(json_data: BackupRequest, del_id: int = 0) -> None:
 
 
 def create_s3_backup_inv(data: S3BackupRequest, tag: str) -> None:
-    server = server_sql.get_server_by_id(data.server_id)
+    server = server_sql.get_server(data.server_id)
     inv = {"server": {"hosts": {}}}
     inv["server"]["hosts"]["localhost"] = {
         "SERVER": server.hostname,
@@ -142,7 +142,7 @@ def delete_s3_backup(data: S3BackupRequest, backup_id: int) -> None:
 
 
 def create_git_backup(data: GitBackupRequest, is_api: bool) -> tuple:
-    server_ip = server_sql.select_server_ip_by_id(data.server_id)
+    server_ip = server_sql.get_server(data.server_id).ip
     service_name = service_sql.select_service_name_by_id(data.service_id).lower()
     try:
         create_git_backup_inv(data, server_ip, service_name)
@@ -174,7 +174,7 @@ def create_git_backup(data: GitBackupRequest, is_api: bool) -> tuple:
 
 
 def delete_git_backup(data: GitBackupRequest, backup_id: int) -> tuple:
-    server_ip = server_sql.select_server_ip_by_id(data.server_id)
+    server_ip = server_sql.get_server(data.server_id).ip
     service_name = service_sql.select_service_name_by_id(data.service_id).lower()
     try:
         create_git_backup_inv(data, server_ip, service_name, 1)

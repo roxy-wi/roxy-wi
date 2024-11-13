@@ -54,7 +54,7 @@ def alert_routing(
 ) -> None:
 	try:
 		subject: str = level + ': ' + mes
-		server_id: int = server_sql.select_server_id_by_ip(server_ip)
+		server_id: int = server_sql.get_server_by_ip(server_ip).server_id
 		checker_settings = checker_sql.select_checker_settings_for_server(service_id, server_id)
 	except Exception as e:
 		raise Exception(f'Cannot get settings: {e}')

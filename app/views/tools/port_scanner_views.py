@@ -104,7 +104,7 @@ class PortScannerView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find server')
 
         try:
-            server = server_sql.get_server_by_id(server_id)
+            server = server_sql.get_server(server_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find server')
 

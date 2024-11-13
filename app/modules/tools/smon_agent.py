@@ -41,7 +41,7 @@ def check_agent_limit():
 def add_agent(data) -> int:
     name = common.checkAjaxInput(data.get("name"))
     server_id = int(data.get("server_id"))
-    server_ip = server_sql.select_server_ip_by_id(server_id)
+    server_ip = server_sql.get_server(server_id).ip
     desc = common.checkAjaxInput(data.get("desc"))
     enabled = int(data.get("enabled"))
     agent_uuid = str(uuid.uuid4())

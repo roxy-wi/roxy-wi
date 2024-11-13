@@ -70,10 +70,10 @@ def show_ha_cluster(service, cluster_id):
         servers_with_status.append(s[1])
         servers_with_status.append(s[2])
         servers_with_status.append(s[11])
-        servers_with_status.append(server_sql.is_master(s[2]))
         servers_with_status.append(server_sql.select_servers(server=s[2]))
+        servers_with_status.append(server_sql.is_master(s[2]))
 
-        is_keepalived = service_sql.select_keepalived(s[2])
+        is_keepalived = s[13]
 
         if is_keepalived:
             try:

@@ -115,7 +115,7 @@ class UDPListener(MethodView):
                 if listener.cluster_id:
                     cluster = ha_sql.select_cluster(listener.cluster_id)
                 elif listener.server_id:
-                    server = server_sql.get_server_by_id(listener.server_id)
+                    server = server_sql.get_server(listener.server_id)
                 kwargs = {
                     'clusters': cluster,
                     'listener': listener,

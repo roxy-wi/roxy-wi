@@ -99,7 +99,7 @@ def config(service, serv, edit, config_file_name, new):
     if serv and edit and new_config is None:
         roxywi_common.check_is_server_in_group(serv)
         is_serv_protected = server_sql.is_serv_protected(serv)
-        server_id = server_sql.select_server_id_by_ip(serv)
+        server_id = server_sql.get_server_by_ip(serv).server_id
         is_restart = service_sql.select_service_setting(server_id, service, 'restart')
         cfg = config_mod.return_cfg(service, serv, config_file_name)
 
@@ -233,7 +233,7 @@ def haproxy_section_show(server_ip, section):
     cfg = config_common.generate_config_path('haproxy', server_ip)
     error = config_mod.get_config(server_ip, cfg)
     start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section)
-    server_id = server_sql.select_server_id_by_ip(server_ip)
+    server_id = server_sql.get_server_by_ip(server_ip).server_id
     sections = section_mod.get_sections(cfg)
 
     os.system(f"/bin/mv {cfg} {cfg}.old")

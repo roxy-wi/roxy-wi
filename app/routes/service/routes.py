@@ -60,7 +60,7 @@ def services(service, serv):
         if roxywi_common.check_is_server_in_group(serv):
             servers = server_sql.select_servers(server=serv)
             waf_server = waf_sql.select_waf_servers(serv)
-            server_id = server_sql.select_server_id_by_ip(serv)
+            server_id = server_sql.get_server_by_ip(serv).server_id
             docker_settings = service_sql.select_docker_service_settings(server_id, service_desc.slug)
             restart_settings = service_sql.select_restart_service_settings(server_id, service_desc.slug)
         else:
@@ -89,7 +89,7 @@ def services(service, serv):
         servers_with_status.append(s[2])
         servers_with_status.append(s[11])
         servers_with_status.append(server_sql.select_servers(server=s[2]))
-        is_keepalived = service_sql.select_keepalived(s[2])
+        is_keepalived = s[13]
 
         if is_keepalived:
             try:
@@ -215,11 +215,11 @@ def show_service_settings(service, server_id):
 @bp.post('/settings/<service>')
 @check_services
 def save_service_settings(service):
-    server_id = common.checkAjaxInput(request.form.get('serverSettingsSave'))
-    haproxy_enterprise = common.checkAjaxInput(request.form.get('serverSettingsEnterprise'))
-    service_dockerized = common.checkAjaxInput(request.form.get('serverSettingsDockerized'))
-    service_restart = common.checkAjaxInput(request.form.get('serverSettingsRestart'))
-    server_ip = server_sql.select_server_ip_by_id(server_id)
+    server_id = int(request.form.get('serverSettingsSave'))
+    haproxy_enterprise = int(request.form.get('serverSettingsEnterprise'))
+    service_dockerized = int(request.form.get('serverSettingsDockerized'))
+    service_restart = int(request.form.get('serverSettingsRestart'))
+    server_ip = server_sql.get_server(server_id).ip
     service_docker = f'Service {service.title()} has been flagged as a dockerized'
     service_systemd = f'Service {service.title()} has been flagged as a system service'
     disable_restart = f'Restart option is disabled for {service.title()} service'
@@ -252,13 +252,13 @@ def save_service_settings(service):
 @bp.post('/<service>/tools/update')
 @check_services
 def update_tools_enable(service):
-    server_id = request.form.get('server_id')
+    server_id = int(request.form.get('server_id'))
     active = request.form.get('active')
     name = request.form.get('name')
     alert = request.form.get('alert_en')
     metrics = request.form.get('metrics')
     service_sql.update_hapwi_server(server_id, alert, metrics, active, service)
-    server_ip = server_sql.select_server_ip_by_id(server_id)
+    server_ip = server_sql.get_server(server_id).ip
     roxywi_common.logging(server_ip, f'The server {name} has been updated ', roxywi=1, login=1, keep_history=1,
                           service=service)
 

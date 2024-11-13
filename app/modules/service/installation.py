@@ -29,7 +29,7 @@ def generate_udp_inv(listener_id: int, action: str) -> object:
 	if listener['cluster_id']:
 		server_ips = udp_mod.get_slaves_for_udp_listener(listener['cluster_id'], listener['vip'])
 	elif listener['server_id']:
-		server = server_sql.get_server_by_id(listener['server_id'])
+		server = server_sql.get_server(listener['server_id'])
 		server_ips.append(server.ip)
 	for server_ip in server_ips:
 		inv['server']['hosts'][server_ip] = {
@@ -82,13 +82,13 @@ def generate_kp_inv(json_data: json, installed_service) -> object:
 		routers[router_id].setdefault('use_src', vip.use_src)
 		slaves = ha_sql.select_cluster_slaves_for_inv(router_id)
 		for slave in slaves:
-			slave_ip = server_sql.select_server_ip_by_id(str(slave.server_id))
+			slave_ip = server_sql.get_server(int(slave.server_id)).ip
 			routers[router_id].setdefault(slave_ip, dict())
 			routers[router_id][slave_ip].setdefault('master', slave.master)
 			routers[router_id][slave_ip].setdefault('eth', slave.eth)
 
 	for v in json_data['servers']:
-		s = server_sql.get_server_by_id(v['id'])
+		s = server_sql.get_server(v['id'])
 		inv['server']['hosts'][s.ip] = {
 			"HAPROXY": haproxy,
 			"NGINX": nginx,
@@ -131,7 +131,7 @@ def generate_haproxy_inv(json_data: ServiceInstall, installed_service: str) -> o
 	is_docker = json_data['services']['haproxy']['docker']
 
 	for v in json_data['servers']:
-		s = server_sql.get_server_by_id(v['id'])
+		s = server_sql.get_server(v['id'])
 		if not v['master']:
 			slaves.append(s.ip)
 		else:
@@ -203,7 +203,7 @@ def generate_service_inv(json_data: ServiceInstall, installed_service: str) -> o
 		os.system('ansible-galaxy install nginxinc.nginx,0.24.3 -f --roles-path /var/www/haproxy-wi/app/scripts/ansible/roles/')
 
 	for v in json_data['servers']:
-		s = server_sql.get_server_by_id(v['id'])
+		s = server_sql.get_server(v['id'])
 		if installed_service == 'apache':
 			correct_service_name = service_common.get_correct_apache_service_name(server_id=v['id'])
 			if service_dir == '/etc/httpd' and correct_service_name == 'apache2':
@@ -391,7 +391,7 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 	}
 
 	for server_ip in server_ips:
-		server_id = server_sql.select_server_id_by_ip(server_ip)
+		server_id = server_sql.get_server_by_ip(server_ip).server_id
 		try:
 			update_functions[service](server_ip)
 		except Exception as e:

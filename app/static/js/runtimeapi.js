@@ -321,7 +321,7 @@ function getTable() {
 				$("input[type=submit], button").button();
 				$.getScript(script);
 				$.getScript(overview);
-				FontAwesomeConfig = {searchPseudoElements: true, observeMutations: false};
+				$.getScript(awesome);
 			}
 		}
 	});
@@ -339,7 +339,7 @@ function getList() {
 				$("input[type=submit], button").button();
 				$.getScript(script);
 				$.getScript(overview);
-				FontAwesomeConfig = {searchPseudoElements: true, observeMutations: false};
+				$.getScript(awesome);
 			}
 		}
 	});
@@ -409,7 +409,7 @@ function getSessions() {
 				$("input[type=submit], button").button();
 				$.getScript(script);
 				$.getScript(overview);
-				FontAwesomeConfig = {searchPseudoElements: true, observeMutations: false};
+				$.getScript(awesome);
 			}
 		}
 	});

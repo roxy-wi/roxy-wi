@@ -207,7 +207,7 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	"""
 	user = user_sql.get_user_id(g.user_params['user_id'])
 	config_path = kwargs.get('config_file_name')
-	server_id = server_sql.select_server_id_by_ip(server_ip=server_ip)
+	server_id = server_sql.get_server_by_ip(server_ip).server_id
 	tmp_file = f"{sql.get_setting('tmp_config_path')}/{get_date.return_date('config')}.{config_common.get_file_format(service)}"
 
 	if config_path and config_path != 'undefined':

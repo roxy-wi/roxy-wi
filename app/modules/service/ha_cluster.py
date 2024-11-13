@@ -123,7 +123,7 @@ def delete_cluster(cluster_id: int) -> None:
     slaves = ha_sql.select_cluster_slaves(cluster_id, router_id)
 
     for slave in slaves:
-        slave_ip = server_sql.select_server_ip_by_id(slave[0])
+        slave_ip = server_sql.get_server(slave[0]).ip
         try:
             ha_sql.update_master_server_by_slave_ip(0, slave_ip)
         except Exception as e:
@@ -149,7 +149,7 @@ def update_vip(cluster_id: int, router_id: int, cluster: Union[HAClusterRequest,
         try:
             ha_sql.update_slave(cluster_id, value['id'], value['eth'], value['master'], router_id)
         except Exception as e:
-            s = server_sql.get_server_by_id(value['id'])
+            s = server_sql.get_server(value['id'])
             raise Exception(f'error: Cannot add server {s.hostname}: {e}')
 
     if cluster.virt_server:
@@ -199,7 +199,7 @@ def insert_vip(cluster_id: int, cluster: HAClusterVIP, group_id: int) -> int:
         try:
             ha_sql.insert_or_update_slave(cluster_id, value['id'], value['eth'], value['master'], router_id)
         except Exception as e:
-            s = server_sql.get_server_by_id(value['id'])
+            s = server_sql.get_server(value['id'])
             raise Exception(f'error: Cannot add server {s.hostname}: {e}')
 
     if cluster.virt_server:
@@ -280,7 +280,7 @@ def add_or_update_virt(cluster: Union[HAClusterRequest, HAClusterVIP], servers: 
             roxywi_common.logging(cluster_id, f'Cannot update cluster virtual server for VIP {vip}: {e}', roxywi=1, service='HA cluster')
     else:
         try:
-            server = server_sql.get_server_by_id(master_id)
+            server = server_sql.get_server(master_id)
             c = ha_sql.get_cluster(cluster_id)
             kwargs.setdefault('cred_id', server.cred_id)
             kwargs.setdefault('hostname', f'{vip}-VIP')
@@ -304,7 +304,7 @@ def add_or_update_virt(cluster: Union[HAClusterRequest, HAClusterVIP], servers: 
 
 def _create_or_update_master_slaves_servers(cluster_id: int, servers: dict, router_id: int, create: bool = False) -> None:
     for server in servers:
-        s = server_sql.get_server_by_id(server['id'])
+        s = server_sql.get_server(server['id'])
         try:
             ha_sql.insert_or_update_slave(cluster_id, server['id'], server['eth'], server['master'], router_id)
             if create:

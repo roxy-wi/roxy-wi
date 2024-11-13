@@ -112,7 +112,7 @@ def get_system_info(server_ip: str) -> None:
 	if server_ip == '':
 		raise Exception('IP cannot be empty')
 
-	server_id = server_sql.select_server_id_by_ip(server_ip)
+	server_id = server_sql.get_server_by_ip(server_ip).server_id
 	command = "sudo lshw -quiet -json"
 	command1 = 'sudo hostnamectl |grep "Operating System"|awk -F":" \'{print $2}\''
 
@@ -459,7 +459,7 @@ def update_server_after_creating(hostname: str, ip: str) -> None:
 
 
 def delete_server(server_id: int) -> None:
-	server = server_sql.get_server_by_id(server_id)
+	server = server_sql.get_server(server_id)
 
 	if backup_sql.check_exists_backup(server.ip, 'fs'):
 		raise 'warning: Delete the backups first'

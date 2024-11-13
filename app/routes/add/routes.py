@@ -229,7 +229,7 @@ def get_certs(server_ip):
     if isinstance(server_ip, str):
         server_ip = common.is_ip_or_dns(server_ip)
     elif isinstance(server_ip, int):
-        server = server_sql.get_server_by_id(server_ip)
+        server = server_sql.get_server(server_ip)
         server_ip = server.ip
     return add_mod.get_ssl_certs(server_ip)
 

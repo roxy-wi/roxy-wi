@@ -204,11 +204,11 @@ def service_history(service, server_ip):
         if service in ('cluster', 'udp'):
             server_id = server_ip
         else:
-            server_id = server_sql.select_server_id_by_ip(server_ip)
+            server_id = server_sql.get_server_by_ip(server_ip).server_id
         history = history_sql.select_action_history_by_server_id_and_service(server_id, service_desc.service)
     elif service == 'server':
         if roxywi_common.check_is_server_in_group(server_ip):
-            server_id = server_sql.select_server_id_by_ip(server_ip)
+            server_id = server_sql.get_server_by_ip(server_ip).server_id
             history = history_sql.select_action_history_by_server_id(server_id)
     elif service == 'user':
         history = history_sql.select_action_history_by_user_id(server_ip)

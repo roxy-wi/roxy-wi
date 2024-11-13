@@ -34,7 +34,7 @@ def service_action(server_ip: str, action: str, service: str) -> None:
         service_common.is_protected(server_ip, action)
     except Exception as e:
         raise e
-    server_id = server_sql.select_server_id_by_ip(server_ip=server_ip)
+    server_id = server_sql.get_server_by_ip(server_ip).server_id
 
     if service_common.is_not_allowed_to_restart(server_id, service, action):
         raise Exception('This server is not allowed to be restarted')

@@ -633,7 +633,7 @@ class GitBackupView(MethodView):
             description: Unexpected error
         """
         try:
-            server = server_sql.get_server_by_id(body.server_id)
+            server = server_sql.get_server(body.server_id)
             service_name = service_sql.select_service_name_by_id(body.service_id).lower()
             backup_mod.create_git_backup_inv(body, server.ip, service_name)
             backup_sql.update_backup_job(backup_id, 'git', **body.model_dump(mode='json', exclude={'init'}))

@@ -49,10 +49,10 @@ def show_overview(serv) -> str:
     server = server_sql.get_server_by_ip(serv)
     user_services = user_sql.select_user_services(claims['user_id'])
 
-    haproxy = service_sql.select_haproxy(serv) if '1' in user_services else 0
-    nginx = service_sql.select_nginx(serv) if '2' in user_services else 0
-    keepalived = service_sql.select_keepalived(serv) if '3' in user_services else 0
-    apache = service_sql.select_apache(serv) if '4' in user_services else 0
+    haproxy = server.apache if '1' in user_services else 0
+    nginx = server.nginx if '2' in user_services else 0
+    keepalived = server.keepalived if '3' in user_services else 0
+    apache = server.apache if '4' in user_services else 0
 
     waf = waf_sql.select_waf_servers(server.ip)
     haproxy_process = ''
@@ -200,8 +200,8 @@ def show_services_overview():
         for s in user_params['servers']:
             servers_group.append(s[2])
 
-    is_checker_worker = len(checker_sql.select_all_alerts(group=user_group))
-    is_metrics_worker = len(metric_sql.select_servers_metrics_for_master(group=user_group))
+    is_checker_worker = len(checker_sql.select_all_alerts(user_group))
+    is_metrics_worker = len(metric_sql.select_servers_metrics_for_master(user_group))
 
     for pids in psutil.pids():
         if pids < 300:

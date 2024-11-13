@@ -21,7 +21,7 @@ class SupportClass:
                 raise e
         else:
             try:
-                server = server_sql.get_server_by_id(server_id)
+                server = server_sql.get_server(server_id)
             except Exception as e:
                 raise e
         try:

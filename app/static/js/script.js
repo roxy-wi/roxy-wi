@@ -141,8 +141,9 @@ function openVersions() {
 function showLog() {
 	let waf = cur_url[0].split('?')[0];
 	let file = $('#log_files').val();
+	if (!checkIsServerFiled('#serv')) return false;
 	let serv = $("#serv").val();
-	if ((file === undefined || file === null) && (waf === '' || waf === undefined)) {
+	if ((file === undefined || file === null || file === 'Select a file') && (waf === '' || waf === undefined)) {
 		let file_from_get = findGetParameter('file');
 		if (file_from_get === undefined || file_from_get === null) {
 			toastr.warning('Select a log file first')
@@ -150,6 +151,11 @@ function showLog() {
 		} else {
 			file = file_from_get;
 		}
+	}
+	if (file === undefined || file === null) {
+		toastr.warning('Select a log file first')
+		return false;
+
 	}
 	let rows = $('#rows').val();
 	let grep = $('#grep').val();

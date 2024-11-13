@@ -60,7 +60,7 @@ def check_ssh(server_ip):
 @bp.route('/check/server/<int:server_id>')
 def check_server(server_id):
     try:
-        server = server_sql.get_server_by_id(server_id)
+        server = server_sql.get_server(server_id)
     except Exception as e:
         return roxywi_common.handler_exceptions_for_json_data(e)
     result = server_mod.server_is_up(server.ip)

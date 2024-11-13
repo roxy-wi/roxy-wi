@@ -121,7 +121,7 @@ def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip
 		except Exception:
 			pass
 
-		server_id = server_sql.select_server_id_by_ip(server_ip=serv)
+		server_id = server_sql.get_server_by_ip(serv).server_id
 		haproxy_service_name = service_common.get_correct_service_name('haproxy', server_id)
 
 		if action == 'restart':
@@ -239,7 +239,7 @@ def save_map(map_name: str, list_con: str, group: str, server_ip: str, action: s
 		except Exception:
 			pass
 
-		server_id = server_sql.select_server_id_by_ip(server_ip=serv)
+		server_id = server_sql.get_server_by_ip(serv).server_id
 		haproxy_service_name = service_common.get_correct_service_name('haproxy', server_id)
 
 		if action == 'restart':

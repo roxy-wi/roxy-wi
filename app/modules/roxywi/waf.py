@@ -4,7 +4,6 @@ import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
 import app.modules.db.user as user_sql
 import app.modules.db.server as server_sql
-import app.modules.db.service as service_sql
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
@@ -21,9 +20,9 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
     is_waf_on_server = 0
 
     if waf_service == 'haproxy':
-        is_waf_on_server = service_sql.select_haproxy(server.ip)
+        is_waf_on_server = server.haproxy
     elif waf_service == 'nginx':
-        is_waf_on_server = service_sql.select_nginx(server.ip)
+        is_waf_on_server = server.nginx
 
     if is_waf_on_server == 1:
         config_path = sql.get_setting(f'{waf_service}_dir')
@@ -70,7 +69,7 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
 
 
 def change_waf_mode(waf_mode: str, server_id: int, service: str):
-    serv = server_sql.get_server_by_id(server_id)
+    serv = server_sql.get_server(server_id)
 
     if service == 'haproxy':
         config_dir = sql.get_setting('haproxy_dir')

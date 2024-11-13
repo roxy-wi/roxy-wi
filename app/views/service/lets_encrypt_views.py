@@ -264,12 +264,12 @@ class LetsEncryptView(MethodView):
         ssl_path = common.return_nice_path(sql.get_setting('cert_path'), is_service=0)
 
         if data.type == 'standalone':
-            server_ip = server_sql.get_server_by_id(data.server_id).ip
+            server_ip = server_sql.get_server(data.server_id).ip
             ssh_settings = return_ssh_keys_path(server_ip)
             servers[server_ip] = f"{ssh_settings['user']}@{ssh_settings['key']}"
             ansible_role = 'letsencrypt_standalone'
         else:
-            master_ip = server_sql.get_server_by_id(data.server_id).ip
+            master_ip = server_sql.get_server(data.server_id).ip
             ssh_settings = return_ssh_keys_path(master_ip)
             servers[master_ip] = f"{ssh_settings['user']}@{ssh_settings['key']}"
             ansible_role = 'letsencrypt'

@@ -308,7 +308,7 @@ def change_maxconn_global(serv: str, maxconn: int) -> str:
 	for master in masters:
 		if master[0] is not None:
 			cmd = f'echo "set maxconn global {maxconn}" |nc {master[0]} {haproxy_sock_port}'
-			output, stderr = server_mod.subprocess_execute(cmd)
+			server_mod.subprocess_execute(cmd)
 		roxywi_common.logging(master[0], f'Maxconn has been changed. Globally to {maxconn}', login=1, keep_history=1, service='haproxy')
 
 	cmd = f'echo "set maxconn global {maxconn}" |nc {serv} {haproxy_sock_port}'
@@ -340,7 +340,7 @@ def change_maxconn_frontend(serv, maxconn, frontend) -> str:
 	for master in masters:
 		if master[0] is not None:
 			cmd = f'echo "set maxconn frontend {frontend} {maxconn}" |nc {master[0]} {haproxy_sock_port}'
-			output, stderr = server_mod.subprocess_execute(cmd)
+			server_mod.subprocess_execute(cmd)
 		roxywi_common.logging(master[0], f'Maxconn has been changed. On: {frontend} to {maxconn}', login=1, keep_history=1, service='haproxy')
 
 	cmd = f'echo "set maxconn frontend {frontend} {maxconn}" |nc {serv} {haproxy_sock_port}'
@@ -419,11 +419,9 @@ def delete_ip_from_stick_table(serv, ip, table) -> str:
 
 	cmd = f'echo "clear table {table} key {ip}" |nc {serv} {haproxy_sock_port}'
 	output, stderr = server_mod.subprocess_execute(cmd)
-	try:
-		if stderr[0] != '':
-			return f'error: {stderr[0]}'
-	except Exception:
-		return 'ok'
+	if stderr != '':
+		return f'error: {stderr[0]}'
+	return 'ok'
 
 
 def clear_stick_table(serv, table) -> str:
@@ -431,11 +429,9 @@ def clear_stick_table(serv, table) -> str:
 
 	cmd = f'echo "clear table {table} " |nc {serv} {haproxy_sock_port}'
 	output, stderr = server_mod.subprocess_execute(cmd)
-	try:
-		if stderr[0] != '':
-			return f'error: {stderr[0]}'
-	except Exception:
-		return 'ok'
+	if stderr != '':
+		return f'error: {stderr[0]}'
+	return 'ok'
 
 
 def list_of_lists(serv) -> dict:
@@ -477,16 +473,10 @@ def delete_ip_from_list(serv, ip_id, ip, list_id, list_name) -> str:
 	output, stderr = server_mod.subprocess_execute(cmd)
 
 	roxywi_common.logging(serv, f'{ip_id} has been delete from list {list_id}', login=1, keep_history=1, service='haproxy')
-	try:
-		if output[0] != '':
-			return f'error: {output[0]}'
-	except Exception:
-		pass
-	try:
-		if stderr != '':
-			return f'error: {stderr[0]}'
-	except Exception:
-		pass
+	if output[0] != '':
+		return f'error: {output[0]}'
+	if stderr != '':
+		return f'error: {stderr[0]}'
 
 	return 'ok'
 
@@ -497,16 +487,10 @@ def add_ip_to_list(serv, ip, list_id, list_name) -> str:
 	user_group = roxywi_common.get_user_group(id=1)
 	cmd = f'echo "add acl #{list_id} {ip}" |nc {serv} {haproxy_sock_port}'
 	output, stderr = server_mod.subprocess_execute(cmd)
-	try:
-		if output[0]:
-			return f'error: {output[0]}'
-	except Exception:
-		pass
-	try:
-		if stderr:
-			return f'error: {stderr[0]}'
-	except Exception:
-		pass
+	if output[0]:
+		return f'error: {output[0]}'
+	if stderr:
+		return f'error: {stderr[0]}'
 
 	if 'is not a valid IPv4 or IPv6 address' not in output[0]:
 		cmd = f'echo "{ip}" >> {lib_path}/lists/{user_group}/{list_name}'

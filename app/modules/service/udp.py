@@ -39,7 +39,7 @@ def _return_listener_servers(listener_id: int, group_id=None):
     if listener.cluster_id:
         servers = get_slaves_for_udp_listener(listener.cluster_id, listener.vip)
     elif listener.server_id:
-        server = server_sql.get_server_by_id(listener.server_id)
+        server = server_sql.get_server(listener.server_id)
         servers.append(server.ip)
     if len(servers) < 1:
         raise ValueError("error: Cannot find server")

@@ -170,23 +170,9 @@ def update_keepalived(serv):
 		out_error(e)
 
 
-def select_apache(serv):
-	try:
-		return Server.get(Server.ip == serv).apache
-	except Exception as e:
-		out_error(e)
-
-
 def update_apache(serv: str) -> None:
 	try:
 		Server.update(apache='1').where(Server.ip == serv).execute()
-	except Exception as e:
-		out_error(e)
-
-
-def select_nginx(serv):
-	try:
-		return Server.get(Server.ip == serv).nginx
 	except Exception as e:
 		out_error(e)
 
@@ -198,29 +184,11 @@ def update_nginx(serv: str) -> None:
 		out_error(e)
 
 
-def select_haproxy(serv):
-	try:
-		query_res = Server.get(Server.ip == serv).haproxy
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
 def update_haproxy(serv):
 	try:
 		Server.update(haproxy=1).where(Server.ip == serv).execute()
 	except Exception as e:
 		out_error(e)
-
-
-def select_keepalived(serv):
-	try:
-		keepalived = Server.get(Server.ip == serv).keepalived
-	except Exception as e:
-		out_error(e)
-	else:
-		return keepalived
 
 
 def select_count_services(service: str) -> int:

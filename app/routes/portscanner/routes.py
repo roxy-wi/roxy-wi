@@ -64,7 +64,7 @@ def change_settings_portscanner():
     enabled = int(request.form.get('enabled'))
     notify = int(request.form.get('notify'))
     history = int(request.form.get('history'))
-    server = server_sql.get_server_by_id(server_id)
+    server = server_sql.get_server(server_id)
 
     try:
         ps_sql.insert_port_scanner_settings(server_id, server.group_id, enabled, notify, history)
@@ -77,7 +77,7 @@ def change_settings_portscanner():
 def scan_port():
     json_data = request.get_json()
     if 'id' in json_data:
-        ip = server_sql.select_server_ip_by_id(int(json_data['id']))
+        ip = server_sql.get_server(int(json_data['id'])).ip
     else:
         ip = common.is_ip_or_dns(json_data['ip'])
 
