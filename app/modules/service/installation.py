@@ -82,7 +82,7 @@ def generate_kp_inv(json_data: json, installed_service) -> object:
 		routers[router_id].setdefault('use_src', vip.use_src)
 		slaves = ha_sql.select_cluster_slaves_for_inv(router_id)
 		for slave in slaves:
-			slave_ip = server_sql.get_server(int(slave.server_id)).ip
+			slave_ip = slave.server_id.ip
 			routers[router_id].setdefault(slave_ip, dict())
 			routers[router_id][slave_ip].setdefault('master', slave.master)
 			routers[router_id][slave_ip].setdefault('eth', slave.eth)
