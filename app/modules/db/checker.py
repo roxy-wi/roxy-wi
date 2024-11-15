@@ -109,11 +109,9 @@ def select_checker_service_status(server_id: int, service_id: int, service_check
 
 def select_checker_services_status() -> tuple:
 	try:
-		services_check_status = ServiceStatus.select().execute()
+		return ServiceStatus.select().execute()
 	except Exception as e:
 		return out_error(e)
-	else:
-		return services_check_status
 
 
 def inset_or_update_service_status(server_id: int, service_id: int, service_check: str, status: int) -> None:
@@ -126,6 +124,31 @@ def inset_or_update_service_status(server_id: int, service_id: int, service_chec
 		out_error(e)
 
 
+def select_checker_enabled(service: str) -> Server:
+	services = {
+		'haproxy': (Server.haproxy_alert == 1),
+		'nginx': (Server.nginx_alert == 1),
+		'apache': (Server.apache_alert == 1),
+		'keepalived': (Server.keepalived_alert == 1),
+	}
+	service_req = services.get(service)
+	try:
+		return Server.select(Server.ip).where(service_req & (Server.enabled == 1)).execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_all_alerts(group_id: int):
+	query = Server.select(Server.ip).where(
+		((Server.haproxy_alert == 1) | (Server.nginx_alert == 1)) & (Server.enabled == 1) & (Server.group_id == group_id)
+	)
+	try:
+		return query.execute()
+	except Exception as e:
+		out_error(e)
+
+
+# For deleting after realising new version
 def select_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
@@ -141,21 +164,7 @@ def select_alert(**kwargs):
 		return query_res
 
 
-def select_all_alerts(**kwargs):
-	if kwargs.get("group") is not None:
-		query = Server.select(Server.ip).where(
-			((Server.haproxy_alert == 1) | (Server.nginx_alert == 1)) & (Server.enabled == 1) & (Server.group_id == kwargs.get('group'))
-		)
-	else:
-		query = Server.select(Server.ip).where(((Server.haproxy_alert == 1) | (Server.nginx_alert == 1)) & (Server.enabled == 1))
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
+# For deleting after realising new version
 def select_nginx_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
@@ -178,6 +187,7 @@ def select_nginx_alert(**kwargs):
 		return query_res
 
 
+# For deleting after realising new version
 def select_apache_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
@@ -196,6 +206,7 @@ def select_apache_alert(**kwargs):
 		return query_res
 
 
+# For deleting after realising new version
 def select_keepalived_alert(**kwargs):
 	if kwargs.get("group") is not None:
 		query = Server.select(Server.ip).where(
