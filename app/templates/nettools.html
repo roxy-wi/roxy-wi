@@ -3,7 +3,7 @@
 {% block h2 %}{{ lang.menu_links.monitoring.net_tools }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
-<script src="/static/js/nettools.js"></script>
+<script src="{{ url_for('static', filename='js/nettools.js')}}"></script>
 <form name="nettools_icmp_form" id="nettools_icmp_form" method="post" action="/nettools/icmp">
     <table class="overview">
         <caption><h3>ICMP</h3></caption>
@@ -17,21 +17,20 @@
             <td class="padding10 first-collumn">
                 <select autofocus required name="server_from" id="nettools_icmp_server_from">
                     <option disabled selected>------</option>
-                    <option value="localhost">Roxy-WI</option>
+                    <option value="localhost">Roxy-WI server</option>
                     {% for server in g.user_params['servers'] %}
                     <option value="{{ server.2 }}">{{ server.1 }}</option>
                         {% endfor %}
                     </select>
             </td>
             <td class="padding10 first-collumn">
-                {{ input('nettools_icmp_server_to', name='server_to', title=lang.nettools_page.ip_or_name) }}
-                {{ input('token', value=token, type='hidden') }}
+                {{ input('nettools_icmp_server_to', name='server_to', title='Enter IP or Name') }}
             </td>
             <td class="padding10 first-collumn">
-                <button type="submit" title="{{lang.words.run|title()}} Ping" id="nettools_ping" name="nettools_ping" value="nettools_ping">Ping</button>
+                <button type="submit" title="Run Ping" id="nettools_ping" name="nettools_ping" value="ping">Ping</button>
             </td>
             <td>
-                <button type="submit" title="{{lang.words.run|title()}} Traceroute" id="nettools_trace" name="nettools_trace" value="nettools_trace">Traceroute</button>
+                <button type="submit" title="Run Traceroute" id="nettools_trace" name="nettools_trace" value="trace">Traceroute</button>
             </td>
         </tr>
     </table>
@@ -49,18 +48,17 @@
             <td class="padding10 first-collumn">
                 <select autofocus required name="server_from" id="nettools_telnet_server_from">
                     <option disabled selected>------</option>
-                    <option value="localhost">Roxy-WI</option>
+                    <option value="localhost">Roxy-WI server</option>
                     {% for server in g.user_params['servers'] %}
                     <option value="{{ server.2 }}">{{ server.1 }}</option>
                     {% endfor %}
                 </select>
             </td>
             <td class="padding10 first-collumn">
-                {{ input('nettools_telnet_server_to', name='server_to', title=lang.nettools_page.ip_or_name) }}
-                {{ input('token', value=token, type='hidden') }}
+                {{ input('nettools_telnet_server_to', name='server_to', title='Enter IP or Name') }}
             </td>
             <td class="padding10 first-collumn">
-                {{ input('nettools_telnet_port_to', title=lang.words.port|title() + ' ' + lang.words.port, type='number', style='width: 60px;') }}
+                {{ input('nettools_telnet_port_to', name='port', title='Enter port', type='number', style='width: 60px;') }}
             </td>
             <td>
                 <button type="submit" title="{{lang.words.run|title()}} Telnet" id="nettools_telnet" name="nettools_telnet" value="nettools_telnet">{{lang.words.connect|title()}}</button>
@@ -81,7 +79,7 @@
             <td class="padding10 first-collumn">
                 <select autofocus required name="server_from" id="nettools_nslookup_server_from">
                     <option disabled selected>------</option>
-                    <option value="localhost">Roxy-WI</option>
+                    <option value="localhost">Roxy-WI server</option>
                     {% for server in g.user_params['servers'] %}
                     <option value="{{ server.2 }}">{{ server.1 }}</option>
                     {% endfor %}
@@ -89,13 +87,12 @@
             </td>
             <td class="padding10 first-collumn">
                 {% set values = dict() %}
-                {% set values = {'A':'A','AAA':'AAA', 'CNAME':'CNAME', 'MX':'MX', 'TXT':'TXT', 'PTR':'PTR', 'SRV':'SRV',
+                {% set values = {'a':'A','aaa':'AAA', 'cname':'CNAME', 'mx':'MX', 'txt':'TXT', 'ptr':'PTR', 'srv':'SRV',
                 'SOA':'SOA', 'CAA':'CAA'} %}
-                {{ select('nettools_nslookup_record_type', values=values, selected='A', required='required') }}
+                {{ select('nettools_nslookup_record_type', name='record_type', values=values, selected='A', required='required') }}
             </td>
             <td class="padding10 first-collumn">
-                {{ input('nettools_nslookup_name', title=lang.nettools_page.dns_name) }}
-                {{ input('token', value=token, type='hidden') }}
+                {{ input('nettools_nslookup_name', name='dns_name', title='Enter a DNS name') }}
             </td>
             <td>
                 <button type="submit" title="{{lang.words.run|title()}} Telnet" id="nettools_nslookup" name="nettools_nslookup" value="nettools_nslookup">{{lang.words.check|title()}}</button>
@@ -104,7 +101,7 @@
     </table>
 </form>
 <form name="nettools_portscanner_form" id="nettools_portscanner_form" method="post" action="/nettools/portscan">
-    <table class="overview" style="width: 40%;float: left;">
+    <table class="overview" style="width: 30%;float: left;">
         <caption><h3>Port scanner</h3></caption>
         <tr class="overviewHead">
             <th class="padding10 first-collumn">{{lang.words.server|title()}}</th>
@@ -112,7 +109,7 @@
         </tr>
         <tr>
             <td class="padding10 first-collumn">
-                {{ input('nettools_portscanner_server', title=lang.nettools_page.server_portscann) }}
+                {{ input('nettools_portscanner_server', title='Enter a server for port scanning') }}
             </td>
             <td class="padding10" style="width: 0">
                 <button type="submit" title="{{lang.words.run|title()}} port scanning" id="nettools_portscan" name="nettools_portscan" value="nettools_portscan">{{lang.words.run|title()}}</button>
@@ -121,7 +118,7 @@
     </table>
 </form>
 <form name="nettools_whois_form" id="nettools_whois_form" method="post" action="/nettools/whois">
-    <table class="overview" style="width: 60%;">
+    <table class="overview" style="width: 30%;float: left">
         <caption><h3>Whois</h3></caption>
         <tr class="overviewHead">
             <th class="padding10 first-collumn">{{lang.words.name|title()}}</th>
@@ -129,10 +126,31 @@
         </tr>
         <tr>
             <td class="padding10 first-collumn">
-                {{ input('nettools_whois_name', title=lang.nettools_page.dns_name) }}
+                {{ input('nettools_whois_name', name='dns_name', title=lang.nettools_page.dns_name) }}
             </td>
             <td class="padding10" style="width: 0">
                 <button type="submit" title="{{lang.words.check|title()}}" id="nettools_whois" name="nettools_whois" value="nettools_whois">{{lang.words.check|title()}}</button>
+            </td>
+        </tr>
+    </table>
+</form>
+<form name="nettools_ip_calc_form" id="nettools_ipcalc_form" method="post" action="/nettools/ipcalc">
+    <table class="overview" style="width: 40%;">
+        <caption><h3>IP {{lang.words.calculator}}</h3></caption>
+        <tr class="overviewHead">
+            <th class="padding10 first-collumn">IP {{lang.words.address|title()}}</th>
+            <th>{{lang.words.netmask}}</th>
+            <th></th>
+        </tr>
+        <tr>
+            <td class="padding10 first-collumn">
+                {{ input('nettools_address', name='ip', placeholder='192.168.0.1') }}
+            </td>
+            <td>
+                {{ input('nettools_netmask', name='netmask', placeholder='24', type='number') }}
+            </td>
+            <td class="padding10" style="width: 0">
+                <button type="submit" title="{{lang.words.calculate|title()}}" id="nettools_ipcalc_form" name="nettools_ipcalc_form" value="nettools_ipcalc_form">{{lang.words.calculate|title()}}</button>
             </td>
         </tr>
     </table>

@@ -506,3 +506,14 @@ class HaproxyDefaultsRequest(BaseModel):
     maxconn: Optional[int] = 5000
     type: Optional[Literal['defaults']] = 'defaults'
     action: Optional[Literal['save', 'test', 'reload', 'restart']] = "save"
+
+
+class NettoolsRequest(BaseModel):
+    server_from: Optional[EscapedString] = None
+    server_to: Optional[Union[IPvAnyAddress, DomainName]] = None
+    port: Optional[Annotated[int, Gt(1), Le(65535)]] = None
+    action: Optional[Literal['ping', 'trace']] = None
+    dns_name: Optional[DomainName] = None
+    record_type: Optional[Literal['a', 'aaaa', 'caa', 'cname', 'mx', 'ns', 'ptr', 'sao', 'src', 'txt']] = None
+    ip: Optional[IPvAnyAddress] = None
+    netmask: Optional[int] = None

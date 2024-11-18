@@ -3,6 +3,7 @@ import os
 from flask import render_template, request, g, abort, jsonify, redirect, url_for, send_from_directory
 from flask_jwt_extended import jwt_required
 from flask_pydantic.exceptions import ValidationError
+from flask_pydantic import validate
 
 from app import app, cache, jwt
 from app.routes.main import bp
@@ -18,7 +19,7 @@ import app.modules.roxywi.nettools as nettools_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
 import app.modules.service.haproxy as service_haproxy
-from app.modules.roxywi.class_models import ErrorResponse
+from app.modules.roxywi.class_models import ErrorResponse, NettoolsRequest
 
 
 @app.template_filter('strftime')
@@ -155,37 +156,40 @@ def nettools():
 
 
 @bp.post('/nettools/<check>')
+@validate(body=NettoolsRequest)
 @jwt_required()
-def nettools_check(check):
-    server_from = common.checkAjaxInput(request.form.get('server_from'))
-    server_to = common.is_ip_or_dns(request.form.get('server_to'))
-    action = common.checkAjaxInput(request.form.get('nettools_action'))
-    port_to = common.checkAjaxInput(request.form.get('nettools_telnet_port_to'))
-    dns_name = common.checkAjaxInput(request.form.get('nettools_nslookup_name'))
-    dns_name = common.is_ip_or_dns(dns_name)
-    record_type = common.checkAjaxInput(request.form.get('nettools_nslookup_record_type'))
-    domain_name = common.is_ip_or_dns(request.form.get('nettools_whois_name'))
-
+def nettools_check(check, body: NettoolsRequest):
     if check == 'icmp':
         try:
-            return nettools_mod.ping_from_server(server_from, server_to, action)
+            return nettools_mod.ping_from_server(body.server_from, str(body.server_to), body.action)
         except Exception as e:
-            return str(e)
+            return ErrorResponse(error=f'Cannot ping: {e}').model_dump(mode='json'), 500
     elif check == 'tcp':
         try:
-            return nettools_mod.telnet_from_server(server_from, server_to, port_to)
+            return nettools_mod.telnet_from_server(body.server_from, str(body.server_to), body.port)
         except Exception as e:
-            return str(e)
+            return ErrorResponse(error=f'Cannot check port: {e}').model_dump(mode='json'), 500
     elif check == 'dns':
         try:
-            return nettools_mod.nslookup_from_server(server_from, dns_name, record_type)
+            return nettools_mod.nslookup_from_server(body.server_from, body.dns_name, body.record_type)
         except Exception as e:
-            return str(e)
+            return ErrorResponse(error=f'Cannot lookup: {e}').model_dump(mode='json'), 500
     elif check == 'whois':
         try:
-            return jsonify(nettools_mod.whois_check(domain_name))
+            return jsonify(nettools_mod.whois_check(body.dns_name))
         except Exception as e:
-            return str(e)
+            return ErrorResponse(error=f'Cannot make whois: {e}').model_dump(mode='json'), 500
+    elif check == 'ipcalc':
+        try:
+            ip_add = str(body.ip)
+            netmask = int(body.netmask)
+        except Exception as e:
+            return ErrorResponse(error=f'Cannot calc: {e}').model_dump(mode='json'), 500
+
+        try:
+            return jsonify(nettools_mod.ip_calc(ip_add, netmask))
+        except Exception as e:
+            return ErrorResponse(error=f'Cannot calc: {e}').model_dump(mode='json'), 500
     else:
         return 'error: Wrong check'
 

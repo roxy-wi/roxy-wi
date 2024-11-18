@@ -1,6 +1,7 @@
 import json
 
 import whois
+import netaddr
 from flask import Response, stream_with_context
 
 import app.modules.server.ssh as mod_ssh
@@ -134,3 +135,17 @@ def whois_check(domain_name: str) -> str:
         output += f'<b>Organization:</b> {whois_data["org"]} <br />'
 
     return output
+
+
+def ip_calc(ip_add: str, netmask: int) -> dict[str, str]:
+    ip = netaddr.IPNetwork(f'{ip_add}/{netmask}')
+    ip_output = {
+        'address': str(ip.ip),
+        'network': str(ip.network),
+        'netmask': str(ip.netmask),
+        'broadcast': str(ip.broadcast),
+        'hosts': str(ip.size),
+        'min': str(ip[1]),
+        'max': str(ip[-2])
+    }
+    return ip_output

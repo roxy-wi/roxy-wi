@@ -87,6 +87,7 @@
 						{% endif %}
 					{%- elif service == 'apache' %}
 						showApachekBytes(server_ip)
+                        setInterval(showApachekBytes, 60000, server_ip)
 						{% if s.4.0.27 %}
 							getApacheChartData(server_ip)
 						{% endif %}
