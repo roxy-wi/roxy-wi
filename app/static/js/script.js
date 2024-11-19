@@ -152,7 +152,7 @@ function showLog() {
 			file = file_from_get;
 		}
 	}
-	if (file === undefined || file === null) {
+	if ((file === undefined || file === null) && waf === '') {
 		toastr.warning('Select a log file first')
 		return false;
 
