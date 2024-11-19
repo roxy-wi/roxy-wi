@@ -1,8 +1,10 @@
 import os
+from typing import Union
 
 from flask import render_template, request, jsonify, redirect, url_for, g
 from flask_jwt_extended import jwt_required, get_jwt
 from flask_pydantic import validate
+from pydantic import IPvAnyAddress
 
 from app.modules.roxywi.class_models import SSLCertUploadRequest, DataStrResponse, SavedServerRequest, BaseResponse
 from app.routes.add import bp
@@ -16,6 +18,7 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.views.service.haproxy_section_views import (GlobalSectionView, DefaultsSectionView, ListenSectionView,
                                                      UserListSectionView, PeersSectionView)
+from app.modules.roxywi.class_models import DomainName
 
 get_config = roxy_wi_tools.GetConfigVar()
 
@@ -123,12 +126,12 @@ def save_bwlist():
 
 
 @bp.route('/haproxy/bwlist/delete/<server_ip>/<color>/<name>/<int:group>')
-def delete_bwlist(server_ip, color, name, group):
-    server_ip = common.is_ip_or_dns(server_ip)
+@validate()
+def delete_bwlist(server_ip: Union[IPvAnyAddress, DomainName], color, name, group):
     color = common.checkAjaxInput(color)
     list_name = common.checkAjaxInput(name)
 
-    return add_mod.delete_bwlist(list_name, color, group, server_ip)
+    return add_mod.delete_bwlist(list_name, color, group, str(server_ip))
 
 
 @bp.route('/haproxy/bwlist/<bwlists>/<color>/<int:group>')
@@ -225,23 +228,22 @@ def delete_saved_server(server_id):
 
 @bp.route('/certs/<int:server_ip>')
 @bp.route('/certs/<server_ip>')
-def get_certs(server_ip):
-    if isinstance(server_ip, str):
-        server_ip = common.is_ip_or_dns(server_ip)
-    elif isinstance(server_ip, int):
+@validate()
+def get_certs(server_ip: Union[IPvAnyAddress, DomainName, int]):
+    if isinstance(server_ip, int):
         server = server_sql.get_server(server_ip)
         server_ip = server.ip
-    return add_mod.get_ssl_certs(server_ip)
+    return add_mod.get_ssl_certs(str(server_ip))
 
 
 @bp.route('/cert/<server_ip>/<cert_id>', methods=['DELETE', 'GET'])
-def get_cert(server_ip, cert_id):
-    server_ip = common.is_ip_or_dns(server_ip)
+@validate()
+def get_cert(server_ip: Union[IPvAnyAddress, DomainName], cert_id):
     cert_id = common.checkAjaxInput(cert_id)
     if request.method == 'DELETE':
-        return add_mod.del_ssl_cert(server_ip, cert_id)
+        return add_mod.del_ssl_cert(str(server_ip), cert_id)
     elif request.method == 'GET':
-        return add_mod.get_ssl_cert(server_ip, cert_id)
+        return add_mod.get_ssl_cert(str(server_ip), cert_id)
 
 
 @bp.post('/cert/add')
@@ -255,10 +257,10 @@ def upload_cert(body: SSLCertUploadRequest):
 
 
 @bp.route('/cert/get/raw/<server_ip>/<cert_id>')
-def get_cert_raw(server_ip, cert_id):
-    server_ip = common.is_ip_or_dns(server_ip)
+@validate()
+def get_cert_raw(server_ip: Union[IPvAnyAddress, DomainName], cert_id):
     cert_id = common.checkAjaxInput(cert_id)
-    return add_mod.get_ssl_raw_cert(server_ip, cert_id)
+    return add_mod.get_ssl_raw_cert(str(server_ip), cert_id)
 
 
 @bp.route('/map', methods=['POST', 'PUT', 'DELETE', 'GET'])

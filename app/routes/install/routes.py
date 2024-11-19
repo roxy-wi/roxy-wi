@@ -1,5 +1,9 @@
+from typing import Union, Literal
+
 from flask import render_template, request, g, jsonify
 from flask_jwt_extended import jwt_required
+from flask_pydantic import validate
+from pydantic import IPvAnyAddress
 
 from app.routes.install import bp
 from app.middleware import get_user_params
@@ -12,6 +16,7 @@ import app.modules.service.common as service_common
 import app.modules.service.installation as service_mod
 import app.modules.service.exporter_installation as exp_installation
 from app.views.install.views import InstallView
+from app.modules.roxywi.class_models import DomainName
 
 
 bp.add_url_rule(
@@ -62,17 +67,16 @@ def install_exporter(exporter):
 
 
 @bp.route('/exporter/<exporter>/version/<server_ip>')
-def get_exporter_version(exporter, server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
-    return service_common.get_exp_version(server_ip, exporter)
+@validate()
+def get_exporter_version(exporter: str, server_ip: Union[IPvAnyAddress, DomainName]):
+    return service_common.get_exp_version(str(server_ip), exporter)
 
 
 @bp.post('/waf/<service>/<server_ip>')
-def install_waf(service, server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
-
+@validate()
+def install_waf(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
     try:
-        inv, server_ips = service_mod.generate_waf_inv(server_ip, service)
+        inv, server_ips = service_mod.generate_waf_inv(str(server_ip), service)
     except Exception as e:
         return jsonify({'status': 'failed', 'error': f'Cannot create inventory: {e}'})
     try:
@@ -113,12 +117,8 @@ def install_geoip():
 
 
 @bp.route('/geoip/<service>/<server_ip>')
-def check_geoip(service, server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
-
-    if service not in ('haproxy', 'nginx'):
-        return 'error: Wrong service'
-
+@validate()
+def check_geoip(service: Literal['haproxy', 'nginx'], server_ip: Union[IPvAnyAddress, DomainName]):
     service_dir = common.return_nice_path(sql.get_setting(f'{service}_dir'))
     cmd = f"ls {service_dir}geoip/"
-    return server_mod.ssh_command(server_ip, cmd)
+    return server_mod.ssh_command(str(server_ip), cmd)

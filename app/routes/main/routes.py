@@ -1,9 +1,11 @@
 import os
+from typing import Union, Literal
 
 from flask import render_template, request, g, abort, jsonify, redirect, url_for, send_from_directory
 from flask_jwt_extended import jwt_required
 from flask_pydantic.exceptions import ValidationError
 from flask_pydantic import validate
+from pydantic import IPvAnyAddress
 
 from app import app, cache, jwt
 from app.routes.main import bp
@@ -19,7 +21,7 @@ import app.modules.roxywi.nettools as nettools_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
 import app.modules.service.haproxy as service_haproxy
-from app.modules.roxywi.class_models import ErrorResponse, NettoolsRequest
+from app.modules.roxywi.class_models import ErrorResponse, NettoolsRequest, DomainName
 
 
 @app.template_filter('strftime')
@@ -133,9 +135,8 @@ def stats(service, serv):
 @jwt_required()
 @check_services
 @get_user_params()
-def show_stats(service, server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
-
+@validate()
+def show_stats(service: Literal['haproxy', 'apache', 'nginx'], server_ip: Union[IPvAnyAddress, DomainName]):
     if service in ('nginx', 'apache'):
         try:
             return service_common.get_stat_page(server_ip, service, g.user_params['group_id'])
@@ -197,9 +198,10 @@ def nettools_check(check, body: NettoolsRequest):
 @bp.route('/history/<service>/<server_ip>')
 @jwt_required()
 @get_user_params()
-def service_history(service, server_ip):
+@validate()
+def service_history(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
     history = ''
-    server_ip = common.checkAjaxInput(server_ip)
+    server_ip = str(server_ip)
 
     if service in ('haproxy', 'nginx', 'keepalived', 'apache', 'cluster', 'udp'):
         service_desc = service_sql.select_service(service)

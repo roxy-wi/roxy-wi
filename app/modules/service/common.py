@@ -9,7 +9,6 @@ import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
-import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.config.section as section_mod
@@ -75,7 +74,6 @@ def is_not_allowed_to_restart(server_id: int, service: str, action: str) -> int:
 
 
 def get_exp_version(server_ip: str, service_name: str) -> str:
-	server_ip = common.is_ip_or_dns(server_ip)
 	if service_name == 'haproxy':
 		command = "/opt/prometheus/exporters/haproxy_exporter --version 2>&1 |head -1|awk '{print $3}'"
 	elif service_name == 'nginx':

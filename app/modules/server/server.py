@@ -108,7 +108,6 @@ def get_remote_files(server_ip: str, config_dir: str, file_format: str):
 
 
 def get_system_info(server_ip: str) -> None:
-	server_ip = common.is_ip_or_dns(server_ip)
 	if server_ip == '':
 		raise Exception('IP cannot be empty')
 
@@ -482,7 +481,7 @@ def server_is_up(server_ip: str) -> str:
 
 
 def show_server_services(server_id: int) -> str:
-	server = server_sql.select_servers(id=server_id)
+	server = server_sql.get_server(server_id)
 	lang = roxywi_common.get_user_lang_for_flask()
 	return render_template('ajax/show_server_services.html', server=server, lang=lang)
 

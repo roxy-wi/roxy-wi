@@ -1,7 +1,10 @@
 import json
+from typing import Union
 
 from flask import render_template, request, g, jsonify
 from flask_jwt_extended import jwt_required
+from flask_pydantic import validate
+from pydantic import IPvAnyAddress
 
 from app.routes.server import bp
 import app.modules.db.cred as cred_sql
@@ -16,6 +19,7 @@ from app.middleware import get_user_params
 from app.views.server.views import ServerView, ServerGroupView, ServerGroupsView, ServerIPView
 from app.views.server.cred_views import CredView, CredsView
 from app.views.server.backup_vews import BackupView, S3BackupView, GitBackupView
+from app.modules.roxywi.class_models import DomainName
 
 
 def register_api(view, endpoint, url, pk='listener_id', pk_type='int'):
@@ -47,12 +51,12 @@ def before_request():
 
 
 @bp.route('/check/ssh/<server_ip>')
-def check_ssh(server_ip):
+@validate()
+def check_ssh(server_ip: Union[IPvAnyAddress, DomainName]):
     roxywi_auth.page_for_admin(level=2)
-    server_ip = common.is_ip_or_dns(server_ip)
 
     try:
-        return server_mod.ssh_command(server_ip, "ls -1t")
+        return server_mod.ssh_command(str(server_ip), "ls -1t")
     except Exception as e:
         return str(e)
 
@@ -82,12 +86,12 @@ def check_server(server_id):
 
 
 @bp.route('/show/if/<server_ip>')
-def show_if(server_ip):
+@validate()
+def show_if(server_ip: Union[IPvAnyAddress, DomainName]):
     roxywi_auth.page_for_admin(level=2)
-    server_ip = common.is_ip_or_dns(server_ip)
     command = "sudo ip link|grep 'UP' |grep -v 'lo'| awk '{print $2}' |awk -F':' '{print $1}'"
 
-    return server_mod.ssh_command(server_ip, command)
+    return server_mod.ssh_command(str(server_ip), command)
 
 
 @bp.app_template_filter('string_to_dict')
@@ -97,17 +101,15 @@ def string_to_dict(dict_string) -> dict:
 
 
 @bp.route('/system_info/get/<server_ip>/<int:server_id>')
-def get_system_info(server_ip, server_id):
-    server_ip = common.is_ip_or_dns(server_ip)
-
-    return server_mod.show_system_info(server_ip, server_id)
+@validate()
+def get_system_info(server_ip: Union[IPvAnyAddress, DomainName], server_id: int):
+    return server_mod.show_system_info(str(server_ip), server_id)
 
 
 @bp.route('/system_info/update/<server_ip>/<int:server_id>')
-def update_system_info(server_ip, server_id):
-    server_ip = common.is_ip_or_dns(server_ip)
-
-    return server_mod.update_system_info(server_ip, server_id)
+@validate()
+def update_system_info(server_ip: Union[IPvAnyAddress, DomainName], server_id):
+    return server_mod.update_system_info(str(server_ip), server_id)
 
 
 @bp.route('/services/<int:server_id>', methods=['GET', 'POST'])
@@ -124,12 +126,11 @@ def show_server_services(server_id):
 
 
 @bp.route('/firewall/<server_ip>')
-def show_firewall(server_ip):
+@validate()
+def show_firewall(server_ip: Union[IPvAnyAddress, DomainName]):
     roxywi_auth.page_for_admin(level=2)
 
-    server_ip = common.is_ip_or_dns(server_ip)
-
-    return server_mod.show_firewalld_rules(server_ip)
+    return server_mod.show_firewalld_rules(str(server_ip))
 
 
 @bp.route('/backup', methods=['GET'])
