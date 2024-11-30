@@ -1,6 +1,7 @@
 import os
 from typing import Union
 
+from peewee import IntegrityError
 from flask import render_template, make_response
 
 import app.modules.db.sql as sql
@@ -8,18 +9,21 @@ import app.modules.db.user as user_sql
 import app.modules.db.service as service_sql
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.alerting as alerting
+from app.modules.db.common import not_unique_error
 
 
 def create_user(new_user: str, email: str, password: str, role: int, enabled: int, group: int) -> Union[int, tuple]:
     try:
         user_id = user_sql.add_user(new_user, email, password, role, enabled, group)
         roxywi_common.logging(f'a new user {new_user}', 'has been created', roxywi=1, login=1)
+    except IntegrityError as e:
+        not_unique_error(e)
     except Exception as e:
-        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create a new user')
+        raise e
     try:
         user_sql.update_user_role(user_id, group, role)
     except Exception as e:
-        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update user role')
+        raise e
     try:
         if password == 'aduser':
             password = 'your domain password'
@@ -126,7 +130,6 @@ def get_ldap_email(username) -> str:
     ldap_class_search = sql.get_setting('ldap_class_search')
     ldap_user_attribute = sql.get_setting('ldap_user_attribute')
     ldap_type = sql.get_setting('ldap_type')
-
     ldap_proto = 'ldap' if ldap_type == "0" else 'ldaps'
 
     try:
@@ -137,8 +140,7 @@ def get_ldap_email(username) -> str:
     try:
         ldap_bind.protocol_version = ldap.VERSION3
         ldap_bind.set_option(ldap.OPT_REFERRALS, 0)
-
-        _ = ldap_bind.simple_bind_s(user, password)
+        ldap_bind.simple_bind_s(user, password)
 
         criteria = f"(&(objectClass={ldap_class_search})({ldap_user_attribute}={username}))"
         attributes = [ldap_search_field]

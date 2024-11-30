@@ -319,7 +319,6 @@ function getTable() {
 			} else {
 				$("#ajaxtable").html(data);
 				$("input[type=submit], button").button();
-				$.getScript(script);
 				$.getScript(overview);
 				$.getScript(awesome);
 			}
@@ -337,7 +336,6 @@ function getList() {
 			} else {
 				$("#ajaxlist").html(data);
 				$("input[type=submit], button").button();
-				$.getScript(script);
 				$.getScript(overview);
 				$.getScript(awesome);
 			}
@@ -407,7 +405,6 @@ function getSessions() {
 			} else {
 				$("#ajaxsessions").html(data);
 				$("input[type=submit], button").button();
-				$.getScript(script);
 				$.getScript(overview);
 				$.getScript(awesome);
 			}

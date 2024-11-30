@@ -1,6 +1,10 @@
+from typing import Union
+
 import distro
 from flask import render_template, request, g
 from flask_jwt_extended import jwt_required, get_jwt
+from flask_pydantic import validate
+from pydantic import IPvAnyAddress
 
 from app import cache
 from app.routes.service import bp
@@ -18,6 +22,7 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.roxywi.overview as roxy_overview
 from app.views.service.views import ServiceActionView, ServiceBackendView, ServiceView
 from app.views.service.lets_encrypt_views import LetsEncryptView, LetsEncryptsView
+from app.modules.roxywi.class_models import DomainName
 
 bp.add_url_rule('/<service>/<server_id>/<any(start, stop, reload, restart):action>', view_func=ServiceActionView.as_view('service_action_ip'), methods=['GET'])
 bp.add_url_rule('/<service>/<int:server_id>/<any(start, stop, reload, restart):action>', view_func=ServiceActionView.as_view('service_action'), methods=['GET'])
@@ -126,13 +131,15 @@ def services(service, serv):
 
 @bp.route('/<service>/<server_ip>/last-edit')
 @check_services
-def last_edit(service, server_ip):
-    return service_common.get_overview_last_edit(server_ip, service)
+@validate()
+def last_edit(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
+    return service_common.get_overview_last_edit(str(server_ip), service)
 
 
 @bp.route('/cpu-ram-metrics/<server_ip>/<server_id>/<name>/<service>')
 @get_user_params()
-def cpu_ram_metrics(server_ip, server_id, name, service):
+@validate()
+def cpu_ram_metrics(server_ip: Union[IPvAnyAddress, DomainName], server_id: int, name: str, service: str):
     if service == 'haproxy':
         sock_port = sql.get_setting('haproxy_sock_port')
         cmd = f'echo "show info" |nc {server_ip} {sock_port} -w 1|grep -e "node\|Nbproc\|Maxco\|MB\|Nbthread"'
@@ -149,7 +156,7 @@ def cpu_ram_metrics(server_ip, server_id, name, service):
     else:
         return_out = ''
 
-    servers = [[name, server_ip, return_out]]
+    servers = [[name, str(server_ip), return_out]]
     claims = get_jwt()
     kwargs = {
         'service_status': sorted(servers, key=common.get_key),
@@ -266,9 +273,9 @@ def update_tools_enable(service):
 
 
 @bp.route('/check-restart/<server_ip>')
-def check_restart(server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
-    servers = roxywi_common.get_dick_permit(ip=server_ip)
+@validate()
+def check_restart(server_ip: Union[IPvAnyAddress, DomainName]):
+    servers = roxywi_common.get_dick_permit(ip=str(server_ip))
     for server in servers:
         if server != "":
             return 'ok'

@@ -154,11 +154,11 @@ class UserView(MethodView):
                   description: The ID of the created user
         """
         if g.user_params['role'] > body.role_id:
-            return roxywi_common.handle_json_exceptions('Wrong role', 'Cannot create user')
+            return roxywi_common.handler_exceptions_for_json_data(Exception('Wrong role'), 'Cannot create user')
         try:
             user_id = roxywi_user.create_user(body.username, body.email, body.password, body.role_id, body.enabled, body.group_id)
         except Exception as e:
-            return roxywi_common.handle_json_exceptions(e, 'Cannot create a new user')
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create a new user')
         else:
             if self.is_api:
                 return IdResponse(id=user_id), 201

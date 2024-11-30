@@ -59,7 +59,7 @@ $( function() {
 		let allFields = $([]).add(username_div);
 		allFields.removeClass("ui-state-error");
 		valid = valid && checkLength(username_div, "user name", 1);
-		let user = username_div.val()
+		let user = username_div.val();
 		if (valid) {
 			$.ajax({
 				url: "/user/ldap/" + user,
@@ -70,7 +70,7 @@ $( function() {
 						$('#new-email').val('');
 						username_div.attr('readonly', false);
 					} else {
-						let json = $.parseJSON(data);
+						let json = $.parseJSON(data.user);
 						toastr.clear();
 						if (!user.includes('@')) {
 							username_div.val(user + '@' + json[1]);

@@ -1,8 +1,5 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import input, select, checkbox %}
-{% if user_subscription['user_status'] == 0 %}
-{% include 'include/no_sub.html' %}
-{% else %}
 <table id="checker_telegram_table" class="overview-overflow">
     <caption><i class="fab fa-telegram caption-icon"></i><h3>Telegram {{lang.words.channels}}</h3></caption>
     <tr class="overviewHead" style="width: 50%;">
@@ -25,7 +22,7 @@
         </td>
         <td>
             {% set id = 'telegram-chanel-' + telegram.id|string() %}
-            {{ input(id, value=telegram.chanel_name, size='30') }}
+            {{ input(id, value=telegram.chanel_name.replace("'", ""), size='30') }}
         </td>
         {% if user_params['role']|int() == 1 %}
         <td>
@@ -77,7 +74,7 @@
         </td>
         <td>
             {% set id = 'slack-chanel-' + slack.id|string() %}
-            {{ input(id, value=slack.chanel_name, size='30') }}
+            {{ input(id, value=slack.chanel_name.replace("'", ""), size='30') }}
         </td>
         {% if user_params['role']|int() == 1 %}
         <td>
@@ -129,7 +126,7 @@
         </td>
         <td>
             {% set id = 'pd-chanel-' + pd.id|string() %}
-            {{ input(id, value=pd.chanel_name, size='30') }}
+            {{ input(id, value=pd.chanel_name.replace("'", ""), size='30') }}
         </td>
         {% if user_params['role']|int() == 1 %}
         <td>
@@ -157,7 +154,7 @@
     </tr>
     {% endfor %}
 </table>
-<br /><span class="add-button" title="{{lang.words.add|title()}} PagerDuty {{lang.words.channel}}" id="add-pd-button">+ {{lang.words.add|title()}}</span>
+<br /><span class="add-button" title="{{lang.words.add|title()}} PagerDuty {{lang.words.channel|title()}}" id="add-pd-button">+ {{lang.words.add|title()}}</span>
 <br /><br />
 <table id="checker_mm_table" class="overview-overflow">
     <caption><i class="fas fa-power-off caption-icon"></i><h3>Mattermost {{lang.words.channels|title()}}</h3></caption>
@@ -165,7 +162,7 @@
         <td class="padding10 first-collumn" style="width: 25%;">
             {{lang.words.key|title()}}
         </td>
-        <td style="width: 20%;">{{lang.words.name|title()}}</td>
+        <td style="width: 20%;">Webhook</td>
         {% if user_params['role']|int() == 1 %}
         <td style="width: 25%;">{{lang.words.group|title()}}</td>
         {% endif %}
@@ -181,7 +178,7 @@
         </td>
         <td>
             {% set id = 'mm-chanel-' + mm.id|string() %}
-            {{ input(id, value=mm.chanel_name, size='30') }}
+            {{ input(id, value=mm.chanel_name.replace("'", ""), size='30') }}
         </td>
         {% if user_params['role']|int() == 1 %}
         <td>
@@ -211,7 +208,7 @@
 </table>
 <br /><span class="add-button" title="{{lang.words.add|title()}} Mattermost {{lang.words.channel}}" id="add-mm-button">+ {{lang.words.add|title()}}</span>
 <br /><br />
-<table class="overflow">
+<table class="overflow_div">
     <caption><i class="fas fa-envelope-open-text caption-icon"></i><h3>{{lang.words.test2|title()}} {{lang.words.message}}</h3></caption>
     <tr class="overviewHead">
         <td class="padding10 first-collumn" style="width: 45%">{{lang.words.email|title()}}</td>
@@ -229,10 +226,8 @@
 <br /><br />
 <div id="ajax-telegram"></div>
 <div class="add-note alert addName alert-info" style="width: inherit; margin-right: 15px;">
-    {{lang.phrases.read_about_parameters}} <a href="https://roxy-wi.org/description/checker" title="Servers description" target="_blank">{{lang.words.here}}</a>,
-    <a href="https://roxy-wi.org/howto/create-telegram-bot" title="How to create Telegram bot and use it with Roxy-WI" target="_blank">{{lang.phrases.howto_user}} Telegram bot</a>,
-    <a href="https://roxy-wi.org/howto/create-slack-app" title="How to create Slack APP and use it with Roxy-WI" target="_blank">{{lang.phrases.howto_user}} Slack APP</a>,
-    <a href="https://roxy-wi.org/howto/create-pd-integration" title="How to create PagerDuty integration and use it with Roxy-WI" target="_blank">{{lang.phrases.howto_user}} PagerDuty</a>.
+    <a href="https://rmon.io/howto/create-telegram-bot" title="How to create Telegram bot and use it with RMON" target="_blank">{{lang.phrases.howto_user}} Telegram bot</a>,
+    <a href="https://rmon.io/howto/create-slack-app" title="How to create Slack APP and use it with RMON" target="_blank">{{lang.phrases.howto_user}} Slack APP</a>,
+    <a href="https://rmon.io/howto/create-pd-integration" title="How to create PagerDuty integration and use it with RMON" target="_blank">{{lang.phrases.howto_user}} PagerDuty</a>.
 </div>
-{% endif %}
 {% include 'include/admins_dialogs.html' %}
