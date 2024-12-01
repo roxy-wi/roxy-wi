@@ -1,5 +1,9 @@
+from typing import Union
+
 from flask import render_template, g
 from flask_jwt_extended import jwt_required
+from flask_pydantic import validate
+from pydantic import IPvAnyAddress
 
 from app.routes.overview import bp
 from app.middleware import get_user_params
@@ -7,6 +11,7 @@ import app.modules.db.sql as sql
 import app.modules.db.group as group_sql
 import app.modules.roxywi.logs as roxy_logs
 import app.modules.roxywi.overview as roxy_overview
+from app.modules.roxywi.class_models import DomainName
 
 
 @bp.before_request
@@ -21,10 +26,8 @@ def before_request():
 @get_user_params()
 def index():
     kwargs = {
-        'autorefresh': 1,
         'roles': sql.select_roles(),
         'groups': group_sql.select_groups(),
-        'guide_me': 1,
         'lang': g.user_params['lang']
     }
     return render_template('ovw.html', **kwargs)
@@ -36,7 +39,8 @@ def show_services_overview():
 
 
 @bp.route('/overview/server/<server_ip>')
-def overview_server(server_ip):
+@validate()
+def overview_server(server_ip: Union[IPvAnyAddress, DomainName]):
     return roxy_overview.show_overview(server_ip)
 
 
@@ -53,4 +57,5 @@ def overview_sub():
 @bp.route('/overview/logs')
 @get_user_params()
 def overview_logs():
-    return render_template('ajax/ovw_log.html', role=g.user_params['role'], lang=g.user_params['lang'], roxy_wi_log=roxy_logs.roxy_wi_log())
+    return render_template('ajax/ovw_log.html',
+                           role=g.user_params['role'], lang=g.user_params['lang'], roxy_wi_log=roxy_logs.roxy_wi_log())

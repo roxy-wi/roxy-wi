@@ -10,7 +10,6 @@ import app.modules.db.roxy as roxy_sql
 import app.modules.db.user as user_sql
 import app.modules.db.metric as metric_sql
 import app.modules.db.server as server_sql
-import app.modules.db.service as service_sql
 import app.modules.db.checker as checker_sql
 import app.modules.common.common as common
 import app.modules.tools.common as tools_common
@@ -49,7 +48,7 @@ def show_overview(serv) -> str:
     server = server_sql.get_server_by_ip(serv)
     user_services = user_sql.select_user_services(claims['user_id'])
 
-    haproxy = server.apache if '1' in user_services else 0
+    haproxy = server.haproxy if '1' in user_services else 0
     nginx = server.nginx if '2' in user_services else 0
     keepalived = server.keepalived if '3' in user_services else 0
     apache = server.apache if '4' in user_services else 0

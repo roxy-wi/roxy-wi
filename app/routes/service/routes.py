@@ -169,42 +169,38 @@ def cpu_ram_metrics(server_ip: Union[IPvAnyAddress, DomainName], server_id: int,
     return render_template('ajax/overviewServers.html', **kwargs)
 
 
-@bp.post('/haproxy/bytes')
-def show_haproxy_bytes():
-    server_ip = common.is_ip_or_dns(request.form.get('showBytes'))
-
+@bp.get('/haproxy/bytes/<server_ip>')
+@validate()
+def show_haproxy_bytes(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return roxy_overview.show_haproxy_binout(server_ip)
     except Exception as e:
         return f'error: {e}'
 
 
-@bp.post('/nginx/connections')
-def show_nginx_connections():
-    server_ip = common.is_ip_or_dns(request.form.get('nginxConnections'))
-
+@bp.get('/nginx/connections/<server_ip>')
+@validate()
+def show_nginx_connections(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return roxy_overview.show_nginx_connections(server_ip)
     except Exception as e:
         return f'error: {e}'
 
 
-@bp.post('/apache/bytes')
-def show_apache_bytes():
-    server_ip = common.is_ip_or_dns(request.form.get('apachekBytes'))
-
+@bp.get('/apache/bytes/<server_ip>')
+@validate()
+def show_apache_bytes(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return roxy_overview.show_apache_bytes(server_ip)
     except Exception as e:
         return f'error: {e}'
 
 
-@bp.post('/keepalived/become-master')
+@bp.get('/keepalived/become-master/<server_ip>')
+@validate()
 @cache.cached()
-def show_keepalived_become_master():
-    server_ip = common.is_ip_or_dns(request.form.get('keepalivedBecameMaster'))
-
-    return roxy_overview.keepalived_became_master(server_ip)
+def show_keepalived_become_master(server_ip: Union[IPvAnyAddress, DomainName]):
+    return roxy_overview.keepalived_became_master(str(server_ip))
 
 
 @bp.route('/position/<int:server_id>/<int:pos>')
