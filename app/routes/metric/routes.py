@@ -1,9 +1,12 @@
 import json
 import time
+from typing import Union, Literal
 
 import distro
 from flask import render_template, request, jsonify, g, Response, stream_with_context
 from flask_jwt_extended import jwt_required
+from flask_pydantic import validate
+from pydantic import IPvAnyAddress
 
 from app.routes.metric import bp
 import app.modules.db.server as server_sql
@@ -14,6 +17,7 @@ import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.metrics as metric
 import app.modules.roxywi.common as roxywi_common
+from app.modules.roxywi.class_models import DomainName
 
 
 @bp.before_request
@@ -44,13 +48,7 @@ def metrics(service):
                     servers = ''
                 else:
                     services = '1'
-                    if service == 'nginx':
-                        servers = metric_sql.select_nginx_servers_metrics_for_master()
-                    elif service == 'apache':
-                        servers = metric_sql.select_apache_servers_metrics_for_master()
-                    else:
-                        group_id = roxywi_common.get_user_group(id=1)
-                        servers = metric_sql.select_servers_metrics(group_id)
+                    servers = metric_sql.select_metrics_enabled(service)
             else:
                 servers = ''
     except Exception as e:
@@ -99,8 +97,9 @@ def table_metrics(service):
 
 
 @bp.post('/<service>/<server_ip>')
-def show_metric(service, server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
+@validate()
+def show_metric(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
+    server_ip = str(server_ip)
     server = server_sql.get_server_by_ip(server_ip)
     time_range = common.checkAjaxInput(request.form.get('time_range'))
 
@@ -114,20 +113,20 @@ def show_metric(service, server_ip):
 
 @bp.post('/<service>/<server_ip>/http')
 @check_services
-def show_http_metric(service, server_ip):
-    server_ip = common.is_ip_or_dns(server_ip)
-    server = server_sql.get_server_by_ip(server_ip)
+@validate()
+def show_http_metric(service: Literal['haproxy'], server_ip: Union[IPvAnyAddress, DomainName]):
+    server = server_sql.get_server_by_ip(str(server_ip))
     time_range = common.checkAjaxInput(request.form.get('time_range'))
 
-    if service == 'haproxy':
-        return jsonify(metric.haproxy_http_metrics(server_ip, server.hostname, time_range))
-
-    return 'error: Wrong service'
+    return jsonify(metric.haproxy_http_metrics(server.ip, server.hostname, time_range))
 
 
 @bp.route('/<service>/<server_ip>/<is_http>/chart-stream')
 @check_services
-def chart_data(service, server_ip, is_http):
+@validate()
+def chart_data(service: str, server_ip: Union[IPvAnyAddress, DomainName], is_http: int):
+    server_ip = str(server_ip)
+
     def get_chart_data():
         while True:
             json_metric = {}

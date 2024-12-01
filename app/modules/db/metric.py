@@ -1,157 +1,37 @@
+from typing import Literal
+
 from app.modules.db.db_model import connect, mysql_enable, Metrics, MetricsHttpStatus, Server, NginxMetrics, ApacheMetrics, WafMetrics
 from app.modules.db.common import out_error
 import app.modules.roxy_wi_tools as roxy_wi_tools
 
+MODELS = {
+	'haproxy': Metrics,
+	'nginx': NginxMetrics,
+	'apache': ApacheMetrics,
+	'http': MetricsHttpStatus,
+	'waf': WafMetrics
+}
 
-def insert_metrics(serv, curr_con, cur_ssl_con, sess_rate, max_sess_rate):
+
+def insert_service_metrics(service: Literal['haproxy', 'nginx', 'apache', 'waf', 'http'], **kwargs):
 	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular')
+	kwargs['date'] = cur_date
+	model = MODELS[service]
 	try:
-		Metrics.insert(
-			serv=serv, curr_con=curr_con, cur_ssl_con=cur_ssl_con, sess_rate=sess_rate, max_sess_rate=max_sess_rate,
-			date=cur_date
-		).execute()
+		model.insert(**kwargs).execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		conn = connect()
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
 
 
-def insert_metrics_http(serv, http_2xx, http_3xx, http_4xx, http_5xx):
-	get_date = roxy_wi_tools.GetDate()
-	cur_date = get_date.return_date('regular')
-	try:
-		MetricsHttpStatus.insert(
-			serv=serv, ok_ans=http_2xx, redir_ans=http_3xx, not_found_ans=http_4xx, err_ans=http_5xx,
-			date=cur_date
-		).execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		conn = connect()
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def insert_nginx_metrics(serv, connection):
-	get_date = roxy_wi_tools.GetDate()
-	cur_date = get_date.return_date('regular')
-	try:
-		NginxMetrics.insert(serv=serv, conn=connection, date=cur_date).execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		conn = connect()
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def insert_apache_metrics(serv, connection):
-	get_date = roxy_wi_tools.GetDate()
-	cur_date = get_date.return_date('regular')
-	try:
-		ApacheMetrics.insert(serv=serv, conn=connection, date=cur_date).execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		conn = connect()
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def insert_waf_metrics(serv, connection):
-	get_date = roxy_wi_tools.GetDate()
-	cur_date = get_date.return_date('regular')
-	try:
-		WafMetrics.insert(serv=serv, conn=connection, date=cur_date).execute()
-	except Exception as e:
-		out_error(e)
-	finally:
-		conn = connect()
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def delete_waf_metrics():
+def delete_service_metrics(service: Literal['haproxy', 'http', 'waf', 'nginx', 'apache']) -> None:
 	get_date = roxy_wi_tools.GetDate()
 	cur_date = get_date.return_date('regular', timedelta_minus=3)
-	query = WafMetrics.delete().where(WafMetrics.date < cur_date)
+	model = MODELS[service]
 	try:
-		query.execute()
+		model.delete().where(model.date < cur_date).execute()
 	except Exception as e:
 		out_error(e)
-	finally:
-		conn = connect()
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def delete_metrics():
-	get_date = roxy_wi_tools.GetDate()
-	cur_date = get_date.return_date('regular', timedelta_minus=3)
-	query = Metrics.delete().where(Metrics.date < cur_date)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-	finally:
-		conn = connect()
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def delete_http_metrics():
-	get_date = roxy_wi_tools.GetDate()
-	cur_date = get_date.return_date('regular', timedelta_minus=3)
-	query = MetricsHttpStatus.delete().where(MetricsHttpStatus.date < cur_date)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-	finally:
-		conn = connect()
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def delete_nginx_metrics():
-	get_date = roxy_wi_tools.GetDate()
-	cur_date = get_date.return_date('regular', timedelta_minus=3)
-	query = NginxMetrics.delete().where(NginxMetrics.date < cur_date)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-	finally:
-		conn = connect()
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
-
-
-def delete_apache_metrics():
-	get_date = roxy_wi_tools.GetDate()
-	cur_date = get_date.return_date('regular', timedelta_minus=3)
-	query = ApacheMetrics.delete().where(ApacheMetrics.date < cur_date)
-	try:
-		query.execute()
-	except Exception as e:
-		out_error(e)
-	finally:
-		conn = connect()
-		if type(conn) is not str:
-			if not conn.is_closed():
-				conn.close()
 
 
 def select_metrics(serv, service, **kwargs):
@@ -206,72 +86,28 @@ def select_metrics(serv, service, **kwargs):
 		return cursor.fetchall()
 
 
-def select_servers_metrics_for_master(**kwargs):
-	if kwargs.get('group') != 1:
-		query = Server.select(Server.ip).where(
-			((Server.haproxy_metrics == 1) | (Server.nginx_metrics == 1) | (Server.apache_metrics == 1))
-			& (Server.group_id == kwargs.get('group'))
-		)
-	else:
-		query = Server.select(Server.ip).where(
-			(Server.haproxy_metrics == 1)
-			| (Server.nginx_metrics == 1)
-			| (Server.apache_metrics == 1)
-		)
-
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_haproxy_servers_metrics_for_master():
-	query = Server.select(Server.ip).where(Server.haproxy_metrics == 1)
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_nginx_servers_metrics_for_master():
-	query = Server.select(Server.ip).where((Server.nginx_metrics == 1) & (Server.nginx == 1))
-	try:
-		query_res = query.execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
-
-
-def select_apache_servers_metrics_for_master():
+def select_servers_metrics_for_master(group_id: int):
 	query = Server.select(Server.ip).where(
-		(Server.apache_metrics == 1)
-		& (Server.apache == 1)
+		((Server.haproxy_metrics == 1) | (Server.nginx_metrics == 1) | (Server.apache_metrics == 1))
+		& (Server.group_id == group_id)
 	)
+
 	try:
-		query_res = query.execute()
+		return query.execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		return query_res
 
 
-def select_servers_metrics(group_id):
-	if group_id == 1:
-		query = Server.select(Server.ip).where((Server.enabled == 1) & (Server.haproxy_metrics == 1))
-	else:
-		query = Server.select(Server.ip).where(
-			(Server.enabled == 1) & (Server.group_id == group_id) & (Server.haproxy_metrics == 1))
+def select_metrics_enabled(service: Literal['haproxy', 'nginx', 'apache']):
+	query_where = {
+		'haproxy': ((Server.haproxy_metrics == 1) & (Server.haproxy == 1)),
+		'nginx': ((Server.nginx_metrics == 1) & (Server.nginx == 1)),
+		'apache': ((Server.apache_metrics == 1) & (Server.apache == 1)),
+	}
 	try:
-		query_res = query.execute()
+		return Server.select(Server.ip).where(query_where[service] & (Server.enabled == 1)).execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		return query_res
 
 
 def select_table_metrics(group_id):
