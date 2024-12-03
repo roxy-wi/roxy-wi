@@ -18,6 +18,7 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.views.service.haproxy_section_views import (GlobalSectionView, DefaultsSectionView, ListenSectionView,
                                                      UserListSectionView, PeersSectionView)
+from app.views.service.haproxy_lists_views import HaproxyListView
 from app.modules.roxywi.class_models import DomainName
 
 get_config = roxy_wi_tools.GetConfigVar()
@@ -38,6 +39,8 @@ register_api_id_ip(PeersSectionView, 'haproxy_peers_post_a', '/section/peers', m
 register_api_id_ip(PeersSectionView, 'haproxy_peers_a', '/section/peers/<section_name>', methods=['GET', 'PUT', 'DELETE'])
 register_api_id_ip(GlobalSectionView, 'haproxy_global_a', '/section/global', methods=['GET', 'PUT'])
 register_api_id_ip(DefaultsSectionView, 'haproxy_defaults_a', '/section/defaults', methods=['GET', 'PUT'])
+bp.add_url_rule('/<any(haproxy):service>/list/<list_name>/<color>', view_func=HaproxyListView.as_view('list_get'), methods=['GET'])
+bp.add_url_rule('/<any(haproxy):service>/list', view_func=HaproxyListView.as_view('list_post'), methods=['POST', 'DELETE'])
 
 
 @bp.before_request
@@ -99,47 +102,6 @@ def add(service):
 def get_section_html():
     lang = g.user_params['lang']
     return render_template('ajax/config_show_add_sections.html', lang=lang)
-
-
-@bp.post('/haproxy/bwlist/create')
-@get_user_params()
-def create_bwlist():
-    server_ip = common.is_ip_or_dns(request.form.get('serv'))
-    color = common.checkAjaxInput(request.form.get('color'))
-    group = g.user_params['group_id']
-    list_name = common.checkAjaxInput(request.form.get('bwlists_create'))
-
-    return add_mod.create_bwlist(server_ip, list_name, color, group)
-
-
-@bp.post('/haproxy/bwlist/save')
-@get_user_params()
-def save_bwlist():
-    server_ip = common.is_ip_or_dns(request.form.get('serv'))
-    color = common.checkAjaxInput(request.form.get('color'))
-    group = g.user_params['group_id']
-    bwlists_save = common.checkAjaxInput(request.form.get('bwlists_save'))
-    list_con = request.form.get('bwlists_content')
-    action = common.checkAjaxInput(request.form.get('bwlists_restart'))
-
-    return add_mod.save_bwlist(bwlists_save, list_con, color, group, server_ip, action)
-
-
-@bp.route('/haproxy/bwlist/delete/<server_ip>/<color>/<name>/<int:group>')
-@validate()
-def delete_bwlist(server_ip: Union[IPvAnyAddress, DomainName], color, name, group):
-    color = common.checkAjaxInput(color)
-    list_name = common.checkAjaxInput(name)
-
-    return add_mod.delete_bwlist(list_name, color, group, str(server_ip))
-
-
-@bp.route('/haproxy/bwlist/<bwlists>/<color>/<int:group>')
-def get_bwlist(bwlists, color, group):
-    color = common.checkAjaxInput(color)
-    bwlists = common.checkAjaxInput(bwlists)
-
-    return add_mod.get_bwlist(color, group, bwlists)
 
 
 @bp.route('/haproxy/bwlists/<color>/<int:group>')

@@ -86,26 +86,19 @@ def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip
 	lib_path = get_config.get_config_var('main', 'lib_path')
 	list_path = f"{lib_path}/lists/{group}/{color}/{list_name}"
 	path = sql.get_setting('haproxy_dir') + "/" + color
-	servers = []
+	servers = [server_ip]
 	output = ''
 
 	try:
 		with open(list_path, "w") as file:
 			file.write(list_con)
 	except IOError as e:
-		return f'error: Cannot save {color} list. {e}'
+		raise Exception(f'Cannot save {color} list: {e}')
 
-	if server_ip != 'all':
-		servers.append(server_ip)
-
-		masters = server_sql.is_master(server_ip)
-		for master in masters:
-			if master[0] is not None:
-				servers.append(master[0])
-	else:
-		server = roxywi_common.get_dick_permit()
-		for s in server:
-			servers.append(s[2])
+	masters = server_sql.is_master(server_ip)
+	for master in masters:
+		if master[0] is not None:
+			servers.append(master[0])
 
 	for serv in servers:
 		server_mod.ssh_command(serv, f"sudo mkdir {path}")
@@ -113,6 +106,7 @@ def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip
 		try:
 			config_mod.upload(serv, f'{path}/{list_name}', list_path)
 		except Exception as e:
+			roxywi_common.logging(serv, f'error: Upload fail: to {serv}: {e}', roxywi=1, login=1)
 			output += f'error: Upload fail: to {serv}: {e} , '
 
 		output += f'success: Edited {color} list was uploaded to {serv} , '

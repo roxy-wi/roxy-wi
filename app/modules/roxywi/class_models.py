@@ -517,3 +517,12 @@ class NettoolsRequest(BaseModel):
     record_type: Optional[Literal['a', 'aaaa', 'caa', 'cname', 'mx', 'ns', 'ptr', 'sao', 'src', 'txt']] = None
     ip: Optional[IPvAnyAddress] = None
     netmask: Optional[int] = None
+
+
+class ListRequest(BaseModel):
+    server_ip: Optional[Union[IPvAnyAddress, DomainName]] = None
+    color: Literal['white', 'black']
+    name: EscapedString
+    action: Optional[Literal['reload', 'restart', 'save']] = None
+    content: Optional[str] = ''
+    group_id: Optional[int] = None

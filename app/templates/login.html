@@ -6,15 +6,6 @@
 </head>
 <body>
 <style>
-#enter {
-    width: 220px !important;
-    padding: 10px !important;
-    background-color: var(--background) !important;
-    font-weight: bold !important;
-    color: var(--color-wanring);
-    border: 1px solid var(--color-wanring) !important;
-    border-radius: var(--border-radius) !important;
-}
 .fontuser {
 	position: relative;
 }
@@ -42,7 +33,14 @@
 	cursor: pointer;
 }
 </style>
-
+<script>
+$( function() {
+    let theme = localStorage.getItem('theme');
+    if (theme === 'dark') {
+        $('#logo_span').children().attr('src', '/static/images/logo_white.png');
+    }
+});
+</script>
 <div id="main_div">
 	<div id="login-form">
 		<span id="logo_span">

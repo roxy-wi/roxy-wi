@@ -839,7 +839,7 @@ function resetProxySettings() {
 	$('.advance-show').fadeIn();
 	$('.advance').fadeOut();
 	$('[id^=https-hide]').hide();
-	$('[name=mode').val('http');
+	$('[name=mode]').val('http');
 	$('select').selectmenu('refresh');
 	$("#path-cert-listen" ).attr('required',false);
 	$("#path-cert-frontend" ).attr('required',false);
@@ -1124,26 +1124,23 @@ function change_select_waf(id) {
 	});
 }
 function createList(color) {
-	if(color == 'white') {
+	let list = $('#new_blacklist_name').val()
+	if (color === 'white') {
 		list = $('#new_whitelist_name').val()
-	} else {
-		list = $('#new_blacklist_name').val()
 	}
-	list = escapeHtml(list);
-	$.ajax( {
-		url: "/add/haproxy/bwlist/create",
-		data: {
-			bwlists_create: list,
-			color: color
-		},
+	let jsonData = {
+		'name': escapeHtml(list),
+		'color': color
+	}
+	$.ajax({
+		url: "/add/haproxy/list",
+		data: JSON.stringify(jsonData),
 		type: "POST",
-		success: function( data ) {
-			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
-				toastr.error(data);
-			} else if (data.indexOf('Info') != '-1' ){
-				toastr.clear();
-				toastr.info(data);
-			} else if (data.indexOf('success') != '-1' ) {
+		contentType: "application/json; charset=utf-8",
+		success: function (data) {
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+			} else {
 				toastr.clear();
 				toastr.success('List has been created');
 				setTimeout(function () {
@@ -1151,16 +1148,17 @@ function createList(color) {
 				}, 2500);
 			}
 		}
-	} );
+	});
 }
 function editList(list, color) {
 	$.ajax( {
-		url: "/add/haproxy/bwlist/" + list + "/" + color + "/" + $('#group_id').val(),
+		url: "/add/haproxy/list/" + list + "/" + color,
+		contentType: "application/json; charset=utf-8",
 		success: function( data ) {
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
 			} else {
-				$('#edit_lists').text(data);
+				$('#edit_lists').text(data.data.replaceAll('\n', '\r\n'));
 				$( "#dialog-confirm-cert-edit" ).dialog({
 					resizable: false,
 					height: "auto",
@@ -1205,25 +1203,31 @@ function editList(list, color) {
 function saveList(action, list, color) {
 	let serv = $("#serv-" + color + "-list option:selected").val();
 	if (!checkIsServerFiled($("#serv-" + color + "-list"))) return false;
+	let jsonData = {
+		name: list,
+		server_ip: serv,
+		content: $('#edit_lists').val(),
+		color: color,
+		action: action
+	}
 	$.ajax({
-		url: "/add/haproxy/bwlist/save",
-		data: {
-			bwlists_save: list,
-			serv: serv,
-			bwlists_content: $('#edit_lists').val(),
-			color: color,
-			bwlists_restart: action
-		},
+		url: "/add/haproxy/list",
+		data: JSON.stringify(jsonData),
 		type: "POST",
+		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			data = data.split(" , ");
-			for (i = 0; i < data.length; i++) {
-				if (data[i]) {
-					if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
-						toastr.error(data[i]);
-					} else {
-						if (data[i] != '\n') {
-							toastr.success(data[i]);
+			if (data.status === 'failed') {
+				toastr.error(data.error)
+			} else {
+				data = data.data.split(" , ");
+				for (i = 0; i < data.length; i++) {
+					if (data[i]) {
+						if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
+							toastr.error(data[i]);
+						} else {
+							if (data[i] != '\n') {
+								toastr.success(data[i]);
+							}
 						}
 					}
 				}
@@ -1234,24 +1238,39 @@ function saveList(action, list, color) {
 function deleteList(list, color) {
 	let serv = $( "#serv-"+color+"-list option:selected" ).val();
 	if(!checkIsServerFiled($("#serv-"+color+"-list"))) return false;
+	let jsonData = {
+		'name': list,
+        'color': color,
+		'server_ip': serv
+	}
 	$.ajax({
-		url: "/add/haproxy/bwlist/delete/" + serv + "/" + color + "/" + list + "/" + $('#group_id').val(),
-		success: function (data) {
-			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
-				toastr.error(data);
-			} else if (data.indexOf('Info') != '-1' ){
-				toastr.clear();
-				toastr.info(data);
-			} else if (data.indexOf('success') != '-1' ) {
+		url: "/add/haproxy/list",
+		type: "DELETE",
+		data: JSON.stringify(jsonData),
+		contentType: "application/json; charset=utf-8",
+		statusCode: {
+			204: function (xhr) {
 				toastr.clear();
 				toastr.success('List has been deleted');
 				setTimeout(function () {location.reload();}, 2500);
+			},
+			404: function (xhr) {
+				toastr.clear();
+				toastr.success('List has been deleted');
+				setTimeout(function () {location.reload();}, 2500);
+			}
+		},
+		success: function (data) {
+			if (data) {
+				if (data.status === 'failed') {
+					toastr.error(data);
+				}
 			}
 		}
 	});
 }
 function createMap() {
-	map_name = $('#new_map_name').val()
+	let map_name = $('#new_map_name').val()
 	map_name = escapeHtml(map_name);
 	$.ajax( {
 		url: "/add/map",

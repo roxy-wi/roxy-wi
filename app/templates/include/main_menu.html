@@ -10,7 +10,10 @@
 		<nav id="menu">
 			<ul class="menu">
 				<li>
-                    <a href="{{ url_for('overview.index') }}" title="{{lang.menu_links.overview.title}}" class="{% if request.url_rule.endpoint == 'overview.index' %} menu-active{% endif %}">
+                    <a href="{{ url_for('overview.index') }}" title="{{lang.menu_links.overview.title}}"
+                       class="{% if request.url_rule.endpoint == 'overview.index' %} menu-active{% endif %}"
+                       id="menu-overview"
+                    >
                         <img src="{{ url_for('static', filename='images/roxy_icon.png') }}" class="menu-vendor-logo" style="width: 19px;">
                         {{lang.menu_links.overview.link}}
                     </a>
@@ -22,7 +25,7 @@
 				{% endif %}
 				{% if '1' in g.user_params['user_services'] %}
 				<li class="p_menu">
-					<a href="{{ url_for('service.services', service='haproxy') }}" title="{{lang.menu_links.hapservers.haproxy.title}}">
+					<a href="{{ url_for('service.services', service='haproxy') }}" title="{{lang.menu_links.hapservers.haproxy.title}}" id="menu-haproxy">
                         <img src="{{ url_for('static', filename='images/HAProxy_icon.png') }}" class="menu-vendor-logo">
                         HAProxy
                     </a>
@@ -45,7 +48,7 @@
 				{% endif %}
 				{% if '2' in g.user_params['user_services'] %}
 				<li class="p_menu">
-					<a href="{{ url_for('service.services', service='nginx') }}" title="{{lang.menu_links.hapservers.nginx.title}}">
+					<a href="{{ url_for('service.services', service='nginx') }}" title="{{lang.menu_links.hapservers.nginx.title}}"  id="menu-nginx">
                         <img src="{{ url_for('static', filename='images/NGINX_icon.png') }}" class="menu-vendor-logo">
                         NGINX
                     </a>
@@ -88,7 +91,7 @@
 				{% if '3' in g.user_params['user_services'] %}
 				{% if g.user_params['role'] <= 2 %}
 				<li class="p_menu">
-                    <a href="{{ url_for('service.services', service='keepalived') }}" title="{{lang.menu_links.hapservers.keepalived.title}}">
+                    <a href="{{ url_for('service.services', service='keepalived') }}" title="{{lang.menu_links.hapservers.keepalived.title}}" id="menu-keepalived">
                         <img src="{{ url_for('static', filename='images/keepalived_icon.png') }}" class="menu-vendor-logo" style="margin: 0 5px 0 0;">
                         Keepalived
                     </a>

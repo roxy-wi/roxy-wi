@@ -571,7 +571,7 @@ ul{
     border-bottom: 1px solid var(--color-secondary);
 }
 .form-login {
-	background-color: var(--color-gray) !important;
+	background-color: var(--color-gray);
 	padding: 10px 10px 10px 30px;
     width: 220px;
     background-size: 0 !important;
@@ -1378,4 +1378,13 @@ label {
 	word-wrap: break-word;
 	background-color: #f5f5f5;
 	border: 1px solid #ccc;
+}
+#enter {
+    width: 220px;
+    padding: 10px;
+    background-color: var(--background);
+    font-weight: bold;
+    color: var(--color-wanring);
+    border: 1px solid var(--color-wanring);
+    border-radius: var(--border-radius);
 }

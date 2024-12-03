@@ -66,11 +66,6 @@
 				</a>
 			</div>
 			<div id="version"></div>
-{#			<div id="logo_footer">#}
-{#				<a href="https://roxy-wi.org" title="Roxy-WI official site" target="_blank">#}
-{#					<img src="{{ url_for('static', filename='images/logo_footer.png')}}" alt="logo" id="logo_footer_img" />#}
-{#				</a>#}
-{#			</div>#}
 			<div class="footer-div">
 				<div id="useful-links">
 					<a href="https://roxy-wi.org" class="footer-link" target="_blank" title="{{lang.words.about|title()}} Roxy-WI">{{lang.words.about|title()}}</a>
@@ -99,6 +94,13 @@
 					</td>
 				</tr>
 				<tr id="show-user-settings-group"></tr>
+				<tr id="show-user-settings-them">
+                    <td class="padding20">{{lang.words.theme|title()}}</td>
+					<td>
+                        {% set themes = {'dark': lang.words.dark|title(), 'light': lang.words.light|title()} %}
+						{{ select('theme_select', values=themes) }}
+					</td>
+                </tr>
 			</table>
 		</div>
 		<div id="statistic" style="display: none;">

@@ -29,6 +29,11 @@ function escapeHtml(unsafe) {
 var wait_mess_word = translate_div.attr('data-wait_mess');
 var wait_mess = '<div class="alert alert-warning">'+wait_mess_word+'</div>'
 function show_current_page(id) {
+	let theme = localStorage.getItem('theme');
+	let correct_color = 'var(--color-gray-dark-alpha)';
+	if (theme === 'dark') {
+		correct_color = '#181818';
+	}
 	id.parent().css('display', 'contents');
 	id.parent().css('font-size', '13px');
 	id.parent().css('top', '0');
@@ -36,7 +41,7 @@ function show_current_page(id) {
 	id.parent().children().css('margin-left', '-20px');
 	id.parent().find('a').css('padding-left', '20px');
 	id.find('a').css('border-left', '4px solid var(--color-wanring) !important');
-	id.find('a').css('background-color', 'var(--color-gray-dark-alpha) !important');
+	id.find('a').css('background-color', correct_color +' !important');
 }
 $( function() {		
    $('.menu li ul li').each(function () {
@@ -244,9 +249,9 @@ function clearAllAjaxFields() {
 function showMap() {
 	clearAllAjaxFields();
 	$('#ajax-config_file_name').empty();
-	$.ajax( {
+	$.ajax({
 		url: "/config/map/haproxy/" + $("#serv").val() + '/show',
-		success: function( data ) {
+		success: function (data) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
@@ -255,17 +260,17 @@ function showMap() {
 				window.history.pushState("Show Map", "Show Map", '/config/map/' + $("#service").val() + '/' + $("#serv").val());
 			}
 		}
-	} );
+	});
 }
 function showCompare() {
-	$.ajax( {
+	$.ajax({
 		url: "/config/compare/" + $("#service").val() + "/" + $("#serv").val() + "/show",
 		data: {
 			left: $('#left').val(),
 			right: $("#right").val(),
 		},
 		type: "POST",
-		success: function( data ) {
+		success: function (data) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
@@ -273,15 +278,15 @@ function showCompare() {
 				$("#ajax").html(data);
 			}
 		}
-	} );
+	});
 }
 function showCompareConfigs() {
 	clearAllAjaxFields();
 	$('#ajax-config_file_name').empty();
-	$.ajax( {
+	$.ajax({
 		url: "/config/compare/" + $("#service").val() + "/" + $("#serv").val() + "/files",
 		type: "GET",
-		success: function( data ) {
+		success: function (data) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
@@ -292,7 +297,7 @@ function showCompareConfigs() {
 				window.history.pushState("Show compare config", "Show compare config", '/config/compare/' + $("#service").val() + '/' + $("#serv").val());
 			}
 		}
-	} );
+	});
 }
 function showConfig() {
 	let service = $('#service').val();
@@ -315,12 +320,12 @@ function showConfig() {
 		"service": service,
 		"config_file_name": config_file_name
 	}
-	$.ajax( {
+	$.ajax({
 		url: "/config/" + service + "/show",
 		data: JSON.stringify(json_data),
 		type: "POST",
 		contentType: "application/json; charset=utf-8",
-		success: function( data ) {
+		success: function (data) {
 			if (data.status === 'failed') {
 				toastr.error(data);
 			} else {
@@ -330,7 +335,7 @@ function showConfig() {
 				window.history.pushState("Show config", "Show config", "/config/" + service + "/" + $("#serv").val() + "/show/" + config_file_name);
 			}
 		}
-	} );
+	});
 }
 function showConfigFiles(not_redirect=false) {
 	var service = $('#service').val();
@@ -477,6 +482,7 @@ function viewLogs() {
 	}
 }
 $( function() {
+	checkTheme();
 	$('a').click(function(e) {
 		try {
 			var cur_path = window.location.pathname;
@@ -788,10 +794,28 @@ function saveUserSettings(user_id){
 		localStorage.setItem('disabled_alert', '1');
 	}
 	changeCurrentGroupF(user_id);
+	changeTheme($('#theme_select').val());
 	Cookies.set('lang', $('#lang_select').val(), { expires: 365, path: '/', secure: 'true' });
 }
 function sleep(ms) {
 	return new Promise(resolve => setTimeout(resolve, ms));
+}
+function changeTheme(theme) {
+	localStorage.setItem('theme', theme);
+	if (theme === 'dark') {
+		$('#menu-overview').children().attr('src', '/static/images/roxy_icon_white.png');
+		$('#menu-haproxy').children().attr('src', '/static/images/HAProxy_icon_white.png');
+		$('#menu-nginx').children().attr('src', '/static/images/NGINX_icon_white.png');
+		$('#menu-keepalived').children().attr('src', '/static/images/keepalived_icon_white.png');
+		$('.menu-logo').attr('src', '/static/images/logo_menu_white.png');
+		$('head').append('<link rel="stylesheet" href="/static/css/dark.css" type="text/css" />');
+	} else {
+		$('link[rel=stylesheet][href~="/static/css/dark.css"]').remove();
+	}
+}
+function checkTheme() {
+	let theme = localStorage.getItem('theme');
+	changeTheme(theme);
 }
 function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
@@ -1296,6 +1320,12 @@ function openUserSettings(user_id) {
 	} else {
 		$('#disable_alerting').prop('checked', true).checkboxradio('refresh');
 	}
+	let theme = 'light';
+	if (localStorage.getItem('theme') != null) {
+		theme = localStorage.getItem('theme');
+	}
+	$('#theme_select').val(theme).change();
+	$('#theme_select').selectmenu('refresh');
 	$.ajax({
 		url: "/user/group",
 		success: function (data) {

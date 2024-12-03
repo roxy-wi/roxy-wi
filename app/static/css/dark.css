@@ -1,0 +1,85 @@
+body, .container, .footer {
+    background-color: #171717 !important;
+    color: #F0F0F0 !important;
+}
+h2 {
+    color: #F0F0F0;
+}
+h3 {
+    background: #b2b2b2;
+    color: #F0F0F0;
+}
+.menu a, .v_menu a, .top-menu {
+    background-color: #1b1b1b !important;
+    color: #f0f0f0 !important;
+}
+.menu a:hover {
+	background: #1f1f1f !important;
+	color: #f0f0f0 !important;
+	border-left: none;
+}
+.overview-wi .overviewHead, .overviewHead {
+    background-color: #686868 !important;
+}
+.odd {
+    background-color: #171717 !important;
+}
+.even {
+    background-color: #1f1f1f !important;
+}
+.menu a {
+    background-color: #1b1b1b !important;
+    color: #f0f0f0 !important;
+}
+.addName {
+    background-color: #171717;
+}
+.addButton:hover {
+	background-color: #171717 !important;
+}
+.alert-info {
+    color: #f0f0f0 !important;
+}
+.form-login {
+    background-color: #1b1b1b !important;
+}
+#enter {
+    color: #F0F0F0;
+	background-color: #171717 !important;
+}
+.ui-widget-header {
+    background-color: #797878 !important;
+}
+.ui-tabs .ui-tabs-panel {
+    background-color: #171717 !important;
+}
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {
+    color: #F0F0EF;
+}
+.ui-dialog .ui-dialog-title {
+    color: #f0f0f0;
+}
+.ui-dialog .ui-dialog-content, .ui-widget-content {
+    background-color: #1f1f1f !important;
+}
+.ui-widget-header {
+    border: 1px solid #1f1f1f;
+}
+.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited, a.ui-button, a:link.ui-button, a:visited.ui-button, .ui-button {
+    color: #f0f0f0;
+}
+.ui-state-active {
+    background-color: #797878 !important;
+    border: none;
+}
+.ui-widget-content {
+    color: #f0f0f0 !important;
+}
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default, .ui-button, html .ui-button.ui-state-disabled:hover, html .ui-button.ui-state-disabled:active {
+    border: 1px solid #797878 !important;
+    background: #1f1f1f !important;
+    color: #f0f0f0 !important;
+}
+.ui-menu, .ui-menu-item {
+    background: #797878 !important;
+}

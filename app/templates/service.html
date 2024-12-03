@@ -82,6 +82,7 @@
 					showOverviewServer('{{s.1}}', server_ip, '{{s.0}}', '{{service}}');
 					{%- if service == 'nginx' %}
 						showNginxConnections(server_ip)
+                        setInterval(showNginxConnections, 60000, server_ip)
 						{% if s.4.0.21 %}
 							getNginxChartData(server_ip)
 						{% endif %}

@@ -298,11 +298,7 @@ function change_pos(pos, id) {
 }
 function showBytes(serv) {
 	$.ajax( {
-		url: "/service/haproxy/bytes",
-		data: {
-			showBytes: serv
-		},
-		type: "POST",
+		url: "/service/haproxy/bytes/" + serv,
 		beforeSend: function() {
 			$("#show_bin_bout").html('<img class="loading_small_bin_bout" src="/static/images/loading.gif" />');
 			$("#sessions").html('<img class="loading_small_bin_bout" src="/static/images/loading.gif" />');
@@ -320,11 +316,7 @@ function showBytes(serv) {
 }
 function showNginxConnections(serv) {
 	$.ajax( {
-		url: "/service/nginx/connections",
-		data: {
-			nginxConnections: serv
-		},
-		type: "POST",
+		url: "/service/nginx/connections/" + serv,
 		beforeSend: function() {
 			$("#sessions").html('<img class="loading_small_bin_bout" src="/static/images/loading.gif" />');
 		},
@@ -341,11 +333,7 @@ function showNginxConnections(serv) {
 }
 function showApachekBytes(serv) {
 	$.ajax( {
-		url: "/service/apache/bytes",
-		data: {
-			apachekBytes: serv
-		},
-		type: "POST",
+		url: "/service/apache/bytes/" + serv,
 		beforeSend: function() {
 			$("#sessions").html('<img class="loading_small_bin_bout" src="/static/images/loading.gif" />');
 		},
@@ -362,11 +350,7 @@ function showApachekBytes(serv) {
 }
 function keepalivedBecameMaster(serv) {
 	$.ajax( {
-		url: "/service/keepalived/become-master",
-		data: {
-			keepalivedBecameMaster: serv
-		},
-		type: "POST",
+		url: "/service/keepalived/become-master/" + serv,
 		beforeSend: function() {
 			$("#bin_bout").html('<img class="loading_small_bin_bout" src="/static/images/loading.gif" />');
 		},

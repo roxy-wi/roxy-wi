@@ -13,6 +13,7 @@ from app.views.service.views import (ServiceView, ServiceActionView, ServiceBack
 from app.views.service.haproxy_section_views import ListenSectionView, UserListSectionView, PeersSectionView, \
     GlobalSectionView, DefaultsSectionView
 from app.views.service.lets_encrypt_views import LetsEncryptsView, LetsEncryptView
+from app.views.service.haproxy_lists_views import HaproxyListView
 from app.views.ha.views import HAView, HAVIPView, HAVIPsView
 from app.views.user.views import UserView, UserGroupView, UserRoles
 from app.views.udp.views import UDPListener, UDPListeners, UDPListenerActionView
@@ -75,6 +76,8 @@ register_api_id_ip(PeersSectionView, 'haproxy_peers_post', '/section/peers', met
 register_api_id_ip(PeersSectionView, 'haproxy_peers', '/section/peers/<section_name>', methods=['GET', 'PUT', 'DELETE'])
 register_api_id_ip(GlobalSectionView, 'haproxy_global', '/section/global', methods=['GET', 'PUT'])
 register_api_id_ip(DefaultsSectionView, 'haproxy_defaults', '/section/defaults', methods=['GET', 'PUT'])
+bp.add_url_rule('/service/<any(haproxy):service>/list/<list_name>/<color>', view_func=HaproxyListView.as_view('list_get'), methods=['GET'])
+bp.add_url_rule('/service/<any(haproxy):service>/list', view_func=HaproxyListView.as_view('list_post'), methods=['POST', 'PUT', 'DELETE'])
 bp.add_url_rule('/service/<any(nginx, apache):service>/<server_id>/config/list', view_func=ServiceConfigList.as_view('config_list_ip'), methods=['GET'])
 bp.add_url_rule('/service/<any(nginx, apache):service>/<int:server_id>/config/list', view_func=ServiceConfigList.as_view('config_list'), methods=['GET'])
 register_api_id_ip(CheckerView, 'checker', '/tools')

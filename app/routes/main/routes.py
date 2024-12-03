@@ -199,7 +199,7 @@ def nettools_check(check, body: NettoolsRequest):
 @jwt_required()
 @get_user_params()
 @validate()
-def service_history(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
+def service_history(service: str, server_ip: Union[IPvAnyAddress, DomainName, int]):
     history = ''
     server_ip = str(server_ip)
 
@@ -217,7 +217,7 @@ def service_history(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
             server_id = server_sql.get_server_by_ip(server_ip).server_id
             history = history_sql.select_action_history_by_server_id(server_id)
     elif service == 'user':
-        history = history_sql.select_action_history_by_user_id(server_ip)
+        history = history_sql.select_action_history_by_user_id(int(server_ip))
     else:
         abort(404, 'History not found')
 

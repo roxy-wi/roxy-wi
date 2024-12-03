@@ -47,7 +47,7 @@ def ping_from_server(server_from: str, server_to: str, action: str) -> Response:
         return Response(stream_with_context(paint_output(ssh_generator.generate(action_for_sending))), mimetype='text/html')
 
 
-def telnet_from_server(server_from: str, server_to: str, port_to: str) -> str:
+def telnet_from_server(server_from: str, server_to: str, port_to: int) -> str:
     count_string = 0
     stderr = ''
     output1 = ''
