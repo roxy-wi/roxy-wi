@@ -135,15 +135,30 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 				$('#ha-cluster-desc').val(clusterSettings.description.replaceAll("'", ""));
 				$('#ha-cluster-master-interface').val(clusterSettings.eth);
 				$('#vrrp-ip').val(clusterSettings.vip);
-				if (clusterSettings.haproxy) {
+				if (clusterSettings.services.haproxy.enabled) {
 					$('#hap').prop('checked', true);
+					if (clusterSettings.services.haproxy.docker) {
+						$('#hap_docker').prop('checked', true);
+					} else {
+						$('#hap_docker').prop('checked', false);
+					}
 				} else {
 					$('#hap').prop('checked', false);
 				}
-				if (clusterSettings.nginx) {
+				if (clusterSettings.services.nginx.enabled) {
 					$('#nginx').prop('checked', true);
+					if (clusterSettings.services.nginx.docker) {
+						$('#nginx_docker').prop('checked', true);
+					} else {
+						$('#nginx_docker').prop('checked', false);
+					}
 				} else {
 					$('#nginx').prop('checked', false);
+				}
+				if (clusterSettings.services.apache.enabled) {
+					$('#apache').prop('checked', true);
+				} else {
+					$('#apache').prop('checked', false);
 				}
 				if (clusterSettings.return_master) {
 					$('#return_master').prop('checked', true);
@@ -790,7 +805,6 @@ function createJsonVip(div_id) {
 	return jsonData;
 }
 function validateSlaves(jsonData) {
-	console.log(jsonData)
 	if (Object.keys(jsonData['servers']).length === 1) {
 		toastr.error('error: There is must be at least one slave server');
 		return false;
