@@ -91,6 +91,13 @@
     http_proxy: "{{PROXY}}"
     https_proxy: "{{PROXY}}"
 
+- name: Change wrong HAProxy service file
+  template:
+    src: haproxy.service.j2
+    dest: /usr/lib/systemd/system/haproxy.service
+    mode: 0644
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and haproxy_from_wi is defined
+
 - name: Enable and start service HAProxy
   systemd:
     name: haproxy
