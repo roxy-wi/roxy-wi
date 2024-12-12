@@ -191,7 +191,7 @@ $( function() {
 	});
 	$("#backends").autocomplete({
 		source: function (request, response) {
-			if (!checkIsServerFiled('#serv')) return false;
+			if (!checkIsServerFiled('#serv2')) return false;
 			if (request.term === "") {
 				request.term = 1
 			}
@@ -201,6 +201,26 @@ $( function() {
 					response(data.split('<br>'));
 				}
 			});
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$("#frontend_acl_then_value").autocomplete({
+		source: function (request, response) {
+			if ($('#frontend_acl_then').val() === '5') {
+				if (!checkIsServerFiled('#serv2')) return false;
+				if (request.term === "") {
+					request.term = 1
+				}
+				$.ajax({
+					url: "/runtimeapi/backends/" + $("#serv2").val(),
+					success: function (data) {
+						response(data.split('<br>'));
+					}
+				});
+			} else {
+				return false;
+			}
 		},
 		autoFocus: true,
 		minLength: -1
@@ -668,9 +688,10 @@ $( function() {
 		});
 		$("#path-cert-" + section_type).autocomplete({
 			source: function (request, response) {
+				let server = $("#add-" + section_type + " select[name='server'] option:selected");
 				if (!checkIsServerFiled("#add-" + section_type + " select[name='server'] option:selected")) return false;
 				$.ajax({
-					url: "/add/certs/" + $('#serv2').val(),
+					url: "/add/certs/" + server.val(),
 					success: function (data) {
 						data = data.replace(/\s+/g, ' ');
 						response(data.split(" "));
@@ -1431,14 +1452,14 @@ function confirmDeleting(deleting_thing, id, dialog_id, color) {
 	});
 }
 function deleteId(id) {
-	$('#'+id).remove();
-	if ($('#listen_bind  > p').length == 0) {
+	$('#' + id).remove();
+	if ($('#listen_bind > p').length == 0) {
 		$('#listen_bind').hide();
 	}
-	if ($('#frontend_bind  > p').length == 0) {
+	if ($('#frontend_bind > p').length == 0) {
 		$('#frontend_bind').hide();
 	}
-	if ($('#backend_bind  > p').length == 0) {
+	if ($('#backend_bind > p').length == 0) {
 		$('#backend_bind').hide();
 	}
 }

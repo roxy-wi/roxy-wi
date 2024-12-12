@@ -30,7 +30,7 @@ def runtimeapi():
 @bp.route('/backends/<int:server_ip>')
 @bp.route('/backends/<server_ip>')
 @validate()
-def show_backends(server_ip: Union[IPvAnyAddress, DomainName, int]):
+def show_backends(server_ip: Union[int, IPvAnyAddress, DomainName]):
     if isinstance(server_ip, int):
         server = server_sql.get_server(server_ip)
         server_ip = server.ip

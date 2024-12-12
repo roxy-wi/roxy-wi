@@ -188,14 +188,10 @@ def delete_saved_server(server_id):
         return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete server')
 
 
-@bp.route('/certs/<int:server_ip>')
-@bp.route('/certs/<server_ip>')
-@validate()
-def get_certs(server_ip: Union[IPvAnyAddress, DomainName, int]):
-    if isinstance(server_ip, int):
-        server = server_sql.get_server(server_ip)
-        server_ip = server.ip
-    return add_mod.get_ssl_certs(str(server_ip))
+@bp.route('/certs/<int:server_id>')
+def get_certs(server_id: int):
+    server_ip = server_sql.get_server(server_id).ip
+    return add_mod.get_ssl_certs(server_ip)
 
 
 @bp.route('/cert/<server_ip>/<cert_id>', methods=['DELETE', 'GET'])

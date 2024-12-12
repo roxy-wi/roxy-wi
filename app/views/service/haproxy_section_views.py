@@ -38,8 +38,8 @@ class HaproxySectionView(MethodView):
 
         try:
             section = add_sql.get_section(server_id, section_type, section_name)
-            output = {'server_id': section.server_id.server_id, **model_to_dict(section, recurse=False)}
-            output['id'] = f'{server_id}-{section_name}'
+            output = {'server_id': section.server_id.server_id, **model_to_dict(section, recurse=False),
+                      'id': f'{server_id}-{section_name}'}
             output.update(section.config)
             return jsonify(output)
         except Exception as e:
