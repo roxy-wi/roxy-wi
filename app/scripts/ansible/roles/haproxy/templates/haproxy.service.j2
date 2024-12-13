@@ -5,7 +5,7 @@ After=network.target
 [Service]
 EnvironmentFile=-/etc/default/haproxy
 EnvironmentFile=-/etc/sysconfig/haproxy
-Environment="CONFIG=/etc/haproxy/haproxy.cfg" "PIDFILE=/run/haproxy.pid" {% if ansible_facts['distribution_major_version'] != '8' %}"EXTRAOPTS=-S /run/haproxy-master.sock"{% endif %}
+Environment="CONFIG=/etc/haproxy/haproxy.cfg" "PIDFILE=/run/haproxy.pid" {% if ansible_facts['distribution_major_version'] == '7' %}"EXTRAOPTS=-S /run/haproxy-master.sock"{% endif %}
 
 ExecStartPre=/sbin/haproxy -f $CONFIG -c -q $EXTRAOPTS
 ExecStart=/sbin/haproxy -Ws -f $CONFIG -p $PIDFILE $EXTRAOPTS
