@@ -4,16 +4,16 @@ $( function() {
     });
     $("#nettools_telnet_form").on("click", ":submit", function (e) {
         $('#ajax-nettools').html('');
-        var frm = $('#nettools_telnet_form');
-        if ($('#nettools_telnet_server_from option:selected').val() == '------') {
+        let frm = $('#nettools_telnet_form');
+        if ($('#nettools_telnet_server_from option:selected').val() === '------') {
             toastr.warning('Choose a server From');
             return false;
         }
-        if ($('#nettools_telnet_server_to').val() == '') {
+        if ($('#nettools_telnet_server_to').val() === '') {
             toastr.warning('Choose a server To');
             return false;
         }
-        if ($('#nettools_telnet_port_to').val() == '') {
+        if ($('#nettools_telnet_port_to').val() === '') {
             toastr.warning('Enter a port To');
             return false;
         }
@@ -109,26 +109,29 @@ $( function() {
     });
     $("#nettools_portscanner_form").on("click", ":submit", function (e) {
         $('#ajax-nettools').html('');
-        if ($('#nettools_portscanner_server').val() == '') {
+        let port_server = $('#nettools_portscanner_server').val();
+        $('#ajax-nettools').html('');
+        if (port_server === '') {
             toastr.warning('Enter an address');
             return false;
         }
         $.ajax({
-            url: "/portscanner/scan/" + $('#nettools_portscanner_server').val(),
+            url: "/portscanner/scan",
+            data: JSON.stringify({'ip': port_server}),
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
             success: function (data) {
-                data = data.replace(/\s+/g, ' ');
-                if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
-                    toastr.error(data);
+                if (data.status === 'failed') {
+                    toastr.error(data.error);
                 } else {
                     toastr.clear();
-                    $("#show_scans_ports_body").html(data);
-                    var close_word = $('#translate').attr('data-close');
+                    $("#show_scans_ports_body").html(data.data);
                     $("#show_scans_ports").dialog({
                         resizable: false,
                         height: "auto",
                         width: 360,
                         modal: true,
-                        title: "{{lang.words.opened|title()}} {{lang.words.ports}}",
+                        title: "Open ports",
                         buttons: [{
                             text: close_word,
                             click: function () {
@@ -145,7 +148,7 @@ $( function() {
     $("#nettools_whois_form").on("click", ":submit", function (e) {
         $('#ajax-nettools').html('');
         var frm = $('#nettools_whois_form');
-        if ($('#nettools_whois_name').val() == '') {
+        if ($('#nettools_whois_name').val() === '') {
             toastr.warning('Enter a Domain name');
             return false;
         }
