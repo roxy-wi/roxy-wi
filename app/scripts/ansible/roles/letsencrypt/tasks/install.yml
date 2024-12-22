@@ -98,11 +98,6 @@
       environment:
         AWS_CONFIG_FILE: "~/.secrets/certbot/{{ cert_type }}.ini"
 
-#    - name: Obtain certificate
-#      shell: "touch /etc/letsencrypt/live/{{main_domain}}/fullchain.pem & touch /etc/letsencrypt/live/{{main_domain}}/privkey.pem"
-#      environment:
-#        AWS_CONFIG_FILE: "~/.secrets/certbot/{{ cert_type }}.ini"
-
     - name: Combine into pem file
       shell: cat /etc/letsencrypt/live/{{main_domain}}/fullchain.pem /etc/letsencrypt/live/{{main_domain}}/privkey.pem > /etc/letsencrypt/live/{{main_domain}}/{{main_domain}}.pem
 

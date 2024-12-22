@@ -64,7 +64,7 @@
 			</tr>
 			<tr>
 				<td class="padding10 first-collumn">
-					{{ select('serv5', values=g.user_params['servers'], is_servers='true') }}
+					{{ select('serv5', values=g.user_params['servers'], is_servers='true', by_id='true') }}
 					<button id="ssl_key_view" title="{{lang.words.view|title()}} {{lang.words.certs}}">{{lang.words.view|title()}}</button>
 				</td>
 				<td colspan="2" style="padding: 10px 0 10px 0;">

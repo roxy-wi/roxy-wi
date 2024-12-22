@@ -253,7 +253,8 @@ class LetsEncryptView(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete Let\'s Encrypt')
 
-    def _create_env(self, data: Union[LetsEncryptRequest, LetsEncryptDeleteRequest], action: str = 'install' ):
+    @staticmethod
+    def _create_env(data: Union[LetsEncryptRequest, LetsEncryptDeleteRequest], action: str = 'install'):
         server_ips = []
         server_ip = 'localhost'
         domains_command = ''
@@ -315,7 +316,7 @@ class LetsEncryptView(MethodView):
                 raise e
         else:
             try:
-                output = service_mod.run_ansible(inv, server_ips, 'letsencrypt')
+                output = service_mod.run_ansible(inv, server_ips, ansible_role)
             except Exception as e:
                 raise e
 
