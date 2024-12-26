@@ -194,14 +194,14 @@ def get_certs(server_id: int):
     return add_mod.get_ssl_certs(server_ip)
 
 
-@bp.route('/cert/<server_ip>/<cert_id>', methods=['DELETE', 'GET'])
-@validate()
-def get_cert(server_ip: Union[IPvAnyAddress, DomainName], cert_id):
+@bp.route('/cert/<int:server_id>/<cert_id>', methods=['DELETE', 'GET'])
+def get_cert(server_id: int, cert_id: str):
     cert_id = common.checkAjaxInput(cert_id)
+    server_ip = server_sql.get_server(server_id).ip
     if request.method == 'DELETE':
-        return add_mod.del_ssl_cert(str(server_ip), cert_id)
+        return add_mod.del_ssl_cert(server_ip, cert_id)
     elif request.method == 'GET':
-        return add_mod.get_ssl_cert(str(server_ip), cert_id)
+        return add_mod.get_ssl_cert(server_ip, cert_id)
 
 
 @bp.post('/cert/add')
