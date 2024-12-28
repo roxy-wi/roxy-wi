@@ -127,7 +127,7 @@ def generate_haproxy_inv(json_data: ServiceInstall, installed_service: str) -> o
 	stats_password = sql.get_setting('haproxy_stats_password')
 	haproxy_dir = sql.get_setting('haproxy_dir')
 	container_name = sql.get_setting('haproxy_container_name')
-	haproxy_ver = '3.1.0-1'
+	haproxy_ver = '3.1.1-1'
 	is_docker = json_data['services']['haproxy']['docker']
 
 	for v in json_data['servers']:
