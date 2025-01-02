@@ -73,6 +73,15 @@ def update_ssh_passphrase(cred_id: int, passphrase: str):
 		out_error(e)
 
 
+def update_private_key(cred_id: int, private_key: bytes):
+	try:
+		Cred.update(private_key=private_key).where(Cred.id == cred_id).execute()
+	except Cred.DoesNotExist:
+		raise RoxywiResourceNotFound
+	except Exception as e:
+		out_error(e)
+
+
 def get_ssh(ssh_id: int) -> Cred:
 	try:
 		return Cred.get(Cred.id == ssh_id)

@@ -132,7 +132,7 @@ class LetsEncryptView(MethodView):
             description: Let's Encrypt configuration created successfully
         """
         try:
-            self._create_env(body)
+            self._create_env(body, 'install')
             last_id = le_sql.insert_le(**body.model_dump(mode='json'))
             return IdResponse(id=last_id).model_dump(), 201
         except Exception as e:

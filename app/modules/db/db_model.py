@@ -191,6 +191,7 @@ class Cred(BaseModel):
     group_id = IntegerField(constraints=[SQL('DEFAULT 1')])
     passphrase = CharField(null=True)
     shared = IntegerField(constraints=[SQL('DEFAULT 0')])
+    private_key = TextField(null=True)
 
     class Meta:
         table_name = 'cred'

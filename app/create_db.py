@@ -1,7 +1,7 @@
 import distro
 
 from app.modules.db.db_model import (
-	connect, Setting, Role, User, UserGroups, Groups, Services, RoxyTool, Version, GeoipCodes, migrate, mysql_enable
+	connect, Setting, Role, User, UserGroups, Groups, Services, RoxyTool, Version, GeoipCodes, migrate, mysql_enable, TextField
 )
 from peewee import IntegerField, SQL
 
@@ -690,9 +690,22 @@ def update_db_v_8_1_2():
 			print("An error occurred:", e)
 
 
+def update_db_v_8_1_4():
+	try:
+		migrate(
+			migrator.add_column('cred', 'private_key', TextField(null=True)),
+		)
+	except Exception as e:
+		if (e.args[0] == 'duplicate column name: private_key' or 'column "private_key" of relation "cred" already exists'
+				or str(e) == '(1060, "Duplicate column name \'private_key\'")'):
+			print('Updating... DB has been updated to version 8.1.4')
+		else:
+			print("An error occurred:", e)
+
+
 def update_ver():
 	try:
-		Version.update(version='8.1.3').execute()
+		Version.update(version='8.1.4').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -723,4 +736,5 @@ def update_all():
 	update_db_v_8_1_0_2()
 	update_db_v_8_1_0_3()
 	update_db_v_8_1_2()
+	update_db_v_8_1_4()
 	update_ver()

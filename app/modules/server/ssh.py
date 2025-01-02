@@ -2,7 +2,6 @@ import os
 import base64
 from cryptography.fernet import Fernet
 
-import paramiko
 from flask import render_template
 from playhouse.shortcuts import model_to_dict
 
@@ -20,12 +19,9 @@ error_mess = common.error_mess
 get_config = roxy_wi_tools.GetConfigVar()
 
 
-def return_ssh_keys_path(server_ip: str, cred_id: int = None) -> dict:
+def return_ssh_keys_path(server_ip: str) -> dict:
 	ssh_settings = {}
-	if cred_id:
-		sshs = cred_sql.select_ssh(id=cred_id)
-	else:
-		sshs = cred_sql.select_ssh(serv=server_ip)
+	sshs = cred_sql.select_ssh(serv=server_ip)
 
 	for ssh in sshs:
 		if ssh.password:
@@ -85,36 +81,24 @@ def create_ssh_cred(name: str, password: str, group: int, username: str, enable:
 	if is_api:
 		return IdResponse(id=last_id).model_dump(mode='json')
 	else:
-		data = render_template('ajax/new_ssh.html',
-							   groups=group_sql.select_groups(), sshs=cred_sql.select_ssh(name=name), lang=lang, adding=1)
+		kwargs = {
+			'groups': group_sql.select_groups(),
+			'sshs': cred_sql.select_ssh(name=name),
+			'lang': lang,
+			'adding': 1
+		}
+		data = render_template('ajax/new_ssh.html', **kwargs)
 		return IdDataResponse(id=last_id, data=data).model_dump(mode='json')
 
 
 def upload_ssh_key(ssh_id: int, key: str, passphrase: str) -> None:
 	key = key.replace("'", "")
-	ssh = cred_sql.get_ssh(ssh_id)
-	group_name = group_sql.get_group(ssh.group_id).name
-	lib_path = get_config.get_config_var('main', 'lib_path')
-	full_dir = f'{lib_path}/keys/'
-	name = ssh.name
-	ssh_keys = f'{full_dir}{name}_{group_name}.pem'
+	key = crypt_password(key)
 
-	if key == '':
-		raise ValueError('Private key cannot be empty')
 	try:
-		key = paramiko.pkey.load_private_key(key, password=passphrase)
+		cred_sql.update_private_key(ssh_id, key)
 	except Exception as e:
 		raise e
-
-	try:
-		key.write_private_key_file(ssh_keys)
-	except Exception as e:
-		raise e
-
-	try:
-		os.chmod(ssh_keys, 0o600)
-	except IOError as e:
-		raise Exception(e)
 
 	if passphrase:
 		try:
@@ -129,23 +113,15 @@ def upload_ssh_key(ssh_id: int, key: str, passphrase: str) -> None:
 	except Exception as e:
 		raise Exception(e)
 
-	roxywi_common.logging("Roxy-WI server", f"A new SSH cert has been uploaded {ssh_keys}", roxywi=1, login=1)
+	roxywi_common.logging("Roxy-WI server", "A new SSH cert has been uploaded", roxywi=1, login=1)
 
 
 def update_ssh_key(body: CredRequest, group_id: int, ssh_id: int) -> None:
-	ssh = cred_sql.get_ssh(ssh_id)
-	ssh_key_name = _return_correct_ssh_file(ssh)
-
 	if body.password != '' and body.password is not None:
 		try:
 			body.password = crypt_password(body.password)
 		except Exception as e:
 			raise Exception(e)
-
-	if os.path.isfile(ssh_key_name):
-		new_ssh_key_name = _return_correct_ssh_file(body)
-		os.rename(ssh_key_name, new_ssh_key_name)
-		os.chmod(new_ssh_key_name, 0o600)
 
 	try:
 		cred_sql.update_ssh(ssh_id, body.name, body.key_enabled, group_id, body.username, body.password, body.shared)
@@ -154,21 +130,18 @@ def update_ssh_key(body: CredRequest, group_id: int, ssh_id: int) -> None:
 		raise Exception(e)
 
 
-def delete_ssh_key(ssh_id) -> None:
-	name = ''
+def delete_ssh_key(ssh_id: int) -> None:
+	sshs = cred_sql.get_ssh(ssh_id)
 
-	for sshs in cred_sql.select_ssh(id=ssh_id):
-		name = sshs.name
-
-		if sshs.key_enabled == 1:
-			ssh_key_name = _return_correct_ssh_file(sshs)
-			try:
-				os.remove(ssh_key_name)
-			except Exception:
-				pass
+	if sshs.key_enabled == 1:
+		ssh_key_name = _return_correct_ssh_file(sshs)
+		try:
+			os.remove(ssh_key_name)
+		except Exception:
+			pass
 	try:
 		cred_sql.delete_ssh(ssh_id)
-		roxywi_common.logging('Roxy-WI server', f'The SSH credentials {name} has deleted', roxywi=1, login=1)
+		roxywi_common.logging('Roxy-WI server', f'The SSH credentials {sshs.name} has deleted', roxywi=1, login=1)
 	except Exception as e:
 		raise e
 
@@ -226,24 +199,40 @@ def get_creds(group_id: int = None, cred_id: int = None, not_shared: bool = Fals
 			if cred_dict['passphrase']:
 				cred_dict['passphrase'] = decrypt_password(cred_dict['passphrase'])
 		cred_dict['name'] = cred_dict['name'].replace("'", "")
+		cred_dict['private_key'] = ''
 
 		if cred.key_enabled == 1 and group_id == cred.group_id:
-			ssh_key_file = _return_correct_ssh_file(cred)
-			if os.path.isfile(ssh_key_file):
-				with open(ssh_key_file, 'rb') as key:
-					cred_dict['private_key'] = base64.b64encode(key.read()).decode('utf-8')
-			else:
-				cred_dict['private_key'] = ''
-		else:
-			cred_dict['private_key'] = ''
+			if cred.private_key:
+				cred_dict['private_key'] = base64.b64encode(cred.private_key.encode()).decode('utf-8')
 		json_data.append(cred_dict)
 	return json_data
 
 
-def _return_correct_ssh_file(cred: CredRequest) -> str:
+def _return_correct_ssh_file(cred: CredRequest, ssh_id: int = None) -> str:
 	lib_path = get_config.get_config_var('main', 'lib_path')
 	group_name = group_sql.get_group(cred.group_id).name
 	if group_name not in cred.name:
-		return f'{lib_path}/keys/{cred.name}_{group_name}.pem'
+		key_file = f'{lib_path}/keys/{cred.name}_{group_name}.pem'
 	else:
-		return f'{lib_path}/keys/{cred.name}.pem'
+		key_file = f'{lib_path}/keys/{cred.name}.pem'
+
+	if not ssh_id:
+		ssh_id = cred.id
+
+	try:
+		private_key = cred_sql.get_ssh(ssh_id).private_key
+		private_key = decrypt_password(private_key)
+		private_key = private_key.strip()
+		private_key = f'{private_key}\n'
+	except Exception as e:
+		raise e
+
+	with open(key_file, 'wb') as key:
+		key.write(private_key.encode())
+
+	try:
+		os.chmod(key_file, 0o600)
+	except IOError as e:
+		raise Exception(e)
+
+	return key_file
