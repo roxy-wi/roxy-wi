@@ -1,6 +1,6 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
-<div id="listener-{{listener.id}}" class="div-server-hapwi">
+<div id="listener-{{listener.id}}" class="div-server-hapwi div-server-head-dis">
     <div class="server-name">
         <span class="overflow name-span">
             <span id="listener-name-{{listener.id}}">{{listener.name|replace("'", "")}}</span>
@@ -38,7 +38,14 @@
         <div id="config-{{ listener.id }}">
             {% set config = listener.config|string_to_dict %}
             {% for c in config %}
-            {{ lang.words.server|title() }}: {{ copy_to_clipboard(value=c.backend_ip) }}, {{ lang.words.port }}: {{ c.port }}, {{ lang.words.weight }}: {{ c.weight }} <br />
+                <div>
+                <span id="backend_server_status_{{ c.backend_ip|replace('.', '') }}" class="server-status-small serverNone"></span>
+            {{ lang.words.server|title() }}: {{ copy_to_clipboard(value=c.backend_ip) }}, {{ lang.words.port }}: {{ c.port }}, {{ lang.words.weight }}: {{ c.weight }}
+                </div>
+                <script>
+                    checkUdpBackendStatus('{{ listener.id }}', '{{ c.backend_ip }}')
+                    setInterval(checkUdpBackendStatus, 60000, '{{listener.id}}', '{{ c.backend_ip }}');
+                </script>
             {% endfor %}
         </div>
     </div>

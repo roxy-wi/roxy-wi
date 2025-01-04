@@ -23,13 +23,6 @@ def get_user() -> UserName:
 		print(str(e))
 
 
-def select_user_status() -> int:
-	try:
-		return UserName.get().Status
-	except Exception:
-		return 0
-
-
 def get_roxy_tools():
 	try:
 		query_res = RoxyTool.select().where(RoxyTool.is_roxy == 1).execute()

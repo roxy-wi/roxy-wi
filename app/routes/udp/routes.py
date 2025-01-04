@@ -1,7 +1,7 @@
 from flask_jwt_extended import jwt_required
 
 from app.routes.udp import bp
-from app.views.udp.views import UDPListener
+from app.views.udp.views import UDPListener, UDPListenerBackendStatusView
 
 
 @bp.before_request
@@ -13,3 +13,4 @@ def before_request():
 
 bp.add_url_rule('/<service>/listener', view_func=UDPListener.as_view('udp_listener', False), methods=['GET'], defaults={'listener_id': None})
 bp.add_url_rule('/<service>/listener/<int:listener_id>', view_func=UDPListener.as_view('udp_listener_id', False), methods=['GET'])
+bp.add_url_rule('/<service>/listener/<int:listener_id>/<backend_ip>', view_func=UDPListenerBackendStatusView.as_view('udp_listener_backend_ip'), methods=['GET'])

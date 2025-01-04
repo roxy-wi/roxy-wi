@@ -549,8 +549,10 @@ function checkStatus(listener_id) {
 				listener_div.attr('title', 'All services are UP');
 				listener_div.removeClass('div-server-head-down');
 				listener_div.removeClass('div-server-head-unknown');
+				listener_div.removeClass('div-server-head-dis');
 			} else if (data.status === 'failed' || data.status === 'error') {
 				listener_div.removeClass('div-server-head-unknown');
+				listener_div.removeClass('div-server-head-dis');
 				listener_div.removeClass('div-server-head-up');
 				listener_div.addClass('div-server-head-down');
 				listener_div.attr('title', 'All services are DOWN');
@@ -558,6 +560,7 @@ function checkStatus(listener_id) {
 				listener_div.addClass('div-server-head-unknown');
 				listener_div.removeClass('div-server-head-up');
 				listener_div.removeClass('div-server-head-down');
+				listener_div.removeClass('div-server-head-dis');
 				listener_div.attr('title', 'Not all services are UP');
 			}
 			$(`#listener-name-${listener_id}`).text(data.name.replaceAll("'", ""));
@@ -571,4 +574,35 @@ function checkStatus(listener_id) {
 		}
 	});
 	NProgress.configure({showSpinner: true});
+}
+function checkUdpBackendStatus(listener_id, backend_ip) {
+	$.ajax({
+        url: `/udp/listener/${listener_id}/${backend_ip}`,
+        type: "GET",
+        contentType: "application/json; charset=utf-8",
+        success: function (data) {
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+				return false;
+			} else {
+				let server_div = $('#backend_server_status_' + backend_ip.replaceAll('.', ''));
+				if (data.data === 'yes') {
+					server_div.removeClass('serverNone');
+					server_div.removeClass('serverDown');
+					server_div.addClass('serverUp');
+					server_div.attr('title', 'Server is reachable');
+				} else if (data.data === 'no') {
+					server_div.removeClass('serverNone');
+					server_div.removeClass('serverUp');
+					server_div.addClass('serverDown');
+					server_div.attr('title', 'Server is unreachable');
+				} else {
+					server_div.removeClass('serverDown');
+					server_div.removeClass('serverUp');
+					server_div.addClass('serverNone');
+					server_div.attr('title', 'Cannot get server status');
+				}
+			}
+		}
+    });
 }

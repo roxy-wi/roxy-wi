@@ -864,3 +864,53 @@ function getHaCluster(cluster_id, new_cluster=false) {
 		}
 	});
 }
+function checkHaClusterStatus(cluster_id) {
+	if (sessionStorage.getItem('check-ha-cluster-'+cluster_id) == 0) {
+		return false;
+	}
+	NProgress.configure({showSpinner: false});
+	let listener_div = $('#cluster-' + cluster_id);
+	$.ajax({
+		url: "/ha/cluster/" + cluster_id + "/status",
+		contentType: "application/json; charset=utf-8",
+		statusCode: {
+			404: function (xhr) {
+				$('#cluster-' + cluster_id).remove();
+			},
+			403: function (xhr) {
+				sessionStorage.setItem('check-ha-cluster-'+cluster_id, 0);
+			},
+			500: function (xhr) {
+				sessionStorage.setItem('ccheck-ha-cluster-'+cluster_id, 0);
+			}
+		},
+		success: function (data) {
+			try {
+				if (data.indexOf('logout') != '-1') {
+					sessionStorage.setItem('check-ha-cluster-'+cluster_id, 0);
+				}
+			} catch (e) {}
+
+			if (data.status === 'ok') {
+				listener_div.addClass('div-server-head-up');
+				listener_div.attr('title', 'All services are UP');
+				listener_div.removeClass('div-server-head-down');
+				listener_div.removeClass('div-server-head-unknown');
+				listener_div.removeClass('div-server-head-dis');
+			} else if (data.status === 'failed' || data.status === 'error') {
+				listener_div.removeClass('div-server-head-unknown');
+				listener_div.removeClass('div-server-head-up');
+				listener_div.removeClass('div-server-head-dis');
+				listener_div.addClass('div-server-head-down');
+				listener_div.attr('title', 'All services are DOWN');
+			} else if (data.status === 'warning') {
+				listener_div.addClass('div-server-head-unknown');
+				listener_div.removeClass('div-server-head-up');
+				listener_div.removeClass('div-server-head-down');
+				listener_div.removeClass('div-server-head-dis');
+				listener_div.attr('title', 'Not all services are UP');
+			}
+		}
+	});
+	NProgress.configure({showSpinner: true});
+}

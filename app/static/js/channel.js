@@ -151,6 +151,14 @@ $( function() {
 		let id = $(this).attr('id').split('-');
 		updateReceiver(id[1], 'pd')
 	});
+	$("#checker_mm_table input").change(function () {
+		let id = $(this).attr('id').split('-');
+		updateReceiver(id[2], 'mm')
+	});
+	$("#checker_pd_tablechecker_mm_table select").on('selectmenuchange', function () {
+		let id = $(this).attr('id').split('-');
+		updateReceiver(id[1], 'mm')
+	});
 });
 function loadChannel() {
 	$.ajax({

@@ -97,6 +97,7 @@
                         setInterval(showBytes, 60000, server_ip);
 					{%- elif service == 'keepalived' %}
 						keepalivedBecameMaster(server_ip)
+                        setInterval(keepalivedBecameMaster, 60000, server_ip)
 					{% endif %}
 				}
 				showMetrics();
@@ -181,7 +182,7 @@
 			{% set is_checker_enabled = s.4.0.8 %}
 			{% set is_metrics_enabled = s.4.0.9 %}
 		{% endif %}
-		<div id="div-server-{{s.0}}" class="div-server-hapwi div-server-head-unknown">
+		<div id="div-server-{{s.0}}" class="div-server-hapwi div-server-head-dis">
 			<div class="server-name">
 				<input type="hidden" id="server-name-{{s.0}}" value="{{s.1}}" />
 				<input type="hidden" id="service" value="{{service}}" />

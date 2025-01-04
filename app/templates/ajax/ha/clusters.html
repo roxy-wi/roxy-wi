@@ -1,7 +1,7 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
 {% for cluster in clusters %}
-<div id="cluster-{{cluster.id}}" class="div-server-hapwi">
+<div id="cluster-{{cluster.id}}" class="div-server-hapwi div-server-head-dis">
     <div class="server-name">
         <a href="/ha/cluster/{{cluster.id}}" title="{{lang.words.open|title()}} {{lang.words.cluster|replace("'", "")}}">
             <span id="cluster-name-{{cluster.id}}">{{cluster.name|replace("'", "")}}</span>
@@ -69,4 +69,5 @@
     </div>
     {{ input('router_id-'+ cluster.id|string(), type='hidden') }}
 </div>
+<script>checkHaClusterStatus({{ cluster.id }})</script>
 {% endfor %}

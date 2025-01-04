@@ -150,3 +150,26 @@ def get_masters(service):
         return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get free servers')
 
     return jsonify([model_to_dict(free) for free in free_servers])
+
+
+@bp.route('/<service>/<int:cluster_id>/status')
+@check_services
+@get_user_params()
+def check_cluster_status(service: str, cluster_id: int):
+    try:
+        router_id = ha_sql.get_router_id(cluster_id, default_router=1)
+        slaves = ha_sql.select_cluster_slaves(cluster_id, router_id)
+    except Exception as e:
+        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get slaves')
+    status = 'ok'
+    statuses = []
+    cmd = f'systemctl is-active keepalived.service'
+    for slave in slaves:
+        status = server_mod.ssh_command(slave[2], cmd)
+        statuses.append(status.replace('\n', '').replace('\r', ''))
+    if 'inactive' in statuses and 'active' in statuses:
+        status = 'warning'
+    elif 'inactive' in statuses and 'active' not in statuses:
+        status = 'error'
+
+    return jsonify({'status': status})

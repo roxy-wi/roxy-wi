@@ -16,7 +16,7 @@ from app.views.service.lets_encrypt_views import LetsEncryptsView, LetsEncryptVi
 from app.views.service.haproxy_lists_views import HaproxyListView
 from app.views.ha.views import HAView, HAVIPView, HAVIPsView
 from app.views.user.views import UserView, UserGroupView, UserRoles
-from app.views.udp.views import UDPListener, UDPListeners, UDPListenerActionView
+from app.views.udp.views import UDPListener, UDPListeners, UDPListenerActionView, UDPListenerBackendStatusView
 from app.views.channel.views import ChannelView, ChannelsView
 from app.views.tools.views import CheckerView
 from app.views.tools.port_scanner_views import PortScannerView, PortScannerPortsView
@@ -59,6 +59,7 @@ register_api(HAVIPView, 'ha_vip', '/ha/<service>/<int:cluster_id>/vip', 'vip_id'
 bp.add_url_rule('/ha/<service>/<int:cluster_id>/vips', view_func=HAVIPsView.as_view('ha_vips'), methods=['GET'])
 register_api(UDPListener, 'udp_listener', '/<service>/listener', 'listener_id')
 bp.add_url_rule('/<service>/listener/<int:listener_id>/<any(start, stop, reload, restart):action>', view_func=UDPListenerActionView.as_view('listener_action'), methods=['GET'])
+bp.add_url_rule('/<service>/listener/<int:listener_id>/<backend_ip>', view_func=UDPListenerBackendStatusView.as_view('UDPListenerBackendStatusView'), methods=['GET'])
 bp.add_url_rule('/<service>/listeners', view_func=UDPListeners.as_view('listeners'), methods=['GET'])
 bp.add_url_rule('/service/<service>/<int:server_id>/install', view_func=InstallGetStatus.as_view('install_status'), methods=['GET'])
 bp.add_url_rule('/service/<service>/<server_id>/install', view_func=InstallGetStatus.as_view('install_status_ip'), methods=['GET'])

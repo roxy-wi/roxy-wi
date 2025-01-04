@@ -103,7 +103,7 @@ def action_service(action: str, service: str) -> str:
 	if not re.match(r'^[a-zA-Z0-9\.\-]+$', service):
 			return f"Invalid service name: {service}. Only alphanumeric characters, dots, and hyphens are allowed."
 	cmd = f"sudo systemctl {actions[action]} {service}"
-	if not roxy_sql.select_user_status():
+	if not roxy_sql.get_user().Status:
 		return 'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing" ' \
 				   'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions'
 	if is_in_docker:

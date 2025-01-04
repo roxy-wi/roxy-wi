@@ -1,8 +1,11 @@
+from typing import Union
+
 from flask import render_template, g, jsonify
 from flask.views import MethodView
 from flask_pydantic import validate
 from flask_jwt_extended import jwt_required
 from playhouse.shortcuts import model_to_dict
+from pydantic import IPvAnyAddress
 
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
@@ -10,11 +13,12 @@ import app.modules.common.common as common
 import app.modules.db.udp as udp_sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.server as server_sql
+import app.modules.server.server as server_mod
 import app.modules.service.udp as udp_mod
 import app.modules.service.installation as service_mod
 from app.middleware import get_user_params, check_services, page_for_admin, check_group
 from app.modules.common.common_classes import SupportClass
-from app.modules.roxywi.class_models import BaseResponse, IdResponse, UdpListenerRequest, GroupQuery
+from app.modules.roxywi.class_models import BaseResponse, IdResponse, UdpListenerRequest, GroupQuery, DomainName, DataStrResponse
 
 
 class UDPListener(MethodView):
@@ -498,3 +502,67 @@ class UDPListenerActionView(MethodView):
             return BaseResponse().model_dump(mode='json')
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, f'Cannot {action} listener')
+
+
+class UDPListenerBackendStatusView(MethodView):
+    methods = ['GET']
+    decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
+
+    @staticmethod
+    @validate()
+    def get(service: str, listener_id: int, backend_ip: Union[IPvAnyAddress, DomainName]):
+        """
+        UDP Listener Backend Status View
+
+        ---
+        tags:
+            - UDP listener
+        parameters:
+            - in: path
+              name: listener_id
+              required: true
+              description: The ID of the UDP listener.
+              type: integer
+            - in: path
+              name: backend_ip
+              required: true
+              description: The IP address of the backend server.
+              type: string
+        responses:
+            200:
+                description: Success. Returns the backend status for the given UDP listener.
+                content:
+                  application/json:
+                    schema:
+                      type: object
+                      properties:
+                        status:
+                          type: string
+                          description: The backend status (e.g., 'yes', 'no').
+            400:
+                description: Bad request. Invalid listener_id or backend_ip.
+            404:
+                description: Not found. The specified UDP listener or backend was not found.
+        """
+        try:
+            listener = udp_sql.get_listener(listener_id)
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get UDP listeners')
+
+        if listener.cluster_id:
+            cluster = ha_sql.get_cluster(listener.cluster_id)
+            router_id = ha_sql.get_router_id(cluster.id, 1)
+            slaves = ha_sql.select_cluster_slaves(cluster.id, router_id)
+
+            for slave in slaves:
+                server_ip = server_sql.get_server(slave[0]).ip
+        elif listener.server_id:
+            server_ip = server_sql.get_server(listener.server_id).ip
+        else:
+            return roxywi_common.handler_exceptions_for_json_data(Exception(''), 'Cannot get UDP listeners')
+
+        cmd = (f"sudo kill -s $(keepalived --signum=DATA) $(cat /var/run/keepalived-udp-{listener_id}.pid) && "
+               f"sudo grep {backend_ip} -A 3 /tmp/keepalived_check.data |grep Up |awk '{{print $3}}'")
+        status = server_mod.ssh_command(server_ip, cmd)
+        status = status.replace('\r\n', '')
+        return DataStrResponse(data=status).model_dump(mode='json')

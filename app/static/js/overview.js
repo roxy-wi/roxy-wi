@@ -518,6 +518,7 @@ function check_service_status(id, ip, service) {
 			} else {
 				if (data.status === 'failed') {
 					server_div.removeClass('div-server-head-unknown');
+					server_div.removeClass('div-server-head-dis');
 					server_div.removeClass('div-server-head-up');
 					server_div.addClass('div-server-head-down');
 				} else {
@@ -525,10 +526,12 @@ function check_service_status(id, ip, service) {
 						server_div.addClass('div-server-head-up');
 						server_div.removeClass('div-server-head-down');
 						server_div.removeClass('div-server-head-unknown');
+						server_div.removeClass('div-server-head-dis');
 						$('#uptime-word-'+id).text(translate_div.attr('data-uptime'));
 					} else {
 						server_div.removeClass('div-server-head-up');
 						server_div.removeClass('div-server-head-unknown');
+						server_div.removeClass('div-server-head-dis');
 						server_div.addClass('div-server-head-down');
 						$('#uptime-word-'+id).text(translate_div.attr('data-downtime'));
 					}
