@@ -61,20 +61,3 @@
     dest: /etc/haproxy/haproxy.cfg
     mode: 0644
     force: no
-
-- name: Copy HAProxy state file in place.
-  template:
-    src: haproxy.state.j2
-    dest: /etc/haproxy/haproxy.state
-    owner: haproxy
-    group: haproxy
-    mode: 0644
-    force: no
-
-- name: Creates HAProxy stats directory
-  file:
-    path: /var/lib/haproxy
-    owner: haproxy
-    group: haproxy
-    state: directory
-  ignore_errors: yes
