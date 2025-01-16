@@ -45,24 +45,9 @@ listen stats
     stats admin if TRUE
 # END Roxy-WI MANAGED listen stats do not edit it directly
 
-{% if M_OR_S != 'None' %}
-peers default_peers
-    {% if M_OR_S == 'master' %}
-    peer {{ ansible_hostname }} {{MASTER}}:10000
-    {% for slave in slaves %}
-    peer slave_lb {{slave}}:10000
-    {% endfor %}
-    {% else %}
-    peer master_lb {{MASTER}}:10000
-    {% for slave in slaves %}
-    peer {{ ansible_hostname }} {{slave}}:10000
-    {% endfor %}
-    {% endif %}
-{% endif %}
-
 backend per_ip_and_url_rates
-    stick-table type binary len 8 size 1m expire 24h store http_req_rate(24h) {% if M_OR_S != 'None' %} peers default_peers {% endif %}
+    stick-table type binary len 8 size 1m expire 24h store http_req_rate(24h)
 
 
 backend per_ip_rates
-    stick-table type ip size 1m expire 24h store gpc0,gpc0_rate(30s) {% if M_OR_S != 'None' %} peers default_peers {% endif %}
+    stick-table type ip size 1m expire 24h store gpc0,gpc0_rate(30s)

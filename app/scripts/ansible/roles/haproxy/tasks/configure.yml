@@ -66,6 +66,8 @@
   template:
     src: haproxy.state.j2
     dest: /etc/haproxy/haproxy.state
+    owner: haproxy
+    group: haproxy
     mode: 0644
     force: no
 

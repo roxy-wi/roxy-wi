@@ -134,12 +134,15 @@ class HAView(MethodView):
                 return render_template('ha_cluster.html', **kwargs)
         else:
             settings = {}
-            clusters = ha_sql.select_cluster(cluster_id)
-            router_id = ha_sql.get_router_id(cluster_id, default_router=1)
-            slaves = ha_sql.select_cluster_slaves(cluster_id, router_id)
-            cluster_services = ha_sql.select_cluster_services(cluster_id)
-            vip = ha_sql.select_cluster_vip(cluster_id, router_id)
-            is_virt = ha_sql.check_ha_virt(vip.id)
+            try:
+                clusters = ha_sql.select_cluster(cluster_id)
+                router_id = ha_sql.get_router_id(cluster_id, default_router=1)
+                slaves = ha_sql.select_cluster_slaves(cluster_id, router_id)
+                cluster_services = ha_sql.select_cluster_services(cluster_id)
+                vip = ha_sql.select_cluster_vip(cluster_id, router_id)
+                is_virt = ha_sql.check_ha_virt(vip.id)
+            except Exception as e:
+                return roxywi_common.handler_exceptions_for_json_data(e, '')
             if vip.use_src:
                 use_src = 1
             else:

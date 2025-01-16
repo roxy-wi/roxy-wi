@@ -27,4 +27,4 @@ galaxy_info:
     - exporter
 
 dependencies:
-  - { role: 'bdellegrazie.ansible-role-prometheus_exporter', version: 'v1.1.3' }
+  - { role: 'bdellegrazie.ansible-role-prometheus_exporter', version: 'v2.0.3' }
