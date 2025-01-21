@@ -7,3 +7,6 @@
   gather_facts: yes
   roles:
     - role: letsencrypt
+      environment:
+        http_proxy: "{{PROXY}}"
+        https_proxy: "{{PROXY}}"

@@ -263,6 +263,7 @@ class LetsEncryptView(MethodView):
         inv = {"server": {"hosts": {}}}
         masters = server_sql.is_master(server_ip)
         ssl_path = common.return_nice_path(sql.get_setting('cert_path'), is_service=0)
+        haproxy_dir = sql.get_setting('haproxy_dir')
 
         if data.type == 'standalone':
             server_ip = server_sql.get_server(data.server_id).ip
@@ -292,7 +293,8 @@ class LetsEncryptView(MethodView):
                     'main_domain': main_domain,
                     'servers': servers,
                     'action': action,
-                    'cert_type': data.type
+                    'cert_type': data.type,
+                    'haproxy_dir': haproxy_dir
                 }
                 server_ips.append(master[0])
 
@@ -305,7 +307,8 @@ class LetsEncryptView(MethodView):
             'main_domain': main_domain,
             'servers': servers,
             'action': action,
-            'cert_type': data.type
+            'cert_type': data.type,
+            'haproxy_dir': haproxy_dir
         }
 
         server_ips.append(server_ip)
