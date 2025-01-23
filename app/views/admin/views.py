@@ -33,10 +33,10 @@ class SettingsView(MethodView):
         parameters:
         - name: section
           in: path
-          description: The name of the settings section. Only 'main', 'smon', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'keepalived' are allowed. If none get all settings.
+          description: The name of the settings section. Only 'main', 'smon', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'caddy', 'keepalived' are allowed. If none get all settings.
           required: true
           type: string
-          enum: ['main', 'smon', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'keepalived']
+          enum: ['main', 'smon', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'caddy', 'keepalived']
         - name: group_id
           in: query
           description: This parameter is used only for the superAdmin role.
@@ -94,10 +94,10 @@ class SettingsView(MethodView):
         parameters:
         - name: section
           in: path
-          description: The name of the settings section. Only 'main', 'smon', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'keepalived' are allowed. If none get all settings.
+          description: The name of the settings section. Only 'main', 'smon', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'caddy', 'keepalived' are allowed. If none get all settings.
           required: true
           type: string
-          enum: ['main', 'smon', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'keepalived']
+          enum: ['main', 'smon', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'caddy', 'keepalived']
         - name: group_id
           in: query
           description: The parameter is used only for the superAdmin role.

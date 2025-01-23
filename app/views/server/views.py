@@ -103,6 +103,14 @@ class ServerView(MethodView):
                   type: 'integer'
                 type_ip:
                   type: 'integer'
+                caddy:
+                  type: 'integer'
+                caddy_active:
+                  type: 'integer'
+                caddy_alert:
+                  type: 'integer'
+                caddy_metrics:
+                  type: 'integer'
           default:
             description: Unexpected error
         """
@@ -184,7 +192,8 @@ class ServerView(MethodView):
             'firewall_enable': body.firewall_enable,
             'haproxy': body.haproxy,
             'nginx': body.nginx,
-            'apache': body.apache
+            'apache': body.apache,
+            'caddy': body.caddy,
         }
 
         try:
@@ -401,6 +410,14 @@ class ServersView(MethodView):
                   server_id:
                     type: 'integer'
                   type_ip:
+                    type: 'integer',
+                  caddy:
+                    type: 'integer'
+                  caddy_active:
+                    type: 'integer'
+                  caddy_alert:
+                    type: 'integer'
+                  caddy_metrics:
                     type: 'integer'
           default:
             description: Unexpected error

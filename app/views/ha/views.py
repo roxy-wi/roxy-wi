@@ -164,6 +164,10 @@ class HAView(MethodView):
                 'apache': {
                     'enabled': 0,
                     'docker': 0
+                },
+                'caddy': {
+                    'enabled': 0,
+                    'docker': 0
                 }
             }
 
@@ -182,6 +186,8 @@ class HAView(MethodView):
                     settings['services']['nginx'] = {'enabled': 1, 'docker': is_dockerized}
                 if int(c_s.service_id) == 4:
                     settings['services']['apache'] = {'enabled': 1, 'docker': is_dockerized}
+                if int(c_s.service_id) == 5:
+                    settings['services']['caddy'] = {'enabled': 1, 'docker': is_dockerized}
 
             return jsonify(settings)
 

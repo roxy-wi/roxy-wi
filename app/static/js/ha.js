@@ -298,6 +298,8 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	let nginx = 0;
 	let nginx_docker = 0;
 	let apache = 0;
+	let caddy = 0;
+	let apache_docker = 0;
 	let req_method = 'POST';
 	let url = api_prefix + '/ha/cluster';
 	if ($('#virt_server').is(':checked')) {
@@ -327,6 +329,12 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	if ($('#apache').is(':checked')) {
 		apache = '1';
 	}
+	if ($('#caddy').is(':checked')) {
+		caddy = '1';
+	}
+	if ($('#caddy_docker').is(':checked')) {
+		caddy_docker = '1';
+	}
 	if (edited) {
 		req_method = 'PUT';
 		url = api_prefix + '/ha/cluster/' + cluster_id;
@@ -341,6 +349,7 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	jsonData['services'] = {'haproxy': {'enabled': hap, 'docker': hap_docker}};
 	jsonData['services']['nginx'] = {'enabled': nginx, 'docker': nginx_docker};
 	jsonData['services']['apache'] = {'enabled': apache, 'docker': 0};
+	jsonData['services']['caddy'] = {'enabled': caddy, 'docker': caddy_docker};
 	jsonData['router_id'] = $('#router_id-' + cluster_id).val();
 	$.ajax({
 		url: url,
@@ -381,6 +390,9 @@ function Reconfigure(jsonData, cluster_id) {
 		total_installation = total_installation + 1;
 	}
 	if (servers['services']['apache']['enabled']) {
+		total_installation = total_installation + 1;
+	}
+	if (servers['services']['caddy']['enabled']) {
 		total_installation = total_installation + 1;
 	}
 	let server_creating_title = $("#server_creating1").attr('title');

@@ -201,7 +201,7 @@ def save_version(service, server_ip, configver):
 
     if service == 'keepalived':
         stderr = config_mod.upload_and_restart(server_ip, configver, save_action, service)
-    elif service in ('nginx', 'apache'):
+    elif service in ('nginx', 'apache', 'caddy'):
         config_file_name = config_sql.select_remote_path_from_version(server_ip=server_ip, service=service, local_path=configver)
         stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service_desc.slug, config_file_name=config_file_name)
     else:

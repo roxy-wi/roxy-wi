@@ -18,7 +18,7 @@ class InstallGetStatus(ServiceView):
     methods = ['GET']
     decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
 
-    def get(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str]):
+    def get(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived', 'caddy'], server_id: Union[int, str]):
         """
         This endpoint retrieves information about a specific service.
         ---
@@ -29,7 +29,7 @@ class InstallGetStatus(ServiceView):
             name: service
             type: 'string'
             required: true
-            description: The type of service (haproxy, nginx, apache, keepalived)
+            description: The type of service (haproxy, nginx, apache, keepalived, caddy)
           - in: path
             name: server_id
             type: 'integer'
@@ -82,7 +82,7 @@ class InstallView(MethodView):
     decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
 
     @validate(body=ServiceInstall)
-    def post(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str, None], body: ServiceInstall):
+    def post(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived', 'caddy'], server_id: Union[int, str, None], body: ServiceInstall):
         """
         Install a specific service.
         ---
@@ -93,7 +93,7 @@ class InstallView(MethodView):
             name: service
             type: 'integer'
             required: true
-            description: The type of service (haproxy, nginx, apache, keepalived)
+            description: The type of service (haproxy, nginx, apache, keepalived, caddy)
           - in: path
             name: server_id
             type: 'integer'
@@ -148,7 +148,7 @@ class InstallView(MethodView):
         return IdStrResponse(id=f'{server_id}-{service}').model_dump(mode='json'), 201
 
     @validate(body=ServiceInstall)
-    def put(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str, None], body: ServiceInstall):
+    def put(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived', 'caddy'], server_id: Union[int, str, None], body: ServiceInstall):
         """
         Update service Tools settings.
         ---
@@ -159,7 +159,7 @@ class InstallView(MethodView):
             name: service
             type: 'integer'
             required: true
-            description: The type of service (haproxy, nginx, apache, keepalived)
+            description: The type of service (haproxy, nginx, apache, keepalived, caddy)
           - in: path
             name: server_id
             type: 'integer'
@@ -195,5 +195,5 @@ class InstallView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot update Tools settings for {service.title()}')
         return IdStrResponse(id=f'{server_id}-{service}').model_dump(mode='json'), 201
 
-    def delete(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str, None]):
+    def delete(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived', 'caddy'], server_id: Union[int, str, None]):
         return BaseResponse().model_dump(mode='json'), 204

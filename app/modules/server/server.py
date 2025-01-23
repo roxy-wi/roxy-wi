@@ -428,6 +428,7 @@ def update_server_after_creating(hostname: str, ip: str) -> None:
 		haproxy_dir = sql.get_setting('haproxy_dir')
 		apache_config_path = sql.get_setting('apache_config_path')
 		keepalived_config_path = sql.get_setting('keepalived_config_path')
+		caddy_config_path = sql.get_setting('caddy_config_path')
 
 		if is_file_exists(ip, nginx_config_path):
 			service_sql.update_nginx(ip)
@@ -440,6 +441,9 @@ def update_server_after_creating(hostname: str, ip: str) -> None:
 
 		if is_file_exists(ip, apache_config_path):
 			service_sql.update_apache(ip)
+
+		if is_file_exists(ip, caddy_config_path):
+			service_sql.update_caddy(ip)
 
 		if is_file_exists(ip, haproxy_dir + '/waf/bin/modsecurity'):
 			waf_sql.insert_waf_metrics_enable(ip, "0")

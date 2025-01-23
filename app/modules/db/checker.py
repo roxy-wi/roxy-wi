@@ -130,6 +130,7 @@ def select_checker_enabled(service: str) -> Server:
 		'nginx': (Server.nginx_alert == 1),
 		'apache': (Server.apache_alert == 1),
 		'keepalived': (Server.keepalived_alert == 1),
+		'caddy': (Server.caddy_alert == 1),
 	}
 	service_req = services.get(service)
 	try:

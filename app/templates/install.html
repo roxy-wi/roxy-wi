@@ -131,6 +131,38 @@
 				</td>
 			</tr>
 		</table>
+		<table>
+			<caption><h3>{{lang.words.install|title()}} Caddy</h3></caption>
+			<tr class="overviewHead">
+				<td class="padding10 first-collumn">{{lang.words.current2|title()}} {{lang.words.version}}</td>
+				<td class="padding10 first-collumn" style="width: 30%;">{{lang.words.available|title()}} {{lang.words.versions}}</td>
+				<td class="padding10 first-collumn" style="width: 20%;">{{lang.words.server|title()}}</td>
+				<td class="checkbox-head help_cursor" title="{{lang.admin_page.desc.install_as_docker}}" >{{lang.words.use|title()}} Docker</td>
+				<td>SYN-flood {{lang.words.protection}}</td>
+				<td></td>
+			</tr>
+			<tr>
+				<td id="cur_caddy_ver" class="padding10 first-collumn">
+				</td>
+				<td class="padding10 first-collumn" style="width: 20%;">
+					{{lang.admin_page.desc.latest_repo}}
+				</td>
+				<td class="padding10 first-collumn">
+					<select autofocus required name="caddyaddserv" id="caddyaddserv">
+						<option disabled selected>------</option>
+						{% for select in g.user_params['servers'] %}
+                            <option value="{{ select.2 }}" data-id="{{ select.0 }}">{{ select.1 }}</option>
+						{% endfor %}
+					</select>
+				</td>
+				<td style="padding-left: 25px;">
+					{{ checkbox('caddy_docker', title=lang.admin_page.desc.install_as_docker) }}
+				</td>
+				<td>
+					<span class="ui-button ui-widget ui-corner-all" id="caddy_install" title="{{lang.words.install|title()}} Caddy">{{lang.words.install|title()}}</span>
+				</td>
+			</tr>
+		</table>
 		<div id="ajax"></div>
 		{% endif %}
     </div>
@@ -229,6 +261,35 @@
                 </td>
                 <td>
                     <span class="ui-button ui-widget ui-corner-all" id="apache_exp_install" title="{{lang.words.install|title()}} Apache Exporter">{{lang.words.install|title()}}</span>
+                </td>
+            </tr>
+        </table>
+		<table id="caddy-table">
+            <caption><i class="fas fa-feather-alt caption-icon2"></i><h3>caddy Exporter</h3></caption>
+            <tr class="overviewHead">
+                <td class="padding10 first-collumn" style="width: 20%;">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
+                <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.available|title()}} {{lang.words.versions}}</td>
+                <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.server|title()}}</td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td id="cur_caddy_exp_ver" class="padding10 first-collumn"></td>
+                <td class="padding10 first-collumn" style="width: 20%;">
+                    {% set values = dict() %}
+                    {% set values = {'0.10.0':'0.10.0', '0.13.4':'0.13.4', '1.0.4':'1.0.4'} %}
+                    {{ select('caddyexpver',  values=values, selected='1.0.4') }}
+                </td>
+                <td class="padding10 first-collumn">
+                    <select autofocus required name="caddy_exp_addserv" id="caddy_exp_addserv">
+                        <option disabled selected>------</option>
+                        {% for select in g.user_params['servers'] %}
+                            <option value="{{ select.2 }}">{{ select.1 }}</option>
+                        {% endfor %}
+                    </select>
+                </td>
+                <td>
+                    <span class="ui-button ui-widget ui-corner-all" id="caddy_exp_install" title="{{lang.words.install|title()}} Caddy Exporter">{{lang.words.install|title()}}</span>
                 </td>
             </tr>
         </table>

@@ -41,12 +41,12 @@ def _replace_config_path_to_correct(config_path: str) -> str:
 
 def get_config(server_ip, cfg, service='haproxy', **kwargs):
 	"""
-	:param service: The service for what needed to get config. Valid values are 'haproxy', 'nginx', 'apache' and 'keepalived'.
+	:param service: The service for what needed to get config. Valid values are 'haproxy', 'nginx', 'apache', 'keepalived', 'caddy'.
 	:param server_ip: The IP address of the server from which to retrieve the configuration.
 	:param cfg: The name of the configuration file.
 	:param kwargs: Additional keyword arguments.
 		- service: The name of the service for which the configuration is retrieved.
-		- config_file_name: The name of the configuration file for 'nginx' or 'apache' services.
+		- config_file_name: The name of the configuration file for 'nginx', 'apache', or 'caddy' services.
 		- waf: The name of the Web Application Firewall (WAF) service.
 		- waf_rule_file: The name of the WAF rule file.
 
@@ -56,7 +56,7 @@ def get_config(server_ip, cfg, service='haproxy', **kwargs):
 
 	The method first determines the correct path for the configuration file based on the 'service' parameter:
 	- If the service is 'keepalived' or 'haproxy', the method retrieves the configuration path from the SQL database using the service name appended with '_config_path'.
-	- If the service is 'nginx' or 'apache', the method replaces the configuration file name with the correct path using the '_replace_config_path_to_correct' function and the 'config_file
+	- If the service is 'nginx', 'apache', or 'caddy' the method replaces the configuration file name with the correct path using the '_replace_config_path_to_correct' function and the 'config_file
 	*_name' parameter.
 	- If the 'waf' parameter is provided, the method retrieves the service directory from the SQL database using the 'waf' parameter appended with '_dir'. If the 'waf' parameter is 'hap
 	*roxy' or 'nginx', the method constructs the configuration path by appending the service directory with '/waf/rules/' and the 'waf_rule_file' parameter.
@@ -70,7 +70,7 @@ def get_config(server_ip, cfg, service='haproxy', **kwargs):
 
 	if service in ('keepalived', 'haproxy') and not kwargs.get("waf"):
 		config_path = sql.get_setting(f'{service}_config_path')
-	elif service in ('nginx', 'apache'):
+	elif service in ('nginx', 'apache', 'caddy'):
 		config_path = _replace_config_path_to_correct(kwargs.get('config_file_name'))
 	elif kwargs.get("waf"):
 		service_dir = sql.get_setting(f"{kwargs.get('waf')}_dir")
@@ -124,7 +124,8 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 		'nginx': {'0': 'sudo nginx -t ', '1': f'{command_for_docker} nginx -t '},
 		'apache': {'0': 'sudo apachectl -t ', '1': f'{command_for_docker} apachectl -t '},
 		'keepalived': {'0': f'keepalived -t -f {tmp_file} ', '1': ' '},
-		'waf': {'0': ' ', '1': ' '}
+		'waf': {'0': ' ', '1': ' '},
+		'caddy': {'0': 'sudo caddy validate --adpater caddyfile --config ', '1': f'{command_for_docker} caddy validate --adapter caddyfile --config {tmp_file}'},
 	}
 
 	try:
@@ -142,7 +143,7 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 
 	if service == 'waf':
 		commands = f'{move_config} {reload_or_restart_command}'
-	elif service in ('nginx', 'apache'):
+	elif service in ('nginx', 'apache', 'caddy'):
 		commands = f'{move_config} && {check_config} {reload_or_restart_command}'
 	else:
 		commands = f'{check_config} && {move_config} {reload_or_restart_command}'
@@ -576,14 +577,14 @@ def list_of_versions(server_ip: str, service: str, configver: str, for_delver: i
 
 def return_cfg(service: str, server_ip: str, config_file_name: str) -> str:
 	"""
-	:param service: The name of the service (e.g., 'nginx', 'apache')
+	:param service: The name of the service (e.g., 'nginx', 'apache', 'caddy')
 	:param server_ip: The IP address of the server
 	:param config_file_name: The name of the configuration file
 	:return: The path to the generated configuration file
 
 	This method returns the path to the generated configuration file based on the provided parameters. The file format is determined by the service. If the service is 'nginx' or 'apache
 	*', then the config_file_name is replaced with the correct path, and the resulting configuration file is named using the server_ip and the original file name. If the service is not '
-	*nginx' or 'apache', then the resulting configuration file is named using the server_ip. The file format is determined by calling the config_common.get_file_format() method.
+	*nginx', 'apache', or 'caddy', then the resulting configuration file is named using the server_ip. The file format is determined by calling the config_common.get_file_format() method.
 
 	Any existing old configuration files in the config_dir are removed before generating the new configuration file.
 
@@ -592,7 +593,7 @@ def return_cfg(service: str, server_ip: str, config_file_name: str) -> str:
 	file_format = config_common.get_file_format(service)
 	config_dir = config_common.get_config_dir(service)
 
-	if service in ('nginx', 'apache'):
+	if service in ('nginx', 'apache', 'caddy'):
 		config_file_name = _replace_config_path_to_correct(config_file_name)
 		conf_file_name_short = config_file_name.split('/')[-1]
 		cfg = f"{config_dir}{server_ip}-{conf_file_name_short}-{get_date.return_date('config')}.{file_format}"

@@ -14,6 +14,9 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 		elif service_name == 'apache':
 			update_hapwi = Server.update(apache_alert=alert, apache_active=active, apache_metrics=metrics).where(
 				Server.server_id == server_id)
+		elif service_name == 'caddy':
+			update_hapwi = Server.update(caddy_alert=alert, caddy_active=active, caddy_metrics=metrics).where(
+				Server.server_id == server_id)
 		else:
 			update_hapwi = Server.update(haproxy_alert=alert, haproxy_metrics=metrics, haproxy_active=active).where(
 				Server.server_id == server_id)
@@ -22,10 +25,10 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 		out_error(e)
 
 
-def update_server_services(server_id: int, haproxy: int, nginx: int, apache: int, keepalived: int) -> bool:
+def update_server_services(server_id: int, haproxy: int, nginx: int, apache: int, keepalived: int, caddy: int) -> bool:
 	try:
 		server_update = Server.update(
-			haproxy=haproxy, nginx=nginx, apache=apache, keepalived=keepalived
+			haproxy=haproxy, nginx=nginx, apache=apache, keepalived=keepalived, caddy=caddy
 		).where(Server.server_id == server_id)
 		server_update.execute()
 	except Exception as e:
@@ -191,6 +194,13 @@ def update_haproxy(serv):
 		out_error(e)
 
 
+def update_caddy(serv: str) -> None:
+	try:
+		Server.update(caddy='1').where(Server.ip == serv).execute()
+	except Exception as e:
+		out_error(e)
+
+
 def select_count_services(service: str) -> int:
 	try:
 		if service == 'haproxy':
@@ -201,6 +211,8 @@ def select_count_services(service: str) -> int:
 			query_res = Server.select().where(Server.keepalived == 1).count()
 		elif service == 'apache':
 			query_res = Server.select().where(Server.apache == 1).count()
+		elif service == 'caddy':
+			query_res = Server.select().where(Server.caddy == 1).count()
 		else:
 			query_res = Server.select().where().count()
 	except Exception as e:

@@ -64,7 +64,7 @@
         <td>{{ copy_to_clipboard(id=h.ip, value=h.ip) }}</td>
         <td>
             {% if h.server_ip != None %}
-                {% if h.service in ('haproxy', 'nginx', 'apache', 'keepalived') %}
+                {% if h.service in ('haproxy', 'nginx', 'apache', 'caddy', 'keepalived') %}
                     <a href="/service/{{h.service}}/{{h.server_ip}}" title="Open history for {{h.hostname}}">{{ h.hostname }}</a>
                 {% elif h.service == 'HA cluster' %}
                     {{h.hostname}}

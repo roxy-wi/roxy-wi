@@ -2,6 +2,7 @@ let nice_names = {
 	'haproxy': 'HAProxy',
 	'nginx': 'NGINX',
 	'apache': 'Apache',
+	'caddy': 'Caddy',
 	'node': 'Node',
 	'keepalived': 'Keepalived'
 };
@@ -14,6 +15,9 @@ $( function() {
 	});
 	$('#apache_install').click(function () {
 		installService('apache');
+	});
+	$('#caddy_install').click(function () {
+		installService('caddy');
 	});
 	$('#grafana_install').click(function () {
 		$("#ajaxmon").html('');
@@ -49,6 +53,9 @@ $( function() {
 	$('#apache_exp_install').click(function () {
 		installExporter('apache');
 	});
+	$('#caddy_exp_install').click(function () {
+		installExporter('caddy');
+	});
 	$('#keepalived_exp_install').click(function () {
 		installExporter('keepalived');
 	});
@@ -72,6 +79,9 @@ $( function() {
 	});
 	$("#apache_exp_addserv").on('selectmenuchange', function () {
 		showExporterVersion('apache');
+	});
+	$("#caddy_exp_addserv").on('selectmenuchange', function () {
+		showExporterVersion('caddy');
 	});
 	$("#keepalived_exp_addserv").on('selectmenuchange', function () {
 		showExporterVersion('keepalived');

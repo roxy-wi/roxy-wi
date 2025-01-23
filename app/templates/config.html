@@ -22,6 +22,7 @@
 <script src="/static/js/codemirror/addon/fold/comment-fold.js"></script>
 <script src="/static/js/codemirror/addon/scroll/annotatescrollbar.js"></script>
 <script src="/static/js/codemirror/mode/nginx.js"></script>
+<script src="/static/js/codemirror/mode/caddy.js"></script>
 <script src="/static/js/codemirror/mode/haproxy.js"></script>
 <script src="/static/js/codemirror/keymap/sublime.js"></script>
 <script src="/static/js/configshow.js"></script>
@@ -37,15 +38,15 @@
 		<form action="{{ action }}" method="post" class="left-space">
 			<input type="hidden" id="service" value="{{service|default('haproxy', true)}}" />
 			{{ select('serv', values=g.user_params['servers'], is_servers='true', selected=serv) }}
-			{% if service == 'nginx' or service == 'apache' %}
+			{% if service == 'nginx' or service == 'apache' or service == 'caddy' %}
 			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.running}} {{lang.words.config}}" onclick="showConfigFiles()">{{lang.words.open|title()}}</a>
 			{% else %}
 			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.running}} {{lang.words.config}}" onclick="showConfig()">{{lang.words.open|title()}}</a>
 			{% endif %}
-			{% if service != 'keepalived' and service != 'apache' %}
+			{% if service != 'keepalived' and service != 'apache' and service != 'caddy' %}
 				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.stat}}" onclick="openStats()">{{lang.menu_links.stats.link}}</a>
 			{% endif %}
-			{% if service != 'keepalived' and service != 'nginx' and service != 'apache' %}
+			{% if service != 'keepalived' and service != 'nginx' and service != 'apache' and  service != 'caddy' %}
 				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.map}}" onclick="showMap()">{{lang.words.map|title()}}</a>
 			{% endif %}
 				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.compare|title()}} {{lang.words.configs}}" onclick="showCompareConfigs()">{{lang.words.compare|title()}}</a>

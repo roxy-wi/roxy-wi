@@ -1,4 +1,4 @@
-from app.modules.db.db_model import connect, mysql_enable, Metrics, MetricsHttpStatus, Server, NginxMetrics, ApacheMetrics, WafMetrics
+from app.modules.db.db_model import connect, mysql_enable, Metrics, MetricsHttpStatus, Server, NginxMetrics, ApacheMetrics, WafMetrics, CaddyMetrics
 from app.modules.db.common import out_error
 import app.modules.roxy_wi_tools as roxy_wi_tools
 
@@ -64,6 +64,18 @@ def insert_apache_metrics(serv, connection):
 			if not conn.is_closed():
 				conn.close()
 
+def insert_caddy_metrics(serv, connection):
+	get_date = roxy_wi_tools.GetDate()
+	cur_date = get_date.return_date('regular')
+	try:
+		CaddyMetrics.insert(serv=serv, conn=connection, date=cur_date).execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		conn = connect()
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 def insert_waf_metrics(serv, connection):
 	get_date = roxy_wi_tools.GetDate()
@@ -153,12 +165,25 @@ def delete_apache_metrics():
 			if not conn.is_closed():
 				conn.close()
 
+def delete_caddy_metrics():
+	get_date = roxy_wi_tools.GetDate()
+	cur_date = get_date.return_date('regular', timedelta_minus=3)
+	query = CaddyMetrics.delete().where(CaddyMetrics.date < cur_date)
+	try:
+		query.execute()
+	except Exception as e:
+		out_error(e)
+	finally:
+		conn = connect()
+		if type(conn) is not str:
+			if not conn.is_closed():
+				conn.close()
 
 def select_metrics(serv, service, **kwargs):
 	conn = connect()
 	cursor = conn.cursor()
 
-	if service in ('nginx', 'apache', 'waf'):
+	if service in ('nginx', 'apache', 'waf, 'caddy'):
 		metrics_table = '{}_metrics'.format(service)
 	elif service == 'http_metrics':
 		metrics_table = 'metrics_http_status'
@@ -209,7 +234,7 @@ def select_metrics(serv, service, **kwargs):
 def select_servers_metrics_for_master(**kwargs):
 	if kwargs.get('group') != 1:
 		query = Server.select(Server.ip).where(
-			((Server.haproxy_metrics == 1) | (Server.nginx_metrics == 1) | (Server.apache_metrics == 1))
+			((Server.haproxy_metrics == 1) | (Server.nginx_metrics == 1) | (Server.apache_metrics == 1) | (Server.caddy_metrics == 1))
 			& (Server.group_id == kwargs.get('group'))
 		)
 	else:
@@ -217,6 +242,7 @@ def select_servers_metrics_for_master(**kwargs):
 			(Server.haproxy_metrics == 1)
 			| (Server.nginx_metrics == 1)
 			| (Server.apache_metrics == 1)
+			| (Server.caddy_metrics == 1)
 		)
 
 	try:
@@ -259,6 +285,17 @@ def select_apache_servers_metrics_for_master():
 	else:
 		return query_res
 
+def select_caddy_servers_metrics_for_master():
+	query = Server.select(Server.ip).where(
+		(Server.caddy_metrics == 1)
+		& (Server.caddy == 1)
+	)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
 
 def select_servers_metrics(group_id):
 	if group_id == 1:
@@ -485,7 +522,7 @@ def select_service_table_metrics(service: str, group_id: int):
 	conn = connect()
 	cursor = conn.cursor()
 
-	if service in ('nginx', 'apache'):
+	if service in ('nginx', 'apache', 'caddy'):
 		metrics_table = f'{service}_metrics'
 
 	if group_id == 1:

@@ -48,6 +48,8 @@ def metrics(service):
                         servers = metric_sql.select_nginx_servers_metrics_for_master()
                     elif service == 'apache':
                         servers = metric_sql.select_apache_servers_metrics_for_master()
+                    elif service == 'caddy':
+                        servers = metric_sql.select_caddy_servers_metrics_for_master()
                     else:
                         group_id = roxywi_common.get_user_group(id=1)
                         servers = metric_sql.select_servers_metrics(group_id)
@@ -90,7 +92,7 @@ def table_metrics(service):
     lang = roxywi_common.get_user_lang_for_flask()
     group_id = roxywi_common.get_user_group(id=1)
 
-    if service in ('nginx', 'apache'):
+    if service in ('nginx', 'apache', 'caddy'):
         table_stat = metric_sql.select_service_table_metrics(service, group_id)
     else:
         table_stat = metric_sql.select_table_metrics(group_id)
@@ -104,7 +106,7 @@ def show_metric(service, server_ip):
     server = server_sql.get_server_by_ip(server_ip)
     time_range = common.checkAjaxInput(request.form.get('time_range'))
 
-    if service in ('nginx', 'apache', 'waf'):
+    if service in ('nginx', 'apache', 'caddy', 'waf'):
         return jsonify(metric.service_metrics(server_ip, server.hostname, service, time_range))
     elif service == 'haproxy':
         return jsonify(metric.haproxy_metrics(server_ip, server.hostname, time_range))
@@ -131,7 +133,7 @@ def chart_data(service, server_ip, is_http):
     def get_chart_data():
         while True:
             json_metric = {}
-            if service in ('nginx', 'apache', 'waf'):
+            if service in ('nginx', 'apache', 'caddy', 'waf'):
                 chart_metrics = metric_sql.select_metrics(server_ip, service, time_range=1)
                 for i in chart_metrics:
                     json_metric['time'] = common.get_time_zoned_date(i[2], '%H:%M:%S')

@@ -1,0 +1,32 @@
+{% if add %}
+	<div class="alert alert-success" style="position: absolute;top: 45px;left: 5px;">
+		<div id="close">
+			<span title="Close" style="cursor: pointer; float: right;">X</span>
+		</div>
+		<h3>{{ add }} {{lang.add_page.desc.was_success_added}}</h3>
+		{{ conf_add }}
+	</div>
+	<script>
+		$('#close').click(function(){
+			$('.alert-success').remove();
+		});
+	</script>
+{% endif %}
+<div id="create" style="margin-top: 20px;">
+	<div id="left-collumn">
+		<div class="div-pannel">
+			<div class="div-server add-proxy-listen-head">
+				<div class="server-name">
+					<span title="{{lang.words.create|title()}} {{lang.words.upstream|title()}}" class="redirectUpstream span-link">{{lang.words.create|title()}} {{lang.words.upstream|title()}}</span>
+				</div>
+				<div class="server-desc add_proxy">
+					{{lang.add_caddy_page.desc.upstream_desc1}}
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="middle-collumn">
+	</div>
+	<div id="right-collumn">
+	</div>
+</div>

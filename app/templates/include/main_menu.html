@@ -80,6 +80,22 @@
 					</ul>
 				</li>
 				{% endif %}
+				{% if '5' in g.user_params['user_services'] %}
+				<li class="p_menu">
+					<a href="{{ url_for('service.services', service='caddy') }}" title="{{lang.menu_links.hapservers.caddy.title}}" class="caddy-menu">Caddy</a>
+					<ul class="v_menu">
+						<li><a href="{{ url_for('service.services', service='caddy') }}" title="{{lang.menu_links.hapservers.caddy.title}}" class="head-submenu">{{lang.menu_links.hapservers.link}}</a></li>
+						<li><a href="{{ url_for('config.config', service='caddy') }}" title="{{lang.menu_links.config.caddy.title}}" class="head-submenu">{{lang.menu_links.config.link}}</a></li>
+						<li><a href="{{ url_for('main.stats', service='caddy') }}" title="{{lang.menu_links.stats.caddy.title}}" class="head-submenu">{{lang.menu_links.stats.link}}</a></li>
+						<li><a href="{{ url_for('logs.logs', service='caddy') }}" title="Caddy {{lang.menu_links.logs.title}}" class="head-submenu">{{lang.menu_links.logs.link}}</a></li>
+						<li><a href="{{ url_for('metric.metrics', service='caddy') }}" title="Caddy {{lang.menu_links.metrics.title}}" class="head-submenu">{{lang.menu_links.metrics.link}}</a></li>
+						{% if g.user_params['role'] <= 3 %}
+						<li><a href="{{ url_for('config.versions', service='caddy') }}" title="{{lang.menu_links.versions.caddy.title}}" class="head-submenu">{{lang.menu_links.versions.link}}</a></li>
+						<li><a href="{{ url_for('add.add', service='haproxy') }}?service=caddy#ssl" title="{{lang.menu_links.ssl.title}}" class="head-submenu" id="add3">{{lang.menu_links.ssl.link}}</a></li>
+						{% endif %}
+					</ul>
+				</li>
+				{% endif %}
                 {% if '6' in g.user_params['user_services'] %}
 				{% if g.user_params['role'] <= 2 %}
                     <li><a href="{{ url_for('udp.udp_listener', service='udp') }}" title="{{lang.menu_links.udp.title}}" class="balance {% if request.url_rule.endpoint == 'udp.udp_listener' %} menu-active{% endif %}">{{lang.menu_links.udp.title}}</a></li>

@@ -72,6 +72,14 @@ def add_setting_for_new_group(group_id):
 		{'param': 'apache_container_name', 'value': 'apache', 'section': 'apache', 'desc': 'Docker container name for Apache service', 'group_id': group_id},
 		{'param': 'keepalived_config_path', 'value': '/etc/keepalived/keepalived.conf', 'section': 'keepalived', 'desc': 'Path to the main Keepalived configuration file', 'group_id': group_id},
 		{'param': 'keepalived_path_logs', 'value': '/var/log/keepalived/', 'section': 'keepalived', 'desc': 'The path for Keepalived logs', 'group_id': group_id},
+		{'param': 'caddy_path_logs', 'value': '/var/log/caddy/', 'section': 'caddy', 'desc': 'caddy error log', 'group_id': group_id},
+		{'param': 'caddy_stats_user', 'value': 'admin', 'section': 'caddy', 'desc': 'Username for accessing caddy stats page', 'group_id': group_id},
+		{'param': 'caddy_stats_password', 'value': 'password', 'section': 'caddy', 'desc': 'Password for accessing caddy stats page', 'group_id': group_id},
+		{'param': 'caddy_stats_port', 'value': '8086', 'section': 'caddy', 'desc': 'Stats port for web page caddy', 'group_id': group_id},
+		{'param': 'caddy_stats_page', 'value': 'stats', 'section': 'caddy', 'desc': 'URI Stats for web page caddy', 'group_id': group_id},
+		{'param': 'caddy_dir', 'value': '/etc/caddy/', 'section': 'caddy', 'desc': 'Path to the caddy directory with config files', 'group_id': group_id},
+		{'param': 'caddy_config_path', 'value': '/etc/caddy/caddy.conf', 'section': 'caddy', 'desc': 'Path to the main caddy configuration file', 'group_id': group_id},
+		{'param': 'caddy_container_name', 'value': 'caddy', 'section': 'caddy', 'desc': 'Docker container name for caddy service', 'group_id': group_id},
 	]
 
 	try:

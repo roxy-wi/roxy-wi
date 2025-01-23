@@ -385,6 +385,22 @@ function getApacheChartData(server) {
         }
     });
 }
+function getCaddyChartData(server) {
+    $.ajax({
+        url: "/metrics/caddy/" + server,
+		data: {
+            time_range: $( "#time-range option:selected" ).val(),
+		},
+		type: "POST",
+        success: function (result) {
+            let data = [];
+            data.push(result.chartData.curr_con);
+            data.push(result.chartData.server);
+            let labels = result.chartData.labels;
+            renderServiceChart(data, labels, server, 'caddy');
+        }
+    });
+}
 function loadMetrics() {
     let service = $('#service').val();
     $.ajax({

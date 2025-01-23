@@ -23,6 +23,16 @@ $( function() {
 		let id = $(this).attr('id').split('-');
 		updateServiceCheckerSettings(id[1], 'apache')
 	});
+
+	$( "#checker_caddy_table select" ).on('selectmenuchange',function() {
+		let id = $(this).attr('id').split('-');
+		updateServiceCheckerSettings(id[1], 'caddy')
+	});
+	$( "#checker_caddy_table input" ).change(function() {
+		let id = $(this).attr('id').split('-');
+		updateServiceCheckerSettings(id[1], 'caddy')
+	});
+
 	$( "#checker_keepalived_table select" ).on('selectmenuchange',function() {
 		let id = $(this).attr('id').split('-');
 		updateKeepalivedCheckerSettings(id[1])

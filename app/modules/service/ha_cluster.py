@@ -249,6 +249,7 @@ def add_or_update_virt(cluster: Union[HAClusterRequest, HAClusterVIP], servers: 
     haproxy = 0
     nginx = 0
     apache = 0
+    caddy = 0
     master_id = None
     vip = str(cluster.vip)
 
@@ -261,12 +262,14 @@ def add_or_update_virt(cluster: Union[HAClusterRequest, HAClusterVIP], servers: 
         haproxy = 1 if service.service_id == '1' else 0
         nginx = 1 if service.service_id == '2' else 0
         apache = 1 if service.service_id == '4' else 0
+        caddy = 1 if service.service_id == '5' else 0
 
     kwargs = {
         'haproxy': haproxy,
         'nginx': nginx,
         'apache': apache,
         'ip': vip,
+        'caddy': caddy,
     }
 
     if ha_sql.check_ha_virt(vip_id):

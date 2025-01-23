@@ -50,7 +50,7 @@ def register_api_id_ip(view, endpoint, url: str = '', methods: list = ['GET', 'P
     for point in ('_id', '_ip'):
         view_func = view.as_view(f'{endpoint}_{point}')
         pk = 'int:' if point == '_id' else ''
-        bp.add_url_rule(f'/service/<any(haproxy, nginx, apache, keepalived):service>/<{pk}server_id>{url}', view_func=view_func, methods=methods)
+        bp.add_url_rule(f'/service/<any(haproxy, nginx, apache, keepalived, caddy):service>/<{pk}server_id>{url}', view_func=view_func, methods=methods)
 
 
 register_api(HAView, 'ha_cluster', '/ha/<service>', 'cluster_id')
@@ -75,8 +75,8 @@ register_api_id_ip(PeersSectionView, 'haproxy_peers_post', '/section/peers', met
 register_api_id_ip(PeersSectionView, 'haproxy_peers', '/section/peers/<section_name>', methods=['GET', 'PUT', 'DELETE'])
 register_api_id_ip(GlobalSectionView, 'haproxy_global', '/section/global', methods=['GET', 'PUT'])
 register_api_id_ip(DefaultsSectionView, 'haproxy_defaults', '/section/defaults', methods=['GET', 'PUT'])
-bp.add_url_rule('/service/<any(nginx, apache):service>/<server_id>/config/list', view_func=ServiceConfigList.as_view('config_list_ip'), methods=['GET'])
-bp.add_url_rule('/service/<any(nginx, apache):service>/<int:server_id>/config/list', view_func=ServiceConfigList.as_view('config_list'), methods=['GET'])
+bp.add_url_rule('/service/<any(nginx, apache, caddy):service>/<server_id>/config/list', view_func=ServiceConfigList.as_view('config_list_ip'), methods=['GET'])
+bp.add_url_rule('/service/<any(nginx, apache, caddy):service>/<int:server_id>/config/list', view_func=ServiceConfigList.as_view('config_list'), methods=['GET'])
 register_api_id_ip(CheckerView, 'checker', '/tools')
 register_api_id_ip(InstallView, 'install', '/install', methods=['POST', 'PUT', 'DELETE'])
 register_api_id_ip(ServiceActionView, 'service_action', '/<any(start, stop, reload, restart):action>', methods=['GET'])
@@ -130,7 +130,7 @@ bp.add_url_rule(
 )
 
 bp.add_url_rule(
-    '/settings/<any(smon, main, haproxy, nginx, apache, keepalived, rabbitmq, ldap, monitoring, mail, logs):section>',
+    '/settings/<any(smon, main, haproxy, nginx, apache, keepalived, rabbitmq, ldap, monitoring, mail, logs, caddy):section>',
     view_func=SettingsView.as_view('settings_section'),
     methods=['GET', 'POST']
 )

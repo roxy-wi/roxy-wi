@@ -71,6 +71,10 @@
 	<div class="chart-container">
 		<canvas id="apache_{{s.ip}}" role="img"></canvas>
 	</div>
+	{% elif service == 'caddy' %}
+	<div class="chart-container">
+		<canvas id="caddy_{{s.ip}}" role="img"></canvas>
+	</div>
 	{% else %}
 	<div class="chart-container">
 		<canvas id="nginx_{{s.ip}}" role="img"></canvas>
@@ -88,6 +92,8 @@
 						getHttpChartData('{{s.ip}}')
 					{% elif service == 'apache' %}
 						getApacheChartData('{{s.ip}}')
+					{% elif service == 'caddy' %}
+						getCaddyChartData('{{s.ip}}')
 					{% else %}
 						getNginxChartData('{{s.ip}}')
 					{% endif %}
@@ -113,6 +119,8 @@
 								getHttpChartData('{{s.ip}}')
 							{% elif service == 'apache' %}
 								getApacheChartData('{{s.ip}}')
+							{% elif service == 'caddy' %}
+								getCaddyChartData('{{s.ip}}')
 							{% else %}
 								getNginxChartData('{{s.ip}}')
 							{% endif %}

@@ -82,6 +82,8 @@ def get_exp_version(server_ip: str, service_name: str) -> str:
 		command = "node_exporter --version 2>&1 |head -1|awk '{print $3}'"
 	elif service_name == 'apache':
 		command = "/opt/prometheus/exporters/apache_exporter --version 2>&1 |head -1|awk '{print $3}'"
+	elif service_name == 'caddy':
+		command = "/opt/prometheus/exporters/caddy_exporter --version 2>&1 |head -1|awk '{print $3}'"
 	elif service_name == 'keepalived':
 		command = "keepalived_exporter --version 2>&1 |head -1|awk '{print $2}'"
 
@@ -145,6 +147,9 @@ def check_service_config(server_ip: str, server_id: int, service: str) -> None:
 	- For apache:
 	    - If not dockerized: `sudo apachectl -t`
 	    - If dockerized: `sudo docker exec -it {container_name} apachectl -t`
+	- For caddy:
+	    - If not dockerized: `sudo caddy validate --adapter caddyfile --config {config_path}`
+	    - If dockerized: `sudo docker exec -it {container_name} caddy validate --adapter caddyfile --config {config_path}`
 	- For keepalived:
 	    - If not dockerized: `keepalived -t -f {config_path}`
 	    - If dockerized: empty string ` ` (no command needed)
@@ -165,7 +170,8 @@ def check_service_config(server_ip: str, server_id: int, service: str) -> None:
 		'haproxy': {'0': f'haproxy -c -f {config_path} ', '1': f'{command_for_docker} haproxy -c -f {config_path} '},
 		'nginx': {'0': 'sudo nginx -q -t ', '1': f'{command_for_docker} nginx -t '},
 		'apache': {'0': 'sudo apachectl -t ', '1': f'{command_for_docker} apachectl -t '},
-		'keepalived': {'0': f'keepalived -t -f {config_path} ', '1': ' '}
+		'keepalived': {'0': f'keepalived -t -f {config_path} ', '1': ' '},
+		'caddy': {'0': 'sudo caddy validate --adapter caddyfile --config ', '1': f'{command_for_docker} caddy validate --adapter caddyfile --config {config_path} '},
 	}
 
 	try:
@@ -182,7 +188,7 @@ def check_service_config(server_ip: str, server_id: int, service: str) -> None:
 def overview_backends(server_ip: str, service: str) -> Union[str, dict]:
 	import app.modules.config.config as config_mod
 
-	if service not in ('nginx', 'apache'):
+	if service not in ('nginx', 'apache', 'caddy'):
 		format_file = config_common.get_file_format(service)
 		config_dir = config_common.get_config_dir(service)
 		cfg = config_common.generate_config_path(service, server_ip)

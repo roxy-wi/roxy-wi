@@ -67,7 +67,7 @@ def show_roxy_log(
 	else:
 		if '..' in serv: raise Exception('error: nice try')
 
-	if service in ('nginx', 'haproxy', 'apache', 'keepalived'):
+	if service in ('nginx', 'haproxy', 'apache', 'keepalived', 'caddy'):
 		syslog_server_enable = sql.get_setting('syslog_server_enable')
 		if syslog_server_enable is None or syslog_server_enable == 0:
 			local_path_logs = sql.get_setting(f'{service}_path_logs')
@@ -77,6 +77,8 @@ def show_roxy_log(
 				commands = "sudo cat %s/%s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
 			elif service == 'keepalived':
 				commands = "sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
+			elif service == 'caddy':
+				commands = "sudo cat %s/%s| awk -F\"/|:\" '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
 			else:
 				commands = "sudo cat %s/%s| awk '$3>\"%s:00\" && $3<\"%s:00\"' |tail -%s %s %s" % (local_path_logs, log_file, date, date1, rows, grep_act, exgrep_act)
 

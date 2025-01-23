@@ -5,6 +5,7 @@
     'nginx': 'NGINX',
     'haproxy': 'HAProxy',
     'apache': 'Apache',
+    'caddy': 'Caddy',
     'keepalived': 'Keepalived',
     'main': 'Main',
     'mail': 'Mail',
@@ -43,7 +44,7 @@
                 {{set.param}}
             </td>
             <td class="addOption">
-                {% if set.param in ('ldap_password', 'haproxy_stats_password', 'nginx_stats_password', 'apache_stats_password', 'rabbitmq_password', 'mail_smtp_password', 'license') %}
+                {% if set.param in ('ldap_password', 'haproxy_stats_password', 'nginx_stats_password', 'apache_stats_password', 'caddy_stats_password', 'rabbitmq_password', 'mail_smtp_password', 'license') %}
                     {% if set.value == '' or set.value is none %}
                         {{ input(set.param, size='25', type='password', style='width: 210px;') }}
                     {% else %}
@@ -51,7 +52,7 @@
                     {% endif %}
                 {% elif set.param in ('nginx_stats_port', 'session_ttl', 'token_ttl', 'haproxy_stats_port', 'haproxy_sock_port', 'master_port',
                     'ldap_port', 'log_time_storage', 'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range', 'agent_port',
-                    'checker_keep_history_range', 'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port',
+                    'checker_keep_history_range', 'portscanner_keep_history_range', 'checker_maxconn_threshold', 'apache_stats_port', 'caddy_stats_port',
                     'mail_smtp_port', 'rabbitmq_port', 'smon_ssl_expire_warning_alert', 'smon_ssl_expire_critical_alert', 'action_keep_history_range') %}
                     {{ input(set.param, value=set.value, style='width: 210px;', type='number') }}
                 {% elif set.param == 'time_zone' %}

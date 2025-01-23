@@ -26,7 +26,7 @@ def get_config_dir(service: str) -> str:
 	:return: The directory path of the configurations.
 	:raises Exception: If the service name is invalid.
 	"""
-	if service in ('haproxy', 'nginx', 'apache', 'keepalived'):
+	if service in ('haproxy', 'nginx', 'apache', 'keepalived', 'caddy'):
 		return get_config_var.get_config_var('configs', f'{service}_save_configs_dir')
 	else:
 		raise Exception('error: Wrong service')

@@ -147,6 +147,50 @@
 					&emsp;&emsp;{{ line }}
 				</span><br />
 			{% endif %}
+		{% elif service == 'caddy' %} <!-- TODO: Check the code here -->
+			{% if i == 0 and "<VirtualHost" not in line %}
+				<span class="param">
+				</span><div>
+				<span class="configLine">
+					<span class="numRow">{{ i }}</span>
+					&emsp;&emsp;{{ line }}
+				</span><br />
+				{% continue %}
+			{% endif %}
+			{%- if "<VirtualHost" in line -%}
+				{% if i > 1 %}
+					</div>
+				{% endif %}
+				<span class="param">{{ line }}
+				</span><div>
+				{% continue %}
+			{% endif %}
+			{% if "<" in line or "</" in line  %}
+				{% if "#" not in line %}
+					<span class="numRow">
+						{{ i }}
+					</span>
+					<span class="paramInSec">
+						&emsp;{{ line }}
+					</span><br />
+					{% continue %}
+				{% endif %}
+			{% endif %}
+			{% if "#" in line %}
+				<span class="numRow">
+					{{ i }}
+				</span>
+				<span class="comment">
+					&emsp;{{ line }}
+				</span><br />
+				{% continue %}
+			{% endif %}
+			{% if line|length > 1 %}
+				<span class="configLine">
+					<span class="numRow">{{ i }}</span>
+					&emsp;&emsp;{{ line }}
+				</span><br />
+			{% endif %}
 		{% elif service == 'keepalived' %}
 			{%- if "global_defs {" in line -%}
 				{% if i > 1 %}

@@ -53,6 +53,7 @@ def show_overview(serv) -> str:
     nginx = server.nginx if '2' in user_services else 0
     keepalived = server.keepalived if '3' in user_services else 0
     apache = server.apache if '4' in user_services else 0
+    caddy = server.caddy if '5' in user_services else 0
 
     waf = waf_sql.select_waf_servers(server.ip)
     haproxy_process = ''
@@ -60,6 +61,7 @@ def show_overview(serv) -> str:
     nginx_process = ''
     apache_process = ''
     waf_process = ''
+    caddy_process = ''
 
     try:
         waf_len = len(waf)
@@ -86,6 +88,13 @@ def show_overview(serv) -> str:
             apache_process = service_common.server_status(server_mod.subprocess_execute(apache_cmd))
         except Exception as e:
             return f'error: {e} for server {server.hostname}'
+        
+    if caddy:
+        caddy_cmd = f'echo "something" |nc {server.ip} {sql.get_setting("caddy_stats_port")} -w 1'
+        try:
+            caddy_process = service_common.server_status(server_mod.subprocess_execute(caddy_cmd))
+        except Exception as e:
+            return f'error: {e} for server {server.hostname}'
 
     if keepalived:
         command = "ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"
@@ -103,7 +112,7 @@ def show_overview(serv) -> str:
 
     server_status = (
         server.hostname, server.ip, haproxy, haproxy_process, waf_process, waf, keepalived, keepalived_process, nginx,
-        nginx_process, server.server_id, apache, apache_process
+        nginx_process, server.server_id, apache, apache_process, caddy, caddy_process
     )
 
     servers.append(server_status)

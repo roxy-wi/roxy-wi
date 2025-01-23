@@ -22,7 +22,7 @@ class CheckerView(MethodView):
     decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
 
     @staticmethod
-    def get(service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str]):
+    def get(service: Literal['haproxy', 'nginx', 'apache', 'caddy', 'keepalived'], server_id: Union[int, str]):
         """
         Retrieves the status of specific checker services.
         ---
@@ -33,7 +33,7 @@ class CheckerView(MethodView):
             name: service
             type: 'integer'
             required: true
-            description: The type of service (haproxy, nginx, apache, keepalived)
+            description: The type of service (haproxy, nginx, apache, caddy, keepalived)
           - in: path
             name: server_id
             type: 'integer'
@@ -113,7 +113,7 @@ class CheckerView(MethodView):
         return jsonify(checker_setting)
 
     @validate(body=Checker)
-    def post(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str], body: Checker):
+    def post(self, service: Literal['haproxy', 'nginx', 'apache', 'caddy', 'keepalived'], server_id: Union[int, str], body: Checker):
         """
         Update the Tools settings of specific service.
         ---
@@ -124,7 +124,7 @@ class CheckerView(MethodView):
             name: service
             type: string
             required: true
-            description: The type of service (haproxy, nginx, apache, keepalived)
+            description: The type of service (haproxy, nginx, apache, caddy, keepalived)
           - in: path
             name: server_id
             type: string

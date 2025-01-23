@@ -156,4 +156,49 @@
         </tr>
         {% endif %}
     {% endif %}
+    {% if service == 'caddy' %}
+        {% if settings %}
+            {% for s in settings %}
+                {% if s.dockerized != '' and s.setting == 'dockerized' %}
+                    <tr>
+                        <td class="padding20 help_cursor" style="width: 70%"
+                            title="If you use Caddy inside Docker, check this. Roxy-WI is starting managing it as Docker container">Caddy dockerized</td>
+                        <td>
+                            {% if s.value == '1' and s.setting == 'dockerized' %}
+                                {{ checkbox('caddy_dockerized', checked='checked', title='This service is running inside a Docker container') }}
+                            {% else %}
+                                {{ checkbox('caddy_dockerized', title='This server will be used as Docker container') }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+                {% if s.restart != '' and s.setting == 'restart' %}
+                    <tr>
+                        <td class="padding20 help_cursor" style="width: 70%" title="If enabled, the restart button disabled">Disable restart</td>
+                        <td>
+                            {% if s.value == '1' and s.setting == 'restart' %}
+                                {{ checkbox('caddy_restart', checked='checked', title='Restart option is disabled for this server') }}
+                            {% elif s.setting == 'restart' %}
+                                {{ checkbox('caddy_restart', title='Only the reload button will be active') }}
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+        <tr>
+            <td class="padding20 help_cursor" style="width: 70%"
+                title="If you use Caddy inside Docker, check this. Roxy-WI is starting managing it as Docker container">Caddy dockerized</td>
+            <td>
+                {{ checkbox('caddy_dockerized', title='This server will be used as Docker container') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 help_cursor" style="width: 70%" title="If enabled, the restart button disabled">Disable restart</td>
+            <td>
+                {{ checkbox('caddy_restart', title='Only the reload button will be active') }}
+            </td>
+        </tr>
+        {% endif %}
+    {% endif %}
 </table>

@@ -23,6 +23,9 @@ $( function() {
 	$('#apache-section-head').click(function () {
 		hideAndShowSettings('apache');
 	});
+	$('#caddy-section-head').click(function () {
+		hideAndShowSettings('caddy');
+	});
 	$('#keepalived-section-head').click(function () {
 		hideAndShowSettings('keepalived');
 	});

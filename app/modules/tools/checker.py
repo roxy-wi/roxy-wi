@@ -36,6 +36,7 @@ def load_checker() -> str:
         kwargs.setdefault('haproxy_servers', roxywi_common.get_dick_permit(haproxy=1, only_group=1))
         kwargs.setdefault('nginx_servers', roxywi_common.get_dick_permit(nginx=1, only_group=1))
         kwargs.setdefault('apache_servers', roxywi_common.get_dick_permit(apache=1, only_group=1))
+        kwargs.setdefault('caddy_servers', roxywi_common.get_dick_permit(caddy=1, only_group=1))
         kwargs.setdefault('keepalived_servers', roxywi_common.get_dick_permit(keepalived=1, only_group=1))
         kwargs.setdefault('user_subscription', user_subscription)
         kwargs.setdefault('user_params', user_params)
@@ -44,6 +45,7 @@ def load_checker() -> str:
         kwargs.setdefault('nginx_settings', checker_sql.select_checker_settings(2))
         kwargs.setdefault('keepalived_settings', checker_sql.select_checker_settings(3))
         kwargs.setdefault('apache_settings', checker_sql.select_checker_settings(4))
+        kwargs.setdefault('caddy_settings', checker_sql.select_checker_settings(5))
 
     return render_template('ajax/load_checker.html', **kwargs)
 

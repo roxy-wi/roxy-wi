@@ -69,7 +69,7 @@ def logs(service, waf):
     if grep is None:
         grep = ''
 
-    if service in ('haproxy', 'nginx', 'keepalived', 'apache') and not waf:
+    if service in ('haproxy', 'nginx', 'keepalived', 'apache', 'caddy') and not waf:
         service_desc = service_sql.select_service(service)
         service_name = service_desc.service
         servers = roxywi_common.get_dick_permit(service=service_desc.slug)

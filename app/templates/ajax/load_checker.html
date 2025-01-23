@@ -301,6 +301,95 @@
             {% endfor %}
             {% endfor %}
         </table>
+
+        <table class="overview-overflow checker_settings_table" id="checker_caddy_table">
+            <caption><i class="fas fa-feather-alt caption-icon"></i><h3>Caddy {{lang.words.servers}}</h3></caption>
+            <tr class="overviewHead">
+                <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Telegram" style="width: 10%;">Telegram</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Slack" style="width: 10%;">Slack</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} PagerDuty" style="width: 10%;">PagerDuty</td>
+                <td class="first-collumn" title="{{lang.words.alert|title()}} {{lang.words.via}} Mattermost" style="width: 10%;">Mattermost</td>
+                <td class="checkbox-head" style="width: 10%;">{{lang.words.email|title()}}</td>
+                <td class="checkbox-head" style="width: 100%;" title="{{lang.phrases.alert_service_change_status}}">{{lang.words.service|title()}}</td>
+                <td><span onclick="loadchecker(1)" class="refresh" title="{{lang.words.refresh2|title()}}"></span></td>
+            </tr>
+            {% for s in caddy_servers %}
+            {% for h in caddy_settings %}
+            {% if h.server_id|string() == s.0|string() and h.service_id == 4 %}
+            <tr id="caddy_server_tr_id-{{h.id}}">
+                <td class="padding10 first-collumn" id="caddy_server_name-{{h.id}}">{{s.1}}</td>
+                <td id="caddy_server_telegram-{{h.id}}" title="{{lang.words.alert|title()}} {{lang.words.via}} {{lang.words.this3}} {{lang.words.channel}}">
+                    <select id="caddy_server_telegram_channel-{{h.id}}">
+                        <option value="0">{{lang.words.disabled|title()}}</option>
+                    {% for t in telegrams %}
+                         {% if h.telegram_id|int() == t.id|int() %}
+                            <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
+                        {% else %}
+                            <option value="{{t.id}}">{{t.chanel_name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </td>
+                <td id="caddy_server_slack-{{h.id}}" title="{{lang.words.alert|title()}} {{lang.words.via}} {{lang.words.this3}} {{lang.words.channel}}">
+                    <select id="caddy_server_slack_channel-{{h.id}}">
+                        <option value="0">{{lang.words.disabled|title()}}</option>
+                    {% for t in slacks %}
+                        {% if h.slack_id|int() == t.id|int() %}
+                            <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
+                        {% else %}
+                            <option value="{{t.id}}">{{t.chanel_name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </td>
+                <td id="caddy_server_pd-{{h.id}}" title="{{lang.words.alert|title()}} {{lang.words.via}} {{lang.words.this3}} {{lang.words.channel}}">
+                    <select id="caddy_server_pd_channel-{{h.id}}">
+                        <option value="0">{{lang.words.disabled|title()}}</option>
+                    {% for t in pds %}
+                        {% if h.pd_id|int() == t.id|int() %}
+                            <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
+                        {% else %}
+                            <option value="{{t.id}}">{{t.chanel_name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </td>
+                <td id="caddy_server_mm-{{h.id}}" title="{{lang.words.alert|title()}} {{lang.words.via}} {{lang.words.this3}} {{lang.words.channel}}">
+                    <select id="caddy_server_mm_channel-{{h.id}}">
+                        <option value="0">{{lang.words.disabled|title()}}</option>
+                    {% for t in mms %}
+                        {% if h.mm_id|int() == t.id|int() %}
+                            <option value="{{t.id}}" selected>{{t.chanel_name}}</option>
+                        {% else %}
+                            <option value="{{t.id}}">{{t.chanel_name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                    </select>
+                </td>
+                <td class="checkbox">
+                    {% set id = 'caddy_server_email-' + h.id|string() %}
+                    {% if h.email == 1 %}
+                        {{ checkbox(id, checked='checked', title=lang.words.alert|title()+' '+lang.words.via + ' '+lang.words.email) }}
+                    {% else %}
+                        {{ checkbox(id, title=lang.words.alert|title()+' '+lang.words.via + ' '+lang.words.email) }}
+                    {% endif %}
+                </td>
+                <td class="checkbox">
+                    {% set id = 'caddy_server_status-' + h.id|string() %}
+                    {% if h.service_alert == 1 %}
+                        {{ checkbox(id, checked='checked', title=lang.phrases.alert_service_change_status) }}
+                    {% else %}
+                        {{ checkbox(id, title=lang.phrases.alert_service_change_status) }}
+                    {% endif %}
+                </td>
+                <td></td>
+            </tr>
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+        </table>
+
         <table class="overview-overflow checker_settings_table" id="checker_keepalived_table">
             <caption><i class="fas fa-cloud caption-icon"></i><h3>Keepalived {{lang.words.servers}}</h3></caption>
             <tr class="overviewHead">

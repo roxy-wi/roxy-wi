@@ -93,6 +93,15 @@ def default_values():
 		{'param': 'mail_smtp_port', 'value': '25', 'section': 'mail', 'desc': 'SMTP server port', 'group_id': '1'},
 		{'param': 'mail_smtp_user', 'value': '', 'section': 'mail', 'desc': 'User for auth', 'group_id': '1'},
 		{'param': 'mail_smtp_password', 'value': '', 'section': 'mail', 'desc': 'Password for auth', 'group_id': '1'},
+
+		{'param': 'caddy_path_logs', 'value': '/var/log/caddy/', 'section': 'caddy', 'desc': 'The path for caddy logs', 'group_id': '1'},
+		{'param': 'caddy_stats_user', 'value': 'admin', 'section': 'caddy', 'desc': 'Username for accessing caddy stats page', 'group_id': '1'},
+		{'param': 'caddy_stats_password', 'value': 'password', 'section': 'caddy', 'desc': 'Password for Stats web page caddy', 'group_id': '1'},
+		{'param': 'caddy_stats_port', 'value': '8086', 'section': 'caddy', 'desc': 'Stats port for web page caddy', 'group_id': '1'},
+		{'param': 'caddy_stats_page', 'value': 'stats', 'section': 'caddy', 'desc': 'URI Stats for web page caddy', 'group_id': '1'},
+		{'param': 'caddy_dir', 'value': '/etc/caddy/', 'section': 'caddy', 'desc': 'Path to the caddy directory with config files', 'group_id': '1'},
+		{'param': 'caddy_config_path', 'value': '/etc/caddy/caddy.conf', 'section': 'caddy', 'desc': 'Path to the main caddy configuration file', 'group_id': '1'},
+		{'param': 'caddy_container_name', 'value': 'caddy', 'section': 'caddy', 'desc': 'Docker container name for caddy service', 'group_id': '1'},
 	]
 	try:
 		Setting.insert_many(data_source).on_conflict_ignore().execute()
@@ -156,6 +165,7 @@ def default_values():
 		{'service_id': 4, 'service': 'Apache', 'slug': 'apache'},
 		{'service_id': 5, 'service': 'HA cluster', 'slug': 'cluster'},
 		{'service_id': 6, 'service': 'UDP listener', 'slug': 'udp'},
+		{'service_id': 2, 'service': 'Caddy', 'slug': 'caddy'},
 	]
 
 	try:

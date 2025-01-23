@@ -41,7 +41,7 @@ function overviewHapserverBackends(serv, hostname, service) {
 				for (let i in data.data) {
 					if (service === 'haproxy') {
 						div = `<a href="/config/section/haproxy/${serv}/${data.data[i]}" target="_blank" style="padding-right: 10px;">${data.data[i]}</a> `
-					} else if (service === 'nginx' || service === 'apache') {
+					} else if (service === 'nginx' || service === 'apache' || service === 'caddy') {
 						div = `<a href="/config/${service}/${serv}/show/${i}" target="_blank" style="padding-right: 10px;">${data.data[i]}</a>`;
 					} else {
 						div = data.data[i];
@@ -467,6 +467,9 @@ function serverSettingsSave(id, name, service, dialog_id) {
 	if ($('#apache_dockerized').is(':checked')) {
 		service_dockerized = '1';
 	}
+	if ($('#caddy_dockerized').is(':checked')) {
+		service_dockerized = '1';
+	}
 	if ($('#haproxy_restart').is(':checked')) {
 		service_restart = '1';
 	}
@@ -474,6 +477,9 @@ function serverSettingsSave(id, name, service, dialog_id) {
 		service_restart = '1';
 	}
 	if ($('#apache_restart').is(':checked')) {
+		service_restart = '1';
+	}
+	if ($('#caddy_restart').is(':checked')) {
 		service_restart = '1';
 	}
 	$.ajax({

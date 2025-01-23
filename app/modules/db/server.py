@@ -162,6 +162,7 @@ def get_dick_permit(group_id, **kwargs):
 	nginx = ''
 	keepalived = ''
 	apache = ''
+	caddy = ''
 	ip = ''
 
 	if kwargs.get('virt'):
@@ -180,19 +181,21 @@ def get_dick_permit(group_id, **kwargs):
 		keepalived = "and keepalived = 1"
 	if kwargs.get('apache') or kwargs.get('service') == 'apache':
 		apache = "and apache = 1"
+	if kwargs.get('caddy') or kwargs.get('service') == 'caddy':
+		apache = "and caddy = 1"
 	conn = connect()
 	cursor = conn.cursor()
 	try:
 		if mysql_enable == '1':
 			if group_id == '1' and not only_group:
-				sql = f" select * from `servers` where {disable} {type_ip} {nginx} {haproxy} {keepalived} {apache} {ip} order by `pos` asc"
+				sql = f" select * from `servers` where {disable} {type_ip} {nginx} {haproxy} {keepalived} {apache} {caddy} {ip} order by `pos` asc"
 			else:
-				sql = f" select * from `servers` where `group_id` = {group_id} and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by `pos` asc"
+				sql = f" select * from `servers` where `group_id` = {group_id} and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} {caddy} order by `pos` asc"
 		else:
 			if group_id == '1' and not only_group:
-				sql = f" select * from servers where {disable} {type_ip} {nginx} {haproxy} {keepalived} {apache} {ip} order by pos"
+				sql = f" select * from servers where {disable} {type_ip} {nginx} {haproxy} {keepalived} {apache} {caddy} {ip} order by pos"
 			else:
-				sql = f" select * from servers where group_id = '{group_id}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos"
+				sql = f" select * from servers where group_id = '{group_id}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} {caddy} order by pos"
 
 	except Exception as e:
 		raise Exception(f'error: {e}')

@@ -129,6 +129,7 @@ class ServerRequest(BaseModel):
     haproxy: Optional[bool] = 0
     nginx: Optional[bool] = 0
     apache: Optional[bool] = 0
+    caddy: Optional[bool] = 0
     firewall_enable: Optional[bool] = 0
     scan_server: Optional[bool] = 1
 

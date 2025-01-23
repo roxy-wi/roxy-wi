@@ -20,6 +20,12 @@
         <td><span class="add_user_group" title="{{lang.words.add|title()}} {{lang.words.service}}" onclick="addServiceToServer(4)">+</span></td>
     </tr>
     {% endif %}
+    {% if server.caddy|int() == 0 %}
+    <tr class="odd" id="add_service-4" data-service_name="Caddy">
+        <td class="padding20" style="width: 100%">Caddy</td>
+        <td><span class="add_user_group" title="{{lang.words.add|title()}} {{lang.words.service}}" onclick="addServiceToServer(5)">+</span></td>
+    </tr>
+    {% endif %}
 	{% if server.keepalived|int() == 0 %}
     <tr class="even" id="add_service-3" data-service_name="Keepalived">
         <td class="padding20" style="width: 100%">Keepalived</td>
@@ -47,6 +53,12 @@
     <tr class="odd" id="remove_service-4" data-service_name="Apache">
         <td class="padding20" style="width: 100%;">Apache</td>
         <td><span class="remove_user_group" onclick="removeServiceFromServer(4)" title="{{lang.words.delete|title()}} {{lang.words.service}}">-</span></td>
+    </tr>
+	{% endif %}
+    {% if server.caddy|int() == 1 %}
+    <tr class="odd" id="remove_service-4" data-service_name="Caddy">
+        <td class="padding20" style="width: 100%;">Caddy</td>
+        <td><span class="remove_user_group" onclick="removeServiceFromServer(5)" title="{{lang.words.delete|title()}} {{lang.words.service}}">-</span></td>
     </tr>
 	{% endif %}
 	{% if server.keepalived|int() == 1 %}

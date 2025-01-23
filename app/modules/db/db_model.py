@@ -95,6 +95,10 @@ class Server(BaseModel):
     apache_active = IntegerField(constraints=[SQL('DEFAULT 0')])
     apache_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     apache_metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
+    caddy = IntegerField(constraints=[SQL('DEFAULT 0')])
+    caddy_active = IntegerField(constraints=[SQL('DEFAULT 0')])
+    caddy_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
+    caddy_metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
 
     class Meta:
         table_name = 'servers'
@@ -267,6 +271,14 @@ class ApacheMetrics(BaseModel):
         table_name = 'apache_metrics'
         primary_key = False
 
+class CaddyMetrics(BaseModel):
+    serv = CharField()
+    conn = IntegerField()
+    date = DateTimeField(default=datetime.now)
+
+    class Meta:
+        table_name = 'caddy_metrics'
+        primary_key = False
 
 class Version(BaseModel):
     version = CharField()
@@ -797,5 +809,5 @@ def create_tables():
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
              KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
-             HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt]
+             HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, CaddyMetrics]
         )

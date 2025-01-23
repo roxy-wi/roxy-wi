@@ -14,7 +14,8 @@ def common_action(server_ip: str, action: str, service: str) -> None:
         'keepalived': service_action,
         'apache': service_action,
         'waf_haproxy': action_haproxy_waf,
-        'waf_nginx': action_nginx_waf
+        'waf_nginx': action_nginx_waf,
+        'caddy': service_action,
     }
 
     try:

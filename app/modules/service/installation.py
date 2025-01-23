@@ -69,6 +69,7 @@ def generate_kp_inv(json_data: json, installed_service) -> object:
 	haproxy = json_data['services']['haproxy']['enabled']
 	nginx = json_data['services']['nginx']['enabled']
 	apache = json_data['services']['apache']['enabled']
+	caddy = json_data['services']['caddy']['enabled']
 	keepalived_path_logs = sql.get_setting('keepalived_path_logs')
 	syn_flood_protect = str(json_data['syn_flood'])
 	routers = {}
@@ -93,6 +94,7 @@ def generate_kp_inv(json_data: json, installed_service) -> object:
 			"HAPROXY": haproxy,
 			"NGINX": nginx,
 			"APACHE": apache,
+			"CADDY": caddy,
 			"RESTART": 1,
 			"SYN_FLOOD": syn_flood_protect,
 			"keepalived_path_logs": keepalived_path_logs,
@@ -387,6 +389,7 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 		'haproxy': service_sql.update_haproxy,
 		'nginx': service_sql.update_nginx,
 		'apache': service_sql.update_apache,
+		'caddy': service_sql.update_caddy,
 		'keepalived': service_sql.update_keepalived,
 	}
 
@@ -438,6 +441,7 @@ def install_service(service: str, json_data: Union[str, ServiceInstall, HACluste
 		'haproxy': generate_haproxy_inv,
 		'nginx': generate_service_inv,
 		'apache': generate_service_inv,
+		'caddy': generate_service_inv,
 		'keepalived': generate_kp_inv,
 	}
 

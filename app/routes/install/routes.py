@@ -20,13 +20,13 @@ from app.modules.roxywi.class_models import DomainName
 
 
 bp.add_url_rule(
-    '/<any(haproxy, nginx, apache, keepalived):service>',
+    '/<any(haproxy, nginx, apache, keepalived, caddy):service>',
     view_func=InstallView.as_view('install'),
     methods=['POST'],
     defaults={'server_id': None}
 )
 bp.add_url_rule(
-    '/<any(haproxy, nginx, apache, keepalived):service>/<server_id>',
+    '/<any(haproxy, nginx, apache, keepalived, caddy):service>/<server_id>',
     view_func=InstallView.as_view('install_ip'),
     methods=['POST'],
 )
@@ -57,7 +57,7 @@ def install_exporter(exporter):
     server_ip = common.is_ip_or_dns(json_data['server_ip'])
     ver = common.checkAjaxInput(json_data['exporter_v'])
 
-    if exporter not in ('haproxy', 'nginx', 'apache', 'keepalived', 'node'):
+    if exporter not in ('haproxy', 'nginx', 'apache', 'caddy', 'keepalived', 'node'):
         return jsonify({'status': 'failed', 'error': 'Wrong exporter'})
 
     try:

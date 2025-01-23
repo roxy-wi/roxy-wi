@@ -113,6 +113,8 @@
 											getNginxChartData(server_ip)
 										{% elif service == 'apache' %}
 											getApacheChartData(server_ip)
+										{% elif service == 'caddy' %}
+											getCaddyChartData(server_ip)
 										{% endif %}
 									{% endfor %}
 								});
@@ -172,6 +174,10 @@
 			{% set is_auto_start_enabled = s.4.0.22 %}
 			{% set is_checker_enabled = s.4.0.23 %}
 		{% elif service == 'apache' %}
+			{% set is_auto_start_enabled = s.4.0.25 %}
+			{% set is_checker_enabled = s.4.0.26 %}
+			{% set is_metrics_enabled = s.4.0.27 %}
+		{% elif service == 'caddy' %}
 			{% set is_auto_start_enabled = s.4.0.25 %}
 			{% set is_checker_enabled = s.4.0.26 %}
 			{% set is_metrics_enabled = s.4.0.27 %}
@@ -311,7 +317,7 @@
 				{% endif %}
 			</div>
 			<div class="server-act-links">
-				{% if service == 'nginx' or service == 'apache' %}
+				{% if service == 'nginx' or service == 'apache' or service == 'caddy' %}
 				<a href="/config/{{service}}/{{s.2}}/show-files" {{config_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.open|title()}} {{lang.words.running}} {{lang.words.configs}}">{{lang.menu_links.config.link}}</a>
 				{% else %}
 				<a href="/config/{{service}}/{{s.2}}/show/undefined" {{config_id}} class="ui-button ui-widget ui-corner-all" title="{{lang.words.open|title()}} {{lang.words.running}} {{lang.words.config}}">{{lang.menu_links.config.link}}</a>
@@ -349,10 +355,11 @@
 </div>
 	{% if serv %}
 	{% for s in servers %}
-	{% if service in ('haproxy', 'nginx', 'apache') %}
+	{% if service in ('haproxy', 'nginx', 'apache', 'caddy') %}
 		{% if (service == 'haproxy' and s.4.0.9)
 			or (service == 'nginx' and s.4.0.21)
-			or (service == 'apache' and s.4.0.27)  %}
+			or (service == 'apache' and s.4.0.27) 
+			or (service == 'caddy' and s.4.0.27)  %}
 			<div class="metrics-time-range">
 				<b>{{lang.words.time_range|title()}}:</b>
 				<select title="Choose time range" id="time-range">
@@ -384,6 +391,10 @@
 		{% elif service == 'apache' and s.4.0.27 %}
 		<div id="apache_metrics_div" class="chart-container_overview" style="margin-top: -35px;">
 			<canvas id="apache_{{s.2}}" role="img"></canvas>
+		</div>
+		{% elif service == 'caddy' and s.4.0.27 %}
+		<div id="caddy_metrics_div" class="chart-container_overview" style="margin-top: -35px;">
+			<canvas id="caddy_{{s.2}}" role="img"></canvas>
 		</div>
 		{% endif %}
 	{% endfor %}

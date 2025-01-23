@@ -40,7 +40,7 @@ def update_settings():
         return checker_mod.update_haproxy_settings(
             setting_id, email, service_alert, backend_alert, maxconn_alert, telegram_id, slack_id, pd_id, mm_id
         )
-    elif service in ('nginx', 'apache'):
+    elif service in ('nginx', 'apache', 'caddy'):
         return checker_mod.update_service_settings(setting_id, email, service_alert, telegram_id, slack_id, pd_id, mm_id)
     else:
         backend_alert = int(request.form.get('backend'))

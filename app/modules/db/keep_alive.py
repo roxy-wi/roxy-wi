@@ -31,6 +31,14 @@ def select_apache_keep_alive():
 	else:
 		return query_res
 
+def select_caddy_keep_alive():
+	query = Server.select(Server.ip, Server.group_id, Server.server_id).where(Server.caddy_active == 1)
+	try:
+		query_res = query.execute()
+	except Exception as e:
+		out_error(e)
+	else:
+		return query_res
 
 def select_keepalived_keep_alive():
 	query = Server.select(Server.ip, Server.port, Server.group_id, Server.server_id).where(Server.keepalived_active == 1)

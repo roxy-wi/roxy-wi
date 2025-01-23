@@ -541,7 +541,7 @@ class GitBackupView(MethodView):
                     description: 'The ID of the server to backed up'
                 service_id:
                     type: 'integer'
-                    description: 'Service ID: 1: HAProxy, 2: NGINX, 3: Keepalived, 4: Apache'
+                    description: 'Service ID: 1: HAProxy, 2: NGINX, 3: Keepalived, 4: Apache, 5: Caddy'
                     example: 1
                 init:
                     type: 'integer'
@@ -603,7 +603,7 @@ class GitBackupView(MethodView):
                     description: 'The ID of the server to backed up'
                 service_id:
                     type: 'integer'
-                    description: 'Service ID: 1: HAProxy, 2: NGINX, 3: Keepalived, 4: Apache'
+                    description: 'Service ID: 1: HAProxy, 2: NGINX, 3: Keepalived, 4: Apache, 5: Caddy'
                     example: 1
                 init:
                     type: 'integer'

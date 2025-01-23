@@ -11,7 +11,7 @@
 	<input type="hidden" id="service" value="{{service}}" />
 	{{ select('serv', values=g.user_params['servers'], is_servers='true', selected=serv) }}
 	<a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang.words.show|title()}} {{lang.words.stats}}" onclick="showStats()">{{lang.words.open|title()}}</a>
-	{% if service != 'nginx' and service != 'apache' %}
+	{% if service != 'nginx' and service != 'apache' and service != 'caddy' %}
 	<div id="stats_filter">
 		<div id="stats_filter_text">{{lang.words.filter|title()}}:</div>
 		{{ checkbox('stats_active', title=lang.words.show|title()+' ' + lang.words.actives + ' ' + lang.words.servers, desc=lang.words.actives|title(), checked='checked') }}

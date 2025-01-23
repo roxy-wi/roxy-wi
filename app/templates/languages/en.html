@@ -18,6 +18,9 @@
         "apache": {
             "title": "Apache servers overview"
         },
+        "caddy": {
+            "title": "Caddy servers overview"
+        },
         "keepalived": {
             "title": "Keepalived Keepalived overview"
         },
@@ -34,6 +37,9 @@
         "apache": {
             "title": "Working with Apache configs"
         },
+        "caddy": {
+            "title": "Working with Caddy configs"
+        },
         "keepalived": {
             "title": "Working with Keepalived configs"
         },
@@ -49,6 +55,9 @@
         },
         "apache": {
             "title": "Apache statistics"
+        },
+        "caddy": {
+            "title": "Caddy statistics"
         },
     },
     "logs": {
@@ -76,6 +85,9 @@
         },
         "apache": {
             "title": "Working with Apache Configuration Versions"
+        },
+        "caddy": {
+            "title": "Working with Caddy Configuration Versions"
         },
         "keepalived": {
             "title": "Working with Keepalived Configuration Versions"
@@ -155,6 +167,16 @@
         "nginx_config_path": "Path to the main NGINX configuration file",
         "nginx_container_name": "Docker container name for NGINX service",
         },
+    "caddy": {
+        "caddy_path_logs": "The path for Caddy logs",
+        "caddy_stats_user": "Username for accessing Caddy stats page",
+        "caddy_stats_password": "Password for Stats web page Caddy",
+        "caddy_stats_port": "Stats port for web page Caddy",
+        "caddy_stats_page": "URI Stats for web page Caddy",
+        "caddy_dir": "Path to the Caddy directory with config files",
+        "caddy_config_path": "Path to the main Caddy configuration file",
+        "caddy_container_name": "Docker container name for Caddy service",
+        },
     "monitoring": {
         "port_scan_interval": "Check interval for Port scanner (in minutes)",
         "portscanner_keep_history_range": "Retention period for Port scanner history",
@@ -231,6 +253,16 @@
         "apache_config_path": "Path to the main Apache configuration file",
         "apache_container_name": "Docker container name for Apache service",
         },
+        "caddy": {
+            "caddy_path_logs": "The path for Caddy logs",
+            "caddy_stats_user": "Username for accessing Caddy stats page",
+            "caddy_stats_password": "Password for Stats web page Caddy",
+            "caddy_stats_port": "Stats port for web page Caddy",
+            "caddy_stats_page": "URI Stats for web page Caddy",
+            "caddy_dir": "Path to the Caddy directory with config files",
+            "caddy_config_path": "Path to the main Caddy configuration file",
+            "caddy_container_name": "Docker container name for Caddy service",
+            },
     "keepalived": {
         "keepalived_config_path": "Path to the main Keepalived configuration file",
         "keepalived_path_logs": "The path for Keepalived logs",
@@ -391,7 +423,7 @@
         "servers": "In this section you can create, edit and delete servers. And after use them as autocomplete in the 'Add' sections",
         "servers": "In this section you can create, edit and delete options. And after use them as autocomplete in the 'Add' sections",
         "paste_cert": "Paste the contents of the certificate file",
-        "paste_cert_desc": "This pem file will be used to create https connection with HAProxy, NGINX or Apache",
+        "paste_cert_desc": "This pem file will be used to create https connection with HAProxy, NGINX, Apache, or Caddy",
         "lists_howto": "In this section you can create and edit black and white lists. And after use them in the HAProxy configs or in the 'Add proxy' pages. Read how to use it in this",
         "lists_new_line": "Each new address must be specified from a new line",
         "was_success_added": "was success added",
@@ -437,9 +469,9 @@
         "there_are_no": "There are no Grafana and Prometheus servers",
         "country_codes": "Country codes",
         "smon_desc": "SMON stands for <b>S</b>imple <b>MON</b>itoring",
-        "checker_desc": "Checker is designed for monitoring HAProxy, Nginx, Apache and Keepalived services as well as HAProxy backends and maxconn",
-        "auto_start_desc": "The Auto Start service allows to restart the HAProxy, NGINX, Apache and Keepalived services if they are down",
-        "metrics_desc": "Collects number of connections for HAProxy, NGINX, Apache and HAProxy WAF services",
+        "checker_desc": "Checker is designed for monitoring HAProxy, Nginx, Apache, Caddy and Keepalived services as well as HAProxy backends and maxconn",
+        "auto_start_desc": "The Auto Start service allows to restart the HAProxy, NGINX, Apache, Caddy and Keepalived services if they are down",
+        "metrics_desc": "Collects number of connections for HAProxy, NGINX, Apache, Caddy and HAProxy WAF services",
         "p_s_desc": "Checks the server for open ports and saves history",
         "socket_desc": "Socket is a service for sending alerts and notifications",
         "a_new_version": "There is a newer version",
@@ -900,6 +932,7 @@
     "haproxy": "HAProxy",
     "nginx": "NGINX",
     "apache": "Apache",
+    "caddy": "Caddy",
     "keepalived": "Keepalived",
     "scan": "scan",
     "notify": "notify",

@@ -12,7 +12,7 @@ def generate_exporter_inc(server_ip: str, ver: str, exporter: str) -> object:
         'service': f'{exporter} exporter'
     }
 
-    if exporter in ('haproxy', 'nginx', 'apache'):
+    if exporter in ('haproxy', 'nginx', 'apache', 'caddy'):
         inv['server']['hosts'][server_ip]['STAT_PORT'] = sql.get_setting(f'{exporter}_stats_port')
         inv['server']['hosts'][server_ip]['STATS_USER'] = sql.get_setting(f'{exporter}_stats_user')
         inv['server']['hosts'][server_ip]['STATS_PASS'] = sql.get_setting(f'{exporter}_stats_password')

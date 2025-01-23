@@ -27,7 +27,7 @@ class ServiceView(MethodView):
     methods = ['GET']
     decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=4), check_group()]
 
-    def get(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str]):
+    def get(self, service: Literal['haproxy', 'nginx', 'apache', 'caddy', 'keepalived'], server_id: Union[int, str]):
         """
         This endpoint retrieves information about a specific service.
         ---
@@ -38,7 +38,7 @@ class ServiceView(MethodView):
             name: service
             type: 'string'
             required: true
-            description: The type of service (haproxy, nginx, apache, keepalived)
+            description: The type of service (haproxy, nginx, apache, keepalived, caddy)
           - in: path
             name: server_id
             type: 'integer'
@@ -182,6 +182,39 @@ class ServiceView(MethodView):
             data['checker'] = int(server.apache_alert)
             data['metrics'] = int(server.apache_metrics)
             data['docker'] = int(service_sql.select_service_setting(server_id, service, 'dockerized'))
+        elif service == 'caddy':
+            caddy_stats_user = sql.get_setting('caddy_stats_user')
+            caddy_stats_password = sql.get_setting('caddy_stats_password')
+            caddy_stats_port = sql.get_setting('caddy_stats_port')
+            caddy_stats_page = sql.get_setting('caddy_stats_page')
+            cmd = "curl -s -u %s:%s http://%s:%s/%s?auto |grep 'ServerVersion\|Processes\|ServerUptime:'" % \
+                  (caddy_stats_user, caddy_stats_password, server.ip, caddy_stats_port, caddy_stats_page)
+            servers_with_status = list()
+            try:
+                out = server_mod.subprocess_execute(cmd)
+                if out != '':
+                    for k in out:
+                        servers_with_status.append(k)
+                data = {
+                    "Version": servers_with_status[0][0].split('/')[1].split(' ')[0],
+                    "Uptime": servers_with_status[0][1].split(':')[1].strip(),
+                    "Process": servers_with_status[0][2].split(' ')[1],
+                    "Status": self._service_status(servers_with_status[0][2].split(' ')[1])
+                }
+            except IndexError:
+                data = {
+                    "Version": '',
+                    "Uptime": '',
+                    "Process": 0,
+                    "Status": self._service_status('0')
+                }
+            except Exception as e:
+                data = ErrorResponse(error=str(e)).model_dump(mode='json')
+
+            data['auto_start'] = int(server.caddy_active)
+            data['checker'] = int(server.caddy_alert)
+            data['metrics'] = int(server.caddy_metrics)
+            data['docker'] = int(service_sql.select_service_setting(server_id, service, 'dockerized'))
         elif service == 'keepalived':
             cmd = ("sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}' && sudo systemctl status keepalived |grep -e 'Active'"
                    "|awk '{print $2, $9$10$11$12$13}' && ps ax |grep 'keepalived '|grep -v udp|grep -v grep |wc -l")
@@ -238,7 +271,7 @@ class ServiceActionView(MethodView):
             name: service
             type: 'integer'
             required: true
-            description: The type of service (haproxy, nginx, apache, keepalived, waf_haproxy, waf_nginx)
+            description: The type of service (haproxy, nginx, apache, caddy, keepalived, waf_haproxy, waf_nginx)
           - in: path
             name: server_id
             type: 'integer'
@@ -255,7 +288,7 @@ class ServiceActionView(MethodView):
           default:
             description: Unexpected error
         """
-        if service not in ('haproxy', 'nginx', 'apache', 'keepalived', 'waf_haproxy', 'waf_nginx'):
+        if service not in ('haproxy', 'nginx', 'apache', 'caddy', 'keepalived', 'waf_haproxy', 'waf_nginx'):
             return roxywi_common.handler_exceptions_for_json_data(RoxywiResourceNotFound(), 'Cannot find a server')
 
         try:
@@ -291,7 +324,7 @@ class ServiceBackendView(MethodView):
             name: service
             type: 'integer'
             required: true
-            description: The type of service (haproxy, nginx, apache, keepalived)
+            description: The type of service (haproxy, nginx, apache, caddy, keepalived)
           - in: path
             name: server_id
             type: 'integer'
@@ -337,7 +370,7 @@ class ServiceConfigView(MethodView):
             name: service
             type: 'integer'
             required: true
-            description: The type of service (haproxy, nginx, apache, keepalived)
+            description: The type of service (haproxy, nginx, apache, caddy, keepalived)
           - in: path
             name: server_id
             type: 'integer'
@@ -359,7 +392,7 @@ class ServiceConfigView(MethodView):
           default:
             description: Unexpected error
         """
-        if service in ('nginx', 'apache') and (query.file_path is None and query.version is None):
+        if service in ('nginx', 'apache', 'caddy') and (query.file_path is None and query.version is None):
             return ErrorResponse(error=f'There is must be "file_path" as query parameter for {service.title()}')
         if query.file_path:
             query.file_path = query.file_path.replace('/', '92')
@@ -401,7 +434,7 @@ class ServiceConfigView(MethodView):
             in: path
             type: string
             required: true
-            description: The service name, one of [haproxy, nginx, apache, keepalived].
+            description: The service name, one of [haproxy, nginx, apache, caddy, keepalived].
           - name: server_id
             in: path
             type: string
@@ -442,7 +475,7 @@ class ServiceConfigView(MethodView):
           default:
             description: Unexpected error
         """
-        if service in ('nginx', 'apache') and (body.file_path is None):
+        if service in ('nginx', 'apache', 'caddy') and (body.file_path is None):
             return ErrorResponse(error=f'There is must be "file_path" as json parameter for {service.title()}')
         try:
             server_ip = SupportClass(False).return_server_ip_or_id(server_id)
@@ -490,8 +523,8 @@ class ServiceConfigList(MethodView):
             in: path
             type: string
             required: true
-            enum: ['nginx', 'apache']
-            description: Type of service (nginx or apache)
+            enum: ['nginx', 'apache', 'caddy']
+            description: Type of service (nginx, apache, or caddy)
           - name: server_id
             in: path
             type: string
@@ -562,7 +595,7 @@ class ServiceConfigVersionsView(MethodView):
             name: service
             type: 'integer'
             required: true
-            description: The type of service (haproxy, nginx, apache, keepalived)
+            description: The type of service (haproxy, nginx, apache, caddy, keepalived)
           - in: path
             name: server_id
             type: 'integer'
@@ -595,9 +628,9 @@ class ServiceConfigVersionsView(MethodView):
           - in: path
             name: service
             type: string
-            enum: [haproxy, nginx, apache, keepalived]
+            enum: [haproxy, nginx, apache, caddy, keepalived]
             required: true
-            description: The type of service (haproxy, nginx, apache, keepalived)
+            description: The type of service (haproxy, nginx, apache, caddy, keepalived)
           - in: path
             name: server_id
             type: string

@@ -298,7 +298,7 @@ function showConfig() {
 	let service = $('#service').val();
 	let config_file = $('#config_file_name').val()
 	let config_file_name = encodeURI(config_file);
-	if (service === 'nginx' || service === 'apache') {
+	if (service === 'nginx' || service === 'apache' || service === 'caddy') {
 		if (config_file === undefined || config_file === null) {
 			config_file_name = cur_url[4]
 			if (config_file_name === '') {
@@ -362,7 +362,7 @@ function showConfigFilesForEditing() {
 	let service = $('#service').val();
 	let server_ip = $("#serv").val();
 	let config_file_name = findGetParameter('config_file_name')
-	if (service === 'nginx' || service === 'apache') {
+	if (service === 'nginx' || service === 'apache' || service === 'caddy') {
 		$.ajax({
 			url: "/config/" + service + "/" + server_ip + "/edit/" + config_file_name,
 			type: "POST",

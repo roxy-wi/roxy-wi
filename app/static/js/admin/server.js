@@ -52,6 +52,7 @@ function addServer(dialog_id) {
     let haproxy = 0;
     let nginx = 0;
     let apache = 0;
+	let caddy = 0;
     let firewall = 0;
     if ($('#type_ip').is(':checked')) {
         type_ip = '1';
@@ -67,6 +68,9 @@ function addServer(dialog_id) {
     }
     if ($('#apache').is(':checked')) {
         apache = '1';
+    }
+	if ($('#caddy').is(':checked')) {
+        caddy = '1';
     }
     if ($('#firewall').is(':checked')) {
         firewall = '1';
@@ -97,6 +101,7 @@ function addServer(dialog_id) {
             "haproxy": haproxy,
             'nginx': nginx,
             "apache": apache,
+			"caddy": caddy,
             "firewall_enable": firewall,
             "enabled": enable,
             "master": $('#slavefor').val(),
@@ -124,11 +129,13 @@ function addServer(dialog_id) {
                     $('select:regex(id, haproxy_exp_addserv)').append('<option value=' +ip + '>' + servername + '</option>').selectmenu("refresh");
                     $('select:regex(id, nginx_exp_addserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
                     $('select:regex(id, apache_exp_addserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
+					$('select:regex(id, caddy_exp_addserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
                     $('select:regex(id, node_exp_addserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
                     $('select:regex(id, geoipserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
                     $('select:regex(id, haproxyaddserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
                     $('select:regex(id, nginxaddserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
                     $('select:regex(id, apacheaddserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
+					$('select:regex(id, caddyaddserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
                 }
             }
         });

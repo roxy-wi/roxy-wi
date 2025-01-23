@@ -1,0 +1,13 @@
+- [ ] Check this file: app/modules/config/add.py
+- [ ] Check the function `update_server_services` calls in the file: app/modules/db/service.py
+- [ ] Validate `show_roxy_log` in app/modules/roxywi/logs.py
+- [ ] Check what can be added for caddy in app/modules/roxywi/overview.py similary to `show_nginx_connections` and `show_apache_bytes`
+- [ ] check `get_stat_page` in app/modules/service/common.py
+- [ ] check `add_nginx_upstream` in app/routes/add/routes.py
+- [ ] check the stuff in app/routes/service/routes.py
+- [ ] check the nested-if logic of `Reconfigure` function in app/static/js/ha.js
+- [ ] produce analogous of `showNginxConnections` and `showApachekBytes` in app/static/js/overview.js
+- [ ] check the anonymous func on line 40 here app/static/js/script.js
+- [ ] add caddy.js file in app/static/js/codemirror/mode
+- [ ] check possibility of adding caddy on line 138 in file app/templates/config.html
+- [ ] check including Caddy data on lines 88-93 in file app/templates/service.html

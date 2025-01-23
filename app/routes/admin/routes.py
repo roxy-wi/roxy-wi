@@ -18,7 +18,7 @@ import app.modules.server.ssh as ssh_mod
 from app.views.admin.views import SettingsView
 
 bp.add_url_rule(
-    '/settings/<any(smon, main, haproxy, nginx, apache, keepalived, rabbitmq, ldap, monitoring, mail, logs):section>',
+    '/settings/<any(smon, main, haproxy, nginx, apache, caddy, keepalived, rabbitmq, ldap, monitoring, mail, logs):section>',
     view_func=SettingsView.as_view('settings'),
     methods=['GET', 'POST']
 )

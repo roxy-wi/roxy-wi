@@ -136,7 +136,7 @@ def stats(service, serv):
 @check_services
 @get_user_params()
 @validate()
-def show_stats(service: Literal['haproxy', 'apache', 'nginx'], server_ip: Union[IPvAnyAddress, DomainName]):
+def show_stats(service: Literal['haproxy', 'apache', 'nginx', 'caddy'], server_ip: Union[IPvAnyAddress, DomainName]):
     if service in ('nginx', 'apache'):
         try:
             return service_common.get_stat_page(server_ip, service, g.user_params['group_id'])
@@ -203,7 +203,7 @@ def service_history(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
     history = ''
     server_ip = str(server_ip)
 
-    if service in ('haproxy', 'nginx', 'keepalived', 'apache', 'cluster', 'udp'):
+    if service in ('haproxy', 'nginx', 'keepalived', 'apache', 'caddy', 'cluster', 'udp'):
         service_desc = service_sql.select_service(service)
         if not roxywi_auth.is_access_permit_to_service(service_desc.slug):
             abort(403, f'You do not have needed permissions to access to {service_desc.slug.title()} service')

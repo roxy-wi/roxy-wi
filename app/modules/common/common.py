@@ -128,7 +128,7 @@ def check_is_service_folder(service_path: str) -> bool:
 	:param service_path: The path of the folder to be checked.
 	:return: True if the `service_path` contains the name of a service folder, False otherwise.
 	"""
-	service_names = ['nginx', 'haproxy', 'apache2', 'httpd', 'keepalived']
+	service_names = ['nginx', 'haproxy', 'apache2', 'httpd', 'keepalived', 'caddy']
 
 	return any(service in service_path for service in service_names) and '..' not in service_path
 

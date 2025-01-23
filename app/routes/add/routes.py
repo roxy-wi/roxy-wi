@@ -27,7 +27,7 @@ def register_api_id_ip(view, endpoint, url: str = '', methods: list = ['GET', 'P
     for point in ('_id', '_ip'):
         view_func = view.as_view(f'{endpoint}_{point}')
         pk = 'int:' if point == '_id' else ''
-        bp.add_url_rule(f'/<any(haproxy, nginx, apache, keepalived):service>/<{pk}server_id>{url}', view_func=view_func, methods=methods)
+        bp.add_url_rule(f'/<any(haproxy, nginx, apache, keepalived, caddy):service>/<{pk}server_id>{url}', view_func=view_func, methods=methods)
 
 
 register_api_id_ip(ListenSectionView, 'haproxy_section_post_a', '/section/<any(listen, frontend, backend):section_type>', methods=['POST'])
