@@ -238,7 +238,7 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 	try:
 		agent_pid = server_mod.start_ssh_agent()
 	except Exception as e:
-		raise Exception(f'{e}')
+		raise Exception(f'Cannot start SSH agent: {e}')
 
 	try:
 		_install_ansible_collections()
@@ -450,6 +450,9 @@ def install_service(service: str, json_data: Union[str, ServiceInstall, HACluste
 		raise Exception(f'Cannot generate inv {service}: {e}')
 	try:
 		service_actions_after_install(server_ips, service, json_data)
+	except Exception as e:
+		raise Exception(f'Cannot activate {service} on server {server_ips}: {e}')
+	try:
 		return run_ansible(inv, server_ips, service)
 	except Exception as e:
 		raise Exception(f'Cannot install {service}: {e}')

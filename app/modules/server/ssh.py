@@ -39,7 +39,10 @@ def return_ssh_keys_path(server_ip: str) -> dict:
 		else:
 			passphrase = ssh.passphrase
 
-		ssh_key = _return_correct_ssh_file(ssh)
+		if ssh.private_key:
+			ssh_key = _return_correct_ssh_file(ssh)
+		else:
+			ssh_key = None
 		ssh_settings.setdefault('enabled', ssh.key_enabled)
 		ssh_settings.setdefault('user', ssh.username)
 		ssh_settings.setdefault('password', password)
@@ -170,10 +173,11 @@ def decrypt_password(password: str) -> str:
 	salt = get_config.get_config_var('main', 'secret_phrase')
 	fernet = Fernet(salt.encode())
 	try:
-		decryp_pass = fernet.decrypt(password.encode()).decode()
+		decrypted_pass = fernet.decrypt(password.encode()).decode()
+		decrypted_pass = decrypted_pass.replace("'", "")
 	except Exception as e:
 		raise Exception(f'error: Cannot decrypt password: {e}')
-	return decryp_pass
+	return decrypted_pass
 
 
 def get_creds(group_id: int = None, cred_id: int = None, not_shared: bool = False) -> list:
