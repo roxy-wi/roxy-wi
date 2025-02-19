@@ -35,6 +35,30 @@ $( function() {
 			$('.check_backends').hide();
 		}
 	});
+	$( ".udp-act-links" ).change(function() {
+		let id = $(this).attr('id').split('-');
+		console.log(id)
+		console.log('update checker settings ' + id[1])
+		let alert_en = 0;
+		if ($('#alert-' + id[1]).is(':checked')) {
+			alert_en = 1;
+		}
+		$.ajax({
+			url: api_prefix + "/udp/listener/" + id[1] + '/checker/' + alert_en,
+			contentType: "application/json; charset=utf-8",
+			method: "POST",
+			success: function (data) {
+				if (data.status === 'failed') {
+					toastr.error(data.error);
+				} else {
+					$("#server-" + id[1]).addClass("update", 1000);
+					setTimeout(function () {
+						$("#server-" + id[1]).removeClass("update");
+					}, 2500);
+				}
+			}
+		});
+	});
 });
 function getHAClusterVIPS(cluster_id) {
 	let vip_id = $('#vip');
@@ -384,6 +408,7 @@ function getUDPListener(listener_id, new_listener=false) {
 				}
 				$('#listener-'+listener_id).removeClass('animated-background');
 				$.getScript(awesome);
+				$( "input[type=checkbox]" ).checkboxradio();
 			}
 		}
 	});

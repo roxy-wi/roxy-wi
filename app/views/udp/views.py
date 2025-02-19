@@ -208,6 +208,9 @@ class UDPListener(MethodView):
                 reconfigure:
                   type: boolean
                   description: If 1, reconfigure UDP listener. If 0, just save UDP listener without configuration on servers
+                is_checker:
+                  type: boolean
+                  description: Should be Checker service check this UDP listener?
         responses:
           201:
             description: UDP listener created successfully
@@ -312,6 +315,9 @@ class UDPListener(MethodView):
                 reconfigure:
                   type: boolean
                   description: If 1, reconfigure UDP listener. If 0, just save UDP listener without configuration on servers
+                is_checker:
+                  type: boolean
+                  description: Should be Checker service check this UDP listener?
         responses:
           201:
             description: UDP listener created successfully
@@ -566,3 +572,26 @@ class UDPListenerBackendStatusView(MethodView):
         status = server_mod.ssh_command(server_ip, cmd)
         status = status.replace('\r\n', '')
         return DataStrResponse(data=status).model_dump(mode='json')
+
+
+class UdpListenerCheckerView(MethodView):
+    methods = ['POST']
+    decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
+
+    @validate(query=GroupQuery)
+    def post(self, service: str, listener_id: int, is_checker: int, query: GroupQuery):
+        try:
+            _ = SupportClass.return_group_id(query)
+        except Exception as e:
+            return roxywi_common.handle_json_exceptions(e, 'Cannot get UDP listeners')
+        try:
+            udp_sql.get_listener(listener_id)
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get UDP listeners')
+
+        try:
+            udp_sql.update_listener(listener_id, is_checker=is_checker)
+        except Exception as e:
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update checker settings on UDP listener')
+
+        return BaseResponse().model_dump(mode='json'), 201

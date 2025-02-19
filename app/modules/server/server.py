@@ -1,4 +1,5 @@
 import json
+import os
 
 from flask import render_template
 
@@ -472,6 +473,7 @@ def delete_server(server_id: int) -> None:
 		server_sql.delete_system_info(server_id)
 		service_sql.delete_service_settings(server_id)
 		roxywi_common.logging(server.ip, f'The server {server.hostname} has been deleted', roxywi=1, login=1)
+		os.system(f'ssh-keygen -R {server.ip}')
 
 
 def server_is_up(server_ip: str) -> str:

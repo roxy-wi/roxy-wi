@@ -756,6 +756,7 @@ class UDPBalancer(BaseModel):
     delay_loop = IntegerField(constraints=[SQL('DEFAULT "10"')])
     delay_before_retry = IntegerField(constraints=[SQL('DEFAULT "10"')])
     retry = IntegerField(constraints=[SQL('DEFAULT "3"')])
+    is_checker = IntegerField(constraints=[SQL('DEFAULT "0"')])
 
     class Meta:
         table_name = 'udp_balancers'

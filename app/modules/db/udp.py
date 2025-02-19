@@ -3,6 +3,15 @@ from app.modules.db.common import out_error
 from app.modules.roxywi.exception import RoxywiResourceNotFound, RoxywiGroupNotFound
 
 
+def select_all_listeners() -> UDPBalancer:
+    try:
+        return UDPBalancer.select().execute()
+    except UDPBalancer.DoesNotExist:
+        raise RoxywiResourceNotFound
+    except Exception as e:
+        out_error(e)
+
+
 def select_listeners(group_id: int) -> UDPBalancer:
     try:
         return UDPBalancer.select().where(UDPBalancer.group_id == group_id).execute()

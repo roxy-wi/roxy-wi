@@ -1,4 +1,4 @@
-from app.modules.db.db_model import CheckerSetting, Server, ServiceStatus
+from app.modules.db.db_model import CheckerSetting, Server, ServiceStatus, UDPBalancer
 from app.modules.db.common import out_error
 
 
@@ -144,5 +144,12 @@ def select_all_alerts(group_id: int):
 	)
 	try:
 		return query.execute()
+	except Exception as e:
+		out_error(e)
+
+
+def select_checker_udp_enabled():
+	try:
+		return UDPBalancer.select().where(UDPBalancer.is_checker == 1)
 	except Exception as e:
 		out_error(e)

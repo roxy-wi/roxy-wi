@@ -703,9 +703,27 @@ def update_db_v_8_1_4():
 			print("An error occurred:", e)
 
 
+def update_db_v_8_1_6():
+	try:
+		if mysql_enable:
+			migrate(
+				migrator.add_column('udp_balancers', 'is_checker', IntegerField(default=0)),
+			)
+		else:
+			migrate(
+				migrator.add_column('udp_balancers', 'is_checker', IntegerField(constraints=[SQL('DEFAULT 0')])),
+			)
+	except Exception as e:
+		if (e.args[0] == 'duplicate column name: is_checker' or 'column "is_checker" of relation "udp_balancers" already exists'
+				or str(e) == '(1060, "Duplicate column name \'is_checker\'")'):
+			print('Updating... DB has been updated to version 8.1.6')
+		else:
+			print("An error occurred:", e)
+
+
 def update_ver():
 	try:
-		Version.update(version='8.1.5').execute()
+		Version.update(version='8.1.6').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -737,4 +755,5 @@ def update_all():
 	update_db_v_8_1_0_3()
 	update_db_v_8_1_2()
 	update_db_v_8_1_4()
+	update_db_v_8_1_6()
 	update_ver()

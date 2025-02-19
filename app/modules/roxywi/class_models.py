@@ -93,6 +93,7 @@ class UdpListenerRequest(BaseModel):
     delay_loop: Optional[int] = 10
     delay_before_retry: Optional[int] = 10
     retry: Optional[int] = 3
+    is_checker: Optional[bool] = 0
 
 
 class UserPost(BaseModel):

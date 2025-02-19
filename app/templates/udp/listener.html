@@ -1,5 +1,7 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
+{% set checker_desc = lang.services.hapservers_desc %}
+<script src="/static/js/udp.js"></script>
 <div id="listener-{{listener.id}}" class="div-server-hapwi div-server-head-dis">
     <div class="server-name">
         <span class="overflow name-span">
@@ -47,6 +49,16 @@
                     setInterval(checkUdpBackendStatus, 60000, '{{listener.id}}', '{{ c.backend_ip }}');
                 </script>
             {% endfor %}
+        </div>
+        <div class="udp-act-links" id="server-{{listener.id|string()}}">
+        {% if g.user_params['role'] <= 2 %}
+            {% set id = 'alert-' + listener.id|string() %}
+            {% if listener.is_checker == 1 %}
+                {{ checkbox(id, title=checker_desc, value='1', desc='Checker', checked='checked') }}
+            {% else %}
+                {{ checkbox(id, title=checker_desc, value='1', desc='Checker') }}
+            {% endif %}
+        {% endif %}
         </div>
     </div>
 </div>
