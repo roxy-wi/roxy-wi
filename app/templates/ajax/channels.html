@@ -18,7 +18,7 @@
     <tr id="telegram-table-{{telegram.id}}" class="{{ loop.cycle('odd', 'even') }}">
         <td class="padding10 first-collumn">
             {% set id = 'telegram-token-' + telegram.id|string() %}
-            {{ input(id, value=telegram.token, size='30') }}
+            {{ input(id, value=telegram.token, size='30', type='password') }}
         </td>
         <td>
             {% set id = 'telegram-chanel-' + telegram.id|string() %}
@@ -70,7 +70,7 @@
     <tr id="slack-table-{{slack.id}}" class="{{ loop.cycle('odd', 'even') }}">
         <td class="padding10 first-collumn">
             {% set id = 'slack-token-' + slack.id|string() %}
-            {{ input(id, value=slack.token, size='30') }}
+            {{ input(id, value=slack.token, size='30', type='password') }}
         </td>
         <td>
             {% set id = 'slack-chanel-' + slack.id|string() %}
@@ -122,7 +122,7 @@
     <tr id="pd-table-{{pd.id}}" class="{{ loop.cycle('odd', 'even') }}">
         <td class="padding10 first-collumn">
             {% set id = 'pd-token-' + pd.id|string() %}
-            {{ input(id, value=pd.token, size='30') }}
+            {{ input(id, value=pd.token, size='30', type='password') }}
         </td>
         <td>
             {% set id = 'pd-chanel-' + pd.id|string() %}

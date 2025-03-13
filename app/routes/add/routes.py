@@ -64,7 +64,8 @@ def add(service):
         'h2': 1,
         'add': request.form.get('add'),
         'conf_add': request.form.get('conf'),
-        'lang': g.user_params['lang']
+        'lang': g.user_params['lang'],
+        'all_servers': roxywi_common.get_dick_permit()
     }
 
     if service == 'haproxy':

@@ -42,7 +42,6 @@ def update_checker_setting_for_server(service_id: int, server_id: int, **kwargs)
 		query = (CheckerSetting.update(**kwargs).where(
 			(CheckerSetting.service_id == service_id) & (CheckerSetting.server_id == server_id)
 		))
-		print(query)
 		query.execute()
 	except Exception as e:
 		out_error(e)

@@ -365,7 +365,7 @@ for (var i = 0; i <= serv_ports.length; i++) {
                 {{ lang.words.server|title() }}
             </td>
             <td>
-                {{ select('new-le-server_id', values=g.user_params['servers'], is_servers='true', by_id=1) }}
+                {{ select('new-le-server_id', values=all_servers, is_servers='true', by_id=1) }}
             </td>
         </tr>
         <tr>
