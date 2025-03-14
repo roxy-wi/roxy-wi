@@ -40,7 +40,7 @@ function overviewHapserverBackends(serv, hostname, service) {
 				$("#top-" + hostname).empty();
 				for (let i in data.data) {
 					if (service === 'haproxy') {
-						div = `<a href="/config/section/haproxy/${serv}/${data.data[i]}" target="_blank" style="padding-right: 10px;">${data.data[i]}</a> `
+						div = `<a href="/config/haproxy/${serv}/show/?section=${data.data[i]}" target="_blank" style="padding-right: 10px;">${data.data[i]}</a> `
 					} else if (service === 'nginx' || service === 'apache') {
 						div = `<a href="/config/${service}/${serv}/show/${i}" target="_blank" style="padding-right: 10px;">${data.data[i]}</a>`;
 					} else {

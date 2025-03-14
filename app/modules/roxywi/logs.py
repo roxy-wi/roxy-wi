@@ -89,7 +89,7 @@ def show_roxy_log(
 			if syslog_server is None or syslog_server == '':
 				raise Exception('error: Syslog server is enabled, but there is no IP for syslog server')
 
-		if waf:
+		if waf and service == 'haproxy':
 			local_path_logs = '/var/log/waf.log'
 			commands = "sudo cat %s |tail -%s %s %s" % (local_path_logs, rows, grep_act, exgrep_act)
 

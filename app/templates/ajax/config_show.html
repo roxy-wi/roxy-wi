@@ -331,6 +331,16 @@
 				</span><div>
 			{% continue %}
 			{% endif %}
+			{% if line.startswith('log-forward') %}
+				</div><span class="param">{{ line }}
+					{% if role %}
+						<span class="accordion-link">
+							<a href="/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
+						</span>
+					{% endif %}
+				</span><div>
+			{% continue %}
+			{% endif %}
 			{% if "acl" in line or "option" in line or "server" in line %}
 				{% if "timeout" not in line and "default-server" not in line and "#use_backend" not in line and "#" not in line%}
 					<span class="numRow">
@@ -410,6 +420,10 @@
 		function expand_button(event) {
 			$("#expand_link").click();
 		}
+        console.log("{{edit_section}}");
+        {% if service == 'haproxy' and edit_section != '' %}
+            openSection('{{ edit_section }}');
+        {% endif %}
 	</script>
 <div id="edit-section" style="display: none;"></div>
 <div id="dialog-confirm" style="display: none;">

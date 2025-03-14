@@ -209,6 +209,13 @@ class ConfigRequest(BaseModel):
     config_local_path: Optional[str] = None
     config: str
 
+    @root_validator(skip_on_failure=True)
+    @classmethod
+    def decode_config(cls, values):
+        if 'config' in values:
+            values['config'] = values['config'].encode('utf-8')
+        return values
+
 
 class LoginRequest(BaseModel):
     login: EscapedString
@@ -407,6 +414,13 @@ class HaproxyServersCheck(BaseModel):
     inter: Optional[int] = 2000
 
 
+class HaproxyServersTemplate(BaseModel):
+    prefix: int
+    count: int
+    servers: Union[IPvAnyAddress, DomainName]
+    port: Annotated[int, Gt(1), Le(65535)]
+
+
 class HaproxyCircuitBreaking(BaseModel):
     observe: Literal['layer7', 'layer4']
     error_limit: int
@@ -415,7 +429,7 @@ class HaproxyCircuitBreaking(BaseModel):
 
 class HaproxyConfigRequest(BaseModel):
     balance: Optional[Literal['roundrobin', 'source', 'leastconn', 'first', 'rdp-cookie', 'uri', 'uri whole', 'static-rr']] = None
-    mode: Literal['tcp', 'http'] = 'http'
+    mode: Literal['tcp', 'http', 'log'] = 'http'
     type: Literal['listen', 'frontend', 'backend']
     name: EscapedString
     option: Optional[str] = None
@@ -425,6 +439,7 @@ class HaproxyConfigRequest(BaseModel):
     headers: Optional[List[HaproxyHeaders]] = None
     acls: Optional[List[HaproxyAcls]] = None
     backend_servers: Optional[List[HaproxyBackendServer]] = None
+    servers_template: Optional[HaproxyServersTemplate] = None
     blacklist: Optional[str] = ''
     whitelist: Optional[str] = ''
     ssl: Optional[HaproxySSL] = None

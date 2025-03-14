@@ -460,7 +460,7 @@ def compare_config(service: str, left: str, right: str) -> str:
 	return render_template('ajax/compare.html', stdout=output, lang=lang)
 
 
-def show_config(server_ip: str, service: str, config_file_name: str, configver: str, claims: dict) -> str:
+def show_config(server_ip: str, service: str, config_file_name: str, configver: str, claims: dict, edit_section: str) -> str:
 	"""
 	Get and display the configuration file for a given server.
 
@@ -516,7 +516,8 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 		'is_serv_protected': server_sql.is_serv_protected(server_ip),
 		'is_restart': service_sql.select_service_setting(server.server_id, service, 'restart'),
 		'lang': roxywi_common.get_user_lang_for_flask(),
-		'hostname': server.hostname
+		'hostname': server.hostname,
+		'edit_section': edit_section
 	}
 
 	return render_template('ajax/config_show.html', **kwargs)

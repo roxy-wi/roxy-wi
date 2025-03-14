@@ -130,11 +130,15 @@
     default-server observe {{ config.circuit_breaking.observe }} error-limit {{ config.circuit_breaking.error_limit }} on-error {{ config.circuit_breaking.on_error }}
     {% endif -%}
 
-    {% if config.backend_servers != 'None' -%}
+    {% if config.backend_servers != 'None' and config.servers_template == 'None' -%}
     {% for backend in config.backend_servers -%}
     server {{ backend.server }} {{ backend.server }}:{{ backend.port }} port {{ backend.port_check }} {{ check_option }} {{ ssl_check_option }} maxconn {{ backend.maxconn }}{% if backend.send_proxy %} send-proxy{% endif %}{% if backend.backup %} backup {% endif %}
 
     {% endfor -%}
+    {% endif -%}
+
+    {% if config.servers_template != 'None' -%}
+    server-template {{ config.servers_template.prefix }} {{ config.servers_template.count }} {{ config.servers_template.servers }}: {{ config.servers_template.port }} {{ check_option }}
     {% endif -%}
 
     {% if config.backends and config.backends != 'None' -%}

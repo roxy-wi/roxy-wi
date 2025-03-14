@@ -388,7 +388,7 @@ class ServiceConfigView(MethodView):
                 return ErrorResponse(error=str(e)).model_dump(mode='json')
 
         try:
-            with open(cfg, 'r') as file:
+            with open(cfg, 'rb') as file:
                 conf = file.readlines()
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get config')
@@ -461,9 +461,9 @@ class ServiceConfigView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get config')
 
         try:
-            with open(cfg, "a") as conf:
+            with open(cfg, "ab") as conf:
                 conf.write(body.config)
-        except IOError as e:
+        except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot write config')
 
         try:
@@ -476,7 +476,10 @@ class ServiceConfigView(MethodView):
             return f'error: {e}', 200
 
         if body.action != 'test':
-            config_mod.diff_config(body.config_local_path, cfg)
+            try:
+                config_mod.diff_config(body.config_local_path, cfg)
+            except Exception as e:
+                return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot compare configs')
 
         return DataStrResponse(data=stderr).model_dump(mode='json'), 201
 

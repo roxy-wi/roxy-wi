@@ -154,7 +154,7 @@ function showLog() {
 			toastr.warning('Select a log file first')
 			return false;
 		} else {
-			file = file_from_get;
+			file = findGetParameter('file');
 		}
 	}
 	if ((file === undefined || file === null) && waf === '') {
@@ -174,9 +174,9 @@ function showLog() {
 	if (service === 'None') {
 		service = 'haproxy';
 	}
-	if (waf && waf != 'haproxy' && waf != 'nginx' && waf != 'apache' && waf != 'keepalived') {
-		url = "/logs/" + service + "/waf/" + serv + "/" + rows;
-		waf = 1;
+	if (waf && waf != 'haproxy' && waf != 'apache' && waf != 'keepalived') {
+		file = findGetParameter('file');
+		url = "/logs/" + service + "/waf/" + serv + "/" + rows + '?file_from_get=' + file;
 	}
 	$.ajax( {
 		url: url,
@@ -300,6 +300,7 @@ function showCompareConfigs() {
 	});
 }
 function showConfig() {
+	let edit_section = '';
 	let service = $('#service').val();
 	let config_file = $('#config_file_name').val()
 	let config_file_name = encodeURI(config_file);
@@ -315,10 +316,16 @@ function showConfig() {
 		}
 	}
 	clearAllAjaxFields();
+
+	if (service === 'haproxy') {
+		edit_section = findGetParameter('section');
+		let edit_section_uri = '?section=' + edit_section;
+	}
 	let json_data = {
 		"serv": $("#serv").val(),
 		"service": service,
-		"config_file_name": config_file_name
+		"config_file_name": config_file_name,
+		"edit_section": edit_section
 	}
 	$.ajax({
 		url: "/config/" + service + "/show",
@@ -332,7 +339,7 @@ function showConfig() {
 				toastr.clear();
 				$("#ajax").html(data.data);
 				$.getScript(configShow);
-				window.history.pushState("Show config", "Show config", "/config/" + service + "/" + $("#serv").val() + "/show/" + config_file_name);
+				window.history.pushState("Show config", "Show config", "/config/" + service + "/" + $("#serv").val() + "/show/" + config_file_name + edit_section_uri);
 			}
 		}
 	});

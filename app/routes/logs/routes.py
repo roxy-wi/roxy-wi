@@ -41,7 +41,6 @@ def logs_internal():
         selects.append(['roxy-wi.access.log', 'access.log'])
 
     kwargs = {
-        'autorefresh': 1,
         'selects': selects,
         'serv': log_file,
         'lang': g.user_params['lang']
@@ -63,6 +62,8 @@ def logs(service, waf):
     # hour1 = request.args.get('hour1')
     # minute1 = request.args.get('minute1')
     log_file = request.args.get('file')
+    service_desc = service_sql.select_service(service)
+    service_name = service_desc.service
 
     if rows is None:
         rows = 10
@@ -70,17 +71,14 @@ def logs(service, waf):
         grep = ''
 
     if service in ('haproxy', 'nginx', 'keepalived', 'apache') and not waf:
-        service_desc = service_sql.select_service(service)
-        service_name = service_desc.service
         servers = roxywi_common.get_dick_permit(service=service_desc.slug)
     elif waf:
         service_name = 'WAF'
-        servers = roxywi_common.get_dick_permit(haproxy=1)
+        servers = roxywi_common.get_dick_permit(service=service_desc.slug)
     else:
         return redirect(url_for('index'))
 
     kwargs = {
-        'autorefresh': 1,
         'servers': servers,
         'serv': serv,
         'service': service,

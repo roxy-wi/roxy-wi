@@ -56,7 +56,7 @@ def ssh_command(server_ip: str, commands: str, **kwargs):
 
 def subprocess_execute(cmd):
 	import subprocess
-	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, errors='backslashreplace')
 	stdout, stderr = p.communicate()
 	output = stdout.splitlines()
 	return output, stderr

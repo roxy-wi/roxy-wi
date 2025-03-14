@@ -39,9 +39,10 @@ def show_config(service):
     configver = request.json.get('configver')
     server_ip = request.json.get('serv')
     claims = get_jwt()
+    edit_section = request.json.get('edit_section')
 
     try:
-        data = config_mod.show_config(server_ip, service, config_file_name, configver, claims)
+        data = config_mod.show_config(server_ip, service, config_file_name, configver, claims, edit_section)
         return DataStrResponse(data=data).model_dump(mode='json'), 200
     except Exception as e:
         return roxywi_common.handler_exceptions_for_json_data(e, '')
@@ -114,8 +115,9 @@ def config(service, serv, edit, config_file_name, new):
             pass
 
         try:
-            conf = open(cfg, "r")
+            conf = open(cfg, "rb")
             config_read = conf.read()
+            config_read = config_read.decode('utf-8')
             conf.close()
         except IOError as e:
             return f'Cannot read imported config file {e}', 200
