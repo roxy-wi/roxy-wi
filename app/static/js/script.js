@@ -144,8 +144,10 @@ function openVersions() {
 	win.focus();
 }
 function showLog() {
-	let waf = cur_url[0].split('?')[0];
+	let service = $('#service').val();
+	let waf = findGetParameter('waf');
 	let file = $('#log_files').val();
+	let file_from_get = '';
 	if (!checkIsServerFiled('#serv')) return false;
 	let serv = $("#serv").val();
 	if ((file === undefined || file === null || file === 'Select a file') && (waf === '' || waf === undefined)) {
@@ -160,7 +162,6 @@ function showLog() {
 	if ((file === undefined || file === null) && waf === '') {
 		toastr.warning('Select a log file first')
 		return false;
-
 	}
 	let rows = $('#rows').val();
 	let grep = $('#grep').val();
@@ -169,14 +170,13 @@ function showLog() {
 	let minute = $('#time_range_out_minut').val();
 	let hour1 = $('#time_range_out_hour1').val();
 	let minute1 = $('#time_range_out_minut1').val();
-	let service = $('#service').val();
 	let url = "/logs/" + service + "/" + serv + "/" + rows;
 	if (service === 'None') {
 		service = 'haproxy';
 	}
-	if (waf && waf != 'haproxy' && waf != 'apache' && waf != 'keepalived') {
+	if (waf == '1') {
 		file = findGetParameter('file');
-		url = "/logs/" + service + "/waf/" + serv + "/" + rows + '?file_from_get=' + file;
+		url = "/logs/" + service + "/waf/" + serv + "/" + rows + file_from_get;
 	}
 	$.ajax( {
 		url: url,
@@ -301,6 +301,7 @@ function showCompareConfigs() {
 }
 function showConfig() {
 	let edit_section = '';
+	let edit_section_uri = '';
 	let service = $('#service').val();
 	let config_file = $('#config_file_name').val()
 	let config_file_name = encodeURI(config_file);
@@ -319,7 +320,9 @@ function showConfig() {
 
 	if (service === 'haproxy') {
 		edit_section = findGetParameter('section');
-		let edit_section_uri = '?section=' + edit_section;
+		if (edit_section != null) {
+			edit_section_uri = '?section=' + edit_section;
+		}
 	}
 	let json_data = {
 		"serv": $("#serv").val(),

@@ -76,7 +76,7 @@
 			{% if waf_service == 'haproxy' %}
 			<a href="{{ url_for('logs.logs', service=waf_service) }}/waf?serv={{ service.1 }}" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
 			{% elif waf_service == 'nginx' %}
-			<a href="{{ url_for('logs.logs', service=waf_service) }}/waf?serv={{ service.1 }}&rows=100&grep=ModSecurity&hour=00&minute=00&hour1=24&minute1=00&file=error.log&waf=0" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
+			<a href="{{ url_for('logs.logs', service=waf_service) }}/waf?serv={{ service.1 }}&rows=100&grep=ModSecurity&hour=00&minute=00&hour1=24&minute1=00&file=error.log&waf=1" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
 			{% endif %}
 		</td>
 		<td></td>

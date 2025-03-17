@@ -420,8 +420,7 @@
 		function expand_button(event) {
 			$("#expand_link").click();
 		}
-        console.log("{{edit_section}}");
-        {% if service == 'haproxy' and edit_section != '' %}
+        {% if service == 'haproxy' and edit_section != '' and edit_section != None %}
             openSection('{{ edit_section }}');
         {% endif %}
 	</script>
