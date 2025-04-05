@@ -1,12 +1,12 @@
 import os
 import glob
+import logging as logger
 from typing import Any, Union
 
 from flask import request, g
 from flask_jwt_extended import get_jwt
 from flask_jwt_extended import verify_jwt_in_request
 
-from app.modules.db.sql import get_setting
 import app.modules.db.udp as udp_sql
 import app.modules.db.roxy as roxy_sql
 import app.modules.db.user as user_sql
@@ -22,13 +22,7 @@ from app.modules.roxywi.exception import RoxywiResourceNotFound, RoxywiGroupMism
 get_config_var = roxy_wi_tools.GetConfigVar()
 
 
-def return_error_message():
-	return 'error: All fields must be completed'
-
-
 def get_user_group(**kwargs) -> int:
-	user_group = ''
-
 	try:
 		verify_jwt_in_request()
 		claims = get_jwt()
@@ -39,6 +33,8 @@ def get_user_group(**kwargs) -> int:
 				user_group = group.group_id
 			else:
 				user_group = group.name
+		else:
+			user_group = ''
 	except Exception as e:
 		raise Exception(f'error: {e}')
 	return user_group
@@ -55,7 +51,7 @@ def check_user_group_for_flask(api_token: bool = False):
 	if user_sql.check_user_group(user_id, group_id):
 		return True
 	else:
-		logging('RMON server', 'has tried to actions in not his group', login=1)
+		logging('Roxy-WI server', 'warning: has tried to actions in not his group')
 		return False
 
 
@@ -63,7 +59,7 @@ def check_user_group_for_socket(user_id: int, group_id: int) -> bool:
 	if user_sql.check_user_group(user_id, group_id):
 		return True
 	else:
-		logging('RMON server', 'has tried to actions in not his group', login=1)
+		logging('Roxy-WI server', 'warning: has tried to actions in not his group')
 		return False
 
 
@@ -73,7 +69,7 @@ def check_is_server_in_group(server_ip: str) -> bool:
 	if (server.ip == server_ip and int(server.group_id) == int(group_id)) or group_id == 1:
 		return True
 	else:
-		logging('Roxy-WI server', 'has tried to actions in not his group server', roxywi=1, login=1)
+		logging('Roxy-WI server', 'warning: has tried to actions in not his group server')
 		return False
 
 
@@ -105,56 +101,50 @@ def get_files(folder, file_format, server_ip=None) -> list:
 
 
 def logging(server_ip: Union[str, int], action: str, **kwargs) -> None:
-	get_date = roxy_wi_tools.GetDate(get_setting('time_zone'))
-	cur_date_in_log = get_date.return_date('date_in_log')
+	def setup_logger(log_file: str) -> None:
+		"""Helper function to set up the logger configuration."""
+		logger.basicConfig(
+			filename=log_file,
+			format='%(asctime)s %(levelname)s: %(message)s',
+			level=logger.INFO,
+			datefmt='%b %d %H:%M:%S'
+		)
+		logger.getLogger("paramiko").setLevel(logger.WARNING)
+
+	# Extracted log path and file configuration
 	log_path = get_config_var.get_config_var('main', 'log_path')
+	log_file = f"{log_path}/roxy-wi.log"
+	setup_logger(log_file)
+
+	# JWT validation and extracting user's information
 	verify_jwt_in_request()
 	claims = get_jwt()
 	user_id = claims['user_id']
-	login = user_sql.get_user_id(user_id=user_id)
+	user = user_sql.get_user_id(user_id=user_id)
+	user_group = get_user_group()
+	ip = request.remote_addr
 
-	if not os.path.exists(log_path):
-		os.makedirs(log_path)
-
-	try:
-		user_group = get_user_group()
-	except Exception:
-		user_group = ''
-
-	try:
-		ip = request.remote_addr
-	except Exception:
-		ip = ''
-
-	if kwargs.get('roxywi') == 1:
-		if kwargs.get('login'):
-			mess = f"{cur_date_in_log} from {ip} user: {login.username}, group: {user_group}, {action} on: {server_ip}\n"
-		else:
-			mess = f"{cur_date_in_log} {action} from {ip}\n"
-		log_file = f"{log_path}/roxy-wi.log"
+	if 'error' in action:
+		log_level = logger.error
+		action = action.replace('error: : ', '')
+		action = action.replace('error: ', '')
+	elif 'warning' in action:
+		log_level = logger.warning
+		action = action.replace('warning: ', '')
 	else:
-		mess = f"{cur_date_in_log} from {ip} user: {login.username}, group: {user_group}, {action} on: {server_ip} {kwargs.get('service')}\n"
-		log_file = f"{log_path}/config_edit.log"
+		log_level = logger.info
+
+	log_message = f"from {ip} user: {user.username}, group: {user_group}, message: {action} on: {server_ip}"
+	log_level(log_message)
 
 	if kwargs.get('keep_history'):
 		try:
-			keep_action_history(kwargs.get('service'), action, server_ip, login.username, ip)
+			keep_action_history(kwargs.get('service'), action, server_ip, user.user_id, ip)
 		except Exception as e:
-			print(f'error: Cannot save history: {e}')
-
-	try:
-		with open(log_file, 'a') as log:
-			log.write(mess)
-	except IOError as e:
-		print(f'Cannot write log. Please check log_path in config {e}')
+			logger.error(f'Cannot save history: {e}')
 
 
-def keep_action_history(service: str, action: str, server_ip: str, login: str, user_ip: str):
-	if login != '':
-		user = user_sql.get_user_id_by_username(login)
-		user_id = user.user_id
-	else:
-		user_id = 0
+def keep_action_history(service: str, action: str, server_ip: str, user_id: int, user_ip: str):
 	if user_ip == '':
 		user_ip = 'localhost'
 
@@ -163,7 +153,7 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 			server_id = server_ip
 			hostname = ha_sql.select_cluster_name(int(server_id))
 		except Exception as e:
-			logging('Roxy-WI server', f'Cannot get info about cluster {server_ip} for history: {e}', roxywi=1)
+			logging('Roxy-WI server', f'error: cannot get info about cluster {server_ip} for history: {e}')
 			return
 	elif service == 'UDP listener':
 		try:
@@ -171,7 +161,7 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 			listener = udp_sql.get_listener(server_id)
 			hostname = listener.name
 		except Exception as e:
-			logging('Roxy-WI server', f'Cannot get info about Listener {server_ip} for history: {e}', roxywi=1)
+			logging('Roxy-WI server', f'error: cannot get info about Listener {server_ip} for history: {e}')
 			return
 	else:
 		try:
@@ -179,13 +169,13 @@ def keep_action_history(service: str, action: str, server_ip: str, login: str, u
 			server_id = server.server_id
 			hostname = server.hostname
 		except Exception as e:
-			logging('Roxy-WI server', f'Cannot get info about {server_ip} for history: {e}', roxywi=1)
+			logging('Roxy-WI server', f'error: cannot get info about {server_ip} for history: {e}')
 			return
 
 	try:
 		history_sql.insert_action_history(service, action, server_id, user_id, user_ip, server_ip, hostname)
 	except Exception as e:
-		logging('Roxy-WI server', f'Cannot save a history: {e}', roxywi=1)
+		logging('Roxy-WI server', f'error: cannot save a history: {e}')
 
 
 def get_dick_permit(**kwargs):
@@ -289,7 +279,7 @@ def return_user_subscription():
 		user_subscription = return_user_status()
 	except Exception as e:
 		user_subscription = return_unsubscribed_user_status()
-		logging('Roxy-WI server', f'Cannot get a user plan: {e}', roxywi=1)
+		logging('Roxy-WI server', f'Cannot get a user plan: {e}')
 
 	return user_subscription
 
@@ -318,7 +308,7 @@ def is_user_has_access_to_group(user_id: int, group_id: int) -> None:
 
 
 def handle_json_exceptions(ex: Exception, message: str, server_ip='Roxy-WI server') -> dict:
-	logging(server_ip, f'{message}: {ex}', login=1, roxywi=1)
+	logging(server_ip, f'{message}: {ex}')
 	return ErrorResponse(error=f'{message}: {ex}').model_dump(mode='json')
 
 

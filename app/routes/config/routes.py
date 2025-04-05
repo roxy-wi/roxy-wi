@@ -286,8 +286,6 @@ def haproxy_section_save(server_ip):
 
     stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, 'haproxy', oldcfg=oldcfg)
 
-    config_mod.diff_config(oldcfg, cfg)
-
     try:
         os.remove(f"{hap_configs_dir}*.old")
     except IOError:

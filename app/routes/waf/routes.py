@@ -153,8 +153,6 @@ def waf_save_config(service, server_ip, rule_id):
 
     stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, 'waf', oldcfg=oldcfg, config_file_name=config_file_name)
 
-    config_mod.diff_config(oldcfg, cfg)
-
     try:
         os.system(f"/bin/rm -f {configs_dir}*.old")
     except Exception as e:

@@ -3,8 +3,6 @@ from pathlib import Path
 from typing import Any
 
 from flask import render_template, g
-from flask_jwt_extended import get_jwt
-from flask_jwt_extended import verify_jwt_in_request
 
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
@@ -36,7 +34,7 @@ def _replace_config_path_to_correct(config_path: str) -> str:
 	try:
 		return config_path.replace('92', '/')
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot sanitize config file', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot sanitize config file')
 
 
 def get_config(server_ip, cfg, service='haproxy', **kwargs):
@@ -82,7 +80,7 @@ def get_config(server_ip, cfg, service='haproxy', **kwargs):
 		with mod_ssh.ssh_connect(server_ip) as ssh:
 			ssh.get_sftp(config_path, cfg)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot get config', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot get config')
 
 
 def upload(server_ip: str, path: str, file: str) -> None:
@@ -98,7 +96,7 @@ def upload(server_ip: str, path: str, file: str) -> None:
 		with mod_ssh.ssh_connect(server_ip) as ssh:
 			ssh.put_sftp(file, path)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot upload {file} to {path} to server: {server_ip}', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot upload {file} to {path} to server: {server_ip}')
 
 
 def _generate_command(service: str, server_id: int, just_save: str, config_path: str, tmp_file: str, cfg: str, server_ip: str) -> str:
@@ -153,7 +151,7 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 	return commands
 
 
-def _create_config_version(server_id: int, server_ip: str, service: str, config_path: str, login: str, cfg: str, old_cfg: str, tmp_file: str) -> None:
+def _create_config_version(server_id: int, server_ip: str, service: str, config_path: str, user_id: int, cfg: str, old_cfg: str, tmp_file: str) -> None:
 	"""
 	Create a new version of the configuration file.
 
@@ -181,17 +179,16 @@ def _create_config_version(server_id: int, server_ip: str, service: str, config_
 		try:
 			get_config(server_ip, old_cfg, service=service, config_file_name=config_path)
 		except Exception:
-			roxywi_common.logging('Roxy-WI server', 'Cannot download config for diff', roxywi=1)
+			roxywi_common.logging('Roxy-WI server', 'Cannot download config for diff')
 	try:
-		diff = diff_config(old_cfg, cfg, return_diff=1)
+		diff = diff_config(old_cfg, cfg)
 	except Exception as e:
-		roxywi_common.logging('Roxy-WI server', f'error: Cannot create diff config version: {e}', roxywi=1)
+		roxywi_common.logging('Roxy-WI server', f'error: Cannot create diff config version: {e}')
 
 	try:
-		user = user_sql.get_user_id_by_username(login)
-		config_sql.insert_config_version(server_id, user.user_id, service, cfg, config_path, diff)
+		config_sql.insert_config_version(server_id, user_id, service, cfg, config_path, diff)
 	except Exception as e:
-		roxywi_common.logging('Roxy-WI server', f'error: Cannot insert config version: {e}', roxywi=1)
+		roxywi_common.logging('Roxy-WI server', f'error: Cannot insert config version: {e}')
 
 
 def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, **kwargs):
@@ -221,16 +218,16 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	try:
 		os.system(f"dos2unix -q {cfg}")
 	except OSError as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'There is no dos2unix', login=user.username)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'There is no dos2unix')
 
 	try:
 		upload(server_ip, tmp_file, cfg)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot upload config', login=user.username)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot upload config')
 
 	# If master then save a version of config in a new way
 	if not kwargs.get('slave') and service != 'waf':
-		_create_config_version(server_id, server_ip, service, config_path, user.username, cfg, kwargs.get('oldcfg'), tmp_file)
+		_create_config_version(server_id, server_ip, service, config_path, user.user_id, cfg, kwargs.get('oldcfg'), tmp_file)
 
 	try:
 		commands = _generate_command(service, server_id, just_save, config_path, tmp_file, cfg, server_ip)
@@ -240,12 +237,12 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	try:
 		error = server_mod.ssh_command(server_ip, commands)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot {just_save} {service}', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot {just_save} {service}')
 
 	if just_save in ('reload', 'restart'):
-		roxywi_common.logging(server_ip, f'Service has been {just_save}ed', login=user.username, keep_history=1, service=service)
+		roxywi_common.logging(server_ip, f'Service {service.title()} has been {just_save}ed', keep_history=1, service=service)
 	if just_save != 'test':
-		roxywi_common.logging(server_ip, 'A new config file has been uploaded', login=user.username, keep_history=1, service=service)
+		roxywi_common.logging(server_ip, 'A new config file has been uploaded', keep_history=1, service=service)
 
 	if error.strip() != 'haproxy' and error.strip() != 'nginx':
 		return error.strip() or service.title()
@@ -349,46 +346,27 @@ def _open_port_firewalld(cfg: str, server_ip: str, service: str) -> str:
 	return firewalld_commands
 
 
-def diff_config(old_cfg, cfg, **kwargs):
+def diff_config(old_cfg, cfg) -> str:
 	"""
-	Function to compare two configuration files and log the differences.
+	Compute the difference between two configuration files and return the result as a string.
 
-	:param old_cfg: The path of the old configuration file.
-	:param cfg: The path of the new configuration file.
-	:param kwargs: Additional keyword arguments. Currently, supports:
-					- return_diff: If True, returns the difference between the two files as a string.
-	:return: If kwargs['return_diff'] is True, returns the difference between the two files as a string.
-			 Otherwise, logs the differences with user information and writes it to a log file.
+	This function executes the `diff` command to compare two configuration files,
+	specified by their paths, and retrieves the resulting differences. The output
+	contains the line-by-line difference between `old_cfg` and `cfg` using the
+	unified diff format. This function is useful for auditing and comparing
+	configuration changes.
+
+	:param old_cfg: Path to the old configuration file to compare.
+	:param cfg: Path to the new configuration file to compare.
+	:return: Unified diff output showing the differences between `old_cfg` and `cfg`.
 	"""
-	log_path = get_config_var.get_config_var('main', 'log_path')
-	user_group = roxywi_common.get_user_group()
 	diff = ""
-	date = get_date.return_date('date_in_log')
-	log_date = get_date.return_date('logs')
 	cmd = f"/bin/diff -ub {old_cfg} {cfg}"
-	log_file = f"{log_path}/config_edit-{log_date}"
 	output, stderr = server_mod.subprocess_execute(cmd)
 
-	if kwargs.get('return_diff'):
-		for line in output:
-			diff += line + "\n"
-		return diff
-
-	try:
-		verify_jwt_in_request()
-		claims = get_jwt()
-		login = user_sql.get_user_id(claims['user_id'])
-	except Exception:
-		login = ''
-
 	for line in output:
-		diff += f"{date} user: {login.username}, group: {user_group} {line}\n"
-
-	try:
-		with open(log_file, 'a') as log:
-			log.write(diff)
-	except IOError as e:
-		roxywi_common.logging('Roxy-WI server', f'error: Cannot write a diff config to the log file: {e}, {stderr}', login=login.username, roxywi=1)
+		diff += line + "\n"
+	return diff
 
 
 def _classify_line(line: str) -> str:

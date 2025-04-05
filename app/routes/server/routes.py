@@ -40,8 +40,6 @@ bp.add_url_rule('/backup', view_func=BackupView.as_view('backup', False), method
 bp.add_url_rule('/backup/s3', view_func=S3BackupView.as_view('backup_s3', False), methods=['POST'])
 bp.add_url_rule('/backup/git', view_func=GitBackupView.as_view('backup_git', False), methods=['POST'])
 
-error_mess = roxywi_common.return_error_message()
-
 
 @bp.before_request
 @jwt_required()

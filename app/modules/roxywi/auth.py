@@ -1,3 +1,5 @@
+from typing import Union
+
 from flask import request, abort, url_for, jsonify
 from flask_jwt_extended import create_access_token, set_access_cookies
 from flask_jwt_extended import get_jwt
@@ -10,7 +12,7 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 
 
-def check_login(user_id: int) -> str:
+def check_login(user_id: int) -> Union[str, None]:
     if user_id is None:
         return 'login_page'
 
@@ -23,8 +25,6 @@ def check_login(user_id: int) -> str:
             ip = ''
 
         user_sql.update_last_act_user(user_id, ip)
-
-        return 'ok'
 
 
 def is_access_permit_to_service(service: str) -> bool:

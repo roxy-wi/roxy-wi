@@ -542,3 +542,7 @@ class ListRequest(BaseModel):
     action: Optional[Literal['reload', 'restart', 'save']] = None
     content: Optional[str] = ''
     group_id: Optional[int] = None
+
+
+class IpRequest(BaseModel):
+    ip: Union[IPvAnyAddress, DomainName]

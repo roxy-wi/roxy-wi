@@ -21,11 +21,11 @@
 					{{ input('new_backend', name='name', title=lang.words.name|title() + ' ' +lang.words.backend, placeholder="web_80", required='required') }}
 				</td>
 			</tr>
-			<tr class="advance">
+			<tr>
 				<td class="addName">{{lang.words.mode|title()}}: </td>
 				<td class="addOption">
 					{% set values = dict() %}
-					{% set values = {'http':'http','tcp':'tcp'} %}
+					{% set values = {'http':'http','tcp':'tcp', 'log': 'log'} %}
 					{{ select('backend-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
 					<span id="https-backend-span">
 						<label for="https-backend" style="margin-top: 5px;">Is SSL enabled on frontend?</label>

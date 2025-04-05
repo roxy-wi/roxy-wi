@@ -36,11 +36,11 @@
 						</div>
 					</td>
 				</tr>
-				<tr class="advance">
+				<tr>
 					<td class="addName">{{lang.words.mode|title()}}: </td>
 					<td class="addOption">
 						{% set values = dict() %}
-						{% set values = {'http':'http','tcp':'tcp'} %}
+						{% set values = {'http':'http','tcp':'tcp', 'log': 'log'} %}
 						{{ select('listen-mode-select', name='mode', values=values, selected='http', required='required', class='force_close') }}
 						<span id="https-listen-span">
 							<label for="https-listen" style="margin-top: 5px;" title="{{lang.words.enable|title()}} SSL Offloading" data-help="{{lang.add_page.desc.ssl_offloading}}">SSL Offloading</label>

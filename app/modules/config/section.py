@@ -7,7 +7,7 @@ from app.modules.common.common import return_nice_path
 
 SECTION_NAMES = (
 	'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', '#HideBlockStart',
-	'#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors'
+	'#HideBlockEnd', 'peers', 'resolvers', 'userlist', 'http-errors', 'log-forward'
 )
 
 

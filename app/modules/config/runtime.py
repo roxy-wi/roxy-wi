@@ -132,7 +132,7 @@ def change_ip_and_port(serv, backend_backend, backend_server, backend_ip, backen
 			lines += output[0]
 			roxywi_common.logging(
 				master[0], f'IP address and port have been changed. On: {backend_backend}/{backend_server} to {backend_ip}:{backend_port}',
-				login=1, keep_history=1, service='haproxy'
+				keep_history=1, service='haproxy'
 			)
 
 	cmd = f'echo "set server {backend_backend}/{backend_server} addr {backend_ip} port {backend_port} ' \
@@ -140,7 +140,7 @@ def change_ip_and_port(serv, backend_backend, backend_server, backend_ip, backen
 	roxywi_common.logging(
 		serv,
 		f'IP address and port have been changed. On: {backend_backend}/{backend_server} to {backend_ip}:{backend_port}',
-		login=1, keep_history=1, service='haproxy'
+		keep_history=1, service='haproxy'
 	)
 	output, stderr = server_mod.subprocess_execute(cmd)
 
@@ -218,14 +218,14 @@ def add_server(
 			lines += f'{master[0]}: {line}<br />'
 			stderr += error
 			roxywi_common.logging(
-				master[0], f'A new backend server has been add: {backend}/{server}', login=1, keep_history=1, service='haproxy'
+				master[0], f'A new backend server has been add: {backend}/{server}', keep_history=1, service='haproxy'
 			)
 
 	line, error = add_server_via_runtime(server_ip, backend, server, backend_ip, backend_port, check, port_check)
 	lines += f'{server_ip}: {line}<br />'
 	stderr += error
 	roxywi_common.logging(
-		server_ip, f'A new backend server has been add: {backend}/{server}', login=1, keep_history=1, service='haproxy'
+		server_ip, f'A new backend server has been add: {backend}/{server}', keep_history=1, service='haproxy'
 	)
 
 	if 'Already exists a server' in lines:
@@ -272,14 +272,14 @@ def delete_server(server_ip: str, backend: str, server: str) -> str:
 			lines += f'{master[0]}: {line}<br />'
 			stderr += error
 			roxywi_common.logging(
-				master[0], f'Server has been deleted: {backend}/{server}', login=1, keep_history=1, service='haproxy'
+				master[0], f'Server has been deleted: {backend}/{server}', keep_history=1, service='haproxy'
 			)
 
 	line, error = delete_server_via_runtime(server_ip, backend, server)
 	lines += f'{server_ip}: {line}<br />'
 	stderr += error
 	roxywi_common.logging(
-		server_ip, f'Server has been deleted: {backend}/{server}', login=1, keep_history=1, service='haproxy'
+		server_ip, f'Server has been deleted: {backend}/{server}', keep_history=1, service='haproxy'
 	)
 
 	if stderr != '':
@@ -309,10 +309,10 @@ def change_maxconn_global(serv: str, maxconn: int) -> str:
 		if master[0] is not None:
 			cmd = f'echo "set maxconn global {maxconn}" |nc {master[0]} {haproxy_sock_port}'
 			server_mod.subprocess_execute(cmd)
-		roxywi_common.logging(master[0], f'Maxconn has been changed. Globally to {maxconn}', login=1, keep_history=1, service='haproxy')
+		roxywi_common.logging(master[0], f'Maxconn has been changed. Globally to {maxconn}', keep_history=1, service='haproxy')
 
 	cmd = f'echo "set maxconn global {maxconn}" |nc {serv} {haproxy_sock_port}'
-	roxywi_common.logging(serv, f'Maxconn has been changed. Globally to {maxconn}', login=1, keep_history=1, service='haproxy')
+	roxywi_common.logging(serv, f'Maxconn has been changed. Globally to {maxconn}', keep_history=1, service='haproxy')
 	output, stderr = server_mod.subprocess_execute(cmd)
 
 	if stderr != '':
@@ -341,10 +341,10 @@ def change_maxconn_frontend(serv, maxconn, frontend) -> str:
 		if master[0] is not None:
 			cmd = f'echo "set maxconn frontend {frontend} {maxconn}" |nc {master[0]} {haproxy_sock_port}'
 			server_mod.subprocess_execute(cmd)
-		roxywi_common.logging(master[0], f'Maxconn has been changed. On: {frontend} to {maxconn}', login=1, keep_history=1, service='haproxy')
+		roxywi_common.logging(master[0], f'Maxconn has been changed. On: {frontend} to {maxconn}', keep_history=1, service='haproxy')
 
 	cmd = f'echo "set maxconn frontend {frontend} {maxconn}" |nc {serv} {haproxy_sock_port}'
-	roxywi_common.logging(serv, f'Maxconn has been changed. On: {frontend} to {maxconn}', login=1, keep_history=1, service='haproxy')
+	roxywi_common.logging(serv, f'Maxconn has been changed. On: {frontend} to {maxconn}', keep_history=1, service='haproxy')
 	output, stderr = server_mod.subprocess_execute(cmd)
 
 	if stderr != '':
@@ -373,10 +373,10 @@ def change_maxconn_backend(serv, backend, backend_server, maxconn) -> str:
 		if master[0] is not None:
 			cmd = f'echo "set maxconn server {backend}/{backend_server} {maxconn}" |nc {master[0]} {haproxy_sock_port}'
 			server_mod.subprocess_execute(cmd)
-		roxywi_common.logging(master[0], f'Maxconn has been changed. On: {backend}/{backend_server} to {maxconn}', login=1, keep_history=1, service='haproxy')
+		roxywi_common.logging(master[0], f'Maxconn has been changed. On: {backend}/{backend_server} to {maxconn}', keep_history=1, service='haproxy')
 
 	cmd = f'echo "set maxconn server {backend}/{backend_server} {maxconn}" |nc {serv} {haproxy_sock_port}'
-	roxywi_common.logging(serv, f'Maxconn has been changed. On: {backend} to {maxconn}', login=1, keep_history=1, service='haproxy')
+	roxywi_common.logging(serv, f'Maxconn has been changed. On: {backend} to {maxconn}', keep_history=1, service='haproxy')
 	output, stderr = server_mod.subprocess_execute(cmd)
 
 	if stderr != '':
@@ -472,7 +472,7 @@ def delete_ip_from_list(serv, ip_id, ip, list_id, list_name) -> str:
 	cmd = f'echo "del acl #{list_id} #{ip_id}" |nc {serv} {haproxy_sock_port}'
 	output, stderr = server_mod.subprocess_execute(cmd)
 
-	roxywi_common.logging(serv, f'{ip_id} has been delete from list {list_id}', login=1, keep_history=1, service='haproxy')
+	roxywi_common.logging(serv, f'{ip_id} has been delete from list {list_id}', keep_history=1, service='haproxy')
 	if output[0] != '':
 		return f'error: {output[0]}'
 	if stderr != '':
@@ -495,7 +495,7 @@ def add_ip_to_list(serv, ip, list_id, list_name) -> str:
 	if 'is not a valid IPv4 or IPv6 address' not in output[0]:
 		cmd = f'echo "{ip}" >> {lib_path}/lists/{user_group}/{list_name}'
 		output, stderr = server_mod.subprocess_execute(cmd)
-		roxywi_common.logging(serv, f'{ip} has been added to list {list_id}', login=1, keep_history=1, service='haproxy')
+		roxywi_common.logging(serv, f'{ip} has been added to list {list_id}', keep_history=1, service='haproxy')
 		if output:
 			return f'error: {output}'
 		if stderr:

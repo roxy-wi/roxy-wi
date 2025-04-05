@@ -17,7 +17,7 @@ import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.metrics as metric
 import app.modules.roxywi.common as roxywi_common
-from app.modules.roxywi.class_models import DomainName
+from app.modules.roxywi.class_models import DomainName, IpRequest
 
 
 @bp.before_request
@@ -68,17 +68,16 @@ def metrics(service):
 
 
 @bp.route('/cpu', methods=['POST'])
-def metrics_cpu():
-    metrics_type = common.checkAjaxInput(request.form.get('ip'))
-
-    return jsonify(metric.show_cpu_metrics(metrics_type))
+@get_user_params()
+@validate()
+def metrics_cpu(body: IpRequest):
+    return jsonify(metric.show_cpu_metrics(body.ip))
 
 
 @bp.route('/ram', methods=['POST'])
-def metrics_ram():
-    metrics_type = common.checkAjaxInput(request.form.get('ip'))
-
-    return jsonify(metric.show_ram_metrics(metrics_type))
+@validate()
+def metrics_ram(body: IpRequest):
+    return jsonify(metric.show_ram_metrics(body.ip))
 
 
 @bp.route('/<service>/table-metrics')

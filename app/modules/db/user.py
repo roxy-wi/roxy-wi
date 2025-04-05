@@ -11,22 +11,18 @@ def add_user(user, email, password, role, enabled, group):
 	if password != 'aduser':
 		try:
 			hashed_pass = roxy_wi_tools.Tools.get_hash(password)
-			last_id = User.insert(
+			return User.insert(
 				username=user, email=email, password=hashed_pass, role_id=role, enabled=enabled, group_id=group
 			).execute()
 		except Exception as e:
 			out_error(e)
-		else:
-			return last_id
 	else:
 		try:
-			last_id = User.insert(
+			return User.insert(
 				username=user, email=email, role=role, ldap_user=1, enabled=enabled, group_id=group
 			).execute()
 		except Exception as e:
 			out_error(e)
-		else:
-			return last_id
 
 
 def update_user_from_admin_area(user_id, **kwargs):
@@ -212,13 +208,6 @@ def get_user_role_in_group(user_id, group_id):
 	else:
 		for user_id in query_res:
 			return int(user_id.user_role_id)
-
-
-def get_user_id_by_username(username: str) -> User:
-	try:
-		return User.get(User.username == username)
-	except Exception as e:
-		out_error(e)
 
 
 def select_user_services(user_id):

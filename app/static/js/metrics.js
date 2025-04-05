@@ -403,13 +403,13 @@ function loadMetrics() {
     });
 }
 function getChartDataHapWiRam(ip) {
+    let json_data = {
+        'ip': ip
+    }
     $.ajax({
         url: "/metrics/ram",
-		data: {
-			metrics_hapwi_ram: '1',
-			ip: ip,
-			token: $('#token').val()
-		},
+		data: JSON.stringify(json_data),
+        contentType: "application/json",
 		beforeSend: function() {
 			$('#ram').html('<img class="loading_hapwi_overview" src="/static/images/loading.gif" alt="loading..." />')
 		},
@@ -481,13 +481,13 @@ function renderChartHapWiRam(data) {
     charts.push(myChart);
 }
 function getChartDataHapWiCpu(ip) {
+    let json_data = {
+        'ip': ip
+    }
     $.ajax({
         url: "/metrics/cpu",
-		data: {
-			metrics_hapwi_cpu: '1',
-			ip: ip,
-			token: $('#token').val()
-		},
+		data: JSON.stringify(json_data),
+        contentType: "application/json",
 		type: "POST",
         success: function (result) {   
             // Получение значений из строки и разделение их на массив
@@ -596,8 +596,8 @@ $( function() {
 });
 function showOverviewHapWI() {
     removeData();
-	getChartDataHapWiCpu('1');
-	getChartDataHapWiRam('1');
+	getChartDataHapWiCpu('127.0.0.1');
+	getChartDataHapWiRam('127.0.0.1');
 	NProgress.configure({showSpinner: false});
 }
 function updatingCpuRamCharts() {

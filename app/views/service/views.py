@@ -475,12 +475,6 @@ class ServiceConfigView(MethodView):
         except Exception as e:
             return f'error: {e}', 200
 
-        if body.action != 'test':
-            try:
-                config_mod.diff_config(body.config_local_path, cfg)
-            except Exception as e:
-                return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot compare configs')
-
         return DataStrResponse(data=stderr).model_dump(mode='json'), 201
 
 
@@ -654,7 +648,7 @@ class ServiceConfigVersionsView(MethodView):
                     try:
                         file.add(get + "\n")
                         roxywi_common.logging(
-                            server_ip, f"Version of config has been deleted: {get}", login=1, keep_history=1,
+                            server_ip, f"Version of config has been deleted: {get}", keep_history=1,
                             service=service
                         )
                     except Exception:

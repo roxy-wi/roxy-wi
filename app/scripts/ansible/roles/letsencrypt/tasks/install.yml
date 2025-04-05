@@ -34,7 +34,7 @@
         https_proxy: "{{PROXY}}"
 
     - name: Get cert
-      command: "certbot certonly --standalone {{domains_command}} --non-interactive --agree-tos --email {{email}} --http-01-port=8888"
+      command: "certbot certonly --standalone {{domains_command}} --non-interactive --agree-tos --email {{email}} --http-01-port=8888 --cert-name {{main_domain}}"
 
     - name: Combine into pem file
       shell: "cat /etc/letsencrypt/live/{{main_domain}}/fullchain.pem /etc/letsencrypt/live/{{main_domain}}/privkey.pem > {{ssl_path}}/{{main_domain}}.pem"

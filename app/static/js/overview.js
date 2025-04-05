@@ -116,8 +116,8 @@ function showOverviewServer(name, ip, id, service) {
 				$("#div-pannel-" + id).insertBefore('#up-pannel')
 				$("#ajax-server-" + id).html(data);
 				$.getScript(awesome)
-				getChartDataHapWiRam()
-				getChartDataHapWiCpu()
+				getChartDataHapWiRam(ip)
+				getChartDataHapWiCpu(ip)
 			}
 		}					
 	} );
