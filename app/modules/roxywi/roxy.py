@@ -100,7 +100,7 @@ def action_service(action: str, service: str) -> str:
 		'stop': 'disable --now',
 		'restart': 'restart',
 	}
-	if not re.match(r'^[a-zA-Z0-9\.\-]+$', service):
+	if not re.match(r'^[a-zA-Z0-9._-]+$', service):
 			return f"Invalid service name: {service}. Only alphanumeric characters, dots, and hyphens are allowed."
 	cmd = f"sudo systemctl {actions[action]} {service}"
 	if not roxy_sql.get_user().Status:
@@ -109,7 +109,7 @@ def action_service(action: str, service: str) -> str:
 	if is_in_docker:
 		cmd = f"sudo supervisorctl {action} {service}"
 	os.system(cmd)
-	roxywi_common.logging('Roxy-WI server', f' The service {service} has been {action}ed', roxywi=1, login=1)
+	roxywi_common.logging('Roxy-WI server', f'The service {service} has been {action}ed', roxywi=1, login=1)
 	return 'ok'
 
 

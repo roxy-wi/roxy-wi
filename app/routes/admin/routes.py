@@ -85,11 +85,9 @@ def update_tools(service):
         return f'error: {e}'
 
 
-@bp.route('/tools/action/<service>/<action>')
+@bp.route('/tools/action/<service>/<any(start, stop, restart):action>')
 def action_tools(service, action):
     roxywi_auth.page_for_admin()
-    if action not in ('start', 'stop', 'restart'):
-        return 'error: wrong action'
 
     return roxy.action_service(action, service)
 
