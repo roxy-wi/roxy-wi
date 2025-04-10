@@ -93,6 +93,18 @@ function openSection(section) {
 					$(section_id + ' input[name="port"]').get(i).value = bind.port;
 					i++;
 				}
+				if (data.blacklist) {
+					$('#'+section_type+'_blacklist_checkbox').prop("checked", true);
+					$("#" + section_type + "_blacklist-hide").show("fast");
+				} else {
+					$('#'+section_type+'_blacklist_checkbox').prop("checked", false);
+				}
+				if (data.whitelist) {
+					$('#'+section_type+'_whitelist_checkbox').prop("checked", true);
+					$("#" + section_type + "_whitelist-hide").show("fast");
+				} else {
+					$('#'+section_type+'_whitelist_checkbox').prop("checked", false);
+				}
 			}
 			if (section_type === 'listen' || section_type === 'backend') {
 				if (data.config.backend_servers) {
@@ -366,7 +378,7 @@ function addProxy(form_name, generate=false) {
 					data.data = data.data.replace(/\n/g, "<br>");
 					if (returnNiceCheckingConfig(data.data) === 0) {
 						toastr.info('Section has been added. Do not forget to restart the server');
-						let ip = frm.find('select[name=serv]').val();
+						let ip = $('select[name=serv]').val();
 						localStorage.setItem('restart', ip);
 						resetProxySettings();
 					}
@@ -401,7 +413,7 @@ function editProxy(form_name, dialog_id, generate=false) {
 				data.data = data.data.replace(/\n/g, "<br>");
 				if (returnNiceCheckingConfig(data.data) === 0) {
 					toastr.info('Section has been updated. Do not forget to restart the server');
-					let ip = frm.find('select[name=serv]').val();
+					let ip = $('select[name=serv]').val();
 					localStorage.setItem('restart', ip);
 					showConfig();
 					$(dialog_id).dialog( "close" );

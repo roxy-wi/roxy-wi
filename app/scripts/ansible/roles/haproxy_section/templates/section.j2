@@ -32,7 +32,7 @@
     tcp-request content reject
     {% endif %}
     {% if config.blacklist and config.blacklist != 'None' -%}
-    tcp-request connection reject if { src -f {{ haproxy_dir }}/white/{{ config.blacklist }} }
+    tcp-request connection reject if { src -f {{ haproxy_dir }}/black/{{ config.blacklist }} }
     {% endif %}
 
     {% if config.acls != 'None' -%}

@@ -424,6 +424,7 @@
             openSection('{{ edit_section }}');
         {% endif %}
 	</script>
+<input type="hidden" id="group_id" value="{{ g.user_params['group_id']|string() }}">
 <div id="edit-section" style="display: none;"></div>
 <div id="dialog-confirm" style="display: none;">
     <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
