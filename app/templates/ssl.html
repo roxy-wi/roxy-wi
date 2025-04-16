@@ -76,4 +76,80 @@
     <pre id="dialog-confirm-body"></pre>
 </div>
 <input type="hidden" id="group_id" value="{{ g.user_params['group_id']|string() }}">
+<div id="le-add-table" style="display: none;">
+    <table class="overview" id="group-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new3}} {{lang.words.group2}}">
+        {% include 'include/tr_validate_tips.html' %}
+        <tr>
+            <td class="padding20 first-collumn">
+                {{ lang.words.server|title() }}
+            </td>
+            <td>
+                {{ select('new-le-server_id', values=all_servers, is_servers='true', by_id=1) }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 first-collumn">
+                {{ lang.words.type|title() }}
+            </td>
+            <td>
+                <select id="new-le-type">
+                    <option value="standalone">Stand alone</option>
+                    <option value="route53">Route 53</option>
+                    <option value="cloudflare">CloudFlare</option>
+                    <option value="digitalocean">DigitalOcean</option>
+                    <option value="linode">Linode</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 first-collumn">
+                {{ lang.words.domains|title() }}
+            </td>
+            <td>
+                {{ input('new-le-domain') }}
+                <div class="tooltip tooltipTop">{{ lang.add_page.desc.comma_separated }}</div>
+            </td>
+        </tr>
+        <tr class="le-standalone">
+            <td class="padding20 first-collumn">
+                {{ lang.words.email|title() }}
+            </td>
+            <td>
+                {{ input('new-le-email') }}
+            </td>
+        </tr>
+        <tr class="le-dns" style="display: none;">
+            <td class="padding20 first-collumn">
+                {{ lang.words.token|title() }}
+            </td>
+            <td>
+                {{ input('new-le-token') }}
+            </td>
+        </tr>
+        <tr class="le-aws" style="display: none;">
+            <td class="padding20 first-collumn">
+                Access key ID
+            </td>
+            <td>
+                {{ input('new-le-access_key_id') }}
+            </td>
+        </tr>
+        <tr class="le-aws" style="display: none;">
+            <td class="padding20 first-collumn">
+                Secret access key
+            </td>
+            <td>
+                {{ input('new-le-secret_access_key') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="padding20 first-collumn">
+                {{ lang.words.desc|title() }}
+            </td>
+            <td>
+                {{ input('new-le-description') }}
+            </td>
+        </tr>
+    </table>
+</div>
 {% endblock %}

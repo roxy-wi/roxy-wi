@@ -48,18 +48,9 @@ $( function() {
 	   let link = $(this).find('a').attr('href');
 	   let full_uri = window.location.pathname
 	   let full_uri1 = window.location.hash
-	   let params = new URL(document.location.toString()).searchParams;
 	   if (full_uri === link) {
 		   show_current_page($(this))
 	   } else if (link === full_uri + full_uri1) {
-		   show_current_page($(this))
-	   } else if (link === '/add/haproxy#ssl' && full_uri1 === '#ssl' && params.get("service") != 'nginx') {
-		   show_current_page($(this))
-	   } else if (link === '/add/haproxy#ssl' && full_uri1 === '#ssl' && params.get("service") === 'nginx') {
-		   show_current_page($(this))
-	   } else if (full_uri === 'add/haproxy?service=nginx#ssl' && cur_url[1].split('?')[1] === 'service=nginx#ssl' && full_uri1 === 'add/haproxy?service=nginx#ssl') {
-		   show_current_page($(this))
-	   } else if (full_uri === 'add/haproxy?service=apache#ssl' && cur_url[1].split('?')[1] === 'service=apache#ssl' && full_uri1 === 'add/haproxy?service=apache#ssl') {
 		   show_current_page($(this))
 	   }
    });
@@ -307,7 +298,7 @@ function showConfig() {
 	let config_file_name = encodeURI(config_file);
 	if (service === 'nginx' || service === 'apache') {
 		if (config_file === undefined || config_file === null) {
-			config_file_name = cur_url[4]
+			config_file_name = cur_url[7]
 			if (config_file_name === '') {
 				toastr.warning('Select a config file first');
 				return false;
@@ -347,7 +338,7 @@ function showConfig() {
 		}
 	});
 }
-function showConfigFiles(not_redirect=false) {
+function showConfigFiles(not_redirect=false, config_file_name=null) {
 	var service = $('#service').val();
 	var server_ip = $("#serv").val();
 	clearAllAjaxFields();
@@ -364,6 +355,10 @@ function showConfigFiles(not_redirect=false) {
 			} else {
 				toastr.clear();
 				$("#ajax-config_file_name").html(data);
+				if (config_file_name) {
+					$('#config_file_name').val(config_file_name);
+					$('#config_file_name').selectmenu('refresh');
+				}
 				if (findGetParameter('findInConfig') === null) {
 					if (not_redirect) {
 						window.history.pushState("Show config", "Show config", "/config/" + service + "/" + server_ip + "/show-files");
@@ -497,7 +492,7 @@ $( function() {
 		try {
 			var cur_path = window.location.pathname;
 			var attr = $(this).attr('href');
-			if (cur_path == '/add/haproxy' || cur_path == '/add/nginx' || cur_path == '/admin' || cur_path == '/install' || cur_path == '/runtimeapi') {
+			if (cur_path == '/install' || cur_path == '/runtimeapi') {
 				if (typeof attr !== typeof undefined && attr !== false) {
 					$('title').text($(this).attr('title'));
 					history.pushState({}, '', $(this).attr('href'));
@@ -1377,4 +1372,13 @@ function openUserSettings(user_id) {
 }
 function generateSelect(select_id, option_value, option_name, is_selected='') {
 	$(select_id).append('<option value="' + option_value + '" '+is_selected+'>' + option_name + '</option>');
+}
+function makeid(length) {
+   let result           = '';
+   let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+   let charactersLength = characters.length;
+   for ( let i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
 }
