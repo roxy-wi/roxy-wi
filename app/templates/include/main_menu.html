@@ -39,7 +39,7 @@
 					{% if g.user_params['role'] <= 3 %}
 						<li><a href="{{ url_for('add.add', service='haproxy') }}#proxy" title="{{lang.menu_links.add_proxy.title}}" class="head-submenu" id="add1">{{lang.menu_links.add_proxy.link}}</a></li>
 						<li><a href="{{ url_for('config.versions', service='haproxy') }}" title="{{lang.menu_links.versions.haproxy.title}}" class="head-submenu">{{lang.menu_links.versions.link}}</a></li>
-						<li><a href="{{ url_for('add.add', service='haproxy') }}#ssl" title="{{lang.menu_links.ssl.title}}" class="head-submenu" id="add3">{{lang.menu_links.ssl.link}}</a></li>
+						<li><a href="{{ url_for('service.ssl_service', service='haproxy') }}" title="{{lang.menu_links.ssl.title}}" class="head-submenu" id="add3">{{lang.menu_links.ssl.link}}</a></li>
 						<li><a href="{{ url_for('add.add', service='haproxy') }}#lists" title="{{lang.menu_links.lists.title}}" class="head-submenu" id="add7">{{lang.menu_links.lists.link}}</a></li>
 						<li><a href="{{ url_for('waf.waf', service='haproxy') }}" title="Web application firewall" class="head-submenu">WAF</a> </li>
 					{% endif %}
@@ -61,7 +61,7 @@
 						{% if g.user_params['role'] <= 3 %}
 						<li><a href="{{ url_for('add.add', service='nginx') }}#proxy" title="{{lang.menu_links.add_proxy.title}}" class="head-submenu">{{lang.menu_links.add_proxy.link}}</a></li>
 						<li><a href="{{ url_for('config.versions', service='nginx') }}" title="{{lang.menu_links.versions.nginx.title}}" class="head-submenu">{{lang.menu_links.versions.link}}</a></li>
-						<li><a href="{{ url_for('add.add', service='haproxy') }}?service=nginx#ssl" title="{{lang.menu_links.ssl.title}}" class="head-submenu">{{lang.menu_links.ssl.link}}</a></li>
+						<li><a href="{{ url_for('service.ssl_service', service='nginx') }}" title="{{lang.menu_links.ssl.title}}" class="head-submenu">{{lang.menu_links.ssl.link}}</a></li>
 						<li><a href="{{ url_for('waf.waf', service='nginx') }}" title="Web application firewall" class="head-submenu">WAF</a> </li>
 						{% endif %}
 					</ul>
@@ -78,7 +78,7 @@
 						<li><a href="{{ url_for('metric.metrics', service='apache') }}" title="Apache {{lang.menu_links.metrics.title}}" class="head-submenu">{{lang.menu_links.metrics.link}}</a></li>
 						{% if g.user_params['role'] <= 3 %}
 						<li><a href="{{ url_for('config.versions', service='apache') }}" title="{{lang.menu_links.versions.apache.title}}" class="head-submenu">{{lang.menu_links.versions.link}}</a></li>
-						<li><a href="{{ url_for('add.add', service='haproxy') }}?service=apache#ssl" title="{{lang.menu_links.ssl.title}}" class="head-submenu" id="add3">{{lang.menu_links.ssl.link}}</a></li>
+						<li><a href="{{ url_for('service.ssl_service', service='apache') }}" title="{{lang.menu_links.ssl.title}}" class="head-submenu" id="add3">{{lang.menu_links.ssl.link}}</a></li>
 						{% endif %}
 					</ul>
 				</li>

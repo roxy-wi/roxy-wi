@@ -339,9 +339,17 @@ def get_ssl_raw_cert(server_ip: str, cert_id: str) -> str:
 		return f'error: Cannot connect to the server {e}'
 
 
-def get_ssl_certs(server_ip: str) -> str:
+def get_ssl_certs(server_ip: str, cert_type: str = None) -> str:
 	cert_path = sql.get_setting('cert_path')
-	command = f"sudo ls -1t {cert_path} |grep -E 'pem|crt|key'"
+	if cert_type == 'pem':
+		cert_type = 'pem'
+	elif cert_type == 'crt':
+		cert_type = 'crt'
+	elif cert_type == 'key':
+		cert_type = 'key'
+	else:
+		cert_type = 'pem|crt|key'
+	command = f"sudo ls -1t {cert_path} |grep -E '{cert_type}'"
 	try:
 		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
@@ -358,7 +366,7 @@ def del_ssl_cert(server_ip: str, cert_id: str) -> str:
 		return f'error: Cannot delete the certificate {e}'
 
 
-def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str) -> list[str]:
+def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str, ssl_type: str = 'pem') -> list[str]:
 	cert_path = sql.get_setting('cert_path')
 	tmp_path = sql.get_setting('tmp_config_path')
 	output = []
@@ -367,8 +375,8 @@ def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str) -> list[str]:
 	if ssl_name is None:
 		raise Exception('Please enter a desired name')
 	else:
-		name = f"{ssl_name}.pem"
-		path_to_file = f"{tmp_path}/{ssl_name}.pem"
+		name = f"{ssl_name}.{ssl_type}"
+		path_to_file = f"{tmp_path}/{ssl_name}.{ssl_type}"
 
 	try:
 		with open(path_to_file, "w") as ssl_cert:

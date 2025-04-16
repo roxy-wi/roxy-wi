@@ -40,7 +40,7 @@
 						<span title="{{lang.words.create|title()}} SSL {{lang.words.listener|title()}}" class="redirectListen span-link" id="create-ssl-listen">{{lang.words.create|title()}} SSL {{lang.words.listener|title()}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-						{{lang.add_page.desc.create_ssl_proxy}} <span title="Upload SSL" class="redirectSsl span-link" style="color: #5d9ceb">{{lang.words.uploaded}} {{lang.words.w_a}} PEM {{lang.words.cert}}</span>
+						{{lang.add_page.desc.create_ssl_proxy}} <a href="{{ url_for('service.ssl_service', service='haproxy') }}" target="_blank">{{lang.words.uploaded}} {{lang.words.w_a}} PEM {{lang.words.cert}}</a>
 					</div>				
 				</div>
 			</div>
@@ -90,7 +90,7 @@
 						<span title="{{lang.words.create|title()}} SSL {{lang.words.frontend|title()}}" class="redirectListen span-link" id="create-ssl-frontend">{{lang.words.create|title()}} SSL {{lang.words.frontend|title()}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-						{{lang.add_page.desc.create_ssl_front}} <span title="{{lang.words.upload|title()}} SSL" class="redirectSsl span-link" style="color: #5d9ceb">{{lang.words.uploaded}} {{lang.words.w_a}} PEM {{lang.words.cert}}</span>
+						{{lang.add_page.desc.create_ssl_front}} <a href="{{ url_for('service.ssl_service', service='haproxy') }}" target="_blank">{{lang.words.uploaded}} {{lang.words.w_a}} PEM {{lang.words.cert}}</a>
 					</div>				
 				</div>
 			</div>
@@ -140,7 +140,7 @@
 						<span title="{{lang.words.create|title()}} SSL {{lang.words.backend|title()}}" class="redirectListen span-link" id="create-ssl-backend">{{lang.words.create|title()}} SSL {{lang.words.backend|title()}}</span>
 					</div>
 					<div class="server-desc add_proxy">
-						{{lang.add_page.desc.create_ssl_backend}} <span title="{{lang.words.upload|title()}} SSL" class="redirectSsl span-link" style="color: #5d9ceb">{{lang.words.uploaded}} {{lang.words.w_a}} PEM {{lang.words.cert}}</span>
+						{{lang.add_page.desc.create_ssl_backend}} <a href="{{ url_for('service.ssl_service', service='haproxy') }}" target="_blank">{{lang.words.uploaded}} {{lang.words.w_a}} PEM {{lang.words.cert}}</a>
 					</div>				
 				</div>
 			</div>

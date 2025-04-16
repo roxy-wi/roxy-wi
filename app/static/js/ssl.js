@@ -1,3 +1,160 @@
+$( function() {
+    $("#ssl_key_or_crt_upload").click(function () {
+        if (!checkIsServerFiled('#serv6')) return false;
+        if (!checkIsServerFiled('#ssl_key_name', 'Enter the Certificate name')) return false;
+        if (!checkIsServerFiled('#ssl_key_or_crt', 'Paste the contents of the certificate file')) return false;
+        let jsonData = {
+            server_ip: $('#serv6').val(),
+            cert_type: $('#new-cert-file-type').val(),
+            cert: $('#ssl_key_or_crt').val(),
+            name: $('#ssl_key_name').val()
+        }
+        $.ajax({
+            url: "/add/cert/add",
+            data: JSON.stringify(jsonData),
+            contentType: "application/json; charset=utf-8",
+            type: "POST",
+            success: function (data) {
+                if (data.error === 'failed') {
+                    toastr.error(data.error);
+                } else {
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i]) {
+                            if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
+                                toastr.error(data[i]);
+                            } else {
+                                toastr.success(data[i]);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+    $('#ssl_key_view').click(function () {
+        if (!checkIsServerFiled('#serv5')) return false;
+        $.ajax({
+            url: "/add/certs/" + $('#serv5').val(),
+            success: function (data) {
+                if (data.indexOf('error:') != '-1') {
+                    toastr.error(data);
+                } else {
+                    let i;
+                    let new_data = "";
+                    data = data.split("\n");
+                    let j = 1
+                    for (i = 0; i < data.length; i++) {
+                        data[i] = data[i].replace(/\s+/g, ' ');
+                        if (data[i] != '') {
+                            if (j % 2) {
+                                if (j != 0) {
+                                    new_data += '</span>'
+                                }
+                                new_data += '<span class="list_of_lists">'
+                            } else {
+                                new_data += '</span><span class="list_of_lists">'
+
+                            }
+                            j += 1
+                            new_data += ' <a onclick="view_ssl(\'' + data[i] + '\')" title="View ' + data[i] + ' cert">' + data[i] + '</a> '
+                        }
+                    }
+                    $("#ajax-show-ssl").html(new_data);
+                }
+            }
+        });
+    });
+});
+function view_ssl(id) {
+	let raw_word = translate_div.attr('data-raw');
+	if(!checkIsServerFiled('#serv5')) return false;
+	$.ajax( {
+		url: "/add/cert/" + $('#serv5').val() + '/' + id,
+		success: function( data ) {
+			if (data.indexOf('error: ') != '-1') {
+				toastr.error(data);
+			} else {
+				$('#dialog-confirm-body').text(data);
+				$( "#dialog-confirm-cert" ).dialog({
+					resizable: false,
+					height: "auto",
+					width: 670,
+					modal: true,
+					title: "Certificate from "+$('#serv5').val()+", name: "+id,
+					buttons: [{
+						text: cancel_word,
+						click: function () {
+							$(this).dialog("close");
+						}
+					}, {
+						text: raw_word,
+						click: function () {
+							showRawSSL(id);
+						}
+					}, {
+						text: delete_word,
+						click: function () {
+							$(this).dialog("close");
+							confirmDeleting("SSL cert", id, $(this), "");
+						}
+					}]
+				});
+			}
+		}
+	} );
+}
+function showRawSSL(id) {
+	$.ajax({
+		url: "/add/cert/get/raw/" + $('#serv5').val() + "/" + id,
+		success: function (data) {
+			if (data.indexOf('error: ') != '-1') {
+				toastr.error(data);
+			} else {
+				$('#dialog-confirm-body').text(data);
+				$("#dialog-confirm-cert").dialog({
+					resizable: false,
+					height: "auto",
+					width: 670,
+					modal: true,
+					title: "Certificate from " + $('#serv5').val() + ", name: " + id,
+					buttons: [{
+						text: cancel_word,
+						click: function () {
+							$(this).dialog("close");
+						}
+					}, {
+						text: "Human readable",
+						click: function () {
+							view_ssl(id);
+						}
+					}, {
+						text: delete_word,
+						click: function () {
+							$(this).dialog("close");
+							confirmDeleting("SSL cert", id, $(this), "");
+						}
+					}]
+				});
+			}
+		}
+	});
+}
+function deleteSsl(id) {
+	if (!checkIsServerFiled('#serv5')) return false;
+	$.ajax({
+		url: "/add/cert/" + $("#serv5").val() + "/" + id,
+		type: "DELETE",
+		success: function (data) {
+			if (data.indexOf('error: ') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				toastr.success('SSL cert ' + id + ' has been deleted');
+				$("#ssl_key_view").trigger("click");
+			}
+		}
+	});
+}
 let provides = {'standalone': "Stand alone", 'route53': 'Route53', 'linode': 'Linode', 'cloudflare': 'Cloudflare', 'digitalocean': 'Digitalocean'};
 $( function() {
     let typeSelect = $( "#new-le-type" );
@@ -220,3 +377,4 @@ function showLe(data) {
     ])
     $('#le_table_body').append(le_tag);
 }
+

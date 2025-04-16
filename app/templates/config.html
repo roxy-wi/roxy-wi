@@ -98,6 +98,9 @@
 		showCompareConfigs();
 	}
 	if (cur_url[6] === 'show') {
+        if (cur_url[4] === 'nginx') {
+            showConfigFiles(false, cur_url[7]);
+        }
 		showConfig();
 	}
 	if (cur_url[6] === 'show-files') {
@@ -116,21 +119,21 @@
 	}
 	if (cur_url[4] === 'haproxy' && cur_url[6] === 'edit') {
 		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
-				{
-					mode: "haproxy",
-					lineNumbers: true,
-					lineWrapping: true,
-					autocapitalize: true,
-					autocorrect: true,
-					spellcheck: true,
-					autoCloseBrackets: true,
-					keyMap: "sublime",
-					matchBrackets: true,
-					foldGutter: true,
-					showCursorWhenSelecting: true,
-    				gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "breakpoints"],
-					highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true}
-				});
+            {
+                mode: "haproxy",
+                lineNumbers: true,
+                lineWrapping: true,
+                autocapitalize: true,
+                autocorrect: true,
+                spellcheck: true,
+                autoCloseBrackets: true,
+                keyMap: "sublime",
+                matchBrackets: true,
+                foldGutter: true,
+                showCursorWhenSelecting: true,
+                gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "breakpoints"],
+                highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true}
+            });
 	} else if (cur_url[6] === 'edit') {
 		var myCodeMirror = CodeMirror.fromTextArea(document.getElementById("config_text_area"),
 				{
@@ -149,15 +152,17 @@
 					highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true}
 				});
 	}
-	myCodeMirror.on("gutterClick", function(cm, n) {
-		let info = cm.lineInfo(n);
-		cm.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeMarker());
-	});
-	myCodeMirror.on("beforeChange", function (cm, change) {
-		$(window).bind('beforeunload', function(){
-		  return 'Are you sure you want to leave?';
-		});
-	});
+    if (cur_url[6] === 'edit') {
+        myCodeMirror.on("gutterClick", function (cm, n) {
+            let info = cm.lineInfo(n);
+            cm.setGutterMarker(n, "breakpoints", info.gutterMarkers ? null : makeMarker());
+        });
+        myCodeMirror.on("beforeChange", function (cm, change) {
+            $(window).bind('beforeunload', function () {
+                return 'Are you sure you want to leave?';
+            });
+        });
+    }
 	function makeMarker() {
 		var marker = document.createElement("div");
 		marker.style.color = "#822";
@@ -172,7 +177,9 @@
 }
 </style>
 <script>
-	myCodeMirror.refresh();
+    if (cur_url[6] === 'edit') {
+        myCodeMirror.refresh();
+    }
 	$(document).bind('keydown', 'ctrl+s', function (){
 		$("[type='submit'][value='save']").click();
 	});

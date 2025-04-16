@@ -136,6 +136,13 @@ def last_edit(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
     return service_common.get_overview_last_edit(str(server_ip), service)
 
 
+@bp.route('/<service>/ssl')
+@check_services
+@get_user_params()
+def ssl_service(service):
+    return render_template('ssl.html', lang=g.user_params['lang'])
+
+
 @bp.route('/cpu-ram-metrics/<server_ip>/<server_id>/<name>/<service>')
 @get_user_params()
 @validate()

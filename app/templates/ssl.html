@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}{{lang.words.add|title()}} SSL{% endblock %}
+{% block h2 %}{{lang.words.add|title()}} SSL {% endblock %}
+{% block content %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
+<script src="/static/js/add.js"></script>
+<script src="/static/js/ssl.js"></script>
+<table>
+    <caption><h3>SSL</h3></caption>
+    <tr class="overviewHead">
+        <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.view|title()}} {{lang.words.cert2}}</td>
+        <td>
+            {{lang.words.uploaded|title()}} {{lang.words.certs}}
+        </td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td class="padding10 first-collumn">
+            {{ select('serv5', values=g.user_params['servers'], is_servers='true', by_id='true') }}
+            <button id="ssl_key_view" title="{{lang.words.view|title()}} {{lang.words.certs}}">{{lang.words.view|title()}}</button>
+        </td>
+        <td colspan="2" style="padding: 10px 0 10px 0;">
+            <span id="ajax-show-ssl"></span>
+        </td>
+        <td></td>
+    </tr>
+    <tr class="overviewHead">
+        <td class="padding10 first-collumn" style="width: 30%;">{{lang.words.upload|title()}} SSL {{lang.words.certs}}</td>
+        <td>
+            {{lang.words.cert_name|title()}}
+        </td>
+        <td>
+            <span title="{{lang.words.file|title()}} {{ lang.words.type }}" class="help_cursor">{{lang.words.file|title()}} {{ lang.words.type }}</span>
+        </td>
+        <td>
+            <span title="{{lang.add_page.paste_cert_desc}}" class="help_cursor">{{lang.add_page.desc.paste_cert}}</span>
+        </td>
+    </tr>
+    <tr>
+        <td class="first-collumn padding10" valign="top" style="padding-top: 15px;">
+            {{ select('serv6', values=g.user_params['servers'], is_servers='true') }}
+        </td>
+        <td valign="top" style="padding-top: 27px;">
+            {{ input('ssl_key_name') }}
+        </td>
+        <td valign="top" style="padding-top: 27px;">
+            <select id="new-cert-file-type">
+                <option value="pem">Pem</option>
+                <option value="key">Key</option>
+                <option value="crt">Crt (chain)</option>
+            </select>
+        </td>
+        <td style="padding-top: 15px; padding-bottom: 15px;">
+            <textarea id="ssl_key_or_crt" cols="50" rows="5"></textarea><br /><br />
+            <button id="ssl_key_or_crt_upload" title="{{lang.words.upload|title()}} SSL {{lang.words.cert}}">{{lang.words.upload|title()}}</button>
+        </td>
+    </tr>
+</table>
+<table id="le_table">
+    <caption><h3>Let's Encrypt</h3></caption>
+    <tr class="overviewHead">
+        <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
+        <td>{{lang.words.type|title()}}</td>
+        <td>{{lang.words.domains|title()}}</td>
+        <td>{{lang.words.desc|title()}}</td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tbody id="le_table_body"></tbody>
+</table>
+<br /><span class="add-button" title="{{lang.words.create|title()}}" onclick="openLeDialog()">+ {{lang.words.create|title()}}</span>
+<div id="ajax-ssl"></div>
+{% include 'include/del_confirm.html' %}
+<div id="dialog-confirm-cert" title="View certificate " style="display: none;">
+    <pre id="dialog-confirm-body"></pre>
+</div>
+<input type="hidden" id="group_id" value="{{ g.user_params['group_id']|string() }}">
+{% endblock %}

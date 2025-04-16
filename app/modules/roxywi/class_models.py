@@ -304,6 +304,7 @@ class SSLCertUploadRequest(BaseModel):
     server_ip: Union[IPvAnyAddress, DomainName]
     name: EscapedString
     cert: EscapedString
+    cert_type: Literal['key', 'crt', 'pem'] = 'pem'
 
 
 class SavedServerRequest(BaseModel):

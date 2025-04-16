@@ -197,6 +197,7 @@
 <script>
     {% for cluster in clusters %}
         getHaCluster('{{cluster.id}}');
+        setInterval(getHaCluster, 600000, '{{cluster.id}}');
     {% endfor %}
 </script>
 {% endif %}
