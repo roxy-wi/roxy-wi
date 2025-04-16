@@ -19,14 +19,12 @@
 
 <script src="/static/js/add.js"></script>
 <script src="/static/js/edit_config.js"></script>
-<script src="/static/js/le.js"></script>
 <div id="tabs">
 	<ul>
 		<li><a href="#create" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.proxy}} - Roxy-WI">{{lang.words.create|title()}} {{lang.words.proxy}}</a></li>
 		<li><a href="#listen" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.listener|title()}} - Roxy-WI">{{lang.words.listener|title()}}</a></li>
 		<li><a href="#frontend" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.frontend|title()}} - Roxy-WI">{{lang.words.frontend|title()}}</a></li>
 		<li><a href="#backend" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.backend|title()}} - Roxy-WI">{{lang.words.backend|title()}}</a></li>
-		<li><a href="#ssl" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.upload|title()}} SSL {{lang.words.certs}} - Roxy-WI">SSL {{lang.words.certs}}</a></li>
 		<li><a href="#option" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.params|title()}} {{lang.words.templates}} - Roxy-WI">{{lang.words.params|title()}}</a></li>
 		<li><a href="#add-servers" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.servers|title()}} {{lang.words.templates}} - Roxy-WI">{{lang.words.servers|title()}}</a></li>
 		<li><a href="#userlist" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.userlists|title()}} - Roxy-WI">{{lang.words.userlists|title()}}</a></li>
@@ -52,62 +50,6 @@
         {% include 'include/add/backend.html' %}
 	</div>
 
-	<div id="ssl">
-		<table>
-			<caption><h3>SSL</h3></caption>
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn" style="width: 30%;">{{lang.words.view|title()}} {{lang.words.cert2}}</td>
-				<td>
-					{{lang.words.upload|title()}} {{lang.words.certs}}
-				</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td class="padding10 first-collumn">
-					{{ select('serv5', values=g.user_params['servers'], is_servers='true', by_id='true') }}
-					<button id="ssl_key_view" title="{{lang.words.view|title()}} {{lang.words.certs}}">{{lang.words.view|title()}}</button>
-				</td>
-				<td colspan="2" style="padding: 10px 0 10px 0;">
-					<span id="ajax-show-ssl"></span>
-				</td>
-			</tr>
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn" style="width: 30%;">{{lang.words.upload|title()}} SSL {{lang.words.certs}}</td>
-				<td>
-					{{lang.words.cert_name|title()}}
-				</td>
-				<td>
-					<span title="{{lang.add_page.paste_cert_desc}}" class="help_cursor">{{lang.add_page.desc.paste_cert}}</span>
-				</td>
-			</tr>
-			<tr>
-				<td class="first-collumn padding10" valign="top" style="padding-top: 15px;">
-					{{ select('serv4', values=g.user_params['servers'], is_servers='true') }}
-				</td>
-				<td valign="top" style="padding-top: 27px;">
-					{{ input('ssl_name') }}
-				</td>
-				<td style="padding-top: 15px; padding-bottom: 15px;">
-					<textarea id="ssl_cert" cols="50" rows="5"></textarea><br /><br />
-					<button id="ssl_key_upload" title="{{lang.words.upload|title()}} SSL {{lang.words.cert}}">{{lang.words.upload|title()}}</button>
-				</td>
-			</tr>
-		</table>
-		<table id="le_table">
-			<caption><h3>Let's Encrypt</h3></caption>
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-                <td>{{lang.words.type|title()}}</td>
-				<td>{{lang.words.domains|title()}}</td>
-				<td>{{lang.words.desc|title()}}</td>
-				<td></td>
-				<td></td>
-			</tr>
-            <tbody id="le_table_body"></tbody>
-		</table>
-        <br /><span class="add-button" title="{{lang.words.create|title()}}" onclick="openLeDialog()">+ {{lang.words.create|title()}}</span>
-		<div id="ajax-ssl"></div>
-	</div>
 	<div id="option">
 		<table class="overview" id="option_table">
 			<tr class="overviewHead">
@@ -357,80 +299,4 @@ for (var i = 0; i <= serv_ports.length; i++) {
 			'This can be done easily in HAProxy by adding the keyword backup on the server line. If multiple backup servers are configured, only the first active one is used.">backup</label><input type="checkbox" name="backup" value="1" id="' + uniqId + '">');
 }
 </script>
-<div id="le-add-table" style="display: none;">
-    <table class="overview" id="group-add-table-overview" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new3}} {{lang.words.group2}}">
-        {% include 'include/tr_validate_tips.html' %}
-        <tr>
-            <td class="padding20 first-collumn">
-                {{ lang.words.server|title() }}
-            </td>
-            <td>
-                {{ select('new-le-server_id', values=all_servers, is_servers='true', by_id=1) }}
-            </td>
-        </tr>
-        <tr>
-            <td class="padding20 first-collumn">
-                {{ lang.words.type|title() }}
-            </td>
-            <td>
-                <select id="new-le-type">
-                    <option value="standalone">Stand alone</option>
-                    <option value="route53">Route 53</option>
-                    <option value="cloudflare">CloudFlare</option>
-                    <option value="digitalocean">DigitalOcean</option>
-                    <option value="linode">Linode</option>
-                </select>
-            </td>
-        </tr>
-        <tr>
-            <td class="padding20 first-collumn">
-                {{ lang.words.domains|title() }}
-            </td>
-            <td>
-                {{ input('new-le-domain') }}
-                <div class="tooltip tooltipTop">{{ lang.add_page.desc.comma_separated }}</div>
-            </td>
-        </tr>
-        <tr class="le-standalone">
-            <td class="padding20 first-collumn">
-                {{ lang.words.email|title() }}
-            </td>
-            <td>
-                {{ input('new-le-email') }}
-            </td>
-        </tr>
-        <tr class="le-dns" style="display: none;">
-            <td class="padding20 first-collumn">
-                {{ lang.words.token|title() }}
-            </td>
-            <td>
-                {{ input('new-le-token') }}
-            </td>
-        </tr>
-        <tr class="le-aws" style="display: none;">
-            <td class="padding20 first-collumn">
-                Access key ID
-            </td>
-            <td>
-                {{ input('new-le-access_key_id') }}
-            </td>
-        </tr>
-        <tr class="le-aws" style="display: none;">
-            <td class="padding20 first-collumn">
-                Secret access key
-            </td>
-            <td>
-                {{ input('new-le-secret_access_key') }}
-            </td>
-        </tr>
-        <tr>
-            <td class="padding20 first-collumn">
-                {{ lang.words.desc|title() }}
-            </td>
-            <td>
-                {{ input('new-le-description') }}
-            </td>
-        </tr>
-    </table>
-</div>
 {% endblock %}
