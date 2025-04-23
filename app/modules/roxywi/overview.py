@@ -1,8 +1,6 @@
 import psutil
 import requests
 from flask import render_template, request
-from flask_jwt_extended import get_jwt
-from flask_jwt_extended import verify_jwt_in_request
 
 import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
@@ -41,8 +39,7 @@ def show_sub_ovw() -> str:
 
 def show_overview(serv) -> str:
     servers = []
-    verify_jwt_in_request()
-    claims = get_jwt()
+    claims = roxywi_common.get_jwt_token_claims()
     lang = roxywi_common.get_user_lang_for_flask()
     role = user_sql.get_user_role_in_group(claims['user_id'], claims['group'])
     server = server_sql.get_server_by_ip(serv)

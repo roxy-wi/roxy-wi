@@ -2,8 +2,6 @@ from typing import Union
 
 from flask import request, abort, url_for, jsonify
 from flask_jwt_extended import create_access_token, set_access_cookies
-from flask_jwt_extended import get_jwt
-from flask_jwt_extended import verify_jwt_in_request
 
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
@@ -29,8 +27,7 @@ def check_login(user_id: int) -> Union[str, None]:
 
 def is_access_permit_to_service(service: str) -> bool:
     service_id = service_sql.select_service_id_by_slug(service)
-    verify_jwt_in_request()
-    claims = get_jwt()
+    claims = roxywi_common.get_jwt_token_claims()
     user_services = user_sql.select_user_services(claims['user_id'])
     if str(service_id) in user_services:
         return True
@@ -42,8 +39,7 @@ def is_admin(level=1, **kwargs):
     if kwargs.get('role_id'):
         role = kwargs.get('role_id')
     else:
-        verify_jwt_in_request()
-        claims = get_jwt()
+        claims = roxywi_common.get_jwt_token_claims()
         user_id = claims['user_id']
         group_id = claims['group']
 

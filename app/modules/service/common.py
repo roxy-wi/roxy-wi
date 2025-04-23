@@ -2,8 +2,6 @@ from typing import Union
 
 import requests
 from flask import render_template
-from flask_jwt_extended import get_jwt
-from flask_jwt_extended import verify_jwt_in_request
 
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
@@ -45,8 +43,7 @@ def is_protected(server_ip: str, action: str) -> None:
 	:return: None
 	:raises: Exception if the server is protected and the user role is not high enough.
 	"""
-	verify_jwt_in_request()
-	claims = get_jwt()
+	claims = roxywi_common.get_jwt_token_claims()
 	user_role = user_sql.get_user_role_in_group(claims['user_id'], claims['group'])
 
 	if server_sql.is_serv_protected(server_ip) and int(user_role) > 2:

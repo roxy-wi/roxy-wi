@@ -22,10 +22,16 @@ from app.modules.roxywi.exception import RoxywiResourceNotFound, RoxywiGroupMism
 get_config_var = roxy_wi_tools.GetConfigVar()
 
 
+def get_jwt_token_claims() -> dict:
+	verify_jwt_in_request()
+	claims = get_jwt()
+	claim = {'user_id': claims['user_id'], 'group': claims['group']}
+	return claim
+
+
 def get_user_group(**kwargs) -> int:
 	try:
-		verify_jwt_in_request()
-		claims = get_jwt()
+		claims = get_jwt_token_claims()
 		user_group_id = claims['group']
 		group = group_sql.get_group(user_group_id)
 		if group.group_id == int(user_group_id):
@@ -43,8 +49,7 @@ def get_user_group(**kwargs) -> int:
 def check_user_group_for_flask(api_token: bool = False):
 	if api_token:
 		return True
-	verify_jwt_in_request()
-	claims = get_jwt()
+	claims = get_jwt_token_claims()
 	user_id = claims['user_id']
 	group_id = claims['group']
 
@@ -117,8 +122,7 @@ def logging(server_ip: Union[str, int], action: str, **kwargs) -> None:
 	setup_logger(log_file)
 
 	# JWT validation and extracting user's information
-	verify_jwt_in_request()
-	claims = get_jwt()
+	claims = get_jwt_token_claims()
 	user_id = claims['user_id']
 	user = user_sql.get_user_id(user_id=user_id)
 	user_group = get_user_group()
@@ -200,8 +204,7 @@ def get_dick_permit(**kwargs):
 
 
 def get_users_params(**kwargs):
-	verify_jwt_in_request()
-	user_data = get_jwt()
+	user_data = get_jwt_token_claims()
 
 	try:
 		user_id = user_data['user_id']
