@@ -104,6 +104,8 @@ def check_in_ldap(user, password):
 
 def do_login(user_params: dict, next_url: str):
     if next_url:
+        if 'https://' in next_url or 'http://' in next_url:
+            next_url = '/'
         redirect_to = f'https://{request.host}{next_url}'
     else:
         redirect_to = f"https://{request.host}{url_for('overview.index')}"

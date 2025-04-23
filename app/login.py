@@ -42,7 +42,7 @@ def login_page():
 
         return render_template('login.html', lang=lang)
     elif request.method == 'POST':
-        next_url = request.args.get('next') or request.form.get('next')
+        next_url = request.json.get('next')
         login = request.json.get('login')
         password = request.json.get('pass')
         try:
