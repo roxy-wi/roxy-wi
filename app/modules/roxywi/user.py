@@ -15,7 +15,7 @@ from app.modules.db.common import not_unique_error
 def create_user(new_user: str, email: str, password: str, role: int, enabled: int, group: int) -> Union[int, tuple]:
     try:
         user_id = user_sql.add_user(new_user, email, password, role, enabled, group)
-        roxywi_common.logging(f'a new user {new_user}', 'has been created', roxywi=1, login=1)
+        roxywi_common.logging('Roxy-WI server', f'a new user {new_user} has been created')
     except IntegrityError as e:
         not_unique_error(e)
     except Exception as e:
@@ -34,7 +34,7 @@ def create_user(new_user: str, email: str, password: str, role: int, enabled: in
                   f"Password: {password}"
         alerting.send_email(email, 'A user has been created for you', message)
     except Exception as e:
-        roxywi_common.logging('error: Cannot send email for a new user', str(e), roxywi=1, login=1)
+        roxywi_common.logging('', f'error: Cannot send email for a new user: {e}')
 
     return user_id
 
@@ -48,7 +48,7 @@ def delete_user(user_id: int):
         user = user_sql.get_user_id(user_id)
         user_sql.delete_user(user_id)
         user_sql.delete_user_groups(user_id)
-        roxywi_common.logging(user.username, 'has been deleted user', roxywi=1, login=1)
+        roxywi_common.logging(user.username, 'has been deleted user')
     except Exception as e:
         return roxywi_common.handler_exceptions_for_json_data(e)
 
@@ -56,7 +56,7 @@ def delete_user(user_id: int):
 def update_user_password(password, user_id):
     user = user_sql.get_user_id(user_id)
     user_sql.update_user_password(password, user_id)
-    roxywi_common.logging(f'user {user.username}', 'has changed password', roxywi=1, login=1)
+    roxywi_common.logging('Roxy-WI server', f'User {user.username} has changed password')
 
 
 def get_user_services(user_id: int) -> str:
@@ -79,7 +79,7 @@ def change_user_services(user: str, user_id: int, user_services: dict):
         user_sql.update_user_services(services=services, user_id=user_id)
     except Exception as e:
         raise Exception(f'error: Cannot save: {e}')
-    roxywi_common.logging('Roxy-WI server', f'Access to the services has been updated for user: {user}', roxywi=1, login=1)
+    roxywi_common.logging('Roxy-WI server', f'Access to the services has been updated for user: {user}')
 
 
 def change_user_active_group(group_id: int, user_id: int) -> str:
@@ -87,7 +87,7 @@ def change_user_active_group(group_id: int, user_id: int) -> str:
         user_sql.update_user_current_groups(group_id, user_id)
         return 'Ok'
     except Exception as e:
-        roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot change the group', roxywi=1, login=1)
+        roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot change the group')
 
 
 def get_user_active_group(group_id: int, user_id: int) -> str:
@@ -113,7 +113,7 @@ def save_user_group_and_role(user: str, groups_and_roles: dict):
             except Exception as e:
                 raise Exception(f'error: Cannot update groups: {e}')
         else:
-            roxywi_common.logging('Roxy-WI server', f'Groups and roles have been updated for user: {user}', roxywi=1, login=1)
+            roxywi_common.logging('Roxy-WI server', f'Groups and roles have been updated for user: {user}')
             return resp
 
 

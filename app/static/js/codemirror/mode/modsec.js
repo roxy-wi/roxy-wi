@@ -16,69 +16,80 @@ CodeMirror.defineMode("modsec", function(config) {
     for (var i = 0; i < words.length; ++i) obj[words[i]] = true;
     return obj;
   }
-  var keywords = words(
-    /* hapDirectiveControl */ "SecRule" +
-    /* hapDirective */ " SecMarker SecAction"
-    );
-  var keywords_block = words(
-    /* hapDirectiveBlock */ "REQUEST_FILENAME REQUEST_HEADERS REQUEST_PROTOCOL REQUEST_BASENAME REQUEST_HEADERS_NAMES HEADER_NAME ARGS_NAMES ARGS REQUEST_LINE QUERY_STRING REQUEST_BODY"
-    );
-  var keywords_important = words(
-    /*hapDirectiveImportant */ "User-Agent TX tx msg setvar anomaly_score none warning_anomaly_score severity GET HEAD POST PROPFIND OPTIONS phase"
-    );
+
+  const keywords = words(
+      "SecRule SecAction SecMarker SecRequestBodyAccess SecResponseBodyAccess " +
+      "SecDefaultAction SecDebugLog SecRuleEngine SecAuditLog"
+  );
+
+  const operators = words(
+      "eq ge gt le lt ne rx streq contains inspectFile validateByteRange " +
+      "validateUrlEncoding validateUtf8Encoding inspectSignature ipMatch ipMatchFromFile rsub rbl pm pmFromFile validateNidsPayload ranges md5"
+  );
+
+  const flags = words(
+      "deny allow log skip chain redirect pass tag ctl capture auditlog id " +
+      "severity msg phase skipAfter status t transform persistBlock exec resetConnection pause intercept replace removeTag setvar expirevar drop"
+  );
+
+  const actions = words(
+      "id msg rev severity accuracy maturity skipAfter logdata t chain capture deny block allow ctl tag ver ipMatch pm isBase64Decode status transform nxssDecode compress"
+  );
+
   var indentUnit = config.indentUnit, type;
-  function ret(style, tp) {type = tp; return style;}
+
+  function ret(style, tp) {
+    type = tp;
+    return style;
+  }
+
   function tokenBase(stream, state) {
     stream.eatWhile(/[\w\$_]/);
     var cur = stream.current();
     if (keywords.propertyIsEnumerable(cur)) {
-      return "keyword";
+      return ret("keyword", "keyword"); // Основные директивы
+    } else if (operators.propertyIsEnumerable(cur)) {
+      return ret("operator", "operator"); // Операторы
+    } else if (flags.propertyIsEnumerable(cur)) {
+      return ret("attribute", "flag"); // Флаги
+    } else if (actions.propertyIsEnumerable(cur)) {
+      return ret("variable-2", "action"); // Действия
     }
-    else if (keywords_block.propertyIsEnumerable(cur)) {
-      return "variable-2";
-    }
-    else if (keywords_important.propertyIsEnumerable(cur)) {
-      return "string-2";
-    }
+
     var ch = stream.next();
-    if (ch == "@") {stream.eatWhile(/[\w\\\-]/); return ret("meta", stream.current());}
-    else if (ch == "/" && stream.eat("*")) {
+    if (ch == "@") {
+      stream.eatWhile(/[\w\\\-]/);
+      return ret("meta", stream.current());
+    } else if (ch == "/" && stream.eat("*")) {
       state.tokenize = tokenCComment;
       return tokenCComment(stream, state);
-    }
-    else if (ch == "<" && stream.eat("!")) {
+    } else if (ch == "<" && stream.eat("!")) {
       state.tokenize = tokenSGMLComment;
       return tokenSGMLComment(stream, state);
-    }
-    else if (ch == "=") ret(null, "compare");
+    } else if (ch == "=") ret(null, "compare");
     else if ((ch == "~" || ch == "|") && stream.eat("=")) return ret(null, "compare");
     else if (ch == "\"" || ch == "'") {
       state.tokenize = tokenString(ch);
       return state.tokenize(stream, state);
-    }
-    else if (ch == "#") {
+    } else if (ch == "#") {
       stream.skipToEnd();
       return ret("comment", "comment");
-    }
-    else if (ch == "!") {
+    } else if (ch == "!") {
       stream.match(/^\s*\w*/);
       return ret("keyword", "important");
-    }
-    else if (/\d/.test(ch)) {
+    } else if (/\d/.test(ch)) {
       stream.eatWhile(/[\w.%]/);
       return ret("number", "unit");
-    }
-    else if (/[,.+>*\/]/.test(ch)) {
+    } else if (/[,.+>*\/]/.test(ch)) {
       return ret(null, "select-op");
-    }
-    else if (/[;{}:\[\]]/.test(ch)) {
+    } else if (/[;{}:\[\]]/.test(ch)) {
       return ret(null, ch);
-    }
-    else {
+    } else {
       stream.eatWhile(/[\w\\\-]/);
       return ret("variable", "variable");
     }
   }
+
   function tokenCComment(stream, state) {
     var maybeEnd = false, ch;
     while ((ch = stream.next()) != null) {
@@ -90,6 +101,7 @@ CodeMirror.defineMode("modsec", function(config) {
     }
     return ret("comment", "comment");
   }
+
   function tokenSGMLComment(stream, state) {
     var dashes = 0, ch;
     while ((ch = stream.next()) != null) {
@@ -101,8 +113,9 @@ CodeMirror.defineMode("modsec", function(config) {
     }
     return ret("comment", "comment");
   }
+
   function tokenString(quote) {
-    return function(stream, state) {
+    return function (stream, state) {
       var escaped = false, ch;
       while ((ch = stream.next()) != null) {
         if (ch == quote && !escaped)
@@ -113,18 +126,21 @@ CodeMirror.defineMode("modsec", function(config) {
       return ret("string", "string");
     };
   }
+
   return {
-    startState: function(base) {
-      return {tokenize: tokenBase,
-              baseIndent: base || 0,
-              stack: []};
+    startState: function (base) {
+      return {
+        tokenize: tokenBase,
+        baseIndent: base || 0,
+        stack: []
+      };
     },
-    token: function(stream, state) {
+    token: function (stream, state) {
       if (stream.eatSpace()) return null;
       type = null;
       var style = state.tokenize(stream, state);
 
-      var context = state.stack[state.stack.length-1];
+      var context = state.stack[state.stack.length - 1];
       if (type == "hash" && context == "rule") style = "atom";
       else if (style == "variable") {
         if (context == "rule") style = "number";
@@ -133,18 +149,17 @@ CodeMirror.defineMode("modsec", function(config) {
       if (context == "rule" && /^[\{\};]$/.test(type))
         state.stack.pop();
       if (type == "{") {
-        if (context == "@media") state.stack[state.stack.length-1] = "@media{";
+        if (context == "@media") state.stack[state.stack.length - 1] = "@media{";
         else state.stack.push("{");
-      }
-      else if (type == "}") state.stack.pop();
+      } else if (type == "}") state.stack.pop();
       else if (type == "@media") state.stack.push("@media");
       else if (context == "{" && type != "comment") state.stack.push("rule");
       return style;
     },
-    indent: function(state, textAfter) {
+    indent: function (state, textAfter) {
       var n = state.stack.length;
       if (/^\}/.test(textAfter))
-        n -= state.stack[state.stack.length-1] == "rule" ? 2 : 1;
+        n -= state.stack[state.stack.length - 1] == "rule" ? 2 : 1;
       return state.baseIndent + n * indentUnit;
     },
 

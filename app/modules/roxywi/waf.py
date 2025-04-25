@@ -83,7 +83,7 @@ def change_waf_mode(waf_mode: str, server_id: int, service: str):
     except Exception as e:
         return str(e)
 
-    roxywi_common.logging(serv.hostname, f'Has been changed WAF mod to {waf_mode}', roxywi=1, login=1)
+    roxywi_common.logging(serv.hostname, f'Has been changed WAF mod to {waf_mode}')
 
 
 def switch_waf_rule(serv: str, enable: int, rule_id: int):
@@ -100,8 +100,7 @@ def switch_waf_rule(serv: str, enable: int, rule_id: int):
         en_for_log = 'enabled'
 
     try:
-        roxywi_common.logging('WAF', f' Has been {en_for_log} WAF rule: {rule_file} for the server {serv}',
-                              roxywi=1, login=1)
+        roxywi_common.logging('WAF', f' Has been {en_for_log} WAF rule: {rule_file} for the server {serv}')
     except Exception:
         pass
 
@@ -129,8 +128,7 @@ def create_waf_rule(serv: str, service: str, json_data: dict) -> int:
     last_id = waf_sql.insert_new_waf_rule(new_waf_rule, rule_file, new_rule_desc, service, serv)
 
     try:
-        roxywi_common.logging('WAF', f' A new rule has been created {rule_file} on the server {serv}',
-                              roxywi=1, login=1)
+        roxywi_common.logging('WAF', f'A new rule has been created {rule_file} on the server {serv}')
     except Exception:
         pass
 
