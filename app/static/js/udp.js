@@ -377,22 +377,6 @@ function saveUdpListener(jsonData, dialog_id, listener_id=0, edited=0, reconfigu
 		}
 	});
 }
-function Reconfigure(listener_id) {
-	return $.ajax({
-		url: "/install/udp",
-		data: JSON.stringify({listener_id: listener_id}),
-		contentType: "application/json; charset=utf-8",
-		async: false,
-		type: "POST",
-		success: function (data) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
-				parseAnsibleJsonOutput(data, 'UDP listener', '');
-			}
-		}
-	});
-}
 function getUDPListener(listener_id, new_listener=false) {
 	$.ajax({
 		url: "/udp/listener/" + listener_id,
@@ -610,7 +594,7 @@ function checkUdpBackendStatus(listener_id, backend_ip) {
 				toastr.error(data.error);
 				return false;
 			} else {
-				let server_div = $('#backend_server_status_' + backend_ip.replaceAll('.', ''));
+				let server_div = $('#backend_server_status_' +listener_id+ '_' + backend_ip.replaceAll('.', ''));
 				if (data.data === 'yes') {
 					server_div.removeClass('serverNone');
 					server_div.removeClass('serverDown');

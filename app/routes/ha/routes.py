@@ -165,8 +165,8 @@ def check_cluster_status(service: str, cluster_id: int):
     statuses = []
     cmd = f'systemctl is-active keepalived.service'
     for slave in slaves:
-        status = server_mod.ssh_command(slave[2], cmd)
-        statuses.append(status.replace('\n', '').replace('\r', ''))
+        output = server_mod.ssh_command(slave[2], cmd)
+        statuses.append(output.replace('\n', '').replace('\r', ''))
     if 'inactive' in statuses and 'active' in statuses:
         status = 'warning'
     elif 'inactive' in statuses and 'active' not in statuses:

@@ -159,7 +159,6 @@ def _create_config_version(server_id: int, server_ip: str, service: str, config_
 	:param server_ip: The IP address of the server.
 	:param service: The service name.
 	:param config_path: The path to the configuration file.
-	:param login: The login of the user.
 	:param cfg: The new configuration string.
 	:param old_cfg: The path to the old configuration file.
 	:param tmp_file: A temporary file name.
@@ -442,6 +441,7 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 	"""
 	Get and display the configuration file for a given server.
 
+	:param edit_section:
 	:param claims:
 	:param server_ip: The IP address of the server.
 	:param service: The name of the service.

@@ -41,7 +41,7 @@
             {% set config = listener.config|string_to_dict %}
             {% for c in config %}
                 <div>
-                <span id="backend_server_status_{{ c.backend_ip|replace('.', '') }}" class="server-status-small serverNone"></span>
+                <span id="backend_server_status_{{ listener.id }}_{{ c.backend_ip|replace('.', '') }}" class="server-status-small serverNone"></span>
             {{ lang.words.server|title() }}: {{ copy_to_clipboard(value=c.backend_ip) }}, {{ lang.words.port }}: {{ c.port }}, {{ lang.words.weight }}: {{ c.weight }}
                 </div>
                 <script>
