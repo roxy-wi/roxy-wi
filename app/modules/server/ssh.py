@@ -8,14 +8,12 @@ from playhouse.shortcuts import model_to_dict
 import app.modules.db.cred as cred_sql
 import app.modules.db.group as group_sql
 import app.modules.db.server as server_sql
-import app.modules.common.common as common
 from app.modules.server import ssh_connection
 from app.modules.db.db_model import Cred
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.modules.roxywi.class_models import IdResponse, IdDataResponse, CredRequest
 
-error_mess = common.error_mess
 get_config = roxy_wi_tools.GetConfigVar()
 
 

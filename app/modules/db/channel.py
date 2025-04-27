@@ -73,8 +73,8 @@ def delete_receiver(receiver: str, channel_id: int) -> None:
 
 
 def get_receiver_with_group(receiver: str, channel_id: int, group_id: int):
+	model = models[receiver]
 	try:
-		model = models[receiver]
 		return model.get((model.id == channel_id) & (model.group_id == group_id))
 	except model.DoesNotExist:
 		raise RoxywiResourceNotFound

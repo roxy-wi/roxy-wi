@@ -16,8 +16,6 @@ import app.modules.db.checker as checker_sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 
-error_mess = common.error_mess
-
 
 def send_message_to_rabbit(message: str, **kwargs) -> None:
 	rabbit_user = sql.get_setting('rabbitmq_user')
