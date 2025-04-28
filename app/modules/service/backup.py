@@ -114,10 +114,7 @@ def create_s3_backup(data: S3BackupRequest, is_api: bool) -> tuple:
     if backup_sql.check_exists_backup(data.server_id, 's3'):
         raise RoxywiConflictError('S3 backup for this server already exists')
 
-    try:
-        create_s3_backup_inv(data, 'add')
-    except Exception as e:
-        raise e
+    create_s3_backup_inv(data, 'add')
 
     try:
         last_id = backup_sql.insert_s3_backup_job(**data.model_dump(mode='json'))
@@ -144,10 +141,7 @@ def delete_s3_backup(data: S3BackupRequest, backup_id: int) -> None:
 def create_git_backup(data: GitBackupRequest, is_api: bool) -> tuple:
     server_ip = server_sql.get_server(data.server_id).ip
     service_name = service_sql.select_service_name_by_id(data.service_id).lower()
-    try:
-        create_git_backup_inv(data, server_ip, service_name)
-    except Exception as e:
-        raise Exception(e)
+    create_git_backup_inv(data, server_ip, service_name)
 
     try:
         last_id = backup_sql.insert_new_git(server_id=data.server_id, service_id=data.service_id, repo=data.repo, branch=data.branch, time=data.time,
@@ -176,14 +170,7 @@ def create_git_backup(data: GitBackupRequest, is_api: bool) -> tuple:
 def delete_git_backup(data: GitBackupRequest, backup_id: int) -> tuple:
     server_ip = server_sql.get_server(data.server_id).ip
     service_name = service_sql.select_service_name_by_id(data.service_id).lower()
-    try:
-        create_git_backup_inv(data, server_ip, service_name, 1)
-    except Exception as e:
-        raise Exception(e)
-
-    try:
-        backup_sql.delete_backup(backup_id, 'git')
-    except Exception as e:
-        raise Exception(e)
+    create_git_backup_inv(data, server_ip, service_name, 1)
+    backup_sql.delete_backup(backup_id, 'git')
 
     return BaseResponse().model_dump(mode='json'), 204

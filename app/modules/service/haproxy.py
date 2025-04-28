@@ -259,7 +259,7 @@ def runtime_command(serv: str, enable: str, backend: str, save: str) -> str:
         return f'{e}'
     else:
         if enable != "show":
-            roxywi_common.logging(serv, f'Has been {enable}ed {backend}', login=1, keep_history=1, service='haproxy')
+            roxywi_common.logging(serv, f'Has been {enable}ed {backend}', keep_history=1, service='haproxy')
             return f'<center><h3>You {enable} {backend} on HAProxy {serv}.</center> {output}'
         else:
             return output

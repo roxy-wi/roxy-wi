@@ -12,6 +12,8 @@ const edit_word = translate_div.attr('data-edit');
 const delete_word = translate_div.attr('data-delete');
 const back_word = translate_div.attr('data-back');
 const nice_service_name = {'keepalived': 'HA Custer', 'haproxy': 'HAProxy', 'nginx': 'NGINX', 'apache': 'Apache'};
+const value_word = translate_div.attr('data-value');
+const name_word = translate_div.attr('data-name');
 
 // JS scripts URL
 const scriptPath = "/static/js"
@@ -29,7 +31,7 @@ const csrf_token = Cookies.get('csrf_access_token');
 const api_prefix = '/api'
 
 // Add page
-const add_server_var = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server" style="margin: 2px 0 4px 0;">: ' +
+const add_server_var = '<p><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server" style="margin: 2px 0 4px 0;">: ' +
 		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number"> ' +
 		'Port check: <input name="port_check" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">' +
 		' maxconn: <input name="server_maxconn" required title="Maxconn. Default 200" size=5 value="200" class="form-control add_server_number" type="number">'

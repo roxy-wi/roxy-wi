@@ -10,8 +10,6 @@ from pytz import timezone
 
 import app.modules.db.sql as sql
 
-error_mess = 'error: All fields must be completed'
-
 
 def _convert_to_time_zone(date: datetime) -> datetime:
 	"""

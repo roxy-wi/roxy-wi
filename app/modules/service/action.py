@@ -17,10 +17,7 @@ def common_action(server_ip: str, action: str, service: str) -> None:
         'waf_nginx': action_nginx_waf
     }
 
-    try:
-        action_functions[service](server_ip, action, service)
-    except Exception as e:
-        raise e
+    action_functions[service](server_ip, action, service)
 
 
 def service_action(server_ip: str, action: str, service: str) -> None:
@@ -30,10 +27,7 @@ def service_action(server_ip: str, action: str, service: str) -> None:
     :param service: The name of the service on which the action will be performed.
     :return: A string indicating the success or failure of the action.
     """
-    try:
-        service_common.is_protected(server_ip, action)
-    except Exception as e:
-        raise e
+    service_common.is_protected(server_ip, action)
     server_id = server_sql.get_server_by_ip(server_ip).server_id
 
     if service_common.is_not_allowed_to_restart(server_id, service, action):
@@ -72,11 +66,7 @@ def get_action_command(service: str, action: str, server_id: int) -> str:
 
 
 def action_haproxy_waf(server_ip: str, action: str, service: str) -> None:
-    try:
-        service_common.is_protected(server_ip, action)
-    except Exception as e:
-        raise e
-
+    service_common.is_protected(server_ip, action)
     roxywi_common.logging(
         server_ip, f'HAProxy WAF service has been {action}ed', keep_history=1, service='haproxy'
     )
@@ -85,13 +75,8 @@ def action_haproxy_waf(server_ip: str, action: str, service: str) -> None:
 
 
 def action_nginx_waf(server_ip: str, action: str, service: str) -> None:
+    service_common.is_protected(server_ip, action)
     config_dir = common.return_nice_path(sql.get_setting('nginx_dir'))
-
-    try:
-        service_common.is_protected(server_ip, action)
-    except Exception as e:
-        raise e
-
     waf_new_state = 'on' if action == 'start' else 'off'
     waf_old_state = 'off' if action == 'start' else 'on'
 
