@@ -2,7 +2,7 @@ from typing import Union
 
 import distro
 from flask import render_template, request, g
-from flask_jwt_extended import jwt_required, get_jwt
+from flask_jwt_extended import jwt_required
 from flask_pydantic import validate
 from pydantic import IPvAnyAddress
 
@@ -10,7 +10,6 @@ from app import cache
 from app.routes.service import bp
 import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
-import app.modules.db.user as user_sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
@@ -164,10 +163,8 @@ def cpu_ram_metrics(server_ip: Union[IPvAnyAddress, DomainName], server_id: int,
         return_out = ''
 
     servers = [[name, str(server_ip), return_out]]
-    claims = get_jwt()
     kwargs = {
         'service_status': sorted(servers, key=common.get_key),
-        'role': user_sql.get_user_role_in_group(claims['user_id'], claims['group']),
         'id': server_id,
         'service_page': service,
         'lang': g.user_params['lang']
@@ -238,23 +235,23 @@ def save_service_settings(service):
     if service == 'haproxy':
         if service_sql.insert_or_update_service_setting(server_id, service, 'haproxy_enterprise', haproxy_enterprise):
             if haproxy_enterprise == '1':
-                roxywi_common.logging(server_ip, 'Service has been flagged as an Enterprise version', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Service has been flagged as an Enterprise version',
                                       keep_history=1, service=service)
             else:
-                roxywi_common.logging(server_ip, 'Service has been flagged as a community version', roxywi=1, login=1,
+                roxywi_common.logging(server_ip, 'Service has been flagged as a community version',
                                       keep_history=1, service=service)
 
     if service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', service_dockerized):
         if service_dockerized == '1':
-            roxywi_common.logging(server_ip, service_docker, roxywi=1, login=1, keep_history=1, service=service)
+            roxywi_common.logging(server_ip, service_docker, keep_history=1, service=service)
         else:
-            roxywi_common.logging(server_ip, service_systemd, roxywi=1, login=1, keep_history=1, service=service)
+            roxywi_common.logging(server_ip, service_systemd, keep_history=1, service=service)
 
     if service_sql.insert_or_update_service_setting(server_id, service, 'restart', service_restart):
         if service_restart == '1':
-            roxywi_common.logging(server_ip, disable_restart, roxywi=1, login=1, keep_history=1, service=service)
+            roxywi_common.logging(server_ip, disable_restart, keep_history=1, service=service)
         else:
-            roxywi_common.logging(server_ip, enable_restart, roxywi=1, login=1, keep_history=1, service=service)
+            roxywi_common.logging(server_ip, enable_restart, keep_history=1, service=service)
 
     return 'ok'
 
@@ -269,8 +266,7 @@ def update_tools_enable(service):
     metrics = request.form.get('metrics')
     service_sql.update_hapwi_server(server_id, alert, metrics, active, service)
     server_ip = server_sql.get_server(server_id).ip
-    roxywi_common.logging(server_ip, f'The server {name} has been updated ', roxywi=1, login=1, keep_history=1,
-                          service=service)
+    roxywi_common.logging(server_ip, f'The server {name} has been updated ', keep_history=1, service=service)
 
     return 'ok'
 
