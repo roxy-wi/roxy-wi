@@ -48,7 +48,6 @@
 - name: Install passlib
   pip:
     name: passlib
-    executable: pip3
     state: latest
 
 - name: Copying over nginx.conf
