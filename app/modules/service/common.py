@@ -24,10 +24,6 @@ def get_correct_service_name(service: str, server_id: int) -> str:
 	*prise is set to '1' in the database for the given server ID. If true, it returns "hapee-2.0-lb". If the service name is 'apache', it calls the get_correct_apache_service_name() method
 	* with parameters 0 and the server ID to get the correct apache service name. If none of the conditions match, it will return the original service name.
 	"""
-	if service == 'haproxy':
-		haproxy_enterprise = service_sql.select_service_setting(server_id, 'haproxy', 'haproxy_enterprise')
-		if haproxy_enterprise == '1':
-			return "hapee-2.0-lb"
 	if service == 'apache':
 		return get_correct_apache_service_name(0, server_id)
 

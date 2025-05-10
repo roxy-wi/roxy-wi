@@ -223,7 +223,6 @@ def show_service_settings(service, server_id):
 @check_services
 def save_service_settings(service):
     server_id = int(request.form.get('serverSettingsSave'))
-    haproxy_enterprise = int(request.form.get('serverSettingsEnterprise'))
     service_dockerized = int(request.form.get('serverSettingsDockerized'))
     service_restart = int(request.form.get('serverSettingsRestart'))
     server_ip = server_sql.get_server(server_id).ip
@@ -231,15 +230,6 @@ def save_service_settings(service):
     service_systemd = f'Service {service.title()} has been flagged as a system service'
     disable_restart = f'Restart option is disabled for {service.title()} service'
     enable_restart = f'Restart option is disabled for {service.title()} service'
-
-    if service == 'haproxy':
-        if service_sql.insert_or_update_service_setting(server_id, service, 'haproxy_enterprise', haproxy_enterprise):
-            if haproxy_enterprise == '1':
-                roxywi_common.logging(server_ip, 'Service has been flagged as an Enterprise version',
-                                      keep_history=1, service=service)
-            else:
-                roxywi_common.logging(server_ip, 'Service has been flagged as a community version',
-                                      keep_history=1, service=service)
 
     if service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', service_dockerized):
         if service_dockerized == '1':

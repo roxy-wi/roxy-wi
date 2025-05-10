@@ -436,12 +436,8 @@ function serverSettings(id, name) {
 	});
 }
 function serverSettingsSave(id, name, service, dialog_id) {
-	let haproxy_enterprise = 0;
 	let service_dockerized = 0;
 	let service_restart = 0;
-	if ($('#haproxy_enterprise').is(':checked')) {
-		haproxy_enterprise = '1';
-	}
 	if ($('#haproxy_dockerized').is(':checked')) {
 		service_dockerized = '1';
 	}
@@ -464,7 +460,6 @@ function serverSettingsSave(id, name, service, dialog_id) {
 		url: "/service/settings/" + service,
 		data: {
 			serverSettingsSave: id,
-			serverSettingsEnterprise: haproxy_enterprise,
 			serverSettingsDockerized: service_dockerized,
 			serverSettingsRestart: service_restart,
 			token: $('#token').val()
@@ -522,7 +517,7 @@ function check_service_status(id, ip, service) {
 					server_div.removeClass('div-server-head-up');
 					server_div.addClass('div-server-head-down');
 				} else {
-					if (data.Status === 'running') {
+					if (data.status === 'running') {
 						server_div.addClass('div-server-head-up');
 						server_div.removeClass('div-server-head-down');
 						server_div.removeClass('div-server-head-unknown');
