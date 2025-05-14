@@ -1,0 +1,72 @@
+---
+# Main server configuration
+nginx_proxy:
+  http2: false                         # Enable HTTP/2 (requires SSL)
+
+  # Static files configuration
+  static_files:
+    enabled: false                     # Enable static file handling
+    path: "/var/www/static"           # Physical path to static files
+    url_path: "/static/"              # URL prefix for static files
+
+  # Security configurations
+  security:
+    hide_server_tokens: true          # Hide Nginx version in headers
+    hide_backend_headers: true        # Hide backend server headers (e.g., X-Powered-By)
+    security_headers: true            # Enable security headers (X-Content-Type-Options, etc.)
+    hsts: true                        # Enable HTTP Strict Transport Security
+    hsts_max_age: 15768000            # HSTS duration in seconds (6 months)
+    content_security_policy: "default-src 'self'"  # Content Security Policy rules
+
+  # Rate limiting configuration
+  rate_limit:
+    enabled: false                    # Enable rate limiting
+    zone: "ratelimit 10m rate=100r/s" # Rate limit zone (10MB memory, 100 req/sec)
+    burst: 50                         # Maximum burst capacity
+
+  # Caching configuration
+  caching:
+    enabled: false                    # Enable response caching
+    zones:
+      - name: "api_cache"             # Cache zone name
+        path: "/var/cache/nginx/api"  # Disk path for cache
+        size: "10m"                   # Memory zone size
+        inactive: "60m"               # Cache retention time for inactive entries
+        levels: "1:2"                 # Directory structure levels
+
+  websocket:
+    enabled: false
+
+  # Custom error pages
+  error_pages:
+    enabled: false                   # Enable custom error pages
+    codes: [502, 503, 504]           # HTTP status codes to handle
+    path: "/var/www/errors"          # Directory containing error HTML files
+
+  # IP access control
+  access_control:
+    global_whitelist:
+      enabled: false                  # Global allow-list mode
+      ips: ["192.168.1.0/24", "127.0.0.1"]        # Allowed IPs/CIDR ranges
+    global_blacklist:
+      enabled: false                  # Global deny-list mode
+      ips: ["203.0.113.0/24"]        # Blocked IPs/CIDR ranges
+    location_whitelist:
+      enabled: false                   # Path-specific allow-list
+      ips: ["172.16.0.0/16"]         # Allowed IPs for specific paths
+      apply_to: ["/admin", "/api"]    # Protected paths
+
+
+  # TCP/UDP proxy configuration
+  tcp_proxies:
+    - name: "mysql_proxy"            # Proxy name
+      enabled: false                 # Enable this proxy
+      listen_port: 3306              # Listening port
+      protocol: "tcp"                # Protocol (tcp/udp)
+      upstream_servers:
+        - { ip: "10.0.1.1", port: 3306, weight: 3 }  # Backend servers
+      ssl_enabled: true               # Enable SSL termination
+      ssl_cert: "/etc/ssl/certs/mysql.crt"  # SSL certificate
+      ssl_key: "/etc/ssl/private/mysql.key" # SSL private key
+      proxy_timeout: 3600s            # Connection timeout
+      proxy_connect_timeout: 60s      # Backend connect timeout

@@ -1,0 +1,9 @@
+---
+- name: Create NGINX section
+  hosts: localhost
+  connection: local
+  become: yes
+  become_method: sudo
+  gather_facts: yes
+  roles:
+    - role: nginx_section

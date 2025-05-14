@@ -1,0 +1,9 @@
+{% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
+{% set balance_params = {'ip_hash':'ip_hash','least_conn':'least_conn','random':'random', 'round_robin': 'round-robin'} %}
+<div id="edit-proxy_pass" style="display: none;">
+    {% include 'include/add_nginx/proxy_pass.html' %}
+</div>
+<div id="edit-upstream" style="display: none;">
+    {% include 'include/add_nginx/upstream.html' %}
+</div>

@@ -4,7 +4,8 @@ from typing import Optional, Annotated, Union, Literal, Any, Dict, List
 
 from shlex import quote
 from pydantic_core import CoreSchema, core_schema
-from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, GetCoreSchemaHandler, AnyUrl, root_validator, EmailStr
+from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, GetCoreSchemaHandler, AnyUrl, \
+    root_validator, EmailStr, model_validator
 
 DomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
 WildcardDomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9\*](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
@@ -547,3 +548,83 @@ class ListRequest(BaseModel):
 
 class IpRequest(BaseModel):
     ip: Union[IPvAnyAddress, DomainName]
+
+
+class NginxBackendServer(BaseModel):
+    server: Union[IPvAnyAddress, DomainName]
+    port: Annotated[int, Gt(1), Le(65535)]
+    max_fails: int
+    fail_timeout: int
+
+
+class NginxUpstreamRequest(BaseModel):
+    name: EscapedString
+    balance: Optional[Literal['ip_hash', 'least_conn', 'random', 'round_robin']]
+    keepalive: Optional[int] = 32
+    backend_servers: List[NginxBackendServer]
+    type: Literal['upstream'] = 'upstream'
+    action: Optional[Literal['save', 'test', 'reload', 'restart']] = "save"
+
+    @model_validator(mode='before')
+    @classmethod
+    def backend_server_cannot_be_empty(cls, values):
+        if 'backend_servers' in values:
+            if len(values['backend_servers']) == 0:
+                raise ValueError('Backend servers cannot be empty')
+        return values
+
+
+class NginxHeaders(BaseModel):
+    path: Literal['proxy-header', 'header']
+    name: str
+    method: Literal['add', 'hide']
+    value: Optional[str] = None
+
+
+class NginxHeaderRequest(BaseModel):
+    action: Optional[Literal['add_header', 'proxy_set_header', 'proxy_hide_header']] = None
+    name: Optional[str] = None
+    value: Optional[str] = None
+
+
+class NginxLocationRequest(BaseModel):
+    location: str = '/'
+    proxy_connect_timeout: Optional[int] = 60
+    proxy_read_timeout: Optional[int] = 60
+    proxy_send_timeout: Optional[int] = 60
+    headers: Optional[List[NginxHeaderRequest]] = None
+    upstream: str
+
+    @model_validator(mode='before')
+    @classmethod
+    def location_cannot_be_empty(cls, values):
+        if 'location' in values:
+            if values['location'] == '':
+                raise ValueError('Location cannot be empty')
+            if not values['location'].startswith('/'):
+                raise ValueError('Location must start with /')
+        return values
+
+    @model_validator(mode='before')
+    @classmethod
+    def upstream_cannot_be_empty(cls, values):
+        if 'upstream' in values:
+            if values['upstream'] == '':
+                raise ValueError('Upstream cannot be empty')
+        return values
+
+
+class NginxProxyPassRequest(BaseModel):
+    locations: List[NginxLocationRequest]
+    name: EscapedString
+    port: Annotated[int, Gt(1), Le(65535)]
+    type: Literal['proxy_pass'] = 'proxy_pass'
+    scheme: Literal['http', 'https'] = 'http'
+    ssl_crt: Optional[str] = None
+    ssl_key: Optional[str] = None
+    ssl_offloading: Optional[bool] = False
+    action: Optional[Literal['save', 'test', 'reload', 'restart']] = 'save'
+    compression: bool = False
+    compression_level: Annotated[int, Gt(0), Le(10)] = 6
+    compression_min_length: Optional[int] = 1024
+    compression_types: Optional[str] = 'text/plain text/css application/json application/javascript text/xml'

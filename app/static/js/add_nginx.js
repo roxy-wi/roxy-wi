@@ -1,161 +1,263 @@
 $( function() {
-    $(".redirectUpstream").on("click", function () {
-        resetProxySettings();
-        $("#tabs").tabs("option", "active", 1);
-        $("#serv").selectmenu("open");
-    });
-    $( "#serv" ).on('selectmenuchange',function() {
+	$(".redirectUpstream").on("click", function () {
+		resetProxySettings();
+		$("#tabs").tabs("option", "active", 2);
+		$("#serv2").selectmenu("open");
+	});
+	$(".redirectProxyPass").on("click", function () {
+		resetProxySettings();
+		$("#tabs").tabs("option", "active", 1);
+		$("#serv1").selectmenu("open");
+	});
+	$("#create-ssl-proxy_pass").on("click", function () {
+		resetProxySettings();
+		createSsl(1);
+	});
+	$("#serv2").on('selectmenuchange', function () {
 		$('#name').focus();
 	});
-    let add_server_let = '<br /><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server" style="margin: 2px 0 4px 0;">: ' +
-		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number"> ' +
-		'max_fails: <input name="max_fails" required title="By default, the number of unsuccessful attempts is set to 1" size=5 value="1" class="form-control add_server_number" type="number">' +
-		' fail_timeout: <input name="fail_timeout" required title="By default, the number of unsuccessful attempts is set to 1" size=5 value="1" class="form-control add_server_number" type="number">s'
-	$('[name=add-server-input]').click(function() {
-		$("[name=add_servers]").append(add_server_var);
-		changePortCheckFromServerPort();
+	$('[name=add-server-input]').click(function () {
+		$("[name=add_servers]").append(add_server_nginx_var);
 	});
-    $('.advance-show-button').click(function() {
+	$('.advance-show-button').click(function () {
 		$('.advance').fadeIn();
 		$('.advance-show-button').css('display', 'none');
 		$('.advance-hide-button').css('display', 'block');
 		return false;
 	});
-	$('.advance-hide-button').click(function() {
+	$('.advance-hide-button').click(function () {
 		$('.advance').fadeOut();
 		$('.advance-show-button').css('display', 'block');
 		$('.advance-hide-button').css('display', 'none');
 		return false;
 	});
+	$("#scheme").on('selectmenuchange', function () {
+		if ($("#scheme option:selected").val() === "http") {
+			$('#hide-scheme').hide();
+		} else {
+			$('#hide-scheme').show();
+		}
+	});
+	$("#compression").click(function () {
+		if ($("#compression").is(':checked')) {
+			$('#compression-options').show();
+		} else {
+			$('#compression-options').hide();
+		}
+	});
+	$("#show_header").on("click", function () {
+		$("#header_div").show();
+		$("#add_header").show();
+		$("#show_header").hide();
+	});
+	$("#add_header").click(function () {
+		make_actions_for_adding_header('#header_div');
+	});
+	for (let section_type of ['ssl_key', 'ssl_crt']) {
+		let cert_type = section_type.split('_')[1];
+		$("#" + section_type).autocomplete({
+			source: function (request, response) {
+				let server = $("#add-proxy_pass select[name='server'] option:selected");
+				if (!checkIsServerFiled("#add-proxy_pass select[name='server'] option:selected")) return false;
+				$.ajax({
+					url: "/add/certs/" + server.val() + "?cert_type=" + cert_type,
+					success: function (data) {
+						data = data.replace(/\s+/g, ' ');
+						response(data.split(" "));
+					}
+				});
+			},
+			autoFocus: true,
+			minLength: -1
+		});
+	}
+	$("#proxy_pass-upstream").autocomplete({
+		source: function (request, response) {
+			let server = $("#add-proxy_pass select[name='server'] option:selected");
+			if (!checkIsServerFiled("#add-proxy_pass select[name='server'] option:selected")) return false;
+			$.ajax({
+				url: "/add/get/upstreams/" + server.val(),
+				success: function (data) {
+					data = data.replace(/\s+/g, ' ');
+					response(data.split(" "));
+				}
+			});
+		},
+		autoFocus: true,
+		minLength: -1
+	});
+	$("#add5").on("click", function () {
+		$("#tabs").tabs("option", "active", 3);
+	});
 });
+var header_option = '<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="new_header_p">\n' +
+	'<select name="headers_res">' +
+	'<option value="------">------</option>' +
+	'<option value="add_header">add_header</option>' +
+	'<option value="proxy_set_header">proxy_set_header</option>' +
+	'<option value="proxy_hide_header">proxy_hide_header</option>' +
+	'</select>' +
+	'\t<b class="padding10">'+name_word+'</b>' +
+	'\t<input name="header_name" class="form-control">' +
+	'\t<b class="padding10">'+value_word+'</b>' +
+	'\t<input name="header_value" class="form-control">' +
+	'\t<span class="minus minus-style" id="new_header_minus" title="Delete this header"></span>' +
+	'</p>'
+function make_actions_for_adding_header(section_id) {
+	let random_id = makeid(3);
+	$(section_id).append(header_option);
+	$('#new_header_minus').attr('onclick', 'deleteId(\''+random_id+'\')');
+	$('#new_header_minus').attr('id', '');
+	$('#new_header_p').attr('id', random_id);
+	$('#new_header_minus').attr('id', '');
+	$.getScript(awesome);
+	$( "select" ).selectmenu();
+	$('[name=headers_method]').selectmenu({width: 180});
+}
+function deleteId(id) {
+	$('#' + id).remove();
+}
 function resetProxySettings() {
-	$('[name=upstream]').val('');
+	$('[name=name]').val('');
 	$('input:checkbox').prop("checked", false);
 	$('[name=check-servers]').prop("checked", true);
 	$('input:checkbox').checkboxradio("refresh");
 	$('.advance-show').fadeIn();
 	$('.advance').fadeOut();
-	$('[name=mode').val('http');
 	$('select').selectmenu('refresh');
 	$("#path-cert-listen").attr('required', false);
 	$("#path-cert-frontend").attr('required', false);
 }
-function checkIsServerFiled(select_id, message = 'Select a server first') {
-	if ($(select_id).val() == null || $(select_id).val() == '') {
-		toastr.warning(message);
-		return false;
-	}
-	return true;
-}
-function generateConfig(form_name) {
-	let frm = $('#' + form_name);
-	if (form_name == 'add-upstream') {
-		serv = '#serv'
-		name_id = '#name'
-	}
-	if (!checkIsServerFiled(serv)) return false;
-	if (!checkIsServerFiled(name_id, 'The name cannot be empty')) return false;
-	let input = $("<input>")
-		.attr("name", "generateconfig").val("1").attr("type", "hidden").attr("id", "generateconfig");
-	$('#' + form_name + ' input[name=acl_then_value]').each(function () {
-		if (!$(this).val()) {
-			$(this).val('IsEmptY')
-		}
-	});
-	$('#' + form_name + ' input[name=ip]').each(function () {
-		if (!$(this).val()) {
-			$(this).val('IsEmptY')
-		}
-	});
-	$('#' + form_name + ' input[name=port]').each(function () {
-		if (!$(this).val()) {
-			$(this).val('IsEmptY')
-		}
-	});
-	frm.append(input);
-	let generated_title = translate_div.attr('data-generated_config');
-	$.ajax({
-		url: frm.attr('action'),
-		data: frm.serialize(),
-		type: frm.attr('method'),
-		success: function (data) {
-			if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1') {
-				toastr.clear();
-				toastr.error(data);
-			} else {
-				$('#dialog-confirm-body').text(data);
-				$("#dialog-confirm-cert").dialog({
-					resizable: false,
-					height: "auto",
-					width: 650,
-					modal: true,
-					title: generated_title,
-					buttons: {
-						Ok: function () {
-							$(this).dialog("close");
-						}
-					}
-				});
-			}
-		}
-	});
-	$("#generateconfig").remove();
-	$('#' + form_name + ' input[name=ip]').each(function () {
-		if ($(this).val() == 'IsEmptY') {
-			$(this).val('')
-		}
-	});
-	$('#' + form_name + ' input[name=port]').each(function () {
-		if ($(this).val() == 'IsEmptY') {
-			$(this).val('')
-		}
-	});
-}
-function addProxy(form_name) {
+function addProxy(form_name, generate = false) {
 	let frm = $('#'+form_name);
-	if (form_name == 'add-upstream') {
-		serv = '#serv'
-		name_id = '#name'
+	let serv = '#serv1';
+	let name_id = '';
+	if (form_name === 'add-upstream') {
+		serv = '#serv2'
+		name_id = '#upstream-name'
+	} else if (form_name === 'add-proxy_pass') {
+		serv = '#serv1'
+		name_id = '#proxy_pass'
 	}
 	if(!checkIsServerFiled(serv)) return false;
 	if(!checkIsServerFiled(name_id, 'The name cannot be empty')) return false;
-	$('#'+form_name +' input[name=ip]').each(function(){
-		if ($(this).val().length === 0){
-			$(this).val('IsEmptY')
-		}
-	});
-	$('#'+form_name +' input[name=port]').each(function(){
-		if ($(this).val().length === 0){
-			$(this).val('IsEmptY')
-		}
-	});
+	let json_data = getNginxFormData(frm, form_name);
+	let section_type = form_name.split('-')[1]
+	let q_generate = '';
+	if (generate) {
+		q_generate = '?generate=1';
+	}
 	$.ajax({
-		url: frm.attr('action'),
-		data: frm.serialize(),
+		url: '/add/nginx/' + $(serv).val() + '/section/' + section_type + q_generate,
+		data: JSON.stringify(json_data),
 		type: frm.attr('method'),
+		contentType: "application/json; charset=utf-8",
 		success: function( data ) {
-			data = data.replace(/\n/g, "<br>");
-			if (data.indexOf('error: ') != '-1' || data.indexOf('Fatal') != '-1') {
-				returnNiceCheckingConfig(data);
-			} else if (data == '') {
+			if (data.status === 'failed') {
+				toastr.error(data.error)
+			} else if (data === '') {
 				toastr.clear();
-				toastr.error('error: Proxy cannot be empty');
+				toastr.error('error: Something went wrong. Check configuration');
 			} else {
-				toastr.clear();
-				returnNiceCheckingConfig(data);
-				toastr.info('Section has been added. Do not forget to restart the server');
-				resetProxySettings();
+				if (generate) {
+					$('#dialog-confirm-body').text(data.data);
+					let generated_title = translate_div.attr('data-generated_config');
+					$("#dialog-confirm-cert").dialog({
+						resizable: false,
+						height: "auto",
+						width: 650,
+						modal: true,
+						title: generated_title,
+						buttons: {
+							Ok: function () {
+								$(this).dialog("close");
+							}
+						}
+					});
+				} else {
+					toastr.clear();
+					data.data = data.data.replace(/\n/g, "<br>");
+					if (returnNiceCheckingConfig(data.data) === 0) {
+						toastr.info('Section has been added. Do not forget to restart the server');
+						resetProxySettings();
+					}
+				}
 			}
 		}
 	});
-	$('#'+form_name +' input[name=ip]').each(function(){
-		if ($(this).val() == 'IsEmptY'){
-			$(this).val('')
+}
+function getNginxFormData($form, form_name) {
+	let section_type = form_name.split('-')[1]
+	let unindexed_array = $form.serializeArray();
+	let indexed_array = {};
+	indexed_array['locations'] = [];
+	indexed_array['backend_servers'] = [];
+	let headers = [];
+
+	$.map(unindexed_array, function (n, i) {
+		if (n['name'] === 'location') {
+			let location = $('input[name="location"]').val();
+			let proxy_connect_timeout = $('input[name="proxy_connect_timeout"]').val();
+			let proxy_read_timeout = $('input[name="proxy_read_timeout"]').val();
+			let proxy_send_timeout = $('input[name="proxy_send_timeout"]').val();
+			let upstream = $('input[name="upstream"]').val();
+			$('#header_div p').each(function () {
+				let action = $(this).children().children('select[name="headers_res"] option:selected').val();
+				let name = $(this).children('input[name="header_name"]').val();
+				let value = $(this).children('input[name="header_value"]').val();
+				if (action === '------') {
+					return;
+				}
+				if (name === '') {
+					return;
+				}
+				let header = {action, name, value};
+				headers.push(header);
+			});
+			let location_config = {location, proxy_connect_timeout, proxy_read_timeout, proxy_send_timeout, headers, upstream};
+			indexed_array['locations'].push(location_config)
+		} else if (n['name'] === 'ssl_offloading') {
+			if ($('input[name="ssl_offloading"]').is(':checked')) {
+				indexed_array['ssl_offloading'] = true;
+			} else {
+				indexed_array['ssl_offloading'] = false;
+			}
+		} else {
+			indexed_array[n['name']] = n['value'];
 		}
 	});
-	$('#'+form_name +' input[name=port]').each(function(){
-		if ($(this).val() == 'IsEmptY'){
-			$(this).val('')
+	$('#'+form_name+' span[name="add_servers"] p').each(function (){
+		let server = $(this).children("input[name='servers']").val();
+		if (server === undefined || server === '') {
+			return;
 		}
+		let port = $(this).children("input[name='server_port']").val();
+		let max_fails = $(this).children("input[name='max_fails']").val();
+		let fail_timeout = $(this).children("input[name='fail_timeout']").val();
+		let test_var = {server, port, max_fails, fail_timeout};
+		indexed_array['backend_servers'].push(test_var);
 	});
+	let elementsForDelete = [
+		'servers', 'server_port', 'max_fails', 'fail_timeout', 'proxy_connect_timeout', 'proxy_read_timeout', 'proxy_send_timeout',
+		'headers_res', 'header_name', 'header_value', 'upstream', 'server'
+	]
+	for (let element of elementsForDelete) {
+		delete indexed_array[element]
+	}
+	return indexed_array;
+}
+function createSsl(TabId) {
+	$('[name=port]').val('443');
+	$("#tabs").tabs("option", "active", TabId);
+	$("#hide-scheme").show("fast");
+	$('#scheme').val('https');
+	$('#ssl_offloading').prop("checked", true);
+	$('input:checkbox').checkboxradio("refresh");
+	$("#ssl_key").attr('required', true);
+	if (TabId === 1) {
+		TabId = '';
+	}
+	$("#serv" + TabId).selectmenu("open");
+	$("#scheme").selectmenu("refresh");
+	history.pushState('Add proxy pass', 'Add proxy pass', 'nginx#proxypass')
 }

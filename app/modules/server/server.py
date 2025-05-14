@@ -108,6 +108,15 @@ def get_remote_files(server_ip: str, config_dir: str, file_format: str):
 	return config_files
 
 
+def get_remote_upstream_files(server_ip: str):
+	service_config_dir = sql.get_setting('nginx_dir')
+	config_dir = common.return_nice_path(service_config_dir)
+	command = f'sudo ls {config_dir}/conf.d/upstream*.conf|awk -F"/" \'{{print $NF}}\''
+	config_files = ssh_command(server_ip, command)
+	config_files = config_files.replace('upstream_', '').replace('.conf', '')
+	return config_files
+
+
 def get_system_info(server_ip: str) -> None:
 	if server_ip == '':
 		raise Exception('IP cannot be empty')

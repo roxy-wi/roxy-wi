@@ -6,7 +6,11 @@
 			{% if role <= 3 %}
 				{% if not is_serv_protected or role <= 2 %}
 				{% if not configver %}
+                {% if service != 'nginx' %}
 				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" id="edit_link" href="/config/{{service}}/{{serv}}/edit/{{config_file_name}}">{{lang.words.edit|title()}}</a>
+                {% else %}
+				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" id="edit_link" onclick="openNginxSection('{{config_file_name.split("92")[-1].split(".conf")[0]}}')">{{lang.words.edit|title()}}</a>
+                {% endif %}
 				{% endif %}
 				{% if service == 'haproxy' %}
 				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} {{lang.words.proxy}}" href="/add/haproxy#proxy">{{lang.words.add|title()}}</a>
@@ -71,6 +75,12 @@
 				{% continue %}
 			{% endif %}
 			{%- if "events {" in line -%}
+				</div>
+				<span class="param">{{ line }}
+				</span><div>
+				{% continue %}
+			{% endif %}
+			{%- if "upstream {" in line -%}
 				</div>
 				<span class="param">{{ line }}
 				</span><div>
@@ -377,6 +387,7 @@
 			{%- endif -%}
 		{%- endif -%}
 	{%- endfor -%}
+	</div>
 	</div>
 	</div>
 	{% if configver %}

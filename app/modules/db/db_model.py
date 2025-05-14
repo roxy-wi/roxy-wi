@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from peewee import ForeignKeyField
 from playhouse.migrate import *
 from playhouse.shortcuts import ReconnectMixin
 from playhouse.sqlite_ext import SqliteExtDatabase
@@ -775,6 +776,18 @@ class HaproxySection(BaseModel):
         constraints = [SQL('UNIQUE (server_id, type, name)')]
 
 
+class NginxSection(BaseModel):
+    id = AutoField
+    server_id = ForeignKeyField(Server, on_delete='Cascade')
+    type = CharField()
+    name = CharField()
+    config = JSONField()
+
+    class Meta:
+        table_name = 'nginx_sections'
+        constraints = [SQL('UNIQUE (server_id, type, name)')]
+
+
 class LetsEncrypt(BaseModel):
     id = AutoField
     server_id = ForeignKeyField(Server, null=True, on_delete='SET NULL')
@@ -789,6 +802,21 @@ class LetsEncrypt(BaseModel):
         table_name = 'lets_encrypt'
 
 
+class InstallationTasks(BaseModel):
+    id = AutoField
+    service_name = CharField()
+    status = CharField(default='created')
+    error = CharField(null=True)
+    start_date = DateTimeField(default=datetime.now)
+    finish_date = DateTimeField(default=datetime.now)
+    group_id = ForeignKeyField(Groups, null=True, on_delete='SET NULL')
+    user_id = ForeignKeyField(User, null=True, on_delete='SET NULL')
+    server_ids = JSONField(null=True)
+
+    class Meta:
+        table_name = 'installation_tasks'
+
+
 def create_tables():
     conn = connect()
     with conn:
@@ -799,5 +827,5 @@ def create_tables():
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
              KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
-             HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt]
+             HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, NginxSection, InstallationTasks]
         )

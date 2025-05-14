@@ -465,70 +465,6 @@ def update_db_v_4_3_0():
 			print("An error occurred:", e)
 
 
-def update_db_v_7_2_0():
-	try:
-		if mysql_enable:
-			migrate(
-				migrator.add_column('smon_ping_check', 'interval', IntegerField(default=120)),
-				migrator.add_column('smon_http_check', 'interval', IntegerField(default=120)),
-				migrator.add_column('smon_tcp_check', 'interval', IntegerField(default=120)),
-				migrator.add_column('smon_dns_check', 'interval', IntegerField(default=120)),
-				migrator.add_column('smon_ping_check', 'agent_id', IntegerField(default=1)),
-				migrator.add_column('smon_http_check', 'agent_id', IntegerField(default=1)),
-				migrator.add_column('smon_tcp_check', 'agent_id', IntegerField(default=1)),
-				migrator.add_column('smon_dns_check', 'agent_id', IntegerField(default=1))
-			)
-		else:
-			migrate(
-				migrator.add_column('smon_ping_check', 'interval', IntegerField(constraints=[SQL('DEFAULT 120')])),
-				migrator.add_column('smon_http_check', 'interval', IntegerField(constraints=[SQL('DEFAULT 120')])),
-				migrator.add_column('smon_tcp_check', 'interval', IntegerField(constraints=[SQL('DEFAULT 120')])),
-				migrator.add_column('smon_dns_check', 'interval', IntegerField(constraints=[SQL('DEFAULT 120')])),
-				migrator.add_column('smon_ping_check', 'agent_id', IntegerField(constraints=[SQL('DEFAULT 1')])),
-				migrator.add_column('smon_http_check', 'agent_id', IntegerField(constraints=[SQL('DEFAULT 1')])),
-				migrator.add_column('smon_tcp_check', 'agent_id', IntegerField(constraints=[SQL('DEFAULT 1')])),
-				migrator.add_column('smon_dns_check', 'agent_id', IntegerField(constraints=[SQL('DEFAULT 1')]))
-			)
-	except Exception as e:
-		if e.args[0] == 'duplicate column name: agent_id' or str(e) == '(1060, "Duplicate column name \'agent_id\'")':
-			print('Updating... DB has been updated to version 7.2.0')
-		elif e.args[0] == 'duplicate column name: interval' or str(e) == '(1060, "Duplicate column name \'interval\'")':
-			print('Updating... DB has been updated to version 7.2.0')
-		else:
-			print("An error occurred:", e)
-
-
-def update_db_v_7_2_0_1():
-	try:
-		Setting.delete().where(Setting.param == 'smon_check_interval').execute()
-		Setting.delete().where((Setting.param == 'smon_keep_history_range') & (Setting.section == 'monitoring')).execute()
-		Setting.delete().where((Setting.param == 'smon_ssl_expire_warning_alert') & (Setting.section == 'monitoring')).execute()
-		Setting.delete().where((Setting.param == 'smon_ssl_expire_critical_alert') & (Setting.section == 'monitoring')).execute()
-	except Exception as e:
-		print("An error occurred:", e)
-	else:
-		print("Updating... DB has been updated to version 7.2.0-1")
-
-
-def update_db_v_7_2_3():
-	try:
-		if mysql_enable:
-			migrate(
-				migrator.add_column('checker_setting', 'mm_id', IntegerField(default=0)),
-				migrator.add_column('smon', 'mm_channel_id', IntegerField(default=0)),
-			)
-		else:
-			migrate(
-				migrator.add_column('checker_setting', 'mm_id', IntegerField(constraints=[SQL('DEFAULT 0')])),
-				migrator.add_column('smon', 'mm_channel_id', IntegerField(constraints=[SQL('DEFAULT 0')])),
-			)
-	except Exception as e:
-		if e.args[0] == 'duplicate column name: mm_id' or str(e) == '(1060, "Duplicate column name \'mm_id\'")':
-			print('Updating... DB has been updated to version 7.2.3')
-		else:
-			print("An error occurred:", e)
-
-
 def update_db_v_7_3_1():
 	try:
 		if mysql_enable:
@@ -723,7 +659,7 @@ def update_db_v_8_1_6():
 
 def update_ver():
 	try:
-		Version.update(version='8.1.8').execute()
+		Version.update(version='8.2.0').execute()
 	except Exception:
 		print('Cannot update version')
 
@@ -741,9 +677,6 @@ def update_all():
 	if check_ver() is None:
 		update_db_v_3_4_5_22()
 	update_db_v_4_3_0()
-	update_db_v_7_2_0()
-	update_db_v_7_2_0_1()
-	update_db_v_7_2_3()
 	update_db_v_7_3_1()
 	update_db_v_7_4()
 	update_db_v_8()

@@ -1,0 +1,19 @@
+---
+- name: Create section
+  when: action == 'create'
+  block:
+
+  - name: Generate Nginx config
+    template:
+      src: proxy_pass.j2
+      dest: "{{ cfg }}"
+      owner: root
+      group: root
+      mode: '0644'
+    when: config.type == 'proxy_pass'
+
+  - name: Generate upstream config
+    template:
+      src: upstream.j2
+      dest: "{{ cfg }}"
+    when: config.type == 'upstream'

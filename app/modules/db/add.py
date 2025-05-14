@@ -1,10 +1,14 @@
-from typing import Union
+from typing import Union, Literal
 
-from app.modules.db.db_model import SavedServer, Option, HaproxySection
+from app.modules.db.db_model import SavedServer, Option, HaproxySection, NginxSection
 from app.modules.db.common import out_error
-from app.modules.roxywi.class_models import HaproxyConfigRequest, HaproxyGlobalRequest, HaproxyDefaultsRequest
+from app.modules.roxywi.class_models import HaproxyConfigRequest, HaproxyGlobalRequest, HaproxyDefaultsRequest, NginxUpstreamRequest
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 
+SectionModel = {
+	'haproxy': HaproxySection,
+	'nginx': NginxSection,
+}
 
 def update_saved_server(server, description, saved_id):
 	try:
@@ -93,9 +97,16 @@ def select_saved_servers(**kwargs):
 		return query_res
 
 
-def insert_new_section(server_id: int, section_type: str, section_name: str, body: HaproxyConfigRequest):
+def insert_new_section(
+		server_id: int,
+		section_type: str,
+		section_name: str,
+		body: Union[HaproxyConfigRequest, NginxUpstreamRequest],
+		service: Literal['haproxy', 'nginx'] = 'haproxy'
+):
+	model = SectionModel[service]
 	try:
-		return (HaproxySection.insert(
+		return (model.insert(
 			server_id=server_id,
 			type=section_type,
 			name=section_name,
@@ -105,7 +116,12 @@ def insert_new_section(server_id: int, section_type: str, section_name: str, bod
 		out_error(e)
 
 
-def insert_or_update_new_section(server_id: int, section_type: str, section_name: str, body: Union[HaproxyGlobalRequest, HaproxyDefaultsRequest]):
+def insert_or_update_new_section(
+		server_id: int,
+		section_type: str,
+		section_name: str,
+		body: Union[HaproxyGlobalRequest, HaproxyDefaultsRequest]
+):
 	try:
 		return (HaproxySection.insert(
 			server_id=server_id,
@@ -117,40 +133,54 @@ def insert_or_update_new_section(server_id: int, section_type: str, section_name
 		out_error(e)
 
 
-def update_section(server_id: int, section_type: str, section_name: str, body: HaproxyConfigRequest):
+def update_section(
+		server_id: int,
+		section_type: str,
+		section_name: str,
+		body: Union[HaproxyConfigRequest, NginxUpstreamRequest],
+		service: Literal['haproxy', 'nginx'] = 'haproxy'
+):
+	model = SectionModel[service]
 	try:
-		HaproxySection.update(
+		model.update(
 			config=body.model_dump(mode='json')
 		).where(
-			(HaproxySection.server_id == server_id) & (HaproxySection.type == section_type) & (HaproxySection.name == section_name)
+			(model.server_id == server_id) & (model.type == section_type) & (model.name == section_name)
 		).execute()
-	except HaproxySection.DoesNotExist:
+	except model.DoesNotExist:
 		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 
 
-def get_section(server_id: int, section_type: str, section_name: str) -> HaproxySection:
+def get_section(
+		server_id: int,
+		section_type: str,
+		section_name: str,
+		service: Literal['haproxy', 'nginx'] = 'haproxy'
+) -> Union[HaproxySection, NginxSection]:
+	model = SectionModel[service]
 	try:
-		return HaproxySection.get(
-			(HaproxySection.server_id == server_id)
-			& (HaproxySection.type == section_type)
-			& (HaproxySection.name == section_name)
+		return model.get(
+			(model.server_id == server_id)
+			& (model.type == section_type)
+			& (model.name == section_name)
 		)
-	except HaproxySection.DoesNotExist:
+	except model.DoesNotExist:
 		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 
 
-def delete_section(server_id: int, section_type: str, section_name: str):
+def delete_section(server_id: int, section_type: str, section_name: str, service: Literal['haproxy', 'nginx'] = 'haproxy') -> None:
+	model = SectionModel[service]
 	try:
-		HaproxySection.delete().where(
-			(HaproxySection.server_id == server_id)
-			& (HaproxySection.type == section_type)
-			& (HaproxySection.name == section_name)
+		model.delete().where(
+			(model.server_id == server_id)
+			& (model.type == section_type)
+			& (model.name == section_name)
 		).execute()
-	except HaproxySection.DoesNotExist:
+	except model.DoesNotExist:
 		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)

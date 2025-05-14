@@ -284,9 +284,9 @@ function openSection(section) {
 		}
 	});
 }
-function delete_section(section_type, section_name, server_id) {
+function delete_section(section_type, section_name, server_id, service) {
 	$.ajax({
-		url: '/add/haproxy/' + server_id + '/section/' + section_type + '/' + section_name,
+		url: '/add/' + service + '/' + server_id + '/section/' + section_type + '/' + section_name,
 		contentType: "application/json; charset=utf-8",
 		method: "DELETE",
 		statusCode: {
@@ -415,6 +415,7 @@ function editProxy(form_name, dialog_id, generate=false) {
 					toastr.info('Section has been updated. Do not forget to restart the server');
 					let ip = $('select[name=serv]').val();
 					localStorage.setItem('restart', ip);
+					$('#edit-section').remove();
 					showConfig();
 					$(dialog_id).dialog( "close" );
 				}
@@ -647,25 +648,219 @@ function getFormData($form, form_name) {
 	}
 	return indexed_array;
 }
-function confirmDeleteSection(section_type, section_name, serv_val, dialog_id) {
-	 $( "#dialog-confirm" ).dialog({
-      resizable: false,
-      height: "auto",
-      width: 400,
-      modal: true,
-	  title: delete_word + " " + section_name + "?",
-      buttons: [{
-		  text: delete_word,
-		  click: function () {
-			  $(this).dialog("close");
-			  delete_section(section_type, section_name, serv_val);
-			  dialog_id.dialog("close");
-		  }
-	  }, {
-		  text: cancel_word,
-		  click: function () {
-			  $(this).dialog("close");
-		  }
-	  }]
-    });
+function confirmDeleteSection(section_type, section_name, serv_val, dialog_id, service='haproxy') {
+	$("#dialog-confirm").dialog({
+		resizable: false,
+		height: "auto",
+		width: 400,
+		modal: true,
+		title: delete_word + " " + section_name + "?",
+		buttons: [{
+			text: delete_word,
+			click: function () {
+				$(this).dialog("close");
+				delete_section(section_type, section_name, serv_val, service);
+				dialog_id.dialog("close");
+			}
+		}, {
+			text: cancel_word,
+			click: function () {
+				$(this).dialog("close");
+			}
+		}]
+	});
+}
+function openNginxSection(section) {
+	let section_type = section.split('_')[0];
+	let section_name = section.split('_')[1];
+	if (section_type === 'proxy-pass') {
+		section_type = 'proxy_pass';
+	}
+	let url = '/add/nginx/' + $('#serv').val() + '/section/' + section_type + '/' + section_name;
+	clearEditNginxSection();
+	$.ajax({
+		url: url,
+		contentType: "application/json; charset=utf-8",
+		statusCode: {
+			404: function (xhr) {
+				window.open('/config/nginx/' + $('#serv').val() + '/edit/' + $('#config_file_name').val(), '_blank').focus();
+			}
+		},
+		async: false,
+		success: function (data) {
+			$('.advance-show-button').click(function () {
+				$('.advance').fadeIn();
+				$('.advance-show-button').css('display', 'none');
+				$('.advance-hide-button').css('display', 'block');
+				return false;
+			});
+			$('.advance-hide-button').click(function () {
+				$('.advance').fadeOut();
+				$('.advance-show-button').css('display', 'block');
+				$('.advance-hide-button').css('display', 'none');
+				return false;
+			});
+			let section_id = '#add-' + section_type;
+			$.getScript(awesome);
+			$('#edit-' + section_type).show();
+			$('#edit-' + section_type + ' caption').hide();
+			$('#' + section_type + '-add-buttons').hide();
+			let i = 0;
+			Object.keys(data.config).forEach(function (key) {
+				if ($(section_id + ' *[name="' + key + '"]').prop("tagName") === 'SELECT') {
+					$(section_id + ' select[name="' + key + '"]').val(data.config[key]).change();
+				} else if ($(section_id + ' *[name="' + key + '"]').prop("tagName") === 'TEXTAREA') {
+					$(section_id + ' select[name="' + key + '"]').val(data.config['option']).change();
+				} else {
+					if ($(section_id + ' *[name="' + key + '"]').prop('type') === 'checkbox') {
+						if (data.config[key]) {
+							$(section_id + ' input[name="' + key + '"]').prop("checked", true);
+						}
+					} else {
+						$(section_id + ' input[name="' + key + '"]').val(data.config[key]);
+					}
+				}
+			});
+			if (section_type === 'upstream') {
+				if (data.config.backend_servers) {
+					if (data.config.backend_servers.length > 3) {
+						for (let i = 2; i < data.config.backend_servers.length; i++) {
+							$("[name=add_servers]").append(add_server_nginx_var);
+						}
+					}
+					i = 0;
+					if (data.config.backend_servers.length > 0) {
+						for (let bind of data.config.backend_servers) {
+							$(section_id + ' input[name="servers"]').get(i).value = bind.server;
+							$(section_id + ' input[name="server_port"]').get(i).value = bind.port;
+							$(section_id + ' input[name="max_fails"]').get(i).value = bind.max_fails;
+							$(section_id + ' input[name="fail_timeout"]').get(i).value = bind.fail_timeout;
+							i++;
+						}
+					}
+				}
+			}
+			if (section_type === 'proxy_pass') {
+				for (let location of data.locations) {
+					if (location.headers) {
+						if (location.length > 0) {
+							i = 0;
+							$("#add_header").on("click", function () {
+								$("#header_div").show();
+								$("#add_header").show();
+								$("#add_header").hide();
+							});
+							$('#add_header').trigger('click');
+							for (let header of data.config.headers) {
+								make_actions_for_adding_header('#header_div')
+								let headers_res_id = $(section_id + ' select[name="headers_res"]').get(i).id;
+								$('#' + headers_res_id).val(header.path).change();
+								$(section_id + ' input[name="header_name"]').get(i).value = header.name;
+								$(section_id + ' input[name="header_value"]').get(i).value = header.value;
+								i++;
+							}
+						}
+					}
+					$('#proxy_connect_timeout').val(location.proxy_connect_timeout);
+					$('#proxy_read_timeout').val(location.proxy_read_timeout);
+					$('#proxy_send_timeout').val(location.proxy_send_timeout);
+					$('#proxy_pass-upstream').val(location.upstream);
+				}
+				if (data.compression) {
+					$('#compression').prop("checked", true);
+					$("#compression-options").show("fast");
+					$('#compression_types').val(data.compression_types);
+					$('#compression_min_length').val(data.compression_min_length);
+					$('#compression_level').val(data.compression_level);
+				} else {
+					$('#compression').prop("checked", false);
+					$("#compression-options").hide("fast");
+				}
+				if (data.scheme === 'https') {
+					$('#scheme').val('https');
+					$('#hide-scheme').show();
+					$("#scheme").selectmenu();
+					$("#scheme").selectmenu('refresh');
+				}
+			}
+			$(section_id + ' select[name="server"]').selectmenu();
+			$(section_id + ' select[name="server"]').selectmenu('refresh');
+			$("input[type=checkbox]").checkboxradio();
+			$("input[type=checkbox]").checkboxradio('refresh');
+			$(section_id + ' select[name="server"]').val(data.server_id).change();
+			$(section_id + ' select[name="server"]').selectmenu('disable').parent().parent().hide();
+			$(section_id + ' input[name="name"]').prop("readonly", true).parent().parent().hide();
+			let buttons = [{
+				text: edit_word,
+				click: function () {
+					editNginxProxy('add-' + section_type, $(this));
+				}
+			}, {
+				text: delete_word,
+				click: function () {
+					confirmDeleteSection(section_type, section_name, $('#serv').val(), $(this), 'nginx');
+				}
+			}, {
+				text: cancel_word,
+				click: function () {
+					$(this).dialog("close");
+					$('#edit-' + section_type).hide();
+				}
+			}]
+			$("#edit-section").dialog({
+				resizable: false,
+				height: "auto",
+				width: 1100,
+				modal: true,
+				title: edit_word,
+				close: function () {
+					$('#edit-' + section_type).hide();
+				},
+				buttons: buttons
+			});
+		}
+	});
+}
+function clearEditNginxSection() {
+	$('#edit-section').empty();
+	$.ajax({
+		url: "/add/nginx/get_section_html",
+        method: "GET",
+		async: false,
+        success: function(data) {
+            $('#edit-section').html(data);
+			$.getScript('/static/js/add_nginx.js');
+        },
+	})
+}
+function editNginxProxy(form_name, dialog_id, generate=false) {
+	let frm = $('#'+form_name);
+	let name_id = '#' +form_name + ' input[name="name"]';
+	if(!checkIsServerFiled(name_id, 'The name cannot be empty')) return false;
+	let json_data = getNginxFormData(frm, form_name);
+	let section_type = form_name.split('-')[1]
+	let url = '/add/nginx/' + $('#serv').val() + '/section/' + section_type + '/' + $(name_id).val();
+	$.ajax({
+		url: url,
+		data: JSON.stringify(json_data),
+		type: 'PUT',
+		contentType: "application/json; charset=utf-8",
+		success: function( data ) {
+			if (data.status === 'failed') {
+				toastr.error(data.error)
+			} else if (data === '') {
+				toastr.clear();
+				toastr.error('error: Something went wrong. Check configuration');
+			} else {
+				toastr.clear();
+				data.data = data.data.replace(/\n/g, "<br>");
+				if (returnNiceCheckingConfig(data.data) === 0) {
+					toastr.info('Section has been updated. Do not forget to restart the server');
+					showConfig();
+					$('#edit-section').remove();
+					$(dialog_id).dialog( "close" );
+				}
+			}
+		}
+	});
 }

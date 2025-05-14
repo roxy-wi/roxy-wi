@@ -27,12 +27,12 @@
     {% endif %}
 
     {% if config.whitelist and config.whitelist != 'None' -%}
-    acl white_list_{{ config.whitelist }} src -f {{ haproxy_dir }}/white/{{ config.whitelist }}
+    acl white_list_{{ config.whitelist }} src -f {{ service_dir }}/white/{{ config.whitelist }}
     tcp-request content accept if white_list_{{ config.whitelist }}
     tcp-request content reject
     {% endif %}
     {% if config.blacklist and config.blacklist != 'None' -%}
-    tcp-request connection reject if { src -f {{ haproxy_dir }}/black/{{ config.blacklist }} }
+    tcp-request connection reject if { src -f {{ service_dir }}/black/{{ config.blacklist }} }
     {% endif %}
 
     {% if config.acls != 'None' -%}
@@ -81,7 +81,7 @@
     {% endif -%}
 
     {% if config.waf -%}
-    filter spoe engine modsecurity config {{ haproxy_dir }}/waf.conf
+    filter spoe engine modsecurity config {{ service_dir }}/waf.conf
     http-request deny if { var(txn.modsec.code) -m int gt 0 }
     {% endif -%}
 

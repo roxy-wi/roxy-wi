@@ -1,0 +1,62 @@
+{% if add %}
+	<div class="alert alert-success" style="position: absolute;top: 45px;left: 5px;">
+		<div id="close">
+			<span title="Close" style="cursor: pointer; float: right;">X</span>
+		</div>
+		<h3>{{ add }} {{lang.add_page.desc.was_success_added}}</h3>
+		{{ conf_add }}
+	</div>
+	<script>
+		$('#close').click(function(){
+			$('.alert-success').remove();
+		});
+	</script>
+{% endif %}
+<div id="create" style="margin-top: 20px;">
+	<div id="left-collumn">
+		<div class="div-pannel">
+			<div class="div-server add-proxy-listen-head">
+				<div class="server-name">
+					<span title="{{lang.words.create|title()}} Proxy pass" class="redirectProxyPass span-link">{{lang.words.create|title()}} HTTP proxy pass</span>
+				</div>
+				<div class="server-desc add_proxy">
+					{{lang.add_page.desc.create_nginx_proxy}}
+				</div>
+			</div>
+		</div>
+		<div class="div-pannel">
+			<div class="div-server add-proxy-listen-head">
+				<div class="server-name">
+					<span title="{{lang.words.create|title()}} Proxy pass" class="redirectProxyPass span-link" id="create-ssl-proxy_pass">{{lang.words.create|title()}} HTTPS proxy pass</span>
+				</div>
+                <div class="server-desc add_proxy">
+                    {{lang.add_page.desc.create_nginx_ssl_proxy}} <a href="{{ url_for('service.ssl_service', service='nginx') }}" target="_blank">{{lang.words.uploaded}} {{lang.words.w_a}} PEM {{lang.words.cert}}</a>
+                </div>
+			</div>
+		</div>
+	</div>
+	<div id="middle-collumn">
+        <div class="div-pannel">
+			<div class="div-server add-proxy-frontend-head">
+				<div class="server-name">
+					<span title="{{lang.words.create|title()}} {{lang.words.upstream|title()}}" class="redirectUpstream span-link">{{lang.words.create|title()}} {{lang.words.upstream|title()}}</span>
+				</div>
+				<div class="server-desc add_proxy">
+					{{lang.add_nginx_page.desc.upstream_desc1}}
+				</div>
+			</div>
+		</div>
+        <div class="div-pannel">
+            <div class="div-server add-proxy-frontend-head">
+                <div class="server-name">
+                    <span title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.server}} {{lang.words.template}}" class="span-link" id="add5">{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.server}} {{lang.words.template}}</span>
+                </div>
+                <div class="server-desc add_proxy">
+                    {{lang.add_page.desc.server_temp}}
+                </div>
+            </div>
+        </div>
+	</div>
+	<div id="right-collumn">
+	</div>
+</div>

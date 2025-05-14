@@ -40,3 +40,8 @@ const add_userlist_var = '<p><input name="userlist-user" title="User name" place
 const add_peer_var = '<p><input name="servers_name" required title="Peer name" size=14 placeholder="haproxyN" class="form-control">: ' +
 		'<input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server">: ' +
 		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number"></p>'
+const add_server_nginx_var = '<p><input name="servers" title="Backend IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server" style="margin: 2px 0 4px 0;">: ' +
+		'<input name="server_port" required title="Backend port" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number"> ' +
+		'max_fails: <input name="max_fails" required title="By default, the number of unsuccessful attempts is set to 1" size=5 value="1" class="form-control add_server_number" type="number">' +
+		' fail_timeout: <input name="fail_timeout" required title="By default, the number of unsuccessful attempts is set to 1" size=5 value="1" class="form-control add_server_number" type="number">s ' +
+		'	<span class="minus minus-style" id="" title="Remove the server" onclick="$(this).parent().remove()"></span></p>'

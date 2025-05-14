@@ -1,23 +1,11 @@
-window.onload = function() {
-	var cur_url = window.location.href.split('/').pop();
-	let activeTabIdx = $('#tabs').tabs('option','active');
-	if (cur_url.split('#')[1] === 'ssl') {
-		if (activeTabIdx === 4) {
-			getLes();
-		}
-	}
-}
 $( function() {
 	$("#tabs ul li").click(function () {
-        let activeTab = $(this).find("a").attr("href");
-        let activeTabClass = activeTab.replace('#', '');
-        $('.menu li ul li').each(function () {
-            activeSubMenu($(this), activeTabClass)
-        });
-        if (activeTab === '#ssl') {
-            getLes();
-        }
-    });
+		let activeTab = $(this).find("a").attr("href");
+		let activeTabClass = activeTab.replace('#', '');
+		$('.menu li ul li').each(function () {
+			activeSubMenu($(this), activeTabClass)
+		});
+	});
 	$("#listen-mode-select").on('selectmenuchange', function () {
 		if ($("#listen-mode-select option:selected").val() === "tcp") {
 			$("#https-listen-span").hide("fast");
@@ -325,52 +313,6 @@ $( function() {
 			}
 		});
 	});
-	$("#servers_table input").change(function () {
-		let id = $(this).attr('id').split('-');
-		updateSavedServer(id[2])
-
-	});
-	$('[name=servers]').autocomplete({
-		source: "/add/server/get/" + $('#group_id').val(),
-		autoFocus: true,
-		minLength: 1,
-		select: function (event, ui) {
-			$(this).append(ui.item.value + " ");
-			$(this).next().focus();
-		}
-	})
-		.autocomplete("instance")._renderItem = function (ul, item) {
-		return $("<li>")
-			.append("<div>" + item.value + "<br>" + item.desc + "</div>")
-			.appendTo(ul);
-	};
-	$('#add-saved-server-button').click(function () {
-		if ($('#saved-server-add-table').css('display', 'none')) {
-			$('#saved-server-add-table').show("blind", "fast");
-		}
-	});
-	$('#add-saved-server-new').click(function () {
-		$.ajax({
-			url: "/add/server",
-			data: JSON.stringify({
-				server: $('#new-saved-servers').val(),
-				description: $('#new-saved-servers-description').val()
-			}),
-			type: "POST",
-			contentType: "application/json; charset=utf-8",
-			success: function (data) {
-				if (data.status === 'failed') {
-					toastr.error(data);
-				} else {
-					$("#servers_table").append(data.data);
-					setTimeout(function () {
-						$(".newsavedserver").removeClass("update");
-					}, 2500);
-					$.getScript(overview);
-				}
-			}
-		});
-	});
 	$(":regex(id, template)").click(function () {
 		if ($(':regex(id, template)').is(':checked')) {
 			$(".prefix").show("fast");
@@ -394,181 +336,79 @@ $( function() {
 			$("[name=port_check_text]").show("fast");
 		}
 	});
-	let cur_url = window.location.href.split('/').pop();
-	cur_url = cur_url.split('/');
-	if (cur_url[0] == "add") {
-		$("#cache").checkboxradio("disable");
-		$("#waf").checkboxradio("disable");
-		$("#serv").on('selectmenuchange', function () {
-			change_select_acceleration("");
-			change_select_waf("");
-		});
-		$("#cache2").checkboxradio("disable");
-		$("#waf2").checkboxradio("disable");
-		$("#serv2").on('selectmenuchange', function () {
-			change_select_acceleration("2");
-			change_select_waf("2");
-		});
-		$("#cache3").checkboxradio("disable");
-		$("#serv3").on('selectmenuchange', function () {
-			change_select_acceleration("3");
-		});
-		$('#compression').on("click", function () {
-			if ($('#compression').is(':checked')) {
-				$("#cache").checkboxradio("disable");
-				$("#cache").prop('checked', false);
-			} else {
-				change_select_acceleration("");
-			}
-		});
-		$('#compression2').on("click", function () {
-			if ($('#compression2').is(':checked')) {
-				$("#cache2").checkboxradio("disable");
-				$("#cache2").prop('checked', false);
-			} else {
-				change_select_acceleration('2');
-			}
-		});
-		$('#compression3').on("click", function () {
-			if ($('#compression3').is(':checked')) {
-				$("#cache3").checkboxradio("disable");
-				$("#cache3").prop('checked', false);
-			} else {
-				change_select_acceleration('3');
-			}
-		});
-		$('#cache').on("click", function () {
-			if ($('#cache').is(':checked')) {
-				$("#compression").checkboxradio("disable");
-				$("#compression").prop('checked', false);
-			} else {
-				$("#compression").checkboxradio("enable");
-			}
-		});
-		$('#cache2').on("click", function () {
-			if ($('#cache2').is(':checked')) {
-				$("#compression2").checkboxradio("disable");
-				$("#compression2").prop('checked', false);
-			} else {
-				$("#compression2").checkboxradio("enable");
-			}
-		});
-		$('#cache3').on("click", function () {
-			if ($('#cache3').is(':checked')) {
-				$("#compression3").checkboxradio("disable");
-				$("#compression3").prop('checked', false);
-			} else {
-				$("#compression3").checkboxradio("enable");
-			}
-		});
-		$("#add1").on("click", function () {
-			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children("#add1").css('padding-left', '30px');
-				$(this).children("#add1").css('border-left', '4px solid #5D9CEB');
-				$(this).children("#add1").css('background-color', 'var(--right-menu-blue-rolor)');
-			});
-			$("#tabs").tabs("option", "active", 0);
-		});
-		$("#add3").on("click", function () {
-			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children("#add3").css('padding-left', '30px');
-				$(this).children("#add3").css('border-left', '4px solid #5D9CEB');
-				$(this).children("#add3").css('background-color', 'var(--right-menu-blue-rolor)');
-			});
-			getLes();
-			$("#tabs").tabs("option", "active", 4);
-		});
-		$("#add4").on("click", function () {
-			$("#tabs").tabs("option", "active", 5);
-		});
-		$("#add5").on("click", function () {
-			$("#tabs").tabs("option", "active", 6);
-		});
-		$("#add6").on("click", function () {
-			$("#tabs").tabs("option", "active", 7);
-			$("#userlist_serv").selectmenu("open");
-		});
-		$("#add7").on("click", function () {
-			$('.menu li ul li').each(function () {
-				$(this).find('a').css('padding-left', '20px')
-				$(this).find('a').css('border-left', '0px solid #5D9CEB');
-				$(this).find('a').css('background-color', '#48505A');
-				$(this).children("#add7").css('padding-left', '30px');
-				$(this).children("#add7").css('border-left', '4px solid #5D9CEB');
-				$(this).children("#add7").css('background-color', 'var(--right-menu-blue-rolor)');
-			});
-			$("#tabs").tabs("option", "active", 9);
-		});
-	}
-	$("#ssl_key_upload").click(function () {
-		if (!checkIsServerFiled('#serv4')) return false;
-		if (!checkIsServerFiled('#ssl_name', 'Enter the Certificate name')) return false;
-		if (!checkIsServerFiled('#ssl_cert', 'Paste the contents of the certificate file')) return false;
-		let jsonData = {
-			server_ip: $('#serv4').val(),
-			cert: $('#ssl_cert').val(),
-			name: $('#ssl_name').val()
-		}
-		$.ajax({
-			url: "/add/cert/add",
-			data: JSON.stringify(jsonData),
-			contentType: "application/json; charset=utf-8",
-			type: "POST",
-			success: function (data) {
-				if (data.error === 'failed') {
-					toastr.error(data.error);
-				} else {
-					for (let i = 0; i < data.length; i++) {
-						if (data[i]) {
-							if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
-								toastr.error(data[i]);
-							} else {
-								toastr.success(data[i]);
-							}
-						}
-					}
-				}
-			}
-		});
+	$("#cache").checkboxradio("disable");
+	$("#waf").checkboxradio("disable");
+	$("#serv").on('selectmenuchange', function () {
+		change_select_acceleration("");
+		change_select_waf("");
 	});
-	$('#ssl_key_view').click(function () {
-		if (!checkIsServerFiled('#serv5')) return false;
-		$.ajax({
-			url: "/add/certs/" + $('#serv5').val(),
-			success: function (data) {
-				if (data.indexOf('error:') != '-1') {
-					toastr.error(data);
-				} else {
-					let i;
-					let new_data = "";
-					data = data.split("\n");
-					let j = 1
-					for (i = 0; i < data.length; i++) {
-						data[i] = data[i].replace(/\s+/g, ' ');
-						if (data[i] != '') {
-							if (j % 2) {
-								if (j != 0) {
-									new_data += '</span>'
-								}
-								new_data += '<span class="list_of_lists">'
-							} else {
-								new_data += '</span><span class="list_of_lists">'
-
-							}
-							j += 1
-							new_data += ' <a onclick="view_ssl(\'' + data[i] + '\')" title="View ' + data[i] + ' cert">' + data[i] + '</a> '
-						}
-					}
-					$("#ajax-show-ssl").html(new_data);
-				}
-			}
-		});
+	$("#cache2").checkboxradio("disable");
+	$("#waf2").checkboxradio("disable");
+	$("#serv2").on('selectmenuchange', function () {
+		change_select_acceleration("2");
+		change_select_waf("2");
+	});
+	$("#cache3").checkboxradio("disable");
+	$("#serv3").on('selectmenuchange', function () {
+		change_select_acceleration("3");
+	});
+	$('#compression').on("click", function () {
+		if ($('#compression').is(':checked')) {
+			$("#cache").checkboxradio("disable");
+			$("#cache").prop('checked', false);
+		} else {
+			change_select_acceleration("");
+		}
+	});
+	$('#compression2').on("click", function () {
+		if ($('#compression2').is(':checked')) {
+			$("#cache2").checkboxradio("disable");
+			$("#cache2").prop('checked', false);
+		} else {
+			change_select_acceleration('2');
+		}
+	});
+	$('#compression3').on("click", function () {
+		if ($('#compression3').is(':checked')) {
+			$("#cache3").checkboxradio("disable");
+			$("#cache3").prop('checked', false);
+		} else {
+			change_select_acceleration('3');
+		}
+	});
+	$('#cache').on("click", function () {
+		if ($('#cache').is(':checked')) {
+			$("#compression").checkboxradio("disable");
+			$("#compression").prop('checked', false);
+		} else {
+			$("#compression").checkboxradio("enable");
+		}
+	});
+	$('#cache2').on("click", function () {
+		if ($('#cache2').is(':checked')) {
+			$("#compression2").checkboxradio("disable");
+			$("#compression2").prop('checked', false);
+		} else {
+			$("#compression2").checkboxradio("enable");
+		}
+	});
+	$('#cache3').on("click", function () {
+		if ($('#cache3').is(':checked')) {
+			$("#compression3").checkboxradio("disable");
+			$("#compression3").prop('checked', false);
+		} else {
+			$("#compression3").checkboxradio("enable");
+		}
+	});
+	$("#add4").on("click", function () {
+		$("#tabs").tabs("option", "active", 4);
+	});
+	$("#add5").on("click", function () {
+		$("#tabs").tabs("option", "active", 5);
+	});
+	$("#add6").on("click", function () {
+		$("#tabs").tabs("option", "active", 6);
+		$("#userlist_serv").selectmenu("open");
 	});
 	$('[name=add-server-input]').click(function () {
 		$("[name=add_servers]").append(add_server_var);
@@ -691,7 +531,7 @@ $( function() {
 				let server = $("#add-" + section_type + " select[name='server'] option:selected");
 				if (!checkIsServerFiled("#add-" + section_type + " select[name='server'] option:selected")) return false;
 				$.ajax({
-					url: "/add/certs/" + server.val(),
+					url: "/add/certs/" + server.val() + "?cert_type=pem",
 					success: function (data) {
 						data = data.replace(/\s+/g, ' ');
 						response(data.split(" "));
@@ -810,7 +650,7 @@ $( function() {
 			}
 		});
 		$("#options-" + section_type + "-show").click(function () {
-			if ($("#options-"+section_type+"-show").is(':checked')) {
+			if ($("#options-" + section_type + "-show").is(':checked')) {
 				$("#options-" + section_type + "-show-div").show("fast");
 			} else {
 				$("#options-" + section_type + "-show-div").hide("fast");
@@ -957,163 +797,10 @@ function updateOptions(id) {
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
-				$("#option-" + id).addClass("update", 1000);
+				$("#option-" + id).Class("update", 1000);
 				setTimeout(function () {
 					$("#option-" + id).removeClass("update");
 				}, 2500);
-			}
-		}
-	});
-}
-function confirmDeleteSavedServer(id) {
-	$("#dialog-confirm").dialog({
-		resizable: false,
-		height: "auto",
-		width: 400,
-		modal: true,
-		title: delete_word + " " + $('#servers-ip-' + id).val() + "?",
-		buttons: [{
-			text: delete_word,
-			click: function () {
-				$(this).dialog("close");
-				removeSavedServer(id);
-			}
-		}, {
-			text: cancel_word,
-			click: function () {
-				$(this).dialog("close");
-			}
-		}]
-	});
-}
-function removeSavedServer(id) {
-	$("#servers-saved-" + id).css("background-color", "#f2dede");
-	$.ajax({
-		url: "/add/server/" + id,
-		type: "DELETE",
-		contentType: "application/json; charset=utf-8",
-		statusCode: {
-			204: function (xhr) {
-				$("#servers-saved-" + id).remove();
-			},
-			404: function (xhr) {
-				$("#servers-saved-" + id).remove();
-			}
-		},
-		success: function (data) {
-			if (data) {
-				if (data.status === "failed") {
-					toastr.error(data);
-				}
-			}
-		}
-	});
-}
-function updateSavedServer(id) {
-	toastr.clear();
-	$.ajax( {
-		url: "/add/server/" + id,
-		type: "PUT",
-		data: JSON.stringify({"server": $('#servers-ip-'+id).val(), description: $('#servers-desc-'+id).val(),}),
-		contentType: "application/json; charset=utf-8",
-		success: function( data ) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
-				$("#servers-saved-"+id).addClass( "update", 1000 );
-				setTimeout(function() {
-					$( "#servers-saved-"+id ).removeClass( "update" );
-				}, 2500 );
-			}
-		}
-	} );
-}
-function view_ssl(id) {
-	let raw_word = translate_div.attr('data-raw');
-	if(!checkIsServerFiled('#serv5')) return false;
-	$.ajax( {
-		url: "/add/cert/" + $('#serv5').val() + '/' + id,
-		success: function( data ) {
-			if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
-			} else {
-				$('#dialog-confirm-body').text(data);
-				$( "#dialog-confirm-cert" ).dialog({
-					resizable: false,
-					height: "auto",
-					width: 670,
-					modal: true,
-					title: "Certificate from "+$('#serv5').val()+", name: "+id,
-					buttons: [{
-						text: cancel_word,
-						click: function () {
-							$(this).dialog("close");
-						}
-					}, {
-						text: raw_word,
-						click: function () {
-							showRawSSL(id);
-						}
-					}, {
-						text: delete_word,
-						click: function () {
-							$(this).dialog("close");
-							confirmDeleting("SSL cert", id, $(this), "");
-						}
-					}]
-				});
-			}
-		}
-	} );
-}
-function showRawSSL(id) {
-	$.ajax({
-		url: "/add/cert/get/raw/" + $('#serv5').val() + "/" + id,
-		success: function (data) {
-			if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
-			} else {
-				$('#dialog-confirm-body').text(data);
-				$("#dialog-confirm-cert").dialog({
-					resizable: false,
-					height: "auto",
-					width: 670,
-					modal: true,
-					title: "Certificate from " + $('#serv5').val() + ", name: " + id,
-					buttons: [{
-						text: cancel_word,
-						click: function () {
-							$(this).dialog("close");
-						}
-					}, {
-						text: "Human readable",
-						click: function () {
-							view_ssl(id);
-						}
-					}, {
-						text: delete_word,
-						click: function () {
-							$(this).dialog("close");
-							confirmDeleting("SSL cert", id, $(this), "");
-						}
-					}]
-				});
-			}
-		}
-	});
-}
-function deleteSsl(id) {
-	if (!checkIsServerFiled('#serv5')) return false;
-	$.ajax({
-		url: "/add/cert/" + $("#serv5").val() + "/" + id,
-		type: "DELETE",
-		success: function (data) {
-			if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				toastr.success('SSL cert ' + id + ' has been deleted');
-				$("#ssl_key_view").trigger("click");
 			}
 		}
 	});
@@ -1465,8 +1152,6 @@ function deleteId(id) {
 }
 var if_word = translate_div.attr('data-if-title');
 var then_word = translate_div.attr('data-then');
-var value_word = translate_div.attr('data-value');
-var name_word = translate_div.attr('data-name');
 var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">\n' +
 		'<b class="padding10">'+if_word+'</b>\n' +
 		'<select name="acl_if">\n' +
@@ -1569,15 +1254,7 @@ function make_actions_for_adding_bind(section_id) {
 		}
 	});
 }
-function makeid(length) {
-   let result           = '';
-   let characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-   let charactersLength = characters.length;
-   for ( let i = 0; i < length; i++ ) {
-      result += characters.charAt(Math.floor(Math.random() * charactersLength));
-   }
-   return result;
-}
+
 function changePortCheckFromServerPort() {
 	$('[name=server_port]').on('input', function () {
 		let iNum = parseInt($($(this)).val());

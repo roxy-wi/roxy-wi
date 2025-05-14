@@ -99,6 +99,11 @@ class SshConnection:
         except Exception as e:
             raise paramiko.SSHException(str(e))
 
+    def remove_sftp(self, full_path):
+        sftp = self.ssh.open_sftp()
+        sftp.remove(full_path)
+        sftp.close()
+
     def generate(self, command):
         with self as ssh_something:
             stdin, stdout, stderr = ssh_something.ssh.exec_command(command)

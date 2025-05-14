@@ -12,12 +12,14 @@ import app.modules.db.add as add_sql
 import app.modules.db.server as server_sql
 from app.middleware import check_services, get_user_params
 import app.modules.config.add as add_mod
+import app.modules.server.server as server_mod
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.views.service.haproxy_section_views import (GlobalSectionView, DefaultsSectionView, ListenSectionView,
                                                      UserListSectionView, PeersSectionView)
+from app.views.service.nginx_section_views import UpstreamSectionView, ProxyPassSectionView
 from app.views.service.haproxy_lists_views import HaproxyListView
 
 get_config = roxy_wi_tools.GetConfigVar()
@@ -40,6 +42,10 @@ register_api_id_ip(GlobalSectionView, 'haproxy_global_a', '/section/global', met
 register_api_id_ip(DefaultsSectionView, 'haproxy_defaults_a', '/section/defaults', methods=['GET', 'PUT'])
 bp.add_url_rule('/<any(haproxy):service>/list/<list_name>/<color>', view_func=HaproxyListView.as_view('list_get'), methods=['GET'])
 bp.add_url_rule('/<any(haproxy):service>/list', view_func=HaproxyListView.as_view('list_post'), methods=['POST', 'DELETE'])
+register_api_id_ip(UpstreamSectionView, 'nginx_section_upstream_post_a', '/section/upstream', methods=['POST'])
+register_api_id_ip(UpstreamSectionView, 'nginx_section_upstream_post', '/section/upstream/<section_name>', methods=['GET', 'PUT', 'DELETE'])
+register_api_id_ip(ProxyPassSectionView, 'nginx_section_proxy_pass_post_a', '/section/proxy_pass', methods=['POST'])
+register_api_id_ip(ProxyPassSectionView, 'nginx_section_proxy_pass_post', '/section/proxy_pass/<section_name>', methods=['GET', 'PUT', 'DELETE'])
 
 
 @bp.before_request
@@ -58,13 +64,15 @@ def add(service):
     :param service: Service name for service in what will be add
     :return: Template with Add page or redirect to the index if no needed permission
     """
+    user_subscription = roxywi_common.return_user_subscription()
     roxywi_auth.page_for_admin(level=3)
     kwargs = {
-        'h2': 1,
         'add': request.form.get('add'),
         'conf_add': request.form.get('conf'),
         'lang': g.user_params['lang'],
-        'all_servers': roxywi_common.get_dick_permit()
+        'all_servers': roxywi_common.get_dick_permit(),
+        'user_subscription': user_subscription,
+        'saved_servers': add_sql.select_saved_servers()
     }
 
     if service == 'haproxy':
@@ -74,18 +82,13 @@ def add(service):
         list_dir = lib_path + "/lists"
         white_dir = lib_path + "/lists/" + user_group + "/white"
         black_dir = lib_path + "/lists/" + user_group + "/black"
+        dirs = (list_dir, white_dir, black_dir)
 
-        if not os.path.exists(list_dir):
-            os.makedirs(list_dir)
-        if not os.path.exists(list_dir + "/" + user_group):
-            os.makedirs(list_dir + "/" + user_group)
-        if not os.path.exists(white_dir):
-            os.makedirs(white_dir)
-        if not os.path.exists(black_dir):
-            os.makedirs(black_dir)
+        for dir_to_create in dirs:
+            if not os.path.exists(dir_to_create):
+                os.makedirs(dir_to_create)
 
         kwargs.setdefault('options', add_sql.select_options())
-        kwargs.setdefault('saved_servers', add_sql.select_saved_servers())
         kwargs.setdefault('white_lists', roxywi_common.get_files(folder=white_dir, file_format="lst"))
         kwargs.setdefault('black_lists', roxywi_common.get_files(folder=black_dir, file_format="lst"))
         kwargs.setdefault('maps', roxywi_common.get_files(folder=f'{lib_path}/maps/{user_group}', file_format="map"))
@@ -99,9 +102,16 @@ def add(service):
 
 @bp.route('/haproxy/get_section_html')
 @get_user_params()
-def get_section_html():
+def get_haproxy_section_html():
     lang = g.user_params['lang']
     return render_template('ajax/config_show_add_sections.html', lang=lang)
+
+
+@bp.route('/nginx/get_section_html')
+@get_user_params()
+def get_nginx_section_html():
+    lang = g.user_params['lang']
+    return render_template('ajax/config_show_add_nginx_sections.html', lang=lang)
 
 
 @bp.route('/haproxy/bwlists/<color>/<int:group>')
@@ -190,7 +200,8 @@ def delete_saved_server(server_id):
 @bp.route('/certs/<int:server_id>')
 def get_certs(server_id: int):
     server_ip = server_sql.get_server(server_id).ip
-    return add_mod.get_ssl_certs(server_ip)
+    cert_type = request.args.get('cert_type')
+    return add_mod.get_ssl_certs(server_ip, cert_type)
 
 
 @bp.route('/cert/<int:server_id>/<cert_id>', methods=['DELETE', 'GET'])
@@ -207,7 +218,7 @@ def get_cert(server_id: int, cert_id: EscapedString):
 @validate(body=SSLCertUploadRequest)
 def upload_cert(body: SSLCertUploadRequest):
     try:
-        data = add_mod.upload_ssl_cert(body.server_ip, body.name, body.cert.replace("'", ""))
+        data = add_mod.upload_ssl_cert(body.server_ip, body.name, body.cert.replace("'", ""), body.cert_type)
         return jsonify(data), 201
     except Exception as e:
         return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot upload SSL certificate')
@@ -243,58 +254,8 @@ def create_map():
         return add_mod.edit_map(map_name, group)
 
 
-@bp.post('/nginx/upstream')
+@bp.route('/get/upstreams/<int:server_id>')
 @get_user_params()
-def add_nginx_upstream():
-    roxywi_auth.page_for_admin(level=3)
-
-    server_ip = common.is_ip_or_dns(request.form.get('serv'))
-    new_upstream = request.form.get('upstream')
-    balance = request.form.get("balance")
-    config_add = ''
-    servers_split = ''
-    generate = request.form.get('generateconfig')
-
-    if balance == 'round_robin' or balance is None:
-        balance = ''
-    else:
-        balance = f'    {balance};\n'
-
-    if new_upstream != '':
-        config_add = f'upstream {new_upstream} {{\n'
-        config_add += balance
-        config_name = f'upstream_{new_upstream}'
-
-    if request.form.get('keepalive') != '':
-        config_add += f'    keepalive {request.form.get("keepalive")};\n'
-
-    if request.form.get('servers') is not None:
-        servers = request.form.getlist('servers')
-        server_port = request.form.getlist('server_port')
-        max_fails = request.form.getlist('max_fails')
-        fail_timeout = request.form.getlist('fail_timeout')
-        i = 0
-        for server in servers:
-            if server == '':
-                continue
-            try:
-                max_fails_val = f'max_fails={max_fails[i]}'
-            except Exception:
-                max_fails_val = 'max_fails=1'
-
-            try:
-                fail_timeout_val = f'fail_timeout={fail_timeout[i]}'
-            except Exception:
-                fail_timeout_val = 'fail_timeout=1'
-
-            servers_split += f"    server {server}:{server_port[i]} {max_fails_val} {fail_timeout_val}s; \n"
-            i += 1
-    config_add += f'{servers_split} }}\n'
-
-    if generate:
-        return config_add
-    else:
-        try:
-            return add_mod.save_nginx_config(config_add, server_ip, config_name)
-        except Exception as e:
-            return str(e)
+def get_upstreams(server_id: int):
+    server_ip = server_sql.get_server(server_id).ip
+    return server_mod.get_remote_upstream_files(server_ip)

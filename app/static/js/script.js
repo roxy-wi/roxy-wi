@@ -703,7 +703,7 @@ $( function() {
 		});
 		$(".installmon").on("click", function () {
 			$('.menu li ul li').each(function () {
-				activeSubMenu($(this), 'instalmon');
+				activeSubMenu($(this), 'installmon');
 			});
 			$("#tabs").tabs("option", "active", 1);
 		});
@@ -845,41 +845,41 @@ async function ban() {
 	$("input[type=submit], button").button('enable');
 	$('#ban_10').hide();
 }
-function replace_text(id_textarea, text_var) {
-	var str = $(id_textarea).val();
-	var len = str.length;
-	var len_var = text_var.length;
-	var beg = str.indexOf(text_var);
-	var end = beg + len_var
-	var text_val = str.substring(0, beg) + str.substring(end, len);
-	$(id_textarea).text(text_val);
-}
-function createHistroy() {
+// function replace_text(id_textarea, text_var) {
+// 	var str = $(id_textarea).val();
+// 	var len = str.length;
+// 	var len_var = text_var.length;
+// 	var beg = str.indexOf(text_var);
+// 	var end = beg + len_var
+// 	var text_val = str.substring(0, beg) + str.substring(end, len);
+// 	$(id_textarea).text(text_val);
+// }
+function createHistory() {
 	if(localStorage.getItem('history') === null) {
-		var get_history_array = ['login', 'login','login'];
+		let get_history_array = ['login', 'login','login'];
 		localStorage.setItem('history', JSON.stringify(get_history_array));
 	}
 }
-function listHistroy() {
-	var browse_history = JSON.parse(localStorage.getItem('history'));
-	var history_link = '';
-	var title = []
-	var link_text = []
-	var cur_path = window.location.pathname;
+function listHistory() {
+	let browse_history = JSON.parse(localStorage.getItem('history'));
+	let history_link = '';
+	let title = []
+	let link_text = []
+	let cur_path = window.location.pathname;
 	for(let i = 0; i < browse_history.length; i++){
-		if (i == 0) {
+		if (i === 0) {
 			browse_history[0] = browse_history[1];
 		}
-		if (i == 1) {
+		if (i === 1) {
 			browse_history[1] = browse_history[2]
 		}
-		if (i == 2) {
+		if (i === 2) {
 			browse_history[2] = cur_path
 		}
 		$( function() {
 			$('.menu li ul li').each(function () {
-				var link1 = $(this).find('a').attr('href');
-				if (browse_history[i].replace(/\/$/, "") == link1) {
+				let link1 = $(this).find('a').attr('href');
+				if (browse_history[i].replace(/\/$/, "") === link1) {
 					title[i] = $(this).find('a').attr('title');
 					link_text[i] = $(this).find('a').text();
 					history_link = '<li><a href="'+browse_history[i]+'" title="'+title[i]+'">'+link_text[i]+'</a></li>'
@@ -890,8 +890,8 @@ function listHistroy() {
 	}
 	localStorage.setItem('history', JSON.stringify(browse_history));
 }
-createHistroy();
-listHistroy();
+createHistory();
+listHistory();
 
 function changeCurrentGroupF(user_id) {
 	$.ajax({
@@ -909,14 +909,14 @@ function changeCurrentGroupF(user_id) {
 	});
 }
 function updateTips( t ) {
-	var tips = $( ".validateTips" );
+	let tips = $( ".validateTips" );
 	tips.text( t ).addClass( "alert-warning" );
 	tips.text( t ).addClass( "alert-one-row" );
 }
 function clearTips() {
-	var tips = $( ".validateTips" );
+	let tips = $( ".validateTips" );
 	tips.html('Fields marked "<span class="need-field">*</span>" are required').removeClass( "alert-warning" );
-	allFields = $( [] ).add( $('#new-server-add') ).add( $('#new-ip') ).add( $('#new-port')).add( $('#new-username') ).add( $('#new-password') )
+	let allFields = $( [] ).add( $('#new-server-add') ).add( $('#new-ip') ).add( $('#new-port')).add( $('#new-username') ).add( $('#new-password') )
 	allFields.removeClass( "ui-state-error" );
 }
 function checkLength( o, n, min ) {
@@ -1382,3 +1382,63 @@ function makeid(length) {
    }
    return result;
 }
+const INSTALLATION_TASKS_KEY = 'installationTasks';
+function getInstallationTasksFromSessionStorage() {
+    const tasks = sessionStorage.getItem(INSTALLATION_TASKS_KEY);
+    return tasks ? JSON.parse(tasks) : [];
+}
+function addItemToSessionStorageInstallTask(taskId) {
+	if (!sessionStorage.getItem(INSTALLATION_TASKS_KEY)) {
+		sessionStorage.setItem(INSTALLATION_TASKS_KEY, JSON.stringify([])); // Создаем пустой массив
+	}
+	let tasks = getInstallationTasksFromSessionStorage();
+
+	tasks.push(taskId);
+
+	sessionStorage.setItem(INSTALLATION_TASKS_KEY, JSON.stringify(tasks));
+}
+function removeItemFromSessionStorage(taskId) {
+      let tasks = getInstallationTasksFromSessionStorage();
+
+      tasks = tasks.filter(item => item !== taskId);
+
+      sessionStorage.setItem(INSTALLATION_TASKS_KEY, JSON.stringify(tasks));
+    }
+
+function checkInstallationTask() {
+	let tasks = getInstallationTasksFromSessionStorage(); // Извлекаем список
+	if (tasks && tasks.length > 0) {
+		tasks.forEach(item => {
+			checkInstallationStatus(item);
+		});
+	} else {
+		console.log('No tasks');
+		clearInterval(checkInstallationTaskInterval);
+	}
+}
+function runInstallationTaskCheck(tasks_ids) {
+	toastr.info('Installation started. You can continue to use the system while it is installing');
+	tasks_ids.forEach(item => {
+		addItemToSessionStorageInstallTask(item);
+		setTimeout(function () {
+			setInterval(checkInstallationTask, 3000);
+		}, 5000);
+	});
+}
+function checkInstallationStatus(taskId) {
+	NProgress.configure({showSpinner: false});
+	$.ajax({
+		url: "/install/task-status/" + taskId,
+		success: function (data) {
+			if (data.status === 'completed') {
+				toastr.success('Installation completed for ' + data.service_name);
+				removeItemFromSessionStorage(taskId);
+			} else if (data.status === 'failed') {
+				toastr.error('Cannot install ' + data.service_name + '. Error: ' + data.error);
+				removeItemFromSessionStorage(taskId);
+			}
+		}
+	});
+	NProgress.configure({showSpinner: true});
+}
+let checkInstallationTaskInterval = setInterval(checkInstallationTask, 3000);

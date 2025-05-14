@@ -4,20 +4,24 @@
 	}
 </style>
 <span name="add_servers">
+    <p>
 	<input name="servers" required title="{{lang.words.backend|title()}} IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control">:
 	<input name="server_port" required title="{{lang.words.backend|title()}} {{lang.words.port}}" size=8 placeholder="yyy" class="form-control add_server_number" type="number">
 	<span name="max_fails">max_fails:</span> <input name="max_fails" required title="" data-help="{{lang.add_nginx_page.desc.max_fails}}" size=8 class="form-control add_server_number" value="1" type="number">
 	<span name="fail_timeout">fail_timeout:</span>  <input name="fail_timeout" required size=8 value="1" class="form-control add_server_number" type="number" title="" data-help="{{lang.add_nginx_page.desc.fail_timeout}}">s
-	<br />
+    </p>
+    <p>
 	<input name="servers" title="{{lang.words.backend|title()}} IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server"><span class="second-server">:</span>
 	<input name="server_port" title="{{lang.words.backend|title()}} {{lang.words.port}}" size=8 placeholder="yyy" class="form-control second-server add_server_number" type="number">
 	<span name="max_fails">max_fails:</span> <input name="max_fails" required title="" data-help="{{lang.add_nginx_page.desc.max_fails}}" size=8 class="form-control add_server_number" value="1" type="number">
 	<span name="fail_timeout">fail_timeout:</span>  <input name="fail_timeout" required size=8 value="1" class="form-control add_server_number" type="number" title="" data-help="{{lang.add_nginx_page.desc.fail_timeout}}">s
-	<br />
+	</p>
+    <p>
 	<input name="servers" title="{{lang.words.backend|title()}} IP" size=14 placeholder="xxx.xxx.xxx.xxx" class="form-control second-server"><span class="second-server">:</span>
 	<input name="server_port" title="{{lang.words.backend|title()}} {{lang.words.port}}" size=3 placeholder="yyy" class="form-control second-server add_server_number" type="number">
 	<span name="max_fails">max_fails:</span> <input name="max_fails" required size=8 class="form-control add_server_number" value="1" type="number" title="" data-help="{{lang.add_nginx_page.desc.max_fails}}">
 	<span name="fail_timeout">fail_timeout:</span>  <input name="fail_timeout" required size=8 value="1" class="form-control add_server_number" type="number" title="" data-help="{{lang.add_nginx_page.desc.fail_timeout}}">s
+    </p>
 </span>
 <span>
 	<a class="link add-server backend_server" name="add-server-input" title="{{lang.words.add|title()}} upstream" style="cursor: pointer;"></a>

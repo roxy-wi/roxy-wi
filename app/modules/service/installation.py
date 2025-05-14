@@ -1,7 +1,7 @@
 import os
 import json
 import random
-from typing import Union
+from typing import Union, Literal
 from packaging import version
 
 import ansible
@@ -160,14 +160,14 @@ def generate_haproxy_inv(json_data: ServiceInstall, installed_service: str) -> o
 	return inv, server_ips
 
 
-def generate_haproxy_section_inv(json_data: dict, cfg: str) -> dict:
+def generate_section_inv(json_data: dict, cfg: str, service: Literal['haproxy', 'nginx']) -> dict:
 	cert_path = sql.get_setting('cert_path')
-	haproxy_dir = sql.get_setting('haproxy_dir')
+	service_dir = sql.get_setting(f'{service}_dir')
 	inv = {"server": {"hosts": {}}}
 	inv['server']['hosts']['localhost'] = {
 		"config": json_data,
 		"cert_path": cert_path,
-		"haproxy_dir": haproxy_dir,
+		"service_dir": service_dir,
 		"cfg": cfg,
 		"action": 'create'
 	}
@@ -175,7 +175,7 @@ def generate_haproxy_section_inv(json_data: dict, cfg: str) -> dict:
 	return inv
 
 
-def generate_haproxy_section_inv_for_del(cfg: str, section_type: str, section_name: str) -> dict:
+def generate_section_inv_for_del(cfg: str, section_type: str, section_name: str) -> dict:
 	config = {'type': section_type, 'name': section_name}
 	inv = {"server": {"hosts": {}}}
 	inv['server']['hosts']['localhost'] = {
@@ -306,18 +306,18 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 			invent.write(str(inv))
 	except Exception as e:
 		server_mod.stop_ssh_agent(agent_pid)
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot save inventory file', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot save inventory file')
 
 	try:
 		result = ansible_runner.run(**kwargs)
 	except Exception as e:
 		server_mod.stop_ssh_agent(agent_pid)
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot run Ansible', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot run Ansible')
 
 	try:
 		server_mod.stop_ssh_agent(agent_pid)
 	except Exception as e:
-		roxywi_common.logging('Roxy-WI server', f'error: Cannot stop SSH agent {e}', roxywi=1)
+		roxywi_common.logging('Roxy-WI server', f'error: Cannot stop SSH agent {e}')
 
 	os.remove(inventory)
 
@@ -366,12 +366,12 @@ def run_ansible_locally(inv: dict, ansible_role: str) -> dict:
 		with open(inventory, 'a') as invent:
 			invent.write(str(inv))
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot save inventory file', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot save inventory file')
 
 	try:
 		result = ansible_runner.run(**kwargs)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot run Ansible', roxywi=1)
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot run Ansible')
 
 	os.remove(inventory)
 
@@ -395,14 +395,14 @@ def service_actions_after_install(server_ips: str, service: str, json_data) -> N
 		try:
 			update_functions[service](server_ip)
 		except Exception as e:
-			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot activate {service} on server {server_ip}', roxywi=1)
+			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot activate {service} on server {server_ip}')
 		if service != 'keepalived':
 			is_docker = json_data['services'][service]['docker']
-
-		if is_docker and service != 'keepalived':
-			service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', '1')
 			service_sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
-
+			if is_docker:
+				service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', '1')
+			else:
+				service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', '0')
 		if service == 'haproxy':
 			try:
 				_create_default_config_in_db(server_id)
@@ -476,8 +476,8 @@ def _install_ansible_collections():
 			except Exception as e:
 				roxywi_common.handle_exceptions(e,
 												'Roxy-WI server',
-												f'Cannot install as collection. {trouble_link}',
-												roxywi=1)
+												f'Cannot install as collection. {trouble_link}'
+												)
 			else:
 				if exit_code != 0:
 					raise Exception(f'error: Ansible collection installation was not successful: {exit_code}. {trouble_link}')

@@ -1,0 +1,10 @@
+# Roxy-WI MANAGED do not edit it directly
+upstream {{ config.name }} {
+    keepalive {{ config.keepalive }};
+    {% if config.balance != 'round_robin' -%}
+    {{ config.balance }};
+    {% endif -%}
+    {% for server in config.backend_servers %}
+server {{ server.server }}:{{ server.port }} max_fails={{ server.max_fails }} fail_timeout={{ server.fail_timeout }};
+    {% endfor %}
+}

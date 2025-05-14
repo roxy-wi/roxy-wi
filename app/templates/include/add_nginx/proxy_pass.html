@@ -1,0 +1,123 @@
+{% set header_res = {'add_header': 'add_header', 'proxy_set_header': 'proxy_set_header', 'proxy_hide_header': 'proxy_hide_header'} %}
+<style>
+    .proxy-timeout {
+        width: 140px;
+        display: inline-block;
+    }
+</style>
+<form name="add-proxy_pass" id="add-proxy_pass" action="/add/nginx/proxy_pass" method="post">
+    <table class="add-table">
+        <caption><h3>{{lang.words.add|title()}} proxy pass</h3></caption>
+        <tr>
+            <td class="addName">{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.server}}: </td>
+            <td class="addOption">
+                {{ select('serv1', name='server', values=g.user_params['servers'], is_servers='true', by_id='true') }}
+                <div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
+            </td>
+            <td rowspan="5" class="add-note addName alert-info">
+                Proxy pass is a Nginx directive that forwards incoming client requests to a specified backend server (like Apache, Node.js, or a microservice) and relays the response back to the client. It supports protocols like HTTP, HTTPS, WebSocket, and gRPC, making it versatile for reverse proxying. Key parameters include:
+<br />
+<br />
+Header control: Uses proxy_set_header to forward client IP (X-Real-IP) or protocol (X-Forwarded-Proto).
+<br />
+<br />
+Timeouts: Timeouts (proxy_connect_timeout).
+<br />
+<br />
+(Summary: It’s the backbone of Nginx reverse proxying, handling routing, balancing, and security.)
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">{{lang.words.name|title()}}:</td>
+            <td class="addOption">
+                {{ input('proxy_pass', name='name', title="Domain name or IP", placeholder="example.com", required='required') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">
+                HTTP {{lang.words.scheme|title()}}:
+            </td>
+            <td class="addOption">
+                {% set scheme_params={'http': 'HTTP', 'https': 'HTTPS'} %}
+                {{ select('scheme', values=scheme_params, selected='http', required='required', class='force_close') }}
+                <br>
+                <br>
+                <div id="hide-scheme" style="display: none;">
+                    {{ checkbox('ssl_offloading', title=lang.add_page.desc.http_https, desc='HTTP->HTTPS') }}<br>
+                    <span class="tooltip tooltipTop">{{lang.words.enter2|title()}} {{lang.words.name}} {{lang.words.of}} {{lang.words.file2}}, {{lang.add_page.desc.press_down}}:</span><br />
+                    {{ input('ssl_key', placeholder='cert.key') }}
+                    {{ input('ssl_crt', placeholder='cert.crt') }}
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">
+                {{lang.words.port|title()}}:
+            </td>
+            <td class="addOption">
+                {{ input('port', name='port', title='Port to bind', placeholder="80", required='required', type='number', style='width: 40px;') }}
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">Location:</td>
+            <td class="addOption nginx-location">
+                <p>
+                    {{ input('location', name='location', title="Location", value="/", required='required') }}
+                    <br>
+                    <br>
+                    <span class="proxy-timeout">Proxy connect timeout:</span>
+                    {{ input('proxy_connect_timeout', name='proxy_connect_timeout', title='Proxy connect timeout', value="60", type='number', style='width: 40px;') }}
+                    <br>
+                    <span class="proxy-timeout">Proxy read timeout:</span>
+                    {{ input('proxy_read_timeout', name='proxy_read_timeout', title='Proxy read timeout', value="60", type='number', style='width: 40px;') }}
+                    <br>
+                    <span class="proxy-timeout">Proxy send timeout:</span>
+                    {{ input('proxy_send_timeout', name='proxy_send_timeout', title='Proxy send timeout', value="60", type='number', style='width: 40px;') }}<br><br>
+                    {{lang.words.headers|title()}}: <span title="{{lang.words.add|title()}} {{lang.words.headers}}" id="show_header" class="link add-server"></span>
+                    <div id="header_div" style="display: none;">
+                        <p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="header_p">
+                            {{ select('headers_res', name='headers_res', values=header_res, first='------', class='force_close') }}
+                            <b class="padding10">{{lang.words.name}}</b>
+                            {{ input('header_name', name="header_name") }}
+                            <b class="padding10">{{lang.words.value}}</b>
+                            {{ input('header_value', name="header_value") }}
+                            <span class="minus minus-style" onclick="deleteId('header_p')" title="{{lang.words.delete|title()}}"></span>
+                        </p>
+                    </div>
+                    <span>
+                        <a class="link add-server" id="add_header" title="{{lang.words.add|title()}} {{lang.words.headers}}" style="display: none;"></a>
+                    </span>
+                    <br>
+                    Upstream: {{ input('proxy_pass-upstream', name='upstream', placeholder='upstream_config') }}
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td class="addName">{{ lang.words.compression|title() }}:</td>
+            <td class="addOption">
+                {{ checkbox('compression', title=lang.add_page.desc.http_compression, value='true', desc=lang.words.compression|title()) }}
+                <div id="compression-options" style="display: none;">
+                    <span class="proxy-timeout">{{ lang.words.types|title() }}:</span>
+                    {{ input('compression_types', value='text/plain text/css application/json application/javascript text/xml', style='width: 250px;') }}<br>
+                    <span class="proxy-timeout">{{ lang.words.min|title() }} {{ lang.words.length }}:</span>
+                    {{ input('compression_min_length', value='1024', type='number', style='width: 50px;') }}<br>
+                    <span class="proxy-timeout">{{ lang.words.level|title() }}:</span>
+                    {{ input('compression_level', value='6', type='number', style='width: 50px;') }}
+                </div>
+            </td>
+        </tr>
+        <tr id="proxy_pass-add-buttons">
+            <td class="addButton">
+                <a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} proxy pass" onclick="addProxy('add-proxy_pass')">{{lang.words.add|title()}}</a>
+            </td>
+            <td class="addButton">
+                <a class="ui-button ui-widget ui-corner-all" title="{{lang.words.generate|title()}} {{lang.words.and}} {{lang.words.display}} {{lang.words.config}}" onclick="addProxy('add-proxy_pass', generate=true)">{{lang.words.generate|title()}} {{lang.words.config}}</a>
+            </td>
+        </tr>
+    </table>
+</form>
+<script>
+    $("#scheme" ).selectmenu({
+        width: 100
+    });
+</script>

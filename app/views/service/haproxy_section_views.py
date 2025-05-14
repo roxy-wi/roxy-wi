@@ -64,7 +64,7 @@ class HaproxySectionView(MethodView):
         if query.generate:
             cfg = '/tmp/haproxy-generated-config.cfg'
             os.system(f'touch {cfg}')
-            inv = service_mod.generate_haproxy_section_inv(body.model_dump(mode='json'), cfg)
+            inv = service_mod.generate_section_inv(body.model_dump(mode='json'), cfg, service)
 
             try:
                 output = service_mod.run_ansible_locally(inv, 'haproxy_section')
@@ -153,14 +153,16 @@ class HaproxySectionView(MethodView):
     def _edit_config(service, server: Server, body: HaproxyConfigRequest, action: Literal['create', 'delete'], **kwargs) -> str:
         cfg = config_common.generate_config_path(service, server.ip)
         if action == 'create':
-            inv = service_mod.generate_haproxy_section_inv(body.model_dump(mode='json'), cfg)
+            inv = service_mod.generate_section_inv(body.model_dump(mode='json'), cfg, service)
         else:
-            inv = service_mod.generate_haproxy_section_inv_for_del(cfg, kwargs.get('section_type'), kwargs.get('section_name'))
+            inv = service_mod.generate_section_inv_for_del(cfg, kwargs.get('section_type'), kwargs.get('section_name'))
 
         try:
             config_mod.get_config(server.ip, cfg, service=service)
         except Exception as e:
             raise e
+
+        os.system(f'cp {cfg} {cfg}.old')
 
         try:
             output = service_mod.run_ansible_locally(inv, 'haproxy_section')
@@ -176,7 +178,7 @@ class HaproxySectionView(MethodView):
         else:
             action = 'save'
 
-        output = config_mod.master_slave_upload_and_restart(server.ip, cfg, action, 'haproxy')
+        output = config_mod.master_slave_upload_and_restart(server.ip, cfg, action, 'haproxy', oldcfg=f'{cfg}.old')
 
         return output
 

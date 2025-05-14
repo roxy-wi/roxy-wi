@@ -1,0 +1,170 @@
+# Roxy-WI MANAGED do not edit it directly
+{% if config.scheme == 'https' %}
+server {
+    listen {{ config.port }} ssl{% if nginx_proxy.http2 %} http2{% endif %};
+    ssl_certificate {{ config.ssl_crt }};
+    ssl_certificate_key {{ config.ssl_key }};
+    {% if nginx_proxy.security.hsts %}
+add_header Strict-Transport-Security "max-age={{ nginx_proxy.security.hsts_max_age }}; includeSubDomains" always;
+    {% endif %}
+{% else %}
+server {
+    listen {{ config.port }};
+{% endif %}
+
+    server_name {{ config.name }};
+
+    access_log /var/log/nginx/{{ config.name }}_access.log main buffer=16k flush=1m;
+    error_log /var/log/nginx/{{ config.name }}_error.log;
+
+    {% if nginx_proxy.access_control.global_whitelist.enabled %}
+    # ACCESS CONTROL: Global rules
+    allow {% for ip in nginx_proxy.access_control.global_whitelist.ips %}{{ ip }} {% endfor %};
+
+    deny all;
+    {% elif nginx_proxy.access_control.global_blacklist.enabled %}
+    # ACCESS CONTROL: Global rules
+    deny {% for ip in nginx_proxy.access_control.global_blacklist.ips %}{{ ip }}; {% endfor %}
+    allow all;
+    {% endif -%}
+
+
+    {% if nginx_proxy.security.hide_server_tokens %}
+server_tokens off;
+    {% endif %}
+
+    {% if nginx_proxy.security.security_headers %}
+# Security headers
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Content-Security-Policy "{{ nginx_proxy.security.content_security_policy }}" always;
+    {% endif %}
+
+    {% if nginx_proxy.rate_limit.enabled %}
+    # Rate limiting
+    limit_req_zone $binary_remote_addr zone={{ nginx_proxy.rate_limit.zone.split()[0] }}:{{ nginx_proxy.rate_limit.zone.split()[1] }};
+    {% endif %}
+
+    # Proxy rules
+    {% for location in config.locations %}
+location {{ location.location }} {
+        {% if nginx_proxy.rate_limit.enabled %}
+        limit_req zone={{ nginx_proxy.rate_limit.zone.split()[0] }} burst={{ nginx_proxy.rate_limit.burst }};
+        {% endif %}
+
+        {%- if nginx_proxy.access_control.location_whitelist.enabled %}
+    # ACCESS CONTROL: Location-specific whitelist
+        {% set path = '/' %}
+        {% if path in nginx_proxy.access_control.location_whitelist.apply_to or nginx_proxy.access_control.location_whitelist.apply_to | length == 0 %}
+        {% for ip in nginx_proxy.access_control.location_whitelist.ips %}allow {{ ip }}; {% endfor %}
+        deny all;
+        {% endif %}
+        {% endif %}
+
+        proxy_pass http://{{ location.upstream }};
+
+        # Headers
+        {% for header in location.headers -%}
+    {{ header.action }} {{ header.name }} {{ header.value }};
+        {% endfor -%}
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Timeouts
+        proxy_connect_timeout {{ location.proxy_connect_timeout }};
+        proxy_read_timeout {{ location.proxy_read_timeout }};
+        proxy_send_timeout {{ location.proxy_send_timeout }};
+
+        {% if nginx_proxy.websocket.enabled %}
+        # WebSocket
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        {% endif %}
+
+        {% if nginx_proxy.caching.enabled %}
+        # Caching
+        proxy_cache {{ nginx_proxy.caching.zones[0].name }};
+        proxy_cache_key "$scheme$request_method$host$request_uri";
+        proxy_cache_valid 200 302 10m;
+        proxy_cache_valid 404 1m;
+        add_header X-Proxy-Cache $upstream_cache_status;
+        {% endif %}
+}
+    {% endfor %}
+    {% if nginx_proxy.static_files.enabled %}
+    # Static files
+    location {{ nginx_proxy.static_files.url_path }} {
+        # ACCESS CONTROL: Location-specific whitelist
+        {% if nginx_proxy.access_control.location_whitelist.enabled %}
+        {% set path = nginx_proxy.static_files.url_path %}
+        {% if path in nginx_proxy.access_control.location_whitelist.apply_to or nginx_proxy.access_control.location_whitelist.apply_to | length == 0 %}
+        allow {% for ip in nginx_proxy.access_control.location_whitelist.ips %}{{ ip }}; {% endfor %}
+        deny all;
+        {% endif %}
+        {% endif %}
+
+        alias {{ nginx_proxy.static_files.path }}/;
+        expires 30d;
+        access_log off;
+    }
+    {% endif %}
+
+    {% if nginx_proxy.error_pages.enabled %}
+    # Custom error pages
+    {% for code in nginx_proxy.error_pages.codes %}
+    error_page {{ code }} /error_{{ code }}.html;
+    {% endfor %}
+
+    location ~ ^/error_ {
+        internal;
+        root {{ nginx_proxy.error_pages.path }};
+    }
+    {% endif %}
+
+    {% if config.compression %}
+# Gzip compression
+    gzip on;
+    gzip_types {{ config.compression_types }};
+    gzip_min_length {{ config.compression_min_length }};
+    gzip_comp_level {{ config.compression_level }};
+    gzip_proxied any;
+    {% endif %}
+
+    {% if nginx_proxy.security.hide_backend_headers %}
+# Hide backend headers
+    proxy_hide_header X-Powered-By;
+    proxy_hide_header Server;
+    {% endif -%}
+}
+
+{% if nginx_proxy.caching.enabled %}
+# Cache zones
+proxy_cache_path {{ nginx_proxy.caching.zones[0].path }}
+    levels={{ nginx_proxy.caching.zones[0].levels }}
+    keys_zone={{ nginx_proxy.caching.zones[0].name }}:{{ nginx_proxy.caching.zones[0].size }}
+    inactive={{ nginx_proxy.caching.zones[0].inactive }};
+{% endif %}
+
+{% if config.ssl_offloading -%}
+# HTTP to HTTPS redirect
+server {
+    listen 80;
+    server_name {{ config.name }};
+
+    {% if nginx_proxy.access_control.global_whitelist.enabled %}
+# ACCESS CONTROL: Apply global rules to redirect server
+    allow {% for ip in nginx_proxy.access_control.global_whitelist.ips %}{{ ip }}; {% endfor %}
+    deny all;
+    {% elif nginx_proxy.access_control.global_blacklist.enabled %}
+    deny {% for ip in nginx_proxy.access_control.global_blacklist.ips %}{{ ip }}; {% endfor %}
+    allow all;
+    {% endif %}
+
+    return 301 https://$host$request_uri;
+}
+{% endif %}
