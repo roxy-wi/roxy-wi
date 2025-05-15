@@ -854,44 +854,62 @@ async function ban() {
 // 	var text_val = str.substring(0, beg) + str.substring(end, len);
 // 	$(id_textarea).text(text_val);
 // }
+
+function initializeHistory() {
+    if (!localStorage.getItem('history')) {
+        localStorage.setItem('history', JSON.stringify(['/login', '/login', '/login']));
+    }
+}
+
 function createHistory() {
-	if(localStorage.getItem('history') === null) {
-		let get_history_array = ['login', 'login','login'];
-		localStorage.setItem('history', JSON.stringify(get_history_array));
-	}
+    const history = JSON.parse(localStorage.getItem('history'));
+    const currentPath = window.location.pathname.replace(/\/$/, "");
+    const historyContainer = $('#browse_history');
+
+    const removeDuplicates = (arr) => {
+        const seen = {};
+        return arr.filter(item => {
+            const normalized = item.replace(/\/$/, "");
+            return seen.hasOwnProperty(normalized) ? false : (seen[normalized] = true);
+        });
+    };
+
+    if (!history.some(path => path.replace(/\/$/, "") === currentPath)) {
+        let updatedHistory = [...history, currentPath];
+        updatedHistory = removeDuplicates(updatedHistory);
+
+        updatedHistory = updatedHistory.slice(-3);
+
+        localStorage.setItem('history', JSON.stringify(updatedHistory));
+    }
+
+    historyContainer.empty();
+
+    const menuLinks = {};
+	
+    $('.menu li ul li a').each(function() {
+        const path = $(this).attr('href').replace(/\/$/, "");
+        menuLinks[path] = {
+            title: $(this).attr('title'),
+            text: $(this).text()
+        };
+    });
+
+    JSON.parse(localStorage.getItem('history')).forEach(path => {
+        const cleanPath = path.replace(/\/$/, "");
+        if (menuLinks[cleanPath]) {
+            const link = menuLinks[cleanPath];
+            historyContainer.append(
+                `<li><a href="${cleanPath}" title="${link.title}">${link.text}</a></li>`
+            );
+        }
+    });
 }
-function listHistory() {
-	let browse_history = JSON.parse(localStorage.getItem('history'));
-	let history_link = '';
-	let title = []
-	let link_text = []
-	let cur_path = window.location.pathname;
-	for(let i = 0; i < browse_history.length; i++){
-		if (i === 0) {
-			browse_history[0] = browse_history[1];
-		}
-		if (i === 1) {
-			browse_history[1] = browse_history[2]
-		}
-		if (i === 2) {
-			browse_history[2] = cur_path
-		}
-		$( function() {
-			$('.menu li ul li').each(function () {
-				let link1 = $(this).find('a').attr('href');
-				if (browse_history[i].replace(/\/$/, "") === link1) {
-					title[i] = $(this).find('a').attr('title');
-					link_text[i] = $(this).find('a').text();
-					history_link = '<li><a href="'+browse_history[i]+'" title="'+title[i]+'">'+link_text[i]+'</a></li>'
-					$('#browse_history').append(history_link);
-				}
-			});
-		});
-	}
-	localStorage.setItem('history', JSON.stringify(browse_history));
-}
-createHistory();
-listHistory();
+
+$(document).ready(function() {
+    initializeHistory();
+    createHistory();
+});
 
 function changeCurrentGroupF(user_id) {
 	$.ajax({
