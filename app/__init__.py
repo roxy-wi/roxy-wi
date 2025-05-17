@@ -20,11 +20,12 @@ scheduler.start()
 jwt = JWTManager(app)
 
 from app.modules.db.db_model import create_tables
-from app.create_db import default_values, update_all
+from app.create_db import default_values
+from app.modules.db.migration_manager import migrate
 
 create_tables()
 default_values()
-update_all()
+migrate()
 
 set_correct_owner('/var/lib/roxy-wi')
 

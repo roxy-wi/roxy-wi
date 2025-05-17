@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from peewee import ForeignKeyField
+from peewee import ForeignKeyField,CharField, DateTimeField, AutoField
 from playhouse.migrate import *
 from playhouse.shortcuts import ReconnectMixin
 from playhouse.sqlite_ext import SqliteExtDatabase
