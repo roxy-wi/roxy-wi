@@ -3,6 +3,7 @@ from app.modules.db.db_model import connect, TextField
 
 migrator = connect(get_migrator=1)
 
+
 def up():
     """Apply the migration."""
     # This migration adds a private_key column to the cred table
@@ -16,6 +17,7 @@ def up():
             print('Column already exists')
         else:
             raise e
+
 
 def down():
     """Roll back the migration."""

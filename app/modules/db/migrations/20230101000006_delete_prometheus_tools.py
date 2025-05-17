@@ -3,6 +3,7 @@ from app.modules.db.db_model import connect, RoxyTool
 
 migrator = connect(get_migrator=1)
 
+
 def up():
     """Apply the migration."""
     # This migration deletes rows from the RoxyTool table
@@ -12,6 +13,7 @@ def up():
     except Exception as e:
         print(f"Error applying migration: {str(e)}")
         raise e
+
 
 def down():
     """Roll back the migration."""

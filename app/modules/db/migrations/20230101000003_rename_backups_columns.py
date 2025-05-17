@@ -3,6 +3,7 @@ from app.modules.db.db_model import connect
 
 migrator = connect(get_migrator=1)
 
+
 def up():
     """Apply the migration."""
     # This migration renames columns in the backups table
@@ -18,6 +19,7 @@ def up():
             print("Columns already renamed")
         else:
             raise e
+
 
 def down():
     """Roll back the migration."""

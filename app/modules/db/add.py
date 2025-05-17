@@ -10,6 +10,7 @@ SectionModel = {
 	'nginx': NginxSection,
 }
 
+
 def update_saved_server(server, description, saved_id):
 	try:
 		SavedServer.update(server=server, description=description).where(SavedServer.id == saved_id).execute()

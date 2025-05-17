@@ -3,6 +3,7 @@ from app.modules.db.db_model import connect, Version
 
 migrator = connect(get_migrator=1)
 
+
 def up():
     """Apply the migration."""
     # This migration updates the version in the database to 8.2.0
@@ -11,6 +12,7 @@ def up():
     except Exception as e:
         print(f"Error updating version: {str(e)}")
         raise e
+
 
 def down():
     """Roll back the migration."""

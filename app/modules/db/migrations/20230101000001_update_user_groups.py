@@ -3,6 +3,7 @@ from app.modules.db.db_model import connect, User, UserGroups
 
 migrator = connect(get_migrator=1)
 
+
 def up():
     """Apply the migration."""
     # This migration updates user groups
@@ -16,6 +17,7 @@ def up():
             print('Migration already applied')
         else:
             raise e
+
 
 def down():
     """Roll back the migration."""

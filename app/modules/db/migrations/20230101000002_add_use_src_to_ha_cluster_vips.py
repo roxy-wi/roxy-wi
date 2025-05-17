@@ -4,6 +4,7 @@ from peewee import IntegerField, SQL
 
 migrator = connect(get_migrator=1)
 
+
 def up():
     """Apply the migration."""
     # This migration adds a use_src column to the ha_cluster_vips table
@@ -21,6 +22,7 @@ def up():
             print('Column already exists')
         else:
             raise e
+
 
 def down():
     """Roll back the migration."""

@@ -17,10 +17,12 @@ class Migration(BaseModel):
     class Meta:
         table_name = 'migrations'
 
+
 def create_migrations_table():
     """Create the migrations table if it doesn't exist."""
     conn = connect()
     conn.create_tables([Migration], safe=True)
+
 
 def get_migration_files():
     """Get all migration files from the migrations directory."""
@@ -36,9 +38,11 @@ def get_migration_files():
     migration_files.sort()
     return migration_files
 
+
 def get_applied_migrations():
     """Get all migrations that have been applied."""
     return [m.name for m in Migration.select(Migration.name)]
+
 
 def apply_migration(migration_name):
     """Apply a single migration."""
@@ -55,8 +59,9 @@ def apply_migration(migration_name):
         print(f"Migration applied: {migration_name}")
         return True
     except Exception as e:
-        print("error: applying migration {migration_name}: {str(e)}")
+        print(f"error: applying migration {migration_name}: {str(e)}")
         return False
+
 
 def rollback_migration(migration_name):
     """Rollback a single migration."""
@@ -73,8 +78,9 @@ def rollback_migration(migration_name):
         print(f"Migration rolled back: {migration_name}")
         return True
     except Exception as e:
-        print("error: rolling back migration {migration_name}: {str(e)}")
+        print(f"error: rolling back migration {migration_name}: {str(e)}")
         return False
+
 
 def migrate():
     """Apply all pending migrations."""
@@ -100,6 +106,7 @@ def migrate():
     
     return success
 
+
 def rollback(steps=1):
     """Rollback the specified number of migrations."""
     create_migrations_table()
@@ -122,6 +129,7 @@ def rollback(steps=1):
             break
     
     return success
+
 
 def create_migration(name):
     """Create a new migration file."""
