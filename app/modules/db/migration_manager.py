@@ -28,12 +28,12 @@ def get_migration_files():
     """Get all migration files from the migrations directory."""
     migrations_dir = os.path.join(os.path.dirname(__file__), 'migrations')
     migration_files = []
-    
+
     for filename in os.listdir(migrations_dir):
         if filename.endswith('.py') and not filename.startswith('__'):
             migration_name = filename[:-3]  # Remove .py extension
             migration_files.append(migration_name)
-    
+
     # Sort migrations by name (which should include a timestamp)
     migration_files.sort()
     return migration_files
@@ -49,11 +49,11 @@ def apply_migration(migration_name):
     try:
         # Import the migration module
         module = importlib.import_module(f'app.modules.db.migrations.{migration_name}')
-        
+
         # Apply the migration
         print(f"Applying migration: {migration_name}")
         module.up()
-        
+
         # Record the migration as applied
         Migration.create(name=migration_name)
         print(f"Migration applied: {migration_name}")
@@ -68,11 +68,11 @@ def rollback_migration(migration_name):
     try:
         # Import the migration module
         module = importlib.import_module(f'app.modules.db.migrations.{migration_name}')
-        
+
         # Rollback the migration
         print(f"Rolling back migration: {migration_name}")
         module.down()
-        
+
         # Remove the migration record
         Migration.delete().where(Migration.name == migration_name).execute()
         print(f"Migration rolled back: {migration_name}")
@@ -85,49 +85,49 @@ def rollback_migration(migration_name):
 def migrate():
     """Apply all pending migrations."""
     create_migrations_table()
-    
+
     # Get all migration files and applied migrations
     migration_files = get_migration_files()
     applied_migrations = get_applied_migrations()
-    
+
     # Determine which migrations need to be applied
     pending_migrations = [m for m in migration_files if m not in applied_migrations]
-    
+
     if not pending_migrations:
         print("No pending migrations to apply.")
         return True
-    
+
     # Apply pending migrations
     success = True
     for migration_name in pending_migrations:
         if not apply_migration(migration_name):
             success = False
             break
-    
+
     return success
 
 
 def rollback(steps=1):
     """Rollback the specified number of migrations."""
     create_migrations_table()
-    
+
     # Get applied migrations in reverse order (most recent first)
     applied_migrations = Migration.select().order_by(Migration.applied_at.desc())
-    
+
     if not applied_migrations:
         print("No migrations to roll back.")
         return True
-    
+
     # Rollback the specified number of migrations
     success = True
     for i, migration in enumerate(applied_migrations):
         if i >= steps:
             break
-        
+
         if not rollback_migration(migration.name):
             success = False
             break
-    
+
     return success
 
 
@@ -136,7 +136,7 @@ def create_migration(name):
     timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
     filename = f"{timestamp}_{name}.py"
     filepath = os.path.join(os.path.dirname(__file__), 'migrations', filename)
-    
+
     template = """from playhouse.migrate import *
 from app.modules.db.db_model import connect, mysql_enable
 
@@ -158,10 +158,10 @@ def down():
     # )
     pass
 """
-    
+
     with open(filepath, 'w') as f:
         f.write(template)
-    
+
     print(f"Created migration file: {filename}")
     return filename
 

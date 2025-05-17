@@ -26,7 +26,7 @@ def down():
             is_roxy=0,
             desc='Prometheus monitoring system'
         ).on_conflict_ignore().execute()
-        
+
         RoxyTool.insert(
             name='grafana-server',
             current_version='1.0',

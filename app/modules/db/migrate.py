@@ -12,26 +12,26 @@ from app.modules.db.migration_manager import create_migrations_table, migrate, r
 def main():
     parser = argparse.ArgumentParser(description='Database migration tool')
     subparsers = parser.add_subparsers(dest='command', help='Command to run')
-    
+
     # Create migration command
     create_parser = subparsers.add_parser('create', help='Create a new migration')
     create_parser.add_argument('name', help='Name of the migration')
-    
+
     # Migrate command
     subparsers.add_parser('migrate', help='Apply pending migrations')
-    
+
     # Rollback command
     rollback_parser = subparsers.add_parser('rollback', help='Rollback migrations')
     rollback_parser.add_argument('--steps', type=int, default=1, help='Number of migrations to roll back')
-    
+
     # Initialize command
     subparsers.add_parser('init', help='Initialize the migrations table')
 
     # list command
     subparsers.add_parser('list', help='List all migrations and their status')
-    
+
     args = parser.parse_args()
-    
+
     if args.command == 'create':
         filename = create_migration(args.name)
         print(f"Created migration file: {filename}")

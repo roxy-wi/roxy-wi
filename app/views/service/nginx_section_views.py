@@ -118,7 +118,7 @@ class NginxSectionView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find a server')
 
         try:
-            output = self._edit_config(service, server, body, 'create')
+            output = self._edit_config(service, server, body, 'update')
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create HAProxy section')
 
@@ -162,20 +162,17 @@ class NginxSectionView(MethodView):
             config_file_name = f'{service_dir}/sites-enabled/proxy-pass_{name}.conf'
         return config_file_name
 
-    def _edit_config(self, service, server: Server, body: NginxUpstreamRequest, action: Literal['create', 'delete'], **kwargs) -> str:
+    def _edit_config(self, service, server: Server, body: NginxUpstreamRequest, action: Literal['create', 'update', 'delete'], **kwargs) -> str:
         cfg = config_common.generate_config_path(service, server.ip)
-        print('cfg', cfg)
         config_file_name = self._create_config_path(service, body.type, body.name)
 
-        if action == 'create':
+        if action in ('create', 'update'):
             inv = service_mod.generate_section_inv(body.model_dump(mode='json'), cfg, service)
         else:
             inv = service_mod.generate_section_inv_for_del(cfg, kwargs.get('section_type'), kwargs.get('section_name'))
 
-        try:
+        if action == 'update':
             config_mod.get_config(server.ip, cfg, service=service, config_file_name=config_file_name)
-        except Exception as e:
-            raise e
 
         os.system(f'mv {cfg} {cfg}.old')
 
