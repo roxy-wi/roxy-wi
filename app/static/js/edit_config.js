@@ -671,8 +671,9 @@ function confirmDeleteSection(section_type, section_name, serv_val, dialog_id, s
 	});
 }
 function openNginxSection(section) {
-	let section_type = section.split('_')[0];
-	let section_name = section.split('_')[1];
+	let parts = section.split('_');
+	let section_type = parts[0];
+	let section_name = parts.slice(1).join('_');
 	if (section_type === 'proxy-pass') {
 		section_type = 'proxy_pass';
 	}
@@ -683,7 +684,7 @@ function openNginxSection(section) {
 		contentType: "application/json; charset=utf-8",
 		statusCode: {
 			404: function (xhr) {
-				window.open('/config/nginx/' + $('#serv').val() + '/edit/' + $('#config_file_name').val(), '_blank').focus();
+				window.open('/config/nginx/' + $('#serv').val() + '/edit/' + $('#config_file_name').val(), '_self').focus();
 			}
 		},
 		async: false,

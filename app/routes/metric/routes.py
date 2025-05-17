@@ -100,7 +100,7 @@ def table_metrics(service):
 def show_metric(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
     server_ip = str(server_ip)
     server = server_sql.get_server_by_ip(server_ip)
-    time_range = common.checkAjaxInput(request.form.get('time_range'))
+    time_range = int(request.form.get('time_range'))
 
     if service in ('nginx', 'apache', 'waf'):
         return jsonify(metric.service_metrics(server_ip, server.hostname, service, time_range))
@@ -115,7 +115,7 @@ def show_metric(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
 @validate()
 def show_http_metric(service: Literal['haproxy'], server_ip: Union[IPvAnyAddress, DomainName]):
     server = server_sql.get_server_by_ip(str(server_ip))
-    time_range = common.checkAjaxInput(request.form.get('time_range'))
+    time_range = int(request.form.get('time_range'))
 
     return jsonify(metric.haproxy_http_metrics(server.ip, server.hostname, time_range))
 
@@ -132,23 +132,23 @@ def chart_data(service: str, server_ip: Union[IPvAnyAddress, DomainName], is_htt
             if service in ('nginx', 'apache', 'waf'):
                 chart_metrics = metric_sql.select_metrics(server_ip, service, time_range=1)
                 for i in chart_metrics:
-                    json_metric['time'] = common.get_time_zoned_date(i[2], '%H:%M:%S')
-                    json_metric['value'] = str(i[1])
+                    json_metric['time'] = common.get_time_zoned_date(i['date'], '%H:%M:%S')
+                    json_metric['value'] = str(i['conn'])
             elif service == 'haproxy' and not is_http:
                 chart_metrics = metric_sql.select_metrics(server_ip, 'haproxy', time_range=1)
                 for i in chart_metrics:
-                    json_metric['time'] = common.get_time_zoned_date(i[5], '%H:%M:%S')
-                    json_metric['value'] = str(i[1])
-                    json_metric['value1'] = str(i[2])
-                    json_metric['value2'] = str(i[3])
+                    json_metric['time'] = common.get_time_zoned_date(i['date'], '%H:%M:%S')
+                    json_metric['value'] = str(i['curr_con'])
+                    json_metric['value1'] = str(i['cur_ssl_con'])
+                    json_metric['value2'] = str(i['sess_rate'])
             else:
                 chart_metrics = metric_sql.select_metrics(server_ip, 'http_metrics', time_range=1)
                 for i in chart_metrics:
-                    json_metric['time'] = common.get_time_zoned_date(i[5], '%H:%M:%S')
-                    json_metric['value'] = str(i[1])
-                    json_metric['value1'] = str(i[2])
-                    json_metric['value2'] = str(i[3])
-                    json_metric['value3'] = str(i[4])
+                    json_metric['time'] = common.get_time_zoned_date(i['date'], '%H:%M:%S')
+                    json_metric['value'] = str(i['ok_ans'])
+                    json_metric['value1'] = str(i['redir_ans'])
+                    json_metric['value2'] = str(i['not_found_ans'])
+                    json_metric['value3'] = str(i['err_ans'])
             yield f"data:{json.dumps(json_metric)}\n\n"
             time.sleep(60)
 

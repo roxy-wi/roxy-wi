@@ -80,7 +80,7 @@ def get_config(server_ip, cfg, service='haproxy', **kwargs):
 		with mod_ssh.ssh_connect(server_ip) as ssh:
 			ssh.get_sftp(config_path, cfg)
 	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot get config')
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot get config in get config function')
 
 
 def upload(server_ip: str, path: str, file: str) -> None:

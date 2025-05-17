@@ -71,29 +71,29 @@ class Server(BaseModel):
     server_id = AutoField(column_name='id')
     hostname = CharField()
     ip = CharField(constraints=[SQL('UNIQUE')])
-    group_id = CharField()
+    group_id = CharField(index=True)  # Added index for group_id as it's used in joins and filters
     type_ip = IntegerField(constraints=[SQL('DEFAULT 0')])
-    enabled = IntegerField(constraints=[SQL('DEFAULT 1')])
-    master = IntegerField(constraints=[SQL('DEFAULT 0')])
-    cred_id = IntegerField(constraints=[SQL('DEFAULT 1')])
+    enabled = IntegerField(constraints=[SQL('DEFAULT 1')], index=True)  # Added index for enabled as it's used in filters
+    master = IntegerField(constraints=[SQL('DEFAULT 0')], index=True)  # Added index for master as it's used in joins
+    cred_id = IntegerField(constraints=[SQL('DEFAULT 1')], index=True)  # Added index for cred_id as it's used in joins
     haproxy_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     haproxy_metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
     port = IntegerField(constraints=[SQL('DEFAULT 22')])
     description = CharField(null=True)
-    haproxy_active = IntegerField(constraints=[SQL('DEFAULT 0')])
-    keepalived = IntegerField(constraints=[SQL('DEFAULT 0')])
-    nginx = IntegerField(constraints=[SQL('DEFAULT 0')])
-    haproxy = IntegerField(constraints=[SQL('DEFAULT 0')])
+    haproxy_active = IntegerField(constraints=[SQL('DEFAULT 0')], index=True)  # Added index for service status
+    keepalived = IntegerField(constraints=[SQL('DEFAULT 0')], index=True)  # Added index for service type
+    nginx = IntegerField(constraints=[SQL('DEFAULT 0')], index=True)  # Added index for service type
+    haproxy = IntegerField(constraints=[SQL('DEFAULT 0')], index=True)  # Added index for service type
     pos = IntegerField(constraints=[SQL('DEFAULT 0')])
-    nginx_active = IntegerField(constraints=[SQL('DEFAULT 0')])
+    nginx_active = IntegerField(constraints=[SQL('DEFAULT 0')], index=True)  # Added index for service status
     firewall_enable = IntegerField(constraints=[SQL('DEFAULT 0')])
     nginx_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     protected = IntegerField(constraints=[SQL('DEFAULT 0')])
     nginx_metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
-    keepalived_active = IntegerField(constraints=[SQL('DEFAULT 0')])
+    keepalived_active = IntegerField(constraints=[SQL('DEFAULT 0')], index=True)  # Added index for service status
     keepalived_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
-    apache = IntegerField(constraints=[SQL('DEFAULT 0')])
-    apache_active = IntegerField(constraints=[SQL('DEFAULT 0')])
+    apache = IntegerField(constraints=[SQL('DEFAULT 0')], index=True)  # Added index for service type
+    apache_active = IntegerField(constraints=[SQL('DEFAULT 0')], index=True)  # Added index for service status
     apache_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     apache_metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
 
@@ -228,46 +228,62 @@ class S3Backup(BaseModel):
 
 
 class Metrics(BaseModel):
-    serv = CharField()
+    serv = CharField(index=True)  # Added index for serv as it's used in joins and filters
     curr_con = IntegerField()
     cur_ssl_con = IntegerField()
     sess_rate = IntegerField()
     max_sess_rate = IntegerField()
-    date = DateTimeField(default=datetime.now)
+    date = DateTimeField(default=datetime.now, index=True)  # Added index for date as it's used in time-based queries
 
     class Meta:
         table_name = 'metrics'
         primary_key = False
+        indexes = (
+            # Composite index for queries that filter by both server and date
+            (('serv', 'date'), False),
+        )
 
 
 class WafMetrics(BaseModel):
-    serv = CharField()
+    serv = CharField(index=True)  # Added index for serv as it's used in joins and filters
     conn = IntegerField()
-    date = DateTimeField(default=datetime.now)
+    date = DateTimeField(default=datetime.now, index=True)  # Added index for date as it's used in time-based queries
 
     class Meta:
         table_name = 'waf_metrics'
         primary_key = False
+        indexes = (
+            # Composite index for queries that filter by both server and date
+            (('serv', 'date'), False),
+        )
 
 
 class NginxMetrics(BaseModel):
-    serv = CharField()
+    serv = CharField(index=True)  # Added index for serv as it's used in joins and filters
     conn = IntegerField()
-    date = DateTimeField(default=datetime.now)
+    date = DateTimeField(default=datetime.now, index=True)  # Added index for date as it's used in time-based queries
 
     class Meta:
         table_name = 'nginx_metrics'
         primary_key = False
+        indexes = (
+            # Composite index for queries that filter by both server and date
+            (('serv', 'date'), False),
+        )
 
 
 class ApacheMetrics(BaseModel):
-    serv = CharField()
+    serv = CharField(index=True)  # Added index for serv as it's used in joins and filters
     conn = IntegerField()
-    date = DateTimeField(default=datetime.now)
+    date = DateTimeField(default=datetime.now, index=True)  # Added index for date as it's used in time-based queries
 
     class Meta:
         table_name = 'apache_metrics'
         primary_key = False
+        indexes = (
+            # Composite index for queries that filter by both server and date
+            (('serv', 'date'), False),
+        )
 
 
 class Version(BaseModel):
@@ -373,25 +389,25 @@ class MetricsHttpStatus(BaseModel):
 
 class SMON(BaseModel):
     id = AutoField()
-    name = CharField(null=True)
-    port = IntegerField(null=True)
-    status = IntegerField(constraints=[SQL('DEFAULT 1')])
-    en = IntegerField(constraints=[SQL('DEFAULT 1')])
+    name = CharField(null=True, index=True)  # Added index for name as it's used in filters
+    port = IntegerField(null=True, index=True)  # Added index for port as it's used in filters
+    status = IntegerField(constraints=[SQL('DEFAULT 1')], index=True)  # Added index for status as it's used in filters
+    en = IntegerField(constraints=[SQL('DEFAULT 1')], index=True)  # Added index for en as it's used in filters
     desc = CharField(null=True)
     response_time = CharField(null=True)
-    time_state = DateTimeField(constraints=[SQL('DEFAULT "0000-00-00 00:00:00"')])
-    group = CharField(null=True)
+    time_state = DateTimeField(constraints=[SQL('DEFAULT "0000-00-00 00:00:00"')], index=True)  # Added index for time-based queries
+    group = CharField(null=True, index=True)  # Added index for group as it's used in filters
     http = CharField(null=True)
     body = CharField(null=True)
     body_status = IntegerField(constraints=[SQL('DEFAULT 1')])
     telegram_channel_id = IntegerField(null=True)
-    user_group = IntegerField()
+    user_group = IntegerField(index=True)  # Added index for user_group as it's used in joins and filters
     slack_channel_id = IntegerField(null=True)
     ssl_expire_warning_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     ssl_expire_critical_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     ssl_expire_date = CharField(null=True)
     pd_channel_id = IntegerField(null=True)
-    check_type = CharField(constraints=[SQL('DEFAULT "tcp"')])
+    check_type = CharField(constraints=[SQL('DEFAULT "tcp"')], index=True)  # Added index for check_type as it's used in filters
     mm_channel_id = IntegerField(null=True)
 
     class Meta:
@@ -401,16 +417,23 @@ class SMON(BaseModel):
 
 class Alerts(BaseModel):
     message = CharField()
-    level = CharField()
-    ip = CharField()
+    level = CharField(index=True)  # Added index for level as it's used in filters
+    ip = CharField(index=True)  # Added index for ip as it's used in filters
     port = IntegerField()
-    user_group = IntegerField(constraints=[SQL('DEFAULT 1')])
-    service = CharField()
-    date = DateTimeField(default=datetime.now)
+    user_group = IntegerField(constraints=[SQL('DEFAULT 1')], index=True)  # Added index for user_group as it's used in joins and filters
+    service = CharField(index=True)  # Added index for service as it's used in filters
+    date = DateTimeField(default=datetime.now, index=True)  # Added index for date as it's used in time-based queries
 
     class Meta:
         table_name = 'alerts'
         primary_key = False
+        indexes = (
+            # Composite indexes for common query patterns
+            (('ip', 'date'), False),
+            (('service', 'date'), False),
+            (('user_group', 'date'), False),
+            (('level', 'date'), False),
+        )
 
 
 class GeoipCodes(BaseModel):
@@ -436,18 +459,24 @@ class ServiceSetting(BaseModel):
 
 
 class ActionHistory(BaseModel):
-    service = CharField(null=True)
-    server_id = IntegerField(null=True)
-    user_id = IntegerField(null=True)
-    action = CharField(null=True)
-    ip = CharField(null=True)
-    date = DateTimeField(default=datetime.now)
-    server_ip = CharField(null=True)
+    service = CharField(null=True, index=True)  # Added index for service as it's used in filters
+    server_id = IntegerField(null=True, index=True)  # Added index for server_id as it's used in joins and filters
+    user_id = IntegerField(null=True, index=True)  # Added index for user_id as it's used in joins and filters
+    action = CharField(null=True, index=True)  # Added index for action as it's used in filters
+    ip = CharField(null=True, index=True)  # Added index for ip as it's used in filters
+    date = DateTimeField(default=datetime.now, index=True)  # Added index for date as it's used in time-based queries
+    server_ip = CharField(null=True, index=True)  # Added index for server_ip as it's used in filters
     hostname = CharField(null=True)
 
     class Meta:
         table_name = 'action_history'
         primary_key = False
+        indexes = (
+            # Composite indexes for common query patterns
+            (('server_id', 'date'), False),
+            (('user_id', 'date'), False),
+            (('service', 'date'), False),
+        )
 
 
 class ConfigVersion(BaseModel):

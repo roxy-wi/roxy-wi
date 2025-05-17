@@ -43,7 +43,7 @@ def show_cpu_metrics(server_ip: str) -> dict:
     return metrics
 
 
-def haproxy_metrics(server_ip: str, hostname: str, time_range: str) -> dict:
+def haproxy_metrics(server_ip: str, hostname: str, time_range: int) -> dict:
     metric = metric_sql.select_metrics(server_ip, 'haproxy', time_range=time_range)
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}
@@ -54,14 +54,14 @@ def haproxy_metrics(server_ip: str, hostname: str, time_range: str) -> dict:
     server = ''
 
     for i in metric:
-        label = i[5]
+        label = i['date']
         metric_time = common.get_time_zoned_date(label, '%H:%M:%S')
         label = metric_time
         labels += label + ','
-        curr_con += str(i[1]) + ','
-        curr_ssl_con += str(i[2]) + ','
-        sess_rate += str(i[3]) + ','
-        server = str(i[0])
+        curr_con += str(i['curr_con']) + ','
+        curr_ssl_con += str(i['cur_ssl_con']) + ','
+        sess_rate += str(i['sess_rate']) + ','
+        server = str(i['serv'])
 
     metrics['chartData']['labels'] = labels
     metrics['chartData']['curr_con'] = curr_con
@@ -72,7 +72,7 @@ def haproxy_metrics(server_ip: str, hostname: str, time_range: str) -> dict:
     return metrics
 
 
-def haproxy_http_metrics(server_ip: str, hostname: str, time_range: str) -> dict:
+def haproxy_http_metrics(server_ip: str, hostname: str, time_range: int) -> dict:
     metric = metric_sql.select_metrics(server_ip, 'http_metrics', time_range=time_range)
     metrics = {'chartData': {}}
     metrics['chartData']['labels'] = {}
@@ -84,15 +84,15 @@ def haproxy_http_metrics(server_ip: str, hostname: str, time_range: str) -> dict
     server = ''
 
     for i in metric:
-        label = i[5]
+        label = i['date']
         metric_time = common.get_time_zoned_date(label, '%H:%M:%S')
         label = metric_time
         labels += label + ','
-        http_2xx += str(i[1]) + ','
-        http_3xx += str(i[2]) + ','
-        http_4xx += str(i[3]) + ','
-        http_5xx += str(i[4]) + ','
-        server = str(i[0])
+        http_2xx += str(i['ok_ans']) + ','
+        http_3xx += str(i['redir_ans']) + ','
+        http_4xx += str(i['not_found_ans']) + ','
+        http_5xx += str(i['err_ans']) + ','
+        server = str(i['serv'])
 
     metrics['chartData']['labels'] = labels
     metrics['chartData']['http_2xx'] = http_2xx
@@ -104,7 +104,7 @@ def haproxy_http_metrics(server_ip: str, hostname: str, time_range: str) -> dict
     return metrics
 
 
-def service_metrics(server_ip: str, hostname: str, service: str, time_range: str) -> dict:
+def service_metrics(server_ip: str, hostname: str, service: str, time_range: int) -> dict:
     metric = metric_sql.select_metrics(server_ip, service, time_range=time_range)
 
     metrics = {'chartData': {}}
@@ -113,11 +113,11 @@ def service_metrics(server_ip: str, hostname: str, service: str, time_range: str
     curr_con = ''
 
     for i in metric:
-        label = i[2]
+        label = i['date']
         metric_time = common.get_time_zoned_date(label, '%H:%M:%S')
         label = metric_time
         labels += label + ','
-        curr_con += str(i[1]) + ','
+        curr_con += str(i['conn']) + ','
 
     metrics['chartData']['labels'] = labels
     metrics['chartData']['curr_con'] = curr_con

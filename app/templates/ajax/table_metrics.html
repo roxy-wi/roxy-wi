@@ -2,18 +2,22 @@
 <table style="min-width: 40%;" id="body_table_metrics">
 	<tr>
 		<th class="padding10 first-collumn overviewTr" rowspan=2>{{lang.words.server|title}}</th>
+        {% if service == 'haproxy' %}
 		<th colspan=3>{{lang.words.average}} {{lang.words.sessions}}</th>
 		<th colspan=3>{{lang.words.peak|title()}} {{lang.words.sessions}}</th>
+        {% endif %}
 		<th colspan=3>{{lang.words.average}} {{lang.words.connections}}</th>
 		<th colspan=3>{{lang.words.peak|title()}} {{lang.words.connections2}}</th>
 	</tr>
 	<tr class="overviewHead">
+        {% if service == 'haproxy' %}
 		<th>1 {{lang.words.hour}}</th>
 		<th>24 {{lang.words.hours}}</th>
 		<th>3 {{lang.words.days}}</th>
 		<th>1 {{lang.words.hour}}</th>
 		<th>24 {{lang.words.hours}}</th>
 		<th>3 {{lang.words.days}}</th>
+        {% endif %}
 		<th>1 {{lang.words.hour}}</th>
 		<th>24 {{lang.words.hours}}</th>
 		<th>3 {{lang.words.days}}</th>
@@ -23,19 +27,21 @@
 	</tr>
 	{% for state in table_stat %}
 	<tr class="{{ loop.cycle('odd', 'even') }}">
-		<td class="padding10 first-collumn"><span title="{{ state.0 }}">{{ state.1 }}</span></td>
-		<td>{{ state.2 }}</td>
-		<td>{{ state.3 }}</td>
-		<td>{{ state.4 }}</td>
-		<td>{{ state.5 }}</td>
-		<td>{{ state.6 }}</td>
-		<td>{{ state.7 }}</td>
-		<td>{{ state.8 }}</td>
-		<td>{{ state.9 }}</td>
-		<td>{{ state.10 }}</td>
-		<td>{{ state.11 }}</td>
-		<td>{{ state.12 }}</td>
-		<td>{{ state.13 }}</td>
+		<td class="padding10 first-collumn"><span title="{{ state['ip'] }}">{{ state.hostname }}</span></td>
+        {% if service == 'haproxy' %}
+		<td>{{ state.avg_sess_1h }}</td>
+		<td>{{ state.avg_sess_24h }}</td>
+		<td>{{ state.avg_sess_3d }}</td>
+		<td>{{ state.max_sess_1h }}</td>
+		<td>{{ state.max_sess_24h }}</td>
+		<td>{{ state.max_sess_3d }}</td>
+        {% endif %}
+		<td>{{ state.avg_cur_1h }}</td>
+		<td>{{ state.avg_cur_24h }}</td>
+		<td>{{ state.avg_cur_3d }}</td>
+		<td>{{ state.max_con_1h }}</td>
+		<td>{{ state.max_con_24h }}</td>
+		<td>{{ state.max_con_3d }}</td>
 	</tr>
 	{% endfor %}
 </table>

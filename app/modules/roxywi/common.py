@@ -46,9 +46,7 @@ def get_user_group(**kwargs) -> int:
 	return user_group
 
 
-def check_user_group_for_flask(api_token: bool = False):
-	if api_token:
-		return True
+def check_user_group_for_flask():
 	claims = get_jwt_token_claims()
 	user_id = claims['user_id']
 	group_id = claims['group']
@@ -183,24 +181,8 @@ def keep_action_history(service: str, action: str, server_ip: str, user_id: int,
 
 
 def get_dick_permit(**kwargs):
-	api_token = kwargs.get('token')
-	if not kwargs.get('group_id'):
-		try:
-			group_id = get_user_group(id=1)
-		except Exception as e:
-			return str(e)
-	else:
-		group_id = kwargs.pop('group_id')
-
-	if check_user_group_for_flask(api_token=api_token):
-		try:
-			servers = server_sql.get_dick_permit(group_id, **kwargs)
-		except Exception as e:
-			raise Exception(e)
-		else:
-			return servers
-	else:
-		print('Atata!')
+	group_id = get_user_group(id=1)
+	return server_sql.get_dick_permit(group_id, **kwargs)
 
 
 def get_users_params(**kwargs):
