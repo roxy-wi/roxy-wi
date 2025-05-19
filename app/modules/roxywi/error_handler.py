@@ -183,13 +183,12 @@ def register_error_handlers(app):
         return redirect(url_for('login_page', next=request.full_path))
 
     @app.errorhandler(403)
+    @get_user_params()
     def forbidden(e):
         """Handle 403 Forbidden errors."""
         if 'api' in request.url:
             return jsonify(ErrorResponse(error=str(e)).model_dump(mode='json')), 403
 
-        # Get user parameters for rendering the template
-        get_user_params()
         kwargs = {
             'user_params': g.user_params,
             'title': e,
@@ -198,13 +197,12 @@ def register_error_handlers(app):
         return render_template('error.html', **kwargs), 403
 
     @app.errorhandler(404)
+    @get_user_params()
     def not_found(e):
         """Handle 404 Not Found errors."""
         if 'api' in request.url:
             return jsonify(ErrorResponse(error=str(e)).model_dump(mode='json')), 404
 
-        # Get user parameters for rendering the template
-        get_user_params()
         kwargs = {
             'user_params': g.user_params,
             'title': e,
@@ -228,13 +226,12 @@ def register_error_handlers(app):
         return jsonify(ErrorResponse(error="Too many requests").model_dump(mode='json')), 429
 
     @app.errorhandler(500)
+    @get_user_params()
     def internal_server_error(e):
         """Handle 500 Internal Server Error errors."""
         if 'api' in request.url:
             return jsonify(ErrorResponse(error=str(e)).model_dump(mode='json')), 500
 
-        # Get user parameters for rendering the template
-        get_user_params()
         kwargs = {
             'user_params': g.user_params,
             'title': e,

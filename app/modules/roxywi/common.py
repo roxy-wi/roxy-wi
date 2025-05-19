@@ -210,7 +210,7 @@ def keep_action_history(service: str, action: str, server_ip: str, user_id: int,
 		history_sql.insert_action_history(service, action, server_id, user_id, user_ip, server_ip, hostname)
 	except Exception as e:
 		logger.error(
-			f'Cannot save a history',
+			'Cannot save a history',
 			server_ip='Roxy-WI server',
 			exception=e,
 			service=service,
@@ -228,7 +228,7 @@ def get_dick_permit(**kwargs):
 		else:
 			return servers
 	else:
-		print('Atata!')
+		logging('Roxy-WI server', 'warning: has tried to actions in not his group')
 		return []
 
 

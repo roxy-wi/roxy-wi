@@ -1,9 +1,6 @@
 import distro
 
-from app.modules.db.db_model import (
-	connect, Setting, Role, User, UserGroups, Groups, Services, RoxyTool, Version, GeoipCodes, migrate, mysql_enable, TextField
-)
-from peewee import IntegerField, SQL
+from app.modules.db.db_model import connect, Setting, Role, User, UserGroups, Groups, Services, RoxyTool, GeoipCodes
 
 
 conn = connect()
