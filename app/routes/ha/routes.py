@@ -163,7 +163,7 @@ def check_cluster_status(service: str, cluster_id: int):
         return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get slaves')
     status = 'ok'
     statuses = []
-    cmd = f'systemctl is-active keepalived.service'
+    cmd = 'systemctl is-active keepalived.service'
     for slave in slaves:
         output = server_mod.ssh_command(slave[2], cmd)
         statuses.append(output.replace('\n', '').replace('\r', ''))

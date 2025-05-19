@@ -1,6 +1,5 @@
 import os
 import glob
-import logging as logger
 from typing import Any, Union
 
 from flask import request, g
@@ -8,16 +7,17 @@ from flask_jwt_extended import get_jwt
 from flask_jwt_extended import verify_jwt_in_request
 
 import app.modules.db.udp as udp_sql
+import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.roxy as roxy_sql
 import app.modules.db.user as user_sql
 import app.modules.db.group as group_sql
 import app.modules.db.server as server_sql
 import app.modules.db.history as history_sql
-import app.modules.db.ha_cluster as ha_sql
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.modules.roxywi.class_models import ErrorResponse
-from app.modules.roxywi.exception import RoxywiResourceNotFound, RoxywiGroupMismatch, RoxywiGroupNotFound, \
-	RoxywiPermissionError, RoxywiConflictError
+from app.modules.roxywi.exception import RoxywiGroupMismatch
+from app.modules.roxywi.error_handler import handle_exception, log_error
+from app.modules.roxywi import logger
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 
@@ -104,49 +104,69 @@ def get_files(folder, file_format, server_ip=None) -> list:
 
 
 def logging(server_ip: Union[str, int], action: str, **kwargs) -> None:
-	def setup_logger(log_file: str) -> None:
-		"""Helper function to set up the logger configuration."""
-		logger.basicConfig(
-			filename=log_file,
-			format='%(asctime)s %(levelname)s: %(message)s',
-			level=logger.INFO,
-			datefmt='%b %d %H:%M:%S'
+	"""
+	Log an action with detailed information.
+
+	Args:
+		server_ip: The IP of the server where the action occurred
+		action: The action that was performed
+		**kwargs: Additional arguments, including:
+			keep_history: Whether to keep the action in the history
+			service: The service where the action occurred
+	"""
+	try:
+		# JWT validation and extracting user's information
+		claims = get_jwt_token_claims()
+		user_id = claims['user_id']
+		user = user_sql.get_user_id(user_id=user_id)
+		user_group = get_user_group()
+		ip = request.remote_addr
+
+		# Determine log level and clean up action string
+		if 'error' in action:
+			log_level = logger.ERROR
+			action = action.replace('error: : ', '')
+			action = action.replace('error: ', '')
+		elif 'warning' in action:
+			log_level = logger.WARNING
+			action = action.replace('warning: ', '')
+		else:
+			log_level = logger.INFO
+
+		# Log the message with structured context
+		logger.log(
+			log_level,
+			action,
+			server_ip=server_ip,
+			user_id=user.user_id,
+			username=user.username,
+			user_group=user_group,
+			client_ip=ip,
+			service=kwargs.get('service')
 		)
-		logger.getLogger("paramiko").setLevel(logger.WARNING)
 
-	# Extracted log path and file configuration
-	log_path = get_config_var.get_config_var('main', 'log_path')
-	log_file = f"{log_path}/roxy-wi.log"
-	setup_logger(log_file)
-
-	# JWT validation and extracting user's information
-	claims = get_jwt_token_claims()
-	user_id = claims['user_id']
-	user = user_sql.get_user_id(user_id=user_id)
-	user_group = get_user_group()
-	ip = request.remote_addr
-
-	if 'error' in action:
-		log_level = logger.error
-		action = action.replace('error: : ', '')
-		action = action.replace('error: ', '')
-	elif 'warning' in action:
-		log_level = logger.warning
-		action = action.replace('warning: ', '')
-	else:
-		log_level = logger.info
-
-	log_message = f"from {ip} user: {user.username}, group: {user_group}, message: {action} on: {server_ip}"
-	log_level(log_message)
-
-	if kwargs.get('keep_history'):
-		try:
-			keep_action_history(kwargs.get('service'), action, server_ip, user.user_id, ip)
-		except Exception as e:
-			logger.error(f'Cannot save history: {e}')
+		# Keep action history if requested
+		if kwargs.get('keep_history'):
+			try:
+				keep_action_history(kwargs.get('service'), action, server_ip, user.user_id, ip)
+			except Exception as e:
+				logger.error(f'Cannot save history: {e}', server_ip=server_ip)
+	except Exception as e:
+		# Fallback logging if we can't get user information
+		logger.error(f'Error in logging function: {e}', server_ip=server_ip)
 
 
 def keep_action_history(service: str, action: str, server_ip: str, user_id: int, user_ip: str):
+	"""
+	Keep a history of actions in the database.
+
+	Args:
+		service: The service where the action occurred
+		action: The action that was performed
+		server_ip: The IP of the server where the action occurred
+		user_id: The ID of the user who performed the action
+		user_ip: The IP of the user who performed the action
+	"""
 	if user_ip == '':
 		user_ip = 'localhost'
 
@@ -155,7 +175,11 @@ def keep_action_history(service: str, action: str, server_ip: str, user_id: int,
 			server_id = server_ip
 			hostname = ha_sql.select_cluster_name(int(server_id))
 		except Exception as e:
-			logging('Roxy-WI server', f'error: cannot get info about cluster {server_ip} for history: {e}')
+			logger.error(
+				f'Cannot get info about cluster {server_ip} for history',
+				server_ip='Roxy-WI server',
+				exception=e
+			)
 			return
 	elif service == 'UDP listener':
 		try:
@@ -163,7 +187,11 @@ def keep_action_history(service: str, action: str, server_ip: str, user_id: int,
 			listener = udp_sql.get_listener(server_id)
 			hostname = listener.name
 		except Exception as e:
-			logging('Roxy-WI server', f'error: cannot get info about Listener {server_ip} for history: {e}')
+			logger.error(
+				f'Cannot get info about Listener {server_ip} for history',
+				server_ip='Roxy-WI server',
+				exception=e
+			)
 			return
 	else:
 		try:
@@ -171,18 +199,37 @@ def keep_action_history(service: str, action: str, server_ip: str, user_id: int,
 			server_id = server.server_id
 			hostname = server.hostname
 		except Exception as e:
-			logging('Roxy-WI server', f'error: cannot get info about {server_ip} for history: {e}')
+			logger.error(
+				f'Cannot get info about {server_ip} for history',
+				server_ip='Roxy-WI server',
+				exception=e
+			)
 			return
 
 	try:
 		history_sql.insert_action_history(service, action, server_id, user_id, user_ip, server_ip, hostname)
 	except Exception as e:
-		logging('Roxy-WI server', f'error: cannot save a history: {e}')
+		logger.error(
+			f'Cannot save a history',
+			server_ip='Roxy-WI server',
+			exception=e,
+			service=service,
+			action=action
+		)
 
 
 def get_dick_permit(**kwargs):
 	group_id = get_user_group(id=1)
-	return server_sql.get_dick_permit(group_id, **kwargs)
+	if check_user_group_for_flask():
+		try:
+			servers = server_sql.get_dick_permit(group_id, **kwargs)
+		except Exception as e:
+			raise Exception(e)
+		else:
+			return servers
+	else:
+		print('Atata!')
+		return []
 
 
 def get_users_params(**kwargs):
@@ -276,9 +323,8 @@ def handle_exceptions(ex: Exception, server_ip: str, message: str, **kwargs: Any
 	:param message: The error message to be logged and raised
 	:param kwargs: Additional keyword arguments to be passed to the logging function
 	:return: None
-
 	"""
-	logging(server_ip, f'error: {message}: {ex}', **kwargs)
+	log_error(ex, server_ip, message, kwargs.get('keep_history', False), kwargs.get('service'))
 	raise Exception(f'{message}: {ex}')
 
 
@@ -293,24 +339,35 @@ def is_user_has_access_to_group(user_id: int, group_id: int) -> None:
 
 
 def handle_json_exceptions(ex: Exception, message: str, server_ip='Roxy-WI server') -> dict:
-	logging(server_ip, f'{message}: {ex}')
+	"""
+	Handle an exception and return a JSON error response.
+
+	Args:
+		ex: The exception that was raised
+		message: Additional information to include in the response
+		server_ip: The IP of the server where the error occurred
+
+	Returns:
+		A dictionary containing the error response
+	"""
+	log_error(ex, server_ip, message)
 	return ErrorResponse(error=f'{message}: {ex}').model_dump(mode='json')
 
 
 def handler_exceptions_for_json_data(ex: Exception, main_ex_mes: str = '') -> tuple[dict, int]:
-	if isinstance(ex, KeyError):
-		return handle_json_exceptions(ex, 'Missing key in JSON data'), 500
-	elif isinstance(ex, ValueError):
-		return handle_json_exceptions(ex, 'Wrong type or missing value in JSON data'), 500
-	elif isinstance(ex, RoxywiResourceNotFound):
-		return handle_json_exceptions(ex, 'Resource not found'), 404
-	elif isinstance(ex, RoxywiGroupNotFound):
-		return handle_json_exceptions(ex, 'Group not found'), 404
-	elif isinstance(ex, RoxywiGroupMismatch):
-		return handle_json_exceptions(ex, 'Resource not found in group'), 404
-	elif isinstance(ex, RoxywiPermissionError):
-		return handle_json_exceptions(ex, 'You cannot edit this resource'), 403
-	elif isinstance(ex, RoxywiConflictError):
-		return handle_json_exceptions(ex, 'Conflict'), 429
-	else:
-		return handle_json_exceptions(ex, main_ex_mes), 500
+	"""
+	Handle an exception and return a JSON error response with an appropriate HTTP status code.
+
+	Args:
+		ex: The exception that was raised
+		main_ex_mes: Additional information to include in the response
+
+	Returns:
+		A tuple containing the error response and HTTP status code
+	"""
+
+	# If main_ex_mes is provided, use it as additional_info
+	additional_info = main_ex_mes if main_ex_mes else ""
+
+	# Use the centralized error handler
+	return handle_exception(ex, additional_info=additional_info)

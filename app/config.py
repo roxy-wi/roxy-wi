@@ -1,4 +1,9 @@
 from datetime import timedelta
+import logging
+
+import app.modules.roxy_wi_tools as roxy_wi_tools
+
+get_config = roxy_wi_tools.GetConfigVar()
 
 
 class Configuration(object):
@@ -14,3 +19,9 @@ class Configuration(object):
     JWT_IDENTITY_CLAIM = 'user_id'
     JWT_ERROR_MESSAGE_KEY = 'error'
     FLASK_PYDANTIC_VALIDATION_ERROR_RAISE = True
+
+    # Logging configuration
+    LOG_PATH = get_config.get_config_var('main', 'log_path')
+    LOG_FILE = 'roxy-wi.log'
+    LOG_LEVEL = logging.INFO
+    LOG_CONSOLE = False  # Set to True to also log to console

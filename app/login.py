@@ -6,6 +6,7 @@ import app.modules.db.user as user_sql
 import app.modules.roxywi.roxy as roxy
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
+from app.modules.roxywi import logger
 
 
 @app.before_request
@@ -56,10 +57,12 @@ def login_page():
             return roxywi_common.handle_json_exceptions(e, 'Cannot check login password'), 401
         try:
             response = roxywi_auth.do_login(user_params, next_url)
+            logger.info(f'{login} login')
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot do login'), 401
 
         return response
+    return redirect('/', 302)
 
 
 @app.route('/logout', methods=['GET', 'POST'])

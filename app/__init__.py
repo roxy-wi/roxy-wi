@@ -4,11 +4,21 @@ from flask_jwt_extended import JWTManager
 from flask_apscheduler import APScheduler
 
 from app.modules.common.common import set_correct_owner
+from app.modules.roxywi import logger
 
 app = Flask(__name__)
 app.config.from_object('app.config.Configuration')
 app.jinja_env.add_extension('jinja2.ext.do')
 app.jinja_env.add_extension('jinja2.ext.loopcontrols')
+
+# Initialize logger
+logger.setup_logger(
+    log_path=app.config.get('LOG_PATH', '/var/log/roxy-wi'),
+    log_file=app.config.get('LOG_FILE', 'roxy-wi.log'),
+    log_level=app.config.get('LOG_LEVEL', logger.INFO),
+    console_logging=app.config.get('LOG_CONSOLE', False)
+)
+logger.info("Roxy-WI application starting up")
 
 cache = Cache()
 cache.init_app(app)
@@ -75,3 +85,7 @@ app.register_blueprint(udp_bp)
 
 from app import login
 from app import jobs
+
+# Register error handlers
+from app.modules.roxywi.error_handler import register_error_handlers
+register_error_handlers(app)

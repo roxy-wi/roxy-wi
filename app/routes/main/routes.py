@@ -1,9 +1,8 @@
 import os
 from typing import Union, Literal
 
-from flask import render_template, request, g, abort, jsonify, redirect, url_for, send_from_directory
+from flask import render_template, g, abort, jsonify, send_from_directory
 from flask_jwt_extended import jwt_required
-from flask_pydantic.exceptions import ValidationError
 from flask_pydantic import validate
 from pydantic import IPvAnyAddress
 
@@ -37,77 +36,6 @@ def my_expired_token_callback(jwt_header, jwt_payload):
 @jwt.unauthorized_loader
 def custom_unauthorized_response(_err):
     return jsonify(error="Authorize first"), 401
-
-
-@app.errorhandler(ValidationError)
-def handle_pydantic_validation_errors1(e):
-    errors = []
-    if e.body_params:
-        req_type = e.body_params
-    elif e.form_params:
-        req_type = e.form_params
-    elif e.path_params:
-        req_type = e.path_params
-    else:
-        req_type = e.query_params
-    for er in req_type:
-        if len(er["loc"]) > 0:
-            errors.append(f'{er["loc"][0]}: {er["msg"]}')
-        else:
-            errors.append(er["msg"])
-    return ErrorResponse(error=errors).model_dump(mode='json'), 400
-
-
-@app.errorhandler(401)
-def no_auth(e):
-    if 'api' in request.url:
-        return jsonify({'error': str(e)}), 401
-    return redirect(url_for('login_page', next=request.full_path))
-
-
-@app.errorhandler(403)
-@get_user_params()
-def page_is_forbidden(e):
-    if 'api' in request.url:
-        return jsonify({'error': str(e)}), 403
-    kwargs = {
-        'user_params': g.user_params,
-        'title': e,
-        'e': e
-    }
-    return render_template('error.html', **kwargs), 403
-
-
-@app.errorhandler(404)
-@get_user_params()
-def page_not_found(e):
-    if 'api' in request.url:
-        return jsonify({'error': str(e)}), 404
-    get_user_params()
-    kwargs = {
-        'user_params': g.user_params,
-        'title': e,
-        'e': e
-    }
-    return render_template('error.html', **kwargs), 404
-
-
-@app.errorhandler(405)
-def method_not_allowed(e):
-    return jsonify({'error': str(e)}), 405
-
-
-@app.errorhandler(500)
-def internal_error(e):
-    if 'api' in request.url:
-        return jsonify({'error': str(e)}), 500
-    get_user_params()
-    kwargs = {
-        'user_params': g.user_params,
-        'title': e,
-        'e': e
-    }
-    return render_template('error.html', **kwargs), 500
 
 
 @app.route('/favicon.ico')

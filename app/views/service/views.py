@@ -284,7 +284,7 @@ class ServiceActionView(MethodView):
             service_action.common_action(server.ip, action, service)
             return BaseResponse().model_dump(mode='json')
         except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot do {action}')
+            return ErrorResponse(error=f'Cannot do {action}: {e}').model_dump(mode='json')
 
 
 class ServiceBackendView(MethodView):
