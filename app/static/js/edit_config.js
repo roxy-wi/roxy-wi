@@ -378,8 +378,6 @@ function addProxy(form_name, generate=false) {
 					data.data = data.data.replace(/\n/g, "<br>");
 					if (returnNiceCheckingConfig(data.data) === 0) {
 						toastr.info('Section has been added. Do not forget to restart the server');
-						let ip = $('select[name=serv]').val();
-						localStorage.setItem('restart', ip);
 						resetProxySettings();
 					}
 				}
@@ -413,8 +411,6 @@ function editProxy(form_name, dialog_id, generate=false) {
 				data.data = data.data.replace(/\n/g, "<br>");
 				if (returnNiceCheckingConfig(data.data) === 0) {
 					toastr.info('Section has been updated. Do not forget to restart the server');
-					let ip = $('select[name=serv]').val();
-					localStorage.setItem('restart', ip);
 					$('#edit-section').remove();
 					showConfig();
 					$(dialog_id).dialog( "close" );

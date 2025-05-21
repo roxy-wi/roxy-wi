@@ -198,10 +198,6 @@ $( function() {
 	if (cur_url[0] == "" || cur_url[0] == "waf" || cur_url[0] == "metrics") {
 		$('#secIntervals').css('display', 'none');
 	}
-	$('#apply_close').click( function() {
-		$("#apply").css('display', 'none');
-		localStorage.removeItem('restart');
-	});
 	$( ".server-act-links" ).change(function() {
 		let id = $(this).attr('id').split('-');
 
@@ -229,15 +225,7 @@ function confirmAjaxAction(action, service, id) {
 			text: action_word,
 			click: function () {
 				$(this).dialog("close");
-				if (service === "haproxy") {
-					ajaxActionServers(action, id, service);
-					if (action === "restart" || action === "reload") {
-						if (localStorage.getItem('restart')) {
-							localStorage.removeItem('restart');
-							$("#apply").css('display', 'none');
-						}
-					}
-				} else if (service === "waf") {
+				if (service === "waf") {
 					ajaxActionServers(action, id, 'waf_haproxy');
 				} else {
 					ajaxActionServers(action, id, service);

@@ -233,6 +233,8 @@ def get_stat_page(server_ip: str, service: str, group_id: int) -> str:
 	except requests.exceptions.HTTPError as errh:
 		return f'error: Http Error: {errh}'
 	except requests.exceptions.ConnectionError as errc:
+		if "Max retries exceeded" in str(errc):
+			raise Exception(f"error: Max retries exceeded")
 		return f'error: Error Connecting: {errc}'
 	except requests.exceptions.Timeout as errt:
 		return f'error: Timeout Error: {errt}'

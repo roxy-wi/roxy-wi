@@ -69,12 +69,12 @@ def show_stats(service: Literal['haproxy', 'apache', 'nginx'], server_ip: Union[
         try:
             return service_common.get_stat_page(server_ip, service, g.user_params['group_id'])
         except Exception as e:
-            return f'error: {e}'
+            return e
     else:
         try:
             return service_haproxy.stat_page_action(server_ip, g.user_params['group_id'])
         except Exception as e:
-            return f'error: {e}'
+            return str(e)
 
 
 @bp.route('/nettools')

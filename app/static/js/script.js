@@ -68,29 +68,6 @@ jQuery.expr[':'].regex = function(elem, index, match) {
         regex = new RegExp(matchParams.join('').replace(/^\s+|\s+$/g,''), regexFlags);
     return regex.test(jQuery(elem)[attr.method](attr.property));
 }
-if(localStorage.getItem('restart')) {
-	let ip_for_restart = localStorage.getItem('restart');
-	$.ajax({
-		url: "/service/check-restart/" + ip_for_restart,
-		success: function (data) {
-			if (data.indexOf('ok') != '-1') {
-				var apply_div = $.find("#apply_div");
-				apply_div = apply_div[0].id;
-				$("#apply").css('display', 'block');
-				$('#' + apply_div).css('width', '850px');
-				ip_for_restart = escapeHtml(ip_for_restart);
-				if (cur_url[0] === "service") {
-					$('#' + apply_div).css('width', '650px');
-					$('#' + apply_div).addClass("alert-one-row");
-					$('#' + apply_div).html("You have made changes to the server: " + ip_for_restart + ". Changes will take effect only after<a id='" + ip_for_restart + "' class='restart' title='Restart HAproxy service' onclick=\"confirmAjaxAction('restart', 'hap', '" + ip_for_restart + "')\">restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
-				} else {
-					$('#' + apply_div).html("You have made changes to the server: " + ip_for_restart + ". Changes will take effect only after restart. <a href='service' title='Overview'>Go to the HAProxy Overview page and restart</a><a href='#' title='close' id='apply_close' style='float: right'><b>X</b></a>");
-				}
-				$.getScript(overview);
-			}
-		}
-	});
-}
 $( document ).ajaxSend(function( event, request, settings ) {
 	NProgress.start();
 });
@@ -1156,6 +1133,9 @@ function returnNiceCheckingConfig(data) {
 		}
 		if (element.indexOf('[WARNING]') != '-1' || element.indexOf('[ALER]') != '-1' || element.indexOf('[warn]') != '-1') {
 			element = removeEmptyLines(element);
+			if (element.indexOf('global server state file') != '-1') {
+				return;
+			}
 			if (second_alert === false) {
 				alert_warning = alert_warning + element;
 			} else {

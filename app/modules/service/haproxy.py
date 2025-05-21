@@ -2,6 +2,7 @@ import os
 import requests
 
 from flask import request, g
+from requests.exceptions import ConnectionError, Timeout, RequestException
 
 import app.modules.db.sql as sql
 import app.modules.server.server as server_mod
@@ -16,6 +17,7 @@ def stat_page_action(server_ip: str, group_id: int) -> bytes:
     haproxy_pass = haproxy_pass.replace("'", "")
     stats_port = sql.get_setting('haproxy_stats_port', group_id=group_id)
     stats_page = sql.get_setting('haproxy_stats_page', group_id=group_id)
+    url = f'http://{server_ip}:{stats_port}/{stats_page}'
 
     postdata = {
         'action': request.form.get('action'),
@@ -30,7 +32,16 @@ def stat_page_action(server_ip: str, group_id: int) -> bytes:
         'Accept-Encoding': 'gzip, deflate'
     }
 
-    data = requests.post(f'http://{server_ip}:{stats_port}/{stats_page}', headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass), timeout=5)
+    try:
+        data = requests.post(url, headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass), timeout=5)
+    except ConnectionError as e:
+        if "Max retries exceeded" in str(e):
+            raise Exception(f"error: Max retries exceeded with url: {url}")
+        raise Exception(f"error: Cannot connect to {url} {e}")
+    except Timeout as e:
+        raise Exception(f"error: Timeout for {url}: {e}")
+    except Exception as e:
+        raise Exception(f"error: Cannot connect to {url}: {e}")
     return data.content
 
 

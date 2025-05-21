@@ -259,14 +259,3 @@ def update_tools_enable(service):
     roxywi_common.logging(server_ip, f'The server {name} has been updated ', keep_history=1, service=service)
 
     return 'ok'
-
-
-@bp.route('/check-restart/<server_ip>')
-@validate()
-def check_restart(server_ip: Union[IPvAnyAddress, DomainName]):
-    servers = roxywi_common.get_dick_permit(ip=str(server_ip))
-    for server in servers:
-        if server != "":
-            return 'ok'
-
-    return 'nothing'
