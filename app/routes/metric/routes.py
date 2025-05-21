@@ -115,7 +115,7 @@ def show_metric(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
 @validate()
 def show_http_metric(service: Literal['haproxy'], server_ip: Union[IPvAnyAddress, DomainName]):
     server = server_sql.get_server_by_ip(str(server_ip))
-    time_range = int(request.form.get('time_range'))
+    time_range = int(request.form.get('time_range'), 30)
 
     return jsonify(metric.haproxy_http_metrics(server.ip, server.hostname, time_range))
 
