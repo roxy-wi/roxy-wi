@@ -71,13 +71,13 @@ def metrics(service):
 @get_user_params()
 @validate()
 def metrics_cpu(body: IpRequest):
-    return jsonify(metric.show_cpu_metrics(body.ip))
+    return jsonify(metric.show_cpu_metrics(str(body.ip)))
 
 
 @bp.route('/ram', methods=['POST'])
 @validate()
 def metrics_ram(body: IpRequest):
-    return jsonify(metric.show_ram_metrics(body.ip))
+    return jsonify(metric.show_ram_metrics(str(body.ip)))
 
 
 @bp.route('/<service>/table-metrics')
@@ -100,7 +100,7 @@ def table_metrics(service):
 def show_metric(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
     server_ip = str(server_ip)
     server = server_sql.get_server_by_ip(server_ip)
-    time_range = int(request.form.get('time_range'))
+    time_range = int(request.form.get('time_range', 30))
 
     if service in ('nginx', 'apache', 'waf'):
         return jsonify(metric.service_metrics(server_ip, server.hostname, service, time_range))
