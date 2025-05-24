@@ -291,10 +291,18 @@ function delete_section(section_type, section_name, server_id, service) {
 		method: "DELETE",
 		statusCode: {
 			204: function (xhr) {
-				showConfig();
+				if (service === 'nginx') {
+					window.open('/config/' + service + '/' + $('#serv').val() + '/show-files', '_self')
+				} else {
+					showConfig();
+				}
 			},
 			404: function (xhr) {
-				showConfig();
+				if (service === 'nginx') {
+					window.open('/config/' + service + '/' + $('#serv').val() + '/show-files', '_self')
+				} else {
+					showConfig();
+				}
 			}
 		},
 		success: function (data) {
@@ -758,6 +766,7 @@ function openNginxSection(section) {
 							}
 						}
 					}
+					$('#location').val(location.location);
 					$('#proxy_connect_timeout').val(location.proxy_connect_timeout);
 					$('#proxy_read_timeout').val(location.proxy_read_timeout);
 					$('#proxy_send_timeout').val(location.proxy_send_timeout);

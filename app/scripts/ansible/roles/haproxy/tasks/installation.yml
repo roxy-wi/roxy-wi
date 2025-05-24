@@ -86,6 +86,7 @@
       - socat
       - rsyslog
     state: present
+    update_cache: yes
   when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
   environment:
     http_proxy: "{{PROXY}}"

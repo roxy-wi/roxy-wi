@@ -25,6 +25,7 @@ class EscapedString(str):
                 return field_value
             else:
                 return quote(field_value.rstrip())
+        return field_value
 
     @classmethod
     def __get_pydantic_core_schema__(
@@ -232,6 +233,7 @@ class ChannelRequest(BaseModel):
 class ServerInstall(BaseModel):
     id: int
     master: Optional[bool] = 0
+    version: Optional[str] = '3.1.7-1'
 
 
 class ServiceInstall(BaseModel):
@@ -616,14 +618,14 @@ class NginxLocationRequest(BaseModel):
 
 class NginxProxyPassRequest(BaseModel):
     locations: List[NginxLocationRequest]
-    name: EscapedString
+    name: Union[IPvAnyAddress, DomainName]
     port: Annotated[int, Gt(1), Le(65535)]
     type: Literal['proxy_pass'] = 'proxy_pass'
     scheme: Literal['http', 'https'] = 'http'
     ssl_crt: Optional[str] = None
     ssl_key: Optional[str] = None
     ssl_offloading: Optional[bool] = False
-    action: Optional[Literal['save', 'test', 'reload', 'restart']] = 'save'
+    action: Optional[Literal['save', 'test', 'reload', 'restart']] = 'reload'
     compression: bool = False
     compression_level: Annotated[int, Gt(0), Le(10)] = 6
     compression_min_length: Optional[int] = 1024

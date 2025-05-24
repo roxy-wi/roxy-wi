@@ -7,7 +7,7 @@ migrator = connect(get_migrator=1)
 def up():
     """Apply the migration."""
     try:
-        Version.update(version='8.2.0.3').execute()
+        Version.update(version='8.2.0.4').execute()
     except Exception as e:
         print(f"Error updating version: {str(e)}")
         raise e

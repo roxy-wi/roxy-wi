@@ -130,8 +130,13 @@ def show_roxy_log(
 		if serv == 'backup.log':
 			awk_column = 2
 
-		cmd = f"cat {log_path}/{serv}| awk '${awk_column}>\"{date}:00\" && ${awk_column}<\"{date1}:00\"' {user_grep} {grep_act} {exgrep_act} |tail -{rows}"
-
+		if serv == 'roxy-wi.log':
+			cmd = (f"awk -F'\"' -v t_start=\"{date}:00\" -v t_end=\"{date1}:00\" '{{for(i=1;i<NF;i++) if($i==\"timestamp\"){{split($(i+2),d,\"T\"); "
+				   f"if(d[2]>=t_start && d[2]<=t_end) print; break}}}}' {log_path}/roxy-wi.log"
+				   f"{user_grep} {grep_act} {exgrep_act} |tail -{rows}")
+		else:
+			cmd = f"cat {log_path}/{serv}| awk '${awk_column}>\"{date}:00\" && ${awk_column}<\"{date1}:00\"' {user_grep} {grep_act} {exgrep_act} |tail -{rows}"
 		output, stderr = server_mod.subprocess_execute(cmd)
 
 		return show_log(output, grep=grep)
+	return ''
