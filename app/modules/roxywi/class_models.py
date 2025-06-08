@@ -388,6 +388,20 @@ class HaproxyBackendServer(BaseModel):
     send_proxy: Optional[bool] = 0
     backup: Optional[bool] = 0
 
+    @model_validator(mode='before')
+    @classmethod
+    def int_cannot_be_empty(cls, values):
+        if 'port' in values:
+            if values['port'] == '':
+                raise ValueError('Port cannot be empty')
+        if 'port_check' in values:
+            if values['port_check'] == '':
+                raise ValueError('Port check cannot be empty')
+        if 'maxconn' in values:
+            if values['maxconn'] == '':
+                raise ValueError('Maxconn cannot be empty')
+        return values
+
 
 class HaproxyCookie(BaseModel):
     dynamic: str
@@ -559,6 +573,21 @@ class NginxBackendServer(BaseModel):
     fail_timeout: int
 
 
+    @model_validator(mode='before')
+    @classmethod
+    def int_cannot_be_empty(cls, values):
+        if 'port' in values:
+            if values['port'] == '':
+                raise ValueError('Port cannot be empty')
+        if 'max_fails' in values:
+            if values['max_fails'] == '':
+                raise ValueError('max_fails cannot be empty')
+        if 'fail_timeout' in values:
+            if values['fail_timeout'] == '':
+                raise ValueError('fail_timeout cannot be empty')
+        return values
+
+
 class NginxUpstreamRequest(BaseModel):
     name: EscapedString
     balance: Optional[Literal['ip_hash', 'least_conn', 'random', 'round_robin']]
@@ -619,6 +648,7 @@ class NginxLocationRequest(BaseModel):
 class NginxProxyPassRequest(BaseModel):
     locations: List[NginxLocationRequest]
     name: Union[IPvAnyAddress, DomainName]
+    name_aliases: List[Union[IPvAnyAddress, DomainName]] = None
     port: Annotated[int, Gt(1), Le(65535)]
     type: Literal['proxy_pass'] = 'proxy_pass'
     scheme: Literal['http', 'https'] = 'http'

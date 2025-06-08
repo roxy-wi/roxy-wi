@@ -359,13 +359,10 @@ def diff_config(old_cfg, cfg) -> str:
 	:param cfg: Path to the new configuration file to compare.
 	:return: Unified diff output showing the differences between `old_cfg` and `cfg`.
 	"""
-	diff = ""
 	cmd = f"/bin/diff -ub {old_cfg} {cfg}"
 	output, stderr = server_mod.subprocess_execute(cmd)
-
-	for line in output:
-		diff += line + "\n"
-	return diff
+	output = '\n'.join(output)
+	return output
 
 
 def _classify_line(line: str) -> str:
@@ -429,12 +426,9 @@ def compare_config(service: str, left: str, right: str) -> str:
 	:param right: The name of the right configuration file.
 	:return: The rendered template with the diff output and the user language for Flask.
 	"""
-	lang = roxywi_common.get_user_lang_for_flask()
 	config_dir = config_common.get_config_dir(service)
-	cmd = f'diff -pub {config_dir}{left} {config_dir}{right}'
-	output, stderr = server_mod.subprocess_execute(cmd)
-
-	return render_template('ajax/compare.html', stdout=output, lang=lang)
+	output = diff_config(f'{config_dir}{left}', f'{config_dir}{right}')
+	return output
 
 
 def show_config(server_ip: str, service: str, config_file_name: str, configver: str, claims: dict, edit_section: str) -> str:

@@ -98,15 +98,15 @@ function showStats() {
 	});
 }
 function openStats() {
-	let serv = $("#serv").val();
-	let service_url = cur_url[4];
+	let serv = $("#serv option:selected").val();
+	let service_url = $('#service').val();
 	let url = "/stats/"+service_url+"/"+serv
 	let win = window.open(url, '_blank');
 	win.focus();
 }
 function openVersions() {
-	let serv = $("#serv").val();
-	let service_url = cur_url[4];
+	let serv = $("#serv option:selected").val();
+	let service_url = $('#service').val();
 	let url = "/config/versions/"+service_url+"/"+serv
 	let win = window.open(url,"_self");
 	win.focus();
@@ -226,43 +226,6 @@ function showMap() {
 				toastr.clear();
 				$("#ajax").html(data);
 				window.history.pushState("Show Map", "Show Map", '/config/map/' + $("#service").val() + '/' + $("#serv").val());
-			}
-		}
-	});
-}
-function showCompare() {
-	$.ajax({
-		url: "/config/compare/" + $("#service").val() + "/" + $("#serv").val() + "/show",
-		data: {
-			left: $('#left').val(),
-			right: $("#right").val(),
-		},
-		type: "POST",
-		success: function (data) {
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#ajax").html(data);
-			}
-		}
-	});
-}
-function showCompareConfigs() {
-	clearAllAjaxFields();
-	$('#ajax-config_file_name').empty();
-	$.ajax({
-		url: "/config/compare/" + $("#service").val() + "/" + $("#serv").val() + "/files",
-		type: "GET",
-		success: function (data) {
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#ajax-compare").html(data);
-				$("input[type=submit], button").button();
-				$("select").selectmenu();
-				window.history.pushState("Show compare config", "Show compare config", '/config/compare/' + $("#service").val() + '/' + $("#serv").val());
 			}
 		}
 	});

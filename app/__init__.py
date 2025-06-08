@@ -5,6 +5,7 @@ from flask_apscheduler import APScheduler
 
 from app.modules.common.common import set_correct_owner
 from app.modules.roxywi import logger
+from app.modules.common.lock_utils import acquire_file_lock
 
 app = Flask(__name__)
 app.config.from_object('app.config.Configuration')
@@ -33,9 +34,10 @@ from app.modules.db.db_model import create_tables
 from app.create_db import default_values
 from app.modules.db.migration_manager import migrate
 
-create_tables()
-default_values()
-migrate()
+if not acquire_file_lock():
+    create_tables()
+    default_values()
+    migrate()
 
 set_correct_owner('/var/lib/roxy-wi')
 
