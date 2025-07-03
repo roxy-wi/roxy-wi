@@ -22,11 +22,7 @@
 {% if g.user_params['role'] <= 3 %}
 <div class="add-button add-button-big" title="{{lang.phrases.create_ha}}" onclick="createHaClusterStep1();">+ {{lang.ha_page.create_ha}}</div>
 {% endif %}
-<div class="up-pannel" class="sortable">
-    {% for cluster in clusters %}
-    <div id="cluster-{{cluster.id}}" class="div-server-hapwi animated-background"></div>
-    {% endfor %}
-</div>
+<div class="up-pannel" class="sortable"></div>
 <div id="create-ha-cluster-step-1" style="display: none;">
     <table class="overview" id="create-ha-cluster-step-1-overview"
            title="{{lang.words.create|title()}} {{lang.ha_page.ha}} {{lang.words.cluster}}"
@@ -184,21 +180,9 @@
 <div id="dialog-confirm" style="display: none;">
     <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>{{lang.phrases.are_you_sure}}</p>
 </div>
-<div id="server_creating1" style="display: none;" title="{{lang.phrases.creating_ha}}">
-    <ul style="padding: 20px 20px 0px 20px;font-size: 15px;" id="server_creating_list"></ul>
-    <div id="created-mess" class="alert alert-success" style="display:none;"></div>
-    <div id="creating-error" class="alert alert-danger" style="display:none;"></div>
-    <div id="creating-warning" class="alert alert-warning" style="display:none;"></div>
-    <div id="wait-mess"></div>
-    <div class="progress-bar-striped">
-        <div id="creating-progress" style="width: 5%;"></div>
-    </div>
-</div>
 <script>
-    {% for cluster in clusters %}
-        getHaCluster('{{cluster.id}}');
-        setInterval(getHaCluster, 60000, '{{cluster.id}}');
-    {% endfor %}
+getClusters();
+setInterval(getClusters, 60000);
 </script>
 {% endif %}
 {% endblock %}

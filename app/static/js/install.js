@@ -134,7 +134,6 @@ function checkGeoipInstallation() {
 	});
 }
 function installService(service) {
-	$("#ajax").html('')
 	let syn_flood = 0;
 	let docker = 0;
 	let select_id = '#' + service + 'addserv';
@@ -165,7 +164,6 @@ function installService(service) {
 	jsonData['servers'].push(server);
 	jsonData['services'][service]['enabled'] = 1;
 	jsonData['services'][service]['docker'] = docker;
-	$("#ajax").html(wait_mess);
 	$.ajax({
 		url: "/install/" + service + "/" + $(select_id).val(),
 		500: function () {
@@ -181,16 +179,12 @@ function installService(service) {
 			if (data.status === 'failed') {
 				toastr.error(data.error);
 			} else {
-				parseAnsibleJsonOutput(data, nice_names[service], select_id);
-				$(select_id).trigger("selectmenuchange");
-				$("#ajax").empty();
+				runInstallationTaskCheck(data.tasks_ids);
 			}
 		}
 	});
 }
 function installExporter(exporter) {
-	$("#ajaxmon").html('');
-	$("#ajaxmon").html(wait_mess);
 	let exporter_id = '#' + exporter + '_exp_addserv';
 	let ext_prom = 0;
 	let nice_exporter_name = nice_names[exporter] + ' exporter';
@@ -202,7 +196,6 @@ function installExporter(exporter) {
 		"exporter_v": $('#' + exporter + 'expver').val(),
 		"ext_prom": ext_prom,
 	}
-	$("#ajax").html(wait_mess);
 	$.ajax({
 		url: "/install/exporter/" + exporter,
 		500: function () {
@@ -218,9 +211,7 @@ function installExporter(exporter) {
 			if (data.status === 'failed') {
 				toastr.error(data.error);
 			} else {
-				parseAnsibleJsonOutput(data, nice_names[service], exporter_id);
-				$(exporter_id).trigger("selectmenuchange");
-				$("#ajax").empty();
+				runInstallationTaskCheck(data.tasks_ids);
 			}
 		}
 	});

@@ -121,13 +121,11 @@
     }
 }
 %}
-{% set services = dict() %}
 {% set services = {
     "hapservers_desc": "Checker monitors the service. If the service changes its status, Checker will alert via Telegram, Slack, Email, Web",
     "last_edit": "Last edit"
     }
 %}
-{% set errors = dict() %}
 {% set errors = {
     "cannot_get_info": "Cannot get information about",
     "something_wrong": "Something went wrong with installation on",
@@ -237,8 +235,20 @@
         },
     }
 %}
-{% set phrases = dict() %}
 {% set phrases = {
+    "explain_config": "Explain what this configuration fragment does.",
+    "just_explain": "Just give an explanation, don't rewrite.",
+    "optimize_config": "Optimize the configuration fragment. Keep the syntax.",
+    "comment_config": "Insert comments (starting with #) into each line of this fragment. Keep the config working. Keep the syntax.",
+    "syntax_config": "Check syntax. Keep the config working. Keep the syntax.",
+    "empty_ans": "Empty answer.",
+    "explain_selection": "Explain the highlighted",
+    "optimize_selection": "Optimize config",
+    "enter_comment": "Add comments",
+    "preview_change": "Preview changes",
+    "select_part": "Select a section of the config.",
+    "error_parsing": "Error parsing JSON from server.",
+    "check_syntax": "Check syntaxis",
     "config_file_name": "Config file name",
     "no_events_added": "No events added yet.",
     "upload_and_restart": "Upload and restart",
@@ -358,6 +368,7 @@
         "back_des1": "A 'backend' section describes a set of servers to which the proxy will connect to forward incoming connections.",
         "ssl_offloading": "The term SSL termination means that you are performing all encryption and decryption at the edge of your network, such as at the load balancer.",
         "http_https": "Enable redirection from HTTP scheme to HTTPS scheme",
+        "enable_http2": "Enable HTTP 2",
         "maxconn_desc": "This value should not exceed the global maxconn. Default global maxconn value",
         "maxconn_fix": "Fix the maximum number of concurrent connections on a frontend",
         "antibot": "Unfortunately, a large portion of bots are used for malicious reasons. Their intentions include web scraping, spamming, request flooding, brute forcing, and vulnerability scanning. For example, bots may scrape your price lists so that competitors can consistently undercut you or build a competitive solution using your data. Or they may try to locate forums and comment sections where they can post spam. At other times, they’re scanning your site looking for security weaknesses",
@@ -368,7 +379,6 @@
         "force_close": "Since HAProxy works in reverse-proxy mode, the servers see its IP address as their client address. This is sometimes annoying when the client\'s IP address is expected in server logs. To solve this problem, the well-known HTTP header 'X-Forwarded-For' may be added by HAProxy to all requests sent to the server. This header contains a value representing the client\'s IP address. Since this header is always appended at the end of the existing header list, the server must be configured to always use the last occurrence of this header only. See the server\'s manual to find how to enable use of this standard header. Note that only the last occurrence of the header must be used, since it is really possible that the client has already brought one.",
         "cookie": "To send a client to the same server where they were sent previously in order to reuse a session on that server, you can enable cookie-based session persistence. Add a cookie directive to the backend section and set the cookie parameter to a unique value on each server line.",
         "c_prefix": "This keyword indicates that instead of relying on a dedicated cookie for the persistence, an existing one will be completed",
-        "c_nocache": "This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy",
         "c_nocache": "This option is recommended in conjunction with the insert mode when there is a cache between the client and HAProxy",
         "c_postonly": "This option ensures that cookie insertion will only be performed on responses to POST requests",
         "c_dynamic": "Activate dynamic cookies. When used, a session cookie is dynamically created for each server",
@@ -389,7 +399,7 @@
         "userlist_group": "It is also possible to attach users to this group by using a comma separated list of names preceded by 'users' keyword",
         "userlist_desc": "It is possible to control access to frontend/backend/listen sections or to http stats by allowing only authenticated and authorized users. To do this, it is required to create at least one userlist and to define users",
         "servers": "In this section you can create, edit and delete servers. And after use them as autocomplete in the 'Add' sections",
-        "servers": "In this section you can create, edit and delete options. And after use them as autocomplete in the 'Add' sections",
+        "options": "In this section you can create, edit and delete options. And then use them as autofill in the 'Add' sections",
         "paste_cert": "Paste the contents of the certificate file",
         "paste_cert_desc": "This pem file will be used to create https connection with HAProxy, NGINX or Apache",
         "lists_howto": "In this section you can create and edit black and white lists. And after use them in the HAProxy configs or in the 'Add proxy' pages. Read how to use it in this",
@@ -426,6 +436,8 @@
         "keepalive": "The connections parameter sets the maximum number of idle keepalive connections to upstream servers that are preserved in the cache of each worker process. When this number is exceeded, the least recently used connections are closed.",
         "fail_timeout": "The time during which the specified number of unsuccessful attempts to communicate with the server should happen to consider the server unavailable; and the period of time the server will be considered unavailable.",
         "max_fails": "Sets the number of unsuccessful attempts to communicate with the server that should happen in the duration set by the fail_timeout parameter to consider the server unavailable for a duration also set by the fail_timeout parameter. By default, the number of unsuccessful attempts is set to 1.",
+        "def_backend": "If you want to use upstream",
+        "def_backend_exit": "upstream must exist",
         }
     }
 %}
@@ -686,7 +698,6 @@
     "action": "action",
     "actions": "actions",
     "command": "command",
-    "save": "save",
     "change": "change",
     "change2": "change",
     "changes": "changes",
@@ -767,6 +778,8 @@
     "name": "name",
     "article": "article",
     "w_copy": "copy",
+    "w_cut": "cut",
+    "w_paste": "paste",
     "for": "for",
     "history": "history",
     "history2": "history",
@@ -811,7 +824,6 @@
     "message": "message",
     "menu": "menu",
     "language": "language",
-    "apply": "apply",
     "logout": "logout",
     "last": "last",
     "last2": "last",
@@ -870,7 +882,6 @@
     "of": "of",
     "display": "display",
     "default_backend": "Default backend",
-    "rule": "rule",
     "existing": "existing",
     "domain": "domain",
     "domains": "domains",
@@ -920,8 +931,6 @@
     "instance_type": "Instance type",
     "filter": "filter",
     "rule_name": "Rule name",
-    "rule": "rule",
-    "rules": "rules",
     "send": "send",
     "additions": "additions",
     "deletions": "deletions",
@@ -944,7 +953,6 @@
     "cert_expire": "Cert Expire",
     "Hostname": "Hostname",
     "maps": "maps",
-    "map": "map",
     "method": "method",
     "tools": "tools",
     "next": "next",

@@ -121,13 +121,11 @@
     }
 }
 %}
-{% set services = dict() %}
 {% set services = {
     "hapservers_desc": "O Checker está moditorando o serviço. Quando o serviço mudar o estado, o Checker vou enviar uma notificação via Telegram, Slack, Email, Web",
     "last_edit": "Editado por último"
     }
 %}
-{% set errors = dict() %}
 {% set errors = {
     "cannot_get_info": "Não é possível obter informações sobre",
     "something_wrong": "Algo deu errado com a instalação de",
@@ -237,7 +235,6 @@
         },
     }
 %}
-{% set phrases = dict() %}
 {% set phrases = {
     "config_file_name": "Nome de arquivo de configuração",
     "no_events_added": "Nenhum evento adicionado.",
@@ -358,6 +355,7 @@
         "back_des1": "Uma seção 'backend' descreve um conjunto de servidores saos quais o proxy se conectará para encaminhar conexões de entrada.",
         "ssl_offloading": "A terminação SSL significa que você está executando toda a encriptação e desencriptação na borda da sua rede, como no balanceador de carga.",
         "http_https": "Ativar a redireição de HTTP para HTTPS",
+        "enable_http2": "Habilitar HTTP 2",
         "maxconn_desc": "Este valor não deve exceder o maxconn global. Valor maxconn global padrão",
         "maxconn_fix": "Fixar o número máximo de conexões simultâneas",
         "antibot": "Infelizmente, uma grande parte dos bots são usados com intenções maliciosas. Essas intenções incluem web scraping, spam, inundação de pedidos, bruteforce e verificação de vulnerabilidades.Por exemplo, os bots podem raspar suas listas de preços para que os concorrentes possam reduzir consistentemente você ou criar uma solução competitiva usando seus dados. Os bots podem também tentar localizar fóruns e seções de comentários onde possam postar spam. Eles podem procurar vulnerabilidades no seu site",
@@ -368,7 +366,6 @@
         "force_close": "Como o HAProxy funciona no modo de proxy reverso, os servidores veem seu endereço IP como o endereço do cliente. Às vezes, isso é irritante quando o endereço IP do cliente é esperado nos logs do servidor. Para resolver esse problema, o conhecido cabeçalho HTTP 'X-Forwarded-For' pode ser adicionado pelo HAProxy a todas as solicitações enviadas ao servidor. Este cabeçalho contém um valor que representa o endereço IP do cliente. Como esse cabeçalho é sempre anexado ao final da lista de cabeçalhos existente, o servidor deve ser configurado para sempre usar apenas a última ocorrência desse cabeçalho. Consulte o manual do servidor para saber como ativar o uso deste cabeçalho padrão",
         "cookie": "Para enviar um cliente para o mesmo servidor onde foi enviado anteriormente para reutilizar uma sessão nesse servidor, você pode ativar a persistência de sessão baseada em cookie. Adicione uma diretiva de cookie à seção de back-end e defina o parâmetro de cookie para um valor exclusivo em cada linha do config do servidor",
         "c_prefix": "Esta palavra-chave indica que, em vez de depender de um cookie dedicado para a persistência, um cookie já existente será concluído",
-        "c_nocache": "Esta opção é recomendada em conjunto com o modo de inserção quando houver um cache entre o cliente e o HAProxy",
         "c_nocache": "Esta opção é recomendada em conjunto com o modo de inserção quando houver um cache entre o cliente e o HAProxy",
         "c_postonly": "Esta opção garante que os cookies serão inseridos somente em respostas as pedidos POST",
         "c_dynamic": "Ativar cookies dinâmicos. Quando você usar cookies dinâmicos, o cookie de sessão cookies é criado dinamicamente para cada servidor",
@@ -389,7 +386,7 @@
         "userlist_group": "Também é possível anexar usuários a este grupo usando uma lista separada por vírgulas de nomes precedidos pela palavra-chave 'users'",
         "userlist_desc": "É possível controlar o acesso às seções Frontend/Backend/Listen ou às estatísticas de HTTP, permitindo apenas usuários autenticados e autorizados. Para fazer isso, é necessário criar pelo menos uma lista de usuários e definir usuários",
         "servers": "Nesta seção você pode criar, editar e excluir servidores e de usá-los como preenchimento automático nas seções 'Adicionar'",
-        "servers": "Nesta seção você pode criar, editar e excluir opções e de usá-los como preenchimento automático nas seções 'Adicionar'",
+        "options": "Nesta seção você pode criar, editar e excluir opções. E então use-os como preenchimento automático nas seções 'Adicionar'",
         "paste_cert": "Cole o conteúdo do arquivo de certificado",
         "paste_cert_desc": "Este arquivo pem será usado para criar uma conexão com HAProxy, NGINX ou Apache",
         "lists_howto": "Nesta seção você pode criar, editar listas brancas e negras e de usá-los como preenchimento automático nas seções 'Adicionar um proxy'. Leia aqui como fazer isso",
@@ -426,6 +423,8 @@
         "keepalive": "O parâmetro de conexões define o número máximo de conexões keep-alive ociosas para servidores upstream que são preservadas no cache de cada processo de trabalho. Quando esse número é excedido, as conexões usadas menos recentemente são fechadas.",
         "fail_timeout": "O interval durante o qual o número especificado de tentativas malsucedidas de comunicação com o servidor deve acontecer para considerar o servidor indisponível; e o período de tempo em que o servidor será considerado indisponível.",
         "max_fails": "Define o número de tentativas malsucedidas de comunicação com o servidor que devem ocorrer na duração definida pelo parâmetro fail_timeout para considerar o servidor indisponível por uma duração também definida pelo parâmetro fail_timeout. Por padrão, o número de tentativas malsucedidas é definido como 1.",
+        "def_backend": "Se você quiser usar o upstream",
+        "def_backend_exit": "a montante deve existir",
         }
     }
 %}
@@ -686,7 +685,6 @@
     "action": "action",
     "actions": "actions",
     "command": "command",
-    "save": "sakvar",
     "change": "mudar",
     "change2": "mudar",
     "changes": "mudanças",
@@ -811,7 +809,6 @@
     "message": "mensagem",
     "menu": "menu",
     "language": "idioma",
-    "apply": "aplicar",
     "logout": "logout",
     "last": "last",
     "last2": "last",
@@ -870,7 +867,6 @@
     "of": "of",
     "display": "exibir",
     "default_backend": "Default backend",
-    "rule": "regra",
     "existing": "existente",
     "domain": "domínio",
     "domains": "domínios",
@@ -920,8 +916,6 @@
     "instance_type": "Tipo de instância",
     "filter": "filtro",
     "rule_name": "Nome de regra",
-    "rule": "regra",
-    "rules": "regras",
     "send": "enviar",
     "additions": "adicionados",
     "deletions": "apagados",
@@ -944,7 +938,6 @@
     "cert_expire": "Expiração do certificado",
     "Hostname": "Nom d'hôte",
     "maps": "mapas",
-    "map": "mapa",
     "method": "método",
     "tools": "ferramentas",
     "next": "próxima",

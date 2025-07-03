@@ -1,8 +1,6 @@
 ---
 # Main server configuration
 nginx_proxy:
-  http2: false                         # Enable HTTP/2 (requires SSL)
-
   # Static files configuration
   static_files:
     enabled: false                     # Enable static file handling

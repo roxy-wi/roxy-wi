@@ -15,7 +15,7 @@ from app.views.service.haproxy_section_views import ListenSectionView, UserListS
 from app.views.service.nginx_section_views import UpstreamSectionView, ProxyPassSectionView
 from app.views.service.lets_encrypt_views import LetsEncryptsView, LetsEncryptView
 from app.views.service.haproxy_lists_views import HaproxyListView
-from app.views.ha.views import HAView, HAVIPView, HAVIPsView
+from app.views.ha.views import HAView, HAVIPView, HAVIPsView, HAClustersView
 from app.views.user.views import UserView, UserGroupView, UserRoles
 from app.views.udp.views import UDPListener, UDPListeners, UDPListenerActionView, UDPListenerBackendStatusView, UdpListenerCheckerView
 from app.views.channel.views import ChannelView, ChannelsView
@@ -58,6 +58,7 @@ def register_api_id_ip(view, endpoint, url: str = '', methods: list = ['GET', 'P
 register_api(HAView, 'ha_cluster', '/ha/<service>', 'cluster_id')
 register_api(HAVIPView, 'ha_vip', '/ha/<service>/<int:cluster_id>/vip', 'vip_id')
 bp.add_url_rule('/ha/<service>/<int:cluster_id>/vips', view_func=HAVIPsView.as_view('ha_vips'), methods=['GET'])
+bp.add_url_rule('/ha/<service>/clusters', view_func=HAClustersView.as_view('ha_clusters'), methods=['GET'])
 register_api(UDPListener, 'udp_listener', '/<service>/listener', 'listener_id')
 bp.add_url_rule('/<service>/listener/<int:listener_id>/<any(start, stop, reload, restart):action>', view_func=UDPListenerActionView.as_view('listener_action'), methods=['GET'])
 bp.add_url_rule('/<service>/listener/<int:listener_id>/<backend_ip>', view_func=UDPListenerBackendStatusView.as_view('UDPListenerBackendStatusView'), methods=['GET'])

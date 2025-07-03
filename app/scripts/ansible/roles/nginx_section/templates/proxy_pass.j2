@@ -1,7 +1,7 @@
 # Roxy-WI MANAGED do not edit it directly
 {% if config.scheme == 'https' %}
 server {
-    listen {{ config.port }} ssl{% if nginx_proxy.http2 %} http2{% endif %};
+    listen {{ config.port }} ssl{% if config.http2 %} http2{% endif %};
     ssl_certificate {{ config.ssl_crt }};
     ssl_certificate_key {{ config.ssl_key }};
     {% if nginx_proxy.security.hsts %}
@@ -12,7 +12,7 @@ server {
     listen {{ config.port }};
 {% endif %}
 
-    server_name {{ config.name }};
+    server_name {{ config.name }}{% if config.name_aliases %} {{ config.name_aliases | join(' ') }} {% endif %};
 
     access_log /var/log/nginx/{{ config.name }}_access.log main buffer=16k flush=1m;
     error_log /var/log/nginx/{{ config.name }}_error.log;

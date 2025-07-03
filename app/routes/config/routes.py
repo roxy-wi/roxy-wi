@@ -1,6 +1,6 @@
 import os
 
-from flask import render_template, request, g
+from flask import render_template, request, g, jsonify
 from flask_jwt_extended import jwt_required, get_jwt
 
 from app.routes.config import bp
@@ -139,6 +139,7 @@ def config(service, serv, edit, config_file_name, new):
         'config_file_name': config_file_name,
         'is_serv_protected': is_serv_protected,
         'service_desc': service_sql.select_service(service),
+        'user_subscription': roxywi_common.return_user_subscription(),
         'lang': g.user_params['lang']
     }
 
@@ -310,7 +311,8 @@ def show_compare_config(service, serv):
         'stderr': '',
         'error': '',
         'service_desc': service_sql.select_service(service),
-        'lang': g.user_params['lang']
+        'lang': g.user_params['lang'],
+        'user_subscription': roxywi_common.return_user_subscription(),
     }
 
     return render_template('config.html', **kwargs)
@@ -325,10 +327,10 @@ def show_configs_for_compare(service, server_ip):
 @bp.post('/compare/<service>/<server_ip>/show')
 @check_services
 def show_compare(service, server_ip):
-    left = common.checkAjaxInput(request.form.get('left'))
-    right = common.checkAjaxInput(request.form.get('right'))
-
-    return config_mod.compare_config(service, left, right)
+    left = request.json.get('left')
+    right = request.json.get('right')
+    compare = config_mod.compare_config(service, left, right)
+    return jsonify({'compare': compare})
 
 
 @bp.route('/map/haproxy/<server_ip>/show')

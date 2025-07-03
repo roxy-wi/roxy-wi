@@ -1,13 +1,15 @@
 import os
 from typing import Union, Literal
 
-from flask import render_template, g, abort, jsonify, send_from_directory
+from flask import render_template, g, abort, jsonify, send_from_directory, request
 from flask_jwt_extended import jwt_required
 from flask_pydantic import validate
 from pydantic import IPvAnyAddress
+import requests
 
 from app import app, cache, jwt
 from app.routes.main import bp
+import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
@@ -164,3 +166,35 @@ def service_history(service: str, server_ip: Union[IPvAnyAddress, DomainName, in
 @cache.cached()
 def show_roxywi_version():
     return jsonify(roxy.versions())
+
+
+@app.route("/api/gpt", methods=["POST"])
+def ask_gpt():
+    data = request.get_json()
+    prompt = data.get("prompt", "")
+    try:
+        proxies = common.return_proxy_dict()
+        headers = {
+            "Content-Type": "application/json",
+        }
+
+        payload = {
+            "prompt": prompt,
+            "license": sql.get_setting('license')
+        }
+
+        response = requests.post(
+            "https://roxy-wi.org/api/gpt",
+            headers=headers,
+            json=payload,
+            proxies=proxies,
+            timeout=20
+        )
+        response.raise_for_status()
+        result = response.json()
+        if "error" in result:
+            return jsonify({"error": result["error"]}), 500
+        content = result["response"]
+        return jsonify({"response": content})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

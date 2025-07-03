@@ -53,6 +53,14 @@ $( function() {
 	$("#add_header").click(function () {
 		make_actions_for_adding_header('#header_div');
 	});
+	$("#show_alias").on("click", function () {
+		$("#name_alias_div").show();
+		$("#add_name_alias").show();
+		$("#show_alias").hide();
+	});
+	$("#add_name_alias").click(function () {
+		make_actions_for_adding_alias('#name_alias_div');
+	});
 	for (let section_type of ['ssl_key', 'ssl_crt']) {
 		let cert_type = section_type.split('_')[1];
 		$("#" + section_type).autocomplete({
@@ -113,6 +121,19 @@ function make_actions_for_adding_header(section_id) {
 	$.getScript(awesome);
 	$( "select" ).selectmenu();
 	$('[name=headers_method]').selectmenu({width: 180});
+}
+var alias_option = '<p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="new_name_alias_p">\n' +
+	'<input type="text" name="name_alias" data-help="Domain name or IP" size="" style="" placeholder="www.example.com" title="Domain name or IP" class="form-control">' +
+	'\t<span class="minus minus-style" id="new_name_alias_minus" title="Delete this alias"></span>' +
+	'</p>'
+function make_actions_for_adding_alias(section_id) {
+	let random_id = makeid(3);
+	$(section_id).append(alias_option);
+	$('#new_name_alias_minus').attr('onclick', 'deleteId(\''+random_id+'\')');
+	$('#new_name_alias_minus').attr('id', '');
+	$('#new_name_alias_p').attr('id', random_id);
+	$('#new_name_alias_minus').attr('id', '');
+	$.getScript(awesome);
 }
 function deleteId(id) {
 	$('#' + id).remove();
@@ -192,6 +213,7 @@ function getNginxFormData($form, form_name) {
 	let indexed_array = {};
 	indexed_array['locations'] = [];
 	indexed_array['backend_servers'] = [];
+	indexed_array['name_aliases'] = [];
 	let headers = [];
 
 	$.map(unindexed_array, function (n, i) {
@@ -222,9 +244,22 @@ function getNginxFormData($form, form_name) {
 			} else {
 				indexed_array['ssl_offloading'] = false;
 			}
+		} else if (n['name'] === 'http2') {
+			if ($('input[name="http2"]').is(':checked')) {
+				indexed_array['http2'] = true;
+			} else {
+				indexed_array['http2'] = false;
+			}
 		} else {
 			indexed_array[n['name']] = n['value'];
 		}
+	});
+	$('#name_alias_div p').each(function (){
+		let name = $(this).children("input[name='name_alias']").val();
+		if (name === undefined || name === '') {
+			return;
+		}
+		indexed_array['name_aliases'].push(name);
 	});
 	$('#'+form_name+' span[name="add_servers"] p').each(function (){
 		let server = $(this).children("input[name='servers']").val();
@@ -239,7 +274,7 @@ function getNginxFormData($form, form_name) {
 	});
 	let elementsForDelete = [
 		'servers', 'server_port', 'max_fails', 'fail_timeout', 'proxy_connect_timeout', 'proxy_read_timeout', 'proxy_send_timeout',
-		'headers_res', 'header_name', 'header_value', 'upstream', 'server'
+		'headers_res', 'header_name', 'header_value', 'upstream', 'server', 'name_alias'
 	]
 	for (let element of elementsForDelete) {
 		delete indexed_array[element]

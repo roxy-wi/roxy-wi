@@ -5,7 +5,7 @@
     <div class="server-name">
         <a href="/ha/cluster/{{cluster.id}}" title="{{lang.words.open|title()}} {{lang.words.cluster|replace("'", "")}}">
             <span id="cluster-name-{{cluster.id}}">{{cluster.name|replace("'", "")}}</span>
-            <span id="cluster-desc-{{cluster.id}}">{% if cluster.desc != '' %} ({{cluster.description|replace("'", "")}}) {% endif %}</span>
+            <span id="cluster-desc-{{cluster.id}}">{% if cluster.description != '' and cluster.description != 'None' %} ({{cluster.description|replace("'", "")}}) {% endif %}</span>
         </a>
         <span class="server-action">
             {% if g.user_params['role'] <= 3 %}
@@ -60,6 +60,7 @@
                 {% if c_s.cluster_id|string() == cluster.id|string() %}
                 {% for service in services %}
                 {% if c_s.service_id|string() == service.service_id|string() %}
+                <span id="{{ service.slug }}-{{ cluster.id }}-status" class="serverNone server-status-small" title="Service is none"></span>
                 <a href="/service/{{service.slug}}">{{service.service}}</a>
                 {% endif %}
                 {% endfor %}

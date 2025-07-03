@@ -121,13 +121,11 @@
     }
 }
 %}
-{% set services = dict() %}
 {% set services = {
     "hapservers_desc": "Checker surveille le service. Si le service change d\'état, Vérifier l\'alerte via Telegram, Slack, Email, Web",
     "last_edit": "Dernière modif."
     }
 %}
-{% set errors = dict() %}
 {% set errors = {
     "cannot_get_info": "Impossible d\'obtenir des informations sur",
     "something_wrong": "Un problème est survenu lors de l\'installation",
@@ -237,7 +235,6 @@
         },
     }
 %}
-{% set phrases = dict() %}
 {% set phrases = {
     "config_file_name": "Nom du fichier de Config",
     "no_events_added": "Aucun événement ajouté pour le moment.",
@@ -358,6 +355,7 @@
         "back_des1": "Une section 'backend' décrit un ensemble de serveurs auxquels le proxy se connectera pour transmettre les connexions entrantes.",
         "ssl_offloading": "Le terme 'terminaison SSL' signifie que vous effectuez tous les cryptages et décryptages à la périphérie de votre réseau, par exemple au niveau de l\'équilibreur de charge.",
         "http_https": "Activer la redirection de HTTP vers HTTPS",
+        "enable_http2": "Activer HTTP 2",
         "maxconn_desc": "Cette valeur ne doit pas dépasser le maxconn global. Valeur par défaut du maxconn global",
         "maxconn_fix": "Fixer le nombre maximum de connexions simultanées sur un frontend",
         "antibot": "Malheureusement, une grande partie des bots sont utilisés pour des raisons malveillantes. Parmi leurs intentions figurent le scraping de sites Web, le spamming, l\'inondation de requêtes, le forçage brutal et l\'analyse de vulnérabilités. Par exemple, les robots peuvent récupérer vos listes de prix afin que vos concurrents puissent systématiquement vous vendre moins cher ou élaborer une solution concurrentielle à partir de vos données. Ils peuvent aussi essayer de localiser des forums et des sections de commentaires où ils pourront envoyer du spam. Dans d\'autres cas, ils analysent votre site à la recherche de failles de sécurité.",
@@ -368,7 +366,6 @@
         "force_close": "Puisque HAProxy fonctionne en mode reverse-proxy, les serveurs voient son adresse IP comme leur adresse client. Ceci est parfois gênant lorsque l\'adresse IP du client est attendue dans les journaux du serveur. Pour résoudre ce problème, l\'en-tête HTTP bien connu 'X-Forwarded-For' peut être ajouté par HAProxy à toutes les demandes envoyées au serveur. Cet en-tête contient une valeur représentant l\'adresse IP du client. Étant donné que cet en-tête est toujours ajouté à la fin de la liste des en-têtes existants, le serveur doit être configuré de manière à n\'utiliser que la dernière occurrence de cet en-tête. Consultez le manuel du serveur pour savoir comment activer l\'utilisation de cet en-tête standard. Notez que seule la dernière occurrence de l\'en-tête doit être utilisée, car il est tout à fait possible que le client en ait déjà une.",
         "cookie": "Pour envoyer un client au même serveur que celui où il a été envoyé précédemment afin de réutiliser une session sur ce serveur, vous pouvez activer la persistance de la session basée sur les cookies. Ajoutez une directive cookie à la section backend et définissez le paramètre cookie à une valeur unique sur chaque ligne de serveur.",
         "c_prefix": "Ce mot-clé indique qu\'au lieu de s\'appuyer sur un cookie dédié pour la persistance, un cookie existant sera complété.",
-        "c_nocache": "Cette option est recommandée en conjonction avec le mode insertion lorsqu\'il existe un cache entre le client et HAProxy",
         "c_nocache": "Cette option est recommandée en conjonction avec le mode insertion lorsqu\'il existe un cache entre le client et HAProxy",
         "c_postonly": "Cette option garantit que l\'insertion des cookies ne sera effectuée que sur les réponses aux demandes POST",
         "c_dynamic": "Activer les cookies dynamiques. Lorsqu\'elle est utilisée, un cookie de session est créé dynamiquement pour chaque serveur",
@@ -389,7 +386,7 @@
         "userlist_group": "Il est également possible de rattacher des utilisateurs à ce groupe en utilisant une liste de noms séparés par des virgules et précédés du mot-clé 'users'.",
         "userlist_desc": "Il est possible de contrôler l\'accès aux sections frontend/backend/listen ou aux statistiques http en autorisant uniquement les utilisateurs authentifiés et autorisés. Pour ce faire, il est nécessaire de créer au moins une liste d\'utilisateurs et de définir des utilisateurs",
         "servers": "Dans cette section, vous pouvez créer, modifier et supprimer des serveurs. Vous pouvez ensuite les utiliser en tant qu\'autocomplétion dans les sections 'Ajouter'.",
-        "servers": "Dans cette section, vous pouvez créer, modifier et supprimer des options. Et ensuite les utiliser comme autocomplétion dans les sections 'Ajouter'",
+        "options": "Dans cette section, vous pouvez créer, modifier et supprimer des options. Et puis utilisez-les comme remplissage automatique dans les sections « Ajouter »",
         "paste_cert": "Collez le contenu du fichier de certificat",
         "paste_cert_desc": "Ce fichier pem sera utilisé pour créer une connexion https avec HAProxy, NGINX ou Apache",
         "lists_howto": "Dans cette section, vous pouvez créer et modifier des listes noires et blanches. Vous pouvez ensuite les utiliser dans la configuration de HAProxy ou dans les pages 'Ajouter un proxy'. Lisez comment l\'utiliser dans cette section",
@@ -426,6 +423,8 @@
         "keepalive": "Le paramètre connections définit le nombre maximal de connexions keepalive inactives vers des serveurs en amont qui sont conservées dans le cache de chaque processus d\'un job. Lorsque ce nombre est dépassé, les connexions les moins récemment utilisées sont fermées.",
         "fail_timeout": "Le temps pendant lequel le nombre spécifié de tentatives infructueuses de communication avec le serveur doit se produire pour considérer le serveur comme indisponible ; et la période pendant laquelle le serveur sera considéré comme indisponible.",
         "max_fails": "Définit le nombre de tentatives infructueuses de communication avec le serveur qui doivent se produire dans la durée définie par le paramètre fail_timeout pour considérer le serveur comme indisponible pendant une durée également définie par le paramètre fail_timeout. Par défaut, le nombre de tentatives infructueuses est fixé à 1.",
+        "def_backend": "Si vous souhaitez utiliser en amont",
+        "def_backend_exit": "l'amont doit exister",
         }
     }
 %}
@@ -686,7 +685,6 @@
     "action": "action",
     "actions": "actions",
     "command": "commande",
-    "save": "sauvegarder",
     "change": "changer",
     "change2": "changer",
     "changes": "changements",
@@ -811,7 +809,6 @@
     "message": "message",
     "menu": "menu",
     "language": "langage",
-    "apply": "appliquer",
     "logout": "déconnexion",
     "last": "dernier",
     "last2": "dernier",
@@ -920,8 +917,6 @@
     "instance_type": "Type d\'instance",
     "filter": "filtrer",
     "rule_name": "Nom de la règle",
-    "rule": "règle",
-    "rules": "règles",
     "send": "envoyer",
     "additions": "ajouts",
     "deletions": "suppressions",
@@ -944,7 +939,6 @@
     "cert_expire": "Expiration du certificat",
     "Hostname": "Nome de anfitrião",
     "maps": "cartes",
-    "map": "carte",
     "method": "méthode",
     "tools": "outils",
     "next": "suivante",

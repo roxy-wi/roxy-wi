@@ -17,6 +17,7 @@ import app.modules.service.installation as service_mod
 import app.modules.service.exporter_installation as exp_installation
 from app.views.install.views import InstallView
 from app.modules.roxywi.class_models import DomainName
+from app.modules.db.db_model import InstallationTasks
 
 
 bp.add_url_rule(
@@ -61,7 +62,8 @@ def install_exporter(exporter):
         return jsonify({'status': 'failed', 'error': 'Wrong exporter'})
 
     try:
-        return exp_installation.install_exporter(server_ip, ver, exporter)
+        task_id = exp_installation.install_exporter(server_ip, ver, exporter)
+        return jsonify({"status": "accepted", "tasks_ids": [task_id]}), 202
     except Exception as e:
         return jsonify({'status': 'failed', 'error': f'Cannot install {exporter.title()} exporter: {e}'})
 
@@ -122,3 +124,9 @@ def check_geoip(service: Literal['haproxy', 'nginx'], server_ip: Union[IPvAnyAdd
     service_dir = common.return_nice_path(sql.get_setting(f'{service}_dir'))
     cmd = f"ls {service_dir}geoip/"
     return server_mod.ssh_command(str(server_ip), cmd)
+
+
+@bp.route('/task-status/<int:task_id>')
+def get_task_status(task_id):
+    task = InstallationTasks.get(id=task_id)
+    return jsonify({'task_id': task_id, 'status': task.status, 'service_name': task.service_name, 'error': task.error}), 200

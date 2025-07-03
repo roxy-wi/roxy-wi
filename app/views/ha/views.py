@@ -11,7 +11,8 @@ import app.modules.common.common as common
 import app.modules.service.ha_cluster as ha_cluster
 import app.modules.service.installation as service_mod
 from app.middleware import get_user_params, page_for_admin, check_group, check_services
-from app.modules.roxywi.class_models import BaseResponse, IdResponse, HAClusterRequest, HAClusterVIP
+from app.modules.common.common_classes import SupportClass
+from app.modules.roxywi.class_models import BaseResponse, IdResponse, HAClusterRequest, HAClusterVIP, GroupQuery
 
 
 class HAView(MethodView):
@@ -125,7 +126,6 @@ class HAView(MethodView):
         if not cluster_id:
             if request.method == 'GET':
                 kwargs = {
-                    'clusters': ha_sql.select_clusters(self.group_id),
                     'is_needed_tool': common.is_tool('ansible'),
                     'user_subscription': roxywi_common.return_user_subscription(),
                     'lang': g.user_params['lang'],
@@ -349,7 +349,7 @@ class HAView(MethodView):
 
         if body.reconfigure:
             try:
-                self._install_service(body, cluster_id)
+                return self._install_service(body, cluster_id)
             except Exception as e:
                 return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot reconfigure cluster')
 
@@ -389,13 +389,12 @@ class HAView(MethodView):
 
     @staticmethod
     def _install_service(body: HAClusterRequest, cluster_id: int):
+        tasks_ids = []
         try:
-            output = service_mod.install_service('keepalived', body, cluster_id)
+            task_id = service_mod.install_service('keepalived', body, cluster_id)
+            tasks_ids.append(task_id)
         except Exception as e:
             raise e
-
-        if len(output['failures']) > 0 or len(output['dark']) > 0:
-            raise Exception('Cannot install Keepalived. Check Apache error log')
 
         cluster_services = ha_cluster.get_services_dict(body)
         for service, value in cluster_services.items():
@@ -403,12 +402,12 @@ class HAView(MethodView):
                 continue
             else:
                 try:
-                    output = service_mod.install_service(service, body)
+                    task_id = service_mod.install_service(service, body)
+                    tasks_ids.append(task_id)
                 except Exception as e:
                     raise e
 
-                if len(output['failures']) > 0 or len(output['dark']) > 0:
-                    raise Exception(f'Cannot install {service.title()}. Check Apache error log')
+        return jsonify({"status": "accepted", "tasks_ids": [tasks_ids]}), 202
 
 
 class HAVIPView(MethodView):
@@ -740,3 +739,64 @@ class HAVIPsView(MethodView):
         vips = ha_sql.select_cluster_vips(cluster_id)
         vips = [model_to_dict(vip, recurse=False) for vip in vips]
         return jsonify(vips)
+
+
+class HAClustersView(MethodView):
+    methods = ["GET"]
+    decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
+
+    @validate(query=GroupQuery)
+    def get(self, service: str, query: GroupQuery):
+        """
+        Get HA clusters list.
+
+        ---
+        tags:
+          - HA Clusters
+        summary: Retrieve a list of clusters based on a specific group ID.
+        description: Returns a list of clusters for a given group ID. The response contains information about clusters such as `description`, `group_id`, `id`, `name`, `pos`, and other attributes.
+        parameters:
+          - name: service
+            in: path
+            type: string
+            required: true
+            description: The service identifier. Can be only "cluster".
+          - name: group_id
+            in: query
+            required: false
+            type: integer
+            description: The ID of the group used to filter clusters. Only for superAdmin role.
+        responses:
+          200:
+            description: A list of clusters.
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  description:
+                    type: string
+                    description: Description of the cluster.
+                  group_id:
+                    type: integer
+                    description: ID of the group the cluster belongs to.
+                  id:
+                    type: integer
+                    description: Cluster ID.
+                  name:
+                    type: string
+                    description: Name of the cluster.
+                  pos:
+                    type: integer
+                    description: Position of the cluster.
+                  syn_flood:
+                    type: integer
+                    description: SYN flood state of the cluster.
+        """
+        clusters_list = []
+        group_id = SupportClass.return_group_id(query)
+        clusters = ha_sql.select_clusters(group_id)
+        for cluster in clusters:
+            clusters_list.append(model_to_dict(cluster, recurse=False))
+
+        return jsonify(clusters_list)

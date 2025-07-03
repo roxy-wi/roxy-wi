@@ -1,10 +1,10 @@
 import os
 
 import app.modules.db.sql as sql
-from app.modules.service.installation import run_ansible
+from app.modules.service.installation import run_ansible_thread
 
 
-def generate_exporter_inc(server_ip: str, ver: str, exporter: str) -> object:
+def generate_exporter_inv(server_ip: str, ver: str, exporter: str) -> object:
     inv = {"server": {"hosts": {}}}
     server_ips = [server_ip]
     inv['server']['hosts'][server_ip] = {
@@ -27,10 +27,11 @@ def generate_exporter_inc(server_ip: str, ver: str, exporter: str) -> object:
     return inv, server_ips
 
 
-def install_exporter(server_ip: str, ver: str, exporter: str) -> object:
+def install_exporter(server_ip: str, ver: str, exporter: str) -> int:
     service = f'{exporter.title()} exporter'
     try:
-        inv, server_ips = generate_exporter_inc(server_ip, ver, exporter)
-        return run_ansible(inv, server_ips, f'{exporter}_exporter'), 201
+        inv, server_ips = generate_exporter_inv(server_ip, ver, exporter)
     except Exception as e:
-        raise Exception(f'error: Cannot install {service}: {e}')
+        raise Exception(f'Cannot generate {exporter} inventory: {e}')
+
+    return run_ansible_thread(inv, server_ips, f'{exporter}_exporter', service)

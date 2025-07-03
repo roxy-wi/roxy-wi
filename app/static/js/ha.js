@@ -35,20 +35,6 @@ $( function() {
 		get_interface($(this), server_ip);
 	});
 });
-function cleanProvisioningProccess(div_id, success_div, error_id, warning_id, progres_id) {
-    $(div_id).empty();
-    $(success_div).empty();
-    $(success_div).hide();
-    $(error_id).empty();
-    $(error_id).hide();
-    $(warning_id).empty();
-    $(warning_id).hide();
-    $(progres_id).css('width', '5%');
-    $(div_id).each(function () {
-        $(this).remove('');
-    });
-    $.getScript(awesome);
-}
 function confirmDeleteCluster(cluster_id) {
 	$("#dialog-confirm").dialog({
 		resizable: false,
@@ -370,6 +356,9 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 				if (!edited) {
 					cluster_id = data.id;
 					getHaCluster(cluster_id, true);
+					setTimeout(function () {
+						setInterval(checkHaClusterStatus, 10000, cluster_id);
+					}, 2500);
 				} else {
 					getHaCluster(cluster_id);
 					$("#cluster-" + cluster_id).addClass("update", 1000);
@@ -386,74 +375,41 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 }
 function Reconfigure(jsonData, cluster_id) {
 	let servers = JSON.parse(JSON.stringify(jsonData));
-	$("#wait-mess").html(wait_mess);
-	$("#wait-mess").show();
-	let total_installation = 1;
-	if (servers['services']['haproxy']['enabled']) {
-		total_installation = total_installation + 1;
-	}
-	if (servers['services']['nginx']['enabled']) {
-		total_installation = total_installation + 1;
-	}
-	if (servers['services']['apache']['enabled']) {
-		total_installation = total_installation + 1;
-	}
-	let server_creating_title = $("#server_creating1").attr('title');
-	let server_creating = $("#server_creating1").dialog({
-		autoOpen: false,
-		width: 574,
-		modal: true,
-		title: server_creating_title,
-		close: function () {
-			cleanProvisioningProccess('#server_creating1 ul li', '#created-mess', '#creating-error', '#creating-warning', '#creating-progress');
-		},
-		buttons: {
-			Close: function () {
-				$(this).dialog("close");
-				cleanProvisioningProccess('#server_creating1 ul li', '#created-mess', '#creating-error', '#creating-warning', '#creating-progress');
-			}
-		}
-	});
-	server_creating.dialog('open');
-	let progress_step = 100 / total_installation;
-	$.when(installServiceCluster(jsonData, 'keepalived', progress_step, cluster_id)).done(function () {
+	$.when(installServiceCluster(jsonData, 'keepalived', cluster_id)).done(function () {
 		if (servers['services']['haproxy']['enabled']) {
-			$.when(installServiceCluster(jsonData, 'haproxy', progress_step, cluster_id)).done(function () {
+			$.when(installServiceCluster(jsonData, 'haproxy', cluster_id)).done(function () {
 				if (servers['services']['nginx']['enabled']) {
-					$.when(installServiceCluster(jsonData, 'nginx', progress_step, cluster_id)).done(function () {
+					$.when(installServiceCluster(jsonData, 'nginx', cluster_id)).done(function () {
 						if (servers['services']['apache']['enabled']) {
-							installServiceCluster(jsonData, 'apache', progress_step, cluster_id);
+							installServiceCluster(jsonData, 'apache', cluster_id);
 						}
 					});
 				} else {
 					if (servers['services']['apache']['enabled']) {
-						installServiceCluster(jsonData, 'apache', progress_step, cluster_id);
+						installServiceCluster(jsonData, 'apache', cluster_id);
 					}
 				}
 			});
 		} else {
 			if (servers['services']['nginx']['enabled']) {
-				$.when(installServiceCluster(jsonData, 'nginx', progress_step, cluster_id)).done(function () {
+				$.when(installServiceCluster(jsonData, 'nginx', cluster_id)).done(function () {
 					if (servers['services']['apache']['enabled']) {
-						installServiceCluster(jsonData, 'apache', progress_step, cluster_id);
+						installServiceCluster(jsonData, 'apache', cluster_id);
 					}
 				});
 			} else {
 				if (servers['services']['apache']['enabled']) {
-					installServiceCluster(jsonData, 'apache', progress_step, cluster_id);
+					installServiceCluster(jsonData, 'apache', cluster_id);
 				}
 			}
 		}
 	});
 }
-function installServiceCluster(jsonData, service, progress_step, cluster_id) {
+function installServiceCluster(jsonData, service, cluster_id) {
 	let servers = JSON.parse(JSON.stringify(jsonData));
 	servers['cluster_id'] = cluster_id;
-	let li_id = 'creating-' + service + '-';
-	let install_mess = translate_div.attr('data-installing');
 	let timeout_mess = translate_div.attr('data-roxywi_timeout');
 	let something_wrong = translate_div.attr('data-something_wrong');
-	$('#server_creating_list').append('<li id="' + li_id + servers['cluster_id'] + '" class="server-creating proccessing">' + install_mess + ' ' + nice_service_name[service] + '</li>');
 	return $.ajax({
 		url: "/install/" + service,
 		type: "POST",
@@ -461,62 +417,20 @@ function installServiceCluster(jsonData, service, progress_step, cluster_id) {
 		contentType: "application/json; charset=utf-8",
 		statusCode: {
 			500: function () {
-				showErrorStatus(nice_service_name[service], servers["name"], li_id, servers['cluster_id'], progress_step, something_wrong);
+				toastr.error(something_wrong);
 			},
 			504: function () {
-				showErrorStatus(nice_service_name[service], servers["name"], li_id, servers['cluster_id'], progress_step, timeout_mess);
+				toastr.error(timeout_mess);
 			},
 		},
 		success: function (data) {
 			if (data.status === 'failed') {
-				showErrorStatus(nice_service_name[service], servers["name"], li_id, servers['cluster_id'], progress_step, something_wrong);
+				toastr.error(data.error);
 			} else {
-				checkInstallResp(data, servers['cluster_id'], progress_step, servers["name"], li_id, nice_service_name[service]);
+				runInstallationTaskCheck(data.tasks_ids);
 			}
 		}
 	});
-}
-function showErrorStatus(service_name, server_name, li_id, server_id, progress_step, message) {
-	let check_apache_log = translate_div.attr('data-check_apache_log');
-	$('#' + li_id + server_id).removeClass('proccessing');
-	$('#' + li_id + server_id).addClass('processing_error');
-	$.getScript(awesome);
-	$('#creating-error').show();
-	$('#creating-error').append('<div>' + message + ' ' + service_name + ' ' + server_name + '. '+check_apache_log+'</div>');
-	increaseProgressValue(progress_step);
-}
-function checkInstallResp(output, server_id, progress_step, name, li_id, service_name) {
-	output = JSON.parse(JSON.stringify(output));
-	let was_installed = translate_div.attr('data-was_installed');
-	let something_wrong = translate_div.attr('data-something_wrong');
-	for (let k in output['ok']) {
-		$('#' + li_id + server_id).removeClass('proccessing');
-		$('#' + li_id + server_id).addClass('proccessing_done');
-		$('#created-mess').show();
-		$('#created-mess').append('<div>' + service_name + ' ' + was_installed +' ' + k + '</div>');
-	}
-	for (let k in output['failures']) {
-		showErrorStatus(service_name, k, li_id, server_id, progress_step, something_wrong);
-	}
-	for (let k in output['dark']) {
-		showErrorStatus(service_name, k, li_id, server_id, progress_step, something_wrong);
-	}
-	increaseProgressValue(progress_step);
-	$.getScript(awesome);
-}
-function increaseProgressValue(progress_step) {
-	let progress_id = '#creating-progress';
-	let waid_id = '#wait-mess';
-	progress_step = Math.ceil(parseFloat(progress_step));
-	let cur_proggres_value = $(progress_id).css('width').split('px')[0] / $(progress_id).parent().width() * 100;
-	let new_progress = Math.ceil(parseFloat(cur_proggres_value)) + progress_step;
-	new_progress = Math.ceil(parseFloat(new_progress));
-	if (parseFloat(new_progress) > 90) {
-		$(waid_id).hide();
-		new_progress = parseFloat(100);
-		$('.progress-bar-striped > div').css('animation', '');
-	}
-	$(progress_id).css('width', new_progress+'%');
 }
 function add_vip_ha_cluster(cluster_id, cluster_name, vip_id='', vip='', edited=0) {
 	let save_word = translate_div.attr('data-save');
@@ -848,6 +762,11 @@ function clearClusterDialog(edited=0) {
 function getHaCluster(cluster_id, new_cluster=false) {
 	$.ajax({
 		url: "/ha/cluster/get/" + cluster_id,
+		statusCode: {
+			404: function (xhr) {
+				$('#cluster-' + cluster_id).remove();
+			}
+		},
 		success: function (data) {
 			data = data.replace(/^\s+|\s+$/g, '');
 			if (data.indexOf('error:') != '-1') {
@@ -910,7 +829,82 @@ function checkHaClusterStatus(cluster_id) {
 				listener_div.removeClass('div-server-head-dis');
 				listener_div.attr('title', 'Not all services are UP');
 			}
+			checkHAClusterServices(cluster_id);
 		}
 	});
 	NProgress.configure({showSpinner: true});
+}
+function checkHAClusterServices(cluster_id) {
+	$.ajax({
+		url: api_prefix + "/ha/cluster/" + cluster_id,
+		success: function (data) {
+			for (const [key, value] of Object.entries(data.services)) {
+				if (value['enabled']) {
+					checkHaClusterService(key, data.vip, cluster_id);
+				}
+			}
+		}
+	});
+}
+function checkHaClusterService(service, vip_ip, cluster_id) {
+	$.ajax({
+		url: api_prefix + "/service/" + service + "/" + vip_ip + "/status",
+		statusCode: {
+			500: function (data) {
+				console.log(data.error);
+			},
+			504: function (data) {
+				console.log(data.error);
+			},
+		},
+		success: function (data) {
+			let service_div = $('#' + service + '-' + cluster_id + '-status');
+			if (data.status === 'failed') {
+				service_div.removeClass('serverNone');
+				service_div.removeClass('serverUp');
+				service_div.addClass('serverDown');
+				service_div.attr('title', service + ' is Down');
+			} else if (data.status === 'running') {
+				service_div.removeClass('serverNone');
+				service_div.removeClass('serverDown');
+				service_div.addClass('serverUp');
+				service_div.attr('title', service + ' is UP');
+			} else {
+				service_div.removeClass('serverNone');
+				service_div.removeClass('serverUp');
+				service_div.addClass('serverDown');
+				service_div.attr('title', service + ' is Down');
+			}
+		}
+	});
+}
+function getClusters() {
+	$.ajax({
+		url: api_prefix + "/ha/cluster/clusters",
+		success: function (data) {
+			let clusters = document.querySelectorAll('.up-pannel > [id^="cluster-"]');
+			let clusterNumbers = Array.from(clusters).map(div =>
+				parseInt(div.id.replace('cluster-', ''), 10)
+			);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+				return;
+			}
+			if (data.length > 0) {
+				const dataIds = data.map(item => item.id);
+				const idsToDelete = clusterNumbers.filter(id => !dataIds.includes(id));
+
+				for (const [key, value] of Object.entries(data)) {
+					if (!clusterNumbers.includes(value.id)) {
+						getHaCluster(value.id, true);
+					} else {
+						getHaCluster(value.id, false);
+					}
+				}
+				for (let id of idsToDelete) {
+					$('#cluster-' + id).remove();
+				}
+			}
+		}
+	});
 }

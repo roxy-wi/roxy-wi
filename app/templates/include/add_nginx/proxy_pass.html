@@ -15,7 +15,7 @@
                 <div class="tooltip tooltipTop"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave}}</div>
             </td>
             <td rowspan="5" class="add-note addName alert-info">
-                Proxy pass is a Nginx directive that forwards incoming client requests to a specified backend server (like Apache, Node.js, or a microservice) and relays the response back to the client. It supports protocols like HTTP, HTTPS, WebSocket, and gRPC, making it versatile for reverse proxying. Key parameters include:
+                Proxy pass is an Nginx directive that forwards incoming client requests to a specified backend server (like Apache, Node.js, or a microservice) and relays the response back to the client. It supports protocols like HTTP, HTTPS, WebSocket, and gRPC, making it versatile for reverse proxying. Key parameters include:
 <br />
 <br />
 Header control: Uses proxy_set_header to forward client IP (X-Real-IP) or protocol (X-Forwarded-Proto).
@@ -34,6 +34,21 @@ Timeouts: Timeouts (proxy_connect_timeout).
             </td>
         </tr>
         <tr>
+            <td class="addName">{{lang.words.name|title()}} alias:</td>
+            <td class="addOption">
+                <span title="{{lang.words.add|title()}} {{lang.words.name}}" id="show_alias" class="link add-server"></span>
+                <div id="name_alias_div" style="display: none">
+                    <p style="border-bottom: 1px solid #ddd; padding-bottom: 10px;" id="name_alias_p">
+                        {{ input('proxy_pass_alias', name='name_alias', title="Domain name or IP", placeholder="www.example.com") }}
+                        <span class="minus minus-style" onclick="deleteId('name_alias_p')" title="{{lang.words.delete|title()}}"></span>
+                    </p>
+                </div>
+                <span>
+                    <a class="link add-server" id="add_name_alias" title="{{lang.words.add|title()}} {{lang.words.name}}" style="display: none;"></a>
+                </span>
+            </td>
+        </tr>
+        <tr>
             <td class="addName">
                 HTTP {{lang.words.scheme|title()}}:
             </td>
@@ -47,6 +62,7 @@ Timeouts: Timeouts (proxy_connect_timeout).
                     <span class="tooltip tooltipTop">{{lang.words.enter2|title()}} {{lang.words.name}} {{lang.words.of}} {{lang.words.file2}}, {{lang.add_page.desc.press_down}}:</span><br />
                     {{ input('ssl_key', placeholder='cert.key') }}
                     {{ input('ssl_crt', placeholder='cert.crt') }}
+                    <p>{{ checkbox('http2', title=lang.add_page.desc.enable_http2, desc='Enable HTTP2') }}</p>
                 </div>
             </td>
         </tr>
@@ -89,6 +105,9 @@ Timeouts: Timeouts (proxy_connect_timeout).
                     </span>
                     <br>
                     Upstream: {{ input('proxy_pass-upstream', name='upstream', placeholder='upstream_config') }}
+                    <div class="tooltip tooltipTop">
+						<b>{{lang.words.note|title()}}</b>: {{lang.add_nginx_page.desc.def_backend}}, <span title="{{lang.words.create|title()}} {{lang.words.upstream}}" class="redirectUpstream link">{{lang.add_nginx_page.desc.def_backend_exit}}</span>.
+					</div>
                 </p>
             </td>
         </tr>

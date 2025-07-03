@@ -1,6 +1,6 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
-	<div class="left-space">
+	<div>
 		<h4>{{lang.words.config|title()}} {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} {{lang.words.from}} {{serv}} ({{hostname}})</h4>
 		<p class="accordion-expand-holder">
 			{% if role <= 3 %}
@@ -25,7 +25,7 @@
 		</p>
 	</div>
 
-	<div class="configShow left-space">
+	<div class="configShow">
 	{% set i = 0 -%}
 	{% set section_name = {} %}
 	{% for line in conf -%}

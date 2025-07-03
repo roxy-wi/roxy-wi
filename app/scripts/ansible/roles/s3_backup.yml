@@ -34,6 +34,15 @@
           - hap_config
           - nginx_config
           - apache_config
+
+      - name: Add CRON job for HAProxy
+        cron:
+          name: "Roxy-WI S3 Backup configs for server {{ SERVER }} {{ BUCKET }} {{ item }}"
+          special_time: "{{ TIME }}"
+          job: "{{ which_s3cmd.stdout }} sync /var/lib/roxy-wi/configs/{{ item }}/{{ SERVER }}*.cfg s3://{{ BUCKET }}/{{ SERVER }}/{{ item }}/ {{ keys }}"
+        with_items:
+          - hap_config
+
     when: action == "add"
 
   - name: Delete S3 Job

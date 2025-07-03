@@ -746,6 +746,23 @@ function openNginxSection(section) {
 				}
 			}
 			if (section_type === 'proxy_pass') {
+				if (data.name_aliases) {
+					if (data.name_aliases.length > 0) {
+						i = 0;
+						$("#add_name_alias").on("click", function () {
+							$("#name_alias_div").show();
+							$("#add_name_alias").show();
+							$("#show_alias").hide();
+						});
+						$('#add_name_alias').trigger('click');
+						for (let alias of data.name_aliases) {
+							console.log(alias)
+							make_actions_for_adding_alias('#name_alias_div')
+							$(section_id + ' input[name="name_alias"]').get(i).value = alias;
+							i++;
+						}
+					}
+				}
 				for (let location of data.locations) {
 					if (location.headers) {
 						if (location.length > 0) {

@@ -1,7 +1,7 @@
 import json
 
 import pika
-import pdpyras
+import pagerduty
 import requests
 import telebot
 from telebot import apihelper
@@ -256,7 +256,7 @@ def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 
 	try:
 		proxy = sql.get_setting('proxy')
-		session = pdpyras.EventsAPISession(token)
+		session = pagerduty.EventsApiV2Client(token)
 		if server_ip:
 			dedup_key = f'{server_ip} {service_id} {alert_type}'
 		else:

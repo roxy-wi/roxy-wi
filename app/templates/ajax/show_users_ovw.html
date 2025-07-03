@@ -18,18 +18,17 @@
                 <span title="{{lang.words.last|title()}} {{lang.words.activity}}: {{last_login_date}}, IP: {{USER.last_login_ip}}">{{ USER.username }}</span>
 			</td>
 			<td class="third-collumn-wi">
-			    {% for group in users_groups %}
-				    {% if USER.user_id|string() == group.user_id|string() %}
-					    <span title="{{ group.groups.name }}: {{ group.groups.description }}"> {{ group.groups.name }}</span>
-					{% endif %}
-				{% endfor %}
+                {%- set spans = [] -%}
+                {%- for group in users_groups if group.user_id == USER.user_id -%}
+                    {%- set _ = spans.append('<span title="' ~ group.groups.name ~ ': ' ~ group.groups.description ~ '">' ~ group.groups.name ~ '</span>') -%}
+                {%- endfor -%}
+                {{ spans | join(', ') | safe }}
 			</td>
 			<td>
-				{% for r in roles %}
-					{% if r.role_id == USER.role_id|int() %}
-						{{ r.name }}
-					{% endif %}
-				{% endfor %}
+				{{ roles
+                    | selectattr('role_id', 'equalto', USER.role_id | int)
+                    | map(attribute='name')
+                    | first }}
 			</td>
             <td></td>
             <td></td>
@@ -50,18 +49,17 @@
 				<span title="{{lang.words.last|title()}} {{lang.words.activity}}: {{last_login_date}}, IP: {{USER.last_login_ip}}">{{ USER.username }}</span>
 			</td>
 			<td class="third-collumn-wi">
-			    {% for group in users_groups %}
-				    {% if group.user_id|string() == USER.user_id|string() %}
-					    <span title="{{ group.groups.name }}: {{ group.groups.description }}"> {{ group.groups.name }}</span>
-					{% endif %}
-				{% endfor %}
+                {%- set spans = [] -%}
+                {%- for group in users_groups if group.user_id == USER.user_id -%}
+                    {%- set _ = spans.append('<span title="' ~ group.groups.name ~ ': ' ~ group.groups.description ~ '">' ~ group.groups.name ~ '</span>') -%}
+                {%- endfor -%}
+                {{ spans | join(', ') | safe }}
 			</td>
 			<td>
-				{% for r in roles %}
-					{% if r.role_id == USER.role_id|int() %}
-						{{ r.name }}
-					{% endif %}
-				{% endfor %}
+				{{ roles
+                    | selectattr('role_id', 'equalto', USER.role_id | int)
+                    | map(attribute='name')
+                    | first }}
 			</td>
             <td></td>
             <td></td>

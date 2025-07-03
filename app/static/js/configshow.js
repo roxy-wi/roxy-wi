@@ -152,3 +152,55 @@ $( function() {
 		e.preventDefault();
 	});
 })
+function compareConfig(div_id, diff) {
+	const container = document.getElementById(div_id);
+	container.innerHTML = "";
+	const diffUi = new Diff2HtmlUI(container, diff, {
+		inputFormat: 'diff',
+		matching: 'lines',
+		fileListToggle: false,
+		drawFileList: true,
+		fileContentToggle: false,
+		outputFormat: 'line-by-line', // или 'line-by-line'
+	});
+	diffUi.draw();
+	diffUi.highlightCode();
+}
+function showCompare() {
+	$.ajax({
+		url: "/config/compare/" + $("#service").val() + "/" + $("#serv").val() + "/show",
+		data: JSON.stringify({
+			left: $('#left').val(),
+			right: $("#right").val(),
+		}),
+		contentType: "application/json; charset=utf-8",
+		type: "POST",
+		success: function (data) {
+			if (data.status === 'failed') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				compareConfig('ajax', data.compare);
+			}
+		}
+	});
+}
+function showCompareConfigs() {
+	clearAllAjaxFields();
+	$('#ajax-config_file_name').empty();
+	$.ajax({
+		url: "/config/compare/" + $("#service").val() + "/" + $("#serv").val() + "/files",
+		type: "GET",
+		success: function (data) {
+			if (data.indexOf('error:') != '-1') {
+				toastr.error(data);
+			} else {
+				toastr.clear();
+				$("#ajax-compare").html(data);
+				$("input[type=submit], button").button();
+				$("select").selectmenu();
+				window.history.pushState("Show compare config", "Show compare config", '/config/compare/' + $("#service").val() + '/' + $("#serv").val());
+			}
+		}
+	});
+}

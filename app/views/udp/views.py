@@ -225,7 +225,8 @@ class UDPListener(MethodView):
             roxywi_common.logging(listener_id, f'UDP listener {body.name} has been created', keep_history=1,
                               roxywi=1, service='UDP Listener')
             if body.reconfigure:
-                self._reconfigure(listener_id, 'install')
+                task_id = self._reconfigure(listener_id, 'install')
+                return jsonify({"status": "accepted", "tasks_ids": [task_id], 'id': listener_id}), 202
             return IdResponse(id=listener_id).model_dump(mode='json')
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot create UDP listener')
@@ -377,9 +378,8 @@ class UDPListener(MethodView):
         except Exception as e:
             raise Exception(e)
         try:
-            output = service_mod.run_ansible(inv, server_ips, 'udp')
-            if len(output['failures']) > 0 or len(output['dark']) > 0:
-                raise Exception(f'Cannot {action} UDP listener. Check Apache error log')
+            task_id = service_mod.run_ansible_thread(inv, server_ips, 'udp', 'UDP listener')
+            return task_id
         except Exception as e:
             raise Exception(f'Cannot {action} UDP listener: {e}')
 

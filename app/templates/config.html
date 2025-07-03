@@ -24,10 +24,14 @@
 <script src="/static/js/codemirror/mode/nginx.js"></script>
 <script src="/static/js/codemirror/mode/haproxy.js"></script>
 <script src="/static/js/codemirror/keymap/sublime.js"></script>
+<link rel="stylesheet" href="/static/js/diff2html/diff2html.min.css">
+<script src="/static/js/diff2html/diff2html.min.js"></script>
+<script src="/static/js/diff2html/diff2html-ui.min.js"></script>
 <script src="/static/js/configshow.js"></script>
 <script src="/static/js/add.js"></script>
 <script src="/static/js/add_nginx.js"></script>
 <script src="/static/js/edit_config.js"></script>
+
 {% if is_serv_protected and g.user_params['role'] > 2 %}
 <meta http-equiv="refresh" content="0; url=/service">
 {% else %}
@@ -57,7 +61,6 @@
 				<a href="/admin#backup" class="ui-button ui-widget ui-corner-all" title="Git">Git</a>
 			{% endif %}
 		</form>
-	</p>
 	<div id="ajax-config_file_name"></div>
 	{% endif %}
 
@@ -196,5 +199,246 @@
 	});
 	{% endif %}
 </script>
+{% if user_subscription.user_status != 0 %}
+    <script>
+function explainSelected(mode) {
+    const selectedText = myCodeMirror.getSelection();
+    const from = myCodeMirror.getCursor("from");
+    const to = myCodeMirror.getCursor("to");
+
+    if (!selectedText.trim()) {
+        alert("{{ lang.phrases.select_part }}");
+        return;
+    }
+
+    let prompt = "";
+    let previewMode = "replace"; // default
+
+    if (mode === "explain") {
+        prompt = `{{ lang.phrases.explain_config }} {{ service }}. {{ lang.phrases.just_explain }}`;
+        previewMode = "explanation"; // не заменяем текст
+    } else if (mode === "optimize") {
+        prompt = `{{ lang.phrases.optimize_config }}`;
+    } else if (mode === "commented") {
+        prompt = `{{ lang.phrases.comment_config }}`;
+    } else if (mode === "syntax") {
+        prompt = `{{ lang.phrases.syntax_config }}`;
+    }
+    NProgress.start();
+    fetch("/api/gpt", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            prompt: `${prompt}\n\n${selectedText}`
+        })
+    })
+        .then(response => response.text().then(text => {
+
+            if (!response.ok) {
+                // Пробуем получить error из JSON, если он там есть
+                let message = text;
+                try {
+                    const json = JSON.parse(text);
+                    if (json.error) {
+                        message = json.error;
+                    }
+                } catch (_) {
+                    // Тело не JSON — оставим как есть
+                }
+
+                NProgress.done();
+                return alert(`Ошибка API (${response.status}):\n\n${message}`);
+            }
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                NProgress.done();
+                alert("{{ lang.phrases.error_parsing }}");
+                return;
+            }
+            let result = typeof data.response === "string" ? data.response.trim() : "";
+            if (!result) {
+                NProgress.done();
+                return alert("{{ lang.phrases.empty_ans }}");
+            }
+
+            result = result.replace(/^```(?:[a-zA-Z]+)?\s*/gm, "");
+            result = result.replace(/```$/gm, "");
+
+            if (previewMode === "explanation" || previewMode === "syntax") {
+                showExplanation(result);
+            } else {
+                showPreview(selectedText, result, from, to);
+            }
+            NProgress.done();
+        }))
+        .catch(err => {
+            NProgress.done();
+            alert("Error: " + err.message);
+            console.error(err);
+        });
+}
+
+
+let previewOld = null;
+let previewNew = null;
+let previewFrom = null;
+let previewTo = null;
+
+function showExplanation(text) {
+  const container = document.getElementById("previewContent");
+  container.innerHTML = `<pre style="white-space:pre-wrap;">${text}</pre>`;
+
+  document.getElementById("applyButton").style.display = "none";
+  document.getElementById("previewModal").style.display = "block";
+}
+function showPreview(oldCode, newCode, from, to) {
+    previewOld = oldCode;
+    previewNew = newCode;
+    previewFrom = from;
+    previewTo = to;
+
+    const diffString = createUnifiedDiff(oldCode, newCode);
+    const container = document.getElementById("previewContent");
+
+    // Очищаем старое содержимое
+    container.innerHTML = "";
+
+    const diffUi = new Diff2HtmlUI(container, diffString, {
+        drawFileList: false,
+        matching: 'lines',
+        outputFormat: 'side-by-side'
+    });
+
+    diffUi.draw();
+    diffUi.highlightCode();
+
+    document.getElementById("previewModal").style.display = "block";
+    document.getElementById("applyButton").style.display = "inline-block";
+}
+
+function closePreview() {
+    document.getElementById("previewModal").style.display = "none";
+    document.querySelector("#previewModal button").disabled = false;
+
+    previewOld = previewNew = previewFrom = previewTo = null;
+}
+
+function applyPreview() {
+    if (previewNew && previewFrom && previewTo) {
+        myCodeMirror.replaceRange(previewNew.trim(), previewFrom, previewTo);
+    }
+    closePreview();
+}
+
+function createUnifiedDiff(oldText, newText) {
+    const oldLines = oldText.trim().split("\n");
+    const newLines = newText.trim().split("\n");
+    const fileName = "config.conf";
+    const header = `diff --git a/${fileName} b/${fileName}\n--- a/${fileName}\n+++ b/${fileName}\n`;
+    const diffLines = [header];
+
+    const maxLines = Math.max(oldLines.length, newLines.length);
+    for (let i = 0; i < maxLines; i++) {
+        const oldLine = oldLines[i] || "";
+        const newLine = newLines[i] || "";
+
+        if (oldLine === newLine) {
+            diffLines.push(" " + oldLine);
+        } else {
+            if (oldLine) diffLines.push("-" + oldLine);
+            if (newLine) diffLines.push("+" + newLine);
+        }
+    }
+
+    return diffLines.join("\n");
+}
+function doClipboardAction(action) {
+  const text = myCodeMirror.getSelection();
+  if (!text && action !== "paste") return;
+
+  navigator.clipboard[action === "paste" ? "readText" : "writeText"](
+    action === "paste" ? undefined : text
+  ).then(result => {
+    if (action === "cut") {
+      myCodeMirror.replaceSelection("");
+    } else if (action === "paste") {
+      myCodeMirror.replaceSelection(result);
+    }
+    hideCustomMenu();
+  }).catch(err => {
+    alert("Clipboard error: " + err.message);
+    console.error(err);
+  });
+}
+
+function handleContextAction(mode) {
+  hideCustomMenu();
+  explainSelected(mode);
+}
+
+function hideCustomMenu() {
+  document.getElementById("customContextMenu").style.display = "none";
+}
+
+document.addEventListener("contextmenu", function (e) {
+  const isInCodeMirror = e.target.closest(".CodeMirror");
+  if (!isInCodeMirror) return;
+
+  e.preventDefault(); // блокируем стандартное меню
+
+  const menu = document.getElementById("customContextMenu");
+  menu.style.left = `${e.pageX + 8}px`;
+  menu.style.top = `${e.pageY}px`;
+  menu.style.display = "block";
+
+  setTimeout(() => {
+    document.addEventListener("click", hideCustomMenu, { once: true });
+  }, 1);
+});
+
+</script>
+    <style>
+  .context-item {
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+
+  .context-item:hover {
+    background-color: #f0f0f0;
+  }
+</style>
+    <div id="customContextMenu" style="
+  display: none;
+  position: absolute;
+  background: #fff;
+  border: 1px solid #ccc;
+  z-index: 10000;
+  padding: 5px;
+  font-family: sans-serif;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  min-width: 180px;
+  border-radius: 6px;
+">
+        <div class="context-item" onclick="doClipboardAction('cut')">✂️ {{ lang.words.w_cut|title() }}</div>
+        <div class="context-item" onclick="doClipboardAction('copy')">📋 {{ lang.words.w_copy|title() }}</div>
+        <div class="context-item" onclick="doClipboardAction('paste')">📥 {{ lang.words.w_paste|title() }}</div>
+        <hr>
+        <div class="context-item" onclick="handleContextAction('explain')">💬 {{ lang.phrases.explain_selection }}</div>
+        <div class="context-item" onclick="handleContextAction('optimize')">⚙️ {{ lang.phrases.optimize_selection }}</div>
+        <div class="context-item" onclick="handleContextAction('commented')">📝 {{ lang.phrases.enter_comment }}</div>
+        <div class="context-item" onclick="handleContextAction('syntax')">✅ {{ lang.phrases.check_syntax }}</div>
+    </div>
+    {% endif %}
 {% endif %}
+<div id="previewModal" style="display:none; position:fixed; top:10%; left:50%; transform:translateX(-50%);
+  background:white; border:1px solid #ccc; padding:20px; z-index:9999; width:80%; max-height:80%; overflow:auto; box-shadow:0 4px 20px rgba(0,0,0,0.3);">
+    <h3>{{ lang.phrases.preview_change }}</h3>
+    <div id="previewContent"></div>
+    <div id="previewButtons" style="text-align:right; margin-top:10px;">
+        <button id="applyButton" onclick="applyPreview()">{{ lang.words.apply|title() }}</button>
+        <button onclick="closePreview()">{{ lang.words.cancel|title() }}</button>
+    </div>
+</div>
 {% endblock %}

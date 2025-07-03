@@ -1,6 +1,6 @@
 from typing import Union, Literal
 
-from flask import request
+from flask import request, jsonify
 from flask.views import MethodView
 from flask_pydantic import validate
 from flask_jwt_extended import jwt_required
@@ -132,19 +132,17 @@ class InstallView(MethodView):
         if not body.services:
             body.services = {service: HAClusterService(enabled=1, docker=body.docker)}
         try:
-            output = service_mod.install_service(service, body)
+            task_id = service_mod.install_service(service, body)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot install {service.title()}')
 
         if 'api' in request.url:
             try:
                 service_sql.update_hapwi_server(server_id, body.checker, body.metrics, body.auto_start, service)
-                if len(output['failures']) > 0 or len(output['dark']) > 0:
-                    raise Exception(f'Cannot install {service.title()}. Check Apache error log')
             except Exception as e:
                 return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot update Tools settings for {service.title()}')
         else:
-            return output
+            return jsonify({"status": "accepted", "tasks_ids": [task_id]}), 202
         return IdStrResponse(id=f'{server_id}-{service}').model_dump(mode='json'), 201
 
     @validate(body=ServiceInstall)

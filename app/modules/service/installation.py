@@ -1,6 +1,8 @@
 import os
 import json
 import random
+import threading
+from datetime import datetime
 from typing import Union, Literal
 from packaging import version
 
@@ -18,6 +20,7 @@ import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 from app.modules.server.ssh import return_ssh_keys_path
+from app.modules.db.db_model import InstallationTasks
 from app.modules.roxywi.class_models import ServiceInstall, HAClusterRequest, HaproxyGlobalRequest, \
 	HaproxyDefaultsRequest, HaproxyConfigRequest
 
@@ -171,7 +174,6 @@ def generate_section_inv(json_data: dict, cfg: str, service: Literal['haproxy', 
 		"cfg": cfg,
 		"action": 'create'
 	}
-
 	return inv
 
 
@@ -322,7 +324,7 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 	os.remove(inventory)
 
 	if result.rc != 0:
-		raise Exception('Something wrong with installation, check <a href="/app/logs/internal?log_file=roxy-wi.error.log" target="_blank" class="link">Apache logs</a> for details')
+		raise Exception('Something wrong with installation, check <a href="/logs/internal?log_file=roxy-wi.error.log" target="_blank" class="link">Apache logs</a> for details')
 
 	return result.stats
 
@@ -376,13 +378,12 @@ def run_ansible_locally(inv: dict, ansible_role: str) -> dict:
 	os.remove(inventory)
 
 	if result.rc != 0:
-		raise Exception('Something wrong with installation, check <a href="/app/logs/internal?log_file=roxy-wi.error.log" target="_blank" class="link">Apache logs</a> for details')
+		raise Exception('Something wrong with installation, check <a href="/logs/internal?log_file=roxy-wi.error.log" target="_blank" class="link">Apache logs</a> for details')
 
 	return result.stats
 
 
 def service_actions_after_install(server_ips: str, service: str, json_data) -> None:
-	is_docker = None
 	update_functions = {
 		'haproxy': service_sql.update_haproxy,
 		'nginx': service_sql.update_nginx,
@@ -433,7 +434,7 @@ def _create_default_config_in_db(server_id: int) -> None:
 	add_sql.insert_new_section(server_id, 'listen', 'stats', stats_config)
 
 
-def install_service(service: str, json_data: Union[str, ServiceInstall, HAClusterRequest], cluster_id: int = None) -> dict:
+def install_service(service: str, json_data: Union[str, ServiceInstall, HAClusterRequest], cluster_id: int = None) -> int:
 	generate_functions = {
 		'haproxy': generate_haproxy_inv,
 		'nginx': generate_service_inv,
@@ -453,14 +454,14 @@ def install_service(service: str, json_data: Union[str, ServiceInstall, HACluste
 	except Exception as e:
 		raise Exception(f'Cannot activate {service} on server {server_ips}: {e}')
 	try:
-		return run_ansible(inv, server_ips, service)
+		return run_ansible_thread(inv, server_ips, service, service.title())
 	except Exception as e:
 		raise Exception(f'Cannot install {service}: {e}')
 
 
 def _install_ansible_collections():
 	old_ansible_server = ''
-	collections = ('community.general', 'ansible.posix', 'community.docker', 'community.grafana', 'ansible.netcommon')
+	collections = ('community.general', 'ansible.posix', 'community.docker', 'community.grafana', 'ansible.netcommon', 'ansible.utils')
 	trouble_link = 'Read <a href="https://roxy-wi.org/troubleshooting#ansible_collection" target="_blank" class="link">troubleshooting</a>'
 	proxy = sql.get_setting('proxy')
 	proxy_cmd = ''
@@ -481,3 +482,33 @@ def _install_ansible_collections():
 			else:
 				if exit_code != 0:
 					raise Exception(f'error: Ansible collection installation was not successful: {exit_code}. {trouble_link}')
+
+
+def run_ansible_thread(inv: dict, server_ips: list, ansible_role: str, service_name: str) -> int:
+	server_ids = []
+	claims = roxywi_common.get_jwt_token_claims()
+	for server_ip in server_ips:
+		server_id = server_sql.get_server_by_ip(server_ip).server_id
+		server_ids.append(server_id)
+
+	task_id = InstallationTasks.insert(
+		service_name=service_name, server_ids=server_ids, user_id=claims['user_id'], group_id=claims['group']
+	).execute()
+	thread = threading.Thread(target=run_installations, args=(inv, server_ips, ansible_role, task_id))
+	thread.start()
+	return task_id
+
+
+def run_installations(inv: dict, server_ips: list, service: str, task_id: int) -> None:
+	try:
+		InstallationTasks.update(status='running').where(InstallationTasks.id == task_id).execute()
+		output = run_ansible(inv, server_ips, service)
+		if len(output['failures']) > 0 or len(output['dark']) > 0:
+			InstallationTasks.update(
+				status='failed', finish_date=datetime.now(), error=f'Cannot install {service}. Check Apache error log'
+			).where(InstallationTasks.id == task_id).execute()
+			roxywi_common.logging('', f'error: Cannot install {service}')
+		InstallationTasks.update(status='completed', finish_date=datetime.now()).where(InstallationTasks.id == task_id).execute()
+	except Exception as e:
+		InstallationTasks.update(status='failed', finish_date=datetime.now(), error=str(e)).where(InstallationTasks.id == task_id).execute()
+		roxywi_common.logging('', f'error: Cannot install {service}: {e}')

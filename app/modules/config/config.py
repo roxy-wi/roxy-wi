@@ -470,7 +470,7 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 		cfg = configs_dir + configver
 
 	try:
-		with open(cfg, 'r') as file:
+		with open(cfg, 'r', encoding='utf-8', errors='replace') as file:
 			conf = file.readlines()
 	except Exception as e:
 		raise Exception(f'error: Cannot read config file: {e}')

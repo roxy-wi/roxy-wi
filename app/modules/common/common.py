@@ -55,7 +55,13 @@ def get_present_time():
 	:return: The current time in UTC.
 	:rtype: datetime.datetime
 	"""
-	present = datetime.now(timezone('UTC'))
+	try:
+		present = datetime.now(timezone('UTC'))
+	except ValueError as e:
+		if "Timezone offset does not match system offset" in str(e):
+			present = datetime.now()
+		else:
+			raise e
 	formatted_present = present.strftime('%b %d %H:%M:%S %Y %Z')
 	return datetime.strptime(formatted_present, '%b %d %H:%M:%S %Y %Z')
 

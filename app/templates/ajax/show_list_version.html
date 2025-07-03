@@ -1,5 +1,8 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang1 %}
 {% from 'include/input_macros.html' import copy_to_clipboard %}
+<link rel="stylesheet" href="/static/js/diff2html/diff2html.min.css">
+<script src="/static/js/diff2html/diff2html.min.js"></script>
+<script src="/static/js/diff2html/diff2html-ui.min.js"></script>
 <script src="/static/js/configshow.js"></script>
 {% if for_delver == '1' %}
 <script>
@@ -38,16 +41,6 @@
         }
     }
 </script>
-<style>
-    .diff {
-        overflow: auto;
-        width: 100%;
-        border: 1px solid #DCDCDC;
-        border-radius: 5px;
-        background-color: #fff;
-        margin: 0;
-    }
-</style>
 <form action="/config/{{ service }}/{{ server_ip }}/versions" method="delete" id="delete_versions_form">
     <table class="overview hover order-column display compact" id="table_version">
         <thead>
@@ -97,8 +90,9 @@
                 {% else %}
                 <a id="link_show_diff_{{c.id}}" onclick="show_diff('{{c.id}}')" title="Show a difference between this config and previous one" class="link">{{lang1.words.show|title()}} {{lang1.words.diff2}}</a>
                 <div id="show_diff_{{c.id}}" style="display: none;">
-                    {% set stdout = c.diff.split('\n') %}
-                    {% include 'ajax/compare.html' %}
+                    {% if c.diff|length > 0 %}
+                    <script>compareConfig('show_diff_{{c.id}}', `{{ c.diff }}`)</script>
+                    {% endif %}
                 </div>
                 {% endif %}
             </td>

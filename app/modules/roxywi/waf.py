@@ -68,7 +68,7 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
     return render_template('ajax/overviewWaf.html', service_status=servers_sorted, role=role, waf_service=waf_service, lang=lang)
 
 
-def change_waf_mode(waf_mode: str, server_id: int, service: str):
+def change_waf_mode(waf_mode: str, server_id: int, service: str) -> None:
     serv = server_sql.get_server(server_id)
 
     if service == 'haproxy':
@@ -77,11 +77,7 @@ def change_waf_mode(waf_mode: str, server_id: int, service: str):
         config_dir = sql.get_setting('nginx_dir')
 
     commands = f"sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine {waf_mode}/' {config_dir}/waf/modsecurity.conf"
-
-    try:
-        server_mod.ssh_command(serv.ip, commands)
-    except Exception as e:
-        return str(e)
+    server_mod.ssh_command(serv.ip, commands)
 
     roxywi_common.logging(serv.hostname, f'Has been changed WAF mod to {waf_mode}')
 
@@ -99,11 +95,7 @@ def switch_waf_rule(serv: str, enable: int, rule_id: int):
         cmd = "sudo sed -i 's!#" + rule_file_path + "!" + rule_file_path + "!' " + conf_file_path
         en_for_log = 'enabled'
 
-    try:
-        roxywi_common.logging('WAF', f' Has been {en_for_log} WAF rule: {rule_file} for the server {serv}')
-    except Exception:
-        pass
-
+    roxywi_common.logging('WAF', f' Has been {en_for_log} WAF rule: {rule_file} for the server {serv}')
     waf_sql.update_enable_waf_rules(rule_id, serv, enable)
     server_mod.ssh_command(serv, cmd)
 
@@ -126,10 +118,6 @@ def create_waf_rule(serv: str, service: str, json_data: dict) -> int:
     cmd = f"sudo echo Include {rule_file_path} >> {conf_file_path} && sudo touch {rule_file_path}"
     server_mod.ssh_command(serv, cmd)
     last_id = waf_sql.insert_new_waf_rule(new_waf_rule, rule_file, new_rule_desc, service, serv)
-
-    try:
-        roxywi_common.logging('WAF', f'A new rule has been created {rule_file} on the server {serv}')
-    except Exception:
-        pass
+    roxywi_common.logging('WAF', f'A new rule has been created {rule_file} on the server {serv}')
 
     return last_id

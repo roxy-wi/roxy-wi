@@ -255,35 +255,6 @@ pre {
 		margin-left: -310px;
 	}
 }
-.configShow, .diff {
-	overflow: auto;
-	width: 95%;
-	border: 1px solid #DCDCDC;
-	border-radius: 5px;
-}
-.config {
-	height: 60%;
-	width: 60% !important;
-}
-.diffHead {
-	background-color: #F5F5F5;
-	padding: 10px;
-}
-.lineDog {
-	background-color: #dbedff;
-	margin-bottom: 10px;
-	padding: 7px;
-}
-.lineDiffMinus, .lineDiffPlus, .lineDiff {
-	padding-left: var(--indent);
-	white-space: pre;
-}
-.lineDiffMinus {
-	background-color: #ffdce0;
-}
-.lineDiffPlus {
-	background-color: #cdffd8;
-}
 .param {
 	font-weight: bold;
 	padding-left: 13px;

@@ -64,7 +64,7 @@ vrrp_instance VI_{{router}} {
     virtual_routes {
         {% for k, slave in vip.items() %}
         {% if k == ansible_host and slave is mapping %}
-        {{ (ansible_facts[slave.eth]["ipv4"]["address"] + "/" + ansible_facts[slave.eth]["ipv4"]["netmask"]) | ipaddr("0") }} dev {{ slave.eth }} src {{ vip.vip }} scope link table ha_cluster_{{ router }}
+        {{ (ansible_facts[slave.eth]["ipv4"]["address"] + "/" + ansible_facts[slave.eth]["ipv4"]["netmask"]) | ansible.utils.ipaddr("0") }} dev {{ slave.eth }} src {{ vip.vip }} scope link table ha_cluster_{{ router }}
         {% endif %}
         {% endfor %}
     }

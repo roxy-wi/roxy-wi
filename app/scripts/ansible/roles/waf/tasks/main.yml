@@ -92,7 +92,7 @@
           - gcc
           - libpcre3-dev
           - wget
-          - libcurl4-nss-dev
+          - libcurl4-openssl-dev
           - libyajl-dev
           - libxml2
           - automake
