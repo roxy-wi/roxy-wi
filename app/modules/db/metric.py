@@ -59,8 +59,7 @@ def select_metrics(serv, service, **kwargs):
 		query = model.select().where(model.serv == serv)
 
 		# Add time-based filtering
-		from datetime import datetime, timedelta
-		now = datetime.now()
+		now = datetime.utcnow()
 
 		if time_range == '1':
 			# Last 1 minute
@@ -83,7 +82,6 @@ def select_metrics(serv, service, **kwargs):
 
 		# Order by date
 		query = query.order_by(model.date.asc())
-
 		# For longer time ranges, we can sample the data to reduce the number of points
 		# This is similar to the original SQL's "group by `date` div X" or "rowid % X = 0"
 		if mysql_enable == '1' and time_range not in ('1', '30'):

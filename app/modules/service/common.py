@@ -178,24 +178,31 @@ def overview_backends(server_ip: str, service: str) -> Union[str, dict]:
 	if service not in ('nginx', 'apache'):
 		format_file = config_common.get_file_format(service)
 		config_dir = config_common.get_config_dir(service)
-		cfg = config_common.generate_config_path(service, server_ip)
 
 		try:
-			sections = section_mod.get_sections(config_dir + roxywi_common.get_files(config_dir, format_file)[0], service=service)
+			config_file = roxywi_common.get_files(config_dir, format_file, server_ip)
+			if len(config_file) == 0:
+				raise 'there is no config file'
+			sections = section_mod.get_sections(config_dir + config_file[0], service=service)
 		except Exception as e:
+			cfg = config_common.generate_config_path(service, server_ip)
 			roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 
 			try:
 				config_mod.get_config(server_ip, cfg, service=service)
 			except Exception as e:
-				raise e
+				raise Exception('Cannot get config file: ' + str(e))
 			try:
 				sections = section_mod.get_sections(cfg, service=service)
 			except Exception as e:
-				raise e
+				raise Exception(f'Cannot get sections: {e}')
 	else:
 		sections = {}
-		sections_not_formated = section_mod.get_remote_sections(server_ip, service)
+		try:
+			sections_not_formated = section_mod.get_remote_sections(server_ip, service)
+		except Exception as e:
+			raise Exception(f'Cannot format backends: {e}')
+
 		for section in sections_not_formated.split('\r'):
 			if section == '\n':
 				continue

@@ -169,10 +169,11 @@ class ServerView(MethodView):
             description: Server creation successful
         """
         group = SupportClass.return_group_id(body)
+        server_ip = str(body.ip)
 
         kwargs = {
             'hostname': body.hostname,
-            'ip': str(body.ip),
+            'ip': server_ip,
             'group_id': group,
             'type_ip': body.type_ip,
             'enabled': body.enabled,
@@ -191,11 +192,11 @@ class ServerView(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create a server')
 
-        roxywi_common.logging(body.ip, f'A new server {body.hostname} has been created', login=1, keep_history=1, service='server')
+        roxywi_common.logging(server_ip, f'A new server {body.hostname} has been created', login=1, keep_history=1, service='server')
         try:
-            server_mod.update_server_after_creating(body.hostname, str(body.ip))
+            server_mod.update_server_after_creating(body.hostname, server_ip)
         except Exception as e:
-            roxywi_common.logging(body.ip, f'Cannot get system info from {body.hostname}: {e}', login=1, keep_history=1, service='server', mes_type='error')
+            roxywi_common.logging(server_ip, f'Cannot get system info from {body.hostname}: {e}', login=1, keep_history=1, service='server', mes_type='error')
 
         if self.is_api:
             return IdResponse(id=last_id).model_dump(mode='json'), 201
@@ -207,7 +208,7 @@ class ServerView(MethodView):
             lang = roxywi_common.get_user_lang_for_flask()
             kwargs = {
                 'groups': group_sql.select_groups(),
-                'servers': server_sql.select_servers(server=body.ip),
+                'servers': server_sql.select_servers(server=server_ip),
                 'lang': lang,
                 'masters': server_sql.select_servers(get_master_servers=1),
                 'sshs': cred_sql.select_ssh(group=group),
