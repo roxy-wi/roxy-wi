@@ -77,7 +77,7 @@ def check_server(server_id):
         'firewall': server.firewall_enable,
         'slave': server.master,
         'type_ip': server.type_ip,
-        'description': server.description,
+        'description': server.description.replace("'", ""),
         'protected': server.protected,
     }
     return jsonify(status)

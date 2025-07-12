@@ -132,7 +132,7 @@
 			<td>
 				{% set id = 'desc-' + server.0|string() %}
 				{% if server.11 is not none %}
-					{{ input(id, value=server.11.replace("'", ""), size='20') }}
+					{{ input(id, value=server.11|replace("'", ""), size='20') }}
 				{% else %}
 					{{ input(id, size='20') }}
 				{% endif %}

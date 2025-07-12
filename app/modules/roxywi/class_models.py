@@ -655,6 +655,7 @@ class NginxProxyPassRequest(BaseModel):
     ssl_crt: Optional[str] = None
     ssl_key: Optional[str] = None
     ssl_offloading: Optional[bool] = False
+    http2: Optional[bool] = False
     action: Optional[Literal['save', 'test', 'reload', 'restart']] = 'reload'
     compression: bool = False
     compression_level: Annotated[int, Gt(0), Le(10)] = 6

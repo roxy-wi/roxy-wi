@@ -248,7 +248,7 @@
 				{% if s.3 == '' %}
 				{{lang.words.no_desc|title()}}
 				{% else %}
-				{{s.3}}
+				{{s.3|replace("'", "")}}
 				{% endif %}
 				<br />
                 <b>{{lang.words.version|title()}}</b>: <span id="service-version-{{ s.0 }}"></span>
