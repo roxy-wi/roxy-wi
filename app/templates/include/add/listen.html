@@ -50,6 +50,7 @@
 							<br /><span class="tooltip tooltipTop">{{lang.words.enter2|title()}} {{lang.words.name}} {{lang.words.of}} pem {{lang.words.file2}}, {{lang.add_page.desc.press_down}}:</span><br />
 							{{ input('path-cert-listen', name="cert", placeholder="some_cert.pem", size='39') }}<br />
 							<label for="ssl-check-listen" style="margin-top: 5px;">{{lang.add_page.buttons.disable_ssl_verify}}</label><input type="checkbox" id="ssl-check-listen" name="ssl-check" value="ssl-check" checked>
+                            <p>{{ checkbox('listen-http2', name='http2', title=lang.add_page.desc.enable_http2, desc='Enable HTTP2') }}</p>
 						</div>
 					</td>
 				</tr>

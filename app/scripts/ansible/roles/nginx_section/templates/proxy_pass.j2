@@ -4,7 +4,7 @@ server {
     listen {{ config.port }} ssl{% if config.http2 %} http2{% endif %};
     ssl_certificate {{ config.ssl_crt }};
     ssl_certificate_key {{ config.ssl_key }};
-    {% if nginx_proxy.security.hsts %}
+    {% if config.hsts %}
 add_header Strict-Transport-Security "max-age={{ nginx_proxy.security.hsts_max_age }}; includeSubDomains" always;
     {% endif %}
 {% else %}
@@ -29,11 +29,11 @@ server {
     {% endif -%}
 
 
-    {% if nginx_proxy.security.hide_server_tokens %}
+    {% if config.security.hide_server_tokens %}
 server_tokens off;
     {% endif %}
 
-    {% if nginx_proxy.security.security_headers %}
+    {% if config.security.security_headers %}
 # Security headers
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
@@ -150,7 +150,7 @@ proxy_cache_path {{ nginx_proxy.caching.zones[0].path }}
     inactive={{ nginx_proxy.caching.zones[0].inactive }};
 {% endif %}
 
-{% if config.ssl_offloading -%}
+{% if config.ssl_offloading and config.scheme == 'https' -%}
 # HTTP to HTTPS redirect
 server {
     listen 80;

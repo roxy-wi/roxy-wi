@@ -9,10 +9,7 @@ nginx_proxy:
 
   # Security configurations
   security:
-    hide_server_tokens: true          # Hide Nginx version in headers
     hide_backend_headers: true        # Hide backend server headers (e.g., X-Powered-By)
-    security_headers: true            # Enable security headers (X-Content-Type-Options, etc.)
-    hsts: true                        # Enable HTTP Strict Transport Security
     hsts_max_age: 15768000            # HSTS duration in seconds (6 months)
     content_security_policy: "default-src 'self'"  # Content Security Policy rules
 

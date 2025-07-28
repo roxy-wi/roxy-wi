@@ -343,6 +343,8 @@
     "ssh_passphrase": "SSH key passphrase",
     "check_interval": "Check interval.",
     "check_interval_title": "Check interval. In seconds.",
+    "hide_server_tokens": "Hide server tokens",
+    "security_headers": "Enable security headers",
     }
 %}
 {% set roles = {
@@ -354,6 +356,8 @@
 %}
 {% set add_page = {
     "desc": {
+        "security_headers": "Enable security headers (X-Content-Type-Options, etc.)",
+        "hide_server_tokens": "Hide Nginx version in headers",
         "port_check": "A basic TCP-layer health check tries to connect to the server's TCP port. The check is valid when the server answers with a SYN/ACK packet.",
         "maxconn": "The total number of connections allowed, process-wide. This stops the process from accepting too many connections at once, which safeguards it from running out of memory.",
         "server_template": "Create the list of servers from the template",
@@ -975,5 +979,6 @@
     "types": "types",
     "min": "minimum",
     "length": "length",
+    "security": "security",
     }
 %}

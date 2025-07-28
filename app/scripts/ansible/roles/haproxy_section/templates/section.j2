@@ -1,7 +1,7 @@
 {{ config.type }} {{ config.name }}
     {% if config.binds != 'None' -%}
     {% for bind in config.binds -%}
-    bind {{ bind.ip }}:{{ bind.port }} {% if config.ssl != 'None' and config.mode == 'http' and config.ssl.cert %} ssl crt {{cert_path}}/{{ config.ssl.cert }}{% endif %}
+    bind {{ bind.ip }}:{{ bind.port }} {% if config.ssl != 'None' and config.mode == 'http' and config.ssl.cert %} ssl crt {{cert_path}}/{{ config.ssl.cert }} {% if config.http2 %}alpn h2,http/1.1{% endif %}{% endif %}
 
     {% endfor %}
     {% endif %}
@@ -34,6 +34,14 @@
     {% if config.blacklist and config.blacklist != 'None' -%}
     tcp-request connection reject if { src -f {{ service_dir }}/black/{{ config.blacklist }} }
     {% endif %}
+
+    {% if config.ddos -%}
+    {{ ddos }}
+    acl abuse sc1_http_req_rate({{ config.name }}) ge 100
+    acl flag_abuser sc1_inc_gpc0({{ config.name }})
+    tcp-request content reject if abuse flag_abuser
+    # End config for DDOS
+    {% endif -%}
 
     {% if config.acls != 'None' -%}
         {% for acl in config.acls -%}
@@ -72,14 +80,6 @@
     {{ ssl_offloading }}
     {% endif -%}
 
-    {% if config.ddos -%}
-    {{ ddos }}
-    acl abuse sc1_http_req_rate({{ config.name }}) ge 100
-    acl flag_abuser sc1_inc_gpc0({{ config.name }})
-    tcp-request content reject if abuse flag_abuser
-    # End config for DDOS
-    {% endif -%}
-
     {% if config.waf -%}
     filter spoe engine modsecurity config {{ service_dir }}/waf.conf
     http-request deny if { var(txn.modsec.code) -m int gt 0 }
@@ -102,7 +102,7 @@
 
     {% if config.ssl != 'None' and config.mode == 'http' -%}
         {%- if config.ssl.ssl_check_backend -%}
-            {%- set ssl_check_option = 'ssl verify' -%}
+            {%- set ssl_check_option = 'ssl verify required' -%}
         {%- else -%}
             {%- set ssl_check_option = 'ssl verify none' -%}
         {%- endif -%}
@@ -130,12 +130,12 @@
     default-server observe {{ config.circuit_breaking.observe }} error-limit {{ config.circuit_breaking.error_limit }} on-error {{ config.circuit_breaking.on_error }}
     {% endif -%}
 
-    {% if config.backend_servers != 'None' and config.servers_template == 'None' -%}
-    {% for backend in config.backend_servers -%}
+    {%- if config.backend_servers != 'None' and config.servers_template == 'None' -%}
+    {%- for backend in config.backend_servers -%}
     server {{ backend.server }} {{ backend.server }}:{{ backend.port }} port {{ backend.port_check }} {{ check_option }} {{ ssl_check_option }} maxconn {{ backend.maxconn }}{% if backend.send_proxy %} send-proxy{% endif %}{% if backend.backup %} backup {% endif %}
 
     {% endfor -%}
-    {% endif -%}
+    {%- endif -%}
 
     {% if config.servers_template != 'None' -%}
     server-template {{ config.servers_template.prefix }} {{ config.servers_template.count }} {{ config.servers_template.servers }}: {{ config.servers_template.port }} {{ check_option }}

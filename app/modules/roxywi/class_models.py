@@ -475,6 +475,7 @@ class HaproxyConfigRequest(BaseModel):
     backends: Optional[str] = None
     circuit_breaking: Optional[HaproxyCircuitBreaking] = None
     action: Optional[Literal['save', 'test', 'reload', 'restart']] = "save"
+    http2: Optional[bool] = False
 
 
 class HaproxyUserListUser(BaseModel):
@@ -645,6 +646,11 @@ class NginxLocationRequest(BaseModel):
         return values
 
 
+class NginxProxyPassSecurity(BaseModel):
+    security_headers: bool = False
+    hide_server_tokens: bool = False
+
+
 class NginxProxyPassRequest(BaseModel):
     locations: List[NginxLocationRequest]
     name: Union[IPvAnyAddress, DomainName]
@@ -655,9 +661,11 @@ class NginxProxyPassRequest(BaseModel):
     ssl_crt: Optional[str] = None
     ssl_key: Optional[str] = None
     ssl_offloading: Optional[bool] = False
+    hsts: Optional[bool] = False
     http2: Optional[bool] = False
     action: Optional[Literal['save', 'test', 'reload', 'restart']] = 'reload'
     compression: bool = False
     compression_level: Annotated[int, Gt(0), Le(10)] = 6
     compression_min_length: Optional[int] = 1024
     compression_types: Optional[str] = 'text/plain text/css application/json application/javascript text/xml'
+    security: Optional[NginxProxyPassSecurity]

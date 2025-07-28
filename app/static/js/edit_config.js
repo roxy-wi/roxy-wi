@@ -105,6 +105,14 @@ function openSection(section) {
 				} else {
 					$('#'+section_type+'_whitelist_checkbox').prop("checked", false);
 				}
+				if (data.ssl) {
+					if ($("#https-" + section_type).is(':checked')) {
+						$("#https-hide-" + section_type).show("fast");
+						$("#path-cert-" + section_type).val(data.ssl['cert']);
+					} else {
+						$("#https-hide-" + section_type).hide("fast");
+					}
+				}
 			}
 			if (section_type === 'listen' || section_type === 'backend') {
 				if (data.config.backend_servers) {
@@ -460,12 +468,10 @@ function getFormData($form, form_name) {
 			}
 		} else if (n['name'] === 'ssl') {
 			if ($('input[name="ssl"]').is(':checked')) {
-				let cert = $('input[name="cert"]').val();
 				let ssl_check_backend = true;
-				if ($('input[name="ssl-check"]').is(':checked')) {
-					ssl_check_backend = 0;
-				} else {
-					ssl_check_backend = true;
+				let cert = $form.find('input[name="cert"]').val();
+				if ($form.find('input[name="ssl-check"]').is(':checked')) {
+					ssl_check_backend = false;
 				}
 				indexed_array['ssl'] = {cert, ssl_check_backend};
 			}
@@ -508,6 +514,10 @@ function getFormData($form, form_name) {
 		} else if (n['name'] === 'cache') {
 			if ($('input[name="cache"]').is(':checked')) {
 				indexed_array['cache'] = true;
+			}
+		} else if (n['name'] === 'http2') {
+			if ($('input[name="http2"]').is(':checked')) {
+				indexed_array['http2'] = true;
 			}
 		} else if (n['name'] === 'circuit_breaking') {
 			if ($('input[name="circuit_breaking"]').is(':checked')) {
@@ -804,6 +814,23 @@ function openNginxSection(section) {
 					$('#hide-scheme').show();
 					$("#scheme").selectmenu();
 					$("#scheme").selectmenu('refresh');
+				}
+				if (data.security) {
+					if (data.security.hide_server_tokens) {
+						$('#hide_server_tokens').prop("checked", true);
+					} else {
+						$('#hide_server_tokens').prop("checked", false);
+					}
+					if (data.security.security_headers) {
+						$('#security_headers').prop("checked", true);
+					} else {
+						$('#security_headers').prop("checked", false);
+					}
+				}
+				if (data.hsts) {
+					$('#hsts').prop("checked", true);
+				} else {
+					$('#hsts').prop("checked", false);
 				}
 			}
 			$(section_id + ' select[name="server"]').selectmenu();
