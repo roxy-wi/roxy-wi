@@ -237,7 +237,14 @@ function getNginxFormData($form, form_name) {
 				let header = {action, name, value};
 				headers.push(header);
 			});
-			let location_config = {location, proxy_connect_timeout, proxy_read_timeout, proxy_send_timeout, headers, upstream};
+			let location_config = {
+				location,
+				proxy_connect_timeout,
+				proxy_read_timeout,
+				proxy_send_timeout,
+				headers,
+				upstream
+			};
 			indexed_array['locations'].push(location_config)
 		} else if (n['name'] === 'ssl_offloading') {
 			if ($('input[name="ssl_offloading"]').is(':checked')) {
@@ -261,23 +268,31 @@ function getNginxFormData($form, form_name) {
 			indexed_array[n['name']] = n['value'];
 		}
 	});
-	$('#name_alias_div p').each(function (){
+	$('#name_alias_div p').each(function () {
 		let name = $(this).children("input[name='name_alias']").val();
 		if (name === undefined || name === '') {
 			return;
 		}
 		indexed_array['name_aliases'].push(name);
 	});
-		let hide_server_tokens = false;
-		let security_headers = false;
-		if ($('#hide_server_tokens').is(':checked')) {
-			hide_server_tokens = true;
-		}
-		if ($('#security_headers').is(':checked')) {
-			security_headers = true;
-		}
-		indexed_array['security'] = {'hide_server_tokens': hide_server_tokens, 'security_headers': security_headers};
-	$('#'+form_name+' span[name="add_servers"] p').each(function (){
+	let hide_server_tokens = false;
+	let security_headers = false;
+	let hide_backend_headers = false;
+	if ($('#hide_server_tokens').is(':checked')) {
+		hide_server_tokens = true;
+	}
+	if ($('#security_headers').is(':checked')) {
+		security_headers = true;
+	}
+	if ($('#hide_backend_headers').is(':checked')) {
+		hide_backend_headers = true;
+	}
+	indexed_array['security'] = {
+		'hide_server_tokens': hide_server_tokens,
+		'security_headers': security_headers,
+		'hide_backend_headers': hide_backend_headers
+	};
+	$('#' + form_name + ' span[name="add_servers"] p').each(function () {
 		let server = $(this).children("input[name='servers']").val();
 		if (server === undefined || server === '') {
 			return;
@@ -290,7 +305,8 @@ function getNginxFormData($form, form_name) {
 	});
 	let elementsForDelete = [
 		'servers', 'server_port', 'max_fails', 'fail_timeout', 'proxy_connect_timeout', 'proxy_read_timeout', 'proxy_send_timeout',
-		'headers_res', 'header_name', 'header_value', 'upstream', 'server', 'name_alias', 'hide_server_tokens', 'security_headers'
+		'headers_res', 'header_name', 'header_value', 'upstream', 'server', 'name_alias', 'hide_server_tokens', 'security_headers',
+		'hide_backend_headers'
 	]
 	for (let element of elementsForDelete) {
 		delete indexed_array[element]

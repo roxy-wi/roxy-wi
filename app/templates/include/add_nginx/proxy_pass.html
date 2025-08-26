@@ -120,6 +120,7 @@ Timeouts: Timeouts (proxy_connect_timeout).
                     {% set enable_sec_headers = lang.words.enable|title() + ' ' + lang.words.security + ' ' + lang.words.headers %}
                     <p>{{ checkbox('hide_server_tokens', title=lang.add_page.desc.hide_server_tokens, desc=lang.phrases.hide_server_tokens, checked='checked') }}</p>
                     <p>{{ checkbox('security_headers', title=lang.add_page.desc.security_headers, desc=lang.phrases.security_headers, checked='checked') }}</p>
+                    <p>{{ checkbox('hide_backend_headers', title=lang.add_page.desc.hide_backend_headers, desc=lang.phrases.hide_backend_headers, checked='checked') }}</p>
                 </div>
             </td>
         </tr>

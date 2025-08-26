@@ -332,6 +332,7 @@
     "check_interval_title": "Verifique o intervalo. Em segundos.",
     "hide_server_tokens": "Ocultar tokens do servidor",
     "security_headers": "Habilitar cabeçalhos de segurança",
+    "hide_backend_headers": "Ocultar cabeçalhos do servidor de backend",
     }
 %}
 {% set roles = {
@@ -345,6 +346,7 @@
     "desc": {
         "security_headers": "Habilitar cabeçalhos de segurança (X-Content-Type-Options, etc.)",
         "hide_server_tokens": "Ocultar versão do Nginx nos cabeçalhos",
+        "hide_backend_headers": "Ocultar cabeçalhos do servidor de backend (por exemplo, X-Powered-By)",
         "port_check": "a verificação de integridade básica do nivel TCP tenta se conectar à porta TCP do servidor. A verificação é válida quando o servidor responde com um pacote SYN/ACK",
         "maxconn": "número total de conexões permitidas. Isso impede que o processo aceite muitas conexões de uma só vez, o que o protege de ficar sem memória.",
         "server_template": "Criar uma lista de servidores de um modelo",

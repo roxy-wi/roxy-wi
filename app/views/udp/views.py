@@ -105,7 +105,6 @@ class UDPListener(MethodView):
         else:
             if not listener_id:
                 kwargs = {
-                    'listeners': udp_sql.select_listeners(g.user_params['group_id']),
                     'lang': g.user_params['lang'],
                     'clusters': ha_sql.select_clusters(g.user_params['group_id']),
                     'is_needed_tool': common.is_tool('ansible'),

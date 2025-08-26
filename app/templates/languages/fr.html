@@ -332,6 +332,7 @@
     "check_interval_title": "Vérifiez l'intervalle. En secondes.",
     "hide_server_tokens": "Masquer les jetons du serveur",
     "security_headers": "Activer les en-têtes de sécurité",
+    "hide_backend_headers": "Masquer les en-têtes du serveur principal",
     }
 %}
 {% set roles = {
@@ -345,6 +346,7 @@
     "desc": {
         "security_headers": "Activer les en-têtes de sécurité (X-Content-Type-Options, etc.)",
         "hide_server_tokens": "Masquer la version Nginx dans les en-têtes",
+        "hide_backend_headers": "Masquer les en-têtes du serveur principal (par exemple, X-Powered-By)",
         "port_check": "Un contrôle de base de la couche TCP tente de se connecter au port TCP du serveur. Le contrôle est valide lorsque le serveur répond par un paquet SYN/ACK.",
         "maxconn": "Le nombre total de connexions autorisées, à l\'échelle du processus. Cela empêche le processus d\'accepter trop de connexions à la fois, ce qui lui évite de manquer de mémoire.",
         "server_template": "Créez la liste des serveurs à partir du modèle",

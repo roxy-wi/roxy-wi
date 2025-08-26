@@ -135,7 +135,7 @@ location {{ location.location }} {
     gzip_proxied any;
     {% endif %}
 
-    {% if nginx_proxy.security.hide_backend_headers %}
+    {% if config.security.hide_backend_headers %}
 # Hide backend headers
     proxy_hide_header X-Powered-By;
     proxy_hide_header Server;

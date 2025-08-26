@@ -332,6 +332,7 @@
     "check_interval_title": "Intervalo de comprobación. En segundos.",
     "hide_server_tokens": "Ocultar tokens del servidor",
     "security_headers": "Habilitar encabezados de seguridad",
+    "hide_backend_headers": "Ocultar los encabezados del servidor backend",
     }
 %}
 {% set roles = {
@@ -345,6 +346,7 @@
     "desc": {
         "security_headers": "Habilitar encabezados de seguridad (X-Content-Type-Options, etc.)",
         "hide_server_tokens": "Ocultar la versión de Nginx en los encabezados",
+        "hide_backend_headers": "Ocultar los encabezados del servidor backend (por ejemplo, X-Powered-By)",
         "port_check": "Una verificación básica a nivel TCP intenta conectarse al puerto TCP del servidor. La verificación es válida cuando el servidor responde con un paquete SYN/ACK.",
         "maxconn": "Número total de conexiones permitidas a nivel de proceso. Esto evita aceptar demasiadas conexiones a la vez, protegiendo de quedarse sin memoria.",
         "server_template": "Crear la lista de servidores desde la plantilla",

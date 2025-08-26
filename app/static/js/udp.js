@@ -615,3 +615,33 @@ function checkUdpBackendStatus(listener_id, backend_ip) {
 		}
     });
 }
+function getUdpListeners() {
+	$.ajax({
+		url: api_prefix + "/udp/listeners",
+		success: function (data) {
+			let clusters = document.querySelectorAll('.up-pannel > [id^="listener-"]');
+			let clusterNumbers = Array.from(clusters).map(div =>
+				parseInt(div.id.replace('listener-', ''), 10)
+			);
+			if (data.status === 'failed') {
+				toastr.error(data.error);
+				return;
+			}
+			if (data.length > 0) {
+				const dataIds = data.map(item => item.id);
+				const idsToDelete = clusterNumbers.filter(id => !dataIds.includes(id));
+
+				for (const [key, value] of Object.entries(data)) {
+					if (!clusterNumbers.includes(value.id)) {
+						getUDPListener(value.id, true);
+					} else {
+						getUDPListener(value.id, false);
+					}
+				}
+				for (let id of idsToDelete) {
+					$('#listener-' + id).remove();
+				}
+			}
+		}
+	});
+}

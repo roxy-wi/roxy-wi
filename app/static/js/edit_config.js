@@ -826,6 +826,11 @@ function openNginxSection(section) {
 					} else {
 						$('#security_headers').prop("checked", false);
 					}
+					if (data.security.hide_backend_headers) {
+						$('#hide_backend_headers').prop("checked", true);
+					} else {
+						$('#hide_backend_headers').prop("checked", false);
+					}
 				}
 				if (data.hsts) {
 					$('#hsts').prop("checked", true);

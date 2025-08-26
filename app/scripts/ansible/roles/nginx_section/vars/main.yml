@@ -9,7 +9,6 @@ nginx_proxy:
 
   # Security configurations
   security:
-    hide_backend_headers: true        # Hide backend server headers (e.g., X-Powered-By)
     hsts_max_age: 15768000            # HSTS duration in seconds (6 months)
     content_security_policy: "default-src 'self'"  # Content Security Policy rules
 

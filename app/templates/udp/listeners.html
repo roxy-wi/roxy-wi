@@ -22,11 +22,7 @@
 {% if g.user_params['role'] <= 3 %}
 <div class="add-button add-button-big" title="{{lang.words.create|title()}} UDP {{ lang.words.listener }}" onclick="createUDPListener();">+ {{lang.words.create|title()}} UDP {{ lang.words.listener }}</div>
 {% endif %}
-<div class="up-pannel" class="sortable">
-    {% for listener in listeners %}
-    <div id="listener-{{listener.id}}" class="div-server-hapwi animated-background"></div>
-    {% endfor %}
-</div>
+<div class="up-pannel" class="sortable"></div>
 <div id="create-udp-step-1" style="display: none;">
     <table class="overview" id="create-udp-step-1-overview"
            title="{{lang.words.create|title()}} UDP {{ lang.words.listener }}"
@@ -179,9 +175,8 @@
     <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>{{lang.phrases.are_you_sure}}</p>
 </div>
 <script>
-    {% for listener in listeners %}
-        getUDPListener('{{listener.id}}');
-    {% endfor %}
+    getUdpListeners();
+    setInterval(getUdpListeners, 60000);
 </script>
 {% endif %}
 {% endblock %}

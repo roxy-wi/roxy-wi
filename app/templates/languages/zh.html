@@ -332,6 +332,7 @@
     "check_interval_title": "检查间隔（以秒为单位）。",
     "hide_server_tokens": "隐藏服务器令牌",
     "security_headers": "启用安全标头",
+    "hide_backend_headers": "隐藏后端服务器标头",
     }
 %}
 {% set roles = {
@@ -345,6 +346,7 @@
     "desc": {
         "security_headers": "启用安全标头（X-Content-Type-Options 等）",
         "hide_server_tokens": "在标头中隐藏 Nginx 版本",
+        "hide_backend_headers": "隐藏后端服务器标头（例如 X-Powered-By）",
         "port_check": "基本的 TCP 层健康检查尝试连接到服务器的 TCP 端口。当服务器返回 SYN/ACK 数据包时，检查被认为是成功的。",
         "maxconn": "进程允许的总连接数。这可以防止进程接受过多连接，从而防止内存耗尽。",
         "server_template": "根据模板创建服务器列表。",
