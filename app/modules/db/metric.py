@@ -52,28 +52,26 @@ def select_metrics(serv, service, **kwargs):
 		else:
 			model = Metrics
 
-		# Get time range from kwargs
-		time_range = kwargs.get('time_range', '30')  # Default to 30 minutes if not specified
-
+		time_range = kwargs.get('time_range', '30')
 		# Create a base query
 		query = model.select().where(model.serv == serv)
 
 		# Add time-based filtering
 		now = datetime.utcnow()
 
-		if time_range == '1':
+		if time_range == 1:
 			# Last 1 minute
 			query = query.where(model.date >= now - timedelta(minutes=1))
-		elif time_range == '60':
+		elif time_range == 60:
 			# Last 60 minutes
 			query = query.where(model.date >= now - timedelta(minutes=60))
-		elif time_range == '180':
+		elif time_range == 180:
 			# Last 180 minutes
 			query = query.where(model.date >= now - timedelta(minutes=180))
-		elif time_range == '360':
+		elif time_range == 360:
 			# Last 360 minutes
 			query = query.where(model.date >= now - timedelta(minutes=360))
-		elif time_range == '720':
+		elif time_range == 720:
 			# Last 720 minutes
 			query = query.where(model.date >= now - timedelta(minutes=720))
 		else:
@@ -84,14 +82,14 @@ def select_metrics(serv, service, **kwargs):
 		query = query.order_by(model.date.asc())
 		# For longer time ranges, we can sample the data to reduce the number of points
 		# This is similar to the original SQL's "group by `date` div X" or "rowid % X = 0"
-		if mysql_enable == '1' and time_range not in ('1', '30'):
+		if mysql_enable == '1' and time_range not in (1, 30):
 			# For MySQL, we can use the SQL function to sample data
 			from peewee import fn
 			sampling_rates = {
-				'60': 100,
-				'180': 200,
-				'360': 300,
-				'720': 500
+				60: 100,
+				180: 200,
+				360: 300,
+				720: 500
 			}
 			if time_range in sampling_rates:
 				# Group by date div X to reduce data points
@@ -99,15 +97,15 @@ def select_metrics(serv, service, **kwargs):
 					(model.serv == serv) & 
 					(model.date >= now - timedelta(minutes=int(time_range)))
 				).group_by(fn.DIV(model.date, sampling_rates[time_range])).order_by(model.date.asc())
-		elif not mysql_enable == '1' and time_range not in ('1', '30'):
+		elif not mysql_enable == '1' and time_range not in (1, 30):
 			# For SQLite, we need to fetch all data and then sample it in Python
 			# This is less efficient but maintains compatibility
 			results = list(query.dicts())
 			sampling_rates = {
-				'60': 2,
-				'180': 5,
-				'360': 7,
-				'720': 9
+				60: 2,
+				180: 5,
+				360: 7,
+				720: 9
 			}
 			if time_range in sampling_rates:
 				# Sample data by taking every Nth row
