@@ -56,7 +56,7 @@ def get_action_command(service: str, action: str, server_id: int) -> str:
     if is_docker == '1':
         container_name = sql.get_setting(f'{service}_container_name')
         if action == 'reload':
-            action = 'kill -S HUP'
+            action = 'kill -s HUP'
         commands = f"sudo docker {action} {container_name}"
     else:
         service_name = service_common.get_correct_service_name(service, server_id)
