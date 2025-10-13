@@ -36,7 +36,8 @@ def connect(get_migrator=None):
         conn = SqliteExtDatabase(db, pragmas=(
             ('cache_size', -1024 * 64),  # 64MB page-cache.
             ('journal_mode', 'wal'),
-            ('foreign_keys', 1)
+            ('foreign_keys', 1),
+            ('page_size', 4096),
         ))
         migrator = SqliteMigrator(conn)
     if get_migrator:

@@ -28,9 +28,6 @@ nginx_proxy:
         inactive: "60m"               # Cache retention time for inactive entries
         levels: "1:2"                 # Directory structure levels
 
-  websocket:
-    enabled: false
-
   # Custom error pages
   error_pages:
     enabled: false                   # Enable custom error pages

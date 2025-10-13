@@ -798,6 +798,9 @@ function openNginxSection(section) {
 					$('#proxy_read_timeout').val(location.proxy_read_timeout);
 					$('#proxy_send_timeout').val(location.proxy_send_timeout);
 					$('#proxy_pass-upstream').val(location.upstream);
+					if (location.websocket) {
+						$('#websocket').prop("checked", true);
+					}
 				}
 				if (data.compression) {
 					$('#compression').prop("checked", true);

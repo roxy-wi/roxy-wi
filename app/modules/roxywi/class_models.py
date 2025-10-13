@@ -626,6 +626,7 @@ class NginxLocationRequest(BaseModel):
     proxy_send_timeout: Optional[int] = 60
     headers: Optional[List[NginxHeaderRequest]] = None
     upstream: str
+    websocket: Optional[bool] = False
 
     @model_validator(mode='before')
     @classmethod

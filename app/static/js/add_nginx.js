@@ -237,12 +237,17 @@ function getNginxFormData($form, form_name) {
 				let header = {action, name, value};
 				headers.push(header);
 			});
+			let websocket = false;
+			if ($('input[name="websocket"]').is(':checked')) {
+				websocket = true;
+			}
 			let location_config = {
 				location,
 				proxy_connect_timeout,
 				proxy_read_timeout,
 				proxy_send_timeout,
 				headers,
+				websocket,
 				upstream
 			};
 			indexed_array['locations'].push(location_config)
