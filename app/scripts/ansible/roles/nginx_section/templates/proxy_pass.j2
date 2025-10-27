@@ -80,15 +80,17 @@ location {{ location.location }} {
         proxy_send_timeout {{ location.proxy_send_timeout }};
 
         {% if location.websocket %}
+
         # WebSocket
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
         {% endif %}
 
-        {% if nginx_proxy.caching.enabled %}
+        {% if location.cache and location.cache != 'None' %}
+
         # Caching
-        proxy_cache {{ nginx_proxy.caching.zones[0].name }};
+        proxy_cache {{ location.cache.name }};
         proxy_cache_key "$scheme$request_method$host$request_uri";
         proxy_cache_valid 200 302 10m;
         proxy_cache_valid 404 1m;
@@ -142,13 +144,15 @@ location {{ location.location }} {
     {% endif -%}
 }
 
-{% if nginx_proxy.caching.enabled %}
+{% for location in config.locations %}
+{% if location.cache and location.cache != 'None' %}
 # Cache zones
-proxy_cache_path {{ nginx_proxy.caching.zones[0].path }}
-    levels={{ nginx_proxy.caching.zones[0].levels }}
-    keys_zone={{ nginx_proxy.caching.zones[0].name }}:{{ nginx_proxy.caching.zones[0].size }}
-    inactive={{ nginx_proxy.caching.zones[0].inactive }};
+proxy_cache_path {{ location.cache.path }}
+levels={{ location.cache.levels }}
+keys_zone={{ location.cache.name }}:{{ location.cache.size }}
+inactive={{ location.cache.inactive }};
 {% endif %}
+{% endfor %}
 
 {% if config.ssl_offloading and config.scheme == 'https' -%}
 # HTTP to HTTPS redirect

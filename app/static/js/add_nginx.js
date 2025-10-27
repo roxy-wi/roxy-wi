@@ -45,6 +45,13 @@ $( function() {
 			$('#compression-options').hide();
 		}
 	});
+	$("#cache").click(function () {
+		if ($("#cache").is(':checked')) {
+			$('#enabled-cache').show();
+		} else {
+			$('#enabled-cache').hide();
+		}
+	});
 	$("#show_header").on("click", function () {
 		$("#header_div").show();
 		$("#add_header").show();
@@ -224,6 +231,7 @@ function getNginxFormData($form, form_name) {
 			let proxy_read_timeout = $('input[name="proxy_read_timeout"]').val();
 			let proxy_send_timeout = $('input[name="proxy_send_timeout"]').val();
 			let upstream = $('input[name="upstream"]').val();
+			let cache = null;
 			$('#header_div p').each(function () {
 				let action = $(this).children().children('select[name="headers_res"] option:selected').val();
 				let name = $(this).children('input[name="header_name"]').val();
@@ -241,6 +249,15 @@ function getNginxFormData($form, form_name) {
 			if ($('input[name="websocket"]').is(':checked')) {
 				websocket = true;
 			}
+			if ($('input[name="cache"]').is(':checked')) {
+				let enabled = true;
+				let name = $('input[name="cache-name"]').val();
+				let path = $('input[name="cache-path"]').val();
+				let size = $('input[name="cache-size"]').val();
+				let inactive = $('input[name="cache-inactive"]').val();
+				let levels = $('input[name="cache-levels"]').val();
+				cache = {enabled, name, path, size, inactive, levels};
+			}
 			let location_config = {
 				location,
 				proxy_connect_timeout,
@@ -248,7 +265,8 @@ function getNginxFormData($form, form_name) {
 				proxy_send_timeout,
 				headers,
 				websocket,
-				upstream
+				upstream,
+				cache,
 			};
 			indexed_array['locations'].push(location_config)
 		} else if (n['name'] === 'ssl_offloading') {
@@ -311,7 +329,7 @@ function getNginxFormData($form, form_name) {
 	let elementsForDelete = [
 		'servers', 'server_port', 'max_fails', 'fail_timeout', 'proxy_connect_timeout', 'proxy_read_timeout', 'proxy_send_timeout',
 		'headers_res', 'header_name', 'header_value', 'upstream', 'server', 'name_alias', 'hide_server_tokens', 'security_headers',
-		'hide_backend_headers'
+		'hide_backend_headers', 'cache', 'cache-name', 'cache-path', 'cache-size', 'cache-inactive', 'cache-levels',
 	]
 	for (let element of elementsForDelete) {
 		delete indexed_array[element]

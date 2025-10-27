@@ -21,7 +21,8 @@
 			{{ input('serv', type='hidden', value=serv) }}
 			{{ input('open', type='hidden', value='open') }}
 			<a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang.words.open|title()}} {{lang.words.config}}" onclick="showConfig()">{{lang.words.open|title()}}</a>
-			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.config}} {{lang.words.file}}"  onclick="addNewConfig('{{serv}}', '{{service}}')">{{lang.words.add|title()}}</a>
+			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.config}} {{lang.words.file}}" onclick="addNewConfig('{{serv}}', '{{service}}')">{{lang.words.create|title()}} {{ lang.words.new }} {{ lang.words.config }} </a>
+			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.config}} {{lang.words.file}} via Wizard" href="https://demo.roxy-wi.org/add/nginx#proxy", '{{service}}')">{{lang.words.add|title()}} </a>
 			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.find|title()}} {{lang.words.in}} {{lang.words.config}} {{lang.words.files}}" id="open_find_form">{{lang.words.find|title()}}</a>
 		</p>
 		</form>

@@ -5,10 +5,12 @@ from typing import Optional, Annotated, Union, Literal, Any, Dict, List
 from shlex import quote
 from pydantic_core import CoreSchema, core_schema
 from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, GetCoreSchemaHandler, AnyUrl, \
-    root_validator, EmailStr, model_validator
+    root_validator, EmailStr, model_validator, DirectoryPath
 
 DomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
 WildcardDomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9\*](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
+SizeStr = Annotated[str, StringConstraints(pattern=r'^\d+\s*(b|kb|mb|gb|tb|B|KB|MB|GB|TB|m|M|g|G|k|K)$')]
+TimeStr = Annotated[str, StringConstraints(pattern=r'^\d+\s*(M|w|d|h|m|s)$')]
 
 
 class EscapedString(str):
@@ -619,6 +621,15 @@ class NginxHeaderRequest(BaseModel):
     value: Optional[str] = None
 
 
+class NginxProxyPassCache(BaseModel):
+    enabled: bool = True
+    name: str
+    path: DirectoryPath
+    size: SizeStr
+    inactive: TimeStr
+    levels: str
+
+
 class NginxLocationRequest(BaseModel):
     location: str = '/'
     proxy_connect_timeout: Optional[int] = 60
@@ -627,6 +638,7 @@ class NginxLocationRequest(BaseModel):
     headers: Optional[List[NginxHeaderRequest]] = None
     upstream: str
     websocket: Optional[bool] = False
+    cache: Optional[NginxProxyPassCache] = None
 
     @model_validator(mode='before')
     @classmethod
@@ -650,6 +662,7 @@ class NginxLocationRequest(BaseModel):
 class NginxProxyPassSecurity(BaseModel):
     security_headers: bool = False
     hide_server_tokens: bool = False
+    hide_backend_headers: bool = False
 
 
 class NginxProxyPassRequest(BaseModel):

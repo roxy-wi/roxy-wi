@@ -108,6 +108,17 @@ Timeouts: Timeouts (proxy_connect_timeout).
                     <br>
                     {{ checkbox('websocket', title=lang.words.enable|title() + ' Websocket', desc='Websocket') }}
                     <br>
+                    {{ checkbox('cache', title=lang.words.enable|title() + ' cache', desc='Cache') }}
+                    <div id="enabled-cache" style="display: none;">
+                        <div>
+                            <p>{{ lang.words.name|title() }}: {{ input('cache-name', title="Cache name", placeholder="api_cache") }} </p>
+                            <p>{{ lang.words.path|title() }}: {{ input('cache-path', title="Cache path", placeholder="/var/cache/nginx/api") }}</p>
+                            <p>{{ lang.words.size|title() }}: {{ input('cache-size', title="Cache size. Example: 10m, 12k, 1g", value="10m") }}</p>
+                            <p>{{ lang.words.inactive|title() }}: {{ input('cache-inactive', title="Cache inactive. Example: 60m, 1M, 3d", value="60m") }}</p>
+                            <p>{{ lang.words.levels|title() }}: {{ input('cache-levels', title="Cache levels", value="1:2") }}</p>
+                        </div>
+                    </div>
+                    <br>
                     Upstream: {{ input('proxy_pass-upstream', name='upstream', placeholder='upstream_config') }}
                     <div class="tooltip tooltipTop">
 						<b>{{lang.words.note|title()}}</b>: {{lang.add_nginx_page.desc.def_backend}}, <span title="{{lang.words.create|title()}} {{lang.words.upstream}}" class="redirectUpstream link">{{lang.add_nginx_page.desc.def_backend_exit}}</span>.

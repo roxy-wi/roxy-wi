@@ -529,6 +529,30 @@ class ProxyPassSectionView(NginxSectionView):
                       upstream:
                         type: string
                         description: Name of the upstream server.
+                      websocket:
+                        type: boolean
+                        default: false
+                      cache:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: Name of the cache.
+                          path:
+                            type: string
+                            description: Path to the cache directory.
+                          size:
+                            type: string
+                            description: Size of the cache.
+                            default: 10m
+                          levels:
+                            type: string
+                            description: List of levels of the cache.
+                            default: 1:2
+                          inactive:
+                            type: string
+                            description: Indicates whether the cache is inactive.
+                            default: 60m
                 name:
                   type: string
                   description: Name of the proxy pass configuration.
@@ -558,6 +582,22 @@ class ProxyPassSectionView(NginxSectionView):
                   enum:
                     - proxy_pass
                   description: Section type (e.g., "proxy_pass").
+                security:
+                  type: object
+                  description: Security settings for the proxy pass section.
+                  properties:
+                    security_headers:
+                      type: bool
+                      description: Indicates whether to enable security headers.
+                      default: true
+                    hide_server_tokens:
+                      type: bool
+                      description: Indicates whether to hide server tokens.
+                      default: true
+                    hide_backend_headers:
+                      type: bool
+                      description: Indicates whether to hide backend headers.
+                      default: true
           400:
             description: Invalid parameters.
           404:
@@ -660,6 +700,30 @@ class ProxyPassSectionView(NginxSectionView):
                       upstream:
                         type: string
                         description: Name of the upstream server.
+                      websocket:
+                        type: boolean
+                        default: false
+                      cache:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: Name of the cache.
+                          path:
+                            type: string
+                            description: Path to the cache directory.
+                          size:
+                            type: string
+                            description: Size of the cache.
+                            default: 10m
+                          levels:
+                            type: string
+                            description: List of levels of the cache.
+                            default: 1:2
+                          inactive:
+                            type: string
+                            description: Indicates whether the cache is inactive.
+                            default: 60m
                 name:
                   type: string
                   description: Domain name or IP of the proxy pass section.
@@ -694,6 +758,22 @@ class ProxyPassSectionView(NginxSectionView):
                   type: string
                   description: The compression level (e.g., 1 to 9).
                   default: 6
+                security:
+                  type: object
+                  description: Security settings for the proxy pass section.
+                  properties:
+                    security_headers:
+                      type: bool
+                      description: Indicates whether to enable security headers.
+                      default: true
+                    hide_server_tokens:
+                      type: bool
+                      description: Indicates whether to hide server tokens.
+                      default: true
+                    hide_backend_headers:
+                      type: bool
+                      description: Indicates whether to hide backend headers.
+                      default: true
         responses:
           200:
             description: NGINX section successfully created.
@@ -714,7 +794,6 @@ class ProxyPassSectionView(NginxSectionView):
             ):
         """
         This is the NginxProxyPassView API where you can update the NGINX sections.
-
         ---
         tags:
           - NGINX proxy_pass section
@@ -801,6 +880,30 @@ class ProxyPassSectionView(NginxSectionView):
                       upstream:
                         type: string
                         description: Name of the upstream server.
+                      websocket:
+                        type: boolean
+                        default: false
+                      cache:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                            description: Name of the cache.
+                          path:
+                            type: string
+                            description: Path to the cache directory.
+                          size:
+                            type: string
+                            description: Size of the cache.
+                            default: 10m
+                          levels:
+                            type: string
+                            description: List of levels of the cache.
+                            default: 1:2
+                          inactive:
+                            type: string
+                            description: Indicates whether the cache is inactive.
+                            default: 60m
                 name:
                   type: string
                   description: Domain name or IP of the proxy pass section.
@@ -835,6 +938,22 @@ class ProxyPassSectionView(NginxSectionView):
                   type: string
                   description: The compression level (e.g., 1 to 9).
                   default: 6
+                security:
+                  type: object
+                  description: Security settings for the proxy pass section.
+                  properties:
+                    security_headers:
+                      type: bool
+                      description: Indicates whether to enable security headers.
+                      default: true
+                    hide_server_tokens:
+                      type: bool
+                      description: Indicates whether to hide server tokens.
+                      default: true
+                    hide_backend_headers:
+                      type: bool
+                      description: Indicates whether to hide backend headers.
+                      default: true
         responses:
           200:
             description: NGINX section successfully created.

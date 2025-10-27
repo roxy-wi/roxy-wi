@@ -801,6 +801,15 @@ function openNginxSection(section) {
 					if (location.websocket) {
 						$('#websocket').prop("checked", true);
 					}
+					if (location.cache && location.cache.enabled) {
+						$('#cache').prop("checked", true);
+						$('#enabled-cache').show();
+						$('#cache-name').val(location.cache.name);
+						$('#cache-path').val(location.cache.path);
+						$('#cache-size').val(location.cache.size);
+						$('#cache-inactive').val(location.cache.inactive);
+						$('#cache-levels').val(location.cache.levels);
+					}
 				}
 				if (data.compression) {
 					$('#compression').prop("checked", true);
