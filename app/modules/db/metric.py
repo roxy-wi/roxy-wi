@@ -131,14 +131,14 @@ def select_servers_metrics_for_master(group_id: int):
 		out_error(e)
 
 
-def select_metrics_enabled(service: Literal['haproxy', 'nginx', 'apache']):
+def select_metrics_enabled(service: Literal['haproxy', 'nginx', 'apache'], group_id: int):
 	query_where = {
 		'haproxy': ((Server.haproxy_metrics == 1) & (Server.haproxy == 1)),
 		'nginx': ((Server.nginx_metrics == 1) & (Server.nginx == 1)),
 		'apache': ((Server.apache_metrics == 1) & (Server.apache == 1)),
 	}
 	try:
-		return Server.select(Server.ip).where(query_where[service] & (Server.enabled == 1)).execute()
+		return Server.select(Server.ip).where(query_where[service] & (Server.enabled == 1) & (Server.group_id == group_id)).execute()
 	except Exception as e:
 		out_error(e)
 
@@ -156,12 +156,9 @@ def select_table_metrics(group_id):
 		# Get servers with haproxy metrics enabled
 		server_query = Server.select(Server.ip, Server.hostname).where(
 			(Server.haproxy_metrics == 1) & 
-			(Server.enabled == 1)
+			(Server.enabled == 1) &
+			(Server.group_id == group_id)
 		)
-
-		# Apply group filter if not admin group
-		if group_id != 1:
-			server_query = server_query.where(Server.group_id == group_id)
 
 		# Get list of server IPs
 		servers = list(server_query.execute())

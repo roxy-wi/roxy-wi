@@ -48,14 +48,13 @@ def metrics(service):
                     servers = ''
                 else:
                     services = '1'
-                    servers = metric_sql.select_metrics_enabled(service)
+                    servers = metric_sql.select_metrics_enabled(service, g.user_params['group_id'])
             else:
                 servers = ''
     except Exception as e:
         return f'error: on Metrics page: {e}', 500
 
     kwargs = {
-        'autorefresh': 1,
         'servers': servers,
         'service': service,
         'services': services,
