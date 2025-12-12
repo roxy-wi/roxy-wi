@@ -235,7 +235,7 @@ class ChannelRequest(BaseModel):
 class ServerInstall(BaseModel):
     id: int
     master: Optional[bool] = 0
-    version: Optional[str] = '3.1.7-1'
+    version: Optional[str] = '3.3.0-1'
 
 
 class ServiceInstall(BaseModel):
