@@ -48,7 +48,7 @@ def metrics(service):
                     servers = ''
                 else:
                     services = '1'
-                    servers = metric_sql.select_metrics_enabled(service, g.user_params['group_id'])
+                    servers = metric_sql.select_metrics_enabled_with_group(service, g.user_params['group_id'])
             else:
                 servers = ''
     except Exception as e:

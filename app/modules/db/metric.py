@@ -131,7 +131,20 @@ def select_servers_metrics_for_master(group_id: int):
 		out_error(e)
 
 
-def select_metrics_enabled(service: Literal['haproxy', 'nginx', 'apache'], group_id: int):
+def select_metrics_enabled(service: Literal['haproxy', 'nginx', 'apache']):
+	query_where = {
+		'haproxy': ((Server.haproxy_metrics == 1) & (Server.haproxy == 1)),
+		'nginx': ((Server.nginx_metrics == 1) & (Server.nginx == 1)),
+		'apache': ((Server.apache_metrics == 1) & (Server.apache == 1)),
+	}
+	try:
+		return Server.select(Server.ip).where(query_where[service] & (Server.enabled == 1)).execute()
+	except Exception as e:
+		out_error(e)
+
+
+
+def select_metrics_enabled_with_group(service: Literal['haproxy', 'nginx', 'apache'], group_id: int):
 	query_where = {
 		'haproxy': ((Server.haproxy_metrics == 1) & (Server.haproxy == 1)),
 		'nginx': ((Server.nginx_metrics == 1) & (Server.nginx == 1)),
