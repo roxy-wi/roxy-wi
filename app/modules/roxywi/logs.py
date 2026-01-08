@@ -56,7 +56,8 @@ def show_roxy_log(
 	exgrep_act = ''
 
 	if grep:
-		grep_act = '|egrep "%s"' % checkAjaxInput(grep)
+		grep = checkAjaxInput(grep)
+		grep_act = f"|grep '{grep}'"
 
 	if exgrep:
 		exgrep_act = '|egrep -v "%s"' % checkAjaxInput(exgrep)

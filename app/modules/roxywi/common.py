@@ -46,7 +46,7 @@ def get_user_group(**kwargs) -> int:
 	return user_group
 
 
-def check_user_group_for_flask():
+def check_user_group_for_flask() -> bool:
 	claims = get_jwt_token_claims()
 	user_id = claims['user_id']
 	group_id = claims['group']
@@ -55,7 +55,7 @@ def check_user_group_for_flask():
 		return True
 	else:
 		logging('Roxy-WI server', 'warning: has tried to actions in not his group')
-		return False
+	return False
 
 
 def check_user_group_for_socket(user_id: int, group_id: int) -> bool:

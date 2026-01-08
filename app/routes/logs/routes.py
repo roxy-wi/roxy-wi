@@ -1,6 +1,7 @@
 from flask import render_template, request, redirect, url_for, g
 from flask_jwt_extended import jwt_required
 
+from app.modules.roxywi.exception import RoxywiResourceNotFound
 from app.routes.logs import bp
 from app.middleware import check_services, get_user_params
 import app.modules.db.sql as sql
@@ -127,7 +128,11 @@ def show_logs(service, serv, rows, waf):
                 serv=serv, rows=rows, waf=waf, grep=grep, exgrep=exgrep, hour=hour, minute=minute,
                 hour1=hour1, minute1=minute1, service=service, log_file=log_file
             )
+            if 'No such file or directory' in out:
+                return roxywi_common.handle_json_exceptions(Exception('File not found'), serv, 'File not found'), 500
         except Exception as e:
             return str(e)
         else:
             return out
+
+    return 'error: no log file', 500

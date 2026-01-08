@@ -118,7 +118,7 @@ def checkAjaxInput(ajax_input: str):
 	:return: The modified `ajax_input` string, or an empty string if the input was empty or contained non-permitted characters.
 	"""
 	if not ajax_input: return ''
-	pattern = re.compile('[&;|$`]')
+	pattern = re.compile('[&;|$`\n\r<>]')
 	if pattern.search(ajax_input):
 		raise ValueError('Error: Non-permitted characters detected')
 	else:
