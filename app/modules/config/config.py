@@ -361,6 +361,8 @@ def diff_config(old_cfg, cfg) -> str:
 	"""
 	cmd = f"/bin/diff -ub {old_cfg} {cfg}"
 	output, stderr = server_mod.subprocess_execute(cmd)
+	if stderr:
+		raise Exception(stderr)
 	output = '\n'.join(output)
 	return output
 

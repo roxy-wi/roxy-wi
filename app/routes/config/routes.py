@@ -329,7 +329,12 @@ def show_configs_for_compare(service, server_ip):
 def show_compare(service, server_ip):
     left = common.checkAjaxInput(request.json.get('left'))
     right = common.checkAjaxInput(request.json.get('right'))
-    compare = config_mod.compare_config(service, left, right)
+    if '..' in left or '..' in right:
+        return jsonify({'error': 'error: .. is not allowed'})
+    try:
+        compare = config_mod.compare_config(service, left, right)
+    except Exception as e:
+        return roxywi_common.handler_exceptions_for_json_data(e, '')
     return jsonify({'compare': compare})
 
 
