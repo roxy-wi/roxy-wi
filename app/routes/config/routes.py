@@ -1,7 +1,10 @@
 import os
+from typing import Union
 
 from flask import render_template, request, g, jsonify
 from flask_jwt_extended import jwt_required, get_jwt
+from flask_pydantic import validate
+from pydantic import IPvAnyAddress
 
 from app.routes.config import bp
 import app.modules.db.sql as sql
@@ -18,7 +21,7 @@ import app.modules.config.section as section_mod
 import app.modules.service.haproxy as service_haproxy
 import app.modules.server.server as server_mod
 from app.views.service.views import ServiceConfigView, ServiceConfigVersionsView
-from app.modules.roxywi.class_models import DataStrResponse
+from app.modules.roxywi.class_models import DataStrResponse, DomainName
 
 bp.add_url_rule('/<service>/<server_id>', view_func=ServiceConfigView.as_view('config_view_ip'), methods=['POST'])
 bp.add_url_rule('/<service>/<server_id>/versions', view_func=ServiceConfigVersionsView.as_view('config_version'), methods=['DELETE'])
@@ -38,6 +41,7 @@ def show_config(service):
     config_file_name = request.json.get('config_file_name')
     configver = request.json.get('configver')
     server_ip = request.json.get('serv')
+    server_ip = common.is_ip_or_dns(server_ip)
     claims = get_jwt()
     edit_section = request.json.get('edit_section')
 
@@ -52,6 +56,7 @@ def show_config(service):
 @check_services
 def show_config_files(service):
     server_ip = request.form.get('serv')
+    server_ip = common.is_ip_or_dns(server_ip)
     config_file_name = request.form.get('config_file_name')
 
     try:
@@ -150,7 +155,9 @@ def config(service, serv, edit, config_file_name, new):
 @bp.route('/versions/<service>/<server_ip>', methods=['GET'])
 @check_services
 @get_user_params(disable=1)
-def versions(service, server_ip):
+@validate()
+def versions(service, server_ip: Union[IPvAnyAddress, DomainName]):
+    server_ip = str(server_ip)
     roxywi_auth.page_for_admin(level=3)
 
     kwargs = {
@@ -174,7 +181,9 @@ def list_of_version(service):
 @bp.route('/versions/<service>/<server_ip>/<configver>', methods=['GET'])
 @check_services
 @get_user_params(disable=1)
-def show_version(service, server_ip, configver):
+@validate()
+def show_version(service, server_ip: Union[IPvAnyAddress, DomainName], configver):
+    server_ip = str(server_ip)
     roxywi_auth.page_for_admin(level=3)
 
     kwargs = {
@@ -189,7 +198,9 @@ def show_version(service, server_ip, configver):
 @bp.route('/versions/<service>/<server_ip>/<configver>/save', methods=['POST'])
 @check_services
 @get_user_params()
-def save_version(service, server_ip, configver):
+@validate()
+def save_version(service, server_ip: Union[IPvAnyAddress, DomainName], configver):
+    server_ip = str(server_ip)
     roxywi_auth.page_for_admin(level=3)
     config_dir = config_common.get_config_dir('haproxy')
     configver = config_dir + configver
@@ -215,7 +226,9 @@ def save_version(service, server_ip, configver):
 
 @bp.route('/section/haproxy/<server_ip>')
 @get_user_params()
-def haproxy_section(server_ip):
+@validate()
+def haproxy_section(server_ip: Union[IPvAnyAddress, DomainName]):
+    server_ip = str(server_ip)
     cfg = config_common.generate_config_path('haproxy', server_ip)
     error = config_mod.get_config(server_ip, cfg)
     kwargs = {
@@ -232,7 +245,9 @@ def haproxy_section(server_ip):
 
 @bp.route('/section/haproxy/<server_ip>/<section>')
 @get_user_params()
-def haproxy_section_show(server_ip, section):
+@validate()
+def haproxy_section_show(server_ip: Union[IPvAnyAddress, DomainName], section):
+    server_ip = str(server_ip)
     cfg = config_common.generate_config_path('haproxy', server_ip)
     error = config_mod.get_config(server_ip, cfg)
     start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section)
@@ -264,7 +279,9 @@ def haproxy_section_show(server_ip, section):
 
 @bp.route('/section/haproxy/<server_ip>/save', methods=['POST'])
 @get_user_params()
-def haproxy_section_save(server_ip):
+@validate()
+def haproxy_section_save(server_ip: Union[IPvAnyAddress, DomainName]):
+    server_ip = str(server_ip)
     hap_configs_dir = config_common.get_config_dir('haproxy')
     cfg = config_common.generate_config_path('haproxy', server_ip)
     config_file = request.json.get('config')
@@ -276,6 +293,9 @@ def haproxy_section_save(server_ip):
     if save == 'delete':
         config_file = ''
         save = 'reload'
+
+    if '..' in config_file or '..' in oldcfg:
+        return jsonify({'error': 'error: .. is not allowed'})
 
     config_file = section_mod.rewrite_section(start_line, end_line, oldcfg, config_file)
 
@@ -340,5 +360,7 @@ def show_compare(service, server_ip):
 
 @bp.route('/map/haproxy/<server_ip>/show')
 @get_user_params()
-def show_map(server_ip):
+@validate()
+def show_map(server_ip: Union[IPvAnyAddress, DomainName]):
+    server_ip = str(server_ip)
     return service_haproxy.show_map(server_ip, g.user_params['group_id'])

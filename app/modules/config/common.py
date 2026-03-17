@@ -1,4 +1,5 @@
 import app.modules.db.sql as sql
+import app.modules.common.common as common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 
 get_config_var = roxy_wi_tools.GetConfigVar()
@@ -41,6 +42,7 @@ def generate_config_path(service: str, server_ip: str) -> str:
 	This method generates the configuration path for a given service and server IP address. It combines the service name, server IP address, current date, and file format to create the path
 	*. The file format is determined by calling the `get_file_format` method and the configuration directory is obtained using the `get_config_dir` method.
 	"""
+	server_ip = common.is_ip_or_dns(server_ip)
 	file_format = get_file_format(service)
 	config_dir = get_config_dir(service)
 	return f"{config_dir}/{server_ip}-{get_date.return_date('config')}.{file_format}"
