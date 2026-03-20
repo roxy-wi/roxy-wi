@@ -6,6 +6,7 @@ import app.modules.db.user as user_sql
 import app.modules.roxywi.roxy as roxy
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
+from app.modules.common.common import checkAjaxInput
 from app.modules.roxywi import logger
 
 
@@ -44,7 +45,7 @@ def login_page():
         return render_template('login.html', lang=lang)
     elif request.method == 'POST':
         next_url = request.json.get('next')
-        login = request.json.get('login')
+        login = checkAjaxInput(request.json.get('login'))
         password = request.json.get('pass')
         try:
             roxy.update_plan()

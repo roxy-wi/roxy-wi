@@ -59,6 +59,9 @@ def show_config_files(service):
     server_ip = common.is_ip_or_dns(server_ip)
     config_file_name = request.form.get('config_file_name')
 
+    if '..' in config_file_name:
+        return jsonify({'error': 'error: .. is not allowed'})
+
     try:
         return config_mod.show_config_files(server_ip, service, config_file_name)
     except Exception as e:
@@ -69,7 +72,7 @@ def show_config_files(service):
 @check_services
 def find_in_config(service):
     server_ip = common.is_ip_or_dns(request.form.get('serv'))
-    finding_words = request.form.get('words')
+    finding_words = common.checkAjaxInput(request.form.get('words'))
     log_path = sql.get_setting(service + '_dir')
     log_path = common.return_nice_path(log_path)
     commands = f'sudo grep "{finding_words}" {log_path}*/*.conf -C 2 -Rn'
