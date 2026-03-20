@@ -459,7 +459,7 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 	else:
 		config_file_name = ''
 
-	if '..' in configs_dir:
+	if '..' in (configs_dir, config_file_name, configver):
 		raise Exception('error: nice try')
 
 	if configver is None:
