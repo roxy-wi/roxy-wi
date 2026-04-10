@@ -9,7 +9,7 @@ matplotlib>=2.1.2
 future>=0.13.1
 jinja2>=2.10.1
 slack-sdk>=3.4.0
-peewee>=3.14.10
+peewee==3.17.7
 PyMySQL>=1.0.2
 distro>=1.2.0
 psutil>=5.9.1
