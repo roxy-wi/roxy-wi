@@ -2,7 +2,7 @@ import os
 import glob
 from typing import Any, Union
 
-from flask import request, g
+from flask import request, g, abort
 from flask_jwt_extended import get_jwt
 from flask_jwt_extended import verify_jwt_in_request
 
@@ -73,7 +73,7 @@ def check_is_server_in_group(server_ip: str) -> bool:
 		return True
 	else:
 		logging('Roxy-WI server', 'warning: has tried to actions in not his group server')
-		return False
+		abort(403, 'error: You have no access to this server')
 
 
 def get_files(folder, file_format, server_ip=None) -> list:

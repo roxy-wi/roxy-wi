@@ -11,6 +11,7 @@ import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
+import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
 import app.modules.service.common as service_common
 import app.modules.service.installation as service_mod
@@ -37,7 +38,7 @@ bp.add_url_rule(
 @jwt_required()
 def before_request():
     """ Protect all the admin endpoints. """
-    pass
+    roxywi_auth.page_for_admin(level=3)
 
 
 @bp.route('')
@@ -57,6 +58,7 @@ def install_exporter(exporter):
     json_data = request.get_json()
     server_ip = common.is_ip_or_dns(json_data['server_ip'])
     ver = common.checkAjaxInput(json_data['exporter_v'])
+    roxywi_common.check_is_server_in_group(server_ip)
 
     if exporter not in ('haproxy', 'nginx', 'apache', 'keepalived', 'node'):
         return jsonify({'status': 'failed', 'error': 'Wrong exporter'})
@@ -77,8 +79,10 @@ def get_exporter_version(exporter: str, server_ip: Union[IPvAnyAddress, DomainNa
 @bp.post('/waf/<service>/<server_ip>')
 @validate()
 def install_waf(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
+    server_ip = str(server_ip)
+    roxywi_common.check_is_server_in_group(server_ip)
     try:
-        inv, server_ips = service_mod.generate_waf_inv(str(server_ip), service)
+        inv, server_ips = service_mod.generate_waf_inv(server_ip, service)
     except Exception as e:
         return jsonify({'status': 'failed', 'error': f'Cannot create inventory: {e}'})
     try:
@@ -108,6 +112,7 @@ def install_waf(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
 def install_geoip():
     json_data = request.get_json()
     server_ip = common.is_ip_or_dns(json_data['server_ip'])
+    roxywi_common.check_is_server_in_group(server_ip)
     geoip_update = common.checkAjaxInput(json_data['update'])
     service = common.checkAjaxInput(json_data['service'])
 

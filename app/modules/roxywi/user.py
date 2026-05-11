@@ -96,29 +96,29 @@ def get_user_active_group(group_id: int, user_id: int) -> str:
     return render_template('ajax/user_current_group.html', groups=groups, group=group_id, lang=lang)
 
 
-def save_user_group_and_role(user: str, groups_and_roles: dict):
+def save_user_group_and_role(groups_and_roles: dict, user_params: dict):
     resp = make_response('ok')
     for k, v in groups_and_roles.items():
         user_id = int(k)
+        if user_params['role'] != 1:
+            raise PermissionError("Insufficient permissions to update another user's password")
         if not user_sql.delete_user_groups(user_id):
             return 'error: Cannot delete old groups'
         for k2, v2 in v.items():
             group_id = int(k2)
             role_id = int(v2['role_id'])
-            if len(v) == 1:
-                user_sql.update_user_current_groups_by_id(group_id, user_id)
-                resp.set_cookie('group', str(group_id), secure=True)
             try:
                 user_sql.update_user_role(user_id, group_id, role_id)
             except Exception as e:
                 raise Exception(f'error: Cannot update groups: {e}')
         else:
-            roxywi_common.logging('Roxy-WI server', f'Groups and roles have been updated for user: {user}')
+            roxywi_common.logging('Roxy-WI server', f'Groups and roles have been updated for user: {user_params["user"]}')
             return resp
 
 
 def get_ldap_email(username) -> str:
     import ldap
+    import ldap.filter
 
     server = sql.get_setting('ldap_server')
     port = sql.get_setting('ldap_port')
@@ -142,7 +142,7 @@ def get_ldap_email(username) -> str:
         ldap_bind.set_option(ldap.OPT_REFERRALS, 0)
         ldap_bind.simple_bind_s(user, password)
 
-        criteria = f"(&(objectClass={ldap_class_search})({ldap_user_attribute}={username}))"
+        criteria = ldap.filter.filter_format("(&(objectClass=%s)(%s=%s))", [ldap_class_search, ldap_user_attribute, username])
         attributes = [ldap_search_field]
         result = ldap_bind.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
 

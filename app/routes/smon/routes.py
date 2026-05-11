@@ -116,6 +116,7 @@ def smon_dashboard(smon_id, check_id):
 
 @bp.route('/check', methods=['POST', 'PUT', 'DELETE'])
 @jwt_required()
+@get_user_params()
 def smon_add():
     json_data = request.get_json()
     if request.method == "POST":
@@ -131,7 +132,7 @@ def smon_add():
 
         if roxywi_common.check_user_group_for_flask():
             try:
-                status = smon_mod.update_smon(check_id, json_data)
+                status = smon_mod.update_smon(check_id, json_data, g.user_params['group_id'])
             except Exception as e:
                 return f'{e}', 200
             else:

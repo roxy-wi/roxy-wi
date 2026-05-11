@@ -2,7 +2,7 @@ from typing import Literal
 
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required
-from flask import jsonify, g
+from flask import jsonify
 from playhouse.shortcuts import model_to_dict
 from flask_pydantic import validate
 
@@ -252,6 +252,7 @@ class ChannelView(MethodView):
           200:
             description: The message has been sent to the channel.
         """
+        roxywi_auth.page_for_admin(level=3)
         try:
             group_id = SupportClass.return_group_id(query)
         except Exception as e:
@@ -300,6 +301,7 @@ class ChannelView(MethodView):
           204:
             description: Channel Deleted
         """
+        roxywi_auth.page_for_admin(level=3)
         try:
             group_id = SupportClass.return_group_id(query)
         except Exception as e:

@@ -60,7 +60,11 @@ def update_user_its_password():
 
 
 @bp.post('/password/<int:user_id>')
+@get_user_params()
 def update_user_password(user_id):
+    if user_id != int(g.user_params['user_id']) and g.user_params['role'] != 1:
+        raise PermissionError("Insufficient permissions to update another user's password")
+
     password = request.json.get('pass')
 
     try:
@@ -97,8 +101,9 @@ def get_current_group():
 
 
 @bp.post('/groups/save')
+@get_user_params()
 def change_user_groups_and_roles():
-    user = common.checkAjaxInput(request.form.get('changeUserGroupsUser'))
-    groups_and_roles = json.loads(request.form.get('jsonDatas'))
+    roxywi_auth.page_for_admin(level=1)
+    groups_and_roles = request.json
 
-    return roxywi_user.save_user_group_and_role(user, groups_and_roles)
+    return roxywi_user.save_user_group_and_role(groups_and_roles, g.user_params)

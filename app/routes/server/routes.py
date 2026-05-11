@@ -45,14 +45,12 @@ bp.add_url_rule('/backup/git', view_func=GitBackupView.as_view('backup_git', Fal
 @jwt_required()
 def before_request():
     """ Protect all the admin endpoints. """
-    pass
+    roxywi_auth.page_for_admin(level=2)
 
 
 @bp.route('/check/ssh/<server_ip>')
 @validate()
 def check_ssh(server_ip: Union[IPvAnyAddress, DomainName]):
-    roxywi_auth.page_for_admin(level=2)
-
     try:
         return server_mod.ssh_command(str(server_ip), "ls -1t")
     except Exception as e:
@@ -86,7 +84,6 @@ def check_server(server_id):
 @bp.route('/show/if/<server_ip>')
 @validate()
 def show_if(server_ip: Union[IPvAnyAddress, DomainName]):
-    roxywi_auth.page_for_admin(level=2)
     command = "sudo ip link|grep 'UP' |grep -v 'lo'| awk '{print $2}' |awk -F':' '{print $1}'"
 
     return server_mod.ssh_command(str(server_ip), command)
@@ -112,8 +109,6 @@ def update_system_info(server_ip: Union[IPvAnyAddress, DomainName], server_id):
 
 @bp.route('/services/<int:server_id>', methods=['GET', 'POST'])
 def show_server_services(server_id):
-    roxywi_auth.page_for_admin(level=2)
-
     if request.method == 'GET':
         return server_mod.show_server_services(server_id)
     else:
@@ -126,8 +121,6 @@ def show_server_services(server_id):
 @bp.route('/firewall/<server_ip>')
 @validate()
 def show_firewall(server_ip: Union[IPvAnyAddress, DomainName]):
-    roxywi_auth.page_for_admin(level=2)
-
     return server_mod.show_firewalld_rules(str(server_ip))
 
 

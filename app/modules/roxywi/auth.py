@@ -2,6 +2,7 @@ from typing import Union
 
 from flask import request, abort, url_for, jsonify
 from flask_jwt_extended import create_access_token, set_access_cookies
+from urllib.parse import urlparse
 
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
@@ -60,6 +61,7 @@ def page_for_admin(level=1) -> None:
 
 def check_in_ldap(user, password):
     import ldap
+    import ldap.filter
 
     server = sql.get_setting('ldap_server')
     port = sql.get_setting('ldap_port')
@@ -80,7 +82,7 @@ def check_in_ldap(user, password):
 
         _ = ldap_bind.simple_bind_s(root_user, root_password)
 
-        criteria = "(&(objectClass=" + ldap_class_search + ")(" + ldap_user_attribute + "=" + user + "))"
+        criteria = ldap.filter.filter_format("(&(objectClass=%s)(%s=%s))", [ldap_class_search, ldap_user_attribute, user])
         attributes = [ldap_search_field]
         result = ldap_bind.search_s(ldap_base, ldap.SCOPE_SUBTREE, criteria, attributes)
 
@@ -98,13 +100,20 @@ def check_in_ldap(user, password):
         return True
 
 
+def _safe_next(next_url: str) -> str:
+    if not next_url:
+        return url_for('overview.index')
+    parsed = urlparse(next_url)
+    if parsed.scheme or parsed.netloc:
+        return url_for('overview.index')
+    if not next_url.startswith('/') or next_url.startswith('//') or next_url.startswith('/\\'):
+        return url_for('overview.index')
+    return next_url
+
+
 def do_login(user_params: dict, next_url: str):
-    if next_url:
-        if 'https://' in next_url or 'http://' in next_url:
-            next_url = '/'
-        redirect_to = f'https://{request.host}{next_url}'
-    else:
-        redirect_to = f"https://{request.host}{url_for('overview.index')}"
+    next_url = _safe_next(next_url)
+    redirect_to = f"https://{request.host}{next_url}"
 
     response = jsonify({"status": "done", "next_url": redirect_to})
     access_token = create_jwt_token(user_params)

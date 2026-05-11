@@ -147,6 +147,7 @@ def service_history(service: str, server_ip: Union[IPvAnyAddress, DomainName, in
             server_id = server_sql.get_server_by_ip(server_ip).server_id
             history = history_sql.select_action_history_by_server_id(server_id)
     elif service == 'user':
+        roxywi_common.is_user_has_access_to_its_group(int(server_ip))
         history = history_sql.select_action_history_by_user_id(int(server_ip))
     else:
         abort(404, 'History not found')
@@ -169,6 +170,7 @@ def show_roxywi_version():
 
 
 @app.route("/api/gpt", methods=["POST"])
+@jwt_required()
 def ask_gpt():
     data = request.get_json()
     prompt = data.get("prompt", "")

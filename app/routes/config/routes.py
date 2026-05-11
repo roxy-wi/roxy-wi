@@ -59,7 +59,7 @@ def show_config_files(service):
     server_ip = common.is_ip_or_dns(server_ip)
     config_file_name = request.form.get('config_file_name')
 
-    if '..' in config_file_name:
+    if config_file_name and '..' in config_file_name:
         return jsonify({'error': 'error: .. is not allowed'})
 
     try:
@@ -206,7 +206,7 @@ def save_version(service, server_ip: Union[IPvAnyAddress, DomainName], configver
     server_ip = str(server_ip)
     roxywi_auth.page_for_admin(level=3)
     config_dir = config_common.get_config_dir('haproxy')
-    configver = config_dir + configver
+    configver = config_dir + common.checkAjaxInput(configver)
     service_desc = service_sql.select_service(service)
     save_action = request.json.get('action')
     try:

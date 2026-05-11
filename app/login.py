@@ -14,7 +14,7 @@ from app.modules.roxywi import logger
 def check_login():
     allowed_endpoints = (
         'login_page', 'static', 'main.show_roxywi_version', 'service.check_service', 'smon.show_smon_status_page',
-        'smon.smon_history_statuses', 'smon.agent_get_checks', 'smon.get_check_status' 'api', 'favicon'
+        'smon.smon_history_statuses', 'smon.agent_get_checks', 'smon.get_check_status', 'api', 'favicon'
     )
     if 'api' not in request.url and request.endpoint not in allowed_endpoints:
         try:

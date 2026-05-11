@@ -18,6 +18,11 @@ class Configuration(object):
     JWT_TOKEN_LOCATION = ["headers", "cookies"]
     JWT_IDENTITY_CLAIM = 'user_id'
     JWT_ERROR_MESSAGE_KEY = 'error'
+    JWT_COOKIE_SECURE = True
+    JWT_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_HTTPONLY = True
     FLASK_PYDANTIC_VALIDATION_ERROR_RAISE = True
 
     # Logging configuration

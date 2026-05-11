@@ -1,0 +1,1728 @@
+{
+  "id" : "ip-10-3-13-38",
+  "class" : "system",
+  "claimed" : true,
+  "handle" : "DMI:0001",
+  "description" : "Computer",
+  "product" : "c7i.2xlarge",
+  "vendor" : "Amazon EC2",
+  "serial" : "ec21f6d6-d226-32e5-51d8-97c29c84b1a1",
+  "width" : 64,
+  "configuration" : {
+    "uuid" : "ec21f6d6-d226-32e5-51d8-97c29c84b1a1"
+  },
+  "capabilities" : {
+    "smbios-2.7" : "SMBIOS version 2.7",
+    "dmi-2.7" : "DMI version 2.7",
+    "smp" : "Symmetric Multi-Processing",
+    "vsyscall32" : "32-bit processes"
+  },
+  "children" : [    {
+      "id" : "core",
+      "class" : "bus",
+      "claimed" : true,
+      "handle" : "DMI:0002",
+      "description" : "Motherboard",
+      "vendor" : "Amazon EC2",
+      "physid" : "0",
+      "children" : [        {
+          "id" : "firmware",
+          "class" : "memory",
+          "claimed" : true,
+          "description" : "BIOS",
+          "vendor" : "Amazon EC2",
+          "physid" : "1",
+          "version" : "1.0",
+          "date" : "10/16/2017",
+          "units" : "bytes",
+          "size" : 65536,
+          "capacity" : 65536,
+          "capabilities" : {
+            "pci" : "PCI bus",
+            "edd" : "Enhanced Disk Drive extensions",
+            "acpi" : "ACPI",
+            "virtualmachine" : "This machine is a virtual machine"
+          }
+        },
+        {
+          "id" : "cpu",
+          "class" : "processor",
+          "claimed" : true,
+          "handle" : "DMI:0004",
+          "description" : "CPU",
+          "product" : "Intel(R) Xeon(R) Platinum 8488C",
+          "vendor" : "Intel Corp.",
+          "physid" : "4",
+          "businfo" : "cpu@0",
+          "version" : "6.143.8",
+          "slot" : "CPU 0",
+          "units" : "Hz",
+          "size" : 2400000000,
+          "capacity" : 4000000000,
+          "width" : 64,
+          "clock" : 100000000,
+          "configuration" : {
+            "cores" : "4",
+            "enabledcores" : "4",
+            "microcode" : "721421881",
+            "threads" : "8"
+          },
+          "capabilities" : {
+            "lm" : "64bits extensions (x86-64)",
+            "fpu" : "mathematical co-processor",
+            "fpu_exception" : "FPU exceptions reporting",
+            "wp" : true,
+            "vme" : "virtual mode extensions",
+            "de" : "debugging extensions",
+            "pse" : "page size extensions",
+            "tsc" : "time stamp counter",
+            "msr" : "model-specific registers",
+            "pae" : "4GB+ memory addressing (Physical Address Extension)",
+            "mce" : "machine check exceptions",
+            "cx8" : "compare and exchange 8-byte",
+            "apic" : "on-chip advanced programmable interrupt controller (APIC)",
+            "sep" : "fast system calls",
+            "mtrr" : "memory type range registers",
+            "pge" : "page global enable",
+            "mca" : "machine check architecture",
+            "cmov" : "conditional move instruction",
+            "pat" : "page attribute table",
+            "pse36" : "36-bit page size extensions",
+            "clflush" : true,
+            "mmx" : "multimedia extensions (MMX)",
+            "fxsr" : "fast floating point save/restore",
+            "sse" : "streaming SIMD extensions (SSE)",
+            "sse2" : "streaming SIMD extensions (SSE2)",
+            "ss" : "self-snoop",
+            "ht" : "HyperThreading",
+            "syscall" : "fast system calls",
+            "nx" : "no-execute bit (NX)",
+            "pdpe1gb" : true,
+            "rdtscp" : true,
+            "x86-64" : "64bits extensions (x86-64)",
+            "constant_tsc" : true,
+            "arch_perfmon" : true,
+            "rep_good" : true,
+            "nopl" : true,
+            "xtopology" : true,
+            "nonstop_tsc" : true,
+            "cpuid" : true,
+            "aperfmperf" : true,
+            "tsc_known_freq" : true,
+            "pni" : true,
+            "pclmulqdq" : true,
+            "monitor" : true,
+            "ssse3" : true,
+            "fma" : true,
+            "cx16" : true,
+            "pdcm" : true,
+            "pcid" : true,
+            "sse4_1" : true,
+            "sse4_2" : true,
+            "x2apic" : true,
+            "movbe" : true,
+            "popcnt" : true,
+            "tsc_deadline_timer" : true,
+            "aes" : true,
+            "xsave" : true,
+            "avx" : true,
+            "f16c" : true,
+            "rdrand" : true,
+            "hypervisor" : true,
+            "lahf_lm" : true,
+            "abm" : true,
+            "3dnowprefetch" : true,
+            "ssbd" : true,
+            "ibrs" : true,
+            "ibpb" : true,
+            "stibp" : true,
+            "ibrs_enhanced" : true,
+            "fsgsbase" : true,
+            "tsc_adjust" : true,
+            "bmi1" : true,
+            "avx2" : true,
+            "smep" : true,
+            "bmi2" : true,
+            "erms" : true,
+            "invpcid" : true,
+            "avx512f" : true,
+            "avx512dq" : true,
+            "rdseed" : true,
+            "adx" : true,
+            "smap" : true,
+            "avx512ifma" : true,
+            "clflushopt" : true,
+            "clwb" : true,
+            "avx512cd" : true,
+            "sha_ni" : true,
+            "avx512bw" : true,
+            "avx512vl" : true,
+            "xsaveopt" : true,
+            "xsavec" : true,
+            "xgetbv1" : true,
+            "xsaves" : true,
+            "avx_vnni" : true,
+            "avx512_bf16" : true,
+            "wbnoinvd" : true,
+            "ida" : true,
+            "arat" : true,
+            "avx512vbmi" : true,
+            "umip" : true,
+            "pku" : true,
+            "ospke" : true,
+            "waitpkg" : true,
+            "avx512_vbmi2" : true,
+            "gfni" : true,
+            "vaes" : true,
+            "vpclmulqdq" : true,
+            "avx512_vnni" : true,
+            "avx512_bitalg" : true,
+            "tme" : true,
+            "avx512_vpopcntdq" : true,
+            "rdpid" : true,
+            "cldemote" : true,
+            "movdiri" : true,
+            "movdir64b" : true,
+            "md_clear" : true,
+            "serialize" : true,
+            "amx_bf16" : true,
+            "avx512_fp16" : true,
+            "amx_tile" : true,
+            "amx_int8" : true,
+            "flush_l1d" : true,
+            "arch_capabilities" : true
+          },
+          "children" : [            {
+              "id" : "cache:0",
+              "class" : "memory",
+              "claimed" : true,
+              "handle" : "DMI:0005",
+              "description" : "L1 cache",
+              "physid" : "5",
+              "slot" : "L1-Cache",
+              "units" : "bytes",
+              "size" : 3932160,
+              "capacity" : 3932160,
+              "configuration" : {
+                "level" : "1"
+              },
+              "capabilities" : {
+                "synchronous" : "Synchronous",
+                "internal" : "Internal",
+                "write-back" : "Write-back",
+                "unified" : "Unified cache"
+              }
+            },
+            {
+              "id" : "cache:1",
+              "class" : "memory",
+              "claimed" : true,
+              "handle" : "DMI:0006",
+              "description" : "L2 cache",
+              "physid" : "6",
+              "slot" : "L2-Cache",
+              "units" : "bytes",
+              "size" : 100663296,
+              "capacity" : 100663296,
+              "configuration" : {
+                "level" : "2"
+              },
+              "capabilities" : {
+                "synchronous" : "Synchronous",
+                "internal" : "Internal",
+                "varies" : "Varies With Memory Address",
+                "unified" : "Unified cache"
+              }
+            },
+            {
+              "id" : "cache:2",
+              "class" : "memory",
+              "claimed" : true,
+              "handle" : "DMI:0007",
+              "description" : "L3 cache",
+              "physid" : "7",
+              "slot" : "L3-Cache",
+              "units" : "bytes",
+              "size" : 110100480,
+              "capacity" : 110100480,
+              "configuration" : {
+                "level" : "3"
+              },
+              "capabilities" : {
+                "synchronous" : "Synchronous",
+                "internal" : "Internal",
+                "varies" : "Varies With Memory Address",
+                "unified" : "Unified cache"
+              }
+            }]
+        },
+        {
+          "id" : "memory",
+          "class" : "memory",
+          "claimed" : true,
+          "handle" : "DMI:0008",
+          "description" : "System Memory",
+          "physid" : "8",
+          "slot" : "System board or motherboard",
+          "units" : "bytes",
+          "size" : 17179869184,
+          "children" : [            {
+              "id" : "bank",
+              "class" : "memory",
+              "claimed" : true,
+              "handle" : "DMI:0009",
+              "description" : "DIMM Fast-paged RAMBUS Window DRAM 4800 MHz (0.2 ns)",
+              "physid" : "0",
+              "units" : "bytes",
+              "size" : 17179869184,
+              "width" : 64,
+              "clock" : 505032704
+            }]
+        },
+        {
+          "id" : "pci:0",
+          "class" : "bridge",
+          "claimed" : true,
+          "handle" : "PCIBUS:0000:00",
+          "description" : "Host bridge",
+          "product" : "440FX - 82441FX PMC [Natoma]",
+          "vendor" : "Intel Corporation",
+          "physid" : "100",
+          "businfo" : "pci@0000:00:00.0",
+          "version" : "00",
+          "width" : 32,
+          "clock" : 33000000,
+          "children" : [            {
+              "id" : "isa",
+              "class" : "bridge",
+              "claimed" : true,
+              "handle" : "PCI:0000:00:01.0",
+              "description" : "ISA bridge",
+              "product" : "82371SB PIIX3 ISA [Natoma/Triton II]",
+              "vendor" : "Intel Corporation",
+              "physid" : "1",
+              "businfo" : "pci@0000:00:01.0",
+              "version" : "00",
+              "width" : 32,
+              "clock" : 33000000,
+              "configuration" : {
+                "latency" : "0"
+              },
+              "capabilities" : {
+                "isa" : true,
+                "bus_master" : "bus mastering"
+              },
+              "children" : [                {
+                  "id" : "pnp00:00",
+                  "class" : "system",
+                  "claimed" : true,
+                  "product" : "PnP device PNP0b00",
+                  "physid" : "0",
+                  "configuration" : {
+                    "driver" : "rtc_cmos"
+                  },
+                  "capabilities" : {
+                    "pnp" : true
+                  }
+                },
+                {
+                  "id" : "pnp00:01",
+                  "class" : "input",
+                  "claimed" : true,
+                  "product" : "PnP device PNP0303",
+                  "physid" : "1",
+                  "configuration" : {
+                    "driver" : "i8042 kbd"
+                  },
+                  "capabilities" : {
+                    "pnp" : true
+                  }
+                },
+                {
+                  "id" : "pnp00:02",
+                  "class" : "input",
+                  "claimed" : true,
+                  "product" : "PnP device PNP0f13",
+                  "physid" : "2",
+                  "configuration" : {
+                    "driver" : "i8042 aux"
+                  },
+                  "capabilities" : {
+                    "pnp" : true
+                  }
+                },
+                {
+                  "id" : "pnp00:03",
+                  "class" : "printer",
+                  "claimed" : true,
+                  "product" : "PnP device PNP0400",
+                  "physid" : "3",
+                  "capabilities" : {
+                    "pnp" : true
+                  }
+                },
+                {
+                  "id" : "pnp00:04",
+                  "class" : "communication",
+                  "claimed" : true,
+                  "product" : "PnP device PNP0501",
+                  "physid" : "4",
+                  "configuration" : {
+                    "driver" : "serial"
+                  },
+                  "capabilities" : {
+                    "pnp" : true
+                  }
+                }]
+            },
+            {
+              "id" : "generic",
+              "class" : "generic",
+              "handle" : "PCI:0000:00:01.3",
+              "description" : "Non-VGA unclassified device",
+              "product" : "82371AB/EB/MB PIIX4 ACPI",
+              "vendor" : "Intel Corporation",
+              "physid" : "1.3",
+              "businfo" : "pci@0000:00:01.3",
+              "version" : "08",
+              "width" : 32,
+              "clock" : 33000000,
+              "configuration" : {
+                "latency" : "0"
+              },
+              "capabilities" : {
+                "bus_master" : "bus mastering"
+              }
+            },
+            {
+              "id" : "display",
+              "class" : "display",
+              "claimed" : true,
+              "handle" : "PCI:0000:00:03.0",
+              "description" : "VGA compatible controller",
+              "product" : "Amazon.com, Inc.",
+              "vendor" : "Amazon.com, Inc.",
+              "physid" : "3",
+              "businfo" : "pci@0000:00:03.0",
+              "logicalname" : "/dev/fb0",
+              "version" : "00",
+              "width" : 32,
+              "clock" : 33000000,
+              "configuration" : {
+                "depth" : "32",
+                "latency" : "0",
+                "resolution" : "800,600"
+              },
+              "capabilities" : {
+                "vga_controller" : true,
+                "bus_master" : "bus mastering",
+                "fb" : "framebuffer"
+              }
+            },
+            {
+              "id" : "nvme",
+              "class" : "storage",
+              "claimed" : true,
+              "handle" : "PCI:0000:00:04.0",
+              "description" : "NVMe device",
+              "product" : "Amazon Elastic Block Store",
+              "vendor" : "Amazon.com, Inc.",
+              "physid" : "4",
+              "businfo" : "pci@0000:00:04.0",
+              "logicalname" : "/dev/nvme0",
+              "version" : "2.0",
+              "serial" : "vol0d6671defe0fc2548",
+              "width" : 32,
+              "clock" : 33000000,
+              "configuration" : {
+                "driver" : "nvme",
+                "latency" : "0",
+                "nqn" : "nqn:2008-08.com.amazon.aws:ebs:vol0d6671defe0fc2548",
+                "state" : "live"
+              },
+              "capabilities" : {
+                "nvme" : true,
+                "pciexpress" : "PCI Express",
+                "msix" : "MSI-X",
+                "nvm_express" : true,
+                "bus_master" : "bus mastering",
+                "cap_list" : "PCI capabilities listing"
+              },
+              "children" : [                {
+                  "id" : "namespace:0",
+                  "class" : "disk",
+                  "claimed" : true,
+                  "description" : "NVMe disk",
+                  "physid" : "0",
+                  "logicalname" : "hwmon0"
+                },
+                {
+                  "id" : "namespace:1",
+                  "class" : "disk",
+                  "claimed" : true,
+                  "description" : "NVMe disk",
+                  "physid" : "2",
+                  "logicalname" : "/dev/ng0n1"
+                },
+                {
+                  "id" : "namespace:2",
+                  "class" : "disk",
+                  "claimed" : true,
+                  "handle" : "GUID:e3478e01-32e3-4fc2-8e79-1bccde89c2d7",
+                  "description" : "NVMe disk",
+                  "physid" : "1",
+                  "businfo" : "nvme@0:1",
+                  "logicalname" : "/dev/nvme0n1",
+                  "units" : "bytes",
+                  "size" : 107374182400,
+                  "configuration" : {
+                    "guid" : "e3478e01-32e3-4fc2-8e79-1bccde89c2d7",
+                    "logicalsectorsize" : "512",
+                    "sectorsize" : "4096",
+                    "wwid" : "uuid.983527f9-f441-5e2c-87ca-d540844c33e7"
+                  },
+                  "capabilities" : {
+                    "gpt-1.00" : "GUID Partition Table version 1.00",
+                    "partitioned" : "Partitioned disk",
+                    "partitioned:gpt" : "GUID partition table"
+                  },
+                  "children" : [                    {
+                      "id" : "volume:0",
+                      "class" : "volume",
+                      "claimed" : true,
+                      "handle" : "GUID:a8ef6bc6-0748-47d7-a4a8-b126c21ff84c",
+                      "description" : "EXT4 volume",
+                      "vendor" : "Linux",
+                      "physid" : "1",
+                      "businfo" : "nvme@0:1,1",
+                      "logicalname" : ["/dev/nvme0n1p1", "/"],
+                      "dev" : "259:1",
+                      "version" : "1.0",
+                      "serial" : "abc14a03-b423-456c-b531-def4a6ed6dc5",
+                      "size" : 7515123712,
+                      "capacity" : 106299374592,
+                      "configuration" : {
+                        "created" : "2025-03-05 08:40:46",
+                        "filesystem" : "ext4",
+                        "label" : "cloudimg-rootfs",
+                        "lastmountpoint" : "/",
+                        "modified" : "2025-03-05 08:45:15",
+                        "mount.fstype" : "ext4",
+                        "mount.options" : "rw,relatime,discard,errors=remount-ro,commit=30",
+                        "mounted" : "2025-05-21 15:54:34",
+                        "state" : "mounted"
+                      },
+                      "capabilities" : {
+                        "journaled" : true,
+                        "extended_attributes" : "Extended Attributes",
+                        "large_files" : "4GB+ files",
+                        "huge_files" : "16TB+ files",
+                        "dir_nlink" : "directories with 65000+ subdirs",
+                        "recover" : "needs recovery",
+                        "64bit" : "64bit filesystem",
+                        "extents" : "extent-based allocation",
+                        "ext4" : true,
+                        "ext2" : "EXT2/EXT3",
+                        "initialized" : "initialized volume"
+                      }
+                    },
+                    {
+                      "id" : "volume:1",
+                      "class" : "volume",
+                      "claimed" : true,
+                      "handle" : "GUID:50830c16-53e9-46ca-8adc-762abe409832",
+                      "description" : "BIOS Boot partition",
+                      "vendor" : "EFI",
+                      "physid" : "e",
+                      "businfo" : "nvme@0:1,14",
+                      "logicalname" : "/dev/nvme0n1p14",
+                      "dev" : "259:2",
+                      "serial" : "50830c16-53e9-46ca-8adc-762abe409832",
+                      "capacity" : 4193792,
+                      "capabilities" : {
+                        "nofs" : "No filesystem"
+                      }
+                    },
+                    {
+                      "id" : "volume:2",
+                      "class" : "volume",
+                      "claimed" : true,
+                      "handle" : "GUID:2fe86da6-16e0-4ec4-beda-110ca0cb2cbd",
+                      "description" : "Windows FAT volume",
+                      "vendor" : "mkfs.fat",
+                      "physid" : "f",
+                      "businfo" : "nvme@0:1,15",
+                      "logicalname" : ["/dev/nvme0n1p15", "/boot/efi"],
+                      "dev" : "259:3",
+                      "version" : "FAT32",
+                      "serial" : "e27e-e2bb",
+                      "size" : 105862656,
+                      "capacity" : 111148544,
+                      "configuration" : {
+                        "FATs" : "2",
+                        "filesystem" : "fat",
+                        "label" : "UEFI",
+                        "mount.fstype" : "vfat",
+                        "mount.options" : "rw,relatime,fmask=0077,dmask=0077,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro",
+                        "state" : "mounted"
+                      },
+                      "capabilities" : {
+                        "boot" : "Contains boot code",
+                        "fat" : "Windows FAT",
+                        "initialized" : "initialized volume"
+                      }
+                    },
+                    {
+                      "id" : "volume:3",
+                      "class" : "volume",
+                      "claimed" : true,
+                      "handle" : "GUID:60f2ed2c-e176-41ad-a5a7-3d7841fcf30e",
+                      "description" : "EXT4 volume",
+                      "vendor" : "Linux",
+                      "physid" : "10",
+                      "businfo" : "nvme@0:1,16",
+                      "logicalname" : ["/dev/nvme0n1p16", "/boot"],
+                      "dev" : "259:4",
+                      "version" : "1.0",
+                      "serial" : "2aeda221-cde7-4cff-aa4c-e3f564d1e144",
+                      "size" : 957349888,
+                      "capacity" : 957349888,
+                      "configuration" : {
+                        "created" : "2025-03-05 08:41:12",
+                        "filesystem" : "ext4",
+                        "label" : "BOOT",
+                        "lastmountpoint" : "/boot",
+                        "modified" : "2025-05-21 15:54:35",
+                        "mount.fstype" : "ext4",
+                        "mount.options" : "rw,relatime",
+                        "mounted" : "2025-05-21 15:54:35",
+                        "state" : "mounted"
+                      },
+                      "capabilities" : {
+                        "journaled" : true,
+                        "extended_attributes" : "Extended Attributes",
+                        "large_files" : "4GB+ files",
+                        "huge_files" : "16TB+ files",
+                        "dir_nlink" : "directories with 65000+ subdirs",
+                        "recover" : "needs recovery",
+                        "64bit" : "64bit filesystem",
+                        "extents" : "extent-based allocation",
+                        "ext4" : true,
+                        "ext2" : "EXT2/EXT3",
+                        "initialized" : "initialized volume"
+                      }
+                    }]
+                }]
+            }]
+        },
+        {
+          "id" : "pci:1",
+          "class" : "bridge",
+          "claimed" : true,
+          "handle" : "PCIBUS:0000:02",
+          "description" : "PCI bridge",
+          "product" : "Amazon.com, Inc.",
+          "vendor" : "Amazon.com, Inc.",
+          "physid" : "101",
+          "businfo" : "pci@0000:01:00.0",
+          "version" : "00",
+          "width" : 32,
+          "clock" : 33000000,
+          "configuration" : {
+            "driver" : "pcieport"
+          },
+          "capabilities" : {
+            "pci" : true,
+            "msix" : "MSI-X",
+            "pciexpress" : "PCI Express",
+            "normal_decode" : true,
+            "bus_master" : "bus mastering",
+            "cap_list" : "PCI capabilities listing"
+          },
+          "children" : [            {
+              "id" : "pci",
+              "class" : "bridge",
+              "claimed" : true,
+              "handle" : "PCIBUS:0000:03",
+              "description" : "PCI bridge",
+              "product" : "Amazon.com, Inc.",
+              "vendor" : "Amazon.com, Inc.",
+              "physid" : "0",
+              "businfo" : "pci@0000:02:00.0",
+              "version" : "00",
+              "width" : 32,
+              "clock" : 33000000,
+              "configuration" : {
+                "driver" : "pcieport"
+              },
+              "capabilities" : {
+                "pci" : true,
+                "msix" : "MSI-X",
+                "pciexpress" : "PCI Express",
+                "normal_decode" : true,
+                "bus_master" : "bus mastering",
+                "cap_list" : "PCI capabilities listing"
+              },
+              "children" : [                {
+                  "id" : "pci:0",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:04",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0",
+                  "businfo" : "pci@0000:03:00.0",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:1",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:05",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0.1",
+                  "businfo" : "pci@0000:03:00.1",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:2",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:06",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0.2",
+                  "businfo" : "pci@0000:03:00.2",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:3",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:07",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0.3",
+                  "businfo" : "pci@0000:03:00.3",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:4",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:08",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0.4",
+                  "businfo" : "pci@0000:03:00.4",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:5",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:09",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0.5",
+                  "businfo" : "pci@0000:03:00.5",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:6",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:0a",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0.6",
+                  "businfo" : "pci@0000:03:00.6",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:7",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:0b",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0.7",
+                  "businfo" : "pci@0000:03:00.7",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:8",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:0c",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "1",
+                  "businfo" : "pci@0000:03:01.0",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:9",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:0d",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "1.1",
+                  "businfo" : "pci@0000:03:01.1",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:10",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:0e",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "1.2",
+                  "businfo" : "pci@0000:03:01.2",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:11",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:0f",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "1.3",
+                  "businfo" : "pci@0000:03:01.3",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:12",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:10",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "1.4",
+                  "businfo" : "pci@0000:03:01.4",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:13",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:11",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "1.5",
+                  "businfo" : "pci@0000:03:01.5",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:14",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:12",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "1.6",
+                  "businfo" : "pci@0000:03:01.6",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:15",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:13",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "1.7",
+                  "businfo" : "pci@0000:03:01.7",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:16",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:14",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "2",
+                  "businfo" : "pci@0000:03:02.0",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:17",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:15",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "2.1",
+                  "businfo" : "pci@0000:03:02.1",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:18",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:16",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "2.2",
+                  "businfo" : "pci@0000:03:02.2",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:19",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:17",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "2.3",
+                  "businfo" : "pci@0000:03:02.3",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:20",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:18",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "2.4",
+                  "businfo" : "pci@0000:03:02.4",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:21",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:19",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "2.5",
+                  "businfo" : "pci@0000:03:02.5",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:22",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:1a",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "2.6",
+                  "businfo" : "pci@0000:03:02.6",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:23",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:1b",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "2.7",
+                  "businfo" : "pci@0000:03:02.7",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:24",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:1c",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "3",
+                  "businfo" : "pci@0000:03:03.0",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:25",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:1d",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "3.1",
+                  "businfo" : "pci@0000:03:03.1",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:26",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:1e",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "3.2",
+                  "businfo" : "pci@0000:03:03.2",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:27",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:1f",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "3.3",
+                  "businfo" : "pci@0000:03:03.3",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:28",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:20",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "3.4",
+                  "businfo" : "pci@0000:03:03.4",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:29",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:21",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "3.5",
+                  "businfo" : "pci@0000:03:03.5",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:30",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:22",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "3.6",
+                  "businfo" : "pci@0000:03:03.6",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:31",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:23",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "3.7",
+                  "businfo" : "pci@0000:03:03.7",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                }]
+            }]
+        },
+        {
+          "id" : "pci:2",
+          "class" : "bridge",
+          "claimed" : true,
+          "handle" : "PCIBUS:0000:25",
+          "description" : "PCI bridge",
+          "product" : "Amazon.com, Inc.",
+          "vendor" : "Amazon.com, Inc.",
+          "physid" : "0",
+          "businfo" : "pci@0000:24:00.0",
+          "version" : "00",
+          "width" : 64,
+          "clock" : 33000000,
+          "configuration" : {
+            "driver" : "pcieport"
+          },
+          "capabilities" : {
+            "pci" : true,
+            "msix" : "MSI-X",
+            "pciexpress" : "PCI Express",
+            "normal_decode" : true,
+            "bus_master" : "bus mastering",
+            "cap_list" : "PCI capabilities listing"
+          },
+          "children" : [            {
+              "id" : "pci",
+              "class" : "bridge",
+              "claimed" : true,
+              "handle" : "PCIBUS:0000:26",
+              "description" : "PCI bridge",
+              "product" : "Amazon.com, Inc.",
+              "vendor" : "Amazon.com, Inc.",
+              "physid" : "0",
+              "businfo" : "pci@0000:25:00.0",
+              "version" : "00",
+              "width" : 32,
+              "clock" : 33000000,
+              "configuration" : {
+                "driver" : "pcieport"
+              },
+              "capabilities" : {
+                "pci" : true,
+                "msix" : "MSI-X",
+                "pciexpress" : "PCI Express",
+                "normal_decode" : true,
+                "bus_master" : "bus mastering",
+                "cap_list" : "PCI capabilities listing"
+              },
+              "children" : [                {
+                  "id" : "pci:0",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:27",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0",
+                  "businfo" : "pci@0000:26:00.0",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  },
+                  "children" : [                    {
+                      "id" : "network",
+                      "class" : "network",
+                      "claimed" : true,
+                      "handle" : "PCI:0000:27:00.0",
+                      "description" : "Ethernet interface",
+                      "product" : "Elastic Network Adapter (ENA)",
+                      "vendor" : "Amazon.com, Inc.",
+                      "physid" : "0",
+                      "businfo" : "pci@0000:27:00.0",
+                      "logicalname" : ["enp39s0", "/dev/fb0"],
+                      "dev" : "29:0",
+                      "version" : "00",
+                      "serial" : "06:f1:70:83:d0:63",
+                      "width" : 64,
+                      "clock" : 33000000,
+                      "configuration" : {
+                        "broadcast" : "yes",
+                        "depth" : "32",
+                        "driver" : "ena",
+                        "driverversion" : "6.8.0-1024-aws",
+                        "ip" : "10.3.13.38",
+                        "latency" : "0",
+                        "link" : "yes",
+                        "mode" : "800x600",
+                        "multicast" : "yes",
+                        "visual" : "truecolor",
+                        "xres" : "800",
+                        "yres" : "600"
+                      },
+                      "capabilities" : {
+                        "pciexpress" : "PCI Express",
+                        "msix" : "MSI-X",
+                        "bus_master" : "bus mastering",
+                        "cap_list" : "PCI capabilities listing",
+                        "ethernet" : true,
+                        "physical" : "Physical interface",
+                        "fb" : true
+                      }
+                    }]
+                },
+                {
+                  "id" : "pci:1",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:28",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0.1",
+                  "businfo" : "pci@0000:26:00.1",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:2",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:29",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0.2",
+                  "businfo" : "pci@0000:26:00.2",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:3",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:2a",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0.3",
+                  "businfo" : "pci@0000:26:00.3",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                },
+                {
+                  "id" : "pci:4",
+                  "class" : "bridge",
+                  "claimed" : true,
+                  "handle" : "PCIBUS:0000:2b",
+                  "description" : "PCI bridge",
+                  "product" : "Amazon.com, Inc.",
+                  "vendor" : "Amazon.com, Inc.",
+                  "physid" : "0.4",
+                  "businfo" : "pci@0000:26:00.4",
+                  "version" : "00",
+                  "width" : 32,
+                  "clock" : 33000000,
+                  "configuration" : {
+                    "driver" : "pcieport"
+                  },
+                  "capabilities" : {
+                    "pci" : true,
+                    "msix" : "MSI-X",
+                    "pciexpress" : "PCI Express",
+                    "normal_decode" : true,
+                    "bus_master" : "bus mastering",
+                    "cap_list" : "PCI capabilities listing"
+                  }
+                }]
+            }]
+        }]
+    },
+    {
+      "id" : "input:0",
+      "class" : "input",
+      "claimed" : true,
+      "product" : "Power Button",
+      "physid" : "1",
+      "logicalname" : ["input0", "/dev/input/event0"],
+      "capabilities" : {
+        "platform" : true
+      }
+    },
+    {
+      "id" : "input:1",
+      "class" : "input",
+      "claimed" : true,
+      "product" : "Sleep Button",
+      "physid" : "2",
+      "logicalname" : ["input1", "/dev/input/event1"],
+      "capabilities" : {
+        "platform" : true
+      }
+    },
+    {
+      "id" : "input:2",
+      "class" : "input",
+      "claimed" : true,
+      "product" : "AT Translated Set 2 keyboard",
+      "physid" : "3",
+      "logicalname" : ["input2", "/dev/input/event2", "input2::capslock", "input2::numlock", "input2::scrolllock"],
+      "capabilities" : {
+        "i8042" : "i8042 PC AT keyboard controller"
+      }
+    },
+    {
+      "id" : "input:3",
+      "class" : "input",
+      "claimed" : true,
+      "product" : "ImPS/2 Generic Wheel Mouse",
+      "physid" : "4",
+      "logicalname" : ["input4", "/dev/input/event3", "/dev/input/mouse0"],
+      "capabilities" : {
+        "i8042" : "i8042 PC AT keyboard controller"
+      }
+    }]
+}

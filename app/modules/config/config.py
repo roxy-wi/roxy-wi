@@ -395,6 +395,7 @@ def show_finding_in_config(stdout: str, **kwargs) -> str:
 
 	for line in stdout:
 		if word_to_find:
+			line = common.sanitize_input_word(line)
 			line = common.highlight_word(line, word_to_find)
 		line_class = _classify_line(line)
 		output += common.wrap_line(line, line_class)
@@ -459,7 +460,11 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 	else:
 		config_file_name = ''
 
-	if '..' in (configs_dir, config_file_name, configver):
+	if config_file_name and '..' in config_file_name:
+		raise Exception('error: nice try')
+	if configs_dir and '..' in configs_dir:
+		raise Exception('error: nice try')
+	if configver and '..' in configver:
 		raise Exception('error: nice try')
 
 	if configver is None:

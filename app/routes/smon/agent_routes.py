@@ -1,4 +1,4 @@
-from flask import render_template, request, jsonify, g
+from flask import render_template, request, jsonify, g, abort
 from flask_jwt_extended import jwt_required
 
 from app.routes.smon import bp
@@ -7,6 +7,7 @@ import app.modules.db.smon as smon_sql
 import app.modules.common.common as common
 import app.modules.tools.smon_agent as smon_agent
 import app.modules.tools.common as tools_common
+import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
 
@@ -131,6 +132,7 @@ def get_agent_version(server_ip):
 @jwt_required()
 def get_agent_uptime(server_ip):
     agent_id = int(request.args.get('agent_id'))
+    server_ip = common.safe_ip_target(server_ip)
 
     try:
         req = smon_agent.send_get_request_to_agent(agent_id, server_ip, 'uptime')
@@ -143,6 +145,7 @@ def get_agent_uptime(server_ip):
 @jwt_required()
 def get_agent_status(server_ip):
     agent_id = int(request.args.get('agent_id'))
+    server_ip = common.safe_ip_target(server_ip)
 
     try:
         req = smon_agent.send_get_request_to_agent(agent_id, server_ip, 'scheduler')
@@ -155,6 +158,7 @@ def get_agent_status(server_ip):
 @jwt_required()
 def get_agent_checks(server_ip):
     agent_id = int(request.args.get('agent_id'))
+    server_ip = common.safe_ip_target(server_ip)
 
     try:
         req = smon_agent.send_get_request_to_agent(agent_id, server_ip, 'checks')
@@ -166,7 +170,9 @@ def get_agent_checks(server_ip):
 @bp.post('/agent/action/<action>')
 @jwt_required()
 def agent_action(action):
+    roxywi_auth.page_for_admin(level=2)
     server_ip = common.is_ip_or_dns(request.form.get('server_ip'))
+    roxywi_common.check_is_server_in_group(server_ip)
 
     if action not in ('start', 'stop', 'restart'):
         return 'error: Wrong action'

@@ -336,22 +336,22 @@ $( function() {
 			$("[name=port_check_text]").show("fast");
 		}
 	});
-	$("#cache").checkboxradio("disable");
-	$("#waf").checkboxradio("disable");
-	$("#serv").on('selectmenuchange', function () {
-		change_select_acceleration("");
-		change_select_waf("");
-	});
-	$("#cache2").checkboxradio("disable");
-	$("#waf2").checkboxradio("disable");
-	$("#serv2").on('selectmenuchange', function () {
-		change_select_acceleration("2");
-		change_select_waf("2");
-	});
-	$("#cache3").checkboxradio("disable");
-	$("#serv3").on('selectmenuchange', function () {
-		change_select_acceleration("3");
-	});
+	// $("#cache").checkboxradio("disable");
+	// $("#waf").checkboxradio("disable");
+	// $("#serv").on('selectmenuchange', function () {
+	// 	change_select_acceleration("");
+	// 	change_select_waf("");
+	// });
+	// $("#cache2").checkboxradio("disable");
+	// $("#waf2").checkboxradio("disable");
+	// $("#serv2").on('selectmenuchange', function () {
+	// 	change_select_acceleration("2");
+	// 	change_select_waf("2");
+	// });
+	// $("#cache3").checkboxradio("disable");
+	// $("#serv3").on('selectmenuchange', function () {
+	// 	change_select_acceleration("3");
+	// });
 	$('#compression').on("click", function () {
 		if ($('#compression').is(':checked')) {
 			$("#cache").checkboxradio("disable");
@@ -818,19 +818,19 @@ function change_select_acceleration(id) {
 		}
 	});
 }
-function change_select_waf(id) {
-	$.ajax({
-		url: "/service/haproxy/" + $('#serv' + id + ' option:selected').val() + "/status",
-		contentType: "application/json; charset=utf-8",
-		success: function (data) {
-			if (parseFloat(data.Version.split('-')[0]) < parseFloat('1.8') || data.Version == ' ') {
-				$("#waf" + id).checkboxradio("disable");
-			} else {
-				$("#waf" + id).checkboxradio("enable");
-			}
-		}
-	});
-}
+// function change_select_waf(id) {
+// 	$.ajax({
+// 		url: "/service/haproxy/" + $('#serv' + id + ' option:selected').val() + "/status",
+// 		contentType: "application/json; charset=utf-8",
+// 		success: function (data) {
+// 			if (parseFloat(data.Version.split('-')[0]) < parseFloat('1.8') || data.Version == ' ') {
+// 				$("#waf" + id).checkboxradio("disable");
+// 			} else {
+// 				$("#waf" + id).checkboxradio("enable");
+// 			}
+// 		}
+// 	});
+// }
 function createList(color) {
 	let list = $('#new_blacklist_name').val()
 	if (color === 'white') {

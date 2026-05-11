@@ -21,12 +21,11 @@ class EscapedString(str):
         if isinstance(field_value, str):
             if cls.pattern.search(field_value):
                 return re.sub(cls.pattern, '', field_value)
-            elif '..' in field_value:
+            if '..' in field_value:
                 raise ValueError('nice try')
-            elif field_value == '':
+            if field_value == '':
                 return field_value
-            else:
-                return quote(field_value.rstrip())
+            return quote(field_value.rstrip())
         return field_value
 
     @classmethod

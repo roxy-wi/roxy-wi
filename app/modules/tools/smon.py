@@ -75,7 +75,7 @@ def create_smon(json_data, user_group, show_new=1) -> bool:
         return False
 
 
-def update_smon(smon_id, json_data) -> str:
+def update_smon(smon_id, json_data, group_id: int) -> str:
     name = common.checkAjaxInput(json_data['name'])
     hostname = common.checkAjaxInput(json_data['ip'])
     port = common.checkAjaxInput(json_data['port'])
@@ -120,7 +120,7 @@ def update_smon(smon_id, json_data) -> str:
         return f'{e}'
 
     try:
-        if smon_sql.update_smon(smon_id, name, telegram, slack, pd, mm, group, desc, enabled):
+        if smon_sql.update_smon(smon_id, name, telegram, slack, pd, mm, group, desc, enabled, group_id):
             if check_type == 'http':
                 is_edited = smon_sql.update_smonHttp(smon_id, url, body, http_method, interval, agent_id)
             elif check_type == 'tcp':

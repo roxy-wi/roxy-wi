@@ -512,10 +512,10 @@ def select_smon_history(smon_id: int) -> object:
 		return query_res
 
 
-def update_smon(smon_id, name, telegram, slack, pd, mm, group, desc, en):
+def update_smon(smon_id, name, telegram, slack, pd, mm, group, desc, en, group_id):
 	query = (SMON.update(
 		name=name, telegram_channel_id=telegram, slack_channel_id=slack, pd_channel_id=pd, mm_channel_id=mm, group=group, desc=desc, en=en
-	).where(SMON.id == smon_id))
+	).where(SMON.id == smon_id) & SMON.user_group == group_id)
 	try:
 		query.execute()
 		return True

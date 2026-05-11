@@ -327,7 +327,7 @@ def mm_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 	values = f'{{"channel": "{channel}", "username": "Roxy-WI", "attachments": [{attach}]}}'
 	proxy_dict = common.return_proxy_dict()
 	try:
-		requests.post(token, headers=headers, data=str(values), proxies=proxy_dict, timeout=15)
+		requests.post(token, headers=headers, data=str(values), proxies=proxy_dict, timeout=15, allow_redirects=False)
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		raise Exception(e)

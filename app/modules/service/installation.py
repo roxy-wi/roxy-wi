@@ -166,6 +166,8 @@ def generate_haproxy_inv(json_data: ServiceInstall, installed_service: str) -> o
 def generate_section_inv(json_data: dict, cfg: str, service: Literal['haproxy', 'nginx']) -> dict:
 	cert_path = sql.get_setting('cert_path')
 	service_dir = sql.get_setting(f'{service}_dir')
+	if 'external-check command' in json_data:
+		raise Exception('External check command is not supported for HAProxy')
 	inv = {"server": {"hosts": {}}}
 	inv['server']['hosts']['localhost'] = {
 		"config": json_data,

@@ -141,6 +141,7 @@ def waf_save_config(service, server_ip, rule_id):
     configs_dir = sql.get_setting('tmp_config_path')
     cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}"
     config_file_name = request.form.get('config_file_name')
+    config_file_name = common.resolve_waf_config_path('waf', config_file_name)
     config = request.form.get('config')
     oldcfg = request.form.get('oldconfig')
     save = request.form.get('save')

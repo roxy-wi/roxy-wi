@@ -7,6 +7,8 @@ import distro
 from shlex import quote
 from shutil import which
 from pytz import timezone
+import ipaddress
+from markupsafe import escape
 
 import app.modules.db.sql as sql
 
@@ -157,12 +159,12 @@ def return_nice_path(return_path: str, is_service=1) -> str:
 
 def check_is_conf(config_path: str) -> bool:
 	"""
-	    Check if the config_path is a service folder and contains either 'conf' or 'cfg'.
-	    Raise an exception if the check fails.
+		Check if the config_path is a service folder and contains either 'conf' or 'cfg'.
+		Raise an exception if the check fails.
 
-	    :param config_path: Path string to be checked.
-	    :return: True if the path passes the checks, otherwise an exception is raised.
-	    """
+		:param config_path: Path string to be checked.
+		:return: True if the path passes the checks, otherwise an exception is raised.
+		"""
 	if check_is_service_folder(config_path) and ('conf' in config_path or 'cfg' in config_path):
 		return True
 	raise ValueError(f'error: The provided path "{config_path}" is not a service folder or does not contain "conf" or "cfg"')
@@ -196,17 +198,13 @@ def sanitize_input_word(word: str) -> str:
 	"""
 	Sanitizes the input word by removing certain characters.
 	"""
+	word = escape(word)
 	return re.sub(r'[?|$|!|^|*|\]|\[|,| |]', r'', word)
 
 
 def return_proxy_dict() -> dict:
 	"""
 	Return a dictionary containing proxy information for HTTP and HTTPS.
-
-	:return: A dictionary with the following key-value pairs:
-	         - "https": The proxy setting for HTTPS.
-	         - "http": The proxy setting for HTTP.
-	         If the proxy setting is None, an empty string, or "None", an empty dictionary is returned.
 	"""
 	proxy = sql.get_setting('proxy')
 	if proxy in {None, '', 'None'}:
@@ -227,3 +225,23 @@ def set_correct_owner(path: str) -> None:
 		os.system(f'sudo chown www-data:www-data -R {path}')
 	else:
 		os.system(f'sudo chown apache:apache -R {path}')
+
+
+def resolve_waf_config_path(service: str, config_file_name: str) -> str:
+	if not re.match(r'^[A-Za-z0-9._-]+\.conf$', config_file_name):
+		raise Exception('bad WAF rule filename')
+	base = os.path.realpath(sql.get_setting(f'{service}_dir')) + '/waf/rules/'
+	target = os.path.realpath(os.path.join(base, config_file_name))
+	if not target.startswith(base):
+		raise Exception('outside WAF rules dir')
+	return target
+
+
+def safe_ip_target(s: str) -> str:
+	try:
+		ip = ipaddress.ip_address(s)
+	except ValueError:
+		raise Exception('bad ip')
+	if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved:
+		raise Exception('not allowed')
+	return str(ip)
