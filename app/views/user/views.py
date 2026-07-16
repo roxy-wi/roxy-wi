@@ -428,6 +428,8 @@ class UserGroupView(MethodView):
                   type: 'string'
                   description: 'Error message'
         """
+        if user_id != g.user_params['user_id']:
+            roxywi_auth.page_for_admin(level=1)
         try:
             self._check_is_user_and_group(user_id, group_id)
         except Exception as e:

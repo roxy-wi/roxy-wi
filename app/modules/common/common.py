@@ -123,8 +123,9 @@ def checkAjaxInput(ajax_input: str):
 	pattern = re.compile('[&;|$`\n\r<>]')
 	if pattern.search(ajax_input):
 		raise ValueError('Error: Non-permitted characters detected')
-	else:
-		return quote(ajax_input.rstrip())
+	if '..' in ajax_input:
+		return ''
+	return quote(ajax_input.rstrip())
 
 
 def check_is_service_folder(service_path: str) -> bool:
