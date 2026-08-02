@@ -27,7 +27,6 @@
 		{% if g.user_params['user'] %}
             <input type="hidden" id="user_group_socket" value="{{ g.user_params['group_id'] }}">
             <input type="hidden" id="user_id_socket" value="{{ g.user_params['user_id'] }}">
-		<script>show_version();</script>
 		{% include 'include/main_menu.html' %}
 		<div class="container">
 			<h2>
@@ -107,5 +106,8 @@
 			<div style="font-size: 1em;font-weight: bold;padding-top: 10px;" id="statistic-body"></div>
 		</div>
 		{% include 'include/change_pass_form.html' %}
+		{% if g.user_params['user'] %}
+		<script>loadVersion();</script>
+		{% endif %}
 	</body>
 </html>

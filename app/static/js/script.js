@@ -1135,35 +1135,18 @@ function returnNiceCheckingConfig(data) {
 	}
 	return 0;
 }
-function show_version() {
-	NProgress.configure({showSpinner: false});
-	$.ajax( {
-		url: "/internal/show_version",
+function loadVersion() {
+	$.ajax({
+		url: "/api/version",
 		contentType: "application/json; charset=utf-8",
-		success: function( data ) {
-			if (data.need_update) {
-				$('#version').html('<span id="show-updates-button" class="new-version-exists" style="cursor: pointer;">v' + data.current_ver + '</span>');
-			} else {
-				$('#version').html('v' + data.current_ver);
-			}
-			let showUpdates = $("#show-updates").dialog({
-				autoOpen: false,
-				width: 600,
-				modal: true,
-				title: 'There is a new Roxy-WI version',
-				buttons: {
-					Close: function () {
-						$(this).dialog("close");
-						clearTips();
-					}
-				}
-			});
-			$('#show-updates-button').click(function () {
-				showUpdates.dialog('open');
-			});
+		success: function(data) {
+			$('#version').text('v' + data.service_version);
 		}
-	} );
-	NProgress.configure({showSpinner: true});
+	});
+}
+
+function show_version() {
+	loadVersion();
 }
 function statAgriment() {
 	var cur_url = window.location.href.split('/').pop();
