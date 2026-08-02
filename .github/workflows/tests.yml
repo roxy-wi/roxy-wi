@@ -36,5 +36,8 @@ jobs:
       - name: Compile Python sources
         run: python -m compileall -q app tests scheduler_runner.py rotate_credential_secret.py
 
+      - name: Smoke test application startup
+        run: python -m pytest tests/smoke -q
+
       - name: Run unit and security tests
-        run: python -m pytest --cov=app --cov-report=term-missing --cov-fail-under=25
+        run: python -m pytest --ignore=tests/smoke --cov=app --cov-report=term-missing --cov-fail-under=25
