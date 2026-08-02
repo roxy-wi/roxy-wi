@@ -3,7 +3,7 @@
 {% else %}
 	<a href=/login title="Login" class="login"> Login</a>
 {% endif %}
-<a href="/logout" title="{{lang.words.logout|title()}}" style="float: right;
+<a href="#" onclick="$.ajax({url: '/logout', type: 'POST'}).always(function(){ window.location = '/login'; }); return false;" title="{{lang.words.logout|title()}}" style="float: right;
     right: 27px;
     position: absolute;
     top: 8px;

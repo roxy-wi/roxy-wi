@@ -2,11 +2,14 @@ from datetime import datetime, timedelta
 
 from pytz import timezone
 import configparser
+import os
+
+from werkzeug.security import check_password_hash, generate_password_hash
 
 
 class GetConfigVar:
     def __init__(self):
-        self.path_config = "/etc/roxy-wi/roxy-wi.cfg"
+        self.path_config = os.environ.get("ROXYWI_CONFIG_FILE", "/etc/roxy-wi/roxy-wi.cfg")
         self.config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
         self.config.read(self.path_config)
 
@@ -60,7 +63,23 @@ class Tools:
     def get_hash(need_hashed):
         if need_hashed is None:
             return need_hashed
+        return generate_password_hash(need_hashed)
+
+    @staticmethod
+    def check_password(password, password_hash):
+        """Return (matches, needs_rehash), accepting legacy MD5 hashes once."""
+        if not password_hash:
+            return False, False
+
         import hashlib
-        h = hashlib.md5(need_hashed.encode('utf-8'))
-        p = h.hexdigest()
-        return p
+        import hmac
+        import re
+
+        if re.fullmatch(r"[0-9a-fA-F]{32}", password_hash):
+            legacy_hash = hashlib.md5(password.encode("utf-8")).hexdigest()
+            return hmac.compare_digest(legacy_hash, password_hash.lower()), True
+
+        try:
+            return check_password_hash(password_hash, password), False
+        except (ValueError, TypeError):
+            return False, False

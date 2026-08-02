@@ -1,5 +1,6 @@
 import os
 import base64
+import hashlib
 from cryptography.fernet import Fernet
 
 from flask import render_template
@@ -13,13 +14,36 @@ from app.modules.db.db_model import Cred
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.modules.roxywi.class_models import IdResponse, IdDataResponse, CredRequest
+from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 get_config = roxy_wi_tools.GetConfigVar()
+KNOWN_INSECURE_SECRET_SHA256 = '81fd19ad32311ada4ffa54bfb9ebed03dc89632a853d0522e2498c420c4315c1'
 
 
-def return_ssh_keys_path(server_ip: str) -> dict:
+def _get_fernet_key() -> str:
+	key = os.environ.get('ROXYWI_SECRET_PHRASE') or get_config.get_config_var('main', 'secret_phrase')
+	if not key or key == 'CHANGE_ME' or hashlib.sha256(key.encode()).hexdigest() == KNOWN_INSECURE_SECRET_SHA256:
+		raise RuntimeError(
+			'Configure a unique ROXYWI_SECRET_PHRASE before storing or reading credentials'
+		)
+	return key
+
+
+def return_ssh_keys_path(server_ip: str, cred_id: int = None) -> dict:
 	ssh_settings = {}
-	sshs = cred_sql.select_ssh(serv=server_ip)
+	try:
+		server = server_sql.get_server_by_ip(server_ip)
+	except Exception as e:
+		raise Exception(f'error: Cannot get server SSH settings: {e}')
+
+	if cred_id is not None:
+		# A caller may select credentials only from the server's tenant or from
+		# credentials explicitly shared across tenants.
+		sshs = cred_sql.select_ssh(group=server.group_id, cred_id=cred_id, not_shared=True)
+	else:
+		sshs = cred_sql.select_ssh(serv=server_ip)
+	if not sshs.exists():
+		raise RoxywiResourceNotFound
 
 	for ssh in sshs:
 		if ssh.password:
@@ -47,11 +71,7 @@ def return_ssh_keys_path(server_ip: str) -> dict:
 		ssh_settings.setdefault('key', ssh_key)
 		ssh_settings.setdefault('passphrase', passphrase)
 
-	try:
-		server = server_sql.get_server_by_ip(server_ip)
-		ssh_settings.setdefault('port', server.port)
-	except Exception as e:
-		raise Exception(f'error: Cannot get SSH port: {e}')
+	ssh_settings.setdefault('port', server.port)
 
 	return ssh_settings
 
@@ -153,7 +173,7 @@ def crypt_password(password: str) -> bytes:
 	:param password: plain password
 	:return: crypted text
 	"""
-	salt = get_config.get_config_var('main', 'secret_phrase')
+	salt = _get_fernet_key()
 	fernet = Fernet(salt.encode())
 	try:
 		crypted_pass = fernet.encrypt(password.encode())
@@ -168,7 +188,7 @@ def decrypt_password(password: str) -> str:
 	:param password: crypted password
 	:return: plain text
 	"""
-	salt = get_config.get_config_var('main', 'secret_phrase')
+	salt = _get_fernet_key()
 	fernet = Fernet(salt.encode())
 	try:
 		decrypted_pass = fernet.decrypt(password.encode()).decode()

@@ -60,7 +60,7 @@ register_api(HAVIPView, 'ha_vip', '/ha/<service>/<int:cluster_id>/vip', 'vip_id'
 bp.add_url_rule('/ha/<service>/<int:cluster_id>/vips', view_func=HAVIPsView.as_view('ha_vips'), methods=['GET'])
 bp.add_url_rule('/ha/<service>/clusters', view_func=HAClustersView.as_view('ha_clusters'), methods=['GET'])
 register_api(UDPListener, 'udp_listener', '/<service>/listener', 'listener_id')
-bp.add_url_rule('/<service>/listener/<int:listener_id>/<any(start, stop, reload, restart):action>', view_func=UDPListenerActionView.as_view('listener_action'), methods=['GET'])
+bp.add_url_rule('/<service>/listener/<int:listener_id>/<any(start, stop, reload, restart):action>', view_func=UDPListenerActionView.as_view('listener_action'), methods=['POST'])
 bp.add_url_rule('/<service>/listener/<int:listener_id>/<backend_ip>', view_func=UDPListenerBackendStatusView.as_view('UDPListenerBackendStatusView'), methods=['GET'])
 bp.add_url_rule('/<service>/listener/<int:listener_id>/checker/<int:is_checker>', view_func=UdpListenerCheckerView.as_view('UdpListenerCheckerView'), methods=['POST'])
 bp.add_url_rule('/<service>/listeners', view_func=UDPListeners.as_view('listeners'), methods=['GET'])
@@ -90,7 +90,7 @@ bp.add_url_rule('/service/<any(nginx, apache):service>/<server_id>/config/list',
 bp.add_url_rule('/service/<any(nginx, apache):service>/<int:server_id>/config/list', view_func=ServiceConfigList.as_view('config_list'), methods=['GET'])
 register_api_id_ip(CheckerView, 'checker', '/tools')
 register_api_id_ip(InstallView, 'install', '/install', methods=['POST', 'PUT', 'DELETE'])
-register_api_id_ip(ServiceActionView, 'service_action', '/<any(start, stop, reload, restart):action>', methods=['GET'])
+register_api_id_ip(ServiceActionView, 'service_action', '/<any(start, stop, reload, restart):action>', methods=['POST'])
 
 register_api_for_not_api(ServerView, 'server', '/server', 'server_id')
 register_api(BackupView, 'backup_fs', '/server/backup/fs', 'backup_id')

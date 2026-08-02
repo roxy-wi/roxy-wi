@@ -300,6 +300,7 @@ function viewFirewallRules(ip) {
 function updateServerInfo(ip, id) {
 	$.ajax({
 		url: "/server/system_info/update/" + ip + "/" + id,
+		type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1' || data.indexOf('error_code') != '-1') {

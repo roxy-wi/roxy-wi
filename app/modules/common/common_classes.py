@@ -15,19 +15,10 @@ class SupportClass:
     @get_user_params()
     def return_server_ip_or_id(self, server_id: Union[int, str]) -> Union[int, str]:
         if isinstance(server_id, str):
-            try:
-                server = server_sql.get_server_by_ip(server_id)
-            except Exception as e:
-                raise e
+            server = server_sql.get_server_by_ip(server_id)
         else:
-            try:
-                server = server_sql.get_server(server_id)
-            except Exception as e:
-                raise e
-        try:
-            roxywi_common.is_user_has_access_to_group(g.user_params['user_id'], server.group_id)
-        except Exception as e:
-            roxywi_common.handler_exceptions_for_json_data(e, '')
+            server = server_sql.get_server(server_id)
+        roxywi_common.require_active_group_access(server.group_id)
 
         if self.is_id:
             return server.server_id
@@ -41,10 +32,7 @@ class SupportClass:
             if g.user_params['role'] == 1:
                 return body.group_id
             else:
-                try:
-                    roxywi_common.is_user_has_access_to_group(g.user_params['user_id'], body.group_id)
-                    return body.group_id
-                except Exception:
-                    return int(g.user_params['group_id'])
+                roxywi_common.require_active_group_access(body.group_id)
+                return body.group_id
         else:
             return int(g.user_params['group_id'])

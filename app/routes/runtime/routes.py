@@ -6,19 +6,22 @@ from flask_pydantic import validate
 from pydantic import IPvAnyAddress
 
 from app.routes.runtime import bp
-from app.middleware import get_user_params
+from app.middleware import get_user_params, page_for_admin
 import app.modules.common.common as common
 import app.modules.config.runtime as runtime
 import app.modules.db.server as server_sql
 import app.modules.service.haproxy as service_haproxy
+import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi.class_models import DomainName, EscapedString
 
 
 @bp.before_request
 @jwt_required()
+@get_user_params()
+@page_for_admin(level=3)
 def before_request():
     """ Protect all the admin endpoints. """
-    pass
+    roxywi_common.require_request_server_access()
 
 
 @bp.route('')
@@ -162,7 +165,7 @@ def get_table(server_ip: Union[IPvAnyAddress, DomainName], table: EscapedString)
         return f'{e}'
 
 
-@bp.route('/table/delete/<server_ip>/<table>/<ip_for_delete>')
+@bp.route('/table/delete/<server_ip>/<table>/<ip_for_delete>', methods=['POST'])
 @validate()
 def delete_ip(server_ip: Union[IPvAnyAddress, DomainName], table: EscapedString, ip_for_delete: Union[IPvAnyAddress, DomainName]):
     try:
@@ -171,7 +174,7 @@ def delete_ip(server_ip: Union[IPvAnyAddress, DomainName], table: EscapedString,
         return f'{e}'
 
 
-@bp.route('/table/clear/<server_ip>/<table>')
+@bp.route('/table/clear/<server_ip>/<table>', methods=['POST'])
 @validate()
 def clear_table(server_ip: Union[IPvAnyAddress, DomainName], table: EscapedString):
     try:
@@ -198,7 +201,7 @@ def show_sessions(server_ip: Union[IPvAnyAddress, DomainName], sess_id: EscapedS
         return f'{e}'
 
 
-@bp.route('/session/delete/<server_ip>/<sess_id>')
+@bp.route('/session/delete/<server_ip>/<sess_id>', methods=['POST'])
 @validate()
 def delete_session(server_ip: Union[IPvAnyAddress, DomainName], sess_id: EscapedString):
     try:

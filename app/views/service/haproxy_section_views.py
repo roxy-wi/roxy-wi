@@ -1,4 +1,6 @@
 import os
+import shutil
+from pathlib import Path
 from typing import Union, Literal
 
 from flask.views import MethodView
@@ -63,7 +65,7 @@ class HaproxySectionView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find a server')
         if query.generate:
             cfg = '/tmp/haproxy-generated-config.cfg'
-            os.system(f'touch {cfg}')
+            Path(cfg).touch(exist_ok=True)
             inv = service_mod.generate_section_inv(body.model_dump(mode='json'), cfg, service)
 
             try:
@@ -162,7 +164,7 @@ class HaproxySectionView(MethodView):
         except Exception as e:
             raise e
 
-        os.system(f'cp {cfg} {cfg}.old')
+        shutil.copy2(cfg, f'{cfg}.old')
 
         try:
             output = service_mod.run_ansible_locally(inv, 'haproxy_section')

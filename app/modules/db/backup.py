@@ -1,4 +1,4 @@
-from app.modules.db.db_model import Backup, S3Backup, GitSetting
+from app.modules.db.db_model import Backup, S3Backup, GitSetting, Server
 from app.modules.db.common import out_error
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 
@@ -58,6 +58,10 @@ def select_gits(**kwargs):
 	if kwargs.get("server_id") is not None and kwargs.get("service_id") is not None:
 		query = GitSetting.select().where(
 			(GitSetting.server_id == kwargs.get("server_id")) & (GitSetting.service_id == kwargs.get("service_id")))
+	elif kwargs.get('group_id') is not None:
+		query = GitSetting.select(GitSetting).join(
+			Server, on=(GitSetting.server_id == Server.server_id)
+		).where(Server.group_id == kwargs.get('group_id')).order_by(GitSetting.id)
 	else:
 		query = GitSetting.select().order_by(GitSetting.id)
 
@@ -72,6 +76,10 @@ def select_gits(**kwargs):
 def select_backups(**kwargs):
 	if kwargs.get("backup_id") is not None:
 		query = Backup.select().where(Backup.id == kwargs.get("backup_id"))
+	elif kwargs.get('group_id') is not None:
+		query = Backup.select(Backup).join(
+			Server, on=(Backup.server_id == Server.server_id)
+		).where(Server.group_id == kwargs.get('group_id')).order_by(Backup.id)
 	else:
 		query = Backup.select().order_by(Backup.id)
 
@@ -88,6 +96,10 @@ def select_s3_backups(**kwargs):
 			(S3Backup.s3_server == kwargs.get("s3_server")) &
 			(S3Backup.bucket == kwargs.get("bucket"))
 		)
+	elif kwargs.get('group_id') is not None:
+		query = S3Backup.select(S3Backup).join(
+			Server, on=(S3Backup.server_id == Server.server_id)
+		).where(Server.group_id == kwargs.get('group_id')).order_by(S3Backup.id)
 	else:
 		query = S3Backup.select().order_by(S3Backup.id)
 

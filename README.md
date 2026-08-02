@@ -84,7 +84,21 @@ Default Roxy-WI use Sqlite, if you want use MySQL enable in config, and create d
 # Settings
 
 
-Login https://roxy-wi-server/admin, and add: users, groups, and servers. Default: admin/admin
+Login at `https://roxy-wi-server/admin`, then add users, groups, and servers. Set the initial admin password with `ROXYWI_BOOTSTRAP_ADMIN_PASSWORD` (at least 12 characters). If it is not set, Roxy-WI creates `/var/lib/roxy-wi/bootstrap-admin-password` with mode `0600` on first start.
+
+Fresh installations generate random HAProxy, NGINX, Apache statistics passwords. Set `ROXYWI_RABBITMQ_PASSWORD` (at least 12 characters) before the first start when RabbitMQ is configured separately; otherwise a random value is stored in the admin settings. Existing installations that still use the old `password` or `roxy-wi123` defaults must replace them in both Roxy-WI settings and the corresponding service.
+
+Before starting Roxy-WI, set `ROXYWI_SECRET_PHRASE` to a unique Fernet key. Existing installations must set the previous key as `ROXYWI_OLD_SECRET_PHRASE`, set the new key as `ROXYWI_SECRET_PHRASE`, and run `python3 rotate_credential_secret.py` once before restarting the application. Install the TLS certificate and private key as `/etc/roxy-wi/certs/roxy-wi.crt` and `/etc/roxy-wi/certs/roxy-wi.key`; the private key must not be stored below the web application root. SSH and Ansible host-key verification is enabled, so add managed hosts to the service account's `known_hosts` only after verifying their fingerprints through a trusted channel.
+
+## Scheduler
+
+The scheduler HTTP API is permanently disabled. Web workers do not start background jobs by default, which prevents the same job from running once per worker. Run exactly one dedicated scheduler process under your service manager:
+
+```shell
+python3 scheduler_runner.py
+```
+
+`scheduler_runner.py` enables `ROXYWI_SCHEDULER_ENABLED=1` for that process. Do not set this variable globally for the web service.
 
 ### Read instruction on the official [site](https://roxy-wi.org/settings)
 

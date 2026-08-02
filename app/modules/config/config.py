@@ -1,4 +1,5 @@
 import os
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -215,7 +216,7 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	common.check_is_conf(config_path)
 
 	try:
-		os.system(f"dos2unix -q {cfg}")
+		subprocess.run(['dos2unix', '-q', cfg], check=False)
 	except OSError as e:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'There is no dos2unix')
 

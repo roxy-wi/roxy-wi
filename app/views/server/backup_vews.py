@@ -11,6 +11,17 @@ import app.modules.service.backup as backup_mod
 import app.modules.roxywi.common as roxywi_common
 from app.middleware import get_user_params, page_for_admin, check_group
 from app.modules.roxywi.class_models import BackupRequest, S3BackupRequest, GitBackupRequest, BaseResponse
+from app.modules.common.common_classes import SupportClass
+
+
+def _require_server_access(server_id: int) -> None:
+    SupportClass().return_server_ip_or_id(int(server_id))
+
+
+def _get_authorized_backup(backup_id: int, backup_type: str):
+    backup = backup_sql.get_backup(backup_id, backup_type)
+    _require_server_access(backup.server_id)
+    return backup
 
 
 class BackupView(MethodView):
@@ -67,7 +78,7 @@ class BackupView(MethodView):
             description: Unexpected error
         """
         try:
-            backup = backup_sql.get_backup(backup_id, 'fs')
+            backup = _get_authorized_backup(backup_id, 'fs')
             backup.server_id = int(backup.server_id)
             backup.description = str(backup.description).replace("'", "")
         except Exception as e:
@@ -130,6 +141,7 @@ class BackupView(MethodView):
             description: Unexpected error
         """
         try:
+            _require_server_access(body.server_id)
             return backup_mod.create_backup(body, self.is_api)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
@@ -194,6 +206,8 @@ class BackupView(MethodView):
             description: Unexpected error
         """
         try:
+            _get_authorized_backup(backup_id, 'fs')
+            _require_server_access(body.server_id)
             return backup_mod.update_backup(body, backup_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
@@ -231,6 +245,8 @@ class BackupView(MethodView):
             description: Unexpected error
         """
         try:
+            _get_authorized_backup(backup_id, 'fs')
+            _require_server_access(body.server_id)
             return backup_mod.delete_backup(body, backup_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
@@ -290,7 +306,7 @@ class S3BackupView(MethodView):
             description: Unexpected error
         """
         try:
-            backup = backup_sql.get_backup(backup_id, 's3')
+            backup = _get_authorized_backup(backup_id, 's3')
             backup.server_id = int(backup.server_id)
             backup.description = str(backup.description).replace("'", "")
         except Exception as e:
@@ -349,6 +365,7 @@ class S3BackupView(MethodView):
             description: Unexpected error
         """
         try:
+            _require_server_access(body.server_id)
             return backup_mod.create_s3_backup(body, self.is_api)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create S3 backup')
@@ -409,10 +426,13 @@ class S3BackupView(MethodView):
             description: Unexpected error
         """
         try:
+            _get_authorized_backup(backup_id, 's3')
+            _require_server_access(body.server_id)
             backup_mod.create_s3_backup_inv(body, 'add')
             backup_sql.update_backup_job(backup_id, 's3', **body.model_dump(mode='json'))
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update S3 backup')
+        return BaseResponse().model_dump(mode='json'), 201
 
     @validate(body=S3BackupRequest)
     def delete(self, backup_id: int, body: S3BackupRequest):
@@ -447,6 +467,8 @@ class S3BackupView(MethodView):
             description: Unexpected error
         """
         try:
+            _get_authorized_backup(backup_id, 's3')
+            _require_server_access(body.server_id)
             backup_mod.delete_s3_backup(body, backup_id)
             return BaseResponse().model_dump(mode='json'), 204
         except Exception as e:
@@ -507,7 +529,7 @@ class GitBackupView(MethodView):
             description: Unexpected error
         """
         try:
-            backup = backup_sql.get_backup(backup_id, 'git')
+            backup = _get_authorized_backup(backup_id, 'git')
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
@@ -571,6 +593,7 @@ class GitBackupView(MethodView):
             description: Unexpected error
         """
         try:
+            _require_server_access(body.server_id)
             return backup_mod.create_git_backup(body, self.is_api)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create GIT backup')
@@ -633,6 +656,8 @@ class GitBackupView(MethodView):
             description: Unexpected error
         """
         try:
+            _get_authorized_backup(backup_id, 'git')
+            _require_server_access(body.server_id)
             server = server_sql.get_server(body.server_id)
             service_name = service_sql.select_service_name_by_id(body.service_id).lower()
             backup_mod.create_git_backup_inv(body, server.ip, service_name)
@@ -674,6 +699,8 @@ class GitBackupView(MethodView):
             description: Unexpected error
         """
         try:
+            _get_authorized_backup(backup_id, 'git')
+            _require_server_access(body.server_id)
             return backup_mod.delete_git_backup(body, backup_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete GIT backup')

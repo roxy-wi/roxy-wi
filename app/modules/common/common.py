@@ -8,6 +8,7 @@ from shlex import quote
 from shutil import which
 from pytz import timezone
 import ipaddress
+import subprocess
 from markupsafe import escape
 
 import app.modules.db.sql as sql
@@ -124,7 +125,7 @@ def checkAjaxInput(ajax_input: str):
 	if pattern.search(ajax_input):
 		raise ValueError('Error: Non-permitted characters detected')
 	if '..' in ajax_input:
-		return ''
+		raise ValueError('Path traversal is not allowed')
 	return quote(ajax_input.rstrip())
 
 
@@ -223,9 +224,10 @@ def set_correct_owner(path: str) -> None:
 	:rtype: None
 	"""
 	if distro.id() == 'ubuntu':
-		os.system(f'sudo chown www-data:www-data -R {path}')
+		owner = 'www-data:www-data'
 	else:
-		os.system(f'sudo chown apache:apache -R {path}')
+		owner = 'apache:apache'
+	subprocess.run(['sudo', 'chown', owner, '-R', path], check=False)
 
 
 def resolve_waf_config_path(service: str, config_file_name: str) -> str:

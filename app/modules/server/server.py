@@ -1,5 +1,6 @@
 import json
 import os
+import subprocess
 
 from flask import render_template
 
@@ -55,24 +56,26 @@ def ssh_command(server_ip: str, commands: str, **kwargs):
 
 
 def subprocess_execute(cmd):
-	import subprocess
-	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True, errors='backslashreplace')
+	if any(character in cmd for character in ('\x00', '\n', '\r')):
+		raise ValueError('Unsafe local command')
+	p = subprocess.Popen(['/bin/sh', '-c', cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, errors='backslashreplace')
 	stdout, stderr = p.communicate()
 	output = stdout.splitlines()
 	return output, stderr
 
 
 def subprocess_execute_stream(cmd):
-	import subprocess
-	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, universal_newlines=True)
+	if any(character in cmd for character in ('\x00', '\n', '\r')):
+		raise ValueError('Unsafe local command')
+	p = subprocess.Popen(['/bin/sh', '-c', cmd], stdout=subprocess.PIPE, universal_newlines=True)
 	for line in iter(p.stdout.readline, ''):
 		yield line
 
 
 def subprocess_execute_with_rc(cmd):
-	import subprocess
-
-	p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+	if any(character in cmd for character in ('\x00', '\n', '\r')):
+		raise ValueError('Unsafe local command')
+	p = subprocess.Popen(['/bin/sh', '-c', cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
 	stdout, stderr = p.communicate()
 	output = stdout.splitlines()
 	rc = p.returncode
@@ -482,7 +485,7 @@ def delete_server(server_id: int) -> None:
 		server_sql.delete_system_info(server_id)
 		service_sql.delete_service_settings(server_id)
 		roxywi_common.logging(server.ip, f'The server {server.hostname} has been deleted', login=1)
-		os.system(f'ssh-keygen -R {server.ip}')
+		subprocess.run(['ssh-keygen', '-R', server.ip], check=False)
 
 
 def server_is_up(server_ip: str) -> str:

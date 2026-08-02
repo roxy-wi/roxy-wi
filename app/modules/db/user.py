@@ -260,11 +260,7 @@ def is_user_super_admin(user_id: int) -> bool:
 	except Exception as e:
 		out_error(e)
 	else:
-		for i in query_res:
-			if i.user_role_id == 1:
-				return True
-		else:
-			return False
+		return any(int(user_group.user_role_id) == 1 for user_group in query_res)
 
 
 def get_role_id(user_id: int, group_id: int) -> int:

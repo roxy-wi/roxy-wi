@@ -773,6 +773,7 @@ function removeOption(id) {
 	$("#option-"+id).css("background-color", "#f2dede");
 	$.ajax( {
 		url: "/add/option/delete/" + id,
+		type: "DELETE",
 		success: function( data ) {
 			data = data.replace(/\s+/g,' ');
 			if (data.indexOf('error:') != '-1') {

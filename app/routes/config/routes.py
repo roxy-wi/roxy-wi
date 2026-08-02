@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Union
 
 from flask import render_template, request, g, jsonify
@@ -11,7 +12,7 @@ import app.modules.db.sql as sql
 import app.modules.db.config as config_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
-from app.middleware import check_services, get_user_params
+from app.middleware import check_services, get_user_params, page_for_admin
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
@@ -29,9 +30,11 @@ bp.add_url_rule('/<service>/<server_id>/versions', view_func=ServiceConfigVersio
 
 @bp.before_request
 @jwt_required()
+@get_user_params()
+@page_for_admin(level=3)
 def before_request():
     """ Protect all the admin endpoints. """
-    pass
+    roxywi_common.require_request_server_access()
 
 
 @bp.route('/<service>/show', methods=['POST'])
@@ -130,7 +133,7 @@ def config(service, serv, edit, config_file_name, new):
         except IOError as e:
             return f'Cannot read imported config file {e}', 200
 
-        os.system("/bin/mv %s %s.old" % (cfg, cfg))
+        Path(cfg).replace(f'{cfg}.old')
 
     if new_config is not None:
         config_read = ' '
@@ -257,7 +260,7 @@ def haproxy_section_show(server_ip: Union[IPvAnyAddress, DomainName], section):
     server_id = server_sql.get_server_by_ip(server_ip).server_id
     sections = section_mod.get_sections(cfg)
 
-    os.system(f"/bin/mv {cfg} {cfg}.old")
+    Path(cfg).replace(f'{cfg}.old')
 
     try:
         roxywi_common.logging(server_ip, f"A section {section} has been opened")

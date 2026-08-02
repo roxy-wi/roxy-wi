@@ -36,9 +36,11 @@ bp.add_url_rule(
 
 @bp.before_request
 @jwt_required()
+@get_user_params()
 def before_request():
     """ Protect all the admin endpoints. """
     roxywi_auth.page_for_admin(level=3)
+    roxywi_common.require_request_server_access()
 
 
 @bp.route('')
@@ -132,6 +134,7 @@ def check_geoip(service: Literal['haproxy', 'nginx'], server_ip: Union[IPvAnyAdd
 
 
 @bp.route('/task-status/<int:task_id>')
+@get_user_params()
 def get_task_status(task_id):
-    task = InstallationTasks.get(id=task_id)
+    task = InstallationTasks.get((InstallationTasks.id == task_id) & (InstallationTasks.group_id == g.user_params['group_id']))
     return jsonify({'task_id': task_id, 'status': task.status, 'service_name': task.service_name, 'error': task.error}), 200

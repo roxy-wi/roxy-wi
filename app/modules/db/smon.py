@@ -4,6 +4,7 @@ from peewee import fn
 
 from app.modules.db.db_model import SmonAgent, Server, SMON, SmonTcpCheck, SmonHttpCheck, SmonDnsCheck, SmonPingCheck, SmonHistory, SmonStatusPageCheck, SmonStatusPage
 from app.modules.db.common import out_error
+from app.modules.roxywi.exception import RoxywiResourceNotFound
 import app.modules.roxy_wi_tools as roxy_wi_tools
 
 
@@ -26,11 +27,23 @@ def get_free_servers_for_agent(group_id: int):
 		out_error(e)
 
 
-def get_agent(agent_id: int):
+def get_agent(agent_id: int, group_id: int = None):
 	try:
-		return SmonAgent.select(SmonAgent, Server).join(Server).where(SmonAgent.id == agent_id).objects().execute()
+		query = SmonAgent.select(SmonAgent, Server).join(Server).where(SmonAgent.id == agent_id)
+		if group_id is not None:
+			query = query.where(Server.group_id == group_id)
+		return query.objects().execute()
 	except Exception as e:
 		out_error(e)
+
+
+def get_agent_server_for_group(agent_id: int, group_id: int):
+	try:
+		return SmonAgent.select(SmonAgent, Server).join(Server).where(
+			(SmonAgent.id == agent_id) & (Server.group_id == group_id)
+		).objects().get()
+	except Exception:
+		raise RoxywiResourceNotFound
 
 
 def get_agent_id_by_check_id(check_id: int):
@@ -194,15 +207,18 @@ def insert_smon_history(smon_id: int, resp_time: float, status: int, check_id: i
 		out_error(e)
 
 
-def select_one_smon(smon_id: int, check_id: int) -> tuple:
+def select_one_smon(smon_id: int, check_id: int, group_id: int = None) -> tuple:
+	filters = [SMON.id == smon_id]
+	if group_id is not None:
+		filters.append(SMON.user_group == group_id)
 	if check_id == 1:
-		query = SmonTcpCheck.select(SmonTcpCheck, SMON).join_from(SmonTcpCheck, SMON).where(SMON.id == smon_id)
+		query = SmonTcpCheck.select(SmonTcpCheck, SMON).join_from(SmonTcpCheck, SMON).where(*filters)
 	elif check_id == 2:
-		query = SmonHttpCheck.select(SmonHttpCheck, SMON).join_from(SmonHttpCheck, SMON).where(SMON.id == smon_id)
+		query = SmonHttpCheck.select(SmonHttpCheck, SMON).join_from(SmonHttpCheck, SMON).where(*filters)
 	elif check_id == 5:
-		query = SmonDnsCheck.select(SmonDnsCheck, SMON).join_from(SmonDnsCheck, SMON).where(SMON.id == smon_id)
+		query = SmonDnsCheck.select(SmonDnsCheck, SMON).join_from(SmonDnsCheck, SMON).where(*filters)
 	else:
-		query = SmonPingCheck.select(SmonPingCheck, SMON).join_from(SmonPingCheck, SMON).where(SMON.id == smon_id)
+		query = SmonPingCheck.select(SmonPingCheck, SMON).join_from(SmonPingCheck, SMON).where(*filters)
 
 	try:
 		query_res = query.execute()
@@ -210,6 +226,10 @@ def select_one_smon(smon_id: int, check_id: int) -> tuple:
 		out_error(e)
 	else:
 		return query_res
+
+
+def smon_belongs_to_group(smon_id: int, group_id: int) -> bool:
+	return SMON.select().where((SMON.id == smon_id) & (SMON.user_group == group_id)).exists()
 
 
 def insert_smon(name, enable, group, desc, telegram, slack, pd, mm, user_group, check_type):
@@ -319,19 +339,16 @@ def select_smon_check_by_id(last_id, check_type):
 def delete_smon(smon_id, user_group):
 	query = SMON.delete().where((SMON.id == smon_id) & (SMON.user_group == user_group))
 	try:
-		query.execute()
+		deleted = query.execute()
 	except Exception as e:
 		out_error(e)
 		return False
 	else:
-		return True
+		return deleted == 1
 
 
 def smon_list(user_group):
-	if user_group == 1:
-		query = (SMON.select().order_by(SMON.group))
-	else:
-		query = (SMON.select().where(SMON.user_group == user_group).order_by(SMON.group))
+	query = SMON.select().where(SMON.user_group == user_group).order_by(SMON.group)
 
 	try:
 		query_res = query.execute()
@@ -350,27 +367,37 @@ def add_status_page(name: str, slug: str, desc: str, group_id: int, checks: list
 		else:
 			out_error(e)
 	else:
-		add_status_page_checks(last_id, checks)
+		add_status_page_checks(last_id, checks, group_id)
 		return last_id
 
 
-def edit_status_page(page_id: int, name: str, slug: str, desc: str) -> None:
+def edit_status_page(page_id: int, name: str, slug: str, desc: str, group_id: int) -> None:
 	try:
-		SmonStatusPage.update(name=name, slug=slug, desc=desc).where(SmonStatusPage.id == page_id).execute()
+		updated = SmonStatusPage.update(name=name, slug=slug, desc=desc).where(
+			(SmonStatusPage.id == page_id) & (SmonStatusPage.group_id == group_id)
+		).execute()
+		if updated != 1:
+			raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 
 
-def add_status_page_checks(page_id: int, checks: list) -> None:
+def add_status_page_checks(page_id: int, checks: list, group_id: int = None) -> None:
 	for check in checks:
 		try:
+			if group_id is not None and not SMON.select().where(
+				(SMON.id == int(check)) & (SMON.user_group == group_id)
+			).exists():
+				raise RoxywiResourceNotFound
 			SmonStatusPageCheck.insert(page_id=page_id, check_id=int(check)).execute()
 		except Exception as e:
 			out_error(e)
 
 
-def delete_status_page_checks(page_id: int) -> None:
+def delete_status_page_checks(page_id: int, group_id: int = None) -> None:
 	try:
+		if group_id is not None and not status_page_belongs_to_group(page_id, group_id):
+			raise RoxywiResourceNotFound
 		SmonStatusPageCheck.delete().where(SmonStatusPageCheck.page_id == page_id).execute()
 	except Exception as e:
 		out_error(e)
@@ -385,9 +412,12 @@ def select_status_pages(group_id: int):
 		return query_res
 
 
-def select_status_page_by_id(page_id: int):
+def select_status_page_by_id(page_id: int, group_id: int = None):
+	query = SmonStatusPage.select().where(SmonStatusPage.id == page_id)
+	if group_id is not None:
+		query = query.where(SmonStatusPage.group_id == group_id)
 	try:
-		query_res = SmonStatusPage.select().where(SmonStatusPage.id == page_id).execute()
+		query_res = query.execute()
 	except Exception as e:
 		return out_error(e)
 	else:
@@ -412,9 +442,19 @@ def select_status_page_checks(page_id: int):
 		return query_res
 
 
-def delete_status_page(page_id):
+def status_page_belongs_to_group(page_id: int, group_id: int) -> bool:
+	return SmonStatusPage.select().where(
+		(SmonStatusPage.id == page_id) & (SmonStatusPage.group_id == group_id)
+	).exists()
+
+
+def delete_status_page(page_id, group_id: int):
 	try:
-		SmonStatusPage.delete().where(SmonStatusPage.id == page_id).execute()
+		deleted = SmonStatusPage.delete().where(
+			(SmonStatusPage.id == page_id) & (SmonStatusPage.group_id == group_id)
+		).execute()
+		if deleted != 1:
+			raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
 
@@ -500,10 +540,11 @@ def get_smon_service_name_by_id(smon_id: int) -> str:
 			return ''
 
 
-def select_smon_history(smon_id: int) -> object:
-	query = SmonHistory.select().where(
-		SmonHistory.smon_id == smon_id
-	).limit(40).order_by(SmonHistory.date.desc())
+def select_smon_history(smon_id: int, group_id: int = None) -> object:
+	query = SmonHistory.select()
+	if group_id is not None:
+		query = query.join(SMON, on=(SmonHistory.smon_id == SMON.id)).where(SMON.user_group == group_id)
+	query = query.where(SmonHistory.smon_id == smon_id).limit(40).order_by(SmonHistory.date.desc())
 	try:
 		query_res = query.execute()
 	except Exception as e:
@@ -515,10 +556,9 @@ def select_smon_history(smon_id: int) -> object:
 def update_smon(smon_id, name, telegram, slack, pd, mm, group, desc, en, group_id):
 	query = (SMON.update(
 		name=name, telegram_channel_id=telegram, slack_channel_id=slack, pd_channel_id=pd, mm_channel_id=mm, group=group, desc=desc, en=en
-	).where(SMON.id == smon_id) & SMON.user_group == group_id)
+	).where((SMON.id == smon_id) & (SMON.user_group == group_id)))
 	try:
-		query.execute()
-		return True
+		return query.execute() == 1
 	except Exception as e:
 		out_error(e)
 		return False
@@ -562,10 +602,7 @@ def update_smonDns(smon_id: int, ip: str, port: int, resolver: str, record_type:
 
 
 def select_smon(user_group):
-	if user_group == 1:
-		query = SMON.select()
-	else:
-		query = SMON.select().where(SMON.user_group == user_group)
+	query = SMON.select().where(SMON.user_group == user_group)
 	try:
 		query_res = query.execute()
 	except Exception as e:

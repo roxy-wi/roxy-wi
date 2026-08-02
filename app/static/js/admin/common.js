@@ -36,6 +36,7 @@ function updateService(service, action='update') {
 	$("#ajax-update").html(wait_mess);
 	$.ajax({
 		url: "/admin/tools/update/" + service,
+		type: "POST",
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('Complete!') != '-1' || data.indexOf('Unpacking') != '-1') {
@@ -129,6 +130,7 @@ function loadupdatehapwi() {
 function checkUpdateRoxy() {
 	$.ajax({
 		url: "/admin/update/check",
+		type: "POST",
 		success: function (data) {
 			loadupdatehapwi();
 		}
@@ -159,6 +161,7 @@ function confirmAjaxServiceAction(action, service) {
 function ajaxActionServices(action, service) {
 	$.ajax( {
 		url: "/admin/tools/action/" + service + "/" + action,
+		type: "POST",
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1') {
 				toastr.error(data);

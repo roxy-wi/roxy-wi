@@ -18,6 +18,10 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
     waf_process = ''
     waf_mode = ''
     is_waf_on_server = 0
+    waf_len = 0
+    server_status = (
+        server.hostname, server.ip, waf_process, waf_mode, metrics_en, waf_len, server.server_id
+    )
 
     if waf_service == 'haproxy':
         is_waf_on_server = server.haproxy
@@ -88,7 +92,7 @@ def switch_waf_rule(serv: str, enable: int, rule_id: int):
     conf_file_path = haproxy_path + '/waf/modsecurity.conf'
     rule_file_path = f'Include {haproxy_path}/waf/rules/{rule_file}'
 
-    if enable == '0':
+    if enable == 0:
         cmd = "sudo sed -i 's!" + rule_file_path + "!#" + rule_file_path + "!' " + conf_file_path
         en_for_log = 'disabled'
     else:

@@ -4,3 +4,8 @@ configs
 keys
 log
 .DS_Store
+.pytest_cache/
+.coverage
+htmlcov/
+tests/.runtime/
+.venv/

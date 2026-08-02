@@ -2,6 +2,7 @@ from app.modules.db.db_model import ConfigVersion
 from app.modules.db.server import get_server_by_ip
 from app.modules.db.common import out_error
 import app.modules.roxy_wi_tools as roxy_wi_tools
+from pathlib import Path
 
 
 def insert_config_version(server_id: int, user_id: int, service: str, local_path: str, remote_path: str, diff: str):
@@ -35,18 +36,34 @@ def select_config_version(server_ip: str, service: str) -> str:
 		return query_res
 
 
-def delete_config_version(service: str, local_path: str):
-	query_res = ConfigVersion.delete().where(
-		(ConfigVersion.service == service)
-		& (ConfigVersion.local_path == local_path)
+def get_config_version(server_ip: str, service: str, local_path: str):
+	server_id = get_server_by_ip(server_ip).server_id
+	versions = ConfigVersion.select().where(
+		(ConfigVersion.server_id == server_id)
+		& (ConfigVersion.service == service)
 	)
+	resolved_path = Path(local_path).resolve()
+	for version in versions:
+		if Path(version.local_path).resolve() == resolved_path:
+			return version
+	return None
+
+
+def config_version_exists(server_ip: str, service: str, local_path: str) -> bool:
+	return get_config_version(server_ip, service, local_path) is not None
+
+
+def delete_config_version(server_ip: str, service: str, local_path: str) -> bool:
+	version = get_config_version(server_ip, service, local_path)
+	if version is None:
+		return False
 	try:
-		query_res.execute()
+		deleted = version.delete_instance()
 	except Exception as e:
 		out_error(e)
 		return False
 	else:
-		return True
+		return deleted == 1
 
 
 def select_remote_path_from_version(server_ip: str, service: str, local_path: str):

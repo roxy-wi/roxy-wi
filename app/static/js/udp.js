@@ -499,6 +499,7 @@ function confirmUdpBalancerAction(action, listener_id) {
 function ajaxActionListener(action, listener_id) {
 	$.ajax({
         url: `${api_prefix}/udp/listener/${listener_id}/${action}`,
+        type: "POST",
         type: "GET",
         contentType: "application/json; charset=utf-8",
         success: function (data) {

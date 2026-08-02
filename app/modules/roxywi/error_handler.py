@@ -23,7 +23,6 @@ from app.modules.roxywi.exception import (
 )
 import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi import logger
-from app.middleware import get_user_params
 
 # Map exception types to HTTP status codes
 ERROR_CODE_MAPPING = {
@@ -49,7 +48,8 @@ ERROR_MESSAGE_MAPPING = {
     RoxywiValidationError: "Validation error",
     RoxywiCheckLimits: "You have reached your plan limits",
     KeyError: "Missing required field",
-    ValueError: "Invalid value provided"
+    ValueError: "Invalid value provided",
+    Exception: "Internal server error",
 }
 
 
@@ -136,6 +136,9 @@ def register_error_handlers(app):
     Args:
         app: The Flask application
     """
+    # Import lazily to avoid the common -> error_handler -> middleware -> common cycle.
+    from app.middleware import get_user_params
+
     @app.errorhandler(Exception)
     def handle_exception_error(e):
         """Handle all unhandled exceptions."""
@@ -178,7 +181,7 @@ def register_error_handlers(app):
     @app.errorhandler(401)
     def unauthorized(e):
         """Handle 401 Unauthorized errors."""
-        if 'api' in request.url:
+        if request.path.startswith('/api/'):
             return jsonify(ErrorResponse(error=str(e)).model_dump(mode='json')), 401
         return redirect(url_for('login_page', next=request.full_path))
 
@@ -186,7 +189,7 @@ def register_error_handlers(app):
     @get_user_params()
     def forbidden(e):
         """Handle 403 Forbidden errors."""
-        if 'api' in request.url:
+        if request.path.startswith('/api/'):
             return jsonify(ErrorResponse(error=str(e)).model_dump(mode='json')), 403
 
         kwargs = {
@@ -200,7 +203,7 @@ def register_error_handlers(app):
     @get_user_params()
     def not_found(e):
         """Handle 404 Not Found errors."""
-        if 'api' in request.url:
+        if request.path.startswith('/api/'):
             return jsonify(ErrorResponse(error=str(e)).model_dump(mode='json')), 404
 
         kwargs = {
@@ -229,7 +232,7 @@ def register_error_handlers(app):
     @get_user_params()
     def internal_server_error(e):
         """Handle 500 Internal Server Error errors."""
-        if 'api' in request.url:
+        if request.path.startswith('/api/'):
             return jsonify(ErrorResponse(error=str(e)).model_dump(mode='json')), 500
 
         kwargs = {

@@ -43,9 +43,11 @@ bp.add_url_rule('/backup/git', view_func=GitBackupView.as_view('backup_git', Fal
 
 @bp.before_request
 @jwt_required()
+@get_user_params()
 def before_request():
     """ Protect all the admin endpoints. """
     roxywi_auth.page_for_admin(level=2)
+    roxywi_common.require_request_server_access()
 
 
 @bp.route('/check/ssh/<server_ip>')
@@ -101,7 +103,7 @@ def get_system_info(server_ip: Union[IPvAnyAddress, DomainName], server_id: int)
     return server_mod.show_system_info(str(server_ip), server_id)
 
 
-@bp.route('/system_info/update/<server_ip>/<int:server_id>')
+@bp.post('/system_info/update/<server_ip>/<int:server_id>')
 @validate()
 def update_system_info(server_ip: Union[IPvAnyAddress, DomainName], server_id):
     return server_mod.update_system_info(str(server_ip), server_id)
@@ -132,9 +134,9 @@ def load_backup():
         'sshs': cred_sql.select_ssh(group=user_group),
         'servers': roxywi_common.get_dick_permit(virt=1, disable=0, only_group=1),
         'services': service_sql.select_services(),
-        'backups': backup_sql.select_backups(),
-        's3_backups': backup_sql.select_s3_backups(),
-        'gits': backup_sql.select_gits(),
+        'backups': backup_sql.select_backups(group_id=user_group),
+        's3_backups': backup_sql.select_s3_backups(group_id=user_group),
+        'gits': backup_sql.select_gits(group_id=user_group),
         'lang': g.user_params['lang'],
         'is_needed_tool': common.is_tool('ansible'),
         'user_subscription': roxywi_common.return_user_subscription(),

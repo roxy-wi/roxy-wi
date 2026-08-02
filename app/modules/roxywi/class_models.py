@@ -11,16 +11,18 @@ DomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9](?:[a-z0-9-]
 WildcardDomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9\*](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
 SizeStr = Annotated[str, StringConstraints(pattern=r'^\d+\s*(b|kb|mb|gb|tb|B|KB|MB|GB|TB|m|M|g|G|k|K)$')]
 TimeStr = Annotated[str, StringConstraints(pattern=r'^\d+\s*(M|w|d|h|m|s)$')]
+PasswordString = Annotated[str, StringConstraints(min_length=12, max_length=128)]
+LoginPasswordString = Annotated[str, StringConstraints(min_length=1, max_length=128)]
 
 
 class EscapedString(str):
-    pattern = re.compile('[&;|$`]')
+    pattern = re.compile(r'[&;|$`\r\n]')
 
     @classmethod
     def validate(cls, field_value, info) -> str:
         if isinstance(field_value, str):
             if cls.pattern.search(field_value):
-                return re.sub(cls.pattern, '', field_value)
+                raise ValueError('Unsafe characters are not allowed')
             if '..' in field_value:
                 raise ValueError('nice try')
             if field_value == '':
@@ -101,7 +103,7 @@ class UdpListenerRequest(BaseModel):
 
 class UserPost(BaseModel):
     username: EscapedString
-    password: EscapedString
+    password: PasswordString
     email: EscapedString
     enabled: Optional[bool] = 1
     group_id: Optional[int] = 0
@@ -110,7 +112,7 @@ class UserPost(BaseModel):
 
 class UserPut(BaseModel):
     username: EscapedString
-    password: Optional[EscapedString] = ''
+    password: Optional[Union[PasswordString, Literal['']]] = ''
     email: EscapedString
     enabled: Optional[bool] = 1
 
@@ -222,7 +224,7 @@ class ConfigRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     login: EscapedString
-    password: EscapedString
+    password: LoginPasswordString
 
 
 class ChannelRequest(BaseModel):

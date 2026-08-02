@@ -1,13 +1,14 @@
 import os
 import json
 import random
+import subprocess
 import threading
 from datetime import datetime
 from typing import Union, Literal
 from packaging import version
+from urllib.parse import urlparse
 
 import ansible
-import ansible_runner
 
 import app.modules.db.sql as sql
 import app.modules.db.add as add_sql
@@ -23,6 +24,14 @@ from app.modules.server.ssh import return_ssh_keys_path
 from app.modules.db.db_model import InstallationTasks
 from app.modules.roxywi.class_models import ServiceInstall, HAClusterRequest, HaproxyGlobalRequest, \
 	HaproxyDefaultsRequest, HaproxyConfigRequest
+
+
+def _ansible_runner():
+	# ansible-runner imports Linux-only modules. Keep route imports and unit
+	# tests platform-neutral; load it only when an installation is executed.
+	import ansible_runner
+
+	return ansible_runner
 
 
 def generate_udp_inv(listener_id: int, action: str) -> object:
@@ -204,7 +213,15 @@ def generate_service_inv(json_data: ServiceInstall, installed_service: str) -> o
 	is_docker = json_data['services'][installed_service]['docker']
 
 	if installed_service == 'nginx' and not os.path.isdir('/var/www/haproxy-wi/app/scripts/ansible/roles/nginxinc.nginx'):
-		os.system('ansible-galaxy install nginxinc.nginx,0.24.3 -f --roles-path /var/www/haproxy-wi/app/scripts/ansible/roles/')
+		result = subprocess.run(
+			[
+				'ansible-galaxy', 'install', 'nginxinc.nginx,0.24.3', '-f',
+				'--roles-path', '/var/www/haproxy-wi/app/scripts/ansible/roles/'
+			],
+			check=False,
+		)
+		if result.returncode != 0:
+			raise RuntimeError('Cannot install the nginxinc.nginx Ansible role')
 
 	for v in json_data['servers']:
 		s = server_sql.get_server(v['id'])
@@ -282,7 +299,7 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 		'ANSIBLE_SHOW_CUSTOM_STATS': 'no',
 		'ANSIBLE_DISPLAY_SKIPPED_HOSTS': "no",
 		'ANSIBLE_DEPRECATION_WARNINGS': "no",
-		'ANSIBLE_HOST_KEY_CHECKING': "no",
+		'ANSIBLE_HOST_KEY_CHECKING': "yes",
 		'ACTION_WARNINGS': "no",
 		'LOCALHOST_WARNING': "no",
 		'COMMAND_WARNINGS': "no",
@@ -313,7 +330,7 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot save inventory file')
 
 	try:
-		result = ansible_runner.run(**kwargs)
+		result = _ansible_runner().run(**kwargs)
 	except Exception as e:
 		server_mod.stop_ssh_agent(agent_pid)
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot run Ansible')
@@ -347,7 +364,7 @@ def run_ansible_locally(inv: dict, ansible_role: str) -> dict:
 		'ANSIBLE_SHOW_CUSTOM_STATS': 'no',
 		'ANSIBLE_DISPLAY_SKIPPED_HOSTS': "no",
 		'ANSIBLE_DEPRECATION_WARNINGS': "no",
-		'ANSIBLE_HOST_KEY_CHECKING': "no",
+		'ANSIBLE_HOST_KEY_CHECKING': "yes",
 		'ACTION_WARNINGS': "no",
 		'LOCALHOST_WARNING': "no",
 		'COMMAND_WARNINGS': "no",
@@ -373,7 +390,7 @@ def run_ansible_locally(inv: dict, ansible_role: str) -> dict:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot save inventory file')
 
 	try:
-		result = ansible_runner.run(**kwargs)
+		result = _ansible_runner().run(**kwargs)
 	except Exception as e:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot run Ansible')
 
@@ -462,20 +479,25 @@ def install_service(service: str, json_data: Union[str, ServiceInstall, HACluste
 
 
 def _install_ansible_collections():
-	old_ansible_server = ''
 	collections = ('community.general', 'ansible.posix', 'community.docker', 'community.grafana', 'ansible.netcommon', 'ansible.utils')
 	trouble_link = 'Read <a href="https://roxy-wi.org/troubleshooting#ansible_collection" target="_blank" class="link">troubleshooting</a>'
 	proxy = sql.get_setting('proxy')
-	proxy_cmd = ''
+	environment = os.environ.copy()
 	if proxy is not None and proxy != '' and proxy != 'None':
-		proxy_cmd = f'HTTPS_PROXY={proxy} &&'
+		parsed_proxy = urlparse(proxy)
+		if parsed_proxy.scheme not in {'http', 'https'} or not parsed_proxy.hostname:
+			raise ValueError('Proxy must be a valid HTTP or HTTPS URL')
+		if any(character in proxy for character in ('\r', '\n', '\x00')):
+			raise ValueError('Proxy contains invalid control characters')
+		environment['HTTPS_PROXY'] = proxy
 
 	for collection in collections:
 		if not os.path.isdir(f'/usr/share/httpd/.ansible/collections/ansible_collections/{collection.replace(".", "/")}'):
 			try:
+				command = ['ansible-galaxy', 'collection', 'install', collection]
 				if version.parse(ansible.__version__) < version.parse('2.13.9'):
-					old_ansible_server = '--server https://old-galaxy.ansible.com/'
-				exit_code = os.system(f'{proxy_cmd} ansible-galaxy collection install {collection} {old_ansible_server}')
+					command.extend(['--server', 'https://old-galaxy.ansible.com/'])
+				exit_code = subprocess.run(command, env=environment, check=False).returncode
 			except Exception as e:
 				roxywi_common.handle_exceptions(e,
 												'Roxy-WI server',

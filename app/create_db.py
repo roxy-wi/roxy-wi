@@ -1,10 +1,44 @@
 import distro
+import os
+import secrets
+from pathlib import Path
 
 from app.modules.db.db_model import connect, Setting, Role, User, UserGroups, Groups, Services, RoxyTool, GeoipCodes
+from app.modules.roxy_wi_tools import GetConfigVar, Tools
 
 
 conn = connect()
 migrator = connect(get_migrator=1)
+
+
+def _get_bootstrap_admin_password():
+	configured_password = os.environ.get('ROXYWI_BOOTSTRAP_ADMIN_PASSWORD')
+	if configured_password:
+		if len(configured_password) < 12:
+			raise RuntimeError('ROXYWI_BOOTSTRAP_ADMIN_PASSWORD must contain at least 12 characters')
+		return configured_password
+
+	lib_path = Path(GetConfigVar().get_config_var('main', 'lib_path'))
+	password_file = lib_path / 'bootstrap-admin-password'
+	try:
+		return password_file.read_text(encoding='utf-8').strip()
+	except FileNotFoundError:
+		lib_path.mkdir(parents=True, exist_ok=True)
+		password = secrets.token_urlsafe(24)
+		descriptor = os.open(password_file, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+		with os.fdopen(descriptor, 'w', encoding='utf-8') as password_stream:
+			password_stream.write(password)
+		return password
+
+
+def _new_service_password(environment_variable=None):
+	if environment_variable:
+		configured_password = os.environ.get(environment_variable)
+		if configured_password:
+			if len(configured_password) < 12:
+				raise RuntimeError(f'{environment_variable} must contain at least 12 characters')
+			return configured_password
+	return secrets.token_urlsafe(24)
 
 
 def default_values():
@@ -12,6 +46,10 @@ def default_values():
 		apache_dir = 'apache2'
 	else:
 		apache_dir = 'httpd'
+	haproxy_stats_password = _new_service_password()
+	nginx_stats_password = _new_service_password()
+	apache_stats_password = _new_service_password()
+	rabbitmq_password = _new_service_password('ROXYWI_RABBITMQ_PASSWORD')
 	data_source = [
 		{'param': 'time_zone', 'value': 'UTC', 'section': 'main', 'desc': 'Time Zone', 'group_id': '1'},
 		{'param': 'license', 'value': '', 'section': 'main', 'desc': 'License key', 'group_id': '1'},
@@ -26,7 +64,7 @@ def default_values():
 		{'param': 'syslog_server', 'value': '', 'section': 'logs', 'desc': 'IP address of the syslog_server', 'group_id': '1'},
 		{'param': 'log_time_storage', 'value': '14', 'section': 'logs', 'desc': 'Retention period for user activity logs (in days)', 'group_id': '1'},
 		{'param': 'haproxy_stats_user', 'value': 'admin', 'section': 'haproxy', 'desc': 'Username for accessing HAProxy stats page', 'group_id': '1'},
-		{'param': 'haproxy_stats_password', 'value': 'password', 'section': 'haproxy', 'desc': 'Password for accessing HAProxy stats page', 'group_id': '1'},
+		{'param': 'haproxy_stats_password', 'value': haproxy_stats_password, 'section': 'haproxy', 'desc': 'Password for accessing HAProxy stats page', 'group_id': '1'},
 		{'param': 'haproxy_stats_port', 'value': '8085', 'section': 'haproxy', 'desc': 'Port for HAProxy stats page', 'group_id': '1'},
 		{'param': 'haproxy_stats_page', 'value': 'stats', 'section': 'haproxy', 'desc': 'URI for HAProxy stats page', 'group_id': '1'},
 		{'param': 'haproxy_dir', 'value': '/etc/haproxy', 'section': 'haproxy', 'desc': 'Path to the HAProxy directory', 'group_id': '1'},
@@ -38,7 +76,7 @@ def default_values():
 		{'param': 'apache_log_path', 'value': f'/var/log/{apache_dir}/', 'section': 'logs', 'desc': 'Path to Apache logs. Apache service for Roxy-WI', 'group_id': '1'},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx', 'desc': 'The path for NGINX logs', 'group_id': '1'},
 		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for accessing NGINX stats page', 'group_id': '1'},
-		{'param': 'nginx_stats_password', 'value': 'password', 'section': 'nginx', 'desc': 'Password for Stats web page NGINX', 'group_id': '1'},
+		{'param': 'nginx_stats_password', 'value': nginx_stats_password, 'section': 'nginx', 'desc': 'Password for Stats web page NGINX', 'group_id': '1'},
 		{'param': 'nginx_stats_port', 'value': '8086', 'section': 'nginx', 'desc': 'Stats port for web page NGINX', 'group_id': '1'},
 		{'param': 'nginx_stats_page', 'value': 'stats', 'section': 'nginx', 'desc': 'URI Stats for web page NGINX', 'group_id': '1'},
 		{'param': 'nginx_dir', 'value': '/etc/nginx/', 'section': 'nginx', 'desc': 'Path to the NGINX directory with config files', 'group_id': '1'},
@@ -69,14 +107,13 @@ def default_values():
 		{'param': 'agent_port', 'value': '5101', 'section': 'smon', 'desc': '', 'group_id': '1'},
 		{'param': 'rabbitmq_host', 'value': '127.0.0.1', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server host', 'group_id': '1'},
 		{'param': 'rabbitmq_port', 'value': '5672', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server port', 'group_id': '1'},
-		{'param': 'rabbitmq_port', 'value': '5672', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server port', 'group_id': '1'},
 		{'param': 'rabbitmq_vhost', 'value': '/', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server vhost', 'group_id': '1'},
 		{'param': 'rabbitmq_queue', 'value': 'roxy-wi', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server queue', 'group_id': '1'},
 		{'param': 'rabbitmq_user', 'value': 'roxy-wi', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server user', 'group_id': '1'},
-		{'param': 'rabbitmq_password', 'value': 'roxy-wi123', 'section': 'rabbitmq', 'desc': 'RabbitMQ-server user password', 'group_id': '1'},
+		{'param': 'rabbitmq_password', 'value': rabbitmq_password, 'section': 'rabbitmq', 'desc': 'RabbitMQ-server user password', 'group_id': '1'},
 		{'param': 'apache_path_logs', 'value': '/var/log/httpd/', 'section': 'apache', 'desc': 'The path for Apache logs', 'group_id': '1'},
 		{'param': 'apache_stats_user', 'value': 'admin', 'section': 'apache', 'desc': 'Username for accessing Apache stats page', 'group_id': '1'},
-		{'param': 'apache_stats_password', 'value': 'password', 'section': 'apache', 'desc': 'Password for Apache stats webpage', 'group_id': '1'},
+		{'param': 'apache_stats_password', 'value': apache_stats_password, 'section': 'apache', 'desc': 'Password for Apache stats webpage', 'group_id': '1'},
 		{'param': 'apache_stats_port', 'value': '8087', 'section': 'apache', 'desc': 'Stats port for webpage Apache', 'group_id': '1'},
 		{'param': 'apache_stats_page', 'value': 'stats', 'section': 'apache', 'desc': 'URI Stats for webpage Apache', 'group_id': '1'},
 		{'param': 'apache_dir', 'value': '/etc/httpd/', 'section': 'apache', 'desc': 'Path to the Apache directory with config files', 'group_id': '1'},
@@ -96,12 +133,6 @@ def default_values():
 	except Exception as e:
 		print(str(e))
 
-	data_source = [
-		{'username': 'admin', 'email': 'admin@localhost', 'password': '21232f297a57a5a743894a0e4a801fc3', 'role_id': '1', 'group_id': '1'},
-		{'username': 'editor', 'email': 'editor@localhost', 'password': '5aee9dbd2a188839105073571bee1b1f', 'role_id': '2', 'group_id': '1'},
-		{'username': 'guest', 'email': 'guest@localhost', 'password': '084e0343a0486ff05530df6c705c8bb4', 'role_id': '4', 'group_id': '1'}
-	]
-
 	try:
 		if Role.get(Role.name == 'superAdmin').role_id == 1:
 			create_users = False
@@ -112,6 +143,12 @@ def default_values():
 
 	try:
 		if create_users:
+			admin_password = _get_bootstrap_admin_password()
+			data_source = [
+				{'username': 'admin', 'email': 'admin@localhost', 'password': Tools.get_hash(admin_password), 'role_id': '1', 'group_id': '1'},
+				{'username': 'editor', 'email': 'editor@localhost', 'password': Tools.get_hash(secrets.token_urlsafe(24)), 'role_id': '2', 'group_id': '1', 'enabled': 0},
+				{'username': 'guest', 'email': 'guest@localhost', 'password': Tools.get_hash(secrets.token_urlsafe(24)), 'role_id': '4', 'group_id': '1', 'enabled': 0}
+			]
 			User.insert_many(data_source).on_conflict_ignore().execute()
 	except Exception as e:
 		print(str(e))

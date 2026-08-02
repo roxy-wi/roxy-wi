@@ -288,7 +288,8 @@ $( function() {
 function deleteTableEntry(id, table, ip) {
 	$(id).parent().parent().css("background-color", "#f2dede");
 	$.ajax( {
-    	url: "/runtimeapi/table/" + $('#table_serv_select').val() + "/" + table + "/" + ip ,
+		url: "/runtimeapi/table/delete/" + $('#table_serv_select').val() + "/" + table + "/" + ip,
+		type: "POST",
     	success: function( data ) {
     	    if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
@@ -301,6 +302,7 @@ function deleteTableEntry(id, table, ip) {
 function clearTable(table) {
 	$.ajax( {
 		url: "/runtimeapi/table/clear/" + $('#table_serv_select').val() + "/" + table,
+		type: "POST",
 		success: function( data ) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);
@@ -442,6 +444,7 @@ function deleteSession(id, sess_id) {
 	$(id).parent().parent().css("background-color", "#f2dede !important");
 	$.ajax({
 		url: "/runtimeapi/session/delete/" +$('#sessions_serv_select').val() + "/" + sess_id,
+		type: "POST",
 		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(data);

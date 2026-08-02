@@ -235,11 +235,11 @@ class ServiceView(MethodView):
 
 
 class ServiceActionView(MethodView):
-    methods = ['GET']
+    methods = ['POST']
     decorators = [jwt_required(), get_user_params(), page_for_admin(level=3), check_group()]
 
     @staticmethod
-    def get(service: str, server_id: Union[int, str], action: str):
+    def post(service: str, server_id: Union[int, str], action: str):
         """
         This endpoint performs a specified action on a certain service on a specific server.
         ---
@@ -382,10 +382,12 @@ class ServiceConfigView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
         if query.version:
-            configs_dir = config_common.get_config_dir(service)
-            if '..' in configs_dir:
-                return ErrorResponse(error='nice try').model_dump(mode='json')
-            cfg = configs_dir + query.version
+            try:
+                cfg = config_common.resolve_config_version_path(service, query.version)
+                if not config_sql.config_version_exists(server_ip, service, cfg):
+                    raise RoxywiResourceNotFound
+            except Exception as e:
+                return roxywi_common.handler_exceptions_for_json_data(e, 'Config version not found')
         else:
             cfg = config_common.generate_config_path(service, server_ip)
             try:
@@ -558,7 +560,7 @@ class ServiceConfigList(MethodView):
 
 class ServiceConfigVersionsView(MethodView):
     methods = ['GET', 'POST', 'DELETE']
-    decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=4), check_group()]
+    decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
 
     def get(self, service: str, server_id: Union[int, str]):
         """
@@ -631,35 +633,25 @@ class ServiceConfigVersionsView(MethodView):
           500:
             description: 'Internal server error'
         """
-        file = set()
-        file_format = config_common.get_file_format(service)
-
         try:
             server_ip = SupportClass(False).return_server_ip_or_id(server_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
-        for get in body.versions:
-            if file_format in get and server_ip in get:
+        for version in body.versions:
+            try:
+                config_path = config_common.resolve_config_version_path(service, version)
+                if not config_sql.delete_config_version(server_ip, service, config_path):
+                    raise RoxywiResourceNotFound
                 try:
-                    if config_sql.delete_config_version(service, get):
-                        try:
-                            os.remove(get)
-                        except OSError as e:
-                            if 'No such file or directory' in str(e):
-                                pass
-                    else:
-                        config_dir = config_common.get_config_dir('haproxy')
-                        os.remove(os.path.join(config_dir, get))
-                    try:
-                        file.add(get + "\n")
-                        roxywi_common.logging(
-                            server_ip, f"Version of config has been deleted: {get}", keep_history=1,
-                            service=service
-                        )
-                    except Exception:
-                        pass
-                except OSError as e:
-                    return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete config version')
+                    os.remove(config_path)
+                except FileNotFoundError:
+                    pass
+                roxywi_common.logging(
+                    server_ip, f"Version of config has been deleted: {config_path}", keep_history=1,
+                    service=service
+                )
+            except Exception as e:
+                return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete config version')
 
         return BaseResponse().model_dump(mode='json'), 204

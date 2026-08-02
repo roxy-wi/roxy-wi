@@ -279,6 +279,8 @@ class ServerView(MethodView):
           201:
             description: Server update successful
        """
+        # Check access to the existing object before allowing a move or update.
+        SupportClass().return_server_ip_or_id(server_id)
         group_id = SupportClass.return_group_id(body)
 
         try:

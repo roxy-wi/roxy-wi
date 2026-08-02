@@ -75,7 +75,7 @@ def show_tools():
     return render_template('ajax/load_services.html', services=services, lang=lang)
 
 
-@bp.route('/tools/update/<service>')
+@bp.post('/tools/update/<service>')
 def update_tools(service):
     roxywi_auth.page_for_admin()
 
@@ -85,7 +85,7 @@ def update_tools(service):
         return f'error: {e}'
 
 
-@bp.route('/tools/action/<service>/<any(start, stop, restart):action>')
+@bp.post('/tools/action/<service>/<any(start, stop, restart):action>')
 def action_tools(service, action):
     roxywi_auth.page_for_admin()
 
@@ -104,7 +104,7 @@ def update_roxywi():
     )
 
 
-@bp.route('/update/check')
+@bp.post('/update/check')
 def check_update():
     roxywi_auth.page_for_admin()
     scheduler.run_job('check_new_version')

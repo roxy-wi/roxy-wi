@@ -77,7 +77,9 @@ def smon_dashboard(smon_id, check_id):
     9. Renders the SMON history template ('include/smon/smon_history.html') using the `render_template` function from Flask, passing the `kwargs` dictionary as keyword arguments.
     """
     roxywi_common.check_user_group_for_flask()
-    smon = smon_sql.select_one_smon(smon_id, check_id)
+    if not smon_sql.smon_belongs_to_group(smon_id, g.user_params['group_id']):
+        return jsonify({'error': 'Check does not belong to the active group'}), 403
+    smon = smon_sql.select_one_smon(smon_id, check_id, g.user_params['group_id'])
     present = common.get_present_time()
     cert_day_diff = 'N/A'
 
@@ -121,6 +123,7 @@ def smon_add():
     json_data = request.get_json()
     if request.method == "POST":
         user_group = roxywi_common.get_user_group(id=1)
+        smon_sql.get_agent_server_for_group(int(json_data['agent_id']), user_group)
 
         try:
             last_id = smon_mod.create_smon(json_data, user_group)
@@ -129,6 +132,10 @@ def smon_add():
         return str(last_id)
     elif request.method == "PUT":
         check_id = json_data['check_id']
+
+        if not smon_sql.smon_belongs_to_group(check_id, g.user_params['group_id']):
+            return jsonify({'error': 'Check does not belong to the active group'}), 403
+        smon_sql.get_agent_server_for_group(int(json_data['agent_id']), g.user_params['group_id'])
 
         if roxywi_common.check_user_group_for_flask():
             try:
@@ -141,6 +148,9 @@ def smon_add():
         user_group = roxywi_common.get_user_group(id=1)
         check_id = json_data['check_id']
 
+        if not smon_sql.smon_belongs_to_group(check_id, user_group):
+            return jsonify({'error': 'Check does not belong to the active group'}), 403
+
         if roxywi_common.check_user_group_for_flask():
             try:
                 status = smon_mod.delete_smon(check_id, user_group)
@@ -152,8 +162,9 @@ def smon_add():
 
 @bp.route('/check/settings/<int:smon_id>/<int:check_type_id>')
 @jwt_required()
+@get_user_params()
 def check(smon_id, check_type_id):
-    smon = smon_sql.select_one_smon(smon_id, check_type_id)
+    smon = smon_sql.select_one_smon(smon_id, check_type_id, g.user_params['group_id'])
     settings = {}
     for s in smon:
         settings = {
@@ -204,7 +215,7 @@ def get_check(smon_id, check_type_id):
     Returns:
     - flask.Response: The rendered template for the check page.
     """
-    smon = smon_sql.select_one_smon(smon_id, check_type_id)
+    smon = smon_sql.select_one_smon(smon_id, check_type_id, g.user_params['group_id'])
     lang = roxywi_common.get_user_lang_for_flask()
     agents = smon_sql.get_agents(g.user_params['group_id'])
     return render_template('ajax/smon/check.html', smon=smon, lang=lang, check_type_id=check_type_id, agents=agents)
@@ -282,13 +293,13 @@ def status_page():
             return 'error: Please check Checks for Status page'
 
         try:
-            return smon_mod.edit_status_page(page_id, name, slug, desc, checks['checks'])
+            return smon_mod.edit_status_page(page_id, name, slug, desc, checks['checks'], g.user_params['group_id'])
         except Exception as e:
             return f'{e}'
     elif request.method == 'DELETE':
         page_id = int(request.form.get('page_id'))
         try:
-            smon_sql.delete_status_page(page_id)
+            smon_sql.delete_status_page(page_id, g.user_params['group_id'])
         except Exception as e:
             return f'{e}'
         else:
@@ -297,6 +308,7 @@ def status_page():
 
 @bp.route('/status/checks/<int:page_id>')
 @jwt_required()
+@get_user_params()
 def get_checks(page_id):
     """
     :param page_id: The ID of the page for which to fetch the checks.
@@ -305,6 +317,8 @@ def get_checks(page_id):
     """
     returned_check = []
     try:
+        if not smon_sql.status_page_belongs_to_group(page_id, g.user_params['group_id']):
+            raise PermissionError('Status page does not belong to the active group')
         checks = smon_sql.select_status_page_checks(page_id)
     except Exception as e:
         return f'error: Cannot get checks: {e}'
@@ -369,19 +383,25 @@ def smon_host_history(server_ip):
 
 @bp.route('/history/metric/<int:dashboard_id>')
 @jwt_required()
+@get_user_params()
 def smon_history_metric(dashboard_id):
+    if not smon_sql.smon_belongs_to_group(dashboard_id, g.user_params['group_id']):
+        return jsonify({'error': 'Not found'}), 404
     return jsonify(smon_mod.history_metrics(dashboard_id))
 
 
 @bp.route('/history/statuses/<int:dashboard_id>')
+@jwt_required()
+@get_user_params()
 def smon_history_statuses(dashboard_id):
-    return smon_mod.history_statuses(dashboard_id)
+    return smon_mod.history_statuses(dashboard_id, g.user_params['group_id'])
 
 
 @bp.route('/history/cur_status/<int:dashboard_id>/<int:check_id>')
 @jwt_required()
+@get_user_params()
 def smon_history_cur_status(dashboard_id, check_id):
-    return smon_mod.history_cur_status(dashboard_id, check_id)
+    return smon_mod.history_cur_status(dashboard_id, check_id, g.user_params['group_id'])
 
 
 @bp.post('/refresh')

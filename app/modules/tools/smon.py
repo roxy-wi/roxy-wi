@@ -3,8 +3,15 @@ from flask import render_template, abort
 import app.modules.db.smon as smon_sql
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
-import app.modules.tools.smon_agent as smon_agent
 import app.modules.roxywi.common as roxywi_common
+
+
+def _smon_agent():
+    # ansible-runner is Linux-only. Import it only for operations that
+    # actually communicate with an SMON agent, not while loading routes.
+    import app.modules.tools.smon_agent as agent
+
+    return agent
 
 
 def create_smon(json_data, user_group, show_new=1) -> bool:
@@ -65,7 +72,7 @@ def create_smon(json_data, user_group, show_new=1) -> bool:
     try:
         api_path = f'check/{last_id}'
         check_json = create_check_json(json_data)
-        smon_agent.send_post_request_to_agent(agent_id, agent_ip, api_path, check_json)
+        _smon_agent().send_post_request_to_agent(agent_id, agent_ip, api_path, check_json)
     except Exception as e:
         roxywi_common.logging('SMON', f'Cannot add check to the agent {agent_ip}: {e}', roxywi=1, login=1)
 
@@ -115,7 +122,7 @@ def update_smon(smon_id, json_data, group_id: int) -> str:
     try:
         agent_id_old = smon_sql.get_agent_id_by_check_id(smon_id)
         agent_ip = smon_sql.get_agent_ip_by_id(agent_id_old)
-        smon_agent.delete_check(agent_id_old, agent_ip, smon_id)
+        _smon_agent().delete_check(agent_id_old, agent_ip, smon_id)
     except Exception as e:
         return f'{e}'
 
@@ -136,7 +143,7 @@ def update_smon(smon_id, json_data, group_id: int) -> str:
                     api_path = f'check/{smon_id}'
                     check_json = create_check_json(json_data)
                     server_ip = smon_sql.select_server_ip_by_agent_id(agent_id)
-                    smon_agent.send_post_request_to_agent(agent_id, server_ip, api_path, check_json)
+                    _smon_agent().send_post_request_to_agent(agent_id, server_ip, api_path, check_json)
                 except Exception as e:
                     roxywi_common.logging('SMON', f'error: Cannot add check to the agent {agent_ip}: {e}', roxywi=1, login=1)
 
@@ -180,7 +187,7 @@ def delete_smon(smon_id, user_group) -> str:
     try:
         agent_id = smon_sql.get_agent_id_by_check_id(smon_id)
         server_ip = smon_sql.get_agent_ip_by_id(agent_id)
-        smon_agent.delete_check(agent_id, server_ip, smon_id)
+        _smon_agent().delete_check(agent_id, server_ip, smon_id)
     except Exception as e:
         roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot delete check', roxywi=1, login=1)
     try:
@@ -210,15 +217,17 @@ def history_metrics(server_id: int) -> dict:
     return metrics
 
 
-def history_statuses(dashboard_id: int) -> str:
-    smon_statuses = smon_sql.select_smon_history(dashboard_id)
+def history_statuses(dashboard_id: int, group_id: int) -> str:
+    smon_statuses = smon_sql.select_smon_history(dashboard_id, group_id)
 
     return render_template('ajax/smon/history_status.html', smon_statuses=smon_statuses)
 
 
-def history_cur_status(dashboard_id: int, check_id: int) -> str:
+def history_cur_status(dashboard_id: int, check_id: int, group_id: int) -> str:
+    if not smon_sql.smon_belongs_to_group(dashboard_id, group_id):
+        abort(404)
     cur_status = smon_sql.get_last_smon_status_by_check(dashboard_id)
-    smon = smon_sql.select_one_smon(dashboard_id, check_id)
+    smon = smon_sql.select_one_smon(dashboard_id, check_id, group_id)
 
     return render_template('ajax/smon/cur_status.html', cur_status=cur_status, smon=smon)
 
@@ -247,16 +256,16 @@ def create_status_page(name: str, slug: str, desc: str, checks: list) -> str:
     return render_template('ajax/smon/status_pages.html', pages=pages)
 
 
-def edit_status_page(page_id: int, name: str, slug: str, desc: str, checks: list) -> str:
-    smon_sql.delete_status_page_checks(page_id)
+def edit_status_page(page_id: int, name: str, slug: str, desc: str, checks: list, group_id: int) -> str:
+    smon_sql.delete_status_page_checks(page_id, group_id)
 
     try:
-        smon_sql.add_status_page_checks(page_id, checks)
-        smon_sql.edit_status_page(page_id, name, slug, desc)
+        smon_sql.add_status_page_checks(page_id, checks, group_id)
+        smon_sql.edit_status_page(page_id, name, slug, desc, group_id)
     except Exception as e:
         return f'error: Cannot update update status page: {e}'
 
-    pages = smon_sql.select_status_page_by_id(page_id)
+    pages = smon_sql.select_status_page_by_id(page_id, group_id)
 
     return render_template('ajax/smon/status_pages.html', pages=pages)
 

@@ -468,11 +468,11 @@ class UDPListeners(MethodView):
 
 
 class UDPListenerActionView(MethodView):
-    methods = ['GET']
+    methods = ['POST']
     decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
 
     @staticmethod
-    def get(service: str, listener_id: int, action: str):
+    def post(service: str, listener_id: int, action: str):
         """
         This endpoint performs a specified action on a certain UDP listener.
         ---

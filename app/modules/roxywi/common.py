@@ -69,7 +69,7 @@ def check_user_group_for_socket(user_id: int, group_id: int) -> bool:
 def check_is_server_in_group(server_ip: str) -> bool:
 	group_id = get_user_group(id=1)
 	server = server_sql.get_server_by_ip(server_ip)
-	if (server.ip == server_ip and int(server.group_id) == int(group_id)) or group_id == 1:
+	if server.ip == server_ip and int(server.group_id) == int(group_id):
 		return True
 	else:
 		logging('Roxy-WI server', 'warning: has tried to actions in not his group server')
@@ -338,6 +338,45 @@ def is_user_has_access_to_group(user_id: int, group_id: int) -> None:
 		raise RoxywiGroupMismatch
 
 
+def require_active_group_access(group_id: int) -> None:
+	"""Require a resource to belong to the group selected in the current token."""
+	if int(group_id) != int(g.user_params['group_id']):
+		raise RoxywiGroupMismatch
+
+
+def require_request_server_access() -> None:
+	"""Authorize a managed server referenced by a legacy blueprint request."""
+	view_args = request.view_args or {}
+	references = [(key, view_args[key]) for key in ('server_id', 'server_ip') if view_args.get(key) is not None]
+	request_data = request.get_json(silent=True) or request.form
+	if not hasattr(request_data, 'get'):
+		request_data = {}
+	for key in ('server_id', 'server_ip', 'serv'):
+		if request_data.get(key) is not None:
+			references.append((key, request_data.get(key)))
+
+	if not references:
+		return
+
+	try:
+		resolved_server_ids = set()
+		for key, server_reference in references:
+			if server_reference in ('', None, 'all'):
+				continue
+			if key == 'server_id' and (
+				isinstance(server_reference, int) or str(server_reference).isdigit()
+			):
+				server = server_sql.get_server(int(server_reference))
+			else:
+				server = server_sql.get_server_by_ip(str(server_reference))
+			require_active_group_access(server.group_id)
+			resolved_server_ids.add(server.server_id)
+		if len(resolved_server_ids) > 1:
+			raise PermissionError('Server ID and IP refer to different servers')
+	except Exception:
+		abort(403, 'Server does not belong to the active group')
+
+
 def handle_json_exceptions(ex: Exception, message: str, server_ip='Roxy-WI server') -> dict:
 	"""
 	Handle an exception and return a JSON error response.
@@ -350,8 +389,10 @@ def handle_json_exceptions(ex: Exception, message: str, server_ip='Roxy-WI serve
 	Returns:
 		A dictionary containing the error response
 	"""
-	log_error(ex, server_ip, message)
-	return ErrorResponse(error=f'{message}: {ex}').model_dump(mode='json')
+	if not isinstance(ex, Exception):
+		ex = Exception(str(ex))
+	response, _status_code = handle_exception(ex, server_ip=server_ip, additional_info=message)
+	return response
 
 
 def handler_exceptions_for_json_data(ex: Exception, main_ex_mes: str = '') -> tuple[dict, int]:

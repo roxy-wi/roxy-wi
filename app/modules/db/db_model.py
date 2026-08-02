@@ -1,4 +1,5 @@
 from datetime import datetime
+import os
 
 from peewee import ForeignKeyField, CharField, DateTimeField, AutoField, TextField, IntegerField, Model, SQL, FloatField
 from playhouse.migrate import *
@@ -32,7 +33,7 @@ def connect(get_migrator=None):
         conn = ReconnectMySQLDatabase(mysql_db, **kwargs)
         migrator = MySQLMigrator(conn)
     else:
-        db = "/var/lib/roxy-wi/roxy-wi.db"
+        db = os.environ.get("ROXYWI_DB_PATH", "/var/lib/roxy-wi/roxy-wi.db")
         conn = SqliteExtDatabase(db, pragmas=(
             ('cache_size', -1024 * 64),  # 64MB page-cache.
             ('journal_mode', 'wal'),
@@ -182,6 +183,14 @@ class UserGroups(BaseModel):
         table_name = 'user_groups'
         primary_key = False
         constraints = [SQL('UNIQUE (user_id, user_group_id)')]
+
+
+class RevokedToken(BaseModel):
+    jti = CharField(primary_key=True)
+    expires_at = DateTimeField(index=True)
+
+    class Meta:
+        table_name = 'revoked_tokens'
 
 
 class Cred(BaseModel):
@@ -851,7 +860,7 @@ def create_tables():
     conn = connect()
     with conn:
         conn.create_tables(
-            [User, Server, Role, Telegram, Slack, Groups, UserGroups, ConfigVersion, Setting, RoxyTool, Alerts,
+            [User, Server, Role, Telegram, Slack, Groups, UserGroups, RevokedToken, ConfigVersion, Setting, RoxyTool, Alerts,
              Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
              PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, GeoipCodes,
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,

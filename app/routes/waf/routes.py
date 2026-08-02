@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from flask import render_template, request, g, abort, jsonify
 from flask_jwt_extended import jwt_required, get_jwt
@@ -6,7 +7,7 @@ from flask_jwt_extended import jwt_required, get_jwt
 from app.routes.waf import bp
 import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
-from app.middleware import check_services, get_user_params
+from app.middleware import check_services, get_user_params, page_for_admin
 import app.modules.common.common as common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 import app.modules.roxywi.waf as roxy_waf
@@ -19,9 +20,11 @@ get_config = roxy_wi_tools.GetConfigVar()
 
 @bp.before_request
 @jwt_required()
+@get_user_params()
+@page_for_admin(level=2)
 def before_request():
     """ Protect all the admin endpoints. """
-    pass
+    roxywi_common.require_request_server_access()
 
 
 @bp.route('/<service>')
@@ -141,7 +144,7 @@ def waf_save_config(service, server_ip, rule_id):
     configs_dir = sql.get_setting('tmp_config_path')
     cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}"
     config_file_name = request.form.get('config_file_name')
-    config_file_name = common.resolve_waf_config_path('waf', config_file_name)
+    config_file_name = common.resolve_waf_config_path(service, config_file_name)
     config = request.form.get('config')
     oldcfg = request.form.get('oldconfig')
     save = request.form.get('save')
@@ -155,8 +158,9 @@ def waf_save_config(service, server_ip, rule_id):
     stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, 'waf', oldcfg=oldcfg, config_file_name=config_file_name)
 
     try:
-        os.system(f"/bin/rm -f {configs_dir}*.old")
-    except Exception as e:
+        for old_config in Path(configs_dir).glob('*.old'):
+            old_config.unlink()
+    except OSError as e:
         return f'error: {e}'
 
     if stderr:
@@ -165,7 +169,7 @@ def waf_save_config(service, server_ip, rule_id):
     return
 
 
-@bp.route('/<server_ip>/rule/<int:rule_id>/<int:enable>')
+@bp.route('/<server_ip>/rule/<int:rule_id>/<int:enable>', methods=['POST'])
 def enable_rule(server_ip, rule_id, enable):
     server_ip = common.is_ip_or_dns(server_ip)
 
@@ -188,7 +192,7 @@ def create_rule(service, server_ip):
         return roxywi_common.handle_json_exceptions(e, 'Cannot create WAF rule', server_ip,)
 
 
-@bp.route('/<any(haproxy, nginx):service>/mode/<int:server_id>/<any(On, Off, DetectionOnly):waf_mode>')
+@bp.route('/<any(haproxy, nginx):service>/mode/<int:server_id>/<any(On, Off, DetectionOnly):waf_mode>', methods=['POST'])
 def change_waf_mode(service, server_id, waf_mode):
     try:
         roxy_waf.change_waf_mode(waf_mode, server_id, service)
@@ -205,7 +209,7 @@ def overview_waf(service, server_ip):
     return roxy_waf.waf_overview(server_ip, service, claims)
 
 
-@bp.route('/metric/enable/<int:enable>/<int:server_id>')
+@bp.route('/metric/enable/<int:enable>/<int:server_id>', methods=['POST'])
 def enable_metric(enable, server_id):
     try:
         waf_sql.update_waf_metrics_enable(server_id, enable)

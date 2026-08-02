@@ -1,8 +1,9 @@
 from flask import render_template, request, redirect, make_response, abort
-from flask_jwt_extended import unset_jwt_cookies, jwt_required
+from flask_jwt_extended import get_jwt, unset_jwt_cookies, jwt_required
 
 from app import app
 import app.modules.db.user as user_sql
+import app.modules.db.token as token_sql
 import app.modules.roxywi.roxy as roxy
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
@@ -14,9 +15,9 @@ from app.modules.roxywi import logger
 def check_login():
     allowed_endpoints = (
         'login_page', 'static', 'main.show_roxywi_version', 'service.check_service', 'smon.show_smon_status_page',
-        'smon.smon_history_statuses', 'smon.agent_get_checks', 'smon.get_check_status', 'api', 'favicon'
+        'smon.smon_history_statuses', 'smon.agent_get_checks', 'smon.get_check_status', 'favicon'
     )
-    if 'api' not in request.url and request.endpoint not in allowed_endpoints:
+    if request.endpoint not in allowed_endpoints:
         try:
             user_params = roxywi_common.get_users_params()
         except Exception as e:
@@ -66,9 +67,11 @@ def login_page():
     return redirect('/', 302)
 
 
-@app.route('/logout', methods=['GET', 'POST'])
+@app.route('/logout', methods=['POST'])
 @jwt_required()
 def logout():
+    token = get_jwt()
+    token_sql.revoke_token(token['jti'], token['exp'])
     resp = make_response(redirect('/', 302))
     unset_jwt_cookies(resp)
     return resp

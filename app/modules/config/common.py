@@ -1,6 +1,7 @@
 import app.modules.db.sql as sql
 import app.modules.common.common as common
 import app.modules.roxy_wi_tools as roxy_wi_tools
+from pathlib import Path
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 time_zone = sql.get_setting('time_zone')
@@ -31,6 +32,22 @@ def get_config_dir(service: str) -> str:
 		return get_config_var.get_config_var('configs', f'{service}_save_configs_dir')
 	else:
 		raise Exception('error: Wrong service')
+
+
+def resolve_config_version_path(service: str, version: str) -> str:
+	"""Resolve a saved config path and guarantee it remains inside its service directory."""
+	if not version:
+		raise ValueError('Config version is required')
+	config_dir = Path(get_config_dir(service)).resolve()
+	candidate = Path(version)
+	if not candidate.is_absolute():
+		candidate = config_dir / candidate
+	candidate = candidate.resolve()
+	try:
+		candidate.relative_to(config_dir)
+	except ValueError as exc:
+		raise ValueError('Config version is outside the allowed directory') from exc
+	return str(candidate)
 
 
 def generate_config_path(service: str, server_ip: str) -> str:

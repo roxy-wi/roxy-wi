@@ -143,8 +143,10 @@ def check_user_password(login: str, password: str) -> dict:
         else:
             raise Exception('ban')
     else:
-        hashed_password = roxy_wi_tools.Tools.get_hash(password)
-        if login in user.username and hashed_password == user.password:
+        password_matches, needs_rehash = roxy_wi_tools.Tools.check_password(password, user.password)
+        if login == user.username and password_matches:
+            if needs_rehash:
+                user_sql.update_user_password(password, user.user_id)
             return {'group': str(user.group_id), 'user': user.user_id, 'name': user.username}
         else:
             raise Exception('ban')

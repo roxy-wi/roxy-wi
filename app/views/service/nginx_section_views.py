@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Union, Literal
 
 from flask.views import MethodView
@@ -65,7 +66,7 @@ class NginxSectionView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find a server')
         if query.generate:
             cfg = '/tmp/nginx-generated-config.conf'
-            os.system(f'touch {cfg}')
+            Path(cfg).touch(exist_ok=True)
             inv = service_mod.generate_section_inv(body.model_dump(mode='json'), cfg, service)
 
             try:
@@ -174,7 +175,7 @@ class NginxSectionView(MethodView):
         if action == 'update':
             config_mod.get_config(server.ip, cfg, service=service, config_file_name=config_file_name)
 
-        os.system(f'mv {cfg} {cfg}.old')
+        Path(cfg).replace(f'{cfg}.old')
 
         try:
             output = service_mod.run_ansible_locally(inv, 'nginx_section')

@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from flask import render_template
 
@@ -175,18 +176,22 @@ def edit_map(map_name: str, group: str) -> str:
 
 
 def create_map(server_ip: str, map_name: str, group: str) -> str:
-	lib_path = get_config.get_config_var('main', 'lib_path')
+	lib_path = Path(get_config.get_config_var('main', 'lib_path')).resolve()
 	map_name = f"{map_name.split('.')[0]}.map"
-	map_path = f'{lib_path}/maps/{group}/'
-	full_path = f'{map_path}{map_name}'
+	map_path = (lib_path / 'maps' / str(group)).resolve()
+	full_path = (map_path / map_name).resolve()
+	try:
+		full_path.relative_to((lib_path / 'maps').resolve())
+	except ValueError:
+		raise ValueError('Map path escapes the configured maps directory')
 
 	try:
-		server_mod.subprocess_execute(f'sudo mkdir -p {map_path}')
-		common.set_correct_owner(lib_path)
+		map_path.mkdir(parents=True, exist_ok=True)
+		common.set_correct_owner(str(lib_path))
 	except Exception as e:
 		raise Exception(f'error: cannot create a local folder for maps: {e}')
 	try:
-		os.mknod(full_path)
+		full_path.touch(exist_ok=False)
 		roxywi_common.logging(server_ip, f'A new map {map_name} has been created', roxywi=1, login=1)
 	except IOError as e:
 		raise Exception(f'error: Cannot create a new {map_name} map. {e}')
@@ -284,7 +289,7 @@ def delete_map(map_name: str, group: str, server_ip: str) -> str:
 
 def create_saved_option(option: str, group: int) -> str:
 	if add_sql.insert_new_option(option, group):
-		return render_template('ajax/new_option.html', options=add_sql.select_options(option=option))
+		return render_template('ajax/new_option.html', options=add_sql.select_options(option=option, group=group))
 
 
 def get_saved_option(group: str, term: str) -> dict:
@@ -301,7 +306,9 @@ def get_saved_option(group: str, term: str) -> dict:
 
 def create_saved_server(server: str, group: str, desc: str) -> str:
 	if add_sql.insert_new_saved_server(server, desc, group):
-		return render_template('ajax/new_saved_servers.html', server=add_sql.select_saved_servers(server=server))
+		return render_template(
+			'ajax/new_saved_servers.html', server=add_sql.select_saved_servers(server=server, group=group)
+		)
 
 
 def get_saved_servers(group: str, term: str) -> dict:

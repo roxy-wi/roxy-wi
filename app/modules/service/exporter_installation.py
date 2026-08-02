@@ -1,4 +1,5 @@
 import os
+import subprocess
 
 import app.modules.db.sql as sql
 from app.modules.service.installation import run_ansible_thread
@@ -19,7 +20,15 @@ def generate_exporter_inv(server_ip: str, ver: str, exporter: str) -> object:
         inv['server']['hosts'][server_ip]['STAT_PAGE'] = sql.get_setting(f'{exporter}_stats_page')
 
         if not os.path.isdir('/var/www/haproxy-wi/app/scripts/ansible/roles/bdellegrazie.ansible-role-prometheus_exporter'):
-            os.system('ansible-galaxy install bdellegrazie.ansible-role-prometheus_exporter --roles-path /var/www/haproxy-wi/app/scripts/ansible/roles/')
+            result = subprocess.run(
+                [
+                    'ansible-galaxy', 'install', 'bdellegrazie.ansible-role-prometheus_exporter',
+                    '--roles-path', '/var/www/haproxy-wi/app/scripts/ansible/roles/'
+                ],
+                check=False,
+            )
+            if result.returncode != 0:
+                raise RuntimeError('Cannot install the Prometheus exporter Ansible role')
 
     if exporter == 'haproxy':
         inv['server']['hosts'][server_ip]['STAT_FILE'] = sql.get_setting('server_state_file')

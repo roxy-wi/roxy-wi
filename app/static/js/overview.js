@@ -125,6 +125,7 @@ function showOverviewServer(name, ip, id, service) {
 function ajaxActionServers(action, id, service) {
 	$.ajax({
 		url: "/service/" + service + "/" + id + "/" + action,
+		type: "POST",
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
 			if (data.status === 'failed') {

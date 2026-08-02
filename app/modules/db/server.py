@@ -1,6 +1,6 @@
 from peewee import IntegrityError, DoesNotExist
 
-from app.modules.db.db_model import mysql_enable, connect, Server, SystemInfo
+from app.modules.db.db_model import Server, SystemInfo
 from app.modules.db.common import out_error, not_unique_error
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 
@@ -17,11 +17,11 @@ def add_server(**kwargs):
 def delete_server(server_id):
 	try:
 		server_for_delete = Server.delete().where(Server.server_id == server_id)
-		server_for_delete.execute()
+		deleted = server_for_delete.execute()
 	except Exception as e:
 		out_error(e)
 	else:
-		return True
+		return deleted == 1
 
 
 def update_server(hostname, ip, group, type_ip, enable, master, server_id, cred, port, desc, firewall, protected):
@@ -133,96 +133,50 @@ def is_serv_protected(serv):
 
 
 def select_servers(**kwargs):
-	conn = connect()
-	cursor = conn.cursor()
-
-	if mysql_enable == '1':
-		sql = """select * from `servers` ORDER BY hostname """
-
-		if kwargs.get("server") is not None:
-			sql = """select * from `servers` where `ip` = '{}' """.format(kwargs.get("server"))
+	query = Server.select()
+	if kwargs.get('server') is not None:
+		query = query.where(Server.ip == kwargs.get('server'))
 	else:
-		sql = """select * from servers ORDER BY hostname """
-
-		if kwargs.get("server") is not None:
-			sql = """select * from servers where ip = '{}' """.format(kwargs.get("server"))
-
+		query = query.order_by(Server.hostname)
 	try:
-		cursor.execute(sql)
+		return query.tuples().execute()
 	except Exception as e:
-		out_error(e)
-	else:
-		return cursor.fetchall()
+		return out_error(e)
 
 
 def get_dick_permit(group_id, **kwargs):
-	only_group = kwargs.get('only_group')
-	disable = 'enabled = 1'
-	haproxy = ''
-	nginx = ''
-	keepalived = ''
-	apache = ''
-	ip = ''
-
-	if kwargs.get('virt'):
-		type_ip = ""
-	else:
-		type_ip = "and type_ip = 0"
-	if kwargs.get('disable') == 0:
-		disable = '(enabled = 1 or enabled = 0)'
+	query = Server.select().where(Server.group_id == int(group_id))
+	if kwargs.get('disable') != 0:
+		query = query.where(Server.enabled == 1)
+	if not kwargs.get('virt'):
+		query = query.where(Server.type_ip == 0)
 	if kwargs.get('ip'):
-		ip = "and ip = '%s'" % kwargs.get('ip')
-	if kwargs.get('haproxy') or kwargs.get('service') == 'haproxy':
-		haproxy = "and haproxy = 1"
-	if kwargs.get('nginx') or kwargs.get('service') == 'nginx':
-		nginx = "and nginx = 1"
-	if kwargs.get('keepalived') or kwargs.get('service') == 'keepalived':
-		keepalived = "and keepalived = 1"
-	if kwargs.get('apache') or kwargs.get('service') == 'apache':
-		apache = "and apache = 1"
-	conn = connect()
-	cursor = conn.cursor()
+		query = query.where(Server.ip == kwargs.get('ip'))
+	for service_name in ('haproxy', 'nginx', 'keepalived', 'apache'):
+		if kwargs.get(service_name) or kwargs.get('service') == service_name:
+			query = query.where(getattr(Server, service_name) == 1)
+	query = query.order_by(Server.pos.asc())
 	try:
-		if mysql_enable == '1':
-			if group_id == '1' and not only_group:
-				sql = f" select * from `servers` where {disable} {type_ip} {nginx} {haproxy} {keepalived} {apache} {ip} order by `pos` asc"
-			else:
-				sql = f" select * from `servers` where `group_id` = {group_id} and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by `pos` asc"
-		else:
-			if group_id == '1' and not only_group:
-				sql = f" select * from servers where {disable} {type_ip} {nginx} {haproxy} {keepalived} {apache} {ip} order by pos"
-			else:
-				sql = f" select * from servers where group_id = '{group_id}' and ({disable}) {type_ip} {ip} {haproxy} {nginx} {keepalived} {apache} order by pos"
-
+		return query.tuples().execute()
 	except Exception as e:
-		raise Exception(f'error: {e}')
-
-	try:
-		cursor.execute(sql)
-	except Exception as e:
-		out_error(e)
-	else:
-		return cursor.fetchall()
+		return out_error(e)
 
 
 def is_master(ip, **kwargs):
-	conn = connect()
-	cursor = conn.cursor()
+	master = Server.alias('master')
+	slave = Server.alias('slave')
 	if kwargs.get('master_slave'):
-		sql = """ select master.hostname, master.ip, slave.hostname, slave.ip
-		from servers as master
-		left join servers as slave on master.id = slave.master
-		where slave.master > 0 """
+		query = master.select(master.hostname, master.ip, slave.hostname, slave.ip).join(
+			slave, on=(master.server_id == slave.master)
+		).where(slave.master > 0)
 	else:
-		sql = """ select slave.ip, slave.hostname from servers as master
-		left join servers as slave on master.id = slave.master
-		where master.ip = '%s' """ % ip
+		query = master.select(slave.ip, slave.hostname).join(
+			slave, on=(master.server_id == slave.master)
+		).where(master.ip == ip)
 	try:
-		cursor.execute(sql)
+		return query.tuples().execute()
 	except Exception as e:
-		out_error(e)
-	else:
-		return cursor.fetchall()
+		return out_error(e)
 
 
 def get_server_with_group(server_id: int, group_id: int) -> Server:

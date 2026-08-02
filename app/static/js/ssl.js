@@ -359,13 +359,8 @@ function getLes() {
     });
 }
 function showLe(data) {
-    let list_domains = '';
-    for (let d of eval(data['domains'])) {
-        list_domains += d + ' ';
-        if (d < data['domains'].length - 1) {
-            list_domains += ', ';
-        }
-    }
+    const domains = Array.isArray(data['domains']) ? data['domains'] : [];
+    const list_domains = domains.join(', ');
     let le_tag = elem("tr", {"id":"lets-" + data['id']}, [
 	elem("td", {"class":"padding10 first-collumn"}, data['server_id']['hostname']),
 	elem("td", {"style": "width: 10%;"}, provides[data['type']]),

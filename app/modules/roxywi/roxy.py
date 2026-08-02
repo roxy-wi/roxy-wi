@@ -1,5 +1,6 @@
 import os
 import re
+import subprocess
 from packaging import version
 
 import requests
@@ -102,13 +103,13 @@ def action_service(action: str, service: str) -> str:
 	}
 	if not re.match(r'^[a-zA-Z0-9._-]+$', service):
 			return f"Invalid service name: {service}. Only alphanumeric characters, dots, and hyphens are allowed."
-	cmd = f"sudo systemctl {actions[action]} {service}"
 	if not roxy_sql.get_user().Status:
 		return 'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing" ' \
 				   'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions'
 	if is_in_docker:
-		cmd = f"sudo supervisorctl {action} {service}"
-	os.system(cmd)
+		subprocess.run(['sudo', 'supervisorctl', action, service], check=False)
+	else:
+		subprocess.run(['sudo', 'systemctl', *actions[action].split(), service], check=False)
 	roxywi_common.logging('Roxy-WI server', f'The service {service} has been {action}ed', roxywi=1, login=1)
 	return 'ok'
 

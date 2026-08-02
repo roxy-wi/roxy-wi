@@ -8,6 +8,8 @@ import app.modules.common.common as common
 import app.modules.roxywi.user as roxywi_user
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
+import app.modules.roxywi.access as roxywi_access
+import app.modules.db.user as user_sql
 from app.middleware import get_user_params
 from app.modules.roxywi.class_models import BaseResponse, ErrorResponse
 from app.views.user.views import UserView, UserGroupView
@@ -75,7 +77,16 @@ def update_user_password(user_id):
 
 
 @bp.route('/services/<int:user_id>', methods=['GET', 'POST'])
+@get_user_params()
 def show_user_services(user_id):
+    try:
+        roxywi_common.is_user_has_access_to_its_group(user_id)
+        target_role = user_sql.get_user_role_in_group(user_id, g.user_params['group_id'])
+        roxywi_access.ensure_target_role(g.user_params['role'], target_role)
+        if request.method == 'POST':
+            roxywi_auth.page_for_admin(level=2)
+    except Exception as e:
+        return roxywi_common.handle_json_exceptions(e, 'Cannot manage user services'), 403
     if request.method == 'GET':
         return roxywi_user.get_user_services(user_id)
     else:

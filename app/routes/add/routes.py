@@ -50,9 +50,11 @@ register_api_id_ip(ProxyPassSectionView, 'nginx_section_proxy_pass_post', '/sect
 
 @bp.before_request
 @jwt_required()
+@get_user_params()
 def before_request():
     """ Protect all the admin endpoints. """
-    pass
+    if request.endpoint not in {'add.update_saved_server', 'add.delete_saved_server'}:
+        roxywi_common.require_request_server_access()
 
 
 @bp.route('/<service>')
@@ -72,7 +74,7 @@ def add(service):
         'lang': g.user_params['lang'],
         'all_servers': roxywi_common.get_dick_permit(),
         'user_subscription': user_subscription,
-        'saved_servers': add_sql.select_saved_servers()
+        'saved_servers': add_sql.select_saved_servers(group=g.user_params['group_id'], term='')
     }
 
     if service == 'haproxy':
@@ -88,7 +90,7 @@ def add(service):
             if not os.path.exists(dir_to_create):
                 os.makedirs(dir_to_create)
 
-        kwargs.setdefault('options', add_sql.select_options())
+        kwargs.setdefault('options', add_sql.select_options(group=user_group, term=''))
         kwargs.setdefault('white_lists', roxywi_common.get_files(folder=white_dir, file_format="lst"))
         kwargs.setdefault('black_lists', roxywi_common.get_files(folder=black_dir, file_format="lst"))
         kwargs.setdefault('maps', roxywi_common.get_files(folder=f'{lib_path}/maps/{user_group}', file_format="map"))
@@ -116,15 +118,17 @@ def get_nginx_section_html():
 
 @bp.route('/haproxy/bwlists/<color>/<int:group>')
 @validate()
+@get_user_params()
 def get_bwlists(color: Literal['black', 'white'], group):
-    return add_mod.get_bwlists_for_autocomplete(color, group)
+    return add_mod.get_bwlists_for_autocomplete(color, g.user_params['group_id'])
 
 
 @bp.route('/option/get/<group>')
+@get_user_params()
 def get_option(group):
     term = request.args.get('term')
 
-    return jsonify(add_mod.get_saved_option(group, term))
+    return jsonify(add_mod.get_saved_option(g.user_params['group_id'], term))
 
 
 @bp.post('/option/save')
@@ -137,22 +141,24 @@ def save_option():
 
 
 @bp.post('/option/update')
+@get_user_params()
 def update_option():
     option = common.checkAjaxInput(request.form.get('option'))
     option_id = int(request.form.get('id'))
 
     try:
-        add_sql.update_options(option, option_id)
+        add_sql.update_options(option, option_id, g.user_params['group_id'])
     except Exception as e:
         return str(e)
     else:
         return 'ok'
 
 
-@bp.route('/option/delete/<int:option_id>')
+@bp.delete('/option/delete/<int:option_id>')
+@get_user_params()
 def delete_option(option_id):
     try:
-        add_sql.delete_option(option_id)
+        add_sql.delete_option(option_id, g.user_params['group_id'])
     except Exception as e:
         return str(e)
     else:
@@ -160,10 +166,11 @@ def delete_option(option_id):
 
 
 @bp.route('/server/get/<int:group>')
+@get_user_params()
 def get_saved_server(group):
     term = common.checkAjaxInput(request.args.get('term'))
 
-    return jsonify(add_mod.get_saved_servers(group, term))
+    return jsonify(add_mod.get_saved_servers(g.user_params['group_id'], term))
 
 
 @bp.post('/server')
@@ -179,19 +186,21 @@ def saved_server(body: SavedServerRequest):
 
 
 @bp.put('/server/<int:server_id>')
+@get_user_params()
 @validate(body=SavedServerRequest)
 def update_saved_server(server_id: int, body: SavedServerRequest):
     try:
-        add_sql.update_saved_server(body.server, body.description, server_id)
+        add_sql.update_saved_server(body.server, body.description, server_id, g.user_params['group_id'])
         return BaseResponse().model_dump(mode='json'), 201
     except Exception as e:
         return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update server')
 
 
 @bp.delete('/server/<int:server_id>')
+@get_user_params()
 def delete_saved_server(server_id):
     try:
-        add_sql.delete_saved_server(server_id)
+        add_sql.delete_saved_server(server_id, g.user_params['group_id'])
         return BaseResponse().model_dump(mode='json'), 204
     except Exception as e:
         return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete server')

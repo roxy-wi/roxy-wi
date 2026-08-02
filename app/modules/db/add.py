@@ -11,28 +11,40 @@ SectionModel = {
 }
 
 
-def update_saved_server(server, description, saved_id):
+def update_saved_server(server, description, saved_id, group_id):
 	try:
-		SavedServer.update(server=server, description=description).where(SavedServer.id == saved_id).execute()
-	except SavedServer.DoesNotExist:
-		raise RoxywiResourceNotFound
+		updated = SavedServer.update(server=server, description=description).where(
+			(SavedServer.id == saved_id) & (SavedServer.groups == group_id)
+		).execute()
+		if not updated:
+			raise RoxywiResourceNotFound
 	except Exception as e:
+		if isinstance(e, RoxywiResourceNotFound):
+			raise
 		out_error(e)
 
 
-def delete_saved_server(saved_id):
+def delete_saved_server(saved_id, group_id):
 	try:
-		SavedServer.delete().where(SavedServer.id == saved_id).execute()
-	except SavedServer.DoesNotExist:
-		raise RoxywiResourceNotFound
+		deleted = SavedServer.delete().where(
+			(SavedServer.id == saved_id) & (SavedServer.groups == group_id)
+		).execute()
+		if not deleted:
+			raise RoxywiResourceNotFound
 	except Exception as e:
+		if isinstance(e, RoxywiResourceNotFound):
+			raise
 		out_error(e)
 
 
-def delete_option(option_id):
+def delete_option(option_id, group_id):
 	try:
-		Option.delete().where(Option.id == option_id).execute()
+		deleted = Option.delete().where((Option.id == option_id) & (Option.groups == group_id)).execute()
+		if not deleted:
+			raise RoxywiResourceNotFound
 	except Exception as e:
+		if isinstance(e, RoxywiResourceNotFound):
+			raise
 		out_error(e)
 
 
@@ -57,10 +69,14 @@ def insert_new_option(saved_option, group):
 
 
 def select_options(**kwargs):
-	if kwargs.get('option'):
+	if kwargs.get('option') and kwargs.get('group') is not None:
+		query = Option.select().where(
+			(Option.options == kwargs.get('option')) & (Option.groups == kwargs.get('group'))
+		)
+	elif kwargs.get('option'):
 		query = Option.select().where(Option.options == kwargs.get('option'))
 	elif kwargs.get('group'):
-		query = Option.select(Option.options).where(
+		query = Option.select().where(
 			(Option.groups == kwargs.get('group')) & (Option.options.startswith(kwargs.get('term'))))
 	else:
 		query = Option.select()
@@ -72,21 +88,29 @@ def select_options(**kwargs):
 		return query_res
 
 
-def update_options(option, option_id):
+def update_options(option, option_id, group_id):
 	try:
-		Option.update(options=option).where(Option.id == option_id).execute()
+		updated = Option.update(options=option).where(
+			(Option.id == option_id) & (Option.groups == group_id)
+		).execute()
+		if not updated:
+			raise RoxywiResourceNotFound
 	except Exception as e:
+		if isinstance(e, RoxywiResourceNotFound):
+			raise
 		out_error(e)
-		return False
-	else:
-		return True
+	return True
 
 
 def select_saved_servers(**kwargs):
-	if kwargs.get('server'):
+	if kwargs.get('server') and kwargs.get('group') is not None:
+		query = SavedServer.select().where(
+			(SavedServer.server == kwargs.get('server')) & (SavedServer.groups == kwargs.get('group'))
+		)
+	elif kwargs.get('server'):
 		query = SavedServer.select().where(SavedServer.server == kwargs.get('server'))
 	elif kwargs.get('group'):
-		query = SavedServer.select(SavedServer.server, SavedServer.description).where(
+		query = SavedServer.select().where(
 			(SavedServer.groups == kwargs.get('group')) & (SavedServer.server.startswith(kwargs.get('term'))))
 	else:
 		query = SavedServer.select()

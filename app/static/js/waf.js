@@ -36,6 +36,7 @@ function metrics_waf(name) {
 	let server_id = name.split('-')[1]
 	$.ajax({
 		url: "/waf/metric/enable/" + enable + "/" + server_id,
+		type: "POST",
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
 			if (data.status === 'failed') {
@@ -75,6 +76,7 @@ function changeWafMode(id) {
 	let service = cur_url[0];
 	$.ajax({
 		url: "/waf/" + service + "/mode/" + server_hostname + "/" + waf_mode,
+		type: "POST",
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
 			if (data.status === 'failed') {
@@ -104,6 +106,7 @@ function waf_rules_en(id) {
 	}
 	$.ajax({
 		url: "/waf/" + serv + "/rule/" + id + "/" + enable,
+		type: "POST",
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
 			if (data.status === 'failed') {

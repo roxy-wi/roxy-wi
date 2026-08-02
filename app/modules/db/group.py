@@ -1,3 +1,5 @@
+import secrets
+
 from app.modules.db.db_model import Groups, Setting, UserGroups
 from app.modules.db.common import out_error
 from app.modules.roxywi.exception import RoxywiResourceNotFound
@@ -22,6 +24,9 @@ def add_group(name: str, description: str) -> int:
 
 def add_setting_for_new_group(group_id):
 	group_id = str(group_id)
+	haproxy_stats_password = secrets.token_urlsafe(24)
+	nginx_stats_password = secrets.token_urlsafe(24)
+	apache_stats_password = secrets.token_urlsafe(24)
 	data_source = [
 		{'param': 'time_zone', 'value': 'UTC', 'section': 'main', 'desc': 'Time Zone', 'group_id': group_id},
 		{'param': 'proxy', 'value': '', 'section': 'main', 'desc': 'IP address and port of the proxy server . Use proto://ip:port', 'group_id': group_id},
@@ -33,7 +38,7 @@ def add_setting_for_new_group(group_id):
 		{'param': 'syslog_server_enable', 'value': '0', 'section': 'logs', 'desc': 'Enable getting logs from a syslog server; (0 - no, 1 - yes)', 'group_id': group_id},
 		{'param': 'syslog_server', 'value': '', 'section': 'logs', 'desc': 'IP address of the syslog_server', 'group_id': group_id},
 		{'param': 'haproxy_stats_user', 'value': 'admin', 'section': 'haproxy', 'desc': 'Username for accessing HAProxy stats page', 'group_id': group_id},
-		{'param': 'haproxy_stats_password', 'value': 'password', 'section': 'haproxy', 'desc': 'Password for accessing HAProxy stats page', 'group_id': group_id},
+		{'param': 'haproxy_stats_password', 'value': haproxy_stats_password, 'section': 'haproxy', 'desc': 'Password for accessing HAProxy stats page', 'group_id': group_id},
 		{'param': 'haproxy_stats_port', 'value': '8085', 'section': 'haproxy', 'desc': 'Port for HAProxy stats page', 'group_id': group_id},
 		{'param': 'haproxy_stats_page', 'value': 'stats', 'section': 'haproxy', 'desc': 'URI for HAProxy stats page', 'group_id': group_id},
 		{'param': 'haproxy_dir', 'value': '/etc/haproxy', 'section': 'haproxy', 'desc': 'Path to the HAProxy directory', 'group_id': group_id},
@@ -45,7 +50,7 @@ def add_setting_for_new_group(group_id):
 		{'param': 'maxmind_key', 'value': '', 'section': 'main', 'desc': 'License key for downloading GeoIP DB. You can create it on maxmind.com', 'group_id': group_id},
 		{'param': 'nginx_path_logs', 'value': '/var/log/nginx/', 'section': 'nginx', 'desc': 'NGINX error log', 'group_id': group_id},
 		{'param': 'nginx_stats_user', 'value': 'admin', 'section': 'nginx', 'desc': 'Username for accessing NGINX stats page', 'group_id': group_id},
-		{'param': 'nginx_stats_password', 'value': 'password', 'section': 'nginx', 'desc': 'Password for accessing NGINX stats page', 'group_id': group_id},
+		{'param': 'nginx_stats_password', 'value': nginx_stats_password, 'section': 'nginx', 'desc': 'Password for accessing NGINX stats page', 'group_id': group_id},
 		{'param': 'nginx_stats_port', 'value': '8086', 'section': 'nginx', 'desc': 'Stats port for web page NGINX', 'group_id': group_id},
 		{'param': 'nginx_stats_page', 'value': 'stats', 'section': 'nginx', 'desc': 'URI Stats for web page NGINX', 'group_id': group_id},
 		{'param': 'nginx_dir', 'value': '/etc/nginx/', 'section': 'nginx', 'desc': 'Path to the NGINX directory with config files', 'group_id': group_id},
@@ -64,7 +69,7 @@ def add_setting_for_new_group(group_id):
 		{'param': 'ldap_type', 'value': '0', 'section': 'ldap', 'desc': 'Use LDAPS', 'group_id': group_id},
 		{'param': 'apache_path_logs', 'value': '/var/log/httpd/', 'section': 'apache', 'desc': 'The path for Apache logs', 'group_id': group_id},
 		{'param': 'apache_stats_user', 'value': 'admin', 'section': 'apache', 'desc': 'Username for accessing Apache stats page', 'group_id': group_id},
-		{'param': 'apache_stats_password', 'value': 'password', 'section': 'apache', 'desc': 'Password for Apache stats webpage', 'group_id': group_id},
+		{'param': 'apache_stats_password', 'value': apache_stats_password, 'section': 'apache', 'desc': 'Password for Apache stats webpage', 'group_id': group_id},
 		{'param': 'apache_stats_port', 'value': '8087', 'section': 'apache', 'desc': 'Stats port for webpage Apache', 'group_id': group_id},
 		{'param': 'apache_stats_page', 'value': 'stats', 'section': 'apache', 'desc': 'URI Stats for webpage Apache', 'group_id': group_id},
 		{'param': 'apache_dir', 'value': '/etc/httpd/', 'section': 'apache', 'desc': 'Path to the Apache directory with config files', 'group_id': group_id},
