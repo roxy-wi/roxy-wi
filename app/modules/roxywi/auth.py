@@ -56,7 +56,7 @@ def is_admin(level=1, **kwargs):
 
 def page_for_admin(level=1) -> None:
     if not is_admin(level=level):
-        abort(400, 'bad permission')
+        abort(403, 'bad permission')
 
 
 def check_in_ldap(user, password):

@@ -1,5 +1,7 @@
 import pytest
+from werkzeug.exceptions import Forbidden
 
+import app.modules.roxywi.auth as roxywi_auth
 from app.modules.roxywi.access import (
     ensure_group_management,
     ensure_role_assignment,
@@ -30,3 +32,13 @@ def test_group_admin_can_grant_equal_or_lower_privileges():
 def test_admin_cannot_manage_higher_privileged_user():
     with pytest.raises(RoxywiPermissionError):
         ensure_target_role(actor_role=2, target_role=1)
+
+
+@pytest.mark.rbac
+def test_page_for_admin_uses_forbidden_status(monkeypatch):
+    monkeypatch.setattr(roxywi_auth, 'is_admin', lambda level=1: False)
+
+    with pytest.raises(Forbidden) as error:
+        roxywi_auth.page_for_admin()
+
+    assert error.value.code == 403

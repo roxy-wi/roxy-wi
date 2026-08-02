@@ -79,7 +79,7 @@ function updateGroup(id) {
 	toastr.clear();
 	let jsonData = {
 		"name": $('#name-' + id).val(),
-		"desc": $('#descript-' + id).val(),
+		"description": $('#descript-' + id).val(),
 	}
 	$.ajax({
 		url: "/server/group/" + id,
