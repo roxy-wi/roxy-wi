@@ -1140,13 +1140,29 @@ function loadVersion() {
 		url: "/api/version",
 		contentType: "application/json; charset=utf-8",
 		success: function(data) {
-			$('#version').text('v' + data.service_version);
+			if (data.update_available) {
+				$('#version').html('<span id="show-updates-button" class="new-version-exists" style="cursor: pointer;"></span>');
+				$('#show-updates-button').text('v' + data.service_version);
+			} else {
+				$('#version').text('v' + data.service_version);
+			}
+
+			let showUpdates = $('#show-updates').dialog({
+				autoOpen: false,
+				width: 600,
+				modal: true,
+				title: 'There is a new Roxy-WI version',
+				buttons: {
+					Close: function() {
+						$(this).dialog('close');
+					}
+				}
+			});
+			$('#show-updates-button').on('click', function() {
+				showUpdates.dialog('open');
+			});
 		}
 	});
-}
-
-function show_version() {
-	loadVersion();
 }
 function statAgriment() {
 	var cur_url = window.location.href.split('/').pop();

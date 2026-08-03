@@ -44,7 +44,7 @@ def get_roxy_tools():
 
 def get_all_tools():
 	try:
-		query_res = RoxyTool.select().execute()
+		query_res = RoxyTool.select().where(RoxyTool.name != 'roxy-wi').execute()
 	except Exception as e:
 		out_error(e)
 	else:
@@ -76,6 +76,35 @@ def get_tool_cur_version(tool_name: str):
 		out_error(e)
 	else:
 		return query
+
+
+def get_tool_new_version(tool_name: str) -> str:
+	try:
+		return RoxyTool.get(RoxyTool.name == tool_name).new_version
+	except RoxyTool.DoesNotExist:
+		return '0'
+	except Exception as e:
+		out_error(e)
+		return '0'
+
+
+def update_app_versions(current_version: str, new_version: str) -> None:
+	try:
+		app_version = RoxyTool.get_or_none(RoxyTool.name == 'roxy-wi')
+		if app_version is None:
+			RoxyTool.create(
+				name='roxy-wi',
+				current_version=current_version,
+				new_version=new_version,
+				is_roxy=0,
+				desc='Roxy-WI application',
+			)
+		else:
+			app_version.current_version = current_version
+			app_version.new_version = new_version
+			app_version.save()
+	except Exception as e:
+		out_error(e)
 
 
 def get_ver():

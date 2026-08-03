@@ -12,6 +12,7 @@ import app.modules.db.roxy as roxy_sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
+from app.version import get_service_version
 
 
 def is_docker() -> bool:
@@ -20,7 +21,7 @@ def is_docker() -> bool:
 		return False
 	with open(path) as f:
 		for line in f:
-			if re.match("\d+:[\w=]+:/docker(-[ce]e)?/\w+", line):
+			if re.match(r"\d+:[\w=]+:/docker(-[ce]e)?/\w+", line):
 				return True
 	return_out = server_mod.subprocess_execute_with_rc('systemctl status rsyslog')
 	if return_out['rc']:
@@ -29,24 +30,17 @@ def is_docker() -> bool:
 
 
 def check_ver():
-	return roxy_sql.get_ver()
+	return get_service_version()
 
 
 def versions():
+	current_ver = get_service_version()
+	new_ver = roxy_sql.get_tool_new_version('roxy-wi')
 	json_data = {
-		'need_update': 0
+		'current_ver': current_ver,
+		'new_ver': new_ver,
+		'need_update': 0,
 	}
-	try:
-		current_ver = roxy_sql.get_ver()
-		json_data['current_ver'] = roxy_sql.get_ver()
-	except Exception as e:
-		raise Exception(f'Cannot get current version: {e}')
-
-	try:
-		new_ver = check_new_version('roxy-wi')
-		json_data['new_ver'] = new_ver
-	except Exception as e:
-		raise Exception(f'Cannot get new version: {e}')
 
 	try:
 		if version.parse(current_ver) < version.parse(new_ver):

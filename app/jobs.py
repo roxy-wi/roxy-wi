@@ -14,6 +14,16 @@ import app.modules.roxy_wi_tools as roxy_wi_tools
 get_config = roxy_wi_tools.GetConfigVar()
 
 
+def update_new_versions() -> None:
+    tools = roxy_sql.get_roxy_tools()
+    for tool in tools:
+        ver = roxy.check_new_version(tool)
+        roxy_sql.update_tool_new_version(tool, ver)
+
+    app_ver = roxy.check_new_version('roxy-wi')
+    roxy_sql.update_app_versions(roxy.check_ver(), app_ver)
+
+
 @scheduler.task('interval', id='update_plan', minutes=55, misfire_grace_time=None)
 def update_user_status():
     app = scheduler.app
@@ -25,10 +35,7 @@ def update_user_status():
 def check_new_version():
     app = scheduler.app
     with app.app_context():
-        tools = roxy_sql.get_roxy_tools()
-        for tool in tools:
-            ver = roxy.check_new_version(tool)
-            roxy_sql.update_tool_new_version(tool, ver)
+        update_new_versions()
 
 
 @scheduler.task('interval', id='update_cur_tool_versions', days=1, misfire_grace_time=None)

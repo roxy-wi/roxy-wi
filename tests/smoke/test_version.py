@@ -10,15 +10,7 @@ def test_version_api_is_public(client):
     response = client.get('/api/version')
 
     assert response.status_code == 200
-    assert response.get_json() == {
-        'service_version': get_service_version(),
-    }
-
-
-def test_legacy_internal_version_endpoint_uses_same_contract(client):
-    response = client.get('/internal/show_version')
-
-    assert response.status_code == 200
-    assert response.get_json() == {
-        'service_version': get_service_version(),
-    }
+    payload = response.get_json()
+    assert payload['service_version'] == get_service_version()
+    assert payload['latest_version'] == '0'
+    assert payload['update_available'] is False

@@ -7,7 +7,7 @@ from flask_pydantic import validate
 from pydantic import IPvAnyAddress
 import requests
 
-from app import app, cache, jwt
+from app import app, jwt
 from app.routes.main import bp
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
@@ -23,7 +23,6 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
 import app.modules.service.haproxy as service_haproxy
 from app.modules.roxywi.class_models import ErrorResponse, NettoolsRequest, DomainName
-from app.version import get_service_version
 
 
 @app.template_filter('strftime')
@@ -165,10 +164,13 @@ def service_history(service: str, server_ip: Union[IPvAnyAddress, DomainName, in
 
 
 @bp.get('/api/version')
-@bp.get('/internal/show_version')
-@cache.cached()
-def show_roxywi_version():
-    return jsonify(service_version=get_service_version())
+def get_version():
+    version_status = roxy.versions()
+    return jsonify(
+        service_version=version_status['current_ver'],
+        latest_version=version_status['new_ver'],
+        update_available=bool(version_status['need_update']),
+    )
 
 
 @app.route("/api/gpt", methods=["POST"])

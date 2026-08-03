@@ -188,7 +188,7 @@ def list_of_version(service):
 @check_services
 @get_user_params(disable=1)
 @validate()
-def show_version(service, server_ip: Union[IPvAnyAddress, DomainName], configver):
+def show_config_version(service, server_ip: Union[IPvAnyAddress, DomainName], configver):
     server_ip = str(server_ip)
     roxywi_auth.page_for_admin(level=3)
 

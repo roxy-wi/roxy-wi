@@ -80,7 +80,7 @@ function updateService(service, action='update') {
 			$("#ajax-update").html('');
 			loadupdatehapwi();
 			loadServices();
-			show_version();
+			loadVersion();
 		}
 	});
 }
