@@ -57,6 +57,13 @@ def test_smon_history_is_not_public(client):
 
 
 @pytest.mark.security
+def test_haproxy_dependency_map_is_not_public(client):
+    response = client.get('/config/map/haproxy/192.0.2.10/show')
+    assert response.status_code == 302
+    assert response.location.startswith('/login')
+
+
+@pytest.mark.security
 def test_logout_revokes_bearer_token(app, client):
     with app.app_context():
         token = create_access_token('1', additional_claims={'group': '1'})

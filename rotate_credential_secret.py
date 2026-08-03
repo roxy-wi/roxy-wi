@@ -1,25 +1,21 @@
 """Atomically rotate the Fernet key used for stored SSH credentials."""
 
 import os
-import hashlib
 
 from cryptography.fernet import Fernet, InvalidToken
 
 from app.modules.db.db_model import Cred, connect
 
 
-KNOWN_INSECURE_SECRET_SHA256 = '81fd19ad32311ada4ffa54bfb9ebed03dc89632a853d0522e2498c420c4315c1'
 SECRET_FIELDS = ('password', 'passphrase', 'private_key')
 
 
-def _fernet_from_environment(variable_name: str, *, allow_known_key: bool) -> Fernet:
+def _fernet_from_environment(variable_name: str) -> Fernet:
     value = os.environ.get(variable_name)
     if not value:
         raise RuntimeError(f'{variable_name} is required')
-    if not allow_known_key and (
-        value == 'CHANGE_ME' or hashlib.sha256(value.encode()).hexdigest() == KNOWN_INSECURE_SECRET_SHA256
-    ):
-        raise RuntimeError('The new credential key must be unique')
+    if value == 'CHANGE_ME':
+        raise RuntimeError(f'{variable_name} must not be CHANGE_ME')
     try:
         return Fernet(value.encode('ascii'))
     except (ValueError, UnicodeEncodeError) as exc:
@@ -27,8 +23,8 @@ def _fernet_from_environment(variable_name: str, *, allow_known_key: bool) -> Fe
 
 
 def rotate_credentials() -> int:
-    old_fernet = _fernet_from_environment('ROXYWI_OLD_SECRET_PHRASE', allow_known_key=True)
-    new_fernet = _fernet_from_environment('ROXYWI_SECRET_PHRASE', allow_known_key=False)
+    old_fernet = _fernet_from_environment('ROXYWI_OLD_SECRET_PHRASE')
+    new_fernet = _fernet_from_environment('ROXYWI_SECRET_PHRASE')
     database = connect()
     rotated_credentials = 0
 

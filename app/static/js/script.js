@@ -214,22 +214,6 @@ function clearAllAjaxFields() {
 	$("#ajax-compare").empty();
 	$("#config").empty();
 }
-function showMap() {
-	clearAllAjaxFields();
-	$('#ajax-config_file_name').empty();
-	$.ajax({
-		url: "/config/map/haproxy/" + $("#serv").val() + '/show',
-		success: function (data) {
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#ajax").html(data);
-				window.history.pushState("Show Map", "Show Map", '/config/map/' + $("#service").val() + '/' + $("#serv").val());
-			}
-		}
-	});
-}
 function showConfig() {
 	let edit_section = '';
 	let edit_section_uri = '';

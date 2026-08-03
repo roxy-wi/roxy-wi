@@ -31,6 +31,9 @@
 <script src="/static/js/add.js"></script>
 <script src="/static/js/add_nginx.js"></script>
 <script src="/static/js/edit_config.js"></script>
+<link rel="stylesheet" href="/static/css/haproxy-map.css">
+<script src="/static/js/vendor/cytoscape.min.js"></script>
+<script src="/static/js/haproxy-map.js"></script>
 
 {% if is_serv_protected and g.user_params['role'] > 2 %}
 <meta http-equiv="refresh" content="0; url=/service">
@@ -96,9 +99,6 @@
 	{% endif %}
 <script>
 	var cur_url = window.location.href.split('/');
-	if (cur_url[4] === 'map') {
-		showMap();
-	}
 	if (cur_url[4] === 'compare') {
 		showCompareConfigs();
 	}

@@ -94,13 +94,21 @@ class ServiceView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find a server')
 
         if service == 'haproxy':
-            cmd = 'echo "show info" |nc %s %s -w 1|grep -e "Ver\|CurrConns\|Maxco\|MB\|Uptime:\|Process_num"' % (
-                server.ip, sql.get_setting('haproxy_sock_port')
-            )
-            out = server_mod.subprocess_execute(cmd)
-            data = self.return_dict_from_out(out[0])
-            if len(data) == 0:
-                data = ErrorResponse(error='Cannot get information').model_dump(mode='json')
+            sock_port = int(sql.get_setting('haproxy_sock_port'))
+            cmd = f'echo "show info" |nc {server.ip} {sock_port} -w 1'
+            try:
+                output = server_mod.ssh_command(server.ip, cmd, timeout=5)
+                data = self.return_dict_from_out(output.splitlines())
+            except Exception as e:
+                data = ErrorResponse(
+                    error=f'Cannot get HAProxy information: {e}'
+                ).model_dump(mode='json')
+
+            if 'Process' not in data:
+                if 'error' not in data:
+                    data = ErrorResponse(
+                        error='HAProxy Runtime API returned no process information'
+                    ).model_dump(mode='json')
             else:
                 data['status'] = self._service_status(data['Process'])
             data['auto_start'] = int(server.haproxy_active)
@@ -215,15 +223,20 @@ class ServiceView(MethodView):
     @staticmethod
     def return_dict_from_out(out):
         data = {}
-        for k in out:
-            if "Ncat:" not in k:
-                k = k.split(':')
-                if k[0] == 'Process_num':
-                    data['Process'] = k[1].strip()
-                else:
-                    data[k[0]] = k[1].strip()
-            else:
-                data = {"error": "Cannot connect to HAProxy"}
+        allowed_fields = {
+            'Version', 'Uptime', 'Memmax_MB', 'PoolAlloc_MB', 'PoolUsed_MB',
+            'Maxconn', 'CurrConns', 'MaxconnReached',
+        }
+        for line in out:
+            if 'Ncat:' in line:
+                return {'error': 'Cannot connect to HAProxy'}
+            field, separator, value = line.partition(':')
+            if not separator:
+                continue
+            if field == 'Process_num':
+                data['Process'] = value.strip()
+            elif field in allowed_fields:
+                data[field] = value.strip()
 
         return data
 

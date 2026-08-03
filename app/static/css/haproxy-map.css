@@ -1,0 +1,136 @@
+.haproxy-map-card {
+    border: 1px solid var(--color-gray);
+    border-radius: 16px;
+    background: var(--background);
+    padding: 14px;
+    margin: 14px 15px 20px 0;
+}
+
+.haproxy-map-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.haproxy-map-heading h3 {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+}
+
+.haproxy-map-summary {
+    color: var(--color-secondary);
+    font-size: 12px;
+}
+
+.haproxy-map-toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.haproxy-map-search {
+    min-width: 240px;
+    flex: 1 1 280px;
+}
+
+.haproxy-map-toolbar input,
+.haproxy-map-toolbar select {
+    box-sizing: border-box;
+    min-height: 34px;
+    padding: 6px 10px;
+    border: 1px solid var(--color-gray);
+    border-radius: 8px;
+    background: var(--background);
+    color: var(--color-black);
+}
+
+.haproxy-map-toolbar select {
+    min-width: 150px;
+}
+
+.haproxy-dependency-graph {
+    position: relative;
+    min-height: 480px;
+    height: min(70vh, 720px);
+    border: 1px solid var(--color-gray);
+    border-radius: 14px;
+    background:
+        radial-gradient(circle at 1px 1px, rgba(148, 163, 184, 0.24) 1px, transparent 0),
+        var(--background-dark);
+    background-size: 20px 20px;
+    overflow: hidden;
+}
+
+.haproxy-dependency-graph .empty-state {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--color-secondary);
+    text-align: center;
+}
+
+.haproxy-map-legend {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 10px;
+    color: var(--color-secondary);
+    font-size: 12px;
+}
+
+.haproxy-map-legend strong {
+    color: var(--color-black);
+}
+
+.haproxy-map-legend-dot {
+    display: inline-block;
+    width: 11px;
+    height: 11px;
+    margin-right: 6px;
+    border: 2px solid var(--color-white);
+    border-radius: 50%;
+    vertical-align: -2px;
+}
+
+.haproxy-map-legend-frontend { background: #2563eb; }
+.haproxy-map-legend-backend { background: #7c3aed; }
+.haproxy-map-legend-server { background: #16a34a; }
+.haproxy-map-legend-listen { background: #f59e0b; }
+.haproxy-map-legend-missing {
+    background: transparent;
+    border-color: #dc2626;
+    border-style: dashed;
+}
+
+.haproxy-map-details {
+    min-height: 20px;
+    margin-top: 10px;
+    padding: 9px 11px;
+    border-radius: 9px;
+    background: var(--color-gray-light-alpha);
+    color: var(--color-black);
+}
+
+@media (max-width: 760px) {
+    .haproxy-map-card {
+        margin-right: 0;
+    }
+
+    .haproxy-map-toolbar > * {
+        width: 100%;
+    }
+
+    .haproxy-dependency-graph {
+        min-height: 420px;
+        height: 65vh;
+    }
+}

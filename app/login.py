@@ -9,6 +9,7 @@ import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 from app.modules.common.common import checkAjaxInput
 from app.modules.roxywi import logger
+from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
 @app.before_request
@@ -19,18 +20,31 @@ def check_login():
     )
     if request.endpoint not in allowed_endpoints:
         try:
-            user_params = roxywi_common.get_users_params()
+            claims = roxywi_common.get_jwt_token_claims()
         except Exception as e:
-            print(f'{e}')
-            abort(401)
-
-        if not user_sql.is_user_active(user_params['user_id']):
+            logger.warning('Authentication token rejected', reason=str(e))
             abort(401)
 
         try:
-            roxywi_auth.check_login(user_params['user_id'])
-        except Exception:
+            user = user_sql.get_user_id(claims['user_id'])
+        except RoxywiResourceNotFound:
+            logger.warning('Authentication user does not exist', user_id=claims['user_id'])
             abort(401)
+
+        if not user.enabled:
+            logger.warning('Authentication user is disabled', user_id=claims['user_id'])
+            abort(401)
+
+        if int(claims['group']) != int(user.group_id):
+            logger.warning(
+                'Authentication active group mismatch',
+                user_id=claims['user_id'],
+                token_group=claims['group'],
+                active_group=user.group_id,
+            )
+            abort(401)
+
+        roxywi_auth.update_user_activity(claims['user_id'])
 
 
 @app.after_request

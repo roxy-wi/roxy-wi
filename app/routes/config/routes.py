@@ -364,9 +364,12 @@ def show_compare(service, server_ip):
     return jsonify({'compare': compare})
 
 
-@bp.route('/map/haproxy/<server_ip>/show')
+@bp.get('/map/haproxy/<server_ip>/show')
 @get_user_params()
 @validate()
 def show_map(server_ip: Union[IPvAnyAddress, DomainName]):
     server_ip = str(server_ip)
-    return service_haproxy.show_map(server_ip, g.user_params['group_id'])
+    try:
+        return jsonify(service_haproxy.show_map(server_ip, g.user_params['group_id']))
+    except Exception as e:
+        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create HAProxy dependency map')

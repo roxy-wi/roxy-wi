@@ -1,6 +1,5 @@
 import os
 import base64
-import hashlib
 from cryptography.fernet import Fernet
 
 from flask import render_template
@@ -13,19 +12,42 @@ from app.modules.server import ssh_connection
 from app.modules.db.db_model import Cred
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
+from app.modules.roxywi import logger
 from app.modules.roxywi.class_models import IdResponse, IdDataResponse, CredRequest
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 get_config = roxy_wi_tools.GetConfigVar()
-KNOWN_INSECURE_SECRET_SHA256 = '81fd19ad32311ada4ffa54bfb9ebed03dc89632a853d0522e2498c420c4315c1'
 
 
 def _get_fernet_key() -> str:
-	key = os.environ.get('ROXYWI_SECRET_PHRASE') or get_config.get_config_var('main', 'secret_phrase')
-	if not key or key == 'CHANGE_ME' or hashlib.sha256(key.encode()).hexdigest() == KNOWN_INSECURE_SECRET_SHA256:
+	environment_key = os.environ.get('ROXYWI_SECRET_PHRASE')
+	if environment_key:
+		key = environment_key.strip()
+		source = 'ROXYWI_SECRET_PHRASE'
+	else:
+		# Do not use the module-level configuration snapshot for credentials. The
+		# config file may be created or updated after application modules have been
+		# imported (for example, during an upgrade or first installation).
+		credential_config = roxy_wi_tools.GetConfigVar()
+		key = credential_config.get_config_var('main', 'secret_phrase')
+		key = key.strip() if key else ''
+		source = f'[main] secret_phrase in {credential_config.path_config}'
+
+	if not key:
 		raise RuntimeError(
-			'Configure a unique ROXYWI_SECRET_PHRASE before storing or reading credentials'
+			f'Credential encryption key from {source} is empty. Configure a unique secret_phrase'
 		)
+	if key == 'CHANGE_ME':
+		raise RuntimeError(
+			f'Credential encryption key from {source} is set to CHANGE_ME. '
+			'Configure a unique secret_phrase'
+		)
+	try:
+		Fernet(key.encode('ascii'))
+	except (ValueError, UnicodeEncodeError) as e:
+		raise RuntimeError(
+			f'Credential encryption key from {source} is not a valid Fernet key'
+		) from e
 	return key
 
 
@@ -39,10 +61,10 @@ def return_ssh_keys_path(server_ip: str, cred_id: int = None) -> dict:
 	if cred_id is not None:
 		# A caller may select credentials only from the server's tenant or from
 		# credentials explicitly shared across tenants.
-		sshs = cred_sql.select_ssh(group=server.group_id, cred_id=cred_id, not_shared=True)
+		sshs = list(cred_sql.select_ssh(group=server.group_id, cred_id=cred_id, not_shared=True))
 	else:
-		sshs = cred_sql.select_ssh(serv=server_ip)
-	if not sshs.exists():
+		sshs = list(cred_sql.select_ssh(serv=server_ip))
+	if not sshs:
 		raise RoxywiResourceNotFound
 
 	for ssh in sshs:
@@ -213,13 +235,25 @@ def get_creds(group_id: int = None, cred_id: int = None, not_shared: bool = Fals
 			cred_dict = model_to_dict(cred, exclude={Cred.password, Cred.passphrase})
 		else:
 			cred_dict = model_to_dict(cred)
-			if cred_dict['password']:
+			for credential_field in ('password', 'passphrase'):
+				if not cred_dict[credential_field]:
+					continue
 				try:
-					cred_dict['password'] = decrypt_password(cred_dict['password'])
-				except Exception:
-					pass
-			if cred_dict['passphrase']:
-				cred_dict['passphrase'] = decrypt_password(cred_dict['passphrase'])
+					cred_dict[credential_field] = decrypt_password(cred_dict[credential_field])
+				except RuntimeError:
+					# A missing/invalid application key affects every credential and must
+					# remain visible to the operator instead of rendering all fields empty.
+					raise
+				except Exception as e:
+					# One stale or damaged credential must not make the complete admin
+					# page unavailable or expose encrypted values in its response.
+					cred_dict[credential_field] = ''
+					logger.warning(
+						'Cannot decrypt an SSH credential field',
+						credential_id=cred.id,
+						credential_field=credential_field,
+						exception=e
+					)
 		cred_dict['name'] = cred_dict['name'].replace("'", "")
 		cred_dict['private_key'] = ''
 

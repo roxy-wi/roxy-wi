@@ -2,7 +2,7 @@ import os
 import glob
 from typing import Any, Union
 
-from flask import request, g, abort
+from flask import request, g, abort, has_request_context
 from flask_jwt_extended import get_jwt
 from flask_jwt_extended import verify_jwt_in_request
 
@@ -14,7 +14,6 @@ import app.modules.db.group as group_sql
 import app.modules.db.server as server_sql
 import app.modules.db.history as history_sql
 import app.modules.roxy_wi_tools as roxy_wi_tools
-from app.modules.roxywi.class_models import ErrorResponse
 from app.modules.roxywi.exception import RoxywiGroupMismatch
 from app.modules.roxywi.error_handler import handle_exception, log_error
 from app.modules.roxywi import logger
@@ -114,6 +113,28 @@ def logging(server_ip: Union[str, int], action: str, **kwargs) -> None:
 			keep_history: Whether to keep the action in the history
 			service: The service where the action occurred
 	"""
+	# Determine log level and clean up action string before accessing Flask's
+	# request context: jobs and server checks call this function in the background.
+	if 'error' in action:
+		log_level = logger.ERROR
+		action = action.replace('error: : ', '')
+		action = action.replace('error: ', '')
+	elif 'warning' in action:
+		log_level = logger.WARNING
+		action = action.replace('warning: ', '')
+	else:
+		log_level = logger.INFO
+
+	if not has_request_context():
+		logger.log(
+			log_level,
+			action,
+			server_ip=server_ip,
+			service=kwargs.get('service'),
+			execution_context='background'
+		)
+		return
+
 	try:
 		# JWT validation and extracting user's information
 		claims = get_jwt_token_claims()
@@ -121,17 +142,6 @@ def logging(server_ip: Union[str, int], action: str, **kwargs) -> None:
 		user = user_sql.get_user_id(user_id=user_id)
 		user_group = get_user_group()
 		ip = request.remote_addr
-
-		# Determine log level and clean up action string
-		if 'error' in action:
-			log_level = logger.ERROR
-			action = action.replace('error: : ', '')
-			action = action.replace('error: ', '')
-		elif 'warning' in action:
-			log_level = logger.WARNING
-			action = action.replace('warning: ', '')
-		else:
-			log_level = logger.INFO
 
 		# Log the message with structured context
 		logger.log(
@@ -152,8 +162,17 @@ def logging(server_ip: Union[str, int], action: str, **kwargs) -> None:
 			except Exception as e:
 				logger.error(f'Cannot save history: {e}', server_ip=server_ip)
 	except Exception as e:
-		# Fallback logging if we can't get user information
-		logger.error(f'Error in logging function: {e}', server_ip=server_ip)
+		# Preserve the original event even if an unauthenticated request has no
+		# usable JWT/user context. Do not turn a logging-context failure into a
+		# second, misleading application error.
+		logger.log(
+			log_level,
+			action,
+			server_ip=server_ip,
+			client_ip=request.remote_addr,
+			service=kwargs.get('service'),
+			logging_context_error=str(e)
+		)
 
 
 def keep_action_history(service: str, action: str, server_ip: str, user_id: int, user_ip: str):
@@ -363,9 +382,16 @@ def require_request_server_access() -> None:
 		for key, server_reference in references:
 			if server_reference in ('', None, 'all'):
 				continue
-			if key == 'server_id' and (
-				isinstance(server_reference, int) or str(server_reference).isdigit()
-			):
+			# Some legacy routes use the name ``server_ip`` for a value selected
+			# by server ID and distinguish it with Flask's ``int`` converter, for
+			# example /runtimeapi/backends/<int:server_ip>. Preserve that type
+			# information instead of looking up the integer as an IP address.
+			is_server_id = (
+				key == 'server_id' and (
+					isinstance(server_reference, int) or str(server_reference).isdigit()
+				)
+			) or (key == 'server_ip' and isinstance(server_reference, int))
+			if is_server_id:
 				server = server_sql.get_server(int(server_reference))
 			else:
 				server = server_sql.get_server_by_ip(str(server_reference))

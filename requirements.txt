@@ -4,8 +4,6 @@ pytz>=2017.3
 tzlocal>=5.2,<6
 requests==2.34.2
 pyTelegramBotAPI>=3.6.3 
-networkx>=2.6
-matplotlib>=2.1.2
 future>=0.13.1
 jinja2>=2.10.1
 slack-sdk>=3.4.0

@@ -1,3 +1,5 @@
+from threading import Lock
+from time import monotonic
 from typing import Union
 
 from flask import request, abort, url_for, jsonify
@@ -9,21 +11,57 @@ import app.modules.db.user as user_sql
 import app.modules.db.service as service_sql
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
+from app.modules.roxywi import logger
+from app.modules.roxywi.exception import RoxywiResourceNotFound
+
+
+_ACTIVITY_UPDATE_INTERVAL_SECONDS = 60
+_last_activity_updates = {}
+_last_activity_lock = Lock()
 
 
 def check_login(user_id: int) -> Union[str, None]:
     if user_id is None:
         return 'login_page'
 
-    if user_sql.get_user_id(user_id) is None:
+    try:
+        user_sql.get_user_id(user_id)
+    except RoxywiResourceNotFound:
         return 'login_page'
-    else:
-        try:
-            ip = request.remote_addr
-        except Exception:
-            ip = ''
 
+    update_user_activity(user_id)
+
+
+def update_user_activity(user_id: int) -> None:
+    """Best-effort, throttled tracking that must never invalidate a login."""
+    try:
+        ip = request.remote_addr or ''
+    except RuntimeError:
+        ip = ''
+
+    now = monotonic()
+    with _last_activity_lock:
+        previous_update = _last_activity_updates.get(user_id)
+        if (
+            previous_update
+            and previous_update['ip'] == ip
+            and now - previous_update['time'] < _ACTIVITY_UPDATE_INTERVAL_SECONDS
+        ):
+            return
+        # Mark the attempt before writing so concurrent AJAX requests do not all
+        # contend for the same SQLite write lock. A failed attempt is retried on
+        # the next interval and does not affect the authenticated request.
+        _last_activity_updates[user_id] = {'time': now, 'ip': ip}
+
+    try:
         user_sql.update_last_act_user(user_id, ip)
+    except Exception as e:
+        logger.warning(
+            'Cannot update user activity',
+            user_id=user_id,
+            client_ip=ip,
+            exception=e,
+        )
 
 
 def is_access_permit_to_service(service: str) -> bool:
