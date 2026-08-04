@@ -180,6 +180,7 @@ def show_map(serv: str, group_id: int) -> dict:
         with open(cfg, 'r', encoding='utf-8', errors='replace') as config_file:
             graph = build_dependency_graph(config_file.read())
         graph['server'] = serv
+        graph['service'] = 'haproxy'
         return graph
     finally:
         try:

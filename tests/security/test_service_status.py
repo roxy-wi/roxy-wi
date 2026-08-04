@@ -19,7 +19,7 @@ MaxconnReached: 0
 
 
 @pytest.mark.security
-def test_haproxy_status_runs_runtime_query_on_target_loopback(app, monkeypatch):
+def test_haproxy_status_runs_runtime_query_on_target_address(app, monkeypatch):
     commands = []
     server = SimpleNamespace(
         ip='10.0.0.173',
@@ -59,7 +59,7 @@ def test_haproxy_status_runs_runtime_query_on_target_loopback(app, monkeypatch):
 
     assert commands == [(
         '10.0.0.173',
-        'echo "show info" |nc 127.0.0.1 1999 -w 1',
+        'echo "show info" |nc 10.0.0.173 1999 -w 1',
         {'timeout': 5},
     )]
     assert data['Version'] == '3.1.7-c3f4089'

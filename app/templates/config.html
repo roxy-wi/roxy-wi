@@ -53,7 +53,7 @@
 			{% if service != 'keepalived' and service != 'apache' %}
 				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.stat}}" onclick="openStats()">{{lang.menu_links.stats.link}}</a>
 			{% endif %}
-			{% if service != 'keepalived' and service != 'nginx' and service != 'apache' %}
+			{% if service == 'haproxy' or service == 'nginx' %}
 				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.map}}" onclick="showMap()">{{lang.words.map|title()}}</a>
 			{% endif %}
 				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.compare|title()}} {{lang.words.configs}}" onclick="showCompareConfigs()">{{lang.words.compare|title()}}</a>

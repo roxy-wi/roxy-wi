@@ -102,9 +102,12 @@
 }
 
 .haproxy-map-legend-frontend { background: #2563eb; }
+.haproxy-map-legend-virtual_server { background: #2563eb; }
 .haproxy-map-legend-backend { background: #7c3aed; }
+.haproxy-map-legend-upstream { background: #7c3aed; }
 .haproxy-map-legend-server { background: #16a34a; }
 .haproxy-map-legend-listen { background: #f59e0b; }
+.haproxy-map-legend-location { background: #f59e0b; }
 .haproxy-map-legend-missing {
     background: transparent;
     border-color: #dc2626;

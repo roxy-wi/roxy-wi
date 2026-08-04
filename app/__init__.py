@@ -60,6 +60,7 @@ from app.routes.waf import bp as waf_bp
 from app.routes.runtime import bp as runtime_bp
 from app.routes.user import bp as user_bp
 from app.routes.smon import bp as smon_bp
+from app.api.routes import bp as api_bp
 
 app.register_blueprint(main_bp)
 app.register_blueprint(overview_bp)
@@ -69,6 +70,7 @@ app.register_blueprint(waf_bp, url_prefix='/waf')
 app.register_blueprint(runtime_bp, url_prefix='/runtimeapi')
 app.register_blueprint(user_bp, url_prefix='/user')
 app.register_blueprint(smon_bp, url_prefix='/smon')
+app.register_blueprint(api_bp, url_prefix='/api')
 
 if app.config['TESTING']:
     # Register security-sensitive legacy blueprints in unit tests as well.
@@ -83,7 +85,6 @@ if app.config['TESTING']:
     app.register_blueprint(server_bp, url_prefix='/server')
     app.register_blueprint(admin_bp, url_prefix='/admin')
 else:
-    from app.api.routes import bp as api_bp
     from app.routes.add import bp as add_bp
     from app.routes.logs import bp as logs_bp
     from app.routes.metric import bp as metric_bp
@@ -96,7 +97,6 @@ else:
     from app.routes.ha import bp as ha_bp
     from app.routes.udp import bp as udp_bp
 
-    app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(add_bp, url_prefix='/add')
     app.register_blueprint(logs_bp, url_prefix='/logs')
     app.register_blueprint(metric_bp, url_prefix='/metrics')

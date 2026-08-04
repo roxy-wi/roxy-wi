@@ -1,6 +1,49 @@
 let haproxyDependencyGraph = null;
 let haproxyDependencyGraphData = null;
 let haproxyDependencySearchTimer = null;
+let dependencyMapService = 'haproxy';
+
+const dependencyMapProfiles = {
+    haproxy: {
+        label: 'HAProxy',
+        search: 'Search frontend, backend, server or address...',
+        nodeTypes: [
+            {type: 'frontend', label: 'Frontend'},
+            {type: 'listen', label: 'Listen'},
+            {type: 'backend', label: 'Backend'},
+            {type: 'server', label: 'Server'}
+        ]
+    },
+    nginx: {
+        label: 'NGINX',
+        search: 'Search virtual server, location, upstream or address...',
+        nodeTypes: [
+            {type: 'virtual_server', label: 'Virtual server'},
+            {type: 'location', label: 'Location'},
+            {type: 'upstream', label: 'Upstream'},
+            {type: 'server', label: 'Server'}
+        ]
+    }
+};
+
+function dependencyMapProfile(service) {
+    return dependencyMapProfiles[service] || dependencyMapProfiles.haproxy;
+}
+
+function dependencyMapSummary(counts, profile) {
+    return profile.nodeTypes.map(function (nodeType) {
+        return (counts[nodeType.type] || 0) + ' ' + nodeType.label.toLowerCase() + 's';
+    }).join(' | ');
+}
+
+function dependencyMapLegend(profile) {
+    const nodeLegend = profile.nodeTypes.map(function (nodeType) {
+        return '<span><i class="haproxy-map-legend-dot haproxy-map-legend-' + nodeType.type
+            + '"></i>' + nodeType.label + '</span>';
+    }).join('');
+    return '<strong>Nodes</strong>' + nodeLegend
+        + '<span><i class="haproxy-map-legend-dot haproxy-map-legend-missing"></i>Referenced, not defined</span>';
+}
 
 function destroyHaproxyDependencyGraph() {
     if (haproxyDependencyGraph) {
@@ -171,12 +214,15 @@ function haproxyMapStyle() {
             }
         },
         {selector: 'node.type-frontend', style: {'background-color': '#2563eb'}},
+        {selector: 'node.type-virtual_server', style: {'background-color': '#2563eb'}},
         {selector: 'node.type-backend', style: {'background-color': '#7c3aed', 'shape': 'hexagon'}},
+        {selector: 'node.type-upstream', style: {'background-color': '#7c3aed', 'shape': 'hexagon'}},
         {
             selector: 'node.type-server',
             style: {'background-color': '#16a34a', 'shape': 'round-rectangle', 'width': 58, 'height': 34}
         },
         {selector: 'node.type-listen', style: {'background-color': '#f59e0b', 'shape': 'diamond'}},
+        {selector: 'node.type-location', style: {'background-color': '#f59e0b', 'shape': 'diamond'}},
         {
             selector: 'node.missing',
             style: {
@@ -209,8 +255,9 @@ function haproxyMapStyle() {
         },
         {selector: 'edge.type-default_backend', style: {'width': 3}},
         {selector: 'edge.type-use_backend', style: {'line-style': 'dashed'}},
+        {selector: 'edge.type-location', style: {'line-style': 'dashed', 'line-color': '#f59e0b', 'target-arrow-color': '#f59e0b'}},
         {
-            selector: 'edge.type-server, edge.type-server-template',
+            selector: 'edge.type-server, edge.type-server-template, edge.type-proxy_pass, edge.type-fastcgi_pass, edge.type-uwsgi_pass, edge.type-scgi_pass, edge.type-grpc_pass',
             style: {'line-color': '#16a34a', 'target-arrow-color': '#16a34a'}
         },
         {
@@ -253,7 +300,8 @@ function renderHaproxyDependencyGraph() {
     const elements = haproxyMapElements(haproxyDependencyGraphData);
     if (!elements.some(function (element) { return !element.data.source; })) {
         destroyHaproxyDependencyGraph();
-        container.innerHTML = '<div class="empty-state">No matching HAProxy dependencies</div>';
+        container.innerHTML = '<div class="empty-state">No matching '
+            + dependencyMapProfile(dependencyMapService).label + ' dependencies</div>';
         return;
     }
 
@@ -317,15 +365,16 @@ function initializeHaproxyMapControls() {
         });
 }
 
-function haproxyMapShell() {
+function haproxyMapShell(service) {
+    const profile = dependencyMapProfile(service);
     return [
         '<div class="haproxy-map-card">',
         '  <div class="haproxy-map-heading">',
-        '    <h3 id="haproxy-map-title">HAProxy dependency map</h3>',
+        '    <h3 id="haproxy-map-title">' + profile.label + ' dependency map</h3>',
         '    <span id="haproxy-map-summary" class="haproxy-map-summary"></span>',
         '  </div>',
         '  <div class="haproxy-map-toolbar">',
-        '    <input id="haproxy-map-search" class="haproxy-map-search" type="search" placeholder="Search frontend, backend, server or address..." autocomplete="off">',
+        '    <input id="haproxy-map-search" class="haproxy-map-search" type="search" placeholder="' + profile.search + '" autocomplete="off">',
         '    <select id="haproxy-map-focus" title="Focus component"><option value="">All components</option></select>',
         '    <select id="haproxy-map-layout" title="Graph layout">',
         '      <option value="breadthfirst" selected>Hierarchy</option>',
@@ -336,14 +385,7 @@ function haproxyMapShell() {
         '    <button id="haproxy-map-fit" type="button" class="ui-button ui-widget ui-corner-all">Fit</button>',
         '  </div>',
         '  <div id="haproxy-dependency-graph" class="haproxy-dependency-graph"><div class="empty-state">Loading dependency graph...</div></div>',
-        '  <div class="haproxy-map-legend">',
-        '    <strong>Nodes</strong>',
-        '    <span><i class="haproxy-map-legend-dot haproxy-map-legend-frontend"></i>Frontend</span>',
-        '    <span><i class="haproxy-map-legend-dot haproxy-map-legend-backend"></i>Backend</span>',
-        '    <span><i class="haproxy-map-legend-dot haproxy-map-legend-server"></i>Server</span>',
-        '    <span><i class="haproxy-map-legend-dot haproxy-map-legend-listen"></i>Listen</span>',
-        '    <span><i class="haproxy-map-legend-dot haproxy-map-legend-missing"></i>Referenced, not defined</span>',
-        '  </div>',
+        '  <div class="haproxy-map-legend">' + dependencyMapLegend(profile) + '</div>',
         '  <div id="haproxy-map-details" class="haproxy-map-details">Select a node or connection to see details.</div>',
         '</div>'
     ].join('');
@@ -352,18 +394,20 @@ function haproxyMapShell() {
 function showMap() {
     destroyHaproxyDependencyGraph();
     haproxyDependencyGraphData = null;
+    dependencyMapService = $('#service').val() || 'haproxy';
+    const profile = dependencyMapProfile(dependencyMapService);
     clearAllAjaxFields();
     $('#ajax-config_file_name').empty();
-    $('#ajax').html(haproxyMapShell());
+    $('#ajax').html(haproxyMapShell(dependencyMapService));
 
     const server = $('#serv').val();
     if (!server) {
-        toastr.error('Choose a HAProxy server');
-        $('#haproxy-dependency-graph').html('<div class="empty-state">Choose a HAProxy server</div>');
+        toastr.error('Choose an ' + profile.label + ' server');
+        $('#haproxy-dependency-graph').html('<div class="empty-state">Choose an ' + profile.label + ' server</div>');
         return;
     }
     $.ajax({
-        url: '/config/map/haproxy/' + encodeURIComponent(server) + '/show',
+        url: '/config/map/' + encodeURIComponent(dependencyMapService) + '/' + encodeURIComponent(server) + '/show',
         dataType: 'json',
         success: function (data) {
             if (data.error) {
@@ -373,14 +417,11 @@ function showMap() {
             }
 
             haproxyDependencyGraphData = data;
+            dependencyMapService = data.service || dependencyMapService;
+            const responseProfile = dependencyMapProfile(dependencyMapService);
             const counts = data.counts || {};
-            $('#haproxy-map-title').text('HAProxy dependency map | ' + data.server);
-            $('#haproxy-map-summary').text(
-                (counts.frontend || 0) + ' frontends | '
-                + (counts.listen || 0) + ' listens | '
-                + (counts.backend || 0) + ' backends | '
-                + (counts.server || 0) + ' servers'
-            );
+            $('#haproxy-map-title').text(responseProfile.label + ' dependency map | ' + data.server);
+            $('#haproxy-map-summary').text(dependencyMapSummary(counts, responseProfile));
             populateHaproxyMapFocus(data);
             initializeHaproxyMapControls();
             renderHaproxyDependencyGraph();
@@ -388,7 +429,7 @@ function showMap() {
         },
         error: function (xhr) {
             const response = xhr.responseJSON || {};
-            const message = response.error || 'Cannot load HAProxy dependency graph';
+            const message = response.error || 'Cannot load ' + profile.label + ' dependency graph';
             toastr.error(message);
             $('#haproxy-dependency-graph').html('<div class="empty-state">Cannot load dependency graph</div>');
         }

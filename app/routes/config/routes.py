@@ -20,6 +20,7 @@ import app.modules.config.config as config_mod
 import app.modules.config.common as config_common
 import app.modules.config.section as section_mod
 import app.modules.service.haproxy as service_haproxy
+import app.modules.service.nginx as service_nginx
 import app.modules.server.server as server_mod
 from app.views.service.views import ServiceConfigView, ServiceConfigVersionsView
 from app.modules.roxywi.class_models import DataStrResponse, DomainName
@@ -364,12 +365,21 @@ def show_compare(service, server_ip):
     return jsonify({'compare': compare})
 
 
-@bp.get('/map/haproxy/<server_ip>/show')
+@bp.get('/map/<service>/<server_ip>/show')
+@check_services
 @get_user_params()
 @validate()
-def show_map(server_ip: Union[IPvAnyAddress, DomainName]):
+def show_map(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
     server_ip = str(server_ip)
     try:
-        return jsonify(service_haproxy.show_map(server_ip, g.user_params['group_id']))
+        map_builders = {
+            'haproxy': service_haproxy.show_map,
+            'nginx': service_nginx.show_map,
+        }
+        if service not in map_builders:
+            return jsonify({'error': 'Dependency map is not supported for this service'}), 405
+        return jsonify(map_builders[service](server_ip, g.user_params['group_id']))
     except Exception as e:
-        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create HAProxy dependency map')
+        return roxywi_common.handler_exceptions_for_json_data(
+            e, f'Cannot create {service.title()} dependency map'
+        )
