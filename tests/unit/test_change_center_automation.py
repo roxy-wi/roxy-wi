@@ -723,6 +723,9 @@ def test_stage_four_scheduler_jobs_are_registered():
         'change_center_scheduled_deployments',
         'change_center_deliveries',
         'change_center_drift_detection',
+        'service_command_outbox',
+        'service_assignment_reconciliation',
+        'delete_old_service_metrics',
     } <= registered
 
 

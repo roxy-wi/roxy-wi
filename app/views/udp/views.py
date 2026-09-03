@@ -13,13 +13,26 @@ import app.modules.common.common as common
 import app.modules.db.udp as udp_sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.server as server_sql
+import app.modules.db.service_command as service_command_sql
 import app.modules.server.server as server_mod
 import app.modules.service.udp as udp_mod
 import app.modules.service.installation as service_mod
 from app.middleware import get_user_params, check_services, page_for_admin, check_group
 from app.modules.common.common_classes import SupportClass
+from app.modules.db.db_model import UDPBalancer
 from app.modules.roxywi.class_models import BaseResponse, ErrorResponse, IdResponse, UdpListenerRequest, GroupQuery, DomainName, DataStrResponse
-from app.modules.roxywi.exception import RoxywiResourceNotFound
+from app.modules.roxywi.exception import RoxywiPermissionError, RoxywiResourceNotFound
+from app.modules.subscription.access import MANAGED_SERVICES, require_feature
+
+
+def _checker_access_error(enabled: bool):
+    if not enabled:
+        return None
+    try:
+        require_feature(MANAGED_SERVICES)
+    except RoxywiPermissionError as exc:
+        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+    return None
 
 
 def _listener_reference_message(listener_id: int, resource_name: str, resource_id: int) -> str:
@@ -256,8 +269,13 @@ class UDPListener(MethodView):
             description: Unexpected error
         """
         roxywi_auth.page_for_admin(level=3)
+        access_error = _checker_access_error(bool(body.is_checker))
+        if access_error is not None:
+            return access_error
         try:
-            listener_id = udp_sql.insert_listener(**body.model_dump(mode='json', exclude={'reconfigure'}))
+            with UDPBalancer._meta.database.atomic():
+                listener_id = udp_sql.insert_listener(**body.model_dump(mode='json', exclude={'reconfigure'}))
+                service_command_sql.queue_checker_udp_assignment(listener_id, bool(body.is_checker))
             roxywi_common.logging(listener_id, f'UDP listener {body.name} has been created', keep_history=1,
                               roxywi=1, service='UDP Listener')
             if body.reconfigure:
@@ -364,8 +382,13 @@ class UDPListener(MethodView):
             description: Unexpected error
         """
         roxywi_auth.page_for_admin(level=3)
+        access_error = _checker_access_error(bool(body.is_checker))
+        if access_error is not None:
+            return access_error
         try:
-            udp_sql.update_listener(listener_id, **body.model_dump(mode='json', exclude={'reconfigure'}))
+            with UDPBalancer._meta.database.atomic():
+                udp_sql.update_listener(listener_id, **body.model_dump(mode='json', exclude={'reconfigure'}))
+                service_command_sql.queue_checker_udp_assignment(listener_id, bool(body.is_checker))
             roxywi_common.logging(listener_id, f'UDP listener {body.name} has been updated', keep_history=1,
                                   roxywi=1, service='UDP Listener')
             if body.reconfigure:
@@ -402,7 +425,9 @@ class UDPListener(MethodView):
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, f'Cannot create inventory for UDP listener deleting {listener_id}')
         try:
-            udp_sql.delete_listener(listener_id)
+            with UDPBalancer._meta.database.atomic():
+                service_command_sql.stop_checker_udp_assignment(listener_id)
+                udp_sql.delete_listener(listener_id)
             return BaseResponse().model_dump(mode='json'), 204
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, f'Cannot delete UDP listener {listener_id}')
@@ -622,6 +647,9 @@ class UdpListenerCheckerView(MethodView):
 
     @validate(query=GroupQuery)
     def post(self, service: str, listener_id: int, is_checker: int, query: GroupQuery):
+        access_error = _checker_access_error(bool(is_checker))
+        if access_error is not None:
+            return access_error
         try:
             _ = SupportClass.return_group_id(query)
         except Exception as e:
@@ -632,7 +660,9 @@ class UdpListenerCheckerView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get UDP listeners')
 
         try:
-            udp_sql.update_listener(listener_id, is_checker=is_checker)
+            with UDPBalancer._meta.database.atomic():
+                udp_sql.update_listener(listener_id, is_checker=is_checker)
+                service_command_sql.queue_checker_udp_assignment(listener_id, bool(is_checker))
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update checker settings on UDP listener')
 

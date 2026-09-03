@@ -24,9 +24,25 @@ def _convert_to_time_zone(date: datetime) -> datetime:
 	from_zone = dateutil.tz.gettz('UTC')
 	time_zone = sql.get_setting('time_zone')
 	to_zone = dateutil.tz.gettz(time_zone)
-	utc = date.replace(tzinfo=from_zone)
+	if date.tzinfo is None:
+		utc = date.replace(tzinfo=from_zone)
+	else:
+		utc = date.astimezone(from_zone)
 	native = utc.astimezone(to_zone)
 	return native
+
+
+def _parse_datetime(date: str) -> datetime:
+	"""Parse timestamps emitted by databases and distributed workers."""
+	value = date.strip()
+	if value.endswith(('Z', 'z')):
+		value = f'{value[:-1]}+00:00'
+	try:
+		return datetime.fromisoformat(value)
+	except ValueError:
+		# Keep the legacy parser as a strict fallback for compatibility with
+		# existing package installations and their historical records.
+		return datetime.strptime(value, '%Y-%m-%d %H:%M:%S')
 
 
 def get_time_zoned_date(date: datetime, fmt: str = '%Y-%m-%d %H:%M:%S') -> str:
@@ -46,7 +62,7 @@ def get_time_zoned_date(date: datetime, fmt: str = '%Y-%m-%d %H:%M:%S') -> str:
 	if not fmt:
 		fmt = date_format
 	if not isinstance(date, datetime):
-		date = datetime.strptime(date, date_format)
+		date = _parse_datetime(date)
 	native = _convert_to_time_zone(date)
 	return native.strftime(fmt)
 

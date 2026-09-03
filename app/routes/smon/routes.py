@@ -1,7 +1,7 @@
 import json
 
 from flask import render_template, request, jsonify, g
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import jwt_required, verify_jwt_in_request
 from datetime import datetime
 
 from app.routes.smon import bp
@@ -13,7 +13,32 @@ import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.smon as smon_mod
 import app.modules.tools.common as tools_common
-from app.modules.subscription.access import SMON_STATUS_PAGES, feature_required
+from app.modules.roxywi.exception import RoxywiPermissionError
+from app.modules.subscription.access import (
+    MANAGED_SERVICES,
+    SMON_STATUS_PAGES,
+    feature_required,
+    require_feature,
+)
+
+
+_PUBLIC_SMON_ENDPOINTS = frozenset({
+    'smon.agent_get_checks',
+    'smon.show_smon_status_page',
+    'smon.smon_history_statuses_avg',
+})
+
+
+@bp.before_request
+def managed_services_subscription_required():
+    """SMON is available only with an active User plan or higher."""
+    if request.endpoint not in _PUBLIC_SMON_ENDPOINTS:
+        verify_jwt_in_request()
+    try:
+        require_feature(MANAGED_SERVICES)
+    except RoxywiPermissionError as exc:
+        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+    return None
 
 
 def _status_page_error(exc: Exception, operation: str):

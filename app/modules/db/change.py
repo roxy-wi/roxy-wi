@@ -1,9 +1,10 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from time import sleep
 from threading import RLock
 
 from peewee import JOIN, OperationalError
 
+from app.modules.common.time import utc_now as _utc_now
 from app.modules.db.common import out_error
 from app.modules.db.db_model import (
     ConfigChange,
@@ -61,11 +62,6 @@ _DELIVERY_UPDATABLE_FIELDS = {
     'attempts', 'delivered_at', 'error', 'next_attempt_at', 'response_code',
     'status', 'updated_at',
 }
-
-
-def _utc_now() -> datetime:
-    return datetime.now(timezone.utc).replace(tzinfo=None)
-
 
 def _is_database_locked(exc: Exception) -> bool:
     return isinstance(exc, OperationalError) and 'database is locked' in str(exc).lower()

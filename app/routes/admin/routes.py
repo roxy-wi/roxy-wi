@@ -1,5 +1,5 @@
 import pytz
-from flask import render_template, g
+from flask import render_template, g, jsonify
 from flask_jwt_extended import jwt_required
 
 from app import scheduler
@@ -9,6 +9,7 @@ import app.modules.db.user as user_sql
 import app.modules.db.group as group_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
+import app.modules.db.service_event as service_event_sql
 from app.middleware import get_user_params
 import app.modules.roxywi.roxy as roxy
 import app.modules.roxywi.auth as roxywi_auth
@@ -17,6 +18,22 @@ from app.modules.oidc.access import is_oidc_available
 import app.modules.tools.common as tools_common
 import app.modules.server.ssh as ssh_mod
 from app.views.admin.views import SettingsView
+from app.modules.roxywi.exception import RoxywiPermissionError
+from app.modules.subscription.access import (
+    MANAGED_SERVICES,
+    MANAGED_SERVICE_TOOLS,
+    require_feature,
+)
+
+
+def _managed_service_access_error(service: str, action: str):
+    if service not in MANAGED_SERVICE_TOOLS or action == 'stop':
+        return None
+    try:
+        require_feature(MANAGED_SERVICES)
+    except RoxywiPermissionError as exc:
+        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+    return None
 
 bp.add_url_rule(
     '/settings/<any(smon, main, haproxy, nginx, apache, keepalived, rabbitmq, ldap, monitoring, mail, logs):section>',
@@ -70,7 +87,8 @@ def admin():
 def show_tools():
     roxywi_auth.page_for_admin()
     lang = roxywi_common.get_user_lang_for_flask()
-    services = tools_common.get_services_status(update_cur_ver=1)
+    worker_states = service_event_sql.worker_summary()
+    services = tools_common.get_services_status(update_cur_ver=1, worker_states=worker_states)
 
     return render_template('ajax/load_services.html', services=services, lang=lang)
 
@@ -78,6 +96,10 @@ def show_tools():
 @bp.post('/tools/update/<service>')
 def update_tools(service):
     roxywi_auth.page_for_admin()
+
+    access_error = _managed_service_access_error(service, 'update')
+    if access_error is not None:
+        return access_error
 
     try:
         return tools_common.update_roxy_wi(service)
@@ -88,6 +110,10 @@ def update_tools(service):
 @bp.post('/tools/action/<service>/<any(start, stop, restart):action>')
 def action_tools(service, action):
     roxywi_auth.page_for_admin()
+
+    access_error = _managed_service_access_error(service, action)
+    if access_error is not None:
+        return access_error
 
     return roxy.action_service(action, service)
 

@@ -3,9 +3,10 @@ import json
 import os
 import sys
 from typing import Any, Optional
-from datetime import datetime
 
 from flask import request, has_request_context
+
+from app.modules.common.time import utc_now
 
 # Define log levels
 DEBUG = logging.DEBUG
@@ -34,7 +35,7 @@ class StructuredLogFormatter(logging.Formatter):
             A JSON string representation of the log record
         """
         log_data = {
-            'timestamp': datetime.utcnow().isoformat(),
+            'timestamp': utc_now().isoformat(),
             'level': record.levelname,
             'message': record.getMessage(),
         }

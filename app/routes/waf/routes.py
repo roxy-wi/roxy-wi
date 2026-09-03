@@ -14,6 +14,8 @@ import app.modules.roxywi.waf as roxy_waf
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.config.config as config_mod
+from app.modules.roxywi.exception import RoxywiPermissionError
+from app.modules.subscription.access import MANAGED_SERVICES, require_feature
 
 get_config = roxy_wi_tools.GetConfigVar()
 
@@ -212,7 +214,13 @@ def overview_waf(service, server_ip):
 @bp.route('/metric/enable/<int:enable>/<int:server_id>', methods=['POST'])
 def enable_metric(enable, server_id):
     try:
+        if enable:
+            require_feature(MANAGED_SERVICES)
         waf_sql.update_waf_metrics_enable(server_id, enable)
+        from app.modules.db.service_command import queue_metrics_assignment
+        queue_metrics_assignment(server_id, 'waf', bool(enable))
         return jsonify({'status': 'Ok'})
+    except RoxywiPermissionError as exc:
+        return jsonify({'status': 'failed', 'error': str(exc)}), 403
     except Exception as e:
         return roxywi_common.handle_json_exceptions(e, 'Cannot enable WAF metrics', server_id)

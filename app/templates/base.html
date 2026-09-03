@@ -31,8 +31,6 @@
 	</head>
 	<body>
 		{% if g.user_params['user'] %}
-            <input type="hidden" id="user_group_socket" value="{{ g.user_params['group_id'] }}">
-            <input type="hidden" id="user_id_socket" value="{{ g.user_params['user_id'] }}">
 		{% include 'include/main_menu.html' %}
 		<button type="button" id="app-mobile-nav-toggle" class="app-mobile-nav-toggle" aria-controls="app-navigation" aria-expanded="false" aria-label="{{ lang.menu_links.navigation.label }}">
 			<span class="fas fa-bars" aria-hidden="true"></span>

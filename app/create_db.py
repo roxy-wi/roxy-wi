@@ -466,10 +466,10 @@ def default_values():
 
 	data_source = [
 		{'name': 'roxy-wi-metrics', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
-		{'name': 'roxy-wi-checker', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
+		{'name': 'roxy-wi-checker', 'current_version': '5.0.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
 		{'name': 'roxy-wi-keep_alive', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
-		{'name': 'roxy-wi-portscanner', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
-		{'name': 'roxy-wi-socket', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
+		{'name': 'roxy-wi-portscanner', 'current_version': '2.0.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
+		{'name': 'roxy-wi-socket', 'current_version': '2.0.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
 		{'name': 'roxy-wi-prometheus-exporter', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
 		{'name': 'roxy-wi-smon', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
 		{'name': 'fail2ban', 'current_version': '1.0', 'new_version': '1.0', 'is_roxy': 0, 'desc': 'Fail2ban service'},

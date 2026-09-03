@@ -6,10 +6,12 @@ from app.middleware import get_user_params
 import app.modules.db.history as history_sql
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.checker as checker_mod
+from app.modules.subscription.access import MANAGED_SERVICES, feature_required
 
 
 @bp.before_request
 @jwt_required()
+@feature_required(MANAGED_SERVICES)
 def before_request():
     """ Protect all the admin endpoints. """
     pass

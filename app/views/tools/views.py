@@ -13,13 +13,37 @@ import app.modules.db.checker as checker_sql
 import app.modules.roxywi.common as roxywi_common
 from app.middleware import get_user_params, page_for_admin, check_group, check_services
 from app.modules.roxywi.class_models import Checker, BaseResponse
-from app.modules.db.db_model import CheckerSetting
+from app.modules.db.db_model import CheckerSetting, Server
+import app.modules.db.service_command as service_command_sql
 from app.modules.common.common_classes import SupportClass
+from app.modules.roxywi.exception import RoxywiPermissionError
+from app.modules.subscription.access import (
+    MANAGED_SERVICES,
+    feature_required,
+    require_feature,
+)
+
+
+def _additional_services_access_error(*enabled: bool):
+    if not any(enabled):
+        return None
+    try:
+        require_feature(MANAGED_SERVICES)
+    except RoxywiPermissionError as exc:
+        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+    return None
 
 
 class CheckerView(MethodView):
     methods = ["GET", "POST"]
-    decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
+    decorators = [
+        jwt_required(),
+        get_user_params(),
+        check_services,
+        page_for_admin(level=3),
+        check_group(),
+        feature_required(MANAGED_SERVICES, methods={'GET'}),
+    ]
 
     @staticmethod
     def get(service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str]):
@@ -176,6 +200,14 @@ class CheckerView(MethodView):
           default:
             description: Unexpected error
         """
+        access_error = _additional_services_access_error(
+            body.checker,
+            body.metrics,
+            body.auto_start,
+        )
+        if access_error is not None:
+            return access_error
+
         service_id = service_sql.select_service_id_by_slug(service)
 
         try:
@@ -193,13 +225,14 @@ class CheckerView(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
-        kwargs = body.model_dump(mode='json', exclude={'metrics', 'auto_start', 'checker'})
         try:
-            checker_sql.update_checker_setting_for_server(service_id, server_id, **kwargs)
-        except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update Checker settings')
-        try:
-            service_sql.update_hapwi_server(server_id, body.checker, body.metrics, body.auto_start, service)
+            kwargs = body.model_dump(mode='json', exclude={'metrics', 'auto_start', 'checker'})
+            with Server._meta.database.atomic():
+                checker_sql.update_checker_setting_for_server(service_id, server_id, **kwargs)
+                service_sql.update_hapwi_server(server_id, body.checker, body.metrics, body.auto_start, service)
+                service_command_sql.queue_checker_assignment(server_id, service, bool(body.checker))
+                if service in {'haproxy', 'nginx', 'apache'}:
+                    service_command_sql.queue_metrics_assignment(server_id, service, bool(body.metrics))
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update Service settings')
         return BaseResponse().model_dump(), 201

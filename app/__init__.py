@@ -47,7 +47,7 @@ def is_token_revoked(_jwt_header, jwt_payload):
 if app.config['TESTING']:
     create_tables()
     default_values()
-elif not acquire_file_lock():
+elif app.config['AUTO_MIGRATE'] and not acquire_file_lock():
     create_tables()
     default_values()
     migrate()

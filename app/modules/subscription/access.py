@@ -13,6 +13,20 @@ OIDC = 'oidc'
 CHANGE_CENTER = 'change_center'
 GIT_BACKUP = 'git_backup'
 SMON_STATUS_PAGES = 'smon_status_pages'
+MANAGED_SERVICES = 'managed_services'
+
+# Package/systemd names accepted by the local installation controls.  Both
+# keep-alive spellings exist in older packages and must be covered.
+MANAGED_SERVICE_TOOLS = frozenset({
+    'roxy-wi-checker',
+    'roxy-wi-keep_alive',
+    'roxy-wi-keep-alive',
+    'roxy-wi-metrics',
+    'roxy-wi-portscanner',
+    'roxy-wi-prometheus-exporter',
+    'roxy-wi-smon',
+    'roxy-wi-socket',
+})
 
 
 @dataclass(frozen=True)
@@ -37,6 +51,10 @@ FEATURE_POLICIES = MappingProxyType({
     SMON_STATUS_PAGES: FeaturePolicy(
         frozenset({'support'}),
         'SMON status pages require an active Premium plan',
+    ),
+    MANAGED_SERVICES: FeaturePolicy(
+        frozenset({'user', 'company', 'cloud', 'support'}),
+        'Additional services require an active User plan or higher',
     ),
 })
 

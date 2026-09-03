@@ -7,11 +7,24 @@ from flask_jwt_extended import jwt_required
 
 import app.modules.roxywi.common as roxywi_common
 import app.modules.db.service as service_sql
+import app.modules.db.service_command as service_command_sql
 import app.modules.service.installation as service_mod
 from app.middleware import get_user_params, check_services, page_for_admin, check_group
 from app.modules.common.common_classes import SupportClass
 from app.modules.roxywi.class_models import ServiceInstall, IdStrResponse, BaseResponse, ServerInstall, HAClusterService
 from app.views.service.views import ServiceView
+from app.modules.roxywi.exception import RoxywiPermissionError
+from app.modules.subscription.access import MANAGED_SERVICES, require_feature
+
+
+def _additional_services_access_error(body: ServiceInstall):
+    if not any((body.checker, body.metrics, body.auto_start)):
+        return None
+    try:
+        require_feature(MANAGED_SERVICES)
+    except RoxywiPermissionError as exc:
+        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+    return None
 
 
 class InstallGetStatus(ServiceView):
@@ -122,6 +135,10 @@ class InstallView(MethodView):
           default:
             description: Unexpected error
         """
+        access_error = _additional_services_access_error(body)
+        if access_error is not None:
+            return access_error
+
         try:
             if server_id is not None:
                 server_id = SupportClass().return_server_ip_or_id(server_id)
@@ -139,6 +156,9 @@ class InstallView(MethodView):
         if 'api' in request.url:
             try:
                 service_sql.update_hapwi_server(server_id, body.checker, body.metrics, body.auto_start, service)
+                service_command_sql.queue_checker_assignment(server_id, service, bool(body.checker))
+                if service in {'haproxy', 'nginx', 'apache'}:
+                    service_command_sql.queue_metrics_assignment(server_id, service, bool(body.metrics))
             except Exception as e:
                 return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot update Tools settings for {service.title()}')
         else:
@@ -186,8 +206,15 @@ class InstallView(MethodView):
           default:
             description: Unexpected error
         """
+        access_error = _additional_services_access_error(body)
+        if access_error is not None:
+            return access_error
+
         try:
             service_sql.update_hapwi_server(server_id, body.checker, body.metrics, body.auto_start, service)
+            service_command_sql.queue_checker_assignment(server_id, service, bool(body.checker))
+            if service in {'haproxy', 'nginx', 'apache'}:
+                service_command_sql.queue_metrics_assignment(server_id, service, bool(body.metrics))
             service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', int(body.docker))
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot update Tools settings for {service.title()}')

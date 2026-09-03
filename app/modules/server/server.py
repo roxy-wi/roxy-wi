@@ -482,6 +482,14 @@ def delete_server(server_id: int) -> None:
 		raise 'warning: Delete the backups first'
 	if backup_sql.check_exists_backup(server.ip, 's3'):
 		raise 'warning: Delete the S3 backups first'
+	from app.modules.db.service_command import (
+		stop_checker_assignments_for_server,
+		stop_metrics_assignments_for_server,
+		stop_portscanner_assignments_for_server,
+	)
+	stop_checker_assignments_for_server(server_id)
+	stop_metrics_assignments_for_server(server_id)
+	stop_portscanner_assignments_for_server(server_id)
 	if server_sql.delete_server(server_id):
 		waf_sql.delete_waf_server(server_id)
 		ps_sql.delete_port_scanner_settings(server_id)

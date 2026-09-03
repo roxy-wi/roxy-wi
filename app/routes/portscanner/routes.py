@@ -7,10 +7,13 @@ from app.routes.portscanner import bp
 from app.middleware import get_user_params
 import app.modules.db.server as server_sql
 import app.modules.db.portscanner as ps_sql
+import app.modules.db.service_command as service_command_sql
+import app.modules.db.service_event as service_event_sql
 from app.modules.server.command import run_local
 import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.common as tools_common
 import app.modules.common.common as common
+from app.modules.subscription.access import MANAGED_SERVICES, feature_required
 
 
 _NMAP_HOST_TIMEOUT_SECONDS = 40
@@ -19,6 +22,7 @@ _NMAP_PROCESS_TIMEOUT_SECONDS = 45
 
 @bp.before_request
 @jwt_required()
+@feature_required(MANAGED_SERVICES)
 def before_request():
     """ Protect all the admin endpoints. """
     pass
@@ -27,7 +31,9 @@ def before_request():
 @bp.route('')
 @get_user_params(virt=1)
 def portscanner():
-    port_scanner_settings = ps_sql.select_port_scanner_settings(g.user_params['group_id'])
+    group_id = int(g.user_params['group_id'])
+    port_scanner_settings = ps_sql.select_port_scanner_settings(group_id)
+    worker_state = service_event_sql.worker_summary(group_id=group_id).get('portscanner', {})
 
     if not port_scanner_settings:
         port_scanner_settings = ''
@@ -43,7 +49,8 @@ def portscanner():
         'servers': g.user_params['servers'],
         'port_scanner_settings': port_scanner_settings,
         'count_ports': count_ports,
-        'port_scanner': tools_common.is_tool_active('roxy-wi-portscanner'),
+        'port_scanner': tools_common._distributed_status(worker_state) or 'stopped',
+        'worker_state': worker_state,
         'lang': g.user_params['lang'],
         'user_subscription': roxywi_common.return_user_subscription()
     }
@@ -74,6 +81,7 @@ def change_settings_portscanner():
 
     try:
         ps_sql.insert_port_scanner_settings(server_id, server.group_id, enabled, notify, history)
+        service_command_sql.queue_portscanner_assignment(server_id, bool(enabled))
         return 'ok'
     except Exception as e:
         return f'error: Cannot save settings: {e}'

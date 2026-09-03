@@ -8,6 +8,7 @@ from playhouse.shortcuts import model_to_dict
 
 import app.modules.db.server as server_sql
 import app.modules.db.portscanner as ps_sql
+import app.modules.db.service_command as service_command_sql
 import app.modules.roxywi.common as roxywi_common
 from app.middleware import get_user_params, page_for_admin, check_group
 from app.modules.roxywi.class_models import PortScannerRequest, BaseResponse
@@ -110,6 +111,7 @@ class PortScannerView(MethodView):
 
         try:
             ps_sql.insert_port_scanner_settings(server_id, server.group_id, body.enabled, body.notify, body.history)
+            service_command_sql.queue_portscanner_assignment(server_id, bool(body.enabled))
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot insert Portscanner settings')
 

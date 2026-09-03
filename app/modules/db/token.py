@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+from app.modules.common.time import utc_now
 from app.modules.db.db_model import RevokedToken
 
 
@@ -13,4 +14,4 @@ def is_token_revoked(jti: str) -> bool:
 
 
 def delete_expired_tokens() -> int:
-    return RevokedToken.delete().where(RevokedToken.expires_at < datetime.utcnow()).execute()
+    return RevokedToken.delete().where(RevokedToken.expires_at < utc_now()).execute()

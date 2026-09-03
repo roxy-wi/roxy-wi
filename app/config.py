@@ -64,6 +64,13 @@ class Configuration(object):
     # The APScheduler HTTP API must never be exposed by Roxy-WI.
     SCHEDULER_API_ENABLED = False
     SCHEDULER_ENABLED = os.environ.get('ROXYWI_SCHEDULER_ENABLED') == '1'
+    DEPLOYMENT_MODE = os.environ.get('ROXYWI_DEPLOYMENT_MODE', 'package')
+    if DEPLOYMENT_MODE not in {'package', 'compose', 'kubernetes'}:
+        raise RuntimeError('ROXYWI_DEPLOYMENT_MODE must be package, compose or kubernetes')
+    AUTO_MIGRATE = os.environ.get(
+        'ROXYWI_AUTO_MIGRATE',
+        '1' if DEPLOYMENT_MODE == 'package' else '0',
+    ) == '1'
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=int(os.environ.get('ROXYWI_JWT_EXPIRES_HOURS', '1')))
     JWT_ALGORITHM = _jwt_algorithm
     JWT_PRIVATE_KEY = _jwt_private_key
@@ -75,6 +82,10 @@ class Configuration(object):
     JWT_COOKIE_SECURE = True
     JWT_COOKIE_SAMESITE = 'Lax'
     JWT_COOKIE_CSRF_PROTECT = True
+    SOCKET_TICKET_SECONDS = max(
+        30,
+        min(900, int(os.environ.get('ROXYWI_SOCKET_TICKET_SECONDS', '300'))),
+    )
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_HTTPONLY = True

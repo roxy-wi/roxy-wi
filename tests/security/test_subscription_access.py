@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 import pytest
+import jwt as pyjwt
 from flask_jwt_extended import create_access_token
 
 import app.modules.change.service as change_service
@@ -12,6 +13,73 @@ from app.modules.roxywi.exception import RoxywiPermissionError
 
 
 @pytest.mark.security
+def test_socket_ticket_requires_managed_services_subscription(app, client, monkeypatch):
+    monkeypatch.setattr(
+        subscription_access.roxywi_common,
+        'return_user_subscription',
+        lambda: {'user_status': 1, 'user_plan': 'Trial'},
+    )
+    with app.app_context():
+        token = create_access_token('1', additional_claims={'group': '1'})
+
+    response = client.get(
+        '/socket-ticket',
+        headers={'Authorization': f'Bearer {token}', 'Accept': 'application/json'},
+    )
+
+    assert response.status_code == 403
+    assert response.get_json()['error'] == (
+        'Additional services require an active User plan or higher'
+    )
+
+
+@pytest.mark.security
+def test_socket_ticket_contains_signed_short_lived_group_identity(app, client, monkeypatch):
+    monkeypatch.setattr(
+        subscription_access.roxywi_common,
+        'return_user_subscription',
+        lambda: {'user_status': 1, 'user_plan': 'user'},
+    )
+    with app.app_context():
+        token = create_access_token('1', additional_claims={'group': '1'})
+
+    response = client.get(
+        '/socket-ticket',
+        headers={'Authorization': f'Bearer {token}', 'Accept': 'application/json'},
+    )
+
+    assert response.status_code == 200
+    response_data = response.get_json()
+    assert response.headers['Cache-Control'] == 'no-store'
+    assert response.headers['Pragma'] == 'no-cache'
+    claims = pyjwt.decode(
+        response_data['token'],
+        app.config['JWT_SECRET_KEY'],
+        algorithms=['HS256'],
+        audience='roxy-socket',
+    )
+    assert response_data['expires_in'] == app.config['SOCKET_TICKET_SECONDS']
+    assert claims['user_id'] == '1'
+    assert claims['group'] == '1'
+    assert claims['socket_ticket'] is True
+    assert claims['exp'] - claims['iat'] == response_data['expires_in']
+
+
+@pytest.mark.security
+def test_browser_socket_identity_is_not_read_from_hidden_html_fields():
+    from pathlib import Path
+
+    base_template = Path('app/templates/base.html').read_text(encoding='utf-8')
+    browser_script = Path('app/static/js/script.js').read_text(encoding='utf-8')
+
+    assert 'user_group_socket' not in base_template
+    assert 'user_id_socket' not in base_template
+    assert 'alert_group ' not in browser_script
+    assert "fetch('/socket-ticket'" in browser_script
+    assert "type: 'authenticate'" in browser_script
+
+
+@pytest.mark.security
 @pytest.mark.parametrize(
     ('feature', 'allowed_plans'),
     (
@@ -19,6 +87,10 @@ from app.modules.roxywi.exception import RoxywiPermissionError
         (subscription_access.CHANGE_CENTER, {'support'}),
         (subscription_access.GIT_BACKUP, {'support'}),
         (subscription_access.SMON_STATUS_PAGES, {'support'}),
+        (
+            subscription_access.MANAGED_SERVICES,
+            {'user', 'company', 'cloud', 'support'},
+        ),
     ),
 )
 def test_feature_policy_uses_explicit_active_plan_allowlists(feature, allowed_plans):
@@ -55,6 +127,45 @@ def test_feature_policy_registry_cannot_be_mutated_at_runtime():
         subscription_access.FEATURE_POLICIES['bypass'] = subscription_access.FEATURE_POLICIES[
             subscription_access.OIDC
         ]
+
+
+@pytest.mark.security
+def test_local_service_controls_require_subscription_but_always_allow_stop(
+    app, client, monkeypatch
+):
+    from app.routes.admin import routes as admin_routes
+
+    monkeypatch.setattr(
+        subscription_access.roxywi_common,
+        'return_user_subscription',
+        lambda: {'user_status': 1, 'user_plan': 'Trial'},
+    )
+    monkeypatch.setattr(admin_routes.roxywi_auth, 'page_for_admin', lambda **_kwargs: None)
+    actions = []
+    monkeypatch.setattr(
+        admin_routes.roxy,
+        'action_service',
+        lambda action, service: actions.append((action, service)) or 'ok',
+    )
+    with app.app_context():
+        token = create_access_token('1', additional_claims={'group': '1'})
+    headers = {'Authorization': f'Bearer {token}', 'Accept': 'application/json'}
+
+    start_response = client.post(
+        '/admin/tools/action/roxy-wi-checker/start',
+        headers=headers,
+    )
+    stop_response = client.post(
+        '/admin/tools/action/roxy-wi-checker/stop',
+        headers=headers,
+    )
+
+    assert start_response.status_code == 403
+    assert start_response.get_json()['error'] == (
+        'Additional services require an active User plan or higher'
+    )
+    assert stop_response.status_code == 200
+    assert actions == [('stop', 'roxy-wi-checker')]
 
 
 @pytest.mark.security

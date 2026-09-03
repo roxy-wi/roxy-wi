@@ -12,7 +12,7 @@ import os
 import socket
 import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from io import StringIO
 from pathlib import Path
 from urllib.parse import urlparse
@@ -20,6 +20,8 @@ from urllib.parse import urlparse
 import requests
 
 import app.modules.config.config as config_mod
+from app.modules.common.time import as_naive_utc as normalize_datetime
+from app.modules.common.time import utc_iso, utc_now
 import app.modules.db.change as change_sql
 import app.modules.db.channel as channel_sql
 import app.modules.db.user as user_sql
@@ -58,23 +60,6 @@ NOTIFICATION_CHANNEL_LABELS = {
     'mm': 'Mattermost',
     'pd': 'PagerDuty',
 }
-
-
-def utc_now() -> datetime:
-    """Return a UTC timestamp compatible with existing naive DB timestamps."""
-    return datetime.now(timezone.utc).replace(tzinfo=None)
-
-
-def utc_iso(value: datetime | None) -> str | None:
-    """Serialize a stored UTC-naive value unambiguously for browser clients."""
-    return f'{value.isoformat()}Z' if value else None
-
-
-def normalize_datetime(value: datetime) -> datetime:
-    if value.tzinfo is None:
-        return value
-    return value.astimezone(timezone.utc).replace(tzinfo=None)
-
 
 def _json_loads(value: str | None, default):
     try:

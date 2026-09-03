@@ -5,7 +5,35 @@ import app.modules.roxywi.roxy as roxywi_mod
 import app.modules.server.server as server_mod
 
 
-def get_services_status(update_cur_ver=0):
+_DISTRIBUTED_TOOLS = {
+    'roxy-wi-checker': 'checker',
+    'roxy-wi-metrics': 'metrics',
+    'roxy-wi-portscanner': 'portscanner',
+    'roxy-wi-socket': 'socket',
+}
+
+
+def _distributed_status(worker_state: dict) -> str | None:
+    if not worker_state:
+        return None
+    if worker_state.get('active', 0):
+        if (
+            worker_state.get('degraded', 0)
+            or worker_state.get('stale', 0)
+            or worker_state.get('draining', 0)
+        ):
+            return 'degraded'
+        return 'active'
+    if worker_state.get('draining', 0):
+        return 'draining'
+    if worker_state.get('stale', 0):
+        return 'stale'
+    if worker_state.get('stopped', 0):
+        return 'stopped'
+    return None
+
+
+def get_services_status(update_cur_ver=0, worker_states: dict | None = None):
     services = []
     services_name = roxy_sql.get_all_tools()
 
@@ -17,12 +45,20 @@ def get_services_status(update_cur_ver=0):
 
     try:
         for s, v in services_name.items():
+            worker_state = {}
+            distributed_service = _DISTRIBUTED_TOOLS.get(s)
+            if distributed_service and worker_states:
+                worker_state = worker_states.get(distributed_service, {})
             try:
-                status = is_tool_active(s)
+                status = _distributed_status(worker_state) or is_tool_active(s)
             except Exception as e:
                 raise Exception(f'error: Cannot get status for tool {s}: {e}')
             try:
-                services.append([s, status, v])
+                version = dict(v)
+                runtime_versions = worker_state.get('versions', [])
+                if runtime_versions:
+                    version['current_version'] = ', '.join(runtime_versions)
+                services.append([s, status, version, worker_state])
             except Exception as e:
                 raise Exception(f'error: Cannot combine status for tool {s}: {e}')
     except Exception as e:

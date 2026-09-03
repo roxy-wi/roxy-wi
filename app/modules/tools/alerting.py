@@ -1,6 +1,5 @@
 import json
 
-import pika
 import pagerduty
 import requests
 import telebot
@@ -15,36 +14,7 @@ import app.modules.db.channel as channel_sql
 import app.modules.db.checker as checker_sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
-
-
-def send_message_to_rabbit(message: str, **kwargs) -> None:
-	rabbit_user = sql.get_setting('rabbitmq_user')
-	rabbit_password = sql.get_setting('rabbitmq_password')
-	rabbit_host = sql.get_setting('rabbitmq_host')
-	rabbit_port = sql.get_setting('rabbitmq_port')
-	rabbit_vhost = sql.get_setting('rabbitmq_vhost')
-	if kwargs.get('rabbit_queue'):
-		rabbit_queue = kwargs.get('rabbit_queue')
-	else:
-		rabbit_queue = sql.get_setting('rabbitmq_queue')
-
-	credentials = pika.PlainCredentials(rabbit_user, rabbit_password)
-	try:
-		parameters = pika.ConnectionParameters(
-			rabbit_host,
-			rabbit_port,
-			rabbit_vhost,
-			credentials
-		)
-		connection = pika.BlockingConnection(parameters)
-		channel = connection.channel()
-	except Exception as e:
-		raise Exception(f'RabbitMQ connection error {e}')
-
-	channel.queue_declare(queue=rabbit_queue)
-	channel.basic_publish(exchange='', routing_key=rabbit_queue, body=message)
-
-	connection.close()
+from app.modules.integrations.socket_notifications import publish_socket_notification
 
 
 def alert_routing(
@@ -60,8 +30,7 @@ def alert_routing(
 		raise Exception(f'Cannot get settings: {e}')
 
 	try:
-		json_for_sending = {"user_group": group_id, "message": subject}
-		send_message_to_rabbit(json.dumps(json_for_sending))
+		publish_socket_notification(group_id, subject)
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', f'error: unable to send message: {e}', roxywi=1)
 
@@ -128,6 +97,24 @@ def alert_routing(
 
 			if setting.email:
 				send_email_to_server_group(subject, mes, level, group_id)
+
+
+def portscanner_alert_routing(server_ip: str, group_id: int, level: str, mes: str) -> None:
+	"""Deliver Port Scanner notifications through the legacy configured channels."""
+	try:
+		publish_socket_notification(group_id, f'{level}: {mes}')
+	except Exception as e:
+		roxywi_common.logging('Roxy-WI server', f'error: unable to send Port Scanner socket message: {e}', roxywi=1)
+
+	for sender, channel_name in ((telegram_send_mess, 'Telegram'), (slack_send_mess, 'Slack')):
+		try:
+			sender(mes, level, ip=server_ip)
+		except Exception as e:
+			roxywi_common.logging(
+				'Roxy-WI server',
+				f'error: unable to send Port Scanner message to {channel_name}: {e}',
+				roxywi=1,
+			)
 
 
 def send_email_to_server_group(subject: str, mes: str, level: str, group_id: int) -> None:
@@ -335,8 +322,7 @@ def mm_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 
 def check_rabbit_alert() -> None:
 	try:
-		json_for_sending = {"user_group": g.user_params['group_id'], "message": 'info: Test message'}
-		send_message_to_rabbit(json.dumps(json_for_sending))
+		publish_socket_notification(g.user_params['group_id'], 'info: Test message')
 	except Exception as e:
 		raise Exception(f'Cannot send message {e}')
 

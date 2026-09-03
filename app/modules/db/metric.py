@@ -1,8 +1,9 @@
 from typing import Literal
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from peewee import fn
 
+from app.modules.common.time import utc_now
 from app.modules.db.db_model import mysql_enable, Metrics, MetricsHttpStatus, Server, NginxMetrics, ApacheMetrics, WafMetrics
 from app.modules.db.common import out_error
 import app.modules.roxy_wi_tools as roxy_wi_tools
@@ -57,7 +58,7 @@ def select_metrics(serv, service, **kwargs):
 		query = model.select().where(model.serv == serv)
 
 		# Add time-based filtering
-		now = datetime.utcnow()
+		now = utc_now()
 
 		if time_range == 1:
 			# Last 1 minute

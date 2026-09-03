@@ -1,8 +1,9 @@
 import os
+from datetime import timedelta
 from typing import Union, Literal
 
 from flask import render_template, g, abort, jsonify, send_from_directory, request
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import create_access_token, jwt_required
 from flask_pydantic import validate
 from pydantic import IPvAnyAddress
 import requests
@@ -23,6 +24,33 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
 import app.modules.service.haproxy as service_haproxy
 from app.modules.roxywi.class_models import ErrorResponse, NettoolsRequest, DomainName
+from app.modules.roxywi.exception import RoxywiPermissionError
+from app.modules.subscription.access import MANAGED_SERVICES, require_feature
+
+
+@bp.get('/socket-ticket')
+@jwt_required()
+def socket_ticket():
+    """Issue a short-lived, subscription-gated identity for the Socket service."""
+    try:
+        require_feature(MANAGED_SERVICES)
+    except RoxywiPermissionError as exc:
+        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+    claims = roxywi_common.get_jwt_token_claims()
+    expires_in = app.config['SOCKET_TICKET_SECONDS']
+    token = create_access_token(
+        identity=str(claims['user_id']),
+        additional_claims={
+            'aud': 'roxy-socket',
+            'group': str(claims['group']),
+            'socket_ticket': True,
+        },
+        expires_delta=timedelta(seconds=expires_in),
+    )
+    response = jsonify({'status': 'success', 'token': token, 'expires_in': expires_in})
+    response.headers['Cache-Control'] = 'no-store'
+    response.headers['Pragma'] = 'no-cache'
+    return response
 
 
 @app.template_filter('strftime')

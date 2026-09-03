@@ -45,9 +45,9 @@
 					{% if port_scanner_settings|length > 0 %}
 						{% if p.server_id == s.0 and p.enabled == 1 %}
 							{% if port_scanner == 'active' %}
-								<span id="portscanner_enable_status-{{p.server_id}}" class="serverUp server-status" title="{{lang.p_s_page.desc.is_enabled_and_up}}"></span>
+								<span id="portscanner_enable_status-{{p.server_id}}" class="serverUp server-status" title="{{lang.p_s_page.desc.is_enabled_and_up}} Workers: {{ worker_state.get('active', 0) }}; assignments: {{ worker_state.get('assignments', 0) }}"></span>
 							{% else %}
-								<span id="portscanner_enable_status-{{p.server_id}}" class="serverDown server-status" title="{{lang.p_s_page.desc.is_enabled_and_down}}"></span>
+								<span id="portscanner_enable_status-{{p.server_id}}" class="serverDown server-status" title="{{lang.p_s_page.desc.is_enabled_and_down}} Workers: {{ worker_state.get('active', 0) }}; degraded: {{ worker_state.get('degraded', 0) }}; stale: {{ worker_state.get('stale', 0) }}"></span>
 							{% endif %}
 						{% elif p.server_id == s.0 and p.enabled == 0 %}
 							<span id="portscanner_enable_status-{{p.server_id}}" class="serverNone server-status" title="Port scanner {{lang.words.is}} {{lang.words.disabled}}"></span>

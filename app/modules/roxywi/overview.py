@@ -9,6 +9,7 @@ import app.modules.db.user as user_sql
 import app.modules.db.metric as metric_sql
 import app.modules.db.server as server_sql
 import app.modules.db.checker as checker_sql
+import app.modules.db.service_event as service_event_sql
 import app.modules.common.common as common
 import app.modules.tools.common as tools_common
 import app.modules.roxywi.common as roxywi_common
@@ -191,6 +192,9 @@ def show_services_overview():
     host = request.host
     user_group = roxywi_common.get_user_group(id=1)
     lang = roxywi_common.get_user_lang_for_flask()
+    worker_states = service_event_sql.worker_summary(group_id=int(user_group))
+    distributed_checker = worker_states.get('checker')
+    distributed_metrics = worker_states.get('metrics')
 
     if (user_params['role'] == 2 or user_params['role'] == 3) and int(user_group) != 1:
         for s in user_params['servers']:
@@ -206,13 +210,7 @@ def show_services_overview():
             pid = psutil.Process(pids)
             cmdline_out = pid.cmdline()
             if len(cmdline_out) > 2:
-                if 'checker_' in cmdline_out[1]:
-                    if len(servers_group) > 0:
-                        if cmdline_out[2] in servers_group:
-                            checker_worker += 1
-                    else:
-                        checker_worker += 1
-                elif 'metrics_' in cmdline_out[1]:
+                if 'metrics_' in cmdline_out[1] and not distributed_metrics:
                     if len(servers_group) > 0:
                         if cmdline_out[2] in servers_group:
                             metrics_worker += 1
@@ -224,6 +222,11 @@ def show_services_overview():
         except psutil.NoSuchProcess:
             pass
 
+    if distributed_checker:
+        checker_worker = distributed_checker['active']
+    if distributed_metrics:
+        metrics_worker = distributed_metrics['active']
+
     roxy_tools = roxy_sql.get_roxy_tools()
     roxy_tools_status = {}
     for tool in roxy_tools:
@@ -232,10 +235,23 @@ def show_services_overview():
         status = tools_common.is_tool_active(tool)
         roxy_tools_status.setdefault(tool, status)
 
+    distributed_tools = {
+        'checker': 'roxy-wi-checker',
+        'metrics': 'roxy-wi-metrics',
+        'keep_alive': 'roxy-wi-keep_alive',
+        'portscanner': 'roxy-wi-portscanner',
+        'smon': 'roxy-wi-smon',
+        'socket': 'roxy-wi-socket',
+    }
+    for service, tool in distributed_tools.items():
+        state = worker_states.get(service)
+        if state:
+            roxy_tools_status[tool] = 'active' if state['active'] else 'failed'
+
     return render_template(
         'ajax/show_services_ovw.html', role=user_params['role'], roxy_tools_status=roxy_tools_status, grafana=grafana,
         is_checker_worker=is_checker_worker, is_metrics_worker=is_metrics_worker, host=host,
-        checker_worker=checker_worker, metrics_worker=metrics_worker, lang=lang
+        checker_worker=checker_worker, metrics_worker=metrics_worker, worker_states=worker_states, lang=lang
     )
 
 

@@ -24,6 +24,8 @@ from app.views.service.views import ServiceActionView, ServiceBackendView, Servi
 if not app.config['TESTING']:
     from app.views.service.lets_encrypt_views import LetsEncryptView, LetsEncryptsView
 from app.modules.roxywi.class_models import DomainName
+from app.modules.roxywi.exception import RoxywiPermissionError
+from app.modules.subscription.access import MANAGED_SERVICES, require_feature
 
 bp.add_url_rule('/<service>/<server_id>/<any(start, stop, reload, restart):action>', view_func=ServiceActionView.as_view('service_action_ip'), methods=['POST'])
 bp.add_url_rule('/<service>/<int:server_id>/<any(start, stop, reload, restart):action>', view_func=ServiceActionView.as_view('service_action'), methods=['POST'])
@@ -348,7 +350,20 @@ def update_tools_enable(service):
     name = request.form.get('name')
     alert = request.form.get('alert_en')
     metrics = request.form.get('metrics')
+    if any(str(value).strip().lower() in {'1', 'true', 'yes', 'on'} for value in (active, alert, metrics)):
+        try:
+            require_feature(MANAGED_SERVICES)
+        except RoxywiPermissionError as exc:
+            return jsonify({'status': 'failed', 'error': str(exc)}), 403
     service_sql.update_hapwi_server(server_id, alert, metrics, active, service)
+    from app.modules.db import service_command as service_command_sql
+    service_command_sql.queue_checker_assignment(
+        server_id, service, str(alert).strip().lower() in {'1', 'true', 'yes', 'on'}
+    )
+    if service in {'haproxy', 'nginx', 'apache'}:
+        service_command_sql.queue_metrics_assignment(
+            server_id, service, str(metrics).strip().lower() in {'1', 'true', 'yes', 'on'}
+        )
     server_ip = server_sql.get_server(server_id).ip
     roxywi_common.logging(server_ip, f'The server {name} has been updated ', keep_history=1, service=service)
 

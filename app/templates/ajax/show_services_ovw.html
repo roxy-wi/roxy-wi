@@ -87,10 +87,13 @@
 </tr>
 <tr class="even">
 	<td class="padding10 first-collumn-wi">
+	{% set metrics_state = worker_states.get('metrics', {}) %}
 	{% if metrics_worker|int() >= 1 %}
-		<span class="serverUp server-status-small" title="{{lang.words.running2|title()}} {{metrics_worker}} {{lang.words.worker2}} {{lang.words.processes}}"></span>
+		<span class="serverUp server-status-small" title="{{lang.words.running2|title()}} {{metrics_worker}} {{lang.words.worker2}} {{lang.words.processes}}{% if metrics_state %}; assignments: {{ metrics_state.get('assignments', 0) }}; degraded: {{ metrics_state.get('degraded', 0) }}; stale: {{ metrics_state.get('stale', 0) }}{% endif %}"></span>
 	{% else %}
-		{% if is_metrics_worker|int() == 0 %}
+		{% if metrics_state and metrics_state.get('stale', 0)|int() > 0 %}
+		<span class="serverDown server-status-small" title="Metrics workers are stale: {{ metrics_state.get('stale', 0) }}"></span>
+		{% elif is_metrics_worker|int() == 0 %}
 		<span class="serverNone server-status-small" title="There is not job for metrics"></span>
 		{% else %}
 		<span class="serverDown server-status-small" title="{{lang.words.running2|title()}} {{is_checker_worker}} {{lang.words.worker2}} {{lang.words.processes}}"></span>
@@ -105,10 +108,13 @@
 	{% endif %}
 	</td>
 	<td>
+	{% set checker_state = worker_states.get('checker', {}) %}
 	{% if checker_worker|int() >= 1 %}
-		<span class="serverUp server-status-small" title="{{lang.words.running2|title()}} {{ checker_worker }} {{lang.words.worker2}} {{lang.words.processes}}"></span>
+		<span class="serverUp server-status-small" title="{{lang.words.running2|title()}} {{ checker_worker }} {{lang.words.worker2}} {{lang.words.processes}}{% if checker_state %}; assignments: {{ checker_state.get('assignments', 0) }}; degraded: {{ checker_state.get('degraded', 0) }}; stale: {{ checker_state.get('stale', 0) }}{% endif %}"></span>
 	{% else %}
-		{% if is_checker_worker|int() == 0 %}
+		{% if checker_state and checker_state.get('stale', 0)|int() > 0 %}
+		<span class="serverDown server-status-small" title="Checker workers are stale: {{ checker_state.get('stale', 0) }}"></span>
+		{% elif is_checker_worker|int() == 0 %}
 		<span class="serverNone server-status-small" title="There is not job for checker"></span>
 		{% else %}
 		<span class="serverDown server-status-small" title="{{lang.words.running2|title()}} {{ checker_worker }} {{lang.words.worker2}} {{lang.words.processes}}"></span>
@@ -145,8 +151,12 @@
 </tr>
 <tr class="odd">
 	<td class="padding10 first-collumn-wi">
+		{% set socket_state = worker_states.get('socket', {}) %}
 		{% if roxy_tools_status['roxy-wi-socket'] in ('active', 'RUNNING') %}
-			<span class="serverUp server-status-small" title="Socket {{lang.words.started}}"></span>
+			<span class="serverUp server-status-small" title="Socket {{lang.words.started}}{% if socket_state %}; workers: {{ socket_state.get('active', 0) }}; connections: {{ socket_state.get('assignments', 0) }}; degraded: {{ socket_state.get('degraded', 0) }}; stale: {{ socket_state.get('stale', 0) }}{% endif %}"></span>
+			{% if socket_state and socket_state.get('stale', 0)|int() > 0 %}
+			<span class="serverDown server-status-small" title="Socket workers are stale: {{ socket_state.get('stale', 0) }}"></span>
+			{% endif %}
 			{% if role <= 1 %}
 				<a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.view|title()}} {{lang.words.logs2}}" class="logs_link">
 					Socket service
@@ -169,13 +179,14 @@
 		{% endif %}
 	</td>
 	<td>
+	{% set portscanner_state = worker_states.get('portscanner', {}) %}
 	{% if roxy_tools_status['roxy-wi-portscanner'] in ('active', 'RUNNING') %}
-			<span class="serverUp server-status-small" title="Port scanner {{lang.words.started}}"></span>
+			<span class="serverUp server-status-small" title="Port scanner {{lang.words.started}}{% if portscanner_state %}; workers: {{ portscanner_state.get('active', 0) }}; assignments: {{ portscanner_state.get('assignments', 0) }}; degraded: {{ portscanner_state.get('degraded', 0) }}; stale: {{ portscanner_state.get('stale', 0) }}{% endif %}"></span>
 			<a href="{{ url_for('portscanner.portscanner') }}" title="Port scanner Dashboard" class="logs_link">
 				Port scanner
 			</a>
 		{% else %}
-			{% if roxy_tools_status['roxy-wi-portscanner'] in ('inactive', 'failed', 'ERROR') %}
+			{% if roxy_tools_status['roxy-wi-portscanner'] in ('inactive', 'failed', 'ERROR', 'degraded', 'stale', 'stopped') %}
 				<span class="serverDown server-status-small" title="Port scanner {{lang.words.stopped}}"></span>
 				<a href="{{ url_for('admin.admin') }}#services" title="{{lang.words.start|title()}} Port scanner" class="logs_link">
 					Port scanner

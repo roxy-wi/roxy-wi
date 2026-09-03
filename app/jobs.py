@@ -115,6 +115,104 @@ def run_change_center_deliveries():
 
 @scheduler.task(
     'interval',
+    id='service_event_deliveries',
+    seconds=10,
+    max_instances=1,
+    coalesce=True,
+    misfire_grace_time=30,
+)
+def run_service_event_deliveries():
+    """Retry notifications created by independently deployed services."""
+    def run():
+        from app.modules.integrations.service_events import deliver_pending_notifications
+        return deliver_pending_notifications()
+    return _run_database_job(run)
+
+
+@scheduler.task(
+    'interval',
+    id='service_integration_retention',
+    hours=24,
+    max_instances=1,
+    coalesce=True,
+    misfire_grace_time=300,
+)
+def run_service_integration_retention():
+    """Apply existing Checker history retention to distributed service data."""
+    def run():
+        from app.modules.db.service_event import prune_service_events, prune_worker_states
+        from app.modules.db.portscanner import delete_portscanner_history
+        retention_days = int(sql.get_setting('checker_keep_history_range') or 14)
+        portscanner_retention_days = int(sql.get_setting('portscanner_keep_history_range') or 14)
+        history_sql.delete_alert_history(retention_days, 'Checker')
+        delete_portscanner_history(portscanner_retention_days)
+        deleted_events = prune_service_events(retention_days)
+        deleted_workers = prune_worker_states()
+        return deleted_events + deleted_workers
+    return _run_database_job(run)
+
+
+@scheduler.task(
+    'interval',
+    id='service_command_outbox',
+    seconds=5,
+    max_instances=1,
+    coalesce=True,
+    misfire_grace_time=30,
+)
+def run_service_command_outbox():
+    """Publish desired-state commands created by the Roxy-WI API."""
+    def run():
+        from app.modules.integrations.service_commands import publish_pending_commands
+        return publish_pending_commands()
+    return _run_database_job(run)
+
+
+@scheduler.task(
+    'interval',
+    id='service_assignment_reconciliation',
+    minutes=1,
+    max_instances=1,
+    coalesce=True,
+    misfire_grace_time=30,
+)
+def run_service_assignment_reconciliation():
+    """Reconcile existing worker settings with distributed desired state."""
+    def run():
+        from app.modules.db.service_command import (
+            reconcile_checker_assignments,
+            reconcile_checker_udp_assignments,
+            reconcile_metrics_assignments,
+            reconcile_portscanner_assignments,
+        )
+        return (
+            reconcile_checker_assignments()
+            + reconcile_checker_udp_assignments()
+            + reconcile_metrics_assignments()
+            + reconcile_portscanner_assignments()
+        )
+    return _run_database_job(run)
+
+
+@scheduler.task(
+    'interval',
+    id='delete_old_service_metrics',
+    hours=24,
+    max_instances=1,
+    coalesce=True,
+    misfire_grace_time=300,
+)
+def delete_old_service_metrics():
+    """Retain the legacy three-day graph window after removing metrics_master."""
+    def run():
+        from app.modules.db.metric import delete_service_metrics
+        for service in ('haproxy', 'http', 'nginx', 'apache', 'waf'):
+            delete_service_metrics(service)
+    return _run_database_job(run)
+
+
+@scheduler.task(
+    'interval',
     id='change_center_drift_detection',
     minutes=5,
     max_instances=1,

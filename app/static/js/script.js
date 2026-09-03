@@ -1136,15 +1136,30 @@ $(function () {
 		preload: true
 	});
 });
-let socket = new ReconnectingWebSocket("wss://" + window.location.host, null, {maxReconnectAttempts: 20, reconnectInterval: 3000});
+const socketProtocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+let socket = new ReconnectingWebSocket(socketProtocol + window.location.host + '/socket', null, {maxReconnectAttempts: 20, reconnectInterval: 3000});
 
-socket.onopen = function(e) {
+socket.onopen = async function(e) {
   console.log("[open] Connection is established with " + window.location.host);
-  getAlerts();
+  await authenticateSocket();
 };
 
-function getAlerts() {
-	socket.send("alert_group " + $('#user_group_socket').val() + " " + $('#user_id_socket').val());
+async function authenticateSocket() {
+	try {
+		const response = await fetch('/socket-ticket', {
+			method: 'GET',
+			credentials: 'same-origin',
+			headers: {'Accept': 'application/json'}
+		});
+		if (!response.ok) {
+			throw new Error(`ticket request failed with status ${response.status}`);
+		}
+		const ticket = await response.json();
+		socket.send(JSON.stringify({type: 'authenticate', token: ticket.token}));
+	} catch (error) {
+		console.warn('[socket] Authentication failed:', error);
+		socket.close(4003, 'Authentication failed');
+	}
 }
 
 socket.onmessage = function(event) {

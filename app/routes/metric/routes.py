@@ -18,10 +18,12 @@ import app.modules.server.server as server_mod
 import app.modules.roxywi.metrics as metric
 import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi.class_models import DomainName, IpRequest
+from app.modules.subscription.access import MANAGED_SERVICES, feature_required
 
 
 @bp.before_request
 @jwt_required()
+@feature_required(MANAGED_SERVICES)
 def before_request():
     """ Protect all the admin endpoints. """
     pass

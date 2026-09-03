@@ -1,7 +1,18 @@
 from datetime import datetime
 import os
 
-from peewee import ForeignKeyField, CharField, DateTimeField, AutoField, TextField, IntegerField, Model, SQL, FloatField
+from peewee import (
+    AutoField,
+    BigIntegerField,
+    CharField,
+    DateTimeField,
+    FloatField,
+    ForeignKeyField,
+    IntegerField,
+    Model,
+    SQL,
+    TextField,
+)
 from playhouse.migrate import *
 from playhouse.shortcuts import ReconnectMixin
 from playhouse.sqlite_ext import SqliteExtDatabase
@@ -667,6 +678,124 @@ class ConfigChangeTarget(BaseModel):
         )
 
 
+class ServiceEvent(BaseModel):
+    """Durable, idempotent copy of an event received from a remote service."""
+
+    event_id = CharField(primary_key=True, max_length=64)
+    event_type = CharField(index=True, max_length=128)
+    source = CharField(index=True, max_length=64)
+    schema_version = IntegerField(default=1)
+    assignment_id = CharField(null=True, index=True, max_length=255)
+    assignment_revision = IntegerField(null=True)
+    lease_epoch = BigIntegerField(null=True)
+    sequence = BigIntegerField(null=True)
+    server_id = IntegerField(null=True, index=True)
+    user_group = IntegerField(constraints=[SQL('DEFAULT 1')], index=True)
+    service = CharField(index=True, max_length=64)
+    object_type = CharField(null=True, max_length=64)
+    object_name = CharField(null=True, max_length=255)
+    previous_status = CharField(null=True, max_length=64)
+    current_status = CharField(null=True, max_length=64)
+    level = CharField(null=True, index=True, max_length=32)
+    message = TextField(null=True)
+    observed_at = DateTimeField(index=True)
+    received_at = DateTimeField(default=datetime.now, index=True)
+    payload = TextField()
+
+    class Meta:
+        table_name = 'service_events'
+        indexes = (
+            (('assignment_id', 'assignment_revision', 'lease_epoch', 'sequence'), True),
+            (('user_group', 'observed_at'), False),
+            (('service', 'observed_at'), False),
+        )
+
+
+class ServiceEventDelivery(BaseModel):
+    """Notification outbox associated with a persisted service event."""
+
+    id = AutoField()
+    event_id = ForeignKeyField(
+        ServiceEvent,
+        field=ServiceEvent.event_id,
+        column_name='event_id',
+        backref='deliveries',
+        on_delete='CASCADE',
+    )
+    status = CharField(default='pending', index=True, max_length=32)
+    attempts = IntegerField(default=0)
+    last_error = TextField(null=True)
+    created_at = DateTimeField(default=datetime.now)
+    updated_at = DateTimeField(default=datetime.now)
+    delivered_at = DateTimeField(null=True)
+
+    class Meta:
+        table_name = 'service_event_deliveries'
+        indexes = ((('event_id',), True),)
+
+
+class WorkerState(BaseModel):
+    """Latest heartbeat for a replaceable worker process."""
+
+    worker_id = CharField(primary_key=True, max_length=128)
+    service = CharField(index=True, max_length=64)
+    instance_id = CharField(null=True, max_length=128)
+    status = CharField(default='running', index=True, max_length=32)
+    hostname = CharField(null=True, max_length=255)
+    version = CharField(null=True, max_length=64)
+    started_at = DateTimeField(null=True)
+    last_heartbeat = DateTimeField(index=True)
+    expires_at = DateTimeField(index=True)
+    active_assignments = IntegerField(default=0)
+    capacity = IntegerField(null=True)
+    group_ids = JSONField(default=list)
+    metadata = JSONField(default=dict)
+    updated_at = DateTimeField(default=datetime.now)
+
+    class Meta:
+        table_name = 'worker_states'
+        indexes = ((('service', 'expires_at'), False),)
+
+
+class ServiceAssignment(BaseModel):
+    """Desired state published by Roxy-WI to an independently deployed service."""
+
+    assignment_id = CharField(primary_key=True, max_length=255)
+    target_service = CharField(index=True, max_length=64)
+    server_id = IntegerField(null=True, index=True)
+    service = CharField(index=True, max_length=64)
+    user_group = IntegerField(constraints=[SQL('DEFAULT 1')], index=True)
+    revision = BigIntegerField(default=0)
+    desired_state = CharField(default='stopped', index=True, max_length=32)
+    payload = TextField()
+    updated_at = DateTimeField(default=datetime.now)
+
+    class Meta:
+        table_name = 'service_assignments'
+
+
+class ServiceCommand(BaseModel):
+    """Transactional outbox for commands sent to private services."""
+
+    command_id = CharField(primary_key=True, max_length=64)
+    command_type = CharField(index=True, max_length=128)
+    target_service = CharField(index=True, max_length=64)
+    routing_key = CharField(max_length=128)
+    assignment_id = CharField(index=True, max_length=255)
+    revision = BigIntegerField()
+    payload = TextField()
+    status = CharField(default='pending', index=True, max_length=32)
+    attempts = IntegerField(default=0)
+    last_error = TextField(null=True)
+    created_at = DateTimeField(default=datetime.now, index=True)
+    updated_at = DateTimeField(default=datetime.now)
+    published_at = DateTimeField(null=True)
+
+    class Meta:
+        table_name = 'service_commands'
+        indexes = ((('assignment_id', 'revision'), True),)
+
+
 class ConfigChangeEvent(BaseModel):
     """Append-only operational timeline for a Change Center workflow."""
 
@@ -1103,7 +1232,8 @@ def create_tables():
         conn.create_tables(
             [User, Server, Role, Telegram, Slack, Groups, UserGroups, OidcProvider, OidcIdentity, OidcGroupMapping,
              RevokedToken, ConfigVersion, ConfigChange, ConfigChangeTarget, ConfigChangeEvent,
-             ConfigChangeWebhook, ConfigChangeDelivery, Setting, RoxyTool, Alerts,
+             ConfigChangeWebhook, ConfigChangeDelivery, Setting, RoxyTool, Alerts, ServiceEvent,
+             ServiceEventDelivery, WorkerState, ServiceAssignment, ServiceCommand,
              Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
              PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, GeoipCodes,
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,

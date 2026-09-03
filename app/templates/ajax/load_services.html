@@ -15,6 +15,7 @@
 {% for service in services %}
 {% set is_service_started_class = '' %}
 {% set is_service_stopped_class = '' %}
+{% set activity_label = 'connections' if service.0 == 'roxy-wi-socket' else 'assignments' %}
 {% set onclick_start_action = "confirmAjaxServiceAction('start', '"+service.0+"')" %}
 {% set onclick_stop_action = "confirmAjaxServiceAction('stop', '"+service.0+"')" %}
 {% set is_service_started_title = lang.words.start|title()+" "+lang.words.and+" "+lang.words.enable+" "+services_name[service.0]['name']+" "+lang.words.service %}
@@ -22,13 +23,20 @@
 <tr class="{{ loop.cycle('odd', 'even') }}" id="{{service.0}}">
     <td class="padding10 first-collumn">
         {% if service.1 == 'active' or service.1 == 'RUNNING' %}
-            <span title="{{lang.words.service|title()}} {{services_name[service.0]['name']}} {{lang.words.started}}"><span class="serverUp server-status"></span></span>
+            <span title="{{lang.words.service|title()}} {{services_name[service.0]['name']}} {{lang.words.started}}{% if service.3 %}; workers: {{ service.3.get('active', 0) }}; {{ activity_label }}: {{ service.3.get('assignments', 0) }}{% endif %}"><span class="serverUp server-status"></span></span>
             {% set is_service_started_class = 'disabled-button' %}
             {% set onclick_start_action = "" %}
             {% set is_service_started_title = lang.words.service|title()+" "+services_name[service.0]['name']+" "+lang.words.already+" "+lang.words.started %}
+        {% elif service.1 == 'degraded' or service.1 == 'draining' %}
+            <span title="{{ services_name[service.0]['name'] }} workers: active {{ service.3.get('active', 0) }}; degraded {{ service.3.get('degraded', 0) }}; draining {{ service.3.get('draining', 0) }}; stale {{ service.3.get('stale', 0) }}; {{ activity_label }} {{ service.3.get('assignments', 0) }}"><span class="serverWarn server-status"></span></span>
+            {% if service.1 == 'degraded' %}
+                {% set is_service_started_class = 'disabled-button' %}
+                {% set onclick_start_action = "" %}
+                {% set is_service_started_title = lang.words.service|title()+" "+services_name[service.0]['name']+" "+lang.words.already+" "+lang.words.started %}
+            {% endif %}
         {% else %}
-            {% if (service.1 == 'inactive' or service.1 == 'failed' or service.1 == 'activating' or service.1 == 'STOPPED') and 'is not installed' not in service.2['current_version'] %}
-                <span title="{{lang.words.service|title()}} {{services_name[service.0]['name']}} {{lang.words.stopped}}"><span class="serverDown server-status"></span></span>
+            {% if service.1 in ('inactive', 'failed', 'activating', 'STOPPED', 'stale', 'stopped') and 'is not installed' not in service.2['current_version'] %}
+                <span title="{{lang.words.service|title()}} {{services_name[service.0]['name']}} {{lang.words.stopped}}{% if service.3 %}; stale workers: {{ service.3.get('stale', 0) }}; stopped workers: {{ service.3.get('stopped', 0) }}{% endif %}"><span class="serverDown server-status"></span></span>
                 {% set is_service_stopped_class = 'disabled-button' %}
                 {% set onclick_stop_action = "" %}
                 {% set is_service_stopped_title = lang.words.service|title()+" "+services_name[service.0]['name']+" "+lang.words.already+" "+lang.words.stopped %}
@@ -37,6 +45,11 @@
             {% endif %}
         {% endif %}
         {{services_name[service.0]['name']}}
+    </td>
+	<td class="admin-version-cell">
+        {% if 'is not installed' not in service.2['current_version'] %}
+        {{service.2['current_version']}}
+        {% endif %}
     </td>
 	<td class="admin-actions-cell">
 		{% call admin_action_menu(lang.words.actions|title()) %}
@@ -63,11 +76,6 @@
         {% endif %}
 		{% endcall %}
 	</td>
-    <td>
-        {% if 'is not installed' not in service.2['current_version'] %}
-        {{service.2['current_version']}}
-        {% endif %}
-    </td>
     <td colspan="2">
         {{ services_name[service.0]['desc'] | safe }}
     </td>
