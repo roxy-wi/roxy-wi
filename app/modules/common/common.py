@@ -108,7 +108,7 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	Note: This method uses regular expressions (re.match) to validate the server_from_request value,
 	so the regular expression patterns used should follow the standard IP and DNS validation rules.
 	"""
-	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
+	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
 	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
 	try:
 		server_from_request = server_from_request.strip()

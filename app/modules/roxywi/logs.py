@@ -17,7 +17,7 @@ def roxy_wi_log() -> list:
 		group_grep = f'|grep "group: {user_group}"'
 	else:
 		group_grep = ''
-	cmd = f"find {log_path}/roxy-wi.log -type f -exec stat --format '%Y :%y %n' '{{}}' \; | sort -nr | cut -d: -f2- " \
+	cmd = f"find {log_path}/roxy-wi.log -type f -exec stat --format '%Y :%y %n' '{{}}' \\; | sort -nr | cut -d: -f2- " \
 			f"| head -1 |awk '{{print $4}}' |xargs tail {group_grep}|sort -r"
 	try:
 		output, stderr = server_mod.subprocess_execute(cmd)
