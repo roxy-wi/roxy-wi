@@ -323,7 +323,7 @@ def avg_status_page_status(page_id: int) -> str:
 
 
 def change_smon_port(new_port: int) -> None:
-    cmd = f"sudo sed -i 's/\(^ExecStart.*$\)/ExecStart=gunicorn --workers 1 --bind 0.0.0.0:{new_port} -m 007 smon:app/' /etc/systemd/system/roxy-wi-smon.service"
+    cmd = f"sudo sed -i 's/\\(^ExecStart.*$\\)/ExecStart=gunicorn --workers 1 --bind 0.0.0.0:{new_port} -m 007 smon:app/' /etc/systemd/system/roxy-wi-smon.service"
     server_mod.subprocess_execute(cmd)
     cmd = 'sudo systemctl daemon-reload && sudo systemctl restart roxy-wi-smon'
     server_mod.subprocess_execute(cmd)

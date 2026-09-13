@@ -42,7 +42,7 @@ def get_sections(config: str, **kwargs) -> list:
 	with open(config, 'r') as f:
 		for line in f:
 			if kwargs.get('service') == 'keepalived':
-				ip_pattern = re.compile('\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}')
+				ip_pattern = re.compile('\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}')
 				find_ip = re.findall(ip_pattern, line)
 				if find_ip:
 					return_config.append(find_ip[0])
@@ -132,7 +132,7 @@ def get_remote_sections(server_ip: str, service: str) -> str:
 	if service == 'apache':
 		section_name = 'ServerName'
 
-	commands = f"sudo grep {section_name} {config_dir}*/*.conf -R |grep -v '${{}}\|#'|awk '{{print $1, $3}}'"
+	commands = f"sudo grep {section_name} {config_dir}*/*.conf -R |grep -v '${{}}\\|#'|awk '{{print $1, $3}}'"
 
 	backends = server_mod.ssh_command(server_ip, commands)
 
