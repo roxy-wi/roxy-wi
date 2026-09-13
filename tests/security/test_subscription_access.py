@@ -130,7 +130,7 @@ def test_feature_policy_registry_cannot_be_mutated_at_runtime():
 
 
 @pytest.mark.security
-def test_local_service_controls_require_subscription_but_always_allow_stop(
+def test_distributed_worker_lifecycle_is_not_managed_by_the_roxy_wi_host(
     app, client, monkeypatch
 ):
     from app.routes.admin import routes as admin_routes
@@ -160,12 +160,11 @@ def test_local_service_controls_require_subscription_but_always_allow_stop(
         headers=headers,
     )
 
-    assert start_response.status_code == 403
-    assert start_response.get_json()['error'] == (
-        'Additional services require an active User plan or higher'
-    )
+    assert start_response.status_code == 200
+    assert 'worker host or by its orchestrator' in start_response.get_data(as_text=True)
     assert stop_response.status_code == 200
-    assert actions == [('stop', 'roxy-wi-checker')]
+    assert 'worker host or by its orchestrator' in stop_response.get_data(as_text=True)
+    assert actions == []
 
 
 @pytest.mark.security

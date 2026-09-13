@@ -1,0 +1,24 @@
+Roxy-WI {{ .Chart.AppVersion }} has been deployed.
+
+Components:
+  web             {{ .Values.web.replicaCount }} replica(s)
+  scheduler       {{ .Values.scheduler.enabled | ternary "enabled" "disabled" }}
+  service-events  {{ .Values.serviceEvents.enabled | ternary "enabled" "disabled" }}
+  operations      {{ .Values.operations.enabled | ternary "enabled" "disabled" }}
+
+Access the web UI:
+{{- if .Values.ingress.enabled }}
+{{- range .Values.ingress.hosts }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ .host }}
+{{- end }}
+{{- else }}
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "roxy-wi.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+  then open http://127.0.0.1:{{ .Values.service.port }}
+{{- end }}
+
+{{- if and (not .Values.existingConfigSecret) (eq ((get .Values.config.database "engine") | toString | lower) "sqlite") }}
+
+NOTE: SQLite is enabled. Keep web.replicaCount at 1. Workers are scheduled
+on the web pod's node while the data PVC uses ReadWriteOnce. For HA, switch
+to MySQL/MariaDB and a ReadWriteMany volume.
+{{- end }}

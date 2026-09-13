@@ -4,7 +4,7 @@ import os
 
 from cryptography.fernet import Fernet, InvalidToken
 
-from app.modules.db.db_model import Cred, OidcProvider, connect
+from app.modules.db.db_model import Cred, InstallationTasks, OidcProvider, connect
 
 
 SECRET_FIELDS = ('password', 'passphrase', 'private_key')
@@ -73,6 +73,28 @@ def rotate_credentials() -> int:
             OidcProvider.update(
                 client_secret_encrypted=new_fernet.encrypt(plaintext).decode('ascii')
             ).where(OidcProvider.id == provider.id).execute()
+            rotated_credentials += 1
+
+        for task in InstallationTasks.select().where(
+            InstallationTasks.operation_payload.is_null(False)
+        ):
+            payload = task.operation_payload
+            if not payload.startswith('fernet:'):
+                continue
+            token = payload.removeprefix('fernet:').encode('ascii')
+            try:
+                plaintext = old_fernet.decrypt(token)
+            except InvalidToken as exc:
+                try:
+                    new_fernet.decrypt(token)
+                except InvalidToken:
+                    raise RuntimeError(
+                        f'Operation task {task.id} contains an invalid encrypted payload'
+                    ) from exc
+                continue
+            InstallationTasks.update(
+                operation_payload='fernet:' + new_fernet.encrypt(plaintext).decode('ascii')
+            ).where(InstallationTasks.id == task.id).execute()
             rotated_credentials += 1
 
     return rotated_credentials

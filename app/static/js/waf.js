@@ -63,8 +63,7 @@ function installWaf(ip1) {
 				toastr.error(data.error);
 			} else {
 				toastr.clear();
-				parseAnsibleJsonOutput(data, `${service} WAF`, false);
-				showOverviewWaf(ip, hostnamea);
+				runInstallationTaskCheck(data.tasks_ids);
 				$("#ajax").html('');
 			}
 		}

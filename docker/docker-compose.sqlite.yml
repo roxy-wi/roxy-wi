@@ -1,0 +1,100 @@
+x-roxy-wi: &roxy-wi
+  image: ghcr.io/roxy-wi/roxy-wi:${ROXYWI_VERSION:-local}
+  build:
+    context: ..
+    dockerfile: docker/Dockerfile
+  environment:
+    ROXYWI_DEPLOYMENT_MODE: compose
+    ROXYWI_CONFIG_FILE: /etc/roxy-wi/roxy-wi.cfg
+    ROXYWI_FULLPATH: /var/www/haproxy-wi
+    ROXYWI_LIB_PATH: /var/lib/roxy-wi
+    ROXYWI_AUTO_MIGRATE: "0"
+    ROXYWI_LOG_CONSOLE: "1"
+    ROXYWI_LOG_FILE_ENABLED: "0"
+    ROXYWI_JWT_ALGORITHM: HS256
+    ROXYWI_DATABASE_ENGINE: sqlite
+    ROXYWI_DB_PATH: /var/lib/roxy-wi/roxy-wi.db
+    ROXYWI_RABBITMQ_HOST: rabbitmq
+    ROXYWI_RABBITMQ_PORT: "5672"
+    ROXYWI_RABBITMQ_VHOST: /
+    ROXYWI_RABBITMQ_USER: roxy-wi
+    ROXYWI_CACHE_TYPE: NullCache
+    ROXYWI_PUBLIC_URL: ${ROXYWI_PUBLIC_URL}
+    ROXYWI_SECRET_KEY: ${ROXYWI_SECRET_KEY}
+    ROXYWI_SECRET_PHRASE: ${ROXYWI_SECRET_PHRASE}
+    ROXYWI_RABBITMQ_PASSWORD: ${ROXYWI_RABBITMQ_PASSWORD}
+  volumes:
+    - roxy-sqlite-data:/var/lib/roxy-wi
+    - ./roxy-wi.docker.cfg:/etc/roxy-wi/roxy-wi.cfg:ro
+  networks:
+    - roxy-sqlite
+
+services:
+  migrate:
+    <<: *roxy-wi
+    command: ["migrate"]
+    restart: "no"
+
+  web:
+    <<: *roxy-wi
+    command: ["web"]
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+  scheduler:
+    <<: *roxy-wi
+    command: ["scheduler"]
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+
+  service-events:
+    <<: *roxy-wi
+    command: ["service-events"]
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+
+  operations:
+    <<: *roxy-wi
+    command: ["operations"]
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      rabbitmq:
+        condition: service_healthy
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: roxy-wi
+      RABBITMQ_DEFAULT_PASS: ${ROXYWI_RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq-sqlite-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks:
+      - roxy-sqlite
+
+volumes:
+  roxy-sqlite-data:
+  rabbitmq-sqlite-data:
+
+networks:
+  roxy-sqlite:

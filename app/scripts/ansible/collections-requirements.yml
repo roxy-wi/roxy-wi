@@ -1,0 +1,8 @@
+---
+collections:
+  - name: community.general
+  - name: ansible.posix
+  - name: community.docker
+  - name: community.grafana
+  - name: ansible.netcommon
+  - name: ansible.utils

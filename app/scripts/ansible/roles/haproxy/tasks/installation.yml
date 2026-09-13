@@ -25,6 +25,7 @@
       - http://repo.roxy-wi.org/haproxy/haproxy-{{HAPVER}}.{{distr_short_name}}{{ansible_facts['distribution_major_version']}}.x86_64.rpm
       - socat
       - rsyslog
+      - nmap-ncat
     state: present
     allow_downgrade: yes
     disable_gpg_check: yes
@@ -69,8 +70,9 @@
       - haproxy
       - socat
       - rsyslog
+      - nmap-ncat
     state: latest
-  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and (install_result.rc != 0 and install_result1.rc != 0)
+  when: (ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS') and (install_result.rc != 0)
   register: install_result
   retries: 5
   until: install_result.rc == 0
@@ -86,6 +88,7 @@
       - haproxy
       - socat
       - rsyslog
+      - netcat-openbsd
     state: present
     update_cache: yes
   when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'

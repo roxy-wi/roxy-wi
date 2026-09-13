@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 import configparser
 import os
+import re
 
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -13,15 +14,42 @@ class GetConfigVar:
         self.config = configparser.ConfigParser(interpolation=configparser.ExtendedInterpolation())
         self.config.read(self.path_config)
 
-    def get_config_var(self, sec, var):
+    @staticmethod
+    def _environment_names(sec, var):
+        """Return backwards-compatible environment names for a cfg option."""
+        section = re.sub(r'[^A-Za-z0-9]+', '_', str(sec)).strip('_').upper()
+        option = re.sub(r'[^A-Za-z0-9]+', '_', str(var)).strip('_').upper()
+        names = [f'ROXYWI_{section}_{option}']
+        # Historically the main section was exposed without a MAIN prefix.
+        # Supporting the short form for every section also keeps container
+        # configuration readable (ROXYWI_LIB_PATH, ROXYWI_MYSQL_HOST, ...).
+        short_name = f'ROXYWI_{option}'
+        if short_name not in names:
+            names.append(short_name)
+        return names
+
+    def get_config_var(self, sec, var, default=None, use_environment=True):
+        if use_environment:
+            for environment_name in self._environment_names(sec, var):
+                if environment_name in os.environ:
+                    return os.environ[environment_name]
         try:
             return self.config.get(sec, var)
-        except configparser.Error as e:
-            print(f'error: in the config file: {self.path_config}: {e}')
-        except Exception as e:
-            print(f'Check the config file. Presence section {sec} and parameter {var}')
-            print(e)
-            return
+        except (configparser.NoSectionError, configparser.NoOptionError):
+            return default
+        except configparser.Error as error:
+            raise RuntimeError(f'Invalid config file {self.path_config}: {error}') from error
+
+    def find_config_var(self, var, default=None):
+        """Find an option in any cfg section after checking its ENV override."""
+        option = re.sub(r'[^A-Za-z0-9]+', '_', str(var)).strip('_').upper()
+        environment_name = f'ROXYWI_{option}'
+        if environment_name in os.environ:
+            return os.environ[environment_name]
+        for section in self.config.sections():
+            if self.config.has_option(section, var):
+                return self.config.get(section, var)
+        return default
 
 
 class GetDate:

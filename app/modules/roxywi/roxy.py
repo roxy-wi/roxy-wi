@@ -13,6 +13,11 @@ import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
 from app.version import get_service_version
+from app.modules.roxy_wi_tools import GetConfigVar
+
+
+def deployment_mode() -> str:
+	return str(GetConfigVar().get_config_var('main', 'deployment_mode', 'package')).lower()
 
 
 def is_docker() -> bool:
@@ -89,6 +94,11 @@ def update_user_status() -> None:
 
 
 def action_service(action: str, service: str) -> str:
+	if deployment_mode() != 'package':
+		return (
+			'warning: Container services are managed by Compose or Kubernetes. '
+			'Additional Roxy-WI services are controlled through RabbitMQ.'
+		)
 	is_in_docker = is_docker()
 	actions = {
 		'start': 'enable --now',

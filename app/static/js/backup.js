@@ -154,6 +154,7 @@ function addBackup(dialog_id) {
 					toastr.error(data.error);
 				} else {
 					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-table', data.data);
+					runInstallationTaskCheck(data.tasks_ids);
 					$("select").selectmenu();
 				}
 			}
@@ -190,6 +191,7 @@ function addS3Backup(dialog_id) {
 					toastr.error(data);
 				} else {
 					common_ajax_action_after_success(dialog_id, 'newbackup', 'ajax-backup-s3-table', data.data);
+					runInstallationTaskCheck(data.tasks_ids);
 					$("select").selectmenu();
 				}
 			}
@@ -235,6 +237,7 @@ function addGit(dialog_id) {
 					toastr.error(data.error);
 				} else {
 					common_ajax_action_after_success(dialog_id, 'newgit', 'ajax-git-table', data.data);
+					runInstallationTaskCheck(data.tasks_ids);
 					$("select").selectmenu();
 				}
 			}
@@ -337,6 +340,9 @@ function removeBackup(id) {
 		type: "DELETE",
 		contentType: "application/json; charset=utf-8",
 		statusCode: {
+			202: function () {
+				$("#backup-table-" + id).remove();
+			},
 			204: function (xhr) {
 				$("#backup-table-" + id).remove();
 			},
@@ -348,6 +354,8 @@ function removeBackup(id) {
 			if (data) {
 				if (data.status === "failed") {
 					toastr.error(data);
+				} else if (data.tasks_ids) {
+					runInstallationTaskCheck(data.tasks_ids);
 				}
 			}
 		}
@@ -365,6 +373,9 @@ function removeS3Backup(id) {
 		type: "DELETE",
 		contentType: "application/json; charset=utf-8",
 		statusCode: {
+			202: function () {
+				$("#s3-backup-table-" + id).remove();
+			},
 			204: function (xhr) {
 				$("#s3-backup-table-" + id).remove();
 			},
@@ -376,6 +387,8 @@ function removeS3Backup(id) {
 			if (data) {
 				if (data.status === "failed") {
 					toastr.error(data);
+				} else if (data.tasks_ids) {
+					runInstallationTaskCheck(data.tasks_ids);
 				}
 			}
 		}
@@ -394,6 +407,9 @@ function removeGit(id) {
 		contentType: "application/json; charset=utf-8",
 		type: "DELETE",
 		statusCode: {
+			202: function () {
+				$("#git-table-" + id).remove();
+			},
 			204: function (xhr) {
 				$("#git-table-" + id).remove();
 			},
@@ -405,6 +421,8 @@ function removeGit(id) {
 			if (data) {
 				if (data.status === "failed") {
 					toastr.error(data);
+				} else if (data.tasks_ids) {
+					runInstallationTaskCheck(data.tasks_ids);
 				}
 			}
 		}
@@ -434,6 +452,7 @@ function updateBackup(id) {
 					toastr.error(data.error);
 				} else {
 					toastr.clear();
+					runInstallationTaskCheck(data.tasks_ids);
 					$("#backup-table-" + id).addClass("update", 1000);
 					setTimeout(function () {
 						$("#backup-table-" + id).removeClass("update");

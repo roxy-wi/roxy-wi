@@ -6,7 +6,7 @@ import app.modules.db.smon as smon_sql
 import app.modules.db.server as server_sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
-from app.modules.service.installation import run_ansible
+from app.modules.service.installation import run_ansible_thread
 
 
 def generate_agent_inc(server_ip: str, action: str, agent_uuid: uuid) -> object:
@@ -38,7 +38,7 @@ def check_agent_limit():
         raise Exception('error: You have reached limit for Enterprise plan')
 
 
-def add_agent(data) -> int:
+def add_agent(data) -> tuple[int, int]:
     name = common.checkAjaxInput(data.get("name"))
     server_id = int(data.get("server_id"))
     server_ip = server_sql.get_server(server_id).ip
@@ -49,29 +49,29 @@ def add_agent(data) -> int:
 
     try:
         inv, server_ips = generate_agent_inc(server_ip, 'install', agent_uuid)
-        run_ansible(inv, server_ips, 'smon_agent')
-    except Exception as e:
-        roxywi_common.handle_exceptions(e, server_ip, 'Cannot install SMON agent', roxywi=1, login=1)
-
-    try:
         last_id = smon_sql.add_agent(name, server_id, desc, enabled, agent_uuid)
+        task_id = run_ansible_thread(
+            inv, server_ips, 'smon_agent', f'SMON agent {name}'
+        )
         roxywi_common.logging(server_ip, 'A new SMON agent has been created', roxywi=1, login=1, keep_history=1, service='SMON')
-        return last_id
+        return last_id, task_id
     except Exception as e:
         roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot create Agent', roxywi=1, login=1)
 
 
-def delete_agent(agent_id: int):
+def delete_agent(agent_id: int) -> int:
     server_ip = smon_sql.get_agent_ip_by_id(agent_id)
     agent_uuid = ''
     try:
         inv, server_ips = generate_agent_inc(server_ip, 'uninstall', agent_uuid)
-        run_ansible(inv, server_ips, 'smon_agent')
+        return run_ansible_thread(
+            inv, server_ips, 'smon_agent', f'SMON agent {agent_id}'
+        )
     except Exception as e:
         roxywi_common.handle_exceptions(e, server_ip, 'Cannot uninstall SMON agent', roxywi=1, login=1)
 
 
-def update_agent(json_data):
+def update_agent(json_data) -> int | None:
     agent_id = int(json_data.get("agent_id"))
     name = common.checkAjaxInput(json_data.get("name"))
     desc = common.checkAjaxInput(json_data.get("desc"))
@@ -88,9 +88,12 @@ def update_agent(json_data):
         server_ip = smon_sql.select_server_ip_by_agent_id(agent_id)
         try:
             inv, server_ips = generate_agent_inc(server_ip, 'install', agent_uuid)
-            run_ansible(inv, server_ips, 'smon_agent')
+            return run_ansible_thread(
+                inv, server_ips, 'smon_agent', f'SMON agent {agent_id}'
+            )
         except Exception as e:
             roxywi_common.handle_exceptions(e, server_ip, 'Cannot reconfigure SMON agent', roxywi=1, login=1)
+    return None
 
 
 def get_agent_headers(agent_id: int) -> dict:

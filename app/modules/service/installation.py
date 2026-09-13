@@ -2,9 +2,7 @@ import os
 import json
 import subprocess
 import tempfile
-import threading
-from datetime import datetime
-from functools import partial
+from contextlib import contextmanager
 from typing import Callable, Union, Literal
 from packaging import version
 from urllib.parse import urlparse
@@ -20,16 +18,40 @@ import app.modules.db.service as service_sql
 import app.modules.service.udp as udp_mod
 import app.modules.service.common as service_common
 import app.modules.common.common as common
+from app.modules.common.time import utc_now
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
+from app.modules.roxy_wi_tools import GetConfigVar
 from app.modules.server.ssh import return_ssh_keys_path
 from app.modules.db.db_model import InstallationTasks
 from app.modules.roxywi.class_models import ServiceInstall, HAClusterRequest, HaproxyGlobalRequest, \
 	HaproxyDefaultsRequest, HaproxyConfigRequest
 
 
-ANSIBLE_PRIVATE_DATA_DIR = '/var/www/haproxy-wi/app/scripts/ansible'
+_runtime_config = GetConfigVar()
+_full_path = _runtime_config.get_config_var('main', 'fullpath', '/var/www/haproxy-wi')
+_lib_path = _runtime_config.get_config_var('main', 'lib_path', '/var/lib/roxy-wi')
+ANSIBLE_PROJECT_DIR = f'{_full_path}/app/scripts/ansible'
+ANSIBLE_PRIVATE_DATA_DIR = _runtime_config.get_config_var(
+	'ansible', 'private_data_dir', f'{_lib_path}/ansible'
+)
 ANSIBLE_INVENTORY_DIR = f'{ANSIBLE_PRIVATE_DATA_DIR}/inventory'
+ANSIBLE_ROLES_DIR = _runtime_config.get_config_var(
+	'ansible', 'roles_path', f'{ANSIBLE_PRIVATE_DATA_DIR}/roles'
+)
+ANSIBLE_COLLECTIONS_DIR = _runtime_config.get_config_var(
+	'ansible', 'collections_path', f'{ANSIBLE_PRIVATE_DATA_DIR}/collections'
+)
+ANSIBLE_ROLE_SEARCH_PATHS = tuple(dict.fromkeys((
+	ANSIBLE_ROLES_DIR,
+	f'{ANSIBLE_PROJECT_DIR}/roles',
+	'/usr/share/ansible/roles',
+)))
+ANSIBLE_COLLECTION_SEARCH_PATHS = tuple(dict.fromkeys((
+	ANSIBLE_COLLECTIONS_DIR,
+	'/usr/share/ansible/collections',
+	'/usr/share/httpd/.ansible/collections',
+)))
 _ANSIBLE_ROLE_NAMES = (
 	'apache', 'apache_exporter', 'backup', 'git_backup', 'haproxy',
 	'haproxy_exporter', 'haproxy_geoip', 'haproxy_section', 'keepalived',
@@ -38,7 +60,7 @@ _ANSIBLE_ROLE_NAMES = (
 	's3_backup', 'smon_agent', 'udp', 'waf_haproxy', 'waf_nginx',
 )
 _ANSIBLE_PLAYBOOKS = {
-	role: f'{ANSIBLE_PRIVATE_DATA_DIR}/roles/{role}.yml'
+	role: f'{ANSIBLE_PROJECT_DIR}/roles/{role}.yml'
 	for role in _ANSIBLE_ROLE_NAMES
 }
 
@@ -49,6 +71,86 @@ def _ansible_runner():
 	import ansible_runner
 
 	return ansible_runner
+
+
+_ANSIBLE_FAILURE_EVENTS = {
+	'runner_on_failed',
+	'runner_on_unreachable',
+	'runner_on_async_failed',
+	'error',
+}
+
+
+def _capture_ansible_failure(
+		failures: list[dict], output_lines: list[str], event: dict,
+) -> bool:
+	"""Keep the useful failed-task events while allowing runner to persist them."""
+	if event.get('event') in _ANSIBLE_FAILURE_EVENTS:
+		failures.append(event)
+	stdout = str(event.get('stdout') or '').strip()
+	if stdout:
+		output_lines.append(stdout)
+	return True
+
+
+def _ansible_event_error(event: dict) -> str:
+	event_data = event.get('event_data') or {}
+	result = event_data.get('res') or {}
+	detail = ''
+	if isinstance(result, dict):
+		for key in ('msg', 'stderr', 'module_stderr', 'exception', 'stdout', 'module_stdout'):
+			value = result.get(key)
+			if value:
+				detail = json.dumps(value, ensure_ascii=False) if isinstance(value, (dict, list)) else str(value)
+				break
+	if not detail:
+		detail = str(event.get('stdout') or 'Ansible task failed')
+	return detail
+
+
+def _ansible_runner_error(failure_events: list[dict], output_lines: list[str]) -> str:
+	details = []
+	for event in failure_events:
+		detail = _ansible_event_error(event)
+		if detail not in details:
+			details.append(detail)
+	if details:
+		return ' | '.join(details)
+	for output in reversed(output_lines):
+		lines = [line.strip() for line in output.splitlines() if line.strip()]
+		for line in reversed(lines):
+			if '[Errno ' in line:
+				return line[line.index('[Errno '):]
+			if line.startswith('ERROR!'):
+				return line.removeprefix('ERROR!').lstrip(': ')
+	return 'Ansible execution failed'
+
+
+def _ansible_stats_error(output: dict) -> str:
+	parts = []
+	failures = output.get('failures') or {}
+	unreachable = output.get('dark') or {}
+	if failures:
+		parts.append(f"failed hosts: {', '.join(map(str, failures))}")
+	if unreachable:
+		parts.append(f"unreachable hosts: {', '.join(map(str, unreachable))}")
+	return f"Installation failed ({'; '.join(parts)})"
+
+
+def _ansible_runtime_environment() -> dict[str, str]:
+	return {
+		'ANSIBLE_LOCAL_TEMP': os.path.join(ANSIBLE_PRIVATE_DATA_DIR, 'tmp'),
+		'ANSIBLE_SSH_CONTROL_PATH_DIR': os.path.join(ANSIBLE_PRIVATE_DATA_DIR, 'cp'),
+	}
+
+
+def _prepare_ansible_runtime_dirs() -> dict[str, str]:
+	runtime_environment = _ansible_runtime_environment()
+	for directory in runtime_environment.values():
+		os.makedirs(directory, mode=0o700, exist_ok=True)
+		if os.name == 'posix':
+			os.chmod(directory, 0o700)
+	return runtime_environment
 
 
 def _authorize_installation_servers(json_data: dict) -> None:
@@ -296,17 +398,6 @@ def generate_service_inv(json_data: ServiceInstall, installed_service: str) -> o
 	container_name = sql.get_setting(f'{installed_service}_container_name')
 	is_docker = json_data['services'][installed_service]['docker']
 
-	if installed_service == 'nginx' and not os.path.isdir('/var/www/haproxy-wi/app/scripts/ansible/roles/nginxinc.nginx'):
-		result = subprocess.run(
-			[
-				'ansible-galaxy', 'install', 'nginxinc.nginx,0.24.3', '-f',
-				'--roles-path', '/var/www/haproxy-wi/app/scripts/ansible/roles/'
-			],
-			check=False,
-		)
-		if result.returncode != 0:
-			raise RuntimeError('Cannot install the nginxinc.nginx Ansible role')
-
 	for v in json_data['servers']:
 		s = server_sql.get_server(v['id'])
 		if installed_service == 'apache':
@@ -339,6 +430,9 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 	tags = ''
 	agent_pid = None
 	inventory = ''
+	failure_events = []
+	output_lines = []
+	ansible_runtime_environment = {}
 
 	playbook = _ansible_playbook(ansible_role)
 	try:
@@ -347,7 +441,9 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 		except Exception as error:
 			raise RuntimeError(f'Cannot start SSH agent: {error}') from error
 
+		ansible_runtime_environment = _prepare_ansible_runtime_dirs()
 		_install_ansible_collections()
+		_install_ansible_roles(ansible_role)
 
 		for server_ip in server_ips:
 			if server_ip != 'localhost':
@@ -380,7 +476,10 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 			'AWX_DISPLAY': False,
 			'SSH_AUTH_PID': agent_pid['pid'],
 			'SSH_AUTH_SOCK': agent_pid['socket'],
-			'ANSIBLE_PYTHON_INTERPRETER': '/usr/bin/python3'
+			'ANSIBLE_PYTHON_INTERPRETER': '/usr/bin/python3',
+			'ANSIBLE_ROLES_PATH': os.pathsep.join(ANSIBLE_ROLE_SEARCH_PATHS),
+			'ANSIBLE_COLLECTIONS_PATH': os.pathsep.join(ANSIBLE_COLLECTION_SEARCH_PATHS),
+			**ansible_runtime_environment,
 		}
 		result = _ansible_runner().run(
 			private_data_dir=ANSIBLE_PRIVATE_DATA_DIR,
@@ -388,13 +487,12 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 			envvars=envvars,
 			playbook=playbook,
 			tags=tags,
+			event_handler=lambda event: _capture_ansible_failure(
+				failure_events, output_lines, event
+			),
 		)
 		if result.rc != 0:
-			raise RuntimeError(
-				'Something wrong with installation, check '
-				'<a href="/logs/internal?log_file=roxy-wi.error.log" target="_blank" class="link">'
-				'Apache logs</a> for details'
-			)
+			raise RuntimeError(_ansible_runner_error(failure_events, output_lines))
 		return result.stats
 	finally:
 		_remove_inventory(inventory)
@@ -408,6 +506,7 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 def run_ansible_locally(inv: dict, ansible_role: str) -> dict:
 	proxy = sql.get_setting('proxy')
 	inv['server']['hosts']['localhost']['PROXY'] = proxy if proxy not in (None, '', 'None') else ''
+	ansible_runtime_environment = _prepare_ansible_runtime_dirs()
 
 	envvars = {
 		'ANSIBLE_DISPLAY_OK_HOSTS': 'no',
@@ -419,10 +518,15 @@ def run_ansible_locally(inv: dict, ansible_role: str) -> dict:
 		'LOCALHOST_WARNING': "no",
 		'COMMAND_WARNINGS': "no",
 		'AWX_DISPLAY': False,
-		'ANSIBLE_PYTHON_INTERPRETER': '/usr/bin/python3'
+		'ANSIBLE_PYTHON_INTERPRETER': '/usr/bin/python3',
+		'ANSIBLE_ROLES_PATH': os.pathsep.join(ANSIBLE_ROLE_SEARCH_PATHS),
+		'ANSIBLE_COLLECTIONS_PATH': os.pathsep.join(ANSIBLE_COLLECTION_SEARCH_PATHS),
+		**ansible_runtime_environment,
 	}
 	playbook = _ansible_playbook(ansible_role)
 	inventory = ''
+	failure_events = []
+	output_lines = []
 	try:
 		inventory = _create_secure_inventory(inv)
 		result = _ansible_runner().run(
@@ -430,13 +534,12 @@ def run_ansible_locally(inv: dict, ansible_role: str) -> dict:
 			inventory=inventory,
 			envvars=envvars,
 			playbook=playbook,
+			event_handler=lambda event: _capture_ansible_failure(
+				failure_events, output_lines, event
+			),
 		)
 		if result.rc != 0:
-			raise RuntimeError(
-				'Something wrong with installation, check '
-				'<a href="/logs/internal?log_file=roxy-wi.error.log" target="_blank" class="link">'
-				'Apache logs</a> for details'
-			)
+			raise RuntimeError(_ansible_runner_error(failure_events, output_lines))
 		return result.stats
 	finally:
 		_remove_inventory(inventory)
@@ -470,6 +573,19 @@ def service_actions_after_install(server_ips: list[str], service: str, json_data
 				pass
 
 
+def waf_actions_after_install(server_ip: str, service: str) -> None:
+	from app.modules.db import waf as waf_sql
+
+	if service == 'haproxy':
+		waf_sql.insert_waf_metrics_enable(server_ip, '0')
+		waf_sql.insert_waf_rules(server_ip)
+	elif service == 'nginx':
+		waf_sql.insert_nginx_waf_rules(server_ip)
+		waf_sql.insert_waf_nginx_server(server_ip)
+	else:
+		raise ValueError('Unsupported WAF service')
+
+
 def _create_default_config_in_db(server_id: int) -> None:
 	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	stats_port = sql.get_setting('haproxy_stats_port')
@@ -482,7 +598,7 @@ def _create_default_config_in_db(server_id: int) -> None:
 	add_sql.insert_or_update_new_section(server_id, 'defaults', 'defaults', HaproxyDefaultsRequest())
 	option = (
 		'http-request use-service prometheus-exporter if { path /metrics }\r\nstats enable\r\nstats uri /stats\r\n'
-		f'stats realm HAProxy-04\ Statistics\r\nstats auth {stats_user}:{stats_password}\r\nstats admin if TRUE'
+		f'stats realm HAProxy-04\\ Statistics\r\nstats auth {stats_user}:{stats_password}\r\nstats admin if TRUE'
 	)
 	stats_config = HaproxyConfigRequest(
 		binds=[{'ip': '', 'port': stats_port}],
@@ -510,17 +626,39 @@ def install_service(service: str, json_data: Union[str, ServiceInstall, HACluste
 	except Exception as e:
 		raise Exception(f'Cannot generate inv {service}: {e}')
 	try:
-		on_success = partial(service_actions_after_install, server_ips, service, json_data)
-		return run_ansible_thread(inv, server_ips, service, service.title(), on_success=on_success)
+		success_action = {
+			'type': 'service-installed',
+			'server_ips': server_ips,
+			'service': service,
+			'request': json_data,
+		}
+		return run_ansible_thread(
+			inv, server_ips, service, service.title(), success_action=success_action
+		)
 	except Exception as e:
 		raise Exception(f'Cannot install {service}: {e}')
 
 
-def _install_ansible_collections():
-	collections = ('community.general', 'ansible.posix', 'community.docker', 'community.grafana', 'ansible.netcommon', 'ansible.utils')
-	trouble_link = 'Read <a href="https://roxy-wi.org/troubleshooting#ansible_collection" target="_blank" class="link">troubleshooting</a>'
-	proxy = sql.get_setting('proxy')
+@contextmanager
+def _galaxy_install_lock():
+	"""Serialize Galaxy writes when operations workers share the data volume."""
+	os.makedirs(ANSIBLE_PRIVATE_DATA_DIR, mode=0o750, exist_ok=True)
+	lock_path = os.path.join(ANSIBLE_PRIVATE_DATA_DIR, '.galaxy-install.lock')
+	with open(lock_path, 'a+', encoding='utf-8') as lock_file:
+		if os.name == 'posix':
+			import fcntl
+			fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+		try:
+			yield
+		finally:
+			if os.name == 'posix':
+				fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
+def _galaxy_environment() -> dict:
 	environment = os.environ.copy()
+	environment.update(_ansible_runtime_environment())
+	proxy = sql.get_setting('proxy')
 	if proxy is not None and proxy != '' and proxy != 'None':
 		parsed_proxy = urlparse(proxy)
 		if parsed_proxy.scheme not in {'http', 'https'} or not parsed_proxy.hostname:
@@ -528,19 +666,77 @@ def _install_ansible_collections():
 		if any(character in proxy for character in ('\r', '\n', '\x00')):
 			raise ValueError('Proxy contains invalid control characters')
 		environment['HTTPS_PROXY'] = proxy
+	return environment
 
-	for collection in collections:
-		if not os.path.isdir(f'/usr/share/httpd/.ansible/collections/ansible_collections/{collection.replace(".", "/")}'):
+
+def _role_is_installed(role_name: str) -> bool:
+	return any(os.path.isdir(os.path.join(path, role_name)) for path in ANSIBLE_ROLE_SEARCH_PATHS)
+
+
+def _collection_is_installed(collection: str) -> bool:
+	collection_path = os.path.join('ansible_collections', *collection.split('.'))
+	return any(os.path.isdir(os.path.join(path, collection_path)) for path in ANSIBLE_COLLECTION_SEARCH_PATHS)
+
+
+def _install_ansible_roles(ansible_role: str) -> None:
+	requirements = {
+		'nginx': ('nginxinc.nginx', 'nginxinc.nginx,0.24.3'),
+		'haproxy_exporter': (
+			'bdellegrazie.ansible-role-prometheus_exporter',
+			'bdellegrazie.ansible-role-prometheus_exporter',
+		),
+		'nginx_exporter': (
+			'bdellegrazie.ansible-role-prometheus_exporter',
+			'bdellegrazie.ansible-role-prometheus_exporter',
+		),
+		'apache_exporter': (
+			'bdellegrazie.ansible-role-prometheus_exporter',
+			'bdellegrazie.ansible-role-prometheus_exporter',
+		),
+	}
+	requirement = requirements.get(ansible_role)
+	if requirement is None or _role_is_installed(requirement[0]):
+		return
+	with _galaxy_install_lock():
+		if _role_is_installed(requirement[0]):
+			return
+		os.makedirs(ANSIBLE_ROLES_DIR, mode=0o750, exist_ok=True)
+		result = subprocess.run(
+			[
+				'ansible-galaxy', 'role', 'install', requirement[1], '-f',
+				'--roles-path', ANSIBLE_ROLES_DIR,
+			],
+			env=_galaxy_environment(),
+			check=False,
+		)
+		if result.returncode != 0:
+			raise RuntimeError(f'Cannot install the {requirement[0]} Ansible role')
+
+
+def _install_ansible_collections() -> None:
+	collections = ('community.general', 'ansible.posix', 'community.docker', 'community.grafana', 'ansible.netcommon', 'ansible.utils')
+	trouble_link = 'Read <a href="https://roxy-wi.org/troubleshooting#ansible_collection" target="_blank" class="link">troubleshooting</a>'
+	missing_collections = [collection for collection in collections if not _collection_is_installed(collection)]
+	if not missing_collections:
+		return
+
+	with _galaxy_install_lock():
+		os.makedirs(ANSIBLE_COLLECTIONS_DIR, mode=0o750, exist_ok=True)
+		for collection in missing_collections:
+			if _collection_is_installed(collection):
+				continue
 			try:
-				command = ['ansible-galaxy', 'collection', 'install', collection]
+				command = [
+					'ansible-galaxy', 'collection', 'install', collection,
+					'--collections-path', ANSIBLE_COLLECTIONS_DIR,
+				]
 				if version.parse(ansible.__version__) < version.parse('2.13.9'):
 					command.extend(['--server', 'https://old-galaxy.ansible.com/'])
-				exit_code = subprocess.run(command, env=environment, check=False).returncode
+				exit_code = subprocess.run(command, env=_galaxy_environment(), check=False).returncode
 			except Exception as e:
-				roxywi_common.handle_exceptions(e,
-												'Roxy-WI server',
-												f'Cannot install as collection. {trouble_link}'
-												)
+				roxywi_common.handle_exceptions(
+					e, 'Roxy-WI server', f'Cannot install as collection. {trouble_link}'
+				)
 			else:
 				if exit_code != 0:
 					raise Exception(f'error: Ansible collection installation was not successful: {exit_code}. {trouble_link}')
@@ -548,7 +744,8 @@ def _install_ansible_collections():
 
 def run_ansible_thread(
 		inv: dict, server_ips: list, ansible_role: str, service_name: str,
-		on_success: Callable[[], None] = None
+		success_action: dict = None,
+		run_locally: bool = False,
 ) -> int:
 	server_ids = []
 	claims = roxywi_common.get_jwt_token_claims()
@@ -556,29 +753,76 @@ def run_ansible_thread(
 		server_id = server_sql.get_server_by_ip(server_ip).server_id
 		server_ids.append(server_id)
 
-	task_id = InstallationTasks.insert(
-		service_name=service_name, server_ids=server_ids, user_id=claims['user_id'], group_id=claims['group']
-	).execute()
-	thread = threading.Thread(target=run_installations, args=(inv, server_ips, ansible_role, task_id, on_success))
-	thread.start()
-	return task_id
+	from app.modules.operations.queue import create_ansible_task
+	return create_ansible_task(
+		service_name=service_name,
+		server_ids=server_ids,
+		user_id=claims.get('user_id'),
+		group_id=claims.get('group'),
+		inventory=inv,
+		server_ips=server_ips,
+		ansible_role=ansible_role,
+		success_action=success_action,
+		run_locally=run_locally,
+	)
+
+
+def run_ansible_workflow(steps: list[dict], service_name: str) -> int:
+	server_ids = []
+	for step in steps:
+		for server_ip in step.get('server_ips', []):
+			if server_ip == 'localhost':
+				continue
+			server_id = server_sql.get_server_by_ip(server_ip).server_id
+			if server_id not in server_ids:
+				server_ids.append(server_id)
+	claims = roxywi_common.get_jwt_token_claims()
+	from app.modules.operations.queue import create_ansible_workflow_task
+	return create_ansible_workflow_task(
+		service_name=service_name,
+		server_ids=server_ids,
+		user_id=claims.get('user_id'),
+		group_id=claims.get('group'),
+		steps=steps,
+	)
 
 
 def run_installations(
 		inv: dict, server_ips: list, service: str, task_id: int,
-		on_success: Callable[[], None] = None
+		on_success: Callable[[], None] = None,
+		already_running: bool = False,
+		run_locally: bool = False,
+		steps: list[dict] | None = None,
 ) -> None:
-	InstallationTasks.update(status='running').where(InstallationTasks.id == task_id).execute()
+	if not already_running:
+		InstallationTasks.update(
+			status='running', attempts=InstallationTasks.attempts + 1, updated_at=utc_now()
+		).where(InstallationTasks.id == task_id).execute()
 	try:
-		output = run_ansible(inv, server_ips, service)
-		if output.get('failures') or output.get('dark'):
-			raise RuntimeError(f'Cannot install {service}. Check Apache error log')
+		operation_steps = steps or [{
+			'inventory': inv,
+			'server_ips': server_ips,
+			'ansible_role': service,
+			'run_locally': run_locally,
+		}]
+		for step in operation_steps:
+			if step.get('run_locally'):
+				output = run_ansible_locally(step['inventory'], step['ansible_role'])
+			else:
+				output = run_ansible(
+					step['inventory'], step['server_ips'], step['ansible_role']
+				)
+			if output.get('failures') or output.get('dark'):
+				raise RuntimeError(_ansible_stats_error(output))
 		if on_success is not None:
 			on_success()
 	except Exception as e:
-		InstallationTasks.update(status='failed', finish_date=datetime.now(), error=str(e)).where(InstallationTasks.id == task_id).execute()
-		roxywi_common.logging('', f'error: Cannot install {service}: {e}')
+		InstallationTasks.update(
+			status='failed', finish_date=utc_now(), updated_at=utc_now(), error=str(e)
+		).where(InstallationTasks.id == task_id).execute()
+		operation_name = service or 'Ansible workflow'
+		roxywi_common.logging('', f'error: Cannot run {operation_name}: {e}')
 	else:
 		InstallationTasks.update(
-			status='completed', finish_date=datetime.now(), error=None
+			status='completed', finish_date=utc_now(), updated_at=utc_now(), error=None
 		).where(InstallationTasks.id == task_id).execute()

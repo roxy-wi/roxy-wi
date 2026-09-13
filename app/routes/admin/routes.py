@@ -10,6 +10,7 @@ import app.modules.db.group as group_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
 import app.modules.db.service_event as service_event_sql
+import app.modules.db.roxy as roxy_sql
 from app.middleware import get_user_params
 import app.modules.roxywi.roxy as roxy
 import app.modules.roxywi.auth as roxywi_auth
@@ -110,6 +111,17 @@ def update_tools(service):
 @bp.post('/tools/action/<service>/<any(start, stop, restart):action>')
 def action_tools(service, action):
     roxywi_auth.page_for_admin()
+
+    tools = roxy_sql.get_all_tools()
+    if service not in tools:
+        return 'error: Unknown Roxy-WI service', 404
+    if tools_common.tool_category(service) == 'distributed':
+        return (
+            'warning: Distributed worker lifecycle is managed on the worker host or by its orchestrator. '
+            'Roxy-WI controls worker assignments through RabbitMQ.'
+        )
+    if service == 'roxy-wi-web':
+        return 'warning: Manage the Roxy-WI web process through systemd, Compose or Kubernetes.'
 
     access_error = _managed_service_access_error(service, action)
     if access_error is not None:

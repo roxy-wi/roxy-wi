@@ -13,7 +13,7 @@ import app.modules.db.server as server_sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.installation as service_mod
-from app.modules.db.db_model import LetsEncrypt
+from app.modules.db.db_model import InstallationTasks, LetsEncrypt
 from app.modules.server.ssh import return_ssh_keys_path
 from app.middleware import get_user_params, page_for_admin, check_group
 from app.modules.roxywi.class_models import LetsEncryptRequest, LetsEncryptDeleteRequest, IdResponse, GroupQuery, BaseResponse
@@ -128,13 +128,16 @@ class LetsEncryptView(MethodView):
                   description: Type of the Let's Encrypt configuration
                   enum: ['standalone', 'route53', 'cloudflare', 'digitalocean', 'linode']
         responses:
-          201:
-            description: Let's Encrypt configuration created successfully
+          202:
+            description: Let's Encrypt configuration accepted for asynchronous processing
         """
         try:
-            self._create_env(body, 'install')
-            last_id = le_sql.insert_le(**body.model_dump(mode='json'))
-            return IdResponse(id=last_id).model_dump(), 201
+            with InstallationTasks._meta.database.atomic():
+                last_id = le_sql.insert_le(**body.model_dump(mode='json'))
+                task_id = self._create_env(body, 'install')
+            response = IdResponse(id=last_id).model_dump()
+            response.update({'status': 'accepted', 'tasks_ids': [task_id]})
+            return response, 202
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create Let\'s Encrypt')
 
@@ -188,8 +191,8 @@ class LetsEncryptView(MethodView):
                   description: Type of the Let's Encrypt configuration
                   enum: ['standalone', 'route53', 'cloudflare', 'digitalocean', 'linode']
         responses:
-          201:
-            description: Let's Encrypt configuration updated successfully
+          202:
+            description: Let's Encrypt configuration update accepted for asynchronous processing
         """
         group_id = SupportClass.return_group_id(query)
         try:
@@ -200,14 +203,23 @@ class LetsEncryptView(MethodView):
         try:
             le_dict = _return_domains_list(le)
             data = LetsEncryptRequest(**le_dict)
-            self._create_env(data, 'delete')
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update Let\'s Encrypt on server')
 
         try:
-            le_sql.update_le(le_id, **body.model_dump(mode='json'))
-            self._create_env(body, 'install')
-            return IdResponse(id=le_id).model_dump(), 201
+            with InstallationTasks._meta.database.atomic():
+                old_step = self._create_env(data, 'delete', enqueue=False)
+                le_sql.update_le(le_id, **body.model_dump(mode='json'))
+                new_step = self._create_env(body, 'install', enqueue=False)
+                task_id = service_mod.run_ansible_workflow(
+                    [old_step, new_step], "Let's Encrypt certificate"
+                )
+            response = IdResponse(id=le_id).model_dump()
+            response.update({
+                'status': 'accepted',
+                'tasks_ids': [task_id],
+            })
+            return response, 202
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update Let\'s Encrypt')
 
@@ -230,8 +242,8 @@ class LetsEncryptView(MethodView):
             required: false
             description: ID of the group (only for role superAdmin)
         responses:
-          204:
-            description: Let's Encrypt deleted successfully
+          202:
+            description: Let's Encrypt deletion accepted for asynchronous processing
         """
         group_id = SupportClass.return_group_id(query)
         try:
@@ -243,18 +255,23 @@ class LetsEncryptView(MethodView):
             le_dict = _return_domains_list(le)
             le_dict['emails'] = None
             data = LetsEncryptDeleteRequest(**le_dict)
-            self._create_env(data, action='delete')
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete Let\'s Encrypt from server')
 
         try:
-            le_sql.delete_le(le_id)
-            return BaseResponse().model_dump(mode='json'), 204
+            with InstallationTasks._meta.database.atomic():
+                task_id = self._create_env(data, action='delete')
+                le_sql.delete_le(le_id)
+            return {'status': 'accepted', 'tasks_ids': [task_id]}, 202
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete Let\'s Encrypt')
 
     @staticmethod
-    def _create_env(data: Union[LetsEncryptRequest, LetsEncryptDeleteRequest], action: str = 'install'):
+    def _create_env(
+            data: Union[LetsEncryptRequest, LetsEncryptDeleteRequest],
+            action: str = 'install',
+            enqueue: bool = True,
+    ):
         server_ips = []
         server_ip = 'localhost'
         domains_command = ''
@@ -312,19 +329,21 @@ class LetsEncryptView(MethodView):
         }
 
         server_ips.append(server_ip)
-        if data.type != 'standalone':
-            try:
-                output = service_mod.run_ansible_locally(inv, ansible_role)
-            except Exception as e:
-                raise e
-        else:
-            try:
-                output = service_mod.run_ansible(inv, server_ips, ansible_role)
-            except Exception as e:
-                raise e
-
-        if len(output['failures']) > 0 or len(output['dark']) > 0:
-            raise Exception('Cannot create certificate. Check Apache error log')
+        step = {
+            'inventory': inv,
+            'server_ips': server_ips,
+            'ansible_role': ansible_role,
+            'run_locally': data.type != 'standalone',
+        }
+        if not enqueue:
+            return step
+        return service_mod.run_ansible_thread(
+            inv,
+            server_ips,
+            ansible_role,
+            "Let's Encrypt certificate",
+            run_locally=data.type != 'standalone',
+        )
 
 
 class LetsEncryptsView(MethodView):

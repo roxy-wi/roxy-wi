@@ -34,13 +34,18 @@ jobs:
           python -m pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Compile Python sources
-        run: python -m compileall -q app tests scheduler_runner.py service_event_consumer.py rotate_credential_secret.py
+        run: python -m compileall -q app tests scheduler_runner.py service_event_consumer.py roxy_wi.py rotate_credential_secret.py
 
       - name: Smoke test application startup
         run: python -m pytest tests/smoke -q
 
       - name: Run distributed service integration tests
-        run: python -m pytest tests/integration/test_service_events.py -q
+        run: python -m pytest tests/integration/test_service_events.py tests/integration/test_operation_queue.py -q
+
+      - name: Validate container manifests
+        run: |
+          docker compose --env-file docker/.env.example -f docker/docker-compose.yml config --quiet
+          docker compose --env-file docker/.env.example -f docker/docker-compose.sqlite.yml config --quiet
 
       - name: Run unit and security tests
         run: python -m pytest --ignore=tests/smoke --cov=app --cov-report=term-missing --cov-fail-under=25

@@ -1,202 +1,54 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
-<tr class="odd">
-	<td class="padding10 first-collumn-wi">
-		{% if roxy_tools_status['roxy-wi-metrics'] in ('active', 'RUNNING') %}
-			<span class="serverUp server-status-small" title="Metrics master {{lang.words.started}}"></span>
-			{% if role <= 1 %}
-				<a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.view|title()}} {{lang.words.logs2}}" class="logs_link">
-					Metrics master
-				</a>
-			{% else %}
-				Metrics master
-			{% endif %}
+{% set service_names = {
+	'roxy-wi-web': 'Web',
+	'roxy-wi-scheduler': 'Scheduler',
+	'roxy-wi-service-events': 'Service events',
+	'roxy-wi-operations': 'Operations',
+	'roxy-wi-checker': 'Checker',
+	'roxy-wi-metrics': 'Metrics',
+	'roxy-wi-socket': 'Socket',
+	'roxy-wi-portscanner': 'Port scanner',
+} %}
+
+{% macro service_card(service, distributed=false) %}
+{% set metadata = service.4 %}
+{% set name = service_names.get(service.0, service.0) %}
+{% set is_healthy = service.1 in ('active', 'RUNNING') %}
+{% set is_warning = service.1 in ('degraded', 'draining') or metadata.get('stale', 0) %}
+<div class="services-overview-card{% if is_warning %} services-overview-card-warning{% endif %}">
+	<div class="services-overview-name">
+		{% if is_healthy and not is_warning %}
+		<span class="serverUp server-status-small" title="{{ name }} is running"></span>
+		{% elif is_warning %}
+		<span class="serverWarn server-status-small" title="{{ name }} is degraded"></span>
+		{% elif service.1 in ('inactive', 'failed', 'STOPPED', 'stale', 'stopped') %}
+		<span class="serverDown server-status-small" title="{{ name }} is stopped"></span>
 		{% else %}
-			{% if roxy_tools_status['roxy-wi-metrics'] in ('inactive', 'failed', 'ERROR') %}
-				<span class="serverDown server-status-small" title="Metrics {{lang.words.stopped}}"></span>
-				{% if role <= 1 %}
-				<a href="{{ url_for('admin.admin') }}#tools" title="{{lang.words.start|title()}} Metrics" class="logs_link">
-					Metrics master
-				</a>
-				{% else %}
-					Metrics master
-				{% endif %}
-			{% else %}
-				<span class="serverNone server-status-small" title="{{lang.phrases.metrics_not_installed}}"></span>
-				<a href="https://roxy-wi.org/tools/metrics#installation" title="Metrics installation" target="_blank" class="logs_link">
-					Metrics master
-				</a>
-			{% endif %}
+		<span class="serverNone server-status-small" title="{{ name }} status is unknown"></span>
 		{% endif %}
-	</td>
-	<td class="third-collumn-wi">
-		{% if roxy_tools_status['roxy-wi-checker'] in ('active', 'RUNNING') %}
-			<span class="serverUp server-status-small" title="Checker master {{lang.words.started}}"></span>
-			{% if role <= 1 %}
-			<a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.view|title()}} {{lang.words.logs2}}" class="logs_link">
-				Checker master
-			</a>
-			{% else %}
-				Checker master
-			{% endif %}
+		{% if role <= 1 %}<a href="{{ url_for('admin.admin') }}#tools" class="logs_link">{{ name }}</a>{% else %}<b>{{ name }}</b>{% endif %}
+		<span class="services-overview-version">v{{ service.2.get('current_version', '—') }}</span>
+	</div>
+	<div class="services-overview-meta">
+		{% if distributed %}
+		{{ metadata.get('instances', 0) }} workers · {{ service.3.get('assignments', 0) }} {{ 'connections' if service.0 == 'roxy-wi-socket' else 'assignments' }}
 		{% else %}
-			{% if roxy_tools_status['roxy-wi-checker'] in ('inactive', 'failed', 'ERROR') %}
-				<span class="serverDown server-status-small" title="Checker {{lang.words.stopped}}"></span>
-				{% if role <= 1 %}
-					<a href="{{ url_for('admin.admin') }}#services" title="{{lang.words.start|title()}} Checker" class="logs_link">
-						Checker master
-					</a>
-				{% else %}
-					Checker master
-				{% endif %}
-			{% else %}
-				<span class="serverNone server-status-small" title="{{lang.phrases.checker_not_installed}}"></span>
-				<a href="https://roxy-wi.org/tools/checker#installation" title="Checker installation" target="_blank" class="logs_link">
-					Checker master
-				</a>
-			{% endif %}
+		{{ metadata.get('instances', 0) }} instances{% if metadata.get('heartbeat_age_seconds') is not none %} · {{ metadata.get('heartbeat_age_seconds') }}s ago{% endif %}
 		{% endif %}
-	</td>
-	<td class="third-collumn-wi">
-		{% if roxy_tools_status['roxy-wi-keep_alive'] in ('active', 'RUNNING') %}
-			<span class="serverUp server-status-small" title="Auto start {{lang.words.started}}"></span>
-			{% if role <= 1 %}
-				<a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.view|title()}} {{lang.words.logs2}}" class="logs_link">
-					Auto start
-				</a>
-			{% else %}
-				Auto star
-			{% endif %}
-		{% else %}
-			{% if roxy_tools_status['roxy-wi-keep_alive'] in ('inactive', 'failed', 'ERROR') %}
-				<span class="serverDown server-status-small" title="Auto start {{lang.words.stopped}}"></span>
-				{% if role <= 1 %}
-					<a href="{{ url_for('admin.admin') }}#services" title="{{lang.words.start|title()}} Auto star {{lang.words.service}}" class="logs_link">
-						Auto start
-					</a>
-				{% else %}
-					Auto start
-				{% endif %}
-			{% else %}
-				<span class="serverNone server-status-small" title="{{lang.phrases.auto_start_not_installed}}"></span>
-				<a href="https://roxy-wi.org/tools/auto_start#installation" title="Auto start installation" target="_blank" class="logs_link">
-					Auto start
-				</a>
-			{% endif %}
-		{% endif %}
-	</td>
-</tr>
-<tr class="even">
-	<td class="padding10 first-collumn-wi">
-	{% set metrics_state = worker_states.get('metrics', {}) %}
-	{% if metrics_worker|int() >= 1 %}
-		<span class="serverUp server-status-small" title="{{lang.words.running2|title()}} {{metrics_worker}} {{lang.words.worker2}} {{lang.words.processes}}{% if metrics_state %}; assignments: {{ metrics_state.get('assignments', 0) }}; degraded: {{ metrics_state.get('degraded', 0) }}; stale: {{ metrics_state.get('stale', 0) }}{% endif %}"></span>
-	{% else %}
-		{% if metrics_state and metrics_state.get('stale', 0)|int() > 0 %}
-		<span class="serverDown server-status-small" title="Metrics workers are stale: {{ metrics_state.get('stale', 0) }}"></span>
-		{% elif is_metrics_worker|int() == 0 %}
-		<span class="serverNone server-status-small" title="There is not job for metrics"></span>
-		{% else %}
-		<span class="serverDown server-status-small" title="{{lang.words.running2|title()}} {{is_checker_worker}} {{lang.words.worker2}} {{lang.words.processes}}"></span>
-		{% endif %}
-	{% endif %}
-	{% if role <= 1 %}
-		<a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.view|title()}} {{lang.words.logs2}}" class="logs_link">
-			Metrics workers
-		</a>
-	{% else %}
-		Metrics workers
-	{% endif %}
-	</td>
-	<td>
-	{% set checker_state = worker_states.get('checker', {}) %}
-	{% if checker_worker|int() >= 1 %}
-		<span class="serverUp server-status-small" title="{{lang.words.running2|title()}} {{ checker_worker }} {{lang.words.worker2}} {{lang.words.processes}}{% if checker_state %}; assignments: {{ checker_state.get('assignments', 0) }}; degraded: {{ checker_state.get('degraded', 0) }}; stale: {{ checker_state.get('stale', 0) }}{% endif %}"></span>
-	{% else %}
-		{% if checker_state and checker_state.get('stale', 0)|int() > 0 %}
-		<span class="serverDown server-status-small" title="Checker workers are stale: {{ checker_state.get('stale', 0) }}"></span>
-		{% elif is_checker_worker|int() == 0 %}
-		<span class="serverNone server-status-small" title="There is not job for checker"></span>
-		{% else %}
-		<span class="serverDown server-status-small" title="{{lang.words.running2|title()}} {{ checker_worker }} {{lang.words.worker2}} {{lang.words.processes}}"></span>
-		{% endif %}
-	{% endif %}
-	{% if role <= 1 %}
-		<a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.view|title()}} {{lang.words.logs2}}" class="logs_link">
-			Checker workers
-		</a>
-	{% else %}
-			Checker workers
-	{% endif %}
-	</td>
-	<td>
-		{% if roxy_tools_status['roxy-wi-smon'] in ('active', 'RUNNING') %}
-			<span class="serverUp server-status-small" title="SMON {{lang.words.started}}"></span>
-			<a href="{{ url_for('smon.smon_main_dashboard') }}" title="SMON Dashboard" class="logs_link">
-				SMON
-			</a>
-		{% else %}
-			{% if roxy_tools_status['roxy-wi-smon'] in ('inactive', 'failed', 'ERROR') %}
-				<span class="serverDown server-status-small" title="SMON {{lang.words.stopped}}"></span>
-				<a href="{{ url_for('admin.admin') }}#services" title="{{lang.words.start|title()}} SMON" class="logs_link">
-					SMON
-				</a>
-			{% else %}
-				<span title="SMON is not installed"><span class="serverNone server-status-small"></span></span>
-				<a href="https://roxy-wi.org/tools/smon" title="Simple monitoring ports installation" target="_blank" class="logs_link">
-					SMON
-				</a>
-			{% endif %}
-		{% endif %}
-	</td>
-</tr>
-<tr class="odd">
-	<td class="padding10 first-collumn-wi">
-		{% set socket_state = worker_states.get('socket', {}) %}
-		{% if roxy_tools_status['roxy-wi-socket'] in ('active', 'RUNNING') %}
-			<span class="serverUp server-status-small" title="Socket {{lang.words.started}}{% if socket_state %}; workers: {{ socket_state.get('active', 0) }}; connections: {{ socket_state.get('assignments', 0) }}; degraded: {{ socket_state.get('degraded', 0) }}; stale: {{ socket_state.get('stale', 0) }}{% endif %}"></span>
-			{% if socket_state and socket_state.get('stale', 0)|int() > 0 %}
-			<span class="serverDown server-status-small" title="Socket workers are stale: {{ socket_state.get('stale', 0) }}"></span>
-			{% endif %}
-			{% if role <= 1 %}
-				<a href="{{ url_for('logs.logs_internal') }}" title="{{lang.words.view|title()}} {{lang.words.logs2}}" class="logs_link">
-					Socket service
-				</a>
-			{% else %}
-					Socket service
-			{% endif %}
-		{% else %}
-			{% if roxy_tools_status['roxy-wi-socket'] in ('inactive', 'failed', 'ERROR') %}
-				<span class="serverDown server-status-small" title="Socket {{lang.words.stopped}}"></span>
-				<a href="{{ url_for('admin.admin') }}#services" title="{{lang.words.start|title()}} Socket" class="logs_link">
-					Socket service
-				</a>
-			{% else %}
-				<span title="Socket service is not installed"><span class="serverNone server-status-small"></span></span>
-				<a href="https://roxy-wi.org/tools/socket" title="Socket service" target="_blank" class="logs_link">
-					Socket service
-				</a>
-			{% endif %}
-		{% endif %}
-	</td>
-	<td>
-	{% set portscanner_state = worker_states.get('portscanner', {}) %}
-	{% if roxy_tools_status['roxy-wi-portscanner'] in ('active', 'RUNNING') %}
-			<span class="serverUp server-status-small" title="Port scanner {{lang.words.started}}{% if portscanner_state %}; workers: {{ portscanner_state.get('active', 0) }}; assignments: {{ portscanner_state.get('assignments', 0) }}; degraded: {{ portscanner_state.get('degraded', 0) }}; stale: {{ portscanner_state.get('stale', 0) }}{% endif %}"></span>
-			<a href="{{ url_for('portscanner.portscanner') }}" title="Port scanner Dashboard" class="logs_link">
-				Port scanner
-			</a>
-		{% else %}
-			{% if roxy_tools_status['roxy-wi-portscanner'] in ('inactive', 'failed', 'ERROR', 'degraded', 'stale', 'stopped') %}
-				<span class="serverDown server-status-small" title="Port scanner {{lang.words.stopped}}"></span>
-				<a href="{{ url_for('admin.admin') }}#services" title="{{lang.words.start|title()}} Port scanner" class="logs_link">
-					Port scanner
-				</a>
-			{% else %}
-				<span title="Port scanner is not installed"><span class="serverNone server-status-small"></span></span>
-				<a href="https://roxy-wi.org/tools/port_scanner" title="Port scanner" target="_blank" class="logs_link">
-					Port scanner
-				</a>
-			{% endif %}
-		{% endif %}
+		{% if metadata.get('stale', 0) %} · {{ metadata.get('stale') }} stale{% endif %}
+	</div>
+</div>
+{% endmacro %}
+
+<tr>
+	<td colspan="3" class="services-overview-content">
+		<div class="services-overview-title">Roxy-WI</div>
+		<div class="services-overview-grid">
+			{% for service in internal_services %}{{ service_card(service) }}{% endfor %}
+		</div>
+		<div class="services-overview-title">Distributed services</div>
+		<div class="services-overview-grid">
+			{% for service in distributed_services %}{{ service_card(service, true) }}{% endfor %}
+		</div>
 	</td>
 </tr>

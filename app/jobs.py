@@ -74,6 +74,8 @@ def delete_old_logs():
 
 @scheduler.task('interval', id='update_owner_on_log', hours=12, misfire_grace_time=None)
 def update_owner_on_log():
+    if get_config.get_config_var('main', 'deployment_mode', 'package').lower() != 'package':
+        return
     log_path = get_config.get_config_var('main', 'log_path')
     try:
         common.set_correct_owner(log_path)
@@ -170,6 +172,22 @@ def run_service_command_outbox():
 
 @scheduler.task(
     'interval',
+    id='operation_outbox',
+    seconds=5,
+    max_instances=1,
+    coalesce=True,
+    misfire_grace_time=30,
+)
+def run_operation_outbox():
+    """Publish durable SSH/Ansible operations for package and container workers."""
+    def run():
+        from app.modules.operations.queue import publish_pending_operations
+        return publish_pending_operations()
+    return _run_database_job(run)
+
+
+@scheduler.task(
+    'interval',
     id='service_assignment_reconciliation',
     minutes=1,
     max_instances=1,
@@ -229,8 +247,10 @@ def run_change_center_drift_detection():
 
 @scheduler.task('interval', id='delete_ansible_artifacts', hours=24, misfire_grace_time=None)
 def delete_ansible_artifacts():
-    full_path = get_config.get_config_var('main', 'fullpath')
-    ansible_path = f'{full_path}/app/scripts/ansible'
+    lib_path = get_config.get_config_var('main', 'lib_path')
+    ansible_path = get_config.get_config_var(
+        'ansible', 'private_data_dir', f'{lib_path}/ansible'
+    )
     folders = ['artifacts', 'env']
 
     for folder in folders:

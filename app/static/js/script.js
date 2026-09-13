@@ -1598,7 +1598,9 @@ function checkInstallationStatus(taskId) {
 				toastr.success('Installation completed for ' + data.service_name);
 				removeItemFromSessionStorage(taskId);
 			} else if (data.status === 'failed') {
-				toastr.error('Cannot install ' + data.service_name + '. Error: ' + data.error);
+				const serviceName = escapeHtml(String(data.service_name || 'service'));
+				const operationError = escapeHtml(String(data.error || 'Unknown operations worker error'));
+				toastr.error('Cannot install ' + serviceName + '. Error: ' + operationError);
 				removeItemFromSessionStorage(taskId);
 			}
 		}

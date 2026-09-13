@@ -8,7 +8,6 @@ from pydantic import IPvAnyAddress
 from app.routes.install import bp
 from app.middleware import get_user_params
 import app.modules.db.sql as sql
-import app.modules.db.waf as waf_sql
 import app.modules.common.common as common
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
@@ -83,31 +82,28 @@ def get_exporter_version(exporter: str, server_ip: Union[IPvAnyAddress, DomainNa
 def install_waf(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
     server_ip = str(server_ip)
     roxywi_common.check_is_server_in_group(server_ip)
+    if service not in ('haproxy', 'nginx'):
+        return jsonify({'status': 'failed', 'error': 'Wrong service'})
     try:
         inv, server_ips = service_mod.generate_waf_inv(server_ip, service)
     except Exception as e:
         return jsonify({'status': 'failed', 'error': f'Cannot create inventory: {e}'})
     try:
-        ansible_status = service_mod.run_ansible(inv, server_ips, f'waf_{service}'), 201
+        task_id = service_mod.run_ansible_thread(
+            inv,
+            server_ips,
+            f'waf_{service}',
+            f'{service.title()} WAF',
+            success_action={
+                'type': 'waf-installed',
+                'server_ip': server_ip,
+                'service': service,
+            },
+        )
     except Exception as e:
         return jsonify({'status': 'failed', 'error': f'Cannot install WAF: {e}'})
 
-    if service == 'haproxy':
-        try:
-            waf_sql.insert_waf_metrics_enable(server_ip, "0")
-            waf_sql.insert_waf_rules(server_ip)
-        except Exception as e:
-            return jsonify({'status': 'failed', 'error': f'Cannot enable WAF: {e}'})
-    elif service == 'nginx':
-        try:
-            waf_sql.insert_nginx_waf_rules(server_ip)
-            waf_sql.insert_waf_nginx_server(server_ip)
-        except Exception as e:
-            return jsonify({'status': 'failed', 'error': f'Cannot enable WAF: {e}'})
-    else:
-        return jsonify({'status': 'failed', 'error': 'Wrong service'})
-
-    return ansible_status
+    return jsonify({'status': 'accepted', 'tasks_ids': [task_id]}), 202
 
 
 @bp.post('/geoip')
@@ -120,7 +116,10 @@ def install_geoip():
 
     try:
         inv, server_ips = service_mod.generate_geoip_inv(server_ip, service, geoip_update)
-        return service_mod.run_ansible(inv, server_ips, f'{service}_geoip'), 201
+        task_id = service_mod.run_ansible_thread(
+            inv, server_ips, f'{service}_geoip', f'{service.title()} GeoIP'
+        )
+        return jsonify({'status': 'accepted', 'tasks_ids': [task_id]}), 202
     except Exception as e:
         return jsonify({'status': 'failed', 'error': f'Cannot install GeoIP: {e}'})
 

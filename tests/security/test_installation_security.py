@@ -51,9 +51,8 @@ def test_installation_authorizes_every_server_from_request_body(app, monkeypatch
 
 
 @pytest.mark.security
-def test_service_is_activated_only_from_success_callback(app, monkeypatch):
+def test_service_activation_is_serialized_for_the_operations_worker(app, monkeypatch):
     captured = {}
-    activated = []
 
     monkeypatch.setattr(
         installation.server_sql,
@@ -65,14 +64,8 @@ def test_service_is_activated_only_from_success_callback(app, monkeypatch):
         'generate_haproxy_inv',
         lambda json_data, service: ({'server': {'hosts': {'192.0.2.10': {}}}}, ['192.0.2.10']),
     )
-    monkeypatch.setattr(
-        installation,
-        'service_actions_after_install',
-        lambda server_ips, service, json_data: activated.append((server_ips, service)),
-    )
-
-    def start_task(inv, server_ips, ansible_role, service_name, on_success=None):
-        captured['on_success'] = on_success
+    def start_task(inv, server_ips, ansible_role, service_name, success_action=None):
+        captured['success_action'] = success_action
         return 123
 
     monkeypatch.setattr(installation, 'run_ansible_thread', start_task)
@@ -81,9 +74,9 @@ def test_service_is_activated_only_from_success_callback(app, monkeypatch):
         g.user_params = {'group_id': 7, 'role': 2}
         assert installation.install_service('haproxy', _service_install(10)) == 123
 
-    assert activated == []
-    captured['on_success']()
-    assert activated == [(['192.0.2.10'], 'haproxy')]
+    assert captured['success_action']['type'] == 'service-installed'
+    assert captured['success_action']['server_ips'] == ['192.0.2.10']
+    assert captured['success_action']['service'] == 'haproxy'
 
 
 @pytest.mark.security
@@ -106,7 +99,8 @@ def test_failed_installation_task_is_not_overwritten_as_completed(monkeypatch):
         installation.run_installations({}, ['192.0.2.10'], 'haproxy', task.id, success_callback)
         stored_task = InstallationTasks.get_by_id(task.id)
         assert stored_task.status == 'failed'
-        assert 'Cannot install haproxy' in stored_task.error
+        assert stored_task.error == 'Installation failed (failed hosts: 192.0.2.10)'
+        assert 'Apache' not in stored_task.error
         assert callback_called is False
     finally:
         task.delete_instance()
@@ -176,6 +170,8 @@ def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_
             observed['path'] = inventory_path
             observed['data'] = json.loads(inventory_path.read_text(encoding='utf-8'))
             observed['mode'] = stat.S_IMODE(inventory_path.stat().st_mode)
+            observed['local_temp'] = kwargs['envvars']['ANSIBLE_LOCAL_TEMP']
+            observed['control_path'] = kwargs['envvars']['ANSIBLE_SSH_CONTROL_PATH_DIR']
             raise RuntimeError('runner failed')
 
     monkeypatch.setattr(installation, '_ansible_runner', lambda: FailingRunner)
@@ -189,9 +185,153 @@ def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_
         assert observed['mode'] == 0o600
         assert stat.S_IMODE(inventory_dir.stat().st_mode) == 0o700
     assert observed['path'].name.startswith('roxywi-inventory-')
+    assert observed['local_temp'] == str(private_data_dir / 'tmp')
+    assert observed['control_path'] == str(private_data_dir / 'cp')
     assert not observed['path'].exists()
     assert list(inventory_dir.iterdir()) == []
     assert stopped_agents == [{'pid': 100, 'socket': '/tmp/test-agent.sock'}]
+
+
+@pytest.mark.security
+def test_ansible_runner_failure_is_saved_as_a_specific_task_error(tmp_path, monkeypatch):
+    private_data_dir = tmp_path / 'ansible'
+    inventory_dir = private_data_dir / 'inventory'
+
+    monkeypatch.setattr(installation, 'ANSIBLE_PRIVATE_DATA_DIR', str(private_data_dir))
+    monkeypatch.setattr(installation, 'ANSIBLE_INVENTORY_DIR', str(inventory_dir))
+    monkeypatch.setattr(installation, '_install_ansible_collections', lambda: None)
+    monkeypatch.setattr(installation, '_install_ansible_roles', lambda role: None)
+    monkeypatch.setattr(installation.sql, 'get_setting', lambda setting: None)
+    monkeypatch.setattr(
+        installation,
+        'return_ssh_keys_path',
+        lambda server_ip: {
+            'enabled': False,
+            'key': '',
+            'password': 'temporary-secret',
+            'user': 'deploy',
+            'port': 22,
+        },
+    )
+    monkeypatch.setattr(
+        installation.server_mod,
+        'start_ssh_agent',
+        lambda: {'pid': 100, 'socket': '/tmp/test-agent.sock'},
+    )
+    monkeypatch.setattr(installation.server_mod, 'stop_ssh_agent', lambda agent: None)
+
+    class FailedResult:
+        rc = 2
+        status = 'failed'
+        stats = {'failures': {'192.0.2.10': 1}, 'dark': {}}
+
+    class FailedRunner:
+        @staticmethod
+        def run(**kwargs):
+            kwargs['event_handler']({
+                'event': 'runner_on_failed',
+                'event_data': {
+                    'host': '192.0.2.10',
+                    'task': 'Install HAProxy package',
+                    'res': {'msg': 'No package matching haproxy is available'},
+                },
+            })
+            return FailedResult()
+
+    monkeypatch.setattr(installation, '_ansible_runner', lambda: FailedRunner)
+    inventory = {'server': {'hosts': {'192.0.2.10': {'DOCKER': False}}}}
+
+    with pytest.raises(RuntimeError) as error:
+        installation.run_ansible(inventory, ['192.0.2.10'], 'haproxy')
+
+    message = str(error.value)
+    assert message == 'No package matching haproxy is available'
+    assert 'Apache' not in message
+
+
+@pytest.mark.security
+def test_ansible_internal_error_returns_only_the_useful_message():
+    failures = []
+    output_lines = []
+    installation._capture_ansible_failure(
+        failures,
+        output_lines,
+        {
+            'event': 'verbose',
+            'stdout': "ERROR! Unexpected Exception: [Errno 30] Read-only file system: '/usr/share/httpd/.ansible/tmp'",
+        },
+    )
+
+    assert installation._ansible_runner_error(failures, output_lines) == (
+        "[Errno 30] Read-only file system: '/usr/share/httpd/.ansible/tmp'"
+    )
+
+
+@pytest.mark.security
+def test_ansible_uses_writable_runtime_temp_directory(tmp_path, monkeypatch):
+    temp_directory = tmp_path / 'ansible' / 'tmp'
+    control_path_directory = tmp_path / 'ansible' / 'cp'
+    monkeypatch.setattr(installation, 'ANSIBLE_PRIVATE_DATA_DIR', str(tmp_path / 'ansible'))
+
+    runtime_environment = installation._prepare_ansible_runtime_dirs()
+
+    assert runtime_environment == {
+        'ANSIBLE_LOCAL_TEMP': str(temp_directory),
+        'ANSIBLE_SSH_CONTROL_PATH_DIR': str(control_path_directory),
+    }
+    assert temp_directory.is_dir()
+    assert control_path_directory.is_dir()
+    if os.name == 'posix':
+        assert stat.S_IMODE(temp_directory.stat().st_mode) == 0o700
+        assert stat.S_IMODE(control_path_directory.stat().st_mode) == 0o700
+
+
+@pytest.mark.security
+def test_galaxy_role_is_downloaded_to_persistent_runtime_directory(tmp_path, monkeypatch):
+    private_data_dir = tmp_path / 'ansible'
+    roles_dir = private_data_dir / 'roles'
+    commands = []
+
+    monkeypatch.setattr(installation, 'ANSIBLE_PRIVATE_DATA_DIR', str(private_data_dir))
+    monkeypatch.setattr(installation, 'ANSIBLE_ROLES_DIR', str(roles_dir))
+    monkeypatch.setattr(installation, 'ANSIBLE_ROLE_SEARCH_PATHS', (str(roles_dir),))
+    monkeypatch.setattr(installation, '_galaxy_environment', lambda: {'TEST': '1'})
+    monkeypatch.setattr(
+        installation.subprocess,
+        'run',
+        lambda command, **kwargs: commands.append((command, kwargs)) or SimpleNamespace(returncode=0),
+    )
+
+    installation._install_ansible_roles('nginx')
+
+    assert roles_dir.is_dir()
+    assert commands == [(
+        [
+            'ansible-galaxy', 'role', 'install', 'nginxinc.nginx,0.24.3', '-f',
+            '--roles-path', str(roles_dir),
+        ],
+        {'env': {'TEST': '1'}, 'check': False},
+    )]
+
+
+@pytest.mark.security
+def test_galaxy_dependencies_can_be_found_in_read_only_fallbacks(tmp_path, monkeypatch):
+    bundled_roles = tmp_path / 'bundled-roles'
+    bundled_collections = tmp_path / 'bundled-collections'
+    (bundled_roles / 'nginxinc.nginx').mkdir(parents=True)
+    (bundled_collections / 'ansible_collections' / 'community' / 'general').mkdir(parents=True)
+
+    monkeypatch.setattr(installation, 'ANSIBLE_ROLE_SEARCH_PATHS', (str(bundled_roles),))
+    monkeypatch.setattr(installation, 'ANSIBLE_COLLECTION_SEARCH_PATHS', (str(bundled_collections),))
+    monkeypatch.setattr(
+        installation.subprocess,
+        'run',
+        lambda *_args, **_kwargs: pytest.fail('ansible-galaxy should not be called'),
+    )
+
+    assert installation._role_is_installed('nginxinc.nginx') is True
+    assert installation._collection_is_installed('community.general') is True
+    installation._install_ansible_roles('nginx')
 
 
 @pytest.mark.security

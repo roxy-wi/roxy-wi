@@ -2,6 +2,7 @@ from flask import Flask
 from flask_caching import Cache
 from flask_jwt_extended import JWTManager
 from flask_apscheduler import APScheduler
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from app.modules.common.common import set_correct_owner
 from app.modules.roxywi import logger
@@ -9,6 +10,15 @@ from app.modules.common.lock_utils import acquire_file_lock
 
 app = Flask(__name__)
 app.config.from_object('app.config.Configuration')
+if app.config['PROXY_FIX_ENABLED']:
+    app.wsgi_app = ProxyFix(
+        app.wsgi_app,
+        x_for=app.config['PROXY_FIX_X_FOR'],
+        x_proto=app.config['PROXY_FIX_X_PROTO'],
+        x_host=app.config['PROXY_FIX_X_HOST'],
+        x_port=app.config['PROXY_FIX_X_PORT'],
+        x_prefix=app.config['PROXY_FIX_X_PREFIX'],
+    )
 app.jinja_env.add_extension('jinja2.ext.do')
 app.jinja_env.add_extension('jinja2.ext.loopcontrols')
 
@@ -17,7 +27,8 @@ logger.setup_logger(
     log_path=app.config.get('LOG_PATH', '/var/log/roxy-wi'),
     log_file=app.config.get('LOG_FILE', 'roxy-wi.log'),
     log_level=app.config.get('LOG_LEVEL', logger.INFO),
-    console_logging=app.config.get('LOG_CONSOLE', False)
+    console_logging=app.config.get('LOG_CONSOLE', False),
+    file_logging=app.config.get('LOG_FILE_ENABLED', True),
 )
 logger.info("Roxy-WI application starting up")
 
@@ -29,9 +40,9 @@ scheduler.init_app(app)
 
 jwt = JWTManager(app)
 
-from app.modules.db.db_model import create_tables, close_database_connection
+from app.modules.db.db_model import BaseModel, create_tables, close_database_connection
 from app.create_db import default_values
-from app.modules.db.migration_manager import migrate
+from app.modules.db.migration_manager import mark_all_migrations_applied, migrate
 from app.modules.db import token as token_sql
 
 
@@ -44,15 +55,33 @@ def close_request_database_connection(_exception=None):
 def is_token_revoked(_jwt_header, jwt_payload):
     return token_sql.is_token_revoked(jwt_payload['jti'])
 
-if app.config['TESTING']:
-    create_tables()
-    default_values()
-elif app.config['AUTO_MIGRATE'] and not acquire_file_lock():
-    create_tables()
-    default_values()
-    migrate()
+def initialize_database() -> None:
+    """Create bootstrap data and apply migrations from a single process."""
+    database = BaseModel._meta.database
+    with database.connection_context():
+        existing_tables = set(database.get_tables())
+    fresh_database = not existing_tables.intersection({'user', 'servers', 'settings'})
+    if fresh_database:
+        create_tables()
+        default_values()
+        # create_tables() builds the current schema. Replaying historical
+        # ALTER migrations on that schema would corrupt a fresh installation.
+        mark_all_migrations_applied()
+    else:
+        # Existing installations may not yet have columns referenced by new
+        # model indexes. Apply migrations before Peewee synchronizes indexes.
+        if not migrate():
+            raise RuntimeError('Database migration failed')
+        create_tables()
+        default_values()
 
-if not app.config['TESTING']:
+
+if app.config['TESTING']:
+    initialize_database()
+elif app.config['AUTO_MIGRATE'] and not acquire_file_lock():
+    initialize_database()
+
+if not app.config['TESTING'] and app.config['DEPLOYMENT_MODE'] == 'package':
     set_correct_owner('/var/lib/roxy-wi')
 
 from app.routes.main import bp as main_bp
@@ -66,6 +95,7 @@ from app.routes.smon import bp as smon_bp
 from app.api.routes import bp as api_bp
 from app.routes.oidc import bp as oidc_bp
 from app.routes.change import bp as change_bp
+from app.routes.health import bp as health_bp
 
 app.register_blueprint(main_bp)
 app.register_blueprint(overview_bp)
@@ -78,6 +108,7 @@ app.register_blueprint(smon_bp, url_prefix='/smon')
 app.register_blueprint(api_bp, url_prefix='/api')
 app.register_blueprint(oidc_bp, url_prefix='/oidc')
 app.register_blueprint(change_bp, url_prefix='/changes')
+app.register_blueprint(health_bp)
 
 if app.config['TESTING']:
     # Register security-sensitive legacy blueprints in unit tests as well.
@@ -127,3 +158,7 @@ if not app.config['TESTING']:
 # Register error handlers
 from app.modules.roxywi.error_handler import register_error_handlers
 register_error_handlers(app)
+
+if not app.config['TESTING']:
+    from app.modules.process_heartbeat import start_configured_process_heartbeat
+    start_configured_process_heartbeat()

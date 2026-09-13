@@ -143,6 +143,13 @@ def test_tools_template_renders_worker_health_and_version_before_actions(app):
             'stopped': 0,
             'assignments': 14,
         },
+        {
+            'category': 'distributed',
+            'management': 'Worker deployment',
+            'can_lifecycle': False,
+            'instances': 1,
+            'stale': 0,
+        },
     ]
 
     with app.test_request_context('/admin/tools'):
@@ -150,6 +157,8 @@ def test_tools_template_renders_worker_health_and_version_before_actions(app):
 
     assert 'serverWarn server-status' in html
     assert 'workers: active 1; degraded 1' in html
+    assert 'Distributed services' in html
+    assert 'Worker deployment' in html
     assert html.index('admin-version-cell') < html.index('admin-actions-cell')
 
     admin_template = Path('app/templates/admin.html').read_text(encoding='utf-8')
@@ -163,9 +172,71 @@ def test_tools_template_labels_socket_activity_as_connections(app):
         'active',
         {'current_version': '2.0.0', 'new_version': '2.0.0'},
         {'active': 2, 'assignments': 4},
+        {
+            'category': 'distributed',
+            'management': 'Worker deployment',
+            'can_lifecycle': False,
+            'instances': 2,
+            'stale': 0,
+        },
     ]
 
     with app.test_request_context('/admin/tools'):
         html = render_template('ajax/load_services.html', services=[service], lang='en')
 
     assert 'workers: 2; connections: 4' in html
+
+
+def test_internal_process_uses_shared_heartbeat_and_application_version(monkeypatch):
+    monkeypatch.setattr(
+        tools_common.roxy_sql,
+        'get_all_tools',
+        lambda: {
+            'roxy-wi-scheduler': {
+                'current_version': 'old',
+                'new_version': 'old',
+                'desc': '',
+            },
+        },
+    )
+    monkeypatch.setattr(tools_common.roxywi_mod, 'deployment_mode', lambda: 'kubernetes')
+    monkeypatch.setattr(tools_common, 'is_tool_active', lambda _tool: 'unknown')
+
+    services = tools_common.get_services_status(worker_states={
+        'roxy-wi-scheduler': {
+            'active': 2,
+            'degraded': 0,
+            'stale': 1,
+            'draining': 0,
+            'stopped': 0,
+            'assignments': 0,
+            'versions': ['9.0.0'],
+        },
+    })
+
+    scheduler = services[0]
+    assert scheduler[1] == 'active'
+    assert scheduler[2]['current_version'] == '9.0.0'
+    assert scheduler[4] == {
+        'category': 'internal',
+        'management': 'Kubernetes',
+        'can_lifecycle': False,
+        'instances': 2,
+        'stale': 0,
+        'last_heartbeat': None,
+        'heartbeat_age_seconds': None,
+        'deployment_mode': 'kubernetes',
+    }
+
+
+def test_package_internal_process_exposes_systemd_actions_but_web_does_not(monkeypatch):
+    monkeypatch.setattr(tools_common.roxywi_mod, 'deployment_mode', lambda: 'package')
+
+    scheduler = tools_common._management_metadata('roxy-wi-scheduler', 'active', {'active': 1})
+    web = tools_common._management_metadata('roxy-wi-web', 'active', {'active': 1})
+
+    assert scheduler['management'] == 'systemd'
+    assert scheduler['can_lifecycle'] is True
+    assert scheduler['last_heartbeat'] is None
+    assert web['management'] == 'systemd'
+    assert web['can_lifecycle'] is False

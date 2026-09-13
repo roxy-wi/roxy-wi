@@ -5,6 +5,7 @@ from pathlib import Path
 
 from app.modules.db.db_model import connect, Setting, Role, User, UserGroups, Groups, Services, RoxyTool, GeoipCodes
 from app.modules.roxy_wi_tools import GetConfigVar, Tools
+from app.version import get_service_version
 
 
 conn = connect()
@@ -464,7 +465,12 @@ def default_values():
 	except Exception as e:
 		print(str(e))
 
+	service_version = get_service_version()
 	data_source = [
+		{'name': 'roxy-wi-web', 'current_version': service_version, 'new_version': service_version, 'is_roxy': 0, 'desc': 'Roxy-WI web application'},
+		{'name': 'roxy-wi-scheduler', 'current_version': service_version, 'new_version': service_version, 'is_roxy': 0, 'desc': 'Runs scheduled Roxy-WI jobs'},
+		{'name': 'roxy-wi-service-events', 'current_version': service_version, 'new_version': service_version, 'is_roxy': 0, 'desc': 'Consumes service events and worker heartbeats from RabbitMQ'},
+		{'name': 'roxy-wi-operations', 'current_version': service_version, 'new_version': service_version, 'is_roxy': 0, 'desc': 'Executes durable installation and Ansible operations'},
 		{'name': 'roxy-wi-metrics', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
 		{'name': 'roxy-wi-checker', 'current_version': '5.0.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},
 		{'name': 'roxy-wi-keep_alive', 'current_version': '1.0', 'new_version': '0', 'is_roxy': 1, 'desc': ''},

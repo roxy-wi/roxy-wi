@@ -113,7 +113,7 @@
 
 - name: Disable SELINUX in config
   template:
-    src: /var/www/haproxy-wi/app/scripts/ansible/roles/haproxy/templates/selinux.j2
+    src: "{{ playbook_dir }}/haproxy/templates/selinux.j2"
     dest: /etc/selinux/config
   ignore_errors: yes
   when:

@@ -47,27 +47,31 @@ def agent():
         server = server_sql.get_server(int(data.get('server_id')))
         roxywi_common.require_active_group_access(server.group_id)
         try:
-            last_id = _smon_agent().add_agent(data)
-            return str(last_id)
+            last_id, task_id = _smon_agent().add_agent(data)
+            return jsonify({
+                'status': 'accepted', 'id': last_id, 'tasks_ids': [task_id]
+            }), 202
         except Exception as e:
             return f'{e}'
     elif request.method == "PUT":
         json_data = request.get_json()
         _require_agent_access(int(json_data.get('agent_id')))
         try:
-            _smon_agent().update_agent(json_data)
+            task_id = _smon_agent().update_agent(json_data)
         except Exception as e:
             return f'{e}'
+        if task_id is not None:
+            return jsonify({'status': 'accepted', 'tasks_ids': [task_id]}), 202
         return 'ok', 201
     elif request.method == 'DELETE':
         agent_id = int(request.form.get('agent_id'))
         _require_agent_access(agent_id)
         try:
-            _smon_agent().delete_agent(agent_id)
+            task_id = _smon_agent().delete_agent(agent_id)
             smon_sql.delete_agent(agent_id)
         except Exception as e:
             return f'{e}'
-        return 'ok'
+        return jsonify({'status': 'accepted', 'tasks_ids': [task_id]}), 202
 
 
 @bp.post('/agent/hello')

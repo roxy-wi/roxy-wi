@@ -777,16 +777,19 @@ function addAgent(dialog_id, agent_id=0, edit=false, reconfigure=false) {
 			data: JSON.stringify(agent_data),
 			contentType: "application/json; charset=utf-8",
 			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-					toastr.error(data);
+				let response = typeof data === 'string' ? data.replace(/\s+/g, ' ') : data;
+				if (typeof response === 'string' && (response.indexOf('error:') != '-1' || response.indexOf('unique') != '-1')) {
+					toastr.error(response);
 				} else {
 					toastr.clear();
 					$(dialog_id).dialog("close");
+					if (response.tasks_ids) {
+						runInstallationTaskCheck(response.tasks_ids);
+					}
 					if (edit) {
 						getAgent(agent_id, false);
 					} else {
-						getAgent(data, new_agent = true);
+						getAgent(response.id, new_agent = true);
 					}
 				}
 			}
@@ -957,14 +960,17 @@ function confirmDeleteAgent(id) {
 function removeAgent(id, dialog_id) {
 	$.ajax({
         url: "/smon/agent",
-        type: "delete",
-        data: {agent_id: id},
-        success: function (data){
-            data = data.replace(/\s+/g, ' ');
-            if (data.indexOf('error:') != '-1' || data.indexOf('unique') != '-1') {
-                toastr.error(data);
-            } else {
-                toastr.clear();
+		type: "delete",
+		data: {agent_id: id},
+		success: function (data){
+			let response = typeof data === 'string' ? data.replace(/\s+/g, ' ') : data;
+			if (typeof response === 'string' && (response.indexOf('error:') != '-1' || response.indexOf('unique') != '-1')) {
+				toastr.error(response);
+			} else {
+				toastr.clear();
+				if (response.tasks_ids) {
+					runInstallationTaskCheck(response.tasks_ids);
+				}
                 $(dialog_id).dialog("close");
 				$('#agent-'+id).remove();
             }

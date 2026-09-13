@@ -229,6 +229,33 @@ def test_global_socket_worker_is_visible_without_a_connected_group():
         WorkerState.delete().where(WorkerState.worker_id == payload['worker_id']).execute()
 
 
+def test_internal_roxy_process_is_visible_to_every_group():
+    now = datetime.now(timezone.utc)
+    worker_id = f'roxy-wi-scheduler-{uuid4()}'
+    try:
+        event_sql.record_worker_heartbeat({
+            'worker_id': worker_id,
+            'service': 'roxy-wi-scheduler',
+            'instance_id': 'scheduler-1',
+            'status': 'running',
+            'hostname': 'scheduler-1',
+            'version': '9.0.0',
+            'started_at': now - timedelta(minutes=1),
+            'heartbeat_at': now,
+            'expires_at': now + timedelta(seconds=75),
+            'active_assignments': 0,
+            'group_ids': [],
+            'metadata': {'kind': 'roxy-wi-process'},
+        })
+
+        summary = event_sql.worker_summary(group_id=9877)['roxy-wi-scheduler']
+        assert summary['active'] == 1
+        assert summary['versions'] == ['9.0.0']
+        assert summary['last_heartbeat'] is not None
+    finally:
+        WorkerState.delete().where(WorkerState.worker_id == worker_id).execute()
+
+
 def test_status_event_is_persisted_in_user_history_exactly_once():
     payload = status_event()
     result = process_event(payload)
@@ -554,59 +581,52 @@ def test_event_contract_rejects_cross_service_heartbeat():
 
 
 def test_overview_worker_status_renders_distributed_counts(app):
+    internal_services = [[
+        'roxy-wi-scheduler',
+        'active',
+        {'current_version': '9.0.0', 'new_version': '9.0.0'},
+        {'active': 1, 'assignments': 0},
+        {'category': 'internal', 'instances': 1, 'stale': 0},
+    ]]
+    distributed_services = [
+        [
+            'roxy-wi-checker',
+            'degraded',
+            {'current_version': '5.0.0', 'new_version': '5.0.0'},
+            {'active': 2, 'degraded': 1, 'stale': 1, 'assignments': 7},
+            {'category': 'distributed', 'instances': 2, 'stale': 1},
+        ],
+        [
+            'roxy-wi-metrics',
+            'stale',
+            {'current_version': '4.0.0', 'new_version': '4.0.0'},
+            {'active': 0, 'degraded': 0, 'stale': 1, 'assignments': 0},
+            {'category': 'distributed', 'instances': 0, 'stale': 1},
+        ],
+        [
+            'roxy-wi-socket',
+            'degraded',
+            {'current_version': '2.0.0', 'new_version': '2.0.0'},
+            {'active': 2, 'degraded': 0, 'stale': 1, 'assignments': 4},
+            {'category': 'distributed', 'instances': 2, 'stale': 1},
+        ],
+    ]
     with app.test_request_context('/overview/services'):
         html = render_template(
             'ajax/show_services_ovw.html',
             role=1,
             lang='en',
             url_for=lambda endpoint, **_values: '/' + endpoint.replace('.', '/'),
-            roxy_tools_status={
-                'roxy-wi-metrics': 'active',
-                'roxy-wi-checker': 'active',
-                'roxy-wi-keep_alive': 'active',
-                'roxy-wi-smon': 'active',
-                'roxy-wi-socket': 'active',
-                'roxy-wi-portscanner': 'active',
-            },
-            metrics_worker=0,
-            checker_worker=2,
-            is_metrics_worker=0,
-            is_checker_worker=1,
-            worker_states={
-                'checker': {
-                    'active': 2,
-                    'degraded': 1,
-                    'stale': 1,
-                    'draining': 0,
-                    'stopped': 0,
-                    'assignments': 7,
-                    'total': 3,
-                },
-                'metrics': {
-                    'active': 0,
-                    'degraded': 0,
-                    'stale': 1,
-                    'draining': 0,
-                    'stopped': 0,
-                    'assignments': 0,
-                    'total': 1,
-                },
-                'socket': {
-                    'active': 2,
-                    'degraded': 0,
-                    'stale': 1,
-                    'draining': 0,
-                    'stopped': 0,
-                    'assignments': 4,
-                    'total': 3,
-                },
-            },
+            internal_services=internal_services,
+            distributed_services=distributed_services,
         )
 
-    assert 'assignments: 7; degraded: 1; stale: 1' in html
-    assert 'Metrics workers are stale: 1' in html
-    assert 'workers: 2; connections: 4; degraded: 0; stale: 1' in html
-    assert 'Socket workers are stale: 1' in html
+    assert '1 instances' in html
+    assert '2 workers · 7 assignments' in html
+    assert '0 workers · 0 assignments' in html
+    assert '2 workers · 4 connections' in html
+    assert html.count('1 stale') == 3
+    assert 'master' not in html.lower()
 
 
 class RecordingChannel:

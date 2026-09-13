@@ -111,8 +111,7 @@ $( function() {
 				if (data.status === 'failed') {
 					toastr.error(data.error);
 				} else {
-					parseAnsibleJsonOutput(data, service + ' GeoIP', '#geoip_service');
-					$("#geoip_service").trigger("selectmenuchange");
+					runInstallationTaskCheck(data.tasks_ids);
 				}
 			}
 		});

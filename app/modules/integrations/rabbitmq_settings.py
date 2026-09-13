@@ -20,7 +20,10 @@ class RabbitConnectionSettings:
     def load(cls) -> 'RabbitConnectionSettings':
         """Load the existing Roxy-WI RabbitMQ settings with optional container overrides."""
         def setting(env_name: str, db_name: str, default: str = '') -> str:
-            return os.environ.get(env_name) or str(sql.get_setting(db_name) or default)
+            if env_name in os.environ:
+                return os.environ[env_name]
+            database_value = sql.get_setting(db_name)
+            return str(database_value if database_value is not None else default)
 
         return cls(
             host=setting('ROXYWI_RABBITMQ_HOST', 'rabbitmq_host', '127.0.0.1'),

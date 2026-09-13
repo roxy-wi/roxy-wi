@@ -1,0 +1,81 @@
+{{- if .Values.scheduler.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "roxy-wi.fullname" . }}-scheduler
+  labels:
+    {{- include "roxy-wi.labels" . | nindent 4 }}
+    app.kubernetes.io/component: scheduler
+spec:
+  replicas: 1
+  strategy:
+    {{- toYaml .Values.scheduler.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "roxy-wi.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: scheduler
+  template:
+    metadata:
+      annotations:
+        {{- include "roxy-wi.configChecksum" . | nindent 8 }}
+        {{- include "roxy-wi.runtimeChecksum" . | nindent 8 }}
+        {{- with .Values.scheduler.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "roxy-wi.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: scheduler
+        {{- with .Values.scheduler.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      automountServiceAccountToken: false
+      serviceAccountName: {{ include "roxy-wi.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      initContainers:
+        {{- include "roxy-wi.waitForDatabase" . | nindent 8 }}
+      containers:
+        - name: scheduler
+          image: {{ include "roxy-wi.image" . }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["scheduler"]
+          env:
+            {{- include "roxy-wi.commonEnv" . | nindent 12 }}
+            {{- with .Values.scheduler.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- $envFrom := include "roxy-wi.commonEnvFrom" . }}
+          {{- if $envFrom }}
+          envFrom:
+            {{- $envFrom | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- with .Values.scheduler.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- include "roxy-wi.volumeMounts" . | nindent 12 }}
+      volumes:
+        {{- include "roxy-wi.volumes" . | nindent 8 }}
+      {{- with .Values.scheduler.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.scheduler.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- else }}
+      {{- $defaultAffinity := include "roxy-wi.dataWorkerAffinity" $ }}
+      {{- if $defaultAffinity }}
+      affinity:
+        {{- $defaultAffinity | nindent 8 }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.scheduler.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}

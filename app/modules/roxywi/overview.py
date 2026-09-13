@@ -1,4 +1,3 @@
-import psutil
 import requests
 from flask import render_template, request
 
@@ -6,9 +5,7 @@ import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
 import app.modules.db.roxy as roxy_sql
 import app.modules.db.user as user_sql
-import app.modules.db.metric as metric_sql
 import app.modules.db.server as server_sql
-import app.modules.db.checker as checker_sql
 import app.modules.db.service_event as service_event_sql
 import app.modules.common.common as common
 import app.modules.tools.common as tools_common
@@ -185,73 +182,19 @@ def show_apache_bytes(server_ip: str) -> str:
 
 def show_services_overview():
     user_params = roxywi_common.get_users_params()
-    grafana = 0
-    metrics_worker = 0
-    checker_worker = 0
-    servers_group = []
-    host = request.host
     user_group = roxywi_common.get_user_group(id=1)
     lang = roxywi_common.get_user_lang_for_flask()
     worker_states = service_event_sql.worker_summary(group_id=int(user_group))
-    distributed_checker = worker_states.get('checker')
-    distributed_metrics = worker_states.get('metrics')
-
-    if (user_params['role'] == 2 or user_params['role'] == 3) and int(user_group) != 1:
-        for s in user_params['servers']:
-            servers_group.append(s[2])
-
-    is_checker_worker = len(checker_sql.select_all_alerts(user_group))
-    is_metrics_worker = len(metric_sql.select_servers_metrics_for_master(user_group))
-
-    for pids in psutil.pids():
-        if pids < 300:
-            continue
-        try:
-            pid = psutil.Process(pids)
-            cmdline_out = pid.cmdline()
-            if len(cmdline_out) > 2:
-                if 'metrics_' in cmdline_out[1] and not distributed_metrics:
-                    if len(servers_group) > 0:
-                        if cmdline_out[2] in servers_group:
-                            metrics_worker += 1
-                    else:
-                        metrics_worker += 1
-                if len(servers_group) == 0:
-                    if 'grafana' in cmdline_out[1]:
-                        grafana += 1
-        except psutil.NoSuchProcess:
-            pass
-
-    if distributed_checker:
-        checker_worker = distributed_checker['active']
-    if distributed_metrics:
-        metrics_worker = distributed_metrics['active']
-
-    roxy_tools = roxy_sql.get_roxy_tools()
-    roxy_tools_status = {}
-    for tool in roxy_tools:
-        if tool == 'roxy-wi-prometheus-exporter':
-            continue
-        status = tools_common.is_tool_active(tool)
-        roxy_tools_status.setdefault(tool, status)
-
-    distributed_tools = {
-        'checker': 'roxy-wi-checker',
-        'metrics': 'roxy-wi-metrics',
-        'keep_alive': 'roxy-wi-keep_alive',
-        'portscanner': 'roxy-wi-portscanner',
-        'smon': 'roxy-wi-smon',
-        'socket': 'roxy-wi-socket',
-    }
-    for service, tool in distributed_tools.items():
-        state = worker_states.get(service)
-        if state:
-            roxy_tools_status[tool] = 'active' if state['active'] else 'failed'
+    services = tools_common.get_services_status(worker_states=worker_states)
+    internal_services = [service for service in services if service[4]['category'] == 'internal']
+    distributed_services = [service for service in services if service[4]['category'] == 'distributed']
 
     return render_template(
-        'ajax/show_services_ovw.html', role=user_params['role'], roxy_tools_status=roxy_tools_status, grafana=grafana,
-        is_checker_worker=is_checker_worker, is_metrics_worker=is_metrics_worker, host=host,
-        checker_worker=checker_worker, metrics_worker=metrics_worker, worker_states=worker_states, lang=lang
+        'ajax/show_services_ovw.html',
+        role=user_params['role'],
+        internal_services=internal_services,
+        distributed_services=distributed_services,
+        lang=lang,
     )
 
 

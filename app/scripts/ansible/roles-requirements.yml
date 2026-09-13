@@ -1,0 +1,4 @@
+---
+- name: nginxinc.nginx
+  version: 0.24.3
+- name: bdellegrazie.ansible-role-prometheus_exporter

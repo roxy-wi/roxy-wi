@@ -107,6 +107,13 @@ def migrate():
     return success
 
 
+def mark_all_migrations_applied() -> None:
+    """Record the current schema as the baseline for a newly created database."""
+    create_migrations_table()
+    for migration_name in get_migration_files():
+        Migration.insert(name=migration_name).on_conflict_ignore().execute()
+
+
 def rollback(steps=1):
     """Rollback the specified number of migrations."""
     create_migrations_table()

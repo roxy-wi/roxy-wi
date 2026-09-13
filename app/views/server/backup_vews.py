@@ -429,11 +429,9 @@ class S3BackupView(MethodView):
         try:
             _get_authorized_backup(backup_id, 's3')
             _require_server_access(body.server_id)
-            backup_mod.create_s3_backup_inv(body, 'add')
-            backup_sql.update_backup_job(backup_id, 's3', **body.model_dump(mode='json'))
+            return backup_mod.update_s3_backup(body, backup_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update S3 backup')
-        return BaseResponse().model_dump(mode='json'), 201
 
     @validate(body=S3BackupRequest)
     def delete(self, backup_id: int, body: S3BackupRequest):
@@ -470,8 +468,7 @@ class S3BackupView(MethodView):
         try:
             _get_authorized_backup(backup_id, 's3')
             _require_server_access(body.server_id)
-            backup_mod.delete_s3_backup(body, backup_id)
-            return BaseResponse().model_dump(mode='json'), 204
+            return backup_mod.delete_s3_backup(body, backup_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete S3 backup')
 
@@ -662,13 +659,9 @@ class GitBackupView(MethodView):
         try:
             _get_authorized_backup(backup_id, 'git')
             _require_server_access(body.server_id)
-            server = server_sql.get_server(body.server_id)
-            service_name = service_sql.select_service_name_by_id(body.service_id).lower()
-            backup_mod.create_git_backup_inv(body, server.ip, service_name)
-            backup_sql.update_backup_job(backup_id, 'git', **body.model_dump(mode='json', exclude={'init'}))
+            return backup_mod.update_git_backup(body, backup_id)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update GIT backup')
-        return BaseResponse().model_dump(mode='json'), 201
 
     @feature_required(GIT_BACKUP)
     @validate(body=GitBackupRequest)

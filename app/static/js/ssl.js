@@ -247,6 +247,7 @@ function addLe(dialogId) {
                 toastr.error(data);
             } else {
                 getLe(data['id'], dialogId);
+                runInstallationTaskCheck(data.tasks_ids);
             }
         },
     });
@@ -258,6 +259,9 @@ function removeLe(leId) {
         method: 'DELETE',
         contentType: "application/json; charset=utf-8",
         statusCode: {
+			202: function () {
+				$("#lets-" + leId).remove();
+			},
 			204: function (xhr) {
 				$("#lets-" + leId).remove();
 			},
@@ -267,8 +271,10 @@ function removeLe(leId) {
 		},
         success: function (data) {
             if (data) {
-				if (data.status === "failed") {
+                if (data.status === "failed") {
 					toastr.error(data);
+				} else if (data.tasks_ids) {
+					runInstallationTaskCheck(data.tasks_ids);
 				}
 			}
         },

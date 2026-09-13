@@ -69,7 +69,8 @@ def setup_logger(
     log_path: str = '/var/log/roxy-wi',
     log_file: str = 'roxy-wi.log',
     log_level: int = logging.INFO,
-    console_logging: bool = False
+    console_logging: bool = False,
+    file_logging: bool = True,
 ) -> logging.Logger:
     """
     Set up the logger with the specified configuration.
@@ -93,14 +94,12 @@ def setup_logger(
     logger.setLevel(log_level)
     logger.propagate = False
 
-    # Create log directory if it doesn't exist
-    os.makedirs(log_path, exist_ok=True)
-
-    # Create file handler
-    file_handler = logging.FileHandler(os.path.join(log_path, log_file))
-    file_handler.setLevel(log_level)
-    file_handler.setFormatter(StructuredLogFormatter())
-    logger.addHandler(file_handler)
+    if file_logging:
+        os.makedirs(log_path, exist_ok=True)
+        file_handler = logging.FileHandler(os.path.join(log_path, log_file))
+        file_handler.setLevel(log_level)
+        file_handler.setFormatter(StructuredLogFormatter())
+        logger.addHandler(file_handler)
 
     # Add console handler if requested
     if console_logging:
@@ -124,7 +123,37 @@ def get_logger() -> logging.Logger:
     global _logger
 
     if _logger is None:
-        _logger = setup_logger()
+        # Scheduler imports the Flask application, which configures logging.
+        # Standalone RabbitMQ consumers do not, so load the same cfg/ENV values
+        # here without triggering Flask initialization or database migrations.
+        from app.modules.roxy_wi_tools import GetConfigVar
+
+        config = GetConfigVar()
+        deployment_mode = str(
+            config.get_config_var('main', 'deployment_mode', 'package')
+        ).lower()
+
+        def as_bool(value, default=False):
+            if value is None:
+                return default
+            return str(value).strip().lower() in {'1', 'true', 'yes', 'on'}
+
+        level_name = str(config.get_config_var('logs', 'log_level', 'INFO')).upper()
+        _logger = setup_logger(
+            log_path=config.get_config_var('main', 'log_path', '/var/log/roxy-wi'),
+            log_file=config.get_config_var('logs', 'log_file', 'roxy-wi.log'),
+            log_level=getattr(logging, level_name, logging.INFO),
+            console_logging=as_bool(
+                config.get_config_var(
+                    'logs', 'log_console', '1' if deployment_mode != 'package' else '0'
+                )
+            ),
+            file_logging=as_bool(
+                config.get_config_var(
+                    'logs', 'log_file_enabled', '1' if deployment_mode == 'package' else '0'
+                )
+            ),
+        )
 
     return _logger
 

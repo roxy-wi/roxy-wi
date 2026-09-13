@@ -40,7 +40,8 @@ def check_login():
     allowed_endpoints = (
         'login_page', 'api.do_login', 'oidc.public_providers', 'oidc.oidc_login', 'oidc.oidc_callback',
         'static', 'main.get_version', 'service.check_service', 'smon.show_smon_status_page',
-        'smon.smon_history_statuses', 'smon.agent_get_checks', 'smon.get_check_status', 'favicon'
+        'smon.smon_history_statuses', 'smon.agent_get_checks', 'smon.get_check_status', 'favicon',
+        'health.live', 'health.ready',
     )
     if request.endpoint not in allowed_endpoints:
         try:

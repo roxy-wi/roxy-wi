@@ -461,13 +461,15 @@ def mark_delivery_failed(delivery_id: int, error: str) -> None:
 
 def worker_summary(group_id: int | None = None, now: datetime | None = None) -> dict[str, dict[str, Any]]:
     now = as_naive_utc(now) if now else utc_now()
-    summary: dict[str, dict[str, int]] = {}
+    summary: dict[str, dict[str, Any]] = {}
     for worker in WorkerState.select():
         groups = worker.group_ids or []
         # Socket replicas are global gateways. They can serve every group even
         # when no client from the requesting group was connected at the exact
-        # heartbeat instant, so their health must not be hidden by group scope.
-        if group_id not in (None, 1) and worker.service != 'socket':
+        # heartbeat instant. Roxy-WI processes are also global control-plane
+        # components, so their health must not be hidden by group scope.
+        is_global_service = worker.service == 'socket' or worker.service.startswith('roxy-wi-')
+        if group_id not in (None, 1) and not is_global_service:
             normalized_groups = {int(item) for item in groups if str(item).isdigit()}
             if int(group_id) not in normalized_groups:
                 continue
@@ -481,9 +483,12 @@ def worker_summary(group_id: int | None = None, now: datetime | None = None) -> 
             'assignments': 0,
             'total': 0,
             'versions': [],
+            'last_heartbeat': None,
         })
         service['total'] += 1
         service['assignments'] += worker.active_assignments or 0
+        if service['last_heartbeat'] is None or worker.last_heartbeat > service['last_heartbeat']:
+            service['last_heartbeat'] = worker.last_heartbeat
         if worker.status == 'draining':
             service['draining'] += 1
         elif worker.status == 'stopped':

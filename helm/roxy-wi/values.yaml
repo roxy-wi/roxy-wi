@@ -1,0 +1,183 @@
+image:
+  repository: ghcr.io/roxy-wi/roxy-wi
+  tag: ""
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Roxy-WI reads this map as /etc/roxy-wi/roxy-wi.cfg. Environment
+# variables still take priority, followed by DB settings and this file.
+config:
+  main:
+    fullpath: /var/www/haproxy-wi
+    log_path: /var/log/roxy-wi
+    lib_path: /var/lib/roxy-wi
+    secret_key: ""
+    secret_phrase: ""
+    deployment_mode: kubernetes
+    auto_migrate: 0
+    jwt_algorithm: HS256
+    public_url: https://roxy-wi.example.com
+  configs:
+    haproxy_save_configs_dir: /var/lib/roxy-wi/configs/hap_config/
+    keepalived_save_configs_dir: /var/lib/roxy-wi/configs/kp_config/
+    nginx_save_configs_dir: /var/lib/roxy-wi/configs/nginx_config/
+    apache_save_configs_dir: /var/lib/roxy-wi/configs/apache_config/
+  database:
+    # SQLite is supported for a single web replica. Use mysql for HA.
+    engine: sqlite
+  sqlite:
+    path: /var/lib/roxy-wi/roxy-wi.db
+  mysql:
+    enable: 0
+    mysql_host: mariadb.database.svc.cluster.local
+    mysql_port: 3306
+    mysql_db: roxywi
+    mysql_user: roxy-wi
+    mysql_password: ""
+  rabbitmq:
+    rabbitmq_host: rabbitmq.messaging.svc.cluster.local
+    rabbitmq_port: 5672
+    rabbitmq_vhost: /
+    rabbitmq_user: roxy-wi
+    rabbitmq_password: ""
+  cache:
+    type: NullCache
+  logs:
+    log_console: 1
+    log_file_enabled: 0
+    log_level: INFO
+  proxy:
+    enabled: 1
+    x_for: 1
+    x_proto: 1
+    x_host: 1
+    x_port: 1
+    x_prefix: 0
+  ansible:
+    private_data_dir: /var/lib/roxy-wi/ansible
+    roles_path: /var/lib/roxy-wi/ansible/roles
+    collections_path: /var/lib/roxy-wi/ansible/collections
+
+# Use a Secret containing roxy-wi.cfg instead of rendering config above.
+existingConfigSecret: ""
+
+rabbitmq:
+  # When true these values are exported as ROXYWI_RABBITMQ_* and override
+  # the DB/config values. Set false to manage RabbitMQ from the Roxy-WI DB.
+  environmentOverride: true
+  host: rabbitmq.messaging.svc.cluster.local
+  port: 5672
+  vhost: /
+  username: roxy-wi
+  password: ""
+  existingSecret: ""
+
+bootstrapAdminPassword: ""
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  storageClass: ""
+  existingClaim: ""
+  annotations: {}
+
+web:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+  port: 8080
+  gunicorn:
+    workers: 2
+    threads: 4
+    timeout: 120
+  resources: {}
+  podAnnotations: {}
+  podLabels: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+
+scheduler:
+  enabled: true
+  strategy:
+    type: Recreate
+  resources: {}
+  podAnnotations: {}
+  podLabels: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+
+serviceEvents:
+  enabled: true
+  replicaCount: 1
+  resources: {}
+  podAnnotations: {}
+  podLabels: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+
+operations:
+  enabled: true
+  replicaCount: 1
+  terminationGracePeriodSeconds: 1800
+  leaseSeconds: 300
+  resources: {}
+  podAnnotations: {}
+  podLabels: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  extraEnv: []
+
+migrations:
+  backoffLimit: 6
+  ttlSecondsAfterFinished: 86400
+
+service:
+  type: ClusterIP
+  port: 8080
+  annotations: {}
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: roxy-wi.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+extraVolumes: []
+extraVolumeMounts: []

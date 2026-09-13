@@ -1,6 +1,4 @@
 from datetime import datetime
-import os
-
 from peewee import (
     AutoField,
     BigIntegerField,
@@ -17,10 +15,10 @@ from playhouse.migrate import *
 from playhouse.shortcuts import ReconnectMixin
 from playhouse.sqlite_ext import SqliteExtDatabase
 
-import app.modules.roxy_wi_tools as roxy_wi_tools
+from app.modules.db.settings import DatabaseSettings
 
-get_config = roxy_wi_tools.GetConfigVar()
-mysql_enable = get_config.get_config_var('mysql', 'enable')
+database_settings = DatabaseSettings.load()
+mysql_enable = '1' if database_settings.engine == 'mysql' else '0'
 
 if mysql_enable == '1':
     from playhouse.mysql_ext import JSONField
@@ -34,18 +32,16 @@ class ReconnectMySQLDatabase(ReconnectMixin, MySQLDatabase):
 
 def connect(get_migrator=None):
     if mysql_enable == '1':
-        mysql_db = get_config.get_config_var('mysql', 'mysql_db')
         kwargs = {
-            "user": get_config.get_config_var('mysql', 'mysql_user'),
-            "password": get_config.get_config_var('mysql', 'mysql_password'),
-            "host": get_config.get_config_var('mysql', 'mysql_host'),
-            "port": int(get_config.get_config_var('mysql', 'mysql_port'))
+            "user": database_settings.mysql_user,
+            "password": database_settings.mysql_password,
+            "host": database_settings.mysql_host,
+            "port": database_settings.mysql_port,
         }
-        conn = ReconnectMySQLDatabase(mysql_db, **kwargs)
+        conn = ReconnectMySQLDatabase(database_settings.mysql_database, **kwargs)
         migrator = MySQLMigrator(conn)
     else:
-        db = os.environ.get("ROXYWI_DB_PATH", "/var/lib/roxy-wi/roxy-wi.db")
-        conn = SqliteExtDatabase(db, pragmas=(
+        conn = SqliteExtDatabase(database_settings.sqlite_path, pragmas=(
             ('cache_size', -1024 * 64),  # 64MB page-cache.
             ('journal_mode', 'wal'),
             ('busy_timeout', 5000),  # Wait briefly instead of failing immediately on a concurrent write.
@@ -1215,12 +1211,18 @@ class InstallationTasks(BaseModel):
     id = AutoField
     service_name = CharField()
     status = CharField(default='created')
-    error = CharField(null=True)
+    error = TextField(null=True)
     start_date = DateTimeField(default=datetime.now)
     finish_date = DateTimeField(default=datetime.now)
     group_id = ForeignKeyField(Groups, null=True, on_delete='SET NULL')
     user_id = ForeignKeyField(User, null=True, on_delete='SET NULL')
     server_ids = JSONField(null=True)
+    operation_id = CharField(null=True, unique=True, index=True, max_length=64)
+    operation_type = CharField(null=True, index=True, max_length=64)
+    operation_payload = TextField(null=True)
+    attempts = IntegerField(default=0, constraints=[SQL('DEFAULT 0')])
+    updated_at = DateTimeField(default=datetime.now)
+    published_at = DateTimeField(null=True)
 
     class Meta:
         table_name = 'installation_tasks'

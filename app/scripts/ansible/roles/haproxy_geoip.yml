@@ -25,7 +25,7 @@
 
     - name: Copy GeoIP script in place.
       template:
-        src: /var/www/haproxy-wi/app/scripts/ansible/roles/geoip.sh.j2
+        src: "{{ playbook_dir }}/geoip.sh.j2"
         dest: "{{service_dir}}/scripts/geoip.sh"
         mode: 0777
 

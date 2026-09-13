@@ -1,6 +1,10 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/admin_action_menu.html' import admin_action_menu %}
 {% set services_name = {
+	'roxy-wi-web': { 'name': 'Web', 'desc': 'Roxy-WI HTTP API and user interface' },
+	'roxy-wi-scheduler': { 'name': 'Scheduler', 'desc': 'Runs scheduled Roxy-WI jobs' },
+	'roxy-wi-service-events': { 'name': 'Service events', 'desc': 'Consumes service events and worker heartbeats from RabbitMQ' },
+	'roxy-wi-operations': { 'name': 'Operations', 'desc': 'Executes durable installation and Ansible operations' },
 	'roxy-wi-checker': { 'name': 'Checker', 'desc': lang.admin_page.desc.checker_desc },
 	'roxy-wi-keep_alive': { 'name': 'Auto start', 'desc': lang.admin_page.desc.auto_start_desc },
 	'roxy-wi-metrics': { 'name': 'Metrics', 'desc': lang.admin_page.desc.metrics_desc },
@@ -8,76 +12,73 @@
 	'roxy-wi-smon': { 'name': 'SMON', 'desc': lang.admin_page.desc.smon_desc },
 	'roxy-wi-socket': { 'name': 'Socket', 'desc': lang.admin_page.desc.socket_desc },
 	'roxy-wi-prometheus-exporter': { 'name': 'Prometheus exporter', 'desc': 'Prometheus exporter exports Roxy-WI metrics' },
-	'fail2ban': { 'name': 'Fail2ban', 'desc': 'Fail2ban scans log files (e.g. /var/log/apache/error_log) and bans IPs that show the malicious signs' },
+	'fail2ban': { 'name': 'Fail2ban', 'desc': 'Fail2ban scans log files and bans IPs that show malicious signs' },
     'rabbitmq-server': { 'name': 'RabbitMQ', 'desc': 'RabbitMQ server' },
     }
 %}
-{% for service in services %}
-{% set is_service_started_class = '' %}
-{% set is_service_stopped_class = '' %}
+
+{% macro render_service(service) %}
+{% set metadata = service.4|default({}) %}
+{% set service_info = services_name.get(service.0, {'name': service.0, 'desc': service.2.get('desc', '')}) %}
 {% set activity_label = 'connections' if service.0 == 'roxy-wi-socket' else 'assignments' %}
+{% set is_installed = 'is not installed' not in service.2['current_version'] and service.2['current_version'] not in ('', '0') %}
 {% set onclick_start_action = "confirmAjaxServiceAction('start', '"+service.0+"')" %}
 {% set onclick_stop_action = "confirmAjaxServiceAction('stop', '"+service.0+"')" %}
-{% set is_service_started_title = lang.words.start|title()+" "+lang.words.and+" "+lang.words.enable+" "+services_name[service.0]['name']+" "+lang.words.service %}
-{% set is_service_stopped_title = lang.words.stop|title()+" "+lang.words.and+" "+lang.words.disable+" "+services_name[service.0]['name']+" "+lang.words.service %}
-<tr class="{{ loop.cycle('odd', 'even') }}" id="{{service.0}}">
-    <td class="padding10 first-collumn">
-        {% if service.1 == 'active' or service.1 == 'RUNNING' %}
-            <span title="{{lang.words.service|title()}} {{services_name[service.0]['name']}} {{lang.words.started}}{% if service.3 %}; workers: {{ service.3.get('active', 0) }}; {{ activity_label }}: {{ service.3.get('assignments', 0) }}{% endif %}"><span class="serverUp server-status"></span></span>
-            {% set is_service_started_class = 'disabled-button' %}
-            {% set onclick_start_action = "" %}
-            {% set is_service_started_title = lang.words.service|title()+" "+services_name[service.0]['name']+" "+lang.words.already+" "+lang.words.started %}
-        {% elif service.1 == 'degraded' or service.1 == 'draining' %}
-            <span title="{{ services_name[service.0]['name'] }} workers: active {{ service.3.get('active', 0) }}; degraded {{ service.3.get('degraded', 0) }}; draining {{ service.3.get('draining', 0) }}; stale {{ service.3.get('stale', 0) }}; {{ activity_label }} {{ service.3.get('assignments', 0) }}"><span class="serverWarn server-status"></span></span>
-            {% if service.1 == 'degraded' %}
-                {% set is_service_started_class = 'disabled-button' %}
-                {% set onclick_start_action = "" %}
-                {% set is_service_started_title = lang.words.service|title()+" "+services_name[service.0]['name']+" "+lang.words.already+" "+lang.words.started %}
-            {% endif %}
+<tr class="admin-tool-row" id="{{service.0}}">
+    <td class="padding10 first-collumn"><b>{{service_info['name']}}</b></td>
+    <td class="admin-tool-status-cell">
+        {% if service.1 in ('active', 'RUNNING') %}
+            <span class="serverUp server-status" title="{{service_info['name']}} is running{% if service.3 %}; workers: {{ service.3.get('active', 0) }}; {{ activity_label }}: {{ service.3.get('assignments', 0) }}{% endif %}{% if metadata.get('last_heartbeat') %}; last heartbeat: {{ metadata.get('last_heartbeat') }}{% endif %}"></span>
+            <span>Running</span>
+        {% elif service.1 in ('degraded', 'draining') %}
+            <span class="serverWarn server-status" title="{{ service_info['name'] }} workers: active {{ service.3.get('active', 0) }}; degraded {{ service.3.get('degraded', 0) }}; draining {{ service.3.get('draining', 0) }}; stale {{ service.3.get('stale', 0) }}; {{ activity_label }} {{ service.3.get('assignments', 0) }}"></span>
+            <span>Degraded</span>
+        {% elif service.1 in ('inactive', 'failed', 'activating', 'STOPPED', 'stale', 'stopped') and is_installed %}
+            <span class="serverDown server-status" title="{{service_info['name']}} is stopped{% if service.3 %}; stale workers: {{ service.3.get('stale', 0) }}; stopped workers: {{ service.3.get('stopped', 0) }}{% endif %}"></span>
+            <span>Stopped</span>
         {% else %}
-            {% if service.1 in ('inactive', 'failed', 'activating', 'STOPPED', 'stale', 'stopped') and 'is not installed' not in service.2['current_version'] %}
-                <span title="{{lang.words.service|title()}} {{services_name[service.0]['name']}} {{lang.words.stopped}}{% if service.3 %}; stale workers: {{ service.3.get('stale', 0) }}; stopped workers: {{ service.3.get('stopped', 0) }}{% endif %}"><span class="serverDown server-status"></span></span>
-                {% set is_service_stopped_class = 'disabled-button' %}
-                {% set onclick_stop_action = "" %}
-                {% set is_service_stopped_title = lang.words.service|title()+" "+services_name[service.0]['name']+" "+lang.words.already+" "+lang.words.stopped %}
-            {% else %}
-                <span title="{{lang.words.service|title()}} {{services_name[service.0]['name']}} {{lang.words.not}} {{lang.words.installed}}"><span class="serverNone server-status"></span></span>
-            {% endif %}
+            <span class="serverNone server-status" title="{{service_info['name']}} status is unknown"></span>
+            <span>Unknown</span>
         {% endif %}
-        {{services_name[service.0]['name']}}
+    </td>
+    <td class="admin-tool-instances">
+        {{ metadata.get('instances', 0) }}{% if metadata.get('stale', 0) %} <span class="admin-tool-stale">+ {{ metadata.get('stale') }} stale</span>{% endif %}
     </td>
 	<td class="admin-version-cell">
-        {% if 'is not installed' not in service.2['current_version'] %}
-        {{service.2['current_version']}}
-        {% endif %}
+        {% if is_installed %}{{service.2['current_version']}}{% else %}—{% endif %}
     </td>
 	<td class="admin-actions-cell">
+        {% if metadata.get('can_lifecycle') and is_installed %}
 		{% call admin_action_menu(lang.words.actions|title()) %}
-        {% if 'is not installed' in service.2['current_version'] or not service.2['current_version'] or service.2['current_version'] == '0' %}
-            {% if service.0 in ('rabbitmq-server', 'fail2ban') %}
-				<a class="admin-action-item" href="https://roxy-wi.org/tools/{{service.0.split('-')[0]}}" target="_blank" rel="noopener noreferrer">
-					<span class="fas fa-external-link-alt" aria-hidden="true"></span> {{lang.words.install|title()}}
-				</a>
-            {% else %}
-				<button type="button" class="admin-action-item" onclick="updateService('{{service.0}}', 'install')">
-					<span class="fas fa-download" aria-hidden="true"></span> {{lang.words.install|title()}}
-				</button>
-            {% endif %}
-        {% else %}
-		<button type="button" id="start-{{ service.0 }}" class="admin-action-item" {% if is_service_started_class %}disabled{% else %}onclick="{{onclick_start_action}}"{% endif %}>
+		<button type="button" id="start-{{ service.0 }}" class="admin-action-item" {% if service.1 in ('active', 'RUNNING', 'degraded') %}disabled{% else %}onclick="{{onclick_start_action}}"{% endif %}>
 			<span class="fas fa-play" aria-hidden="true"></span> {{lang.words.start|title()}}
 		</button>
 		<button type="button" id="restart-{{ service.0 }}" class="admin-action-item" onclick="confirmAjaxServiceAction('restart', '{{service.0}}')">
 			<span class="fas fa-redo" aria-hidden="true"></span> {{lang.words.restart|title()}}
 		</button>
-		<button type="button" id="stop-{{ service.0 }}" class="admin-action-item admin-action-item-danger" {% if is_service_stopped_class %}disabled{% else %}onclick="{{onclick_stop_action}}"{% endif %}>
+		<button type="button" id="stop-{{ service.0 }}" class="admin-action-item admin-action-item-danger" {% if service.1 in ('inactive', 'failed', 'STOPPED', 'stopped') %}disabled{% else %}onclick="{{onclick_stop_action}}"{% endif %}>
 			<span class="fas fa-stop" aria-hidden="true"></span> {{lang.words.stop|title()}}
 		</button>
-        {% endif %}
 		{% endcall %}
+        {% elif metadata.get('can_lifecycle') and not is_installed %}
+            {% if service.0 in ('rabbitmq-server', 'fail2ban') %}
+                <a class="link" href="https://roxy-wi.org/tools/{{service.0.split('-')[0]}}" target="_blank" rel="noopener noreferrer">{{lang.words.install|title()}}</a>
+            {% else %}
+                <button type="button" class="admin-tool-link" onclick="updateService('{{service.0}}', 'install')">{{lang.words.install|title()}}</button>
+            {% endif %}
+        {% else %}
+            <span class="admin-tool-management">{{ metadata.get('management', 'External') }}</span>
+        {% endif %}
 	</td>
-    <td colspan="2">
-        {{ services_name[service.0]['desc'] | safe }}
-    </td>
+    <td>{{ service_info['desc'] | safe }}</td>
+    <td></td>
 </tr>
+{% endmacro %}
+
+{% for category, title in (('internal', 'Roxy-WI processes'), ('distributed', 'Distributed services'), ('local', 'Local and infrastructure services')) %}
+    {% set category_services = services|selectattr('4.category', 'equalto', category)|list %}
+    {% if category_services %}
+    <tr class="admin-tools-section"><td colspan="7">{{ title }}</td></tr>
+    {% for service in category_services %}{{ render_service(service) }}{% endfor %}
+    {% endif %}
 {% endfor %}

@@ -1,0 +1,18 @@
+apiVersion: v2
+name: roxy-wi
+description: HAProxy, NGINX, Apache and Keepalived management interface
+type: application
+version: 0.1.0
+appVersion: "9.1.0"
+kubeVersion: ">=1.23.0-0"
+home: https://github.com/roxy-wi/roxy-wi
+sources:
+  - https://github.com/roxy-wi/roxy-wi
+keywords:
+  - haproxy
+  - nginx
+  - keepalived
+  - operations
+annotations:
+  org.opencontainers.image.source: https://github.com/roxy-wi/roxy-wi
+  org.opencontainers.image.licenses: Apache-2.0

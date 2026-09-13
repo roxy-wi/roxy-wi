@@ -14,6 +14,7 @@ from app.modules.integrations.service_events import (
     process_event,
 )
 from app.modules.roxywi import logger
+from app.modules.process_heartbeat import set_process_heartbeat_status
 
 
 @dataclass(frozen=True)
@@ -111,7 +112,7 @@ class ServiceEventConsumer:
             return
 
         channel.basic_ack(delivery_tag=method.delivery_tag)
-        logger.info(f'Processed {result.kind} event (created={result.created})')
+        logger.debug(f'Processed {result.kind} event (created={result.created})')
         try:
             deliver_pending_notifications(limit=20)
         except Exception as exc:
@@ -122,6 +123,7 @@ class ServiceEventConsumer:
         try:
             channel = self._connection.channel()
             declare_topology(channel, self.settings)
+            set_process_heartbeat_status('running')
             channel.basic_consume(
                 queue=self.settings.queue,
                 on_message_callback=self._message,
@@ -145,6 +147,7 @@ class ServiceEventConsumer:
             except Exception as exc:
                 if self._stop_event.is_set():
                     break
+                set_process_heartbeat_status('degraded', last_error=str(exc)[:500])
                 logger.error(f'Service-event consumer disconnected: {exc}; retrying in {delay}s')
                 self._stop_event.wait(delay)
                 delay = min(delay * 2, 30)
