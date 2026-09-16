@@ -105,3 +105,6 @@ jobs:
         run: |
           docker rm --force roxy-wi-smoke 2>/dev/null || true
           docker volume rm roxy-wi-smoke-data 2>/dev/null || true
+
+      - name: Verify role probes and dependency outage recovery
+        run: python3 tests/container_health_smoke.py

@@ -4,6 +4,8 @@ import socket
 import threading
 from datetime import timedelta
 
+import roxy_wi_health as local_health
+
 from app.modules.common.time import utc_now
 from app.modules.db.db_model import close_database_connection
 from app.modules.db.service_event import record_worker_heartbeat
@@ -81,7 +83,9 @@ class ProcessHeartbeat:
                 'group_ids': [],
                 'metadata': metadata,
             })
+            local_health.dependency('database', True)
         except Exception as error:
+            local_health.dependency('database', False)
             logger.warning(f'Cannot record {self.service} heartbeat: {error}')
         finally:
             close_database_connection()
@@ -89,6 +93,32 @@ class ProcessHeartbeat:
     def _run(self) -> None:
         while not self._stop_event.wait(self.interval_seconds):
             self._record()
+            if self.service == PROCESS_SERVICES['scheduler']:
+                self._check_scheduler_broker()
+
+    def _check_scheduler_broker(self) -> None:
+        # Scheduler has short-lived publisher connections, unlike consumers.
+        # Authenticate against the configured vhost; TCP alone is insufficient.
+        from app.modules.integrations.rabbitmq_settings import RabbitConnectionSettings
+        import pika
+
+        try:
+            parameters = RabbitConnectionSettings.load().parameters()
+            parameters.socket_timeout = 2
+            parameters.stack_timeout = 3
+            parameters.blocked_connection_timeout = 3
+            parameters.connection_attempts = 1
+            connection = pika.BlockingConnection(parameters)
+            try:
+                connection.channel()
+            finally:
+                connection.close()
+            local_health.dependency('rabbitmq', True)
+        except Exception as error:
+            local_health.dependency('rabbitmq', False)
+            logger.debug(f'Scheduler RabbitMQ readiness failed: {type(error).__name__}')
+        finally:
+            close_database_connection()
 
     def start(self) -> None:
         if self._thread is not None:
@@ -132,6 +162,11 @@ def start_configured_process_heartbeat() -> ProcessHeartbeat | None:
     with _process_heartbeat_lock:
         if _process_heartbeat is None:
             _process_heartbeat = ProcessHeartbeat(service)
+            local_health.start(
+                role,
+                live_timeout=int(GetConfigVar().get_config_var('main', 'process_health_timeout', '120')),
+                ready_timeout=_process_heartbeat.ttl_seconds,
+            )
             _process_heartbeat.start()
             atexit.register(_process_heartbeat.stop)
         return _process_heartbeat

@@ -34,13 +34,16 @@ jobs:
           python -m pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Compile Python sources
-        run: python -m compileall -q app tests scheduler_runner.py service_event_consumer.py roxy_wi.py rotate_credential_secret.py
+        run: python -m compileall -q app tests scheduler_runner.py service_event_consumer.py roxy_wi.py roxy_wi_health.py rotate_credential_secret.py
 
       - name: Smoke test application startup
         run: python -m pytest tests/smoke -q
 
-      - name: Run distributed service integration tests
-        run: python -m pytest tests/integration/test_service_events.py tests/integration/test_operation_queue.py -q
+      - name: Run service and production database integration tests
+        run: python -m pytest tests/integration/test_service_events.py tests/integration/test_service_event_storage.py tests/integration/test_operation_queue.py tests/integration/test_database_bootstrap.py -q
+
+      - name: Verify local section generation without sudo
+        run: python -m pytest tests/integration/test_section_playbooks.py -q
 
       - name: Validate container manifests
         run: |

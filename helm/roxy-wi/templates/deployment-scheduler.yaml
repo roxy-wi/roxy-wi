@@ -40,6 +40,7 @@ spec:
           image: {{ include "roxy-wi.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args: ["scheduler"]
+          {{- include "roxy-wi.workerProbes" "scheduler" | nindent 10 }}
           env:
             {{- include "roxy-wi.commonEnv" . | nindent 12 }}
             {{- with .Values.scheduler.extraEnv }}

@@ -38,6 +38,8 @@ services:
     <<: *roxy-wi
     command: ["migrate"]
     restart: "no"
+    healthcheck:
+      disable: true
     depends_on:
       mariadb:
         condition: service_healthy

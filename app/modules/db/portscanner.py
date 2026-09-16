@@ -116,18 +116,17 @@ def select_count_opened_ports(serv):
 
 
 def delete_portscanner_history(keep_interval: int):
-	get_date = roxy_wi_tools.GetDate()
-	cur_date = get_date.return_date('regular', timedelta_minus=keep_interval)
-	query = PortScannerHistory.delete().where(
-		PortScannerHistory.date < cur_date)
+	from app.modules.db.service_event_storage import prune_history
 	try:
-		query.execute()
+		return prune_history('portscanner', keep_interval)
 	except Exception as e:
 		out_error(e)
 
 
 def select_port_scanner_history(serv):
 	try:
-		return PortScannerHistory.select().where(PortScannerHistory.serv == serv).execute()
+		return PortScannerHistory.select().where(PortScannerHistory.serv == serv).order_by(
+			PortScannerHistory.date.desc(), PortScannerHistory.port
+		).execute()
 	except Exception as e:
 		out_error(e)

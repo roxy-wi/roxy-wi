@@ -19,7 +19,8 @@ from app.modules.db.db_model import (
     ServiceAssignment,
     ServiceCommand,
     ServiceEvent,
-    ServiceEventDelivery,
+    ServiceEventPosition,
+    ServiceNotification,
     UDPBalancer,
     WafMetrics,
     WorkerState,
@@ -130,7 +131,7 @@ def portscanner_event(**overrides):
     payload = {
         'event_id': str(uuid4()),
         'type': 'portscanner.scan.completed',
-        'schema_version': 1,
+        'schema_version': 2,
         'source': 'portscanner',
         'assignment_id': 'portscanner:server-42',
         'assignment_revision': 1,
@@ -148,6 +149,8 @@ def portscanner_event(**overrides):
         ],
     }
     payload.update(overrides)
+    payload.setdefault('opened', payload['ports'])
+    payload.setdefault('closed', [])
     return payload
 
 
@@ -270,7 +273,7 @@ def test_status_event_is_persisted_in_user_history_exactly_once():
     assert alert.service == 'Checker'
 
 
-def test_delayed_event_from_an_old_lease_is_fenced_from_history():
+def test_delayed_event_from_an_old_lease_is_added_to_history_without_rolling_position_back():
     assignment_id = f'haproxy:test-{uuid4()}'
     current = status_event(
         assignment_id=assignment_id,
@@ -286,9 +289,11 @@ def test_delayed_event_from_an_old_lease_is_fenced_from_history():
     )
 
     assert process_event(current).created is True
+    assert process_event(delayed).created is True
     assert process_event(delayed).created is False
-    assert ServiceEvent.select().where(ServiceEvent.assignment_id == assignment_id).count() == 1
-    assert Alerts.select().where(Alerts.message == delayed['message']).count() == 0
+    assert ServiceEvent.select().where(ServiceEvent.assignment_id == assignment_id).count() == 2
+    assert Alerts.select().where(Alerts.message == delayed['message']).count() == 1
+    assert ServiceEventPosition.get_by_id(assignment_id).event_id == current['event_id']
 
 
 def test_event_from_an_old_desired_revision_is_ignored():
@@ -396,7 +401,7 @@ def test_connection_metric_samples_use_existing_service_tables(service, model):
         ServiceAssignment.delete().where(ServiceAssignment.assignment_id == payload['assignment_id']).execute()
 
 
-def test_delayed_metrics_sample_from_old_lease_is_fenced():
+def test_delayed_metrics_sample_from_old_lease_is_saved_without_duplicate_event_json():
     current = metric_event(lease_epoch=9, sequence=20)
     delayed = metric_event(event_id=str(uuid4()), lease_epoch=8, sequence=19)
     ServiceAssignment.create(
@@ -414,8 +419,10 @@ def test_delayed_metrics_sample_from_old_lease_is_fenced():
     )
     try:
         assert process_event(current).created is True
+        assert process_event(delayed).created is True
         assert process_event(delayed).created is False
-        assert Metrics.select().where(Metrics.serv == current['server_address']).count() == 1
+        assert Metrics.select().where(Metrics.serv == current['server_address']).count() == 2
+        assert ServiceEvent.select().where(ServiceEvent.assignment_id == current['assignment_id']).count() == 0
     finally:
         Metrics.delete().where(Metrics.serv == current['server_address']).execute()
         MetricsHttpStatus.delete().where(MetricsHttpStatus.serv == current['server_address']).execute()
@@ -454,7 +461,7 @@ def test_portscanner_snapshot_updates_current_ports_history_and_notification(mon
     monkeypatch.setattr(
         alerting,
         'portscanner_alert_routing',
-        lambda *args: calls.append(args),
+        lambda *args, **_kwargs: calls.append(args),
     )
     try:
         result = process_event(payload)
@@ -472,12 +479,12 @@ def test_portscanner_snapshot_updates_current_ports_history_and_notification(mon
             for row in PortScannerHistory.select().where(PortScannerHistory.serv == address)
         )
         assert first_history == [('opened', 22, 'ssh'), ('opened', 80, 'http')]
-        assert ServiceEventDelivery.select().where(
-            ServiceEventDelivery.event_id == payload['event_id']
+        assert ServiceNotification.select().where(
+            ServiceNotification.event_id == payload['event_id']
         ).count() == 1
 
         assert deliver_pending_notifications(limit=100) >= 1
-        delivery = ServiceEventDelivery.get(ServiceEventDelivery.event_id == payload['event_id'])
+        delivery = ServiceNotification.get(ServiceNotification.event_id == payload['event_id'])
         assert delivery.status == 'delivered'
         stored_event = ServiceEvent.get_by_id(payload['event_id'])
         assert calls[-1] == (
@@ -493,6 +500,8 @@ def test_portscanner_snapshot_updates_current_ports_history_and_notification(mon
             server_id=unique_id,
             server_address=address,
             sequence=2,
+            opened=[{'port': 443, 'protocol': 'tcp', 'service_name': 'https'}],
+            closed=[{'port': 80, 'protocol': 'tcp', 'service_name': 'http'}],
             ports=[
                 {'port': 22, 'protocol': 'tcp', 'service_name': 'ssh'},
                 {'port': 443, 'protocol': 'tcp', 'service_name': 'https'},
@@ -521,7 +530,7 @@ def test_portscanner_snapshot_updates_current_ports_history_and_notification(mon
         event_ids = ServiceEvent.select(ServiceEvent.event_id).where(
             ServiceEvent.assignment_id == payload['assignment_id']
         )
-        ServiceEventDelivery.delete().where(ServiceEventDelivery.event_id.in_(event_ids)).execute()
+        ServiceNotification.delete().where(ServiceNotification.event_id.in_(event_ids)).execute()
         ServiceEvent.delete().where(ServiceEvent.assignment_id == payload['assignment_id']).execute()
         PortScannerHistory.delete().where(PortScannerHistory.serv == address).execute()
         PortScannerPorts.delete().where(PortScannerPorts.serv == address).execute()
@@ -530,21 +539,25 @@ def test_portscanner_snapshot_updates_current_ports_history_and_notification(mon
         ).execute()
 
 
-def test_distributed_event_retention_removes_event_outbox_rows():
+def test_diagnostic_retention_preserves_pending_notifications():
     old = status_event(
         observed_at=(datetime.now(timezone.utc) - timedelta(days=30)).isoformat(),
         notify=True,
     )
     process_event(old)
+    ServiceEvent.update(received_at=datetime.now() - timedelta(days=30)).where(
+        ServiceEvent.event_id == old['event_id']
+    ).execute()
 
-    assert ServiceEventDelivery.select().where(
-        ServiceEventDelivery.event_id == old['event_id']
+    assert ServiceNotification.select().where(
+        ServiceNotification.event_id == old['event_id']
     ).count() == 1
     assert event_sql.prune_service_events(retention_days=14) >= 1
     assert ServiceEvent.get_or_none(ServiceEvent.event_id == old['event_id']) is None
-    assert ServiceEventDelivery.select().where(
-        ServiceEventDelivery.event_id == old['event_id']
-    ).count() == 0
+    assert ServiceNotification.select().where(
+        ServiceNotification.event_id == old['event_id']
+    ).count() == 1
+    ServiceNotification.delete().where(ServiceNotification.event_id == old['event_id']).execute()
     Alerts.delete().where(Alerts.message == old['message']).execute()
 
 
@@ -553,14 +566,14 @@ def test_status_event_notification_is_retried_from_outbox(monkeypatch):
     process_event(payload)
     calls = []
 
-    def fake_alert_routing(*args):
+    def fake_alert_routing(*args, **_kwargs):
         calls.append(args)
 
     from app.modules.tools import alerting
     monkeypatch.setattr(alerting, 'alert_routing', fake_alert_routing)
 
     assert deliver_pending_notifications(limit=100) >= 1
-    delivery = ServiceEventDelivery.get(ServiceEventDelivery.event_id == payload['event_id'])
+    delivery = ServiceNotification.get(ServiceNotification.event_id == payload['event_id'])
     assert delivery.status == 'delivered'
     assert calls[-1] == (
         payload['server_address'],

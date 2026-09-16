@@ -186,6 +186,27 @@ podAffinity:
 {{- end }}
 {{- end }}
 
+{{- define "roxy-wi.workerProbes" -}}
+startupProbe:
+  exec:
+    command: ["python", "/var/www/haproxy-wi/roxy_wi.py", "healthcheck", "--role", {{ . | quote }}, "--check", "live"]
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 60
+livenessProbe:
+  exec:
+    command: ["python", "/var/www/haproxy-wi/roxy_wi.py", "healthcheck", "--role", {{ . | quote }}, "--check", "live"]
+  periodSeconds: 20
+  timeoutSeconds: 3
+  failureThreshold: 3
+readinessProbe:
+  exec:
+    command: ["python", "/var/www/haproxy-wi/roxy_wi.py", "healthcheck", "--role", {{ . | quote }}, "--check", "ready"]
+  periodSeconds: 10
+  timeoutSeconds: 3
+  failureThreshold: 1
+{{- end }}
+
 {{- define "roxy-wi.migrationName" -}}
 {{- $base := include "roxy-wi.fullname" . | trunc 42 | trimSuffix "-" -}}
 {{- $hash := printf "%s:%s:%s" (include "roxy-wi.image" .) (include "roxy-wi.config" .) .Chart.Version | sha256sum | trunc 8 -}}

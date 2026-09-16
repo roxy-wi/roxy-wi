@@ -4,6 +4,7 @@ import threading
 import time
 
 import pika
+import roxy_wi_health as local_health
 
 from app.modules.common.time import utc_now
 from app.modules.db.db_model import InstallationTasks, close_database_connection
@@ -99,6 +100,7 @@ class OperationWorker:
         self._connection = None
 
     def stop(self, *_args) -> None:
+        local_health.draining()
         self._stop_event.set()
 
     @staticmethod
@@ -117,6 +119,7 @@ class OperationWorker:
             declare_operation_topology(channel, self.settings)
             set_process_heartbeat_status('running')
             while not self._stop_event.is_set():
+                local_health.pulse(rabbitmq=True)
                 method, _properties, body = channel.basic_get(
                     queue=self.settings.queue,
                     auto_ack=False,
@@ -134,6 +137,7 @@ class OperationWorker:
                 try:
                     claimed, task_status = claim_operation(operation_id, task_id)
                 except Exception as error:
+                    local_health.dependency('database', False)
                     logger.error(f'Cannot claim operation {operation_id}: {error}')
                     channel.basic_nack(method.delivery_tag, requeue=True)
                     continue
@@ -164,6 +168,9 @@ class OperationWorker:
                 last_heartbeat = time.monotonic()
                 rabbit_connection_lost = False
                 while operation_thread.is_alive():
+                    # Ansible runs on its own thread; a long installation is
+                    # not a stalled queue/connection loop.
+                    local_health.pulse(rabbitmq=not rabbit_connection_lost)
                     if rabbit_connection_lost:
                         time.sleep(1)
                     else:
@@ -173,6 +180,7 @@ class OperationWorker:
                             # The operation has already been acknowledged and remains
                             # durable in the DB. Let it finish and reconnect later.
                             rabbit_connection_lost = True
+                            local_health.dependency('rabbitmq', False)
                             logger.warning(
                                 f'RabbitMQ connection lost during operation {operation_id}: {error}'
                             )
@@ -183,6 +191,7 @@ class OperationWorker:
                                 & (InstallationTasks.status == 'running')
                             ).execute()
                         except Exception as error:
+                            local_health.dependency('database', False)
                             logger.error(f'Cannot renew operation {operation_id} lease: {error}')
                         finally:
                             close_database_connection()
@@ -202,6 +211,7 @@ class OperationWorker:
                     finally:
                         close_database_connection()
         finally:
+            local_health.dependency('rabbitmq', False)
             if self._connection is not None and self._connection.is_open:
                 self._connection.close()
             self._connection = None
@@ -209,12 +219,14 @@ class OperationWorker:
     def run(self) -> None:
         delay = 1
         while not self._stop_event.is_set():
+            local_health.pulse(rabbitmq=False)
             try:
                 self.consume_once()
                 delay = 1
             except KeyboardInterrupt:
                 self.stop()
             except Exception as error:
+                local_health.dependency('rabbitmq', False)
                 if self._stop_event.is_set():
                     break
                 set_process_heartbeat_status('degraded', last_error=str(error)[:500])

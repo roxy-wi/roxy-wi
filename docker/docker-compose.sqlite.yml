@@ -34,6 +34,8 @@ services:
     <<: *roxy-wi
     command: ["migrate"]
     restart: "no"
+    healthcheck:
+      disable: true
 
   web:
     <<: *roxy-wi

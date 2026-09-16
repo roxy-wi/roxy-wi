@@ -43,6 +43,7 @@ spec:
           image: {{ include "roxy-wi.image" . }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           args: ["operations"]
+          {{- include "roxy-wi.workerProbes" "operations" | nindent 10 }}
           env:
             {{- include "roxy-wi.commonEnv" . | nindent 12 }}
             - name: ROXYWI_OPERATIONS_LEASE_SECONDS

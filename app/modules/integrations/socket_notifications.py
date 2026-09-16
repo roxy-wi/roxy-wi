@@ -59,6 +59,7 @@ def publish_socket_notification(
             exchange_type='topic',
             durable=True,
         )
+        channel.confirm_delivery()
         channel.basic_publish(
             exchange=settings.exchange,
             routing_key=f'group.{payload["user_group"]}',

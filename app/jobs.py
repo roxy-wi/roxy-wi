@@ -140,17 +140,18 @@ def run_service_event_deliveries():
     misfire_grace_time=300,
 )
 def run_service_integration_retention():
-    """Apply existing Checker history retention to distributed service data."""
+    """Retain user history independently from diagnostics and pending delivery work."""
     def run():
-        from app.modules.db.service_event import prune_service_events, prune_worker_states
+        from app.modules.db.service_event import prune_notifications, prune_service_events, prune_worker_states
         from app.modules.db.portscanner import delete_portscanner_history
         retention_days = int(sql.get_setting('checker_keep_history_range') or 14)
         portscanner_retention_days = int(sql.get_setting('portscanner_keep_history_range') or 14)
         history_sql.delete_alert_history(retention_days, 'Checker')
         delete_portscanner_history(portscanner_retention_days)
-        deleted_events = prune_service_events(retention_days)
+        deleted_events = prune_service_events()
+        deleted_notifications = prune_notifications()
         deleted_workers = prune_worker_states()
-        return deleted_events + deleted_workers
+        return deleted_events + deleted_workers + deleted_notifications
     return _run_database_job(run)
 
 

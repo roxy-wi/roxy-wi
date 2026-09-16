@@ -171,7 +171,9 @@ class PortScannerPortsView(MethodView):
             ports = ps_sql.select_port_scanner_history(server_ip)
             ports_list = []
             for port in ports:
-                ports_list.append(model_to_dict(port, exclude=[PortScannerHistory.serv]))
+                ports_list.append(model_to_dict(port, exclude=[
+                    PortScannerHistory.serv, PortScannerHistory.event_id, PortScannerHistory.event_key,
+                ]))
             return jsonify(ports_list)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get Portscanner history')

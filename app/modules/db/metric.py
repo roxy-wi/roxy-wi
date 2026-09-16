@@ -29,11 +29,10 @@ def insert_service_metrics(service: Literal['haproxy', 'nginx', 'apache', 'waf',
 
 
 def delete_service_metrics(service: Literal['haproxy', 'http', 'waf', 'nginx', 'apache']) -> None:
-	get_date = roxy_wi_tools.GetDate()
-	cur_date = get_date.return_date('regular', timedelta_minus=3)
+	from app.modules.db.service_event_storage import prune_history
 	model = MODELS[service]
 	try:
-		model.delete().where(model.date < cur_date).execute()
+		prune_history('metrics', 3, models=(model,))
 	except Exception as e:
 		out_error(e)
 
@@ -55,7 +54,8 @@ def select_metrics(serv, service, **kwargs):
 
 		time_range = kwargs.get('time_range', '30')
 		# Create a base query
-		query = model.select().where(model.serv == serv)
+		fields = [field for field in model._meta.sorted_fields if field.name not in ('event_id', 'event_key')]
+		query = model.select(*fields).where(model.serv == serv)
 
 		# Add time-based filtering
 		now = utc_now()
@@ -94,7 +94,7 @@ def select_metrics(serv, service, **kwargs):
 			}
 			if time_range in sampling_rates:
 				# Group by date div X to reduce data points
-				query = model.select().where(
+				query = model.select(*fields).where(
 					(model.serv == serv) & 
 					(model.date >= now - timedelta(minutes=int(time_range)))
 				).group_by(fn.DIV(model.date, sampling_rates[time_range])).order_by(model.date.asc())

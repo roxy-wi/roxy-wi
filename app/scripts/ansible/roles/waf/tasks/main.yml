@@ -53,6 +53,7 @@
         name:
           - yajl-devel
         state: latest
+        enablerepo: "{{ waf_build_repositories }}"
       when:
         - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
         - ansible_facts['distribution_major_version'] == '9'
@@ -76,6 +77,7 @@
           - gcc-c++
           - git
         state: latest
+        enablerepo: "{{ waf_build_repositories }}"
       when:
         - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
       environment:
@@ -149,7 +151,7 @@
 
     - name: Creates directory
       file:
-        path: "{{ mod_sec_src }}INSTALL/include"
+        path: "{{ mod_sec_src }}/INSTALL/include"
         state: directory
 
     - name: Copy Modsec libs
@@ -350,7 +352,6 @@
         state: absent
       with_items:
         - /tmp/modsecurity.tar.gz
-        - "{{ mod_sec_dir }}"
         - /tmp/owasp.tar.gz
         - /tmp/owasp-modsecurity-crs-2.2.9
         - /tmp/spoa-modsecurity

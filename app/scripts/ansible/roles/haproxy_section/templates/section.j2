@@ -1,18 +1,18 @@
 {{ config.type }} {{ config.name }}
-    {% if config.binds != 'None' -%}
+    {% if config.binds not in (none, 'None') -%}
     {% for bind in config.binds -%}
-    bind {{ bind.ip }}:{{ bind.port }} {% if config.ssl != 'None' and config.mode == 'http' and config.ssl.cert %} ssl crt {{cert_path}}/{{ config.ssl.cert }} {% if config.http2 %}alpn h2,http/1.1{% endif %}{% endif %}
+    bind {{ bind.ip or '' }}:{{ bind.port }} {% if config.ssl not in (none, 'None') and config.mode == 'http' and config.ssl.cert %} ssl crt {{cert_path}}/{{ config.ssl.cert }} {% if config.http2 %}alpn h2,http/1.1{% endif %}{% endif %}
 
     {% endfor %}
     {% endif %}
 
     mode {{ config.mode }}
-    {% if config.balance != 'None' -%}
+    {% if config.balance not in (none, 'None') -%}
     balance {{ config.balance }}
     {% endif -%}
     maxconn {{ config.maxconn }}
 
-    {% if config.health_check != 'None' -%}
+    {% if config.health_check not in (none, 'None') -%}
         {% if config.health_check.check == 'httpchk' and config.health_check.domain -%}
     option {{ config.health_check.check }} GET {{ config.health_check.path }} "HTTP/1.0\\r\\nHost: {{ config.health_check.domain }}
         {% else -%}
@@ -20,7 +20,7 @@
         {% endif -%}
     {% endif %}
 
-    {% if config.headers != 'None' -%}
+    {% if config.headers not in (none, 'None') -%}
         {%- for header in config.headers -%}
     {{ header.path }} {{ header.method }} {{ header.name }} {{ header.value }}
         {% endfor %}
@@ -43,12 +43,12 @@
     # End config for DDOS
     {% endif -%}
 
-    {% if config.acls != 'None' -%}
+    {% if config.acls not in (none, 'None') -%}
         {% for acl in config.acls -%}
             {% if acl.acl_if in (1, 2)  -%}
                 {% if config.mode == 'tcp' -%}
                     {% set acl_then_hdr = 'ssl_fc_sni -i' -%}
-                 {% elif config.mode == 'http' and config.ssl == 'None' -%}
+                 {% elif config.mode == 'http' and config.ssl in (none, 'None') -%}
                     {% set acl_then_hdr = 'hdr_beg(host) -i' -%}
                  {% else -%}
                     {% set acl_then_hdr = 'ssl_fc_sni -i' -%}
@@ -93,14 +93,14 @@
     {{ antibot }}
     {% endif -%}
 
-    {% if config.cookie != 'None' -%}
-    cookie {{ config.cookie.name }} {% if config.cookie.domain != 'None' %} {{ config.cookie.domain }}{% endif %} {{ config.cookie.rewrite }} {{ config.cookie.prefix }} {{ config.cookie.nocache }} {{ config.cookie.postonly }} {{ config.cookie.dynamic }}
+    {% if config.cookie not in (none, 'None') -%}
+    cookie {{ config.cookie.name }} {% if config.cookie.domain not in (none, 'None') %} {{ config.cookie.domain }}{% endif %} {{ config.cookie.rewrite }} {{ config.cookie.prefix }} {{ config.cookie.nocache }} {{ config.cookie.postonly }} {{ config.cookie.dynamic }}
         {% if config.cookie.dynamic_key -%}
     dynamic-cookie-key {{ config.cookie.dynamic_key }}
         {% endif -%}
     {% endif -%}
 
-    {% if config.ssl != 'None' and config.mode == 'http' -%}
+    {% if config.ssl not in (none, 'None') and config.mode == 'http' -%}
         {%- if config.ssl.ssl_check_backend -%}
             {%- set ssl_check_option = 'ssl verify required' -%}
         {%- else -%}
@@ -109,13 +109,13 @@
     {% else -%}
         {%- set ssl_check_option = '' -%}
     {% endif -%}
-    {% if config.servers_check != 'None' and config.servers_check.check_enabled -%}
+    {% if config.servers_check not in (none, 'None') and config.servers_check.check_enabled -%}
         {%- set check_option = ' check inter ' + config.servers_check.inter|string() + ' rise ' + config.servers_check.rise|string() + ' fall ' + config.servers_check.fall|string() %}
     {% else -%}
         {% set check_option = '' -%}
     {% endif -%}
 
-    {% if config.option != '' and config.option != 'None' -%}
+    {% if config.option not in ('', none, 'None') -%}
         {% for o in config.option.split('\\r\\n') -%}
     {{ o }}
         {% endfor -%}
@@ -126,18 +126,18 @@
     http-response cache-store {{ config.name }}
     {% endif -%}
 
-    {% if config.circuit_breaking != 'None' -%}
+    {% if config.circuit_breaking not in (none, 'None') -%}
     default-server observe {{ config.circuit_breaking.observe }} error-limit {{ config.circuit_breaking.error_limit }} on-error {{ config.circuit_breaking.on_error }}
     {% endif -%}
 
-    {%- if config.backend_servers != 'None' and config.servers_template == 'None' -%}
+    {%- if config.backend_servers not in (none, 'None') and config.servers_template in (none, 'None') -%}
     {%- for backend in config.backend_servers -%}
     server {{ backend.server }} {{ backend.server }}:{{ backend.port }} port {{ backend.port_check }} {{ check_option }} {{ ssl_check_option }} maxconn {{ backend.maxconn }}{% if backend.send_proxy %} send-proxy{% endif %}{% if backend.backup %} backup {% endif %}
 
     {% endfor -%}
     {%- endif -%}
 
-    {% if config.servers_template != 'None' -%}
+    {% if config.servers_template not in (none, 'None') -%}
     server-template {{ config.servers_template.prefix }} {{ config.servers_template.count }} {{ config.servers_template.servers }}: {{ config.servers_template.port }} {{ check_option }}
     {% endif -%}
 

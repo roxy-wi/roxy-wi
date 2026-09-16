@@ -386,6 +386,28 @@ def generate_section_inv_for_del(cfg: str, section_type: str, section_name: str)
 	return inv
 
 
+def generate_section_preview(json_data: dict, service: Literal['haproxy', 'nginx']) -> str:
+	"""Render a preview in a private per-request directory and always clean it up."""
+	if service not in ('haproxy', 'nginx'):
+		raise ValueError('Unsupported section service')
+	runtime_environment = _prepare_ansible_runtime_dirs()
+	with tempfile.TemporaryDirectory(
+		prefix=f'roxywi-{service}-section-', dir=runtime_environment['ANSIBLE_LOCAL_TEMP'],
+	) as directory:
+		extension = 'cfg' if service == 'haproxy' else 'conf'
+		cfg = os.path.join(directory, f'generated-config.{extension}')
+		# HAProxy's blockinfile requires an existing file. Close it before Ansible
+		# runs so that its modules can replace it atomically.
+		with open(cfg, 'x', encoding='utf-8'):
+			pass
+		inv = generate_section_inv(json_data, cfg, service)
+		output = run_ansible_locally(inv, f'{service}_section')
+		if output.get('failures') or output.get('dark'):
+			raise RuntimeError(_ansible_stats_error(output))
+		with open(cfg, encoding='utf-8') as config_file:
+			return config_file.read()
+
+
 def generate_service_inv(json_data: ServiceInstall, installed_service: str) -> object:
 	inv = {"server": {"hosts": {}}}
 	server_ips = []

@@ -1,2 +1,7 @@
 ---
 modsec_ver: "2.9.5"
+# DNF enables these repositories for the package transaction only. RHEL and
+# other distributions keep their existing repository configuration.
+waf_build_repositories: >-
+  {{ ['crb'] if ansible_facts['distribution'] in ['CentOS', 'Rocky', 'AlmaLinux']
+     and ansible_facts['distribution_major_version'] == '9' else [] }}

@@ -4,28 +4,30 @@ from app.modules.db.common import out_error
 
 def select_keep_alive():
 	try:
-		return Server.select(Server.ip, Server.group_id, Server.server_id).where(Server.haproxy_active == 1).execute()
+		# Finish the read before callers await network checks. A partially consumed
+		# cursor otherwise pins SQLite WAL for the whole check loop.
+		return list(Server.select(Server.ip, Server.group_id, Server.server_id).where(Server.haproxy_active == 1))
 	except Exception as e:
 		out_error(e)
 
 
 def select_nginx_keep_alive():
 	try:
-		return Server.select(Server.ip, Server.group_id, Server.server_id).where(Server.nginx_active == 1).execute()
+		return list(Server.select(Server.ip, Server.group_id, Server.server_id).where(Server.nginx_active == 1))
 	except Exception as e:
 		out_error(e)
 
 
 def select_apache_keep_alive():
 	try:
-		return Server.select(Server.ip, Server.group_id, Server.server_id).where(Server.apache_active == 1).execute()
+		return list(Server.select(Server.ip, Server.group_id, Server.server_id).where(Server.apache_active == 1))
 	except Exception as e:
 		out_error(e)
 
 
 def select_keepalived_keep_alive():
 	try:
-		return Server.select(Server.ip, Server.port, Server.group_id, Server.server_id).where(Server.keepalived_active == 1).execute()
+		return list(Server.select(Server.ip, Server.port, Server.group_id, Server.server_id).where(Server.keepalived_active == 1))
 	except Exception as e:
 		out_error(e)
 

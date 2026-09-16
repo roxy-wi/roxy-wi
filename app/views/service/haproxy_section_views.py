@@ -1,6 +1,4 @@
-import os
 import shutil
-from pathlib import Path
 from typing import Union, Literal
 
 from flask.views import MethodView
@@ -64,22 +62,10 @@ class HaproxySectionView(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find a server')
         if query.generate:
-            cfg = '/tmp/haproxy-generated-config.cfg'
-            Path(cfg).touch(exist_ok=True)
-            inv = service_mod.generate_section_inv(body.model_dump(mode='json'), cfg, service)
-
             try:
-                output = service_mod.run_ansible_locally(inv, 'haproxy_section')
-                if len(output['failures']) > 0 or len(output['dark']) > 0:
-                    raise Exception('Cannot create HAProxy section. Check Apache error log')
+                conf = service_mod.generate_section_preview(body.model_dump(mode='json'), service)
             except Exception as e:
                 return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot create HAProxy section: {e}')
-            try:
-                with open(cfg, 'r') as file:
-                    conf = file.read()
-            except Exception as e:
-                raise Exception(f'error: Cannot read config file: {e}')
-            os.remove(cfg)
             return DataStrResponse(data=conf).model_dump(mode='json'), 200
 
         try:
@@ -172,7 +158,7 @@ class HaproxySectionView(MethodView):
             raise e
 
         if len(output['failures']) > 0 or len(output['dark']) > 0:
-            raise Exception('Cannot create HAProxy section. Check Apache error log')
+            raise Exception('Cannot create HAProxy section')
 
         if body:
             if body.action:

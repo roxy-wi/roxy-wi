@@ -5,6 +5,8 @@ import time
 
 
 def run_web() -> None:
+    from roxy_wi_health import register_web
+    register_web()
     bind = os.environ.get('ROXYWI_WEB_BIND', '0.0.0.0:8080')
     workers = os.environ.get('ROXYWI_WEB_WORKERS', '2')
     threads = os.environ.get('ROXYWI_WEB_THREADS', '4')
@@ -52,9 +54,16 @@ def main() -> None:
     parser = argparse.ArgumentParser(description='Roxy-WI process launcher')
     parser.add_argument(
         'role',
-        choices=('web', 'migrate', 'wait-for-database', 'scheduler', 'service-events', 'operations'),
+        choices=('web', 'migrate', 'wait-for-database', 'scheduler', 'service-events', 'operations', 'healthcheck'),
     )
+    parser.add_argument('--role', dest='probe_role', choices=('web', 'scheduler', 'service-events', 'operations'))
+    parser.add_argument('--check', choices=('live', 'ready'), default='ready')
     args = parser.parse_args()
+    if args.role == 'healthcheck':
+        from roxy_wi_health import probe
+        healthy, detail = probe(args.check, args.probe_role)
+        print(detail)
+        raise SystemExit(0 if healthy else 1)
     os.environ['ROXYWI_PROCESS_ROLE'] = args.role
 
     if args.role == 'web':

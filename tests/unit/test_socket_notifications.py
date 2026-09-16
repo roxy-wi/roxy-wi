@@ -20,6 +20,9 @@ class RecordingChannel:
     def basic_publish(self, **kwargs):
         self.calls.append(('basic_publish', kwargs))
 
+    def confirm_delivery(self):
+        self.calls.append(('confirm_delivery', {}))
+
 
 class RecordingConnection:
     def __init__(self, channel):
@@ -65,7 +68,8 @@ def test_notification_is_published_to_group_topic(monkeypatch):
         'exchange_declare',
         {'exchange': 'roxy.notifications', 'exchange_type': 'topic', 'durable': True},
     )
-    publish = channel.calls[1][1]
+    assert channel.calls[1] == ('confirm_delivery', {})
+    publish = channel.calls[2][1]
     payload = json.loads(publish['body'])
     assert publish['exchange'] == 'roxy.notifications'
     assert publish['routing_key'] == 'group.7'

@@ -16,6 +16,7 @@ from playhouse.shortcuts import ReconnectMixin
 from playhouse.sqlite_ext import SqliteExtDatabase
 
 from app.modules.db.settings import DatabaseSettings
+from app.modules.common.time import utc_now
 
 database_settings = DatabaseSettings.load()
 mysql_enable = '1' if database_settings.engine == 'mysql' else '0'
@@ -329,6 +330,8 @@ class S3Backup(BaseModel):
 
 
 class Metrics(BaseModel):
+    event_id = CharField(null=True, unique=True, max_length=64)
+    event_key = CharField(null=True, unique=True, max_length=64)
     serv = CharField(index=True)  # Added index for serv as it's used in joins and filters
     curr_con = IntegerField()
     cur_ssl_con = IntegerField()
@@ -346,6 +349,8 @@ class Metrics(BaseModel):
 
 
 class WafMetrics(BaseModel):
+    event_id = CharField(null=True, unique=True, max_length=64)
+    event_key = CharField(null=True, unique=True, max_length=64)
     serv = CharField(index=True)  # Added index for serv as it's used in joins and filters
     conn = IntegerField()
     date = DateTimeField(default=datetime.now, index=True)  # Added index for date as it's used in time-based queries
@@ -360,6 +365,8 @@ class WafMetrics(BaseModel):
 
 
 class NginxMetrics(BaseModel):
+    event_id = CharField(null=True, unique=True, max_length=64)
+    event_key = CharField(null=True, unique=True, max_length=64)
     serv = CharField(index=True)  # Added index for serv as it's used in joins and filters
     conn = IntegerField()
     date = DateTimeField(default=datetime.now, index=True)  # Added index for date as it's used in time-based queries
@@ -374,6 +381,8 @@ class NginxMetrics(BaseModel):
 
 
 class ApacheMetrics(BaseModel):
+    event_id = CharField(null=True, unique=True, max_length=64)
+    event_key = CharField(null=True, unique=True, max_length=64)
     serv = CharField(index=True)  # Added index for serv as it's used in joins and filters
     conn = IntegerField()
     date = DateTimeField(default=datetime.now, index=True)  # Added index for date as it's used in time-based queries
@@ -464,6 +473,8 @@ class PortScannerPorts(BaseModel):
 
 
 class PortScannerHistory(BaseModel):
+    event_id = CharField(null=True, index=True, max_length=64)
+    event_key = CharField(null=True, max_length=64)
     serv = CharField()
     port = IntegerField()
     status = CharField()
@@ -473,9 +484,12 @@ class PortScannerHistory(BaseModel):
     class Meta:
         table_name = 'port_scanner_history'
         primary_key = False
+        indexes = ((('event_key', 'port', 'status'), True),)
 
 
 class MetricsHttpStatus(BaseModel):
+    event_id = CharField(null=True, unique=True, max_length=64)
+    event_key = CharField(null=True, unique=True, max_length=64)
     serv = CharField()
     ok_ans = IntegerField(column_name='2xx')
     redir_ans = IntegerField(column_name='3xx')
@@ -517,6 +531,8 @@ class SMON(BaseModel):
 
 
 class Alerts(BaseModel):
+    event_id = CharField(null=True, unique=True, max_length=64)
+    event_key = CharField(null=True, unique=True, max_length=64)
     message = CharField()
     level = CharField(index=True)  # Added index for level as it's used in filters
     ip = CharField(index=True)  # Added index for ip as it's used in filters
@@ -675,26 +691,26 @@ class ConfigChangeTarget(BaseModel):
 
 
 class ServiceEvent(BaseModel):
-    """Durable, idempotent copy of an event received from a remote service."""
+    """Short-lived diagnostics, independent of user history and delivery state."""
 
     event_id = CharField(primary_key=True, max_length=64)
-    event_type = CharField(index=True, max_length=128)
-    source = CharField(index=True, max_length=64)
+    event_type = CharField(max_length=128)
+    source = CharField(max_length=64)
     schema_version = IntegerField(default=1)
-    assignment_id = CharField(null=True, index=True, max_length=255)
+    assignment_id = CharField(null=True, max_length=255)
     assignment_revision = IntegerField(null=True)
     lease_epoch = BigIntegerField(null=True)
     sequence = BigIntegerField(null=True)
-    server_id = IntegerField(null=True, index=True)
-    user_group = IntegerField(constraints=[SQL('DEFAULT 1')], index=True)
-    service = CharField(index=True, max_length=64)
+    server_id = IntegerField(null=True)
+    user_group = IntegerField(constraints=[SQL('DEFAULT 1')])
+    service = CharField(max_length=64)
     object_type = CharField(null=True, max_length=64)
     object_name = CharField(null=True, max_length=255)
     previous_status = CharField(null=True, max_length=64)
     current_status = CharField(null=True, max_length=64)
-    level = CharField(null=True, index=True, max_length=32)
+    level = CharField(null=True, max_length=32)
     message = TextField(null=True)
-    observed_at = DateTimeField(index=True)
+    observed_at = DateTimeField()
     received_at = DateTimeField(default=datetime.now, index=True)
     payload = TextField()
 
@@ -702,13 +718,11 @@ class ServiceEvent(BaseModel):
         table_name = 'service_events'
         indexes = (
             (('assignment_id', 'assignment_revision', 'lease_epoch', 'sequence'), True),
-            (('user_group', 'observed_at'), False),
-            (('service', 'observed_at'), False),
         )
 
 
 class ServiceEventDelivery(BaseModel):
-    """Notification outbox associated with a persisted service event."""
+    """Legacy outbox, retained for upgrading existing installations."""
 
     id = AutoField()
     event_id = ForeignKeyField(
@@ -728,6 +742,51 @@ class ServiceEventDelivery(BaseModel):
     class Meta:
         table_name = 'service_event_deliveries'
         indexes = ((('event_id',), True),)
+
+
+class ServiceNotification(BaseModel):
+    """Independent delivery payload; diagnostic retention cannot delete pending work."""
+
+    id = AutoField()
+    event_id = CharField(unique=True, max_length=64)
+    event_key = CharField(null=True, unique=True, max_length=64)
+    payload = TextField(null=True)
+    category = CharField(max_length=32)
+    observed_at = DateTimeField()
+    status = CharField(default='pending', index=True, max_length=32)
+    attempts = IntegerField(default=0)
+    last_error = TextField(null=True)
+    claim_token = CharField(null=True, max_length=64)
+    created_at = DateTimeField(default=utc_now)
+    updated_at = DateTimeField(default=utc_now)
+    delivered_at = DateTimeField(null=True)
+
+    class Meta:
+        table_name = 'service_notifications'
+
+
+class ServiceEventPosition(BaseModel):
+    """One current position per assignment, never a substitute for history deduplication."""
+
+    assignment_id = CharField(primary_key=True, max_length=255)
+    assignment_revision = BigIntegerField(default=0)
+    lease_epoch = BigIntegerField(default=0)
+    sequence = BigIntegerField(default=-1)
+    event_id = CharField(null=True, max_length=64)
+    observed_at = DateTimeField(null=True)
+
+    class Meta:
+        table_name = 'service_event_positions'
+
+
+class ServiceEventRetention(BaseModel):
+    """Monotonic retention boundary prevents replay from resurrecting purged data."""
+
+    category = CharField(primary_key=True, max_length=32)
+    cutoff = DateTimeField()
+
+    class Meta:
+        table_name = 'service_event_retention'
 
 
 class WorkerState(BaseModel):
@@ -1235,7 +1294,8 @@ def create_tables():
             [User, Server, Role, Telegram, Slack, Groups, UserGroups, OidcProvider, OidcIdentity, OidcGroupMapping,
              RevokedToken, ConfigVersion, ConfigChange, ConfigChangeTarget, ConfigChangeEvent,
              ConfigChangeWebhook, ConfigChangeDelivery, Setting, RoxyTool, Alerts, ServiceEvent,
-             ServiceEventDelivery, WorkerState, ServiceAssignment, ServiceCommand,
+             ServiceEventDelivery, ServiceNotification, ServiceEventPosition, ServiceEventRetention,
+             WorkerState, ServiceAssignment, ServiceCommand,
              Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
              PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, GeoipCodes,
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,

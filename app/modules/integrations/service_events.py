@@ -9,7 +9,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 import app.modules.db.service_event as event_sql
-from app.modules.db.db_model import ServiceAssignment
+from app.modules.db.db_model import ServiceAssignment, ServiceCommand
 
 
 SUPPORTED_WORKER_SERVICES = frozenset({
@@ -127,6 +127,7 @@ class PortScannerPort(BaseModel):
 
 
 class PortScannerScanCompleted(_EventBase):
+    schema_version: Literal[2]
     assignment_id: str = Field(min_length=1, max_length=255)
     assignment_revision: int = Field(ge=1)
     lease_epoch: int = Field(ge=0)
@@ -138,14 +139,27 @@ class PortScannerScanCompleted(_EventBase):
     observed_at: datetime
     duration_seconds: float = Field(ge=0, le=3600)
     ports: list[PortScannerPort] = Field(max_length=65535)
+    opened: list[PortScannerPort] = Field(max_length=65535)
+    closed: list[PortScannerPort] = Field(max_length=65535)
 
-    @field_validator('ports')
+    @field_validator('ports', 'opened', 'closed')
     @classmethod
     def unique_ports(cls, value: list[PortScannerPort]) -> list[PortScannerPort]:
         identities = [(port.protocol, port.port) for port in value]
         if len(identities) != len(set(identities)):
             raise ValueError('port snapshot contains duplicate ports')
         return sorted(value, key=lambda port: (port.port, port.protocol))
+
+    @model_validator(mode='after')
+    def consistent_changes(self):
+        snapshot = {(port.protocol, port.port): port for port in self.ports}
+        opened = {(port.protocol, port.port): port for port in self.opened}
+        closed = {(port.protocol, port.port) for port in self.closed}
+        if closed & snapshot.keys():
+            raise ValueError('closed ports must not be present in the completed snapshot')
+        if any(snapshot.get(key) != port for key, port in opened.items()):
+            raise ValueError('opened ports must match the completed snapshot')
+        return self
 
 
 @dataclass(frozen=True)
@@ -171,6 +185,28 @@ def _model_data(model: BaseModel) -> dict[str, Any]:
     return data
 
 
+def _assignment_context(assignment, event):
+    if event.assignment_revision < assignment.revision:
+        # Validate delayed history against the actual command that authorized it,
+        # not a newer target/group/settings combination. Unverifiable revisions
+        # remain rejected; an old event never acquires a new group's permissions.
+        command = ServiceCommand.get_or_none(
+            (ServiceCommand.assignment_id == event.assignment_id)
+            & (ServiceCommand.revision == event.assignment_revision)
+            & (ServiceCommand.target_service == event.source)
+        )
+        if command is None:
+            return None
+        payload = json.loads(command.payload)
+        target = payload['target']
+        return payload, (int(payload['group_id']), target['server_id'], target['service'], target['address'])
+    payload = json.loads(assignment.payload)
+    return payload, (
+        int(assignment.user_group), assignment.server_id, assignment.service,
+        payload.get('target', {}).get('address'),
+    )
+
+
 def process_event(payload: bytes | str | Mapping[str, Any]) -> ProcessResult:
     raw = _mapping(payload)
     event_type = raw.get('type')
@@ -192,18 +228,12 @@ def process_event(payload: bytes | str | Mapping[str, Any]) -> ProcessResult:
             ServiceAssignment.assignment_id == event.assignment_id
         )
         if assignment is not None:
-            if event.assignment_revision < assignment.revision:
-                return ProcessResult(kind='status_changed', created=False)
             if event.assignment_revision > assignment.revision:
                 raise ValueError('checker event revision is newer than desired state')
-            desired_payload = json.loads(assignment.payload)
-            target = desired_payload.get('target', {})
-            expected = (
-                int(assignment.user_group),
-                assignment.server_id,
-                assignment.service,
-                target.get('address'),
-            )
+            context = _assignment_context(assignment, event)
+            if context is None:
+                return ProcessResult(kind='status_changed', created=False)
+            desired_payload, expected = context
             actual = (
                 event.group_id,
                 event.server_id,
@@ -225,15 +255,12 @@ def process_event(payload: bytes | str | Mapping[str, Any]) -> ProcessResult:
         )
         if assignment is None or assignment.target_service != 'metrics':
             raise ValueError('unknown Metrics assignment')
-        if event.assignment_revision < assignment.revision:
-            return ProcessResult(kind='metric_sample', created=False)
         if event.assignment_revision > assignment.revision:
             raise ValueError('Metrics event revision is newer than desired state')
-        desired_payload = json.loads(assignment.payload)
-        target = desired_payload.get('target', {})
-        expected = (
-            int(assignment.user_group), assignment.server_id, assignment.service, target.get('address')
-        )
+        context = _assignment_context(assignment, event)
+        if context is None:
+            return ProcessResult(kind='metric_sample', created=False)
+        desired_payload, expected = context
         actual = (event.group_id, event.server_id, event.service, event.server_address)
         if actual != expected:
             raise ValueError('Metrics event target does not match its desired assignment')
@@ -249,18 +276,12 @@ def process_event(payload: bytes | str | Mapping[str, Any]) -> ProcessResult:
         )
         if assignment is None or assignment.target_service != 'portscanner':
             raise ValueError('unknown Port Scanner assignment')
-        if event.assignment_revision < assignment.revision:
-            return ProcessResult(kind='port_snapshot', created=False)
         if event.assignment_revision > assignment.revision:
             raise ValueError('Port Scanner event revision is newer than desired state')
-        desired_payload = json.loads(assignment.payload)
-        target = desired_payload.get('target', {})
-        expected = (
-            int(assignment.user_group),
-            assignment.server_id,
-            assignment.service,
-            target.get('address'),
-        )
+        context = _assignment_context(assignment, event)
+        if context is None:
+            return ProcessResult(kind='port_snapshot', created=False)
+        desired_payload, expected = context
         actual = (event.group_id, event.server_id, event.service, event.server_address)
         if actual != expected:
             raise ValueError('Port Scanner event target does not match its desired assignment')
@@ -268,6 +289,7 @@ def process_event(payload: bytes | str | Mapping[str, Any]) -> ProcessResult:
         data = _model_data(event)
         data['notify'] = bool(settings.get('notify', False))
         data['history'] = bool(settings.get('history', False))
+        data['update_current'] = event.assignment_revision == assignment.revision
         return ProcessResult(
             kind='port_snapshot', created=event_sql.store_portscanner_snapshot(data)
         )
@@ -281,15 +303,15 @@ def deliver_pending_notifications(limit: int = 100) -> int:
 
     delivered = 0
     for delivery in event_sql.claim_pending_deliveries(limit=limit):
-        event = delivery.event_id
-        payload = json.loads(event.payload)
         try:
+            payload = json.loads(delivery.payload)
             if payload['service'] == 'portscanner':
                 alerting.portscanner_alert_routing(
                     payload['server_address'],
                     payload['group_id'],
                     payload['level'],
                     payload['message'],
+                    raise_on_error=True,
                 )
             else:
                 alerting.alert_routing(
@@ -299,10 +321,11 @@ def deliver_pending_notifications(limit: int = 100) -> int:
                     payload['level'],
                     payload['message'],
                     payload['alert_type'],
+                    raise_on_error=True,
                 )
         except Exception as exc:
-            event_sql.mark_delivery_failed(delivery.id, str(exc))
+            event_sql.mark_delivery_failed(delivery.id, str(exc), delivery.claim_token)
         else:
-            event_sql.mark_delivery_succeeded(delivery.id)
+            event_sql.mark_delivery_succeeded(delivery.id, delivery.claim_token)
             delivered += 1
     return delivered

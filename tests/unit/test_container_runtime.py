@@ -110,6 +110,25 @@ def test_compose_manifests_are_parseable_and_use_no_shared_cache():
         assert {'web', 'migrate', 'scheduler', 'service-events', 'operations'} <= set(document['services'])
         assert document['x-roxy-wi']['environment']['ROXYWI_CACHE_TYPE'] == 'NullCache'
         assert 'redis' not in document['services']
+        assert document['services']['migrate']['healthcheck']['disable'] is True
+
+
+def test_docker_healthcheck_uses_role_aware_readiness():
+    project_root = Path(__file__).resolve().parents[2]
+    dockerfile = (project_root / 'docker' / 'Dockerfile').read_text()
+    healthcheck = dockerfile.split('HEALTHCHECK', 1)[1].split('ENTRYPOINT', 1)[0]
+    assert '["python", "/var/www/haproxy-wi/roxy_wi.py", "healthcheck"]' in healthcheck
+    assert 'urllib' not in healthcheck
+
+
+def test_helm_workers_have_separate_local_and_readiness_probes():
+    templates = Path(__file__).resolve().parents[2] / 'helm' / 'roxy-wi' / 'templates'
+    helper = (templates / '_helpers.tpl').read_text().split('define "roxy-wi.workerProbes"', 1)[1]
+    helper = helper.split('{{- end }}', 1)[0]
+    assert helper.count('"--check", "live"') == 2
+    assert helper.count('"--check", "ready"') == 1
+    for role in ('scheduler', 'service-events', 'operations'):
+        assert f'include "roxy-wi.workerProbes" "{role}"' in (templates / f'deployment-{role}.yaml').read_text()
 
 
 def test_helm_chart_uses_incidentrelay_directory_layout():

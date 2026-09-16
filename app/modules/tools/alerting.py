@@ -17,117 +17,78 @@ import app.modules.roxywi.common as roxywi_common
 from app.modules.integrations.socket_notifications import publish_socket_notification
 
 
+class NotificationDeliveryError(RuntimeError):
+	pass
+
+
+def _attempt_delivery(errors, channel, sender, *args, **kwargs):
+	try:
+		sender(*args, **kwargs)
+	except Exception as exc:
+		# Provider exceptions may contain token-bearing webhook URLs.
+		errors.append(f'{channel} ({type(exc).__name__})')
+		roxywi_common.logging('Roxy-WI server', f'error: notification delivery failed: {errors[-1]}', roxywi=1)
+
+
+def _finish_delivery(errors, raise_on_error):
+	if errors and raise_on_error:
+		raise NotificationDeliveryError('Notification delivery failed: ' + ', '.join(errors))
+
+
 def alert_routing(
-	server_ip: str, service_id: int, group_id: int, level: str, mes: str, alert_type: str
+	server_ip: str, service_id: int, group_id: int, level: str, mes: str, alert_type: str,
+	raise_on_error: bool = False,
 ) -> None:
-	try:
-		subject: str = level + ': ' + mes
-		checker_settings = []
-		if service_id != 6:
-			server_id: int = server_sql.get_server_by_ip(server_ip).server_id
-			checker_settings = checker_sql.select_checker_settings_for_server(service_id, server_id)
-	except Exception as e:
-		raise Exception(f'Cannot get settings: {e}')
-
-	try:
-		publish_socket_notification(group_id, subject)
-	except Exception as e:
-		roxywi_common.logging('Roxy-WI server', f'error: unable to send message: {e}', roxywi=1)
-
+	subject = level + ': ' + mes
+	checker_settings = []
+	if service_id != 6:
+		server_id = server_sql.get_server_by_ip(server_ip).server_id
+		checker_settings = list(checker_sql.select_checker_settings_for_server(service_id, server_id))
+	errors = []
+	_attempt_delivery(errors, 'Socket', publish_socket_notification, group_id, subject)
 	for setting in checker_settings:
-		if alert_type == 'service' and setting.service_alert:
-			try:
-				telegram_send_mess(mes, level, channel_id=setting.telegram_id)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Telegram: {e}', roxywi=1)
-			try:
-				slack_send_mess(mes, level, channel_id=setting.slack_id)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Slack: {e}', roxywi=1)
-			try:
-				pd_send_mess(mes, level, server_ip, service_id, alert_type, channel_id=setting.pd_id)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to PagerDuty: {e}', roxywi=1)
-			try:
-				mm_send_mess(mes, level, server_ip, service_id, alert_type, channel_id=setting.mm_id)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Mattermost: {e}', roxywi=1)
-
-			if setting.email:
-				send_email_to_server_group(subject, mes, level, group_id)
-
-		if alert_type == 'backend' and setting.backend_alert:
-			try:
-				telegram_send_mess(mes, level, channel_id=setting.telegram_id)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Telegram: {e}', roxywi=1)
-			try:
-				slack_send_mess(mes, level, channel_id=setting.slack_id)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Slack: {e}', roxywi=1)
-			try:
-				pd_send_mess(mes, level, server_ip, service_id, alert_type, channel_id=setting.pd_id)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to PagerDuty: {e}', roxywi=1)
-			try:
-				mm_send_mess(mes, level, server_ip, service_id, alert_type, channel_id=setting.mm_id)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Mattermost: {e}', roxywi=1)
-
-			if setting.email:
-				send_email_to_server_group(subject, mes, level, group_id)
-
-		if alert_type == 'maxconn' and setting.maxconn_alert:
-			try:
-				telegram_send_mess(mes, level, channel_id=setting.telegram_id)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Telegram: {e}', roxywi=1)
-			try:
-				slack_send_mess(mes, level, channel_id=setting.slack_id)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Slack: {e}', roxywi=1)
-			try:
-				pd_send_mess(mes, level, server_ip, service_id, alert_type, channel_id=setting.pd_id)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to PagerDuty: {e}', roxywi=1)
-			try:
-				mm_send_mess(mes, level, server_ip, service_id, alert_type, channel_id=setting.mm_id)
-			except Exception as e:
-				roxywi_common.logging('Roxy-WI server', f'error: unable to send message to Mattermost: {e}', roxywi=1)
-
-			if setting.email:
-				send_email_to_server_group(subject, mes, level, group_id)
+		if not getattr(setting, f'{alert_type}_alert', False):
+			continue
+		for name, sender, channel_id, args in (
+			('Telegram', telegram_send_mess, setting.telegram_id, ()),
+			('Slack', slack_send_mess, setting.slack_id, ()),
+			('PagerDuty', pd_send_mess, setting.pd_id, (server_ip, service_id, alert_type)),
+			('Mattermost', mm_send_mess, setting.mm_id, (server_ip, service_id, alert_type)),
+		):
+			_attempt_delivery(errors, name, sender, mes, level, *args,
+							  channel_id=channel_id, raise_on_error=raise_on_error)
+		if setting.email:
+			_attempt_delivery(errors, 'Email', send_email_to_server_group,
+							  subject, mes, level, group_id, raise_on_error=raise_on_error)
+	_finish_delivery(errors, raise_on_error)
 
 
-def portscanner_alert_routing(server_ip: str, group_id: int, level: str, mes: str) -> None:
-	"""Deliver Port Scanner notifications through the legacy configured channels."""
-	try:
-		publish_socket_notification(group_id, f'{level}: {mes}')
-	except Exception as e:
-		roxywi_common.logging('Roxy-WI server', f'error: unable to send Port Scanner socket message: {e}', roxywi=1)
-
-	for sender, channel_name in ((telegram_send_mess, 'Telegram'), (slack_send_mess, 'Slack')):
-		try:
-			sender(mes, level, ip=server_ip)
-		except Exception as e:
-			roxywi_common.logging(
-				'Roxy-WI server',
-				f'error: unable to send Port Scanner message to {channel_name}: {e}',
-				roxywi=1,
-			)
+def portscanner_alert_routing(
+	server_ip: str, group_id: int, level: str, mes: str, raise_on_error: bool = False,
+) -> None:
+	"""Keep unsuccessful notification jobs retryable, while trying every configured channel."""
+	errors = []
+	_attempt_delivery(errors, 'Socket', publish_socket_notification, group_id, f'{level}: {mes}')
+	for sender, name in ((telegram_send_mess, 'Telegram'), (slack_send_mess, 'Slack')):
+		_attempt_delivery(errors, name, sender, mes, level, ip=server_ip, raise_on_error=raise_on_error)
+	_finish_delivery(errors, raise_on_error)
 
 
-def send_email_to_server_group(subject: str, mes: str, level: str, group_id: int) -> None:
+def send_email_to_server_group(subject: str, mes: str, level: str, group_id: int, raise_on_error=False) -> None:
 	try:
 		users_email = user_sql.select_users_emails_by_group_id(group_id)
-
+		errors = []
 		for user_email in users_email:
-			send_email(user_email.email, subject, f'{level}: {mes}')
+			_attempt_delivery(errors, 'Email', send_email, user_email.email, subject,
+							  f'{level}: {mes}', raise_on_error=raise_on_error)
+		_finish_delivery(errors, raise_on_error)
 	except Exception as e:
+		if raise_on_error:
+			raise NotificationDeliveryError('Email group delivery failed') from None
 		roxywi_common.logging('Roxy-WI server', f'error: unable to send email: {e}', roxywi=1)
 
 
-def send_email(email_to: str, subject: str, message: str) -> None:
+def send_email(email_to: str, subject: str, message: str, raise_on_error=False) -> None:
 	from smtplib import SMTP
 
 	try:
@@ -148,13 +109,15 @@ def send_email(email_to: str, subject: str, message: str) -> None:
 	msg['To'] = email_to
 
 	try:
-		smtp_obj = SMTP(mail_smtp_host, mail_smtp_port)
-		if mail_ssl:
-			smtp_obj.starttls()
-		smtp_obj.login(mail_smtp_user, mail_smtp_password)
-		smtp_obj.send_message(msg)
+		with SMTP(mail_smtp_host, mail_smtp_port, timeout=15) as smtp_obj:
+			if mail_ssl:
+				smtp_obj.starttls()
+			smtp_obj.login(mail_smtp_user, mail_smtp_password)
+			smtp_obj.send_message(msg)
 		roxywi_common.logging('Roxy-WI server', f'An email has been sent to {email_to}', roxywi=1)
 	except Exception as e:
+		if raise_on_error:
+			raise NotificationDeliveryError('Email delivery failed') from None
 		roxywi_common.logging('Roxy-WI server', f'error: unable to send email: {e}', roxywi=1)
 
 
@@ -169,7 +132,9 @@ def telegram_send_mess(mess, level, **kwargs):
 	if kwargs.get('channel_id'):
 		telegrams = channel_sql.get_receiver_by_id('telegram', kwargs.get('channel_id'))
 	else:
-		telegrams = channel_sql.get_receiver_by_ip('telegram', kwargs.get('ip'))
+		telegrams = list(channel_sql.get_receiver_by_ip('telegram', kwargs.get('ip')))
+		if not telegrams:
+			return
 
 	for telegram in telegrams:
 		token_bot = telegram.token
@@ -185,6 +150,8 @@ def telegram_send_mess(mess, level, **kwargs):
 		bot = telebot.TeleBot(token=token_bot)
 		bot.send_message(chat_id=channel_name, text=f'{level}: {mess}')
 	except Exception as e:
+		if kwargs.get('raise_on_error'):
+			raise NotificationDeliveryError('Telegram delivery failed') from None
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		raise Exception(e)
 
@@ -201,7 +168,9 @@ def slack_send_mess(mess, level, **kwargs):
 	if kwargs.get('channel_id'):
 		slacks = channel_sql.get_receiver_by_id('slack', kwargs.get('channel_id'))
 	else:
-		slacks = channel_sql.get_receiver_by_ip('slack', kwargs.get('ip'))
+		slacks = list(channel_sql.get_receiver_by_ip('slack', kwargs.get('ip')))
+		if not slacks:
+			return
 
 	proxy = sql.get_setting('proxy')
 
@@ -217,6 +186,8 @@ def slack_send_mess(mess, level, **kwargs):
 	try:
 		client.chat_postMessage(channel=f'#{channel_name}', text=f'{level}: {mess}')
 	except SlackApiError as e:
+		if kwargs.get('raise_on_error'):
+			raise NotificationDeliveryError('Slack delivery failed') from None
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		raise Exception(e)
 
@@ -230,13 +201,13 @@ def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 	if kwargs.get('channel_id'):
 		try:
 			pds = channel_sql.get_receiver_by_id('pd', kwargs.get('channel_id'))
-		except Exception as e:
-			print(e)
+		except Exception:
+			raise NotificationDeliveryError('Cannot load PagerDuty channel') from None
 	else:
 		try:
 			pds = channel_sql.get_receiver_by_ip('pd', kwargs.get('ip'))
-		except Exception as e:
-			print(e)
+		except Exception:
+			raise NotificationDeliveryError('Cannot load PagerDuty channel') from None
 
 	for pd in pds:
 		token = pd.token
@@ -249,6 +220,8 @@ def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 		else:
 			dedup_key = f'{level}: {mess}'
 	except Exception as e:
+		if kwargs.get('raise_on_error'):
+			raise NotificationDeliveryError('PagerDuty setup failed') from None
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		raise Exception(e)
 	if proxy is not None and proxy != '' and proxy != 'None':
@@ -261,6 +234,8 @@ def pd_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 		else:
 			session.trigger(mess, 'Roxy-WI', dedup_key=dedup_key, severity=level, custom_details={'server': server_ip, 'alert': mess})
 	except Exception as e:
+		if kwargs.get('raise_on_error'):
+			raise NotificationDeliveryError('PagerDuty delivery failed') from None
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		raise Exception(e)
 
@@ -274,13 +249,13 @@ def mm_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 	if kwargs.get('channel_id'):
 		try:
 			mms = channel_sql.get_receiver_by_id('mm', kwargs.get('channel_id'))
-		except Exception as e:
-			print(e)
+		except Exception:
+			raise NotificationDeliveryError('Cannot load Mattermost channel') from None
 	else:
 		try:
 			mms = channel_sql.get_receiver_by_ip('mm', kwargs.get('ip'))
-		except Exception as e:
-			print(e)
+		except Exception:
+			raise NotificationDeliveryError('Cannot load Mattermost channel') from None
 
 	for pd in mms:
 		token = pd.token
@@ -314,8 +289,12 @@ def mm_send_mess(mess, level, server_ip=None, service_id=None, alert_type=None, 
 	values = f'{{"channel": "{channel}", "username": "Roxy-WI", "attachments": [{attach}]}}'
 	proxy_dict = common.return_proxy_dict()
 	try:
-		requests.post(token, headers=headers, data=str(values), proxies=proxy_dict, timeout=15, allow_redirects=False)
+		response = requests.post(token, headers=headers, data=str(values), proxies=proxy_dict, timeout=15, allow_redirects=False)
+		if kwargs.get('raise_on_error') and not 200 <= response.status_code < 300:
+			raise NotificationDeliveryError(f'Mattermost rejected notification (HTTP {response.status_code})')
 	except Exception as e:
+		if kwargs.get('raise_on_error'):
+			raise NotificationDeliveryError('Mattermost delivery failed') from None
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
 		raise Exception(e)
 

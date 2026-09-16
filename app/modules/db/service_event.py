@@ -3,26 +3,44 @@ from __future__ import annotations
 import json
 from datetime import datetime, timedelta
 from typing import Any, Mapping
+from uuid import uuid4
 
 from peewee import IntegrityError
 
 from app.modules.common.time import as_naive_utc, utc_now
+from app.modules.db.service_event_storage import (
+    METRIC_MODELS, advance_position, current_exists, event_key, event_order, has_identity,
+    lock_position, lock_retention, write_transaction,
+)
 from app.modules.db.db_model import (
     Alerts,
-    ApacheMetrics,
     Metrics,
     MetricsHttpStatus,
-    NginxMetrics,
     PortScannerHistory,
     PortScannerPorts,
     ServiceEvent,
     ServiceEventDelivery,
-    WafMetrics,
+    ServiceNotification,
     WorkerState,
 )
 
 
 ACTIVE_WORKER_STATUSES = frozenset({'starting', 'running', 'degraded'})
+
+
+def notification_payload(data: Mapping[str, Any]) -> str:
+    """Store only delivery inputs, not a second copy of the scan/status envelope."""
+    fields = ('server_address', 'group_id', 'service', 'level', 'message', 'alert_type')
+    return json.dumps({key: data[key] for key in fields}, sort_keys=True, default=str)
+
+
+def _enqueue_notification(data: Mapping[str, Any]) -> None:
+    ServiceNotification.create(
+        event_id=data['event_id'], event_key=event_key(data),
+        category=data['source'], observed_at=as_naive_utc(data['observed_at']),
+        payload=notification_payload(data),
+    )
+
 
 def record_worker_heartbeat(data: Mapping[str, Any]) -> None:
     values = {
@@ -62,171 +80,80 @@ def record_worker_heartbeat(data: Mapping[str, Any]) -> None:
             ).execute()
 
 
-def store_status_event(data: Mapping[str, Any]) -> bool:
-    """Persist an event and its user-visible alert exactly once.
-
-    Returns True for a newly stored event and False for an already known event_id.
-    """
-    database = ServiceEvent._meta.database
-    observed_at = as_naive_utc(data['observed_at'])
-    event_values = {
-        'event_id': data['event_id'],
-        'event_type': data['type'],
-        'source': data['source'],
-        'schema_version': data['schema_version'],
-        'assignment_id': data.get('assignment_id'),
-        'assignment_revision': data.get('assignment_revision'),
-        'lease_epoch': data.get('lease_epoch'),
-        'sequence': data.get('sequence'),
-        'server_id': data.get('server_id'),
-        'user_group': data['group_id'],
-        'service': data['service'],
-        'object_type': data.get('object_type'),
-        'object_name': data.get('object_name'),
-        'previous_status': data.get('previous_status'),
-        'current_status': data.get('current_status'),
-        'level': data['level'],
-        'message': data['message'],
-        'observed_at': observed_at,
-        'received_at': utc_now(),
-        'payload': json.dumps(data, sort_keys=True, separators=(',', ':'), default=str),
-    }
-    try:
-        with database.atomic():
-            if data.get('assignment_id'):
-                latest = (
-                    ServiceEvent.select(
-                        ServiceEvent.assignment_revision,
-                        ServiceEvent.lease_epoch,
-                        ServiceEvent.sequence,
-                    )
-                    .where(ServiceEvent.assignment_id == data['assignment_id'])
-                    .order_by(
-                        ServiceEvent.assignment_revision.desc(),
-                        ServiceEvent.lease_epoch.desc(),
-                        ServiceEvent.sequence.desc(),
-                    )
-                    .first()
-                )
-                incoming_order = (
-                    data.get('assignment_revision') or 0,
-                    data.get('lease_epoch') or 0,
-                    data.get('sequence') or 0,
-                )
-                if latest is not None:
-                    latest_order = (
-                        latest.assignment_revision or 0,
-                        latest.lease_epoch or 0,
-                        latest.sequence or 0,
-                    )
-                    if incoming_order <= latest_order:
-                        return False
-            ServiceEvent.create(**event_values)
-            Alerts.create(
-                user_group=data['group_id'],
-                level=data['level'],
-                ip=data.get('server_address', ''),
-                port=data.get('port', 0),
-                message=data['message'],
-                service=data.get('history_service', 'Checker'),
-                date=observed_at,
-            )
-            if data.get('notify', True):
-                ServiceEventDelivery.create(event_id=data['event_id'])
-    except IntegrityError:
-        if ServiceEvent.get_or_none(ServiceEvent.event_id == data['event_id']) is not None:
-            return False
-        if data.get('assignment_id') and ServiceEvent.get_or_none(
-            (ServiceEvent.assignment_id == data['assignment_id'])
-            & (ServiceEvent.assignment_revision == data.get('assignment_revision'))
-            & (ServiceEvent.lease_epoch == data.get('lease_epoch'))
-            & (ServiceEvent.sequence == data.get('sequence'))
-        ) is not None:
-            return False
-        raise
-    return True
-
-
-def store_metric_sample(data: Mapping[str, Any]) -> bool:
-    """Persist one idempotent worker sample into the existing graph tables."""
-    database = ServiceEvent._meta.database
-    observed_at = as_naive_utc(data['observed_at'])
-    event_values = {
-        'event_id': data['event_id'],
-        'event_type': data['type'],
-        'source': data['source'],
-        'schema_version': data['schema_version'],
-        'assignment_id': data['assignment_id'],
-        'assignment_revision': data['assignment_revision'],
-        'lease_epoch': data['lease_epoch'],
-        'sequence': data['sequence'],
-        'server_id': data['server_id'],
-        'user_group': data['group_id'],
-        'service': data['service'],
-        'observed_at': observed_at,
-        'received_at': utc_now(),
-        'payload': json.dumps(data, sort_keys=True, separators=(',', ':'), default=str),
-    }
-    values = data['values']
-    try:
-        with database.atomic():
-            latest = (
-                ServiceEvent.select(
-                    ServiceEvent.assignment_revision,
-                    ServiceEvent.lease_epoch,
-                    ServiceEvent.sequence,
-                )
-                .where(ServiceEvent.assignment_id == data['assignment_id'])
-                .order_by(
-                    ServiceEvent.assignment_revision.desc(),
-                    ServiceEvent.lease_epoch.desc(),
-                    ServiceEvent.sequence.desc(),
-                )
-                .first()
-            )
-            incoming_order = (
-                data['assignment_revision'], data['lease_epoch'], data['sequence']
-            )
-            if latest is not None:
-                latest_order = (
-                    latest.assignment_revision or 0,
-                    latest.lease_epoch or 0,
-                    latest.sequence or 0,
-                )
-                if incoming_order <= latest_order:
-                    return False
-            ServiceEvent.create(**event_values)
-            if data['service'] == 'haproxy':
-                Metrics.create(
-                    serv=data['server_address'],
-                    curr_con=values['curr_con'],
-                    cur_ssl_con=values['cur_ssl_con'],
-                    sess_rate=values['sess_rate'],
-                    max_sess_rate=values['max_sess_rate'],
-                    date=observed_at,
-                )
-                MetricsHttpStatus.create(
-                    serv=data['server_address'],
-                    ok_ans=values['http_2xx'],
-                    redir_ans=values['http_3xx'],
-                    not_found_ans=values['http_4xx'],
-                    err_ans=values['http_5xx'],
-                    date=observed_at,
-                )
-            else:
-                model = {'nginx': NginxMetrics, 'apache': ApacheMetrics, 'waf': WafMetrics}[data['service']]
-                model.create(serv=data['server_address'], conn=values['conn'], date=observed_at)
-    except IntegrityError:
-        if ServiceEvent.get_or_none(ServiceEvent.event_id == data['event_id']) is not None:
-            return False
-        if ServiceEvent.get_or_none(
+def _known_event(model, data):
+    # Legacy diagnostics remain a dedup fallback during the data migration.
+    return has_identity(model, data) or current_exists(ServiceEvent.select().where(
+        (ServiceEvent.event_id == data['event_id'])
+        | (
             (ServiceEvent.assignment_id == data['assignment_id'])
             & (ServiceEvent.assignment_revision == data['assignment_revision'])
             & (ServiceEvent.lease_epoch == data['lease_epoch'])
             & (ServiceEvent.sequence == data['sequence'])
-        ) is not None:
+        )
+    ))
+
+
+def _store_diagnostic(data):
+    fields = (
+        'assignment_id', 'assignment_revision', 'lease_epoch', 'sequence', 'server_id',
+        'service', 'object_type', 'object_name', 'previous_status', 'current_status',
+        'level', 'message',
+    )
+    ServiceEvent.create(
+        event_id=data['event_id'], event_type=data['type'], source=data['source'],
+        schema_version=data['schema_version'], user_group=data['group_id'],
+        observed_at=as_naive_utc(data['observed_at']), received_at=utc_now(),
+        payload=json.dumps(data, sort_keys=True, separators=(',', ':'), default=str),
+        **{name: data.get(name) for name in fields},
+    )
+
+
+def store_status_event(data: Mapping[str, Any]) -> bool:
+    """Store every unseen transition, including delayed ones, atomically with delivery."""
+    with write_transaction():
+        boundary = lock_retention('checker')
+        observed_at = as_naive_utc(data['observed_at'])
+        if observed_at < boundary.cutoff or _known_event(Alerts, data):
             return False
-        raise
+        position = lock_position(data)
+        Alerts.create(
+            event_id=data['event_id'], event_key=event_key(data),
+            user_group=data['group_id'], level=data['level'],
+            ip=data.get('server_address', ''), port=data.get('port', 0),
+            message=data['message'], service=data.get('history_service', 'Checker'),
+            date=observed_at,
+        )
+        advance_position(position, data)
+        _store_diagnostic(data)
+        if data.get('notify', True):
+            _enqueue_notification(data)
+    return True
+
+
+def store_metric_sample(data: Mapping[str, Any]) -> bool:
+    """Write graphs once without retaining a duplicate JSON event for every sample."""
+    model = METRIC_MODELS[data['service']]
+    with write_transaction():
+        boundary = lock_retention('metrics')
+        observed_at = as_naive_utc(data['observed_at'])
+        if observed_at < boundary.cutoff or _known_event(model, data):
+            return False
+        position = lock_position(data)
+        identity = {'event_id': data['event_id'], 'event_key': event_key(data)}
+        common = {'serv': data['server_address'], 'date': observed_at, **identity}
+        values = data['values']
+        if data['service'] == 'haproxy':
+            Metrics.create(
+                **common, curr_con=values['curr_con'], cur_ssl_con=values['cur_ssl_con'],
+                sess_rate=values['sess_rate'], max_sess_rate=values['max_sess_rate'],
+            )
+            MetricsHttpStatus.create(
+                **common, ok_ans=values['http_2xx'], redir_ans=values['http_3xx'],
+                not_found_ans=values['http_4xx'], err_ans=values['http_5xx'],
+            )
+        else:
+            model.create(**common, conn=values['conn'])
+        advance_position(position, data)
     return True
 
 
@@ -239,139 +166,82 @@ def _format_port_changes(changes: list[tuple[int, str]], limit: int = 20) -> str
 
 
 def store_portscanner_snapshot(data: Mapping[str, Any]) -> bool:
-    """Persist one ordered scan snapshot and update legacy Port Scanner tables."""
-    database = ServiceEvent._meta.database
-    observed_at = as_naive_utc(data['observed_at'])
-    incoming_order = (
-        data['assignment_revision'], data['lease_epoch'], data['sequence']
-    )
-    new_ports = {
-        int(port['port']): str(port.get('service_name') or 'unknown')[:255]
-        for port in data['ports']
-    }
-    try:
-        with database.atomic():
-            latest = (
-                ServiceEvent.select(
-                    ServiceEvent.assignment_revision,
-                    ServiceEvent.lease_epoch,
-                    ServiceEvent.sequence,
+    """Keep producer-side changes regardless of arrival order; fence only current ports."""
+    with write_transaction():
+        boundary = lock_retention('portscanner')
+        observed_at = as_naive_utc(data['observed_at'])
+        if observed_at < boundary.cutoff:
+            return False
+        position = lock_position(data)
+        if (position.event_id == data['event_id']
+                or event_order(data) == (
+                    position.assignment_revision, position.lease_epoch, position.sequence
                 )
-                .where(ServiceEvent.assignment_id == data['assignment_id'])
-                .order_by(
-                    ServiceEvent.assignment_revision.desc(),
-                    ServiceEvent.lease_epoch.desc(),
-                    ServiceEvent.sequence.desc(),
-                )
-                .first()
-            )
-            if latest is not None:
-                latest_order = (
-                    latest.assignment_revision or 0,
-                    latest.lease_epoch or 0,
-                    latest.sequence or 0,
-                )
-                if incoming_order <= latest_order:
-                    return False
+                or _known_event(PortScannerHistory, data)
+                or has_identity(ServiceNotification, data)):
+            return False
 
+        opened = [(port['port'], port['service_name']) for port in data['opened']]
+        closed = [(port['port'], port['service_name']) for port in data['closed']]
+        parts = []
+        if opened:
+            parts.append(f'opened {_format_port_changes(opened)}')
+        if closed:
+            parts.append(f'closed {_format_port_changes(closed)}')
+        message = (
+            f'Port changes on server {data["server_address"]}: {"; ".join(parts)}'
+            if parts else None
+        )
+
+        is_current = advance_position(position, data) and data.get('update_current', True)
+        if is_current:
+            new_ports = {port['port']: port['service_name'] for port in data['ports']}
             old_ports = {
-                int(port.port): str(port.service_name or 'unknown')
-                for port in PortScannerPorts.select().where(
+                row.port: row.service_name for row in PortScannerPorts.select().where(
                     PortScannerPorts.serv == data['server_address']
                 )
             }
-            opened = [(port, new_ports[port]) for port in sorted(set(new_ports) - set(old_ports))]
-            closed = [(port, old_ports[port]) for port in sorted(set(old_ports) - set(new_ports))]
-            message_parts = []
-            if opened:
-                message_parts.append(f'opened {_format_port_changes(opened)}')
-            if closed:
-                message_parts.append(f'closed {_format_port_changes(closed)}')
-            message = (
-                f'Port changes on server {data["server_address"]}: {"; ".join(message_parts)}'
-                if message_parts else None
-            )
-
-            stored_payload = dict(data)
-            stored_payload.update({
-                'level': 'info' if message else None,
-                'message': message,
-                'alert_type': 'port',
-            })
-            ServiceEvent.create(
-                event_id=data['event_id'],
-                event_type=data['type'],
-                source=data['source'],
-                schema_version=data['schema_version'],
-                assignment_id=data['assignment_id'],
-                assignment_revision=data['assignment_revision'],
-                lease_epoch=data['lease_epoch'],
-                sequence=data['sequence'],
-                server_id=data['server_id'],
-                user_group=data['group_id'],
-                service='portscanner',
-                object_type='port_snapshot',
-                previous_status=str(len(old_ports)),
-                current_status=str(len(new_ports)),
-                level='info' if message else None,
-                message=message,
-                observed_at=observed_at,
-                received_at=utc_now(),
-                payload=json.dumps(stored_payload, sort_keys=True, separators=(',', ':'), default=str),
-            )
-
-            PortScannerPorts.delete().where(
-                PortScannerPorts.serv == data['server_address']
-            ).execute()
-            if new_ports:
-                PortScannerPorts.insert_many([
-                    {
-                        'serv': data['server_address'],
-                        'user_group_id': data['group_id'],
-                        'port': port,
-                        'service_name': service_name,
-                        'date': observed_at,
-                    }
-                    for port, service_name in sorted(new_ports.items())
-                ]).execute()
-
-            if data.get('history'):
-                changes = [
-                    {
-                        'serv': data['server_address'],
-                        'port': port,
-                        'status': status,
-                        'service_name': service_name,
-                        'date': observed_at,
-                    }
-                    for status, ports in (('opened', opened), ('closed', closed))
-                    for port, service_name in ports
+            # Avoid rewriting the full current snapshot when nothing changed.
+            if old_ports != new_ports:
+                PortScannerPorts.delete().where(
+                    PortScannerPorts.serv == data['server_address']
+                ).execute()
+                rows = [
+                    {'serv': data['server_address'], 'user_group_id': data['group_id'],
+                     'port': port, 'service_name': name, 'date': observed_at}
+                    for port, name in sorted(new_ports.items())
                 ]
-                if changes:
-                    PortScannerHistory.insert_many(changes).execute()
-            if message and data.get('notify'):
-                ServiceEventDelivery.create(event_id=data['event_id'])
-    except IntegrityError:
-        if ServiceEvent.get_or_none(ServiceEvent.event_id == data['event_id']) is not None:
-            return False
-        if ServiceEvent.get_or_none(
-            (ServiceEvent.assignment_id == data['assignment_id'])
-            & (ServiceEvent.assignment_revision == data['assignment_revision'])
-            & (ServiceEvent.lease_epoch == data['lease_epoch'])
-            & (ServiceEvent.sequence == data['sequence'])
-        ) is not None:
-            return False
-        raise
-    return True
+                for start in range(0, len(rows), 100):
+                    PortScannerPorts.insert_many(rows[start:start + 100]).execute()
+            else:
+                PortScannerPorts.update(date=observed_at).where(
+                    PortScannerPorts.serv == data['server_address']
+                ).execute()
+
+        if data.get('history'):
+            changes = [
+                {'serv': data['server_address'], 'port': port, 'status': status,
+                 'service_name': name, 'date': observed_at,
+                 'event_id': data['event_id'], 'event_key': event_key(data)}
+                for status, ports in (('opened', opened), ('closed', closed))
+                for port, name in ports
+            ]
+            for start in range(0, len(changes), 100):
+                PortScannerHistory.insert_many(changes[start:start + 100]).execute()
+
+        if message:
+            stored_payload = dict(data, level='info', message=message, alert_type='port')
+            _store_diagnostic(stored_payload)
+            if data.get('notify'):
+                _enqueue_notification(stored_payload)
+        return is_current or bool(message)
 
 
 def pending_deliveries(limit: int = 100):
     return list(
-        ServiceEventDelivery
-        .select(ServiceEventDelivery, ServiceEvent)
-        .join(ServiceEvent)
-        .where(ServiceEventDelivery.status.in_(('pending', 'failed')))
-        .order_by(ServiceEventDelivery.created_at)
+        ServiceNotification.select()
+        .where(ServiceNotification.status.in_(('pending', 'failed')))
+        .order_by(ServiceNotification.created_at)
         .limit(limit)
     )
 
@@ -380,43 +250,40 @@ def claim_pending_deliveries(limit: int = 100):
     """Claim notification work so parallel HA schedulers do not send it together."""
     now = utc_now()
     abandoned_before = now - timedelta(minutes=5)
+    retry_before = now - timedelta(seconds=30)
+    eligible = (
+        (ServiceNotification.status == 'pending')
+        | ((ServiceNotification.status == 'failed') & (ServiceNotification.updated_at <= retry_before))
+        | ((ServiceNotification.status == 'processing') & (ServiceNotification.updated_at < abandoned_before))
+    )
     claimed_ids = []
+    claim_token = str(uuid4())
     candidates = list(
-        ServiceEventDelivery.select(ServiceEventDelivery.id, ServiceEventDelivery.status)
-        .where(
-            (ServiceEventDelivery.status.in_(('pending', 'failed')))
-            | (
-                (ServiceEventDelivery.status == 'processing')
-                & (ServiceEventDelivery.updated_at < abandoned_before)
-            )
-        )
-        .order_by(ServiceEventDelivery.created_at)
+        ServiceNotification.select(ServiceNotification.id, ServiceNotification.status)
+        .where(eligible)
+        .order_by(ServiceNotification.created_at)
         .limit(limit)
     )
     for candidate in candidates:
-        updated = ServiceEventDelivery.update(
+        updated = ServiceNotification.update(
             status='processing',
             updated_at=now,
+            claim_token=claim_token,
         ).where(
-            (ServiceEventDelivery.id == candidate.id)
-            & (
-                (ServiceEventDelivery.status.in_(('pending', 'failed')))
-                | (
-                    (ServiceEventDelivery.status == 'processing')
-                    & (ServiceEventDelivery.updated_at < abandoned_before)
-                )
-            )
+            (ServiceNotification.id == candidate.id)
+            & eligible
         ).execute()
         if updated:
             claimed_ids.append(candidate.id)
     if not claimed_ids:
         return []
     return list(
-        ServiceEventDelivery
-        .select(ServiceEventDelivery, ServiceEvent)
-        .join(ServiceEvent)
-        .where(ServiceEventDelivery.id.in_(claimed_ids))
-        .order_by(ServiceEventDelivery.created_at)
+        ServiceNotification.select()
+        .where(
+            ServiceNotification.id.in_(claimed_ids)
+            & (ServiceNotification.claim_token == claim_token)
+        )
+        .order_by(ServiceNotification.created_at)
     )
 
 
@@ -428,35 +295,77 @@ def prune_worker_states(retention_days: int = 7) -> int:
     ).execute()
 
 
-def prune_service_events(retention_days: int) -> int:
+def prune_service_events(retention_days: int = 3) -> int:
     cutoff = utc_now() - timedelta(days=retention_days)
-    old_event_ids = ServiceEvent.select(ServiceEvent.event_id).where(
-        ServiceEvent.observed_at < cutoff
+    # Protect unmigrated legacy deliveries as well. New notifications have no FK
+    # to diagnostics and are retained until delivery succeeds (or is cancelled).
+    protected = ServiceEventDelivery.select(ServiceEventDelivery.event_id).where(
+        ~ServiceEventDelivery.status.in_(('delivered', 'cancelled'))
+        & ServiceEventDelivery.event_id.not_in(
+            ServiceNotification.select(ServiceNotification.event_id)
+        )
     )
-    ServiceEventDelivery.delete().where(
-        ServiceEventDelivery.event_id.in_(old_event_ids)
-    ).execute()
-    return ServiceEvent.delete().where(ServiceEvent.observed_at < cutoff).execute()
+    deleted = 0
+    while True:
+        ids = [row.event_id for row in ServiceEvent.select(ServiceEvent.event_id).where(
+            (ServiceEvent.received_at < cutoff) & ServiceEvent.event_id.not_in(protected)
+        ).limit(500)]
+        if not ids:
+            return deleted
+        with ServiceEvent._meta.database.atomic():
+            ServiceEventDelivery.delete().where(ServiceEventDelivery.event_id.in_(ids)).execute()
+            deleted += ServiceEvent.delete().where(ServiceEvent.event_id.in_(ids)).execute()
 
 
-def mark_delivery_succeeded(delivery_id: int) -> None:
+def prune_notifications(retention_days: int = 3) -> int:
+    deleted = 0
+    for category in ('checker', 'portscanner'):
+        with write_transaction():
+            boundary = lock_retention(category)
+            terminal = (
+                ServiceNotification.status.in_(('delivered', 'cancelled'))
+                & (ServiceNotification.category == category)
+            )
+            deleted += ServiceNotification.delete().where(
+                terminal & (ServiceNotification.observed_at < boundary.cutoff)
+            ).execute()
+            # Keep only the compact identity until history's replay boundary has
+            # passed. Otherwise a history-disabled scan could notify twice.
+            ServiceNotification.update(payload=None, last_error=None).where(
+                terminal & ServiceNotification.payload.is_null(False)
+                & (ServiceNotification.updated_at < utc_now() - timedelta(days=retention_days))
+            ).execute()
+    return deleted
+
+
+def mark_delivery_succeeded(delivery_id: int, claim_token: str) -> None:
     now = utc_now()
-    ServiceEventDelivery.update(
+    ServiceNotification.update(
         status='delivered',
-        attempts=ServiceEventDelivery.attempts + 1,
+        attempts=ServiceNotification.attempts + 1,
         last_error=None,
         delivered_at=now,
         updated_at=now,
-    ).where(ServiceEventDelivery.id == delivery_id).execute()
+        claim_token=None,
+    ).where(
+        (ServiceNotification.id == delivery_id)
+        & (ServiceNotification.status == 'processing')
+        & (ServiceNotification.claim_token == claim_token)
+    ).execute()
 
 
-def mark_delivery_failed(delivery_id: int, error: str) -> None:
-    ServiceEventDelivery.update(
+def mark_delivery_failed(delivery_id: int, error: str, claim_token: str) -> None:
+    ServiceNotification.update(
         status='failed',
-        attempts=ServiceEventDelivery.attempts + 1,
+        attempts=ServiceNotification.attempts + 1,
         last_error=error[:4000],
         updated_at=utc_now(),
-    ).where(ServiceEventDelivery.id == delivery_id).execute()
+        claim_token=None,
+    ).where(
+        (ServiceNotification.id == delivery_id)
+        & (ServiceNotification.status == 'processing')
+        & (ServiceNotification.claim_token == claim_token)
+    ).execute()
 
 
 def worker_summary(group_id: int | None = None, now: datetime | None = None) -> dict[str, dict[str, Any]]:

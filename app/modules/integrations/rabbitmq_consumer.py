@@ -6,6 +6,7 @@ import threading
 from dataclasses import dataclass
 
 import pika
+import roxy_wi_health as local_health
 
 from app.modules.integrations.rabbitmq_settings import RabbitConnectionSettings
 from app.modules.integrations.service_events import (
@@ -15,6 +16,7 @@ from app.modules.integrations.service_events import (
 )
 from app.modules.roxywi import logger
 from app.modules.process_heartbeat import set_process_heartbeat_status
+from app.modules.db.db_model import close_database_connection
 
 
 @dataclass(frozen=True)
@@ -83,6 +85,7 @@ class ServiceEventConsumer:
         self._connection = None
 
     def stop(self, *_args) -> None:
+        local_health.draining()
         self._stop_event.set()
         connection = self._connection
         if connection is not None and connection.is_open:
@@ -101,12 +104,16 @@ class ServiceEventConsumer:
 
     def _message(self, channel, method, _properties, body) -> None:
         try:
-            result = process_event(body)
+            try:
+                result = process_event(body)
+            finally:
+                close_database_connection()
         except (ValueError, UnicodeError) as exc:
             logger.warning(f'Rejecting invalid service event: {exc}')
             channel.basic_reject(delivery_tag=method.delivery_tag, requeue=False)
             return
         except Exception as exc:
+            local_health.dependency('database', False)
             logger.error(f'Cannot persist service event: {exc}')
             channel.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
             return
@@ -117,6 +124,8 @@ class ServiceEventConsumer:
             deliver_pending_notifications(limit=20)
         except Exception as exc:
             logger.error(f'Cannot process service-event notification outbox: {exc}')
+        finally:
+            close_database_connection()
 
     def consume_once(self) -> None:
         self._connection = pika.BlockingConnection(self._parameters())
@@ -130,8 +139,19 @@ class ServiceEventConsumer:
                 auto_ack=False,
             )
             deliver_pending_notifications(limit=100)
+            connection = self._connection
+
+            def pulse() -> None:
+                # Pika dispatches timers on the actual consumer loop, including
+                # idle queues. A separate timer thread would conceal a deadlock.
+                local_health.pulse(rabbitmq=True)
+                connection.call_later(5, pulse)
+
+            pulse()
             channel.start_consuming()
         finally:
+            close_database_connection()
+            local_health.dependency('rabbitmq', False)
             if self._connection is not None and self._connection.is_open:
                 self._connection.close()
             self._connection = None
@@ -139,12 +159,14 @@ class ServiceEventConsumer:
     def run(self) -> None:
         delay = 1
         while not self._stop_event.is_set():
+            local_health.pulse(rabbitmq=False)
             try:
                 self.consume_once()
                 delay = 1
             except KeyboardInterrupt:
                 self.stop()
             except Exception as exc:
+                local_health.dependency('rabbitmq', False)
                 if self._stop_event.is_set():
                     break
                 set_process_heartbeat_status('degraded', last_error=str(exc)[:500])
