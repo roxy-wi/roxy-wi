@@ -54,7 +54,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description='Roxy-WI process launcher')
     parser.add_argument(
         'role',
-        choices=('web', 'migrate', 'wait-for-database', 'scheduler', 'service-events', 'operations', 'healthcheck'),
+        choices=('web', 'migrate', 'wait-for-database', 'scheduler', 'service-events', 'operations', 'healthcheck',
+                 'migrate-backup-cron'),
     )
     parser.add_argument('--role', dest='probe_role', choices=('web', 'scheduler', 'service-events', 'operations'))
     parser.add_argument('--check', choices=('live', 'ready'), default='ready')
@@ -72,6 +73,14 @@ def main() -> None:
         run_migrations()
     elif args.role == 'wait-for-database':
         wait_for_database()
+    elif args.role == 'migrate-backup-cron':
+        from app.modules.service.backup_migration import migrate_legacy_cron
+        from app.modules.db.db_model import close_database_connection
+        try:
+            removed, activated = migrate_legacy_cron()
+            print(f'Removed {removed} legacy backup cron entries; activated {activated} schedules')
+        finally:
+            close_database_connection()
     elif args.role == 'scheduler':
         from scheduler_runner import main as scheduler_main
         scheduler_main()

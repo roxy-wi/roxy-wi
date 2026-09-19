@@ -42,12 +42,17 @@ def _success_callback(action: dict | None):
 
 def execute_operation(operation_id: str, task_id: int) -> str:
     try:
-        task = InstallationTasks.get(
+        task = InstallationTasks.get_or_none(
             (InstallationTasks.id == task_id)
             & (InstallationTasks.operation_id == operation_id)
         )
+        if task is None:
+            return 'missing'
         if task.status in {'completed', 'failed'}:
             return task.status
+        if task.operation_type == 'backup':
+            from app.modules.service.backup_execution import execute_backup
+            return execute_backup(task)
         if task.operation_type != 'ansible':
             raise ValueError(f'Unsupported operation type: {task.operation_type}')
         payload = deserialize_operation_payload(task.operation_payload)
@@ -84,10 +89,14 @@ def claim_operation(operation_id: str, task_id: int) -> tuple[bool, str]:
             )
             .execute()
         )
-        task = InstallationTasks.get(
+        task = InstallationTasks.get_or_none(
             (InstallationTasks.id == task_id)
             & (InstallationTasks.operation_id == operation_id)
         )
+        # Retention may have removed a completed operation before a delayed
+        # delivery arrives. Ack it like a duplicate; DB errors still propagate.
+        if task is None:
+            return False, 'missing'
         return updated == 1, task.status
     finally:
         close_database_connection()

@@ -147,7 +147,7 @@ $(function () {
         if (menu.children().length) {
             const more = $('<button type="button" class="ui-button ui-widget ui-corner-all change-action-more">')
                 .attr({'title': i18n.moreActions, 'aria-label': i18n.moreActions, 'aria-haspopup': 'menu', 'aria-expanded': 'false', 'aria-controls': menuId})
-                .append('<span class="fas fa-ellipsis-h" aria-hidden="true"></span>')
+                .append('<span class="fas fa-ellipsis-v" aria-hidden="true"></span>')
                 .on('click', function (event) {
                     event.stopPropagation();
                     const willOpen = menu.prop('hidden');

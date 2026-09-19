@@ -17,7 +17,7 @@
                     {{ copy_to_clipboard(id=id, value=s.1) }}
                 </td>
                 <td>
-                    {{ input('backup-rserver-'+b.id|string(), value=b.rhost, size='14') }}
+                    {{ input('backup-rserver-'+b.id|string(), value=b.rserver, size='14') }}
                 </td>
                 <td>
                     {{ input('backup-rpath-'+b.id|string(), value=b.rpath) }}
@@ -29,6 +29,7 @@
                 <td>
                     {% set values = {'hourly':'hourly','daily':'daily','weekly':'weekly', 'monthly':'monthly'} %}
                     {{ select('backup-time-'+b.id|string(), values=values, selected=b.time, required='required', class='force_close') }}
+                    {% include 'include/backup_schedule_status.html' %}
                 </td>
                 <td>
                     <select id="backup-credentials-{{b.id}}" required>

@@ -99,7 +99,7 @@ function addGroup(dialog_id) {
 									"type":"button", "class":"rw-icon-button admin-actions-toggle",
 									"aria-haspopup":"menu", "aria-expanded":"false",
 									"title":actionsLabel, "aria-label":actionsLabel
-								}, [elem("span", {"class":"fas fa-ellipsis-h", "aria-hidden":"true"})]),
+								}, [elem("span", {"class":"fas fa-ellipsis-v", "aria-hidden":"true"})]),
 								elem("div", {"class":"admin-actions-menu", "role":"menu", "hidden":"hidden"}, [
 									elem("button", {
 										"type":"button", "class":"admin-action-item group-deployment-policy-button",

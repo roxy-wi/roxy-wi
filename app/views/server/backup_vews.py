@@ -85,7 +85,8 @@ class BackupView(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
-        return jsonify(model_to_dict(backup))
+        from app.modules.service.backup_scheduler import schedule_state
+        return jsonify({**model_to_dict(backup), 'schedule': schedule_state('fs', backup_id)})
 
     @validate(body=BackupRequest)
     def post(self, body: BackupRequest):
@@ -313,7 +314,8 @@ class S3BackupView(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, '')
 
-        return jsonify(model_to_dict(backup))
+        from app.modules.service.backup_scheduler import schedule_state
+        return jsonify({**model_to_dict(backup), 'schedule': schedule_state('s3', backup_id)})
 
     @validate(body=S3BackupRequest)
     def post(self, body: S3BackupRequest):

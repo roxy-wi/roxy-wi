@@ -30,7 +30,7 @@
 		const toggle = $('<button type="button">')
 			.addClass('rw-icon-button admin-actions-toggle')
 			.attr({'title': label, 'aria-label': label, 'aria-haspopup': 'menu', 'aria-expanded': 'false'})
-			.append($('<i aria-hidden="true">').addClass('fas fa-ellipsis-h'));
+			.append($('<i aria-hidden="true">').addClass('fas fa-ellipsis-v'));
 		const menu = $('<div role="menu" hidden>').addClass('admin-actions-menu');
 
 		items.forEach(function (item) {

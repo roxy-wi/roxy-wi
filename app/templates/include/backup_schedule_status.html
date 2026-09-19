@@ -1,0 +1,12 @@
+{% if b.schedule_state is defined and b.schedule_state %}
+<div class="backup-schedule-status">
+    {% if b.schedule_state.migration_required %}
+    <small>Waiting for schedule migration.</small>
+    {% else %}
+    <small>Next run: {{ (b.schedule_state.retry_at or b.schedule_state.next_run_at)|replace('T', ' ')|replace('Z', ' UTC') }}</small>
+    {% if b.schedule_state.last_task_id %}
+    <br><small>Last run: {{ b.schedule_state.last_status }} (operation #{{ b.schedule_state.last_task_id }})</small>
+    {% endif %}
+    {% endif %}
+</div>
+{% endif %}

@@ -1,36 +1,8 @@
-- hosts: all
-  become: yes
-  become_method: sudo
-  gather_facts: no
+- hosts: localhost
+  connection: local
+  become: false
+  gather_facts: false
   tasks:
-  - name: Creates directory
-    file:
-      path: "{{ RPATH }}/roxy-wi-configs-backup/configs"
-      state: directory
-      owner: "{{ ansible_user }}"
-
-    when: not DELJOB and ansible_host != "localhost"
-  - name: Creates backup jobs
-    cron:
-      name: "Roxy-WI Backup configs for server {{ SERVER }} {{ item }}"
-      special_time: "{{ TIME }}"
-      job: "rsync -arv {{ TYPE }} /var/lib/roxy-wi/configs/{{ item }}/{{ SERVER }}* {{ USER }}@{{ HOST }}:{{ RPATH }}/roxy-wi-configs-backup/configs/{{ item }} -e 'ssh -i {{ KEY }} -o StrictHostKeyChecking=no' --log-file=/var/www/roxy-wi/log/backup.log"
-    when: not DELJOB
-    delegate_to: localhost
-    with_items:
-      - kp_config
-      - hap_config
-      - nginx_config
-      - apache_config
-
-  - name: Removes backup jobs
-    cron:
-      name: "Roxy-WI Backup configs for server {{ SERVER }} {{ item }}"
-      state: absent
-    when: DELJOB
-    delegate_to: localhost
-    with_items:
-      - kp_config
-      - hap_config
-      - nginx_config
-      - apache_config
+    - name: Reject obsolete backup setup operations
+      ansible.builtin.fail:
+        msg: Backup schedules are managed by Scheduler and Operations. Run migrate-backup-cron on the original host.

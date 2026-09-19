@@ -114,7 +114,8 @@ services:
     ports:
       - "127.0.0.1:15672:15672"
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      # Healthchecks bypass ENTRYPOINT; use its rabbitmq user switch for the CLI.
+      test: ["CMD", "docker-entrypoint.sh", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 12

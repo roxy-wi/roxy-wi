@@ -1,60 +1,8 @@
 - hosts: localhost
   connection: local
-  become: yes
-  become_method: sudo
-  gather_facts: no
-
+  become: false
+  gather_facts: false
   tasks:
-  - name: Add S3 Job
-    tags: add
-    block:
-      - name: Install s3cmd
-        package:
-          name: s3cmd
-          state: present
-
-      - name: Find full path to s3cmd
-        shell: which s3cmd
-        register: which_s3cmd
-
-      - name: Add keys var
-        set_fact: keys="--access_key={{ACCESS_KEY}} --secret_key={{SECRET_KEY}} --host={{S3_SERVER}} --host-bucket={{S3_SERVER}}:443"
-
-      - name: Create bucket
-        shell: "{{ which_s3cmd.stdout }} mb s3://{{ BUCKET }} {{ keys }}"
-        ignore_errors: true
-
-      - name: Add CRON job
-        cron:
-          name: "Roxy-WI S3 Backup configs for server {{ SERVER }} {{ BUCKET }} {{ item }}"
-          special_time: "{{ TIME }}"
-          job: "{{ which_s3cmd.stdout }} sync /var/lib/roxy-wi/configs/{{ item }}/{{ SERVER }}*.conf s3://{{ BUCKET }}/{{ SERVER }}/{{ item }}/ {{ keys }}"
-        with_items:
-          - kp_config
-          - hap_config
-          - nginx_config
-          - apache_config
-
-      - name: Add CRON job for HAProxy
-        cron:
-          name: "Roxy-WI S3 Backup configs for server {{ SERVER }} {{ BUCKET }} {{ item }}"
-          special_time: "{{ TIME }}"
-          job: "{{ which_s3cmd.stdout }} sync /var/lib/roxy-wi/configs/{{ item }}/{{ SERVER }}*.cfg s3://{{ BUCKET }}/{{ SERVER }}/{{ item }}/ {{ keys }}"
-        with_items:
-          - hap_config
-
-    when: action == "add"
-
-  - name: Delete S3 Job
-    tags: delete
-    block:
-      - name: Removes backup jobs
-        cron:
-          name: "Roxy-WI S3 Backup configs for server {{ SERVER }} {{ BUCKET }} {{ item }}"
-          state: absent
-        with_items:
-          - kp_config
-          - hap_config
-          - nginx_config
-          - apache_config
-    when: action == "delete"
+    - name: Reject obsolete S3 backup setup operations
+      ansible.builtin.fail:
+        msg: S3 backups use boto3 through Operations. Run migrate-backup-cron on the original host.

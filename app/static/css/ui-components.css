@@ -53,6 +53,16 @@ a.rw-button {
 	cursor: pointer;
 }
 
+/* Plain overflow menus in both themes; keep the existing keyboard focus ring. */
+button.rw-icon-button.admin-actions-toggle,
+button.rw-icon-button.service-actions-toggle,
+#change-center .change-actions button.change-action-more {
+	border: 0 !important;
+	background: transparent !important;
+	box-shadow: none !important;
+	color: inherit !important;
+}
+
 .rw-card,
 .rw-panel {
 	box-sizing: border-box;

@@ -9,6 +9,14 @@ models = {
 	}
 
 
+def _with_schedule(query, kind):
+	from app.modules.service.backup_scheduler import schedule_state
+	rows = list(query)
+	for row in rows:
+		row.schedule_state = schedule_state(kind, row.id)
+	return rows
+
+
 def insert_backup_job(server_id, rserver, rpath, backup_type, time, cred, description):
 	try:
 		return Backup.insert(
@@ -84,13 +92,15 @@ def select_backups(**kwargs):
 		query = Backup.select().order_by(Backup.id)
 
 	try:
-		return query.execute()
+		return _with_schedule(query, 'fs')
 	except Exception as e:
 		out_error(e)
 
 
 def select_s3_backups(**kwargs):
-	if kwargs.get("server") is not None and kwargs.get("bucket") is not None:
+	if kwargs.get('backup_id') is not None:
+		query = S3Backup.select().where(S3Backup.id == kwargs['backup_id'])
+	elif kwargs.get("server") is not None and kwargs.get("bucket") is not None:
 		query = S3Backup.select().where(
 			(S3Backup.server_id == kwargs.get("server")) &
 			(S3Backup.s3_server == kwargs.get("s3_server")) &
@@ -104,7 +114,7 @@ def select_s3_backups(**kwargs):
 		query = S3Backup.select().order_by(S3Backup.id)
 
 	try:
-		query_res = query.execute()
+		query_res = _with_schedule(query, 's3')
 	except Exception as e:
 		out_error(e)
 	else:
@@ -115,8 +125,8 @@ def check_exists_backup(server_id: int, model: str) -> bool:
 	model = models[model]
 	try:
 		backup = model.get(model.server_id == server_id)
-	except Exception:
-		pass
+	except model.DoesNotExist:
+		return False
 	else:
 		if backup.id is not None:
 			return True

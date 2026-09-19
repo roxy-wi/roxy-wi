@@ -1,7 +1,7 @@
 {% macro admin_action_menu(label) -%}
 <div class="admin-actions">
 	<button type="button" class="rw-icon-button admin-actions-toggle" aria-haspopup="menu" aria-expanded="false" title="{{ label }}" aria-label="{{ label }}">
-		<span class="fas fa-ellipsis-h" aria-hidden="true"></span>
+		<span class="fas fa-ellipsis-v" aria-hidden="true"></span>
 	</button>
 	<div class="admin-actions-menu" role="menu" hidden>
 		{{ caller() }}

@@ -9,8 +9,8 @@
 {% for b in backups %}
 	<tr class="newbackup" id="s3-backup-table-{{b.id}}">
 		<td class="padding10 first-collumn">
-			<span id="backup-s3-server-{{b.id}}" style="display: none">{{ b.server }}</span>
-			{{b.server}}
+			<span id="backup-s3-server-{{b.id}}" style="display: none">{{ b.server_id }}</span>
+			{{server_name|default(b.server)}}
 		</td>
 		<td>
 			<span id="s3-server-{{b.id}}">{{b.s3_server}}</span>
@@ -20,6 +20,7 @@
 		</td>
 		<td>
 			<span id="s3-backup-time-{{b.id}}">{{b.time}}</span>
+            {% include 'include/backup_schedule_status.html' %}
 		</td>
 		<td>
 			{% if b.description != 'None' %}

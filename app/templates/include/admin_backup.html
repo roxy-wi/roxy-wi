@@ -93,6 +93,7 @@
 					</td>
 					<td>
 						<span id="s3-backup-time-{{b.id}}">{{b.time}}</span>
+                        {% include 'include/backup_schedule_status.html' %}
 					</td>
 					<td>
 						{% if b.description != 'None' %}

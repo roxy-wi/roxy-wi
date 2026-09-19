@@ -87,7 +87,8 @@ services:
     volumes:
       - rabbitmq-sqlite-data:/var/lib/rabbitmq
     healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      # Healthchecks bypass ENTRYPOINT; use its rabbitmq user switch for the CLI.
+      test: ["CMD", "docker-entrypoint.sh", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 10s
       timeout: 5s
       retries: 12

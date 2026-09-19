@@ -68,7 +68,9 @@ def main():
         start(broker, '--network', network,
               '--env', 'RABBITMQ_DEFAULT_USER=health-test',
               '--env', 'RABBITMQ_DEFAULT_PASS=health-test-password', 'rabbitmq:4')
-        wait_for(lambda: docker('exec', broker, 'rabbitmq-diagnostics', '-q', 'ping',
+        # docker exec bypasses the image entrypoint's privilege drop. Running
+        # the CLI as root during first boot can create a root-owned cookie.
+        wait_for(lambda: docker('exec', '--user', 'rabbitmq', broker, 'rabbitmq-diagnostics', '-q', 'ping',
                                 check=False).returncode == 0, 'RabbitMQ starts')
         docker('run', '--rm', '--no-healthcheck', *common_args, 'roxy-wi:test', 'migrate')
         workers = []

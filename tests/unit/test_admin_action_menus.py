@@ -45,7 +45,7 @@ def test_admin_row_actions_share_the_same_dropdown_component():
     script = Path('app/static/js/admin/common.js').read_text(encoding='utf-8')
 
     assert 'admin-actions-toggle' in menu_template
-    assert 'fa-ellipsis-h' in menu_template
+    assert 'fa-ellipsis-v' in menu_template
     assert 'role="menu"' in menu_template
     assert '.admin-actions-menu .admin-action-item' in stylesheet
     assert "$(document).on('click', '.admin-actions-toggle'" in script
@@ -60,7 +60,7 @@ def test_ajax_generated_admin_rows_keep_action_labels_and_icons():
         assert 'admin-actions-toggle' in script
         assert 'admin-actions-menu' in script
         assert 'admin-action-item' in script
-        assert 'fa-ellipsis-h' in script
+        assert 'fa-ellipsis-v' in script
 
 
 def test_tools_loader_renders_successful_html_instead_of_scanning_css_class_names():

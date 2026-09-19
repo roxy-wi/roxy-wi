@@ -112,15 +112,12 @@ function loadBackup() {
 	$.ajax({
 		url: "/server/backup",
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				$('#backup').html(data);
-				$.getScript('/static/js/backup.js');
-				$("select").selectmenu();
-				$.getScript(awesome);
-			}
+			// HTTP failures use the global AJAX error handler; HTML may contain
+			// error-related words in CSS classes and user-entered descriptions.
+			$('#backup').html(data);
+			$.getScript('/static/js/backup.js');
+			$("select").selectmenu();
+			$.getScript(awesome);
 		}
 	});
 }

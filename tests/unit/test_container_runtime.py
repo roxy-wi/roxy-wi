@@ -1,6 +1,9 @@
 from pathlib import Path
 from contextlib import nullcontext
+import importlib.util
+import subprocess
 
+import pytest
 import yaml
 import app as app_module
 
@@ -111,6 +114,57 @@ def test_compose_manifests_are_parseable_and_use_no_shared_cache():
         assert document['x-roxy-wi']['environment']['ROXYWI_CACHE_TYPE'] == 'NullCache'
         assert 'redis' not in document['services']
         assert document['services']['migrate']['healthcheck']['disable'] is True
+
+
+def test_rabbitmq_compose_healthchecks_use_the_image_privilege_drop():
+    project_root = Path(__file__).resolve().parents[2]
+    for compose_file in ('docker-compose.yml', 'docker-compose.sqlite.yml'):
+        document = yaml.safe_load((project_root / 'docker' / compose_file).read_text(encoding='utf-8'))
+        command = document['services']['rabbitmq']['healthcheck']['test']
+        # The official image starts as root and only drops privileges in its
+        # entrypoint. Healthchecks must use the same path before Erlang starts.
+        assert command == ['CMD', 'docker-entrypoint.sh', 'rabbitmq-diagnostics', '-q', 'ping']
+
+
+def test_container_smoke_does_not_create_a_root_owned_rabbitmq_cookie(monkeypatch):
+    script = Path(__file__).resolve().parents[1] / 'container_health_smoke.py'
+    spec = importlib.util.spec_from_file_location('container_health_smoke', script)
+    smoke = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(smoke)
+    diagnostics_users = []
+    attempts = []
+    cookie_owner = None
+
+    class MigrationReached(Exception):
+        pass
+
+    def run(command, **_kwargs):
+        nonlocal cookie_owner
+        if 'rabbitmq-diagnostics' in command:
+            # Model the failing order from CI: diagnostics starts before the
+            # broker has created its cookie. Only the creator can read it.
+            user = command[command.index('--user') + 1] if '--user' in command else 'root'
+            diagnostics_users.append(user)
+            cookie_owner = cookie_owner or user
+            ready = cookie_owner == 'rabbitmq' and len(diagnostics_users) >= 2
+            return subprocess.CompletedProcess(command, 0 if ready else 1, '', '')
+        if command[-1] == 'migrate':
+            raise MigrationReached()
+        return subprocess.CompletedProcess(command, 0, '', '')
+
+    def wait_for(callback, description, timeout=120):
+        for _ in range(3):
+            attempts.append(description)
+            if callback():
+                return
+        raise AssertionError(f'Timed out: {description}; cookie owner: {cookie_owner}')
+
+    monkeypatch.setattr(smoke.subprocess, 'run', run)
+    monkeypatch.setattr(smoke, 'wait_for', wait_for)
+    with pytest.raises(MigrationReached):
+        smoke.main()
+    assert diagnostics_users == ['rabbitmq', 'rabbitmq']
+    assert attempts == ['RabbitMQ starts', 'RabbitMQ starts']
 
 
 def test_docker_healthcheck_uses_role_aware_readiness():

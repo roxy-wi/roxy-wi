@@ -1,11 +1,17 @@
+import json
+from pathlib import Path
+import shutil
+import subprocess
 from types import SimpleNamespace
+
+import pytest
 
 
 def _remote_backup():
     return SimpleNamespace(
         id=1,
         server_id=1,
-        rhost='backup.example.test',
+        rserver='backup.example.test',
         rpath='/srv/backup',
         type='backup',
         time='daily',
@@ -39,8 +45,8 @@ def _git_backup():
     )
 
 
-def test_backup_tab_renders_nested_action_templates_with_imported_language(app):
-    rendered = app.jinja_env.get_template('include/admin_backup.html').render(
+def _render_backup_tab(app, **overrides):
+    context = dict(
         lang='en',
         is_needed_tool=True,
         user_subscription={'user_status': 1, 'user_plan': 'support'},
@@ -53,6 +59,12 @@ def test_backup_tab_renders_nested_action_templates_with_imported_language(app):
         s3_backups=[_s3_backup()],
         gits=[_git_backup()],
     )
+    context.update(overrides)
+    return app.jinja_env.get_template('include/admin_backup.html').render(**context)
+
+
+def test_backup_tab_renders_nested_action_templates_with_imported_language(app):
+    rendered = _render_backup_tab(app)
 
     assert rendered.count('admin-actions-toggle') == 3
     assert 'cloneBackup(1)' in rendered
@@ -79,3 +91,16 @@ def test_backup_ajax_partials_accept_language_code(app):
     for rendered in (remote, s3, git):
         assert 'admin-actions-toggle' in rendered
         assert 'admin-actions-menu' in rendered
+    assert 'backup.example.test' in remote
+
+
+def test_backup_schedule_status_shows_migration_and_run_history(app):
+    backup = _remote_backup()
+    backup.schedule_state = {'migration_required': True}
+    template = app.jinja_env.get_template('include/backup_schedule_status.html')
+    assert 'Waiting for schedule migration' in template.render(b=backup)
+    backup.schedule_state = {'migration_required': False, 'next_run_at': '2026-09-17T00:00:00Z',
+                             'retry_at': None, 'last_task_id': 42, 'last_status': 'failed'}
+    rendered = template.render(b=backup)
+    assert '2026-09-17 00:00:00 UTC' in rendered
+    assert 'failed (operation #42)' in rendered

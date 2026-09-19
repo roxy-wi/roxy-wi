@@ -187,6 +187,24 @@ def run_operation_outbox():
     return _run_database_job(run)
 
 
+@scheduler.task('interval', id='backup_schedules', seconds=15, max_instances=1,
+                coalesce=True, misfire_grace_time=60)
+def run_backup_schedules():
+    def run():
+        from app.modules.service.backup_scheduler import dispatch_due_backups
+        return dispatch_due_backups()
+    return _run_database_job(run)
+
+
+@scheduler.task('interval', id='backup_history_retention', hours=1, max_instances=1,
+                coalesce=True, misfire_grace_time=300)
+def run_backup_history_retention():
+    def run():
+        from app.modules.service.backup_scheduler import cleanup_backup_history
+        return cleanup_backup_history()
+    return _run_database_job(run)
+
+
 @scheduler.task(
     'interval',
     id='service_assignment_reconciliation',

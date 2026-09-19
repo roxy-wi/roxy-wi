@@ -2,6 +2,7 @@ from datetime import datetime
 from peewee import (
     AutoField,
     BigIntegerField,
+    BooleanField,
     CharField,
     DateTimeField,
     FloatField,
@@ -327,6 +328,26 @@ class S3Backup(BaseModel):
 
     class Meta:
         table_name = 's3_backups'
+
+
+class BackupSchedule(BaseModel):
+    """One durable schedule and in-flight run per filesystem/S3 configuration."""
+
+    id = AutoField()
+    kind = CharField(max_length=8)
+    backup_id = IntegerField()
+    timezone = CharField(max_length=128)
+    next_run_at = DateTimeField(index=True)
+    legacy_pending = BooleanField(default=False)
+    active_task_id = IntegerField(null=True)
+    last_task_id = IntegerField(null=True)
+    run_key = CharField(null=True, max_length=64)
+    failures = IntegerField(default=0)
+    retry_at = DateTimeField(null=True)
+
+    class Meta:
+        table_name = 'backup_schedules'
+        indexes = ((('kind', 'backup_id'), True),)
 
 
 class Metrics(BaseModel):
@@ -1296,7 +1317,7 @@ def create_tables():
              ConfigChangeWebhook, ConfigChangeDelivery, Setting, RoxyTool, Alerts, ServiceEvent,
              ServiceEventDelivery, ServiceNotification, ServiceEventPosition, ServiceEventRetention,
              WorkerState, ServiceAssignment, ServiceCommand,
-             Cred, Backup, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
+             Cred, Backup, BackupSchedule, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
              PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, GeoipCodes,
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
              KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup,
