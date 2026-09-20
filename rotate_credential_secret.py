@@ -4,7 +4,7 @@ import os
 
 from cryptography.fernet import Fernet, InvalidToken
 
-from app.modules.db.db_model import Cred, InstallationTasks, OidcProvider, connect
+from app.modules.db.db_model import Cred, InstallationTasks, LetsEncryptState, OidcProvider
 
 
 SECRET_FIELDS = ('password', 'passphrase', 'private_key')
@@ -25,7 +25,7 @@ def _fernet_from_environment(variable_name: str) -> Fernet:
 def rotate_credentials() -> int:
     old_fernet = _fernet_from_environment('ROXYWI_OLD_SECRET_PHRASE')
     new_fernet = _fernet_from_environment('ROXYWI_SECRET_PHRASE')
-    database = connect()
+    database = Cred._meta.database
     rotated_credentials = 0
 
     with database.atomic():
@@ -96,6 +96,28 @@ def rotate_credentials() -> int:
                 operation_payload='fernet:' + new_fernet.encrypt(plaintext).decode('ascii')
             ).where(InstallationTasks.id == task.id).execute()
             rotated_credentials += 1
+
+        for state in LetsEncryptState.select():
+            updates = {}
+            for field in ('credentials', 'pending_config'):
+                value = getattr(state, field)
+                if not value:
+                    continue
+                if not value.startswith('fernet:'):
+                    raise RuntimeError(f'Certificate {state.le_id} contains invalid encrypted state')
+                token = value.removeprefix('fernet:').encode('ascii')
+                try:
+                    plaintext = old_fernet.decrypt(token)
+                except InvalidToken as error:
+                    try:
+                        new_fernet.decrypt(token)
+                    except InvalidToken:
+                        raise RuntimeError(f'Certificate {state.le_id} cannot be decrypted') from error
+                    continue
+                updates[field] = 'fernet:' + new_fernet.encrypt(plaintext).decode('ascii')
+            if updates:
+                LetsEncryptState.update(**updates).where(LetsEncryptState.id == state.id).execute()
+                rotated_credentials += 1
 
     return rotated_credentials
 

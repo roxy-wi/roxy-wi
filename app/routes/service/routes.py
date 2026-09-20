@@ -35,7 +35,7 @@ bp.add_url_rule('/<service>/<server_id>/status', view_func=ServiceView.as_view('
 bp.add_url_rule('/<service>/<int:server_id>/status', view_func=ServiceView.as_view('service'), methods=['GET'])
 if not app.config['TESTING']:
     bp.add_url_rule('/letsencrypt', view_func=LetsEncryptView.as_view('le_web'), methods=['POST'])
-    bp.add_url_rule('/letsencrypt/<int:le_id>', view_func=LetsEncryptView.as_view('le_web_id'), methods=['GET', 'PUT', 'DELETE'])
+    bp.add_url_rule('/letsencrypt/<int:le_id>', view_func=LetsEncryptView.as_view('le_web_id'), methods=['GET', 'PUT', 'PATCH', 'DELETE'])
     bp.add_url_rule('/letsencrypts', view_func=LetsEncryptsView.as_view('le_webs'), methods=['GET'])
 
 

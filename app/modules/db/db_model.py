@@ -1276,7 +1276,7 @@ class NginxSection(BaseModel):
 class LetsEncrypt(BaseModel):
     id = AutoField
     server_id = ForeignKeyField(Server, null=True, on_delete='SET NULL')
-    domains = CharField()
+    domains = TextField()
     email = CharField()
     api_key = CharField()
     api_token = CharField()
@@ -1285,6 +1285,32 @@ class LetsEncrypt(BaseModel):
 
     class Meta:
         table_name = 'lets_encrypt'
+
+
+class LetsEncryptState(BaseModel):
+    id = AutoField()
+    le_id = IntegerField(unique=True)
+    revision = IntegerField(default=1)
+    applied_revision = IntegerField(default=0)
+    pem_name = CharField()
+    credentials = TextField(default='')
+    pending_config = TextField(null=True)
+    pending_action = CharField(default='issue')
+    status = CharField(default='pending')
+    legacy_pending = BooleanField(default=False)
+    next_run_at = DateTimeField(null=True)
+    retry_at = DateTimeField(null=True)
+    failures = IntegerField(default=0)
+    active_task_id = IntegerField(null=True)
+    last_task_id = IntegerField(null=True)
+    not_after = DateTimeField(null=True)
+    fingerprint = CharField(null=True)
+    last_error = TextField(null=True)
+    targets = TextField(default='{}')
+    issuer_servers = TextField(default='[]')
+
+    class Meta:
+        table_name = 'lets_encrypt_state'
 
 
 class InstallationTasks(BaseModel):
@@ -1322,5 +1348,5 @@ def create_tables():
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
              KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
-             HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, NginxSection, InstallationTasks]
+             HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, NginxSection, InstallationTasks]
         )

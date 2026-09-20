@@ -53,6 +53,9 @@ def execute_operation(operation_id: str, task_id: int) -> str:
         if task.operation_type == 'backup':
             from app.modules.service.backup_execution import execute_backup
             return execute_backup(task)
+        if task.operation_type == 'letsencrypt':
+            from app.modules.service.le.le_execution import execute
+            return execute(task)
         if task.operation_type != 'ansible':
             raise ValueError(f'Unsupported operation type: {task.operation_type}')
         payload = deserialize_operation_payload(task.operation_payload)

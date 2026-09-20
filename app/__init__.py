@@ -170,7 +170,7 @@ def _initialize_runtime() -> None:
 
 # A maintenance process must be able to import DB helpers before any tables
 # exist. It must not run implicit migrations, routes, jobs or heartbeats.
-if os.environ.get('ROXYWI_PROCESS_ROLE') not in {'migrate', 'wait-for-database', 'migrate-backup-cron'}:
+if os.environ.get('ROXYWI_PROCESS_ROLE') not in {'migrate', 'wait-for-database', 'migrate-backup-cron', 'migrate-le-cron'}:
     try:
         _initialize_runtime()
     finally:

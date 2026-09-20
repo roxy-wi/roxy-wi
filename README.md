@@ -185,6 +185,84 @@ The backup page and GET backup APIs show whether migration is required, the
 next run/retry and the last operation status. Existing API response fields and
 the `202`/`tasks_ids` contract for configuration changes are retained.
 
+## Let's Encrypt
+
+Certificate issuance, renewal and HAProxy deployment use Scheduler, Operations
+and RabbitMQ in both package and Compose installations. The SSL page shows the
+expiry date, next check/retry, target deployment status and recent operations.
+The action menu supports editing, a renewal check, a staging test and retry.
+Checks run every 12 hours; failed operations retry after 5 and 10 minutes.
+A failed replacement keeps the applied configuration; after three failures its
+normal renewals resume. Edit the configuration to submit another replacement.
+
+DNS challenges support Cloudflare, DigitalOcean, Linode and Route53. Certbot and
+its plugins are installed from `requirements.txt` when building the image or
+updating the package environment. The Operations process needs no sudo, package
+manager or cron for DNS issuance. DNS tokens are encrypted with `secret_phrase`,
+excluded from API responses and supported by `rotate_credential_secret.py`.
+Omitting a token (or sending null) on PUT preserves it for the same provider.
+
+Standalone issuance runs Certbot once on the selected server, then delivers the
+certificate to that server and its HA children in the same group. The managed
+server needs Python 3, SSH and noninteractive sudo (or root SSH); Certbot is
+installed through apt/dnf/yum if missing. Enable EPEL first where required.
+Public port 80 must route `/.well-known/acme-challenge/` to port 8888 on the
+selected server. Wildcards require a DNS provider. A staging test makes a real
+ACME challenge but does not replace or deploy a production certificate.
+
+Private ACME state and worker locks live in `lib_path/letsencrypt`; preserve this
+directory, the database and `secret_phrase` across container recreation. All
+Operations replicas must share the same filesystem and key. The managed
+standalone server stores isolated Certbot state under
+`/var/lib/roxy-wi/letsencrypt`. Certificate/key matching, exact SANs and validity
+are checked before deployment. PEM replacement is atomic, with persistent
+rollback state, HAProxy configuration validation and reload. Docker HAProxy uses
+its configured container name, a persistent directory mount for `cert_path`,
+and the master-worker USR2 reload signal (HAProxy PID 1 with `-W` or `-Ws`). Host
+configuration paths are mapped through the container mounts. Individual certificate file mounts
+are not supported for atomic replacement. The PEM filename stays stable when
+editing domains; the UI displays that filename.
+
+DELETE stops renewal and removes managed ACME material after successful cleanup.
+It retains deployed PEMs so existing HAProxy configurations continue to work;
+it does not revoke the certificate. Failed cleanup stays visible and retryable.
+Completed/failed Operations history is retained for 30 days, except the last
+and active operations. `ROXYWI_LE_HISTORY_RETENTION_DAYS=0` disables pruning.
+
+### Migrating existing LE jobs
+
+Database migration encrypts existing tokens and marks old records as waiting
+for migration. It does not start duplicate renewals.
+
+1. On the original package host, apply database migrations and finish legacy LE
+   setup operations. Stop web, Scheduler and Operations while cutting over.
+2. Temporarily stop cron/crond and legacy Certbot timers on that host and on standalone certificate hosts.
+   Wait for any running Certbot or certificate rsync commands to finish.
+3. As root on the original Roxy-WI host, run:
+
+   ```sh
+   /path/to/roxy-wi-python roxy_wi.py migrate-le-cron
+   ```
+
+   The command imports existing certificate/key pairs without issuing new
+   certificates, removes only Roxy-WI LE cron entries, and archives the selected
+   legacy renewal configurations so certbot.timer cannot renew them in parallel.
+   Original live/archive certificate files remain in place. Root-only backups
+   of crontabs and renewal configurations are kept in
+   `/var/backups/roxy-wi-letsencrypt` on each affected host. Other cron entries and
+   other Certbot lineages remain untouched. Failed cutover can be rerun; schedules
+   are activated only after all hosts complete it. Inspect domain/key mismatches
+   or duplicate PEM owners before retrying.
+4. Restart cron and the stopped Certbot timers on the affected hosts. Keep old Roxy-WI processes stopped when
+   moving to Compose. Transfer `lib_path/letsencrypt` with the shared volume and
+   ensure it is owned by the Operations user (UID/GID 10001 in the default image).
+   For packages, migration uses the owner of `lib_path`; check that it matches
+   the service user. Start the new web, Scheduler and Operations processes.
+
+The first run verifies and deploys imported material, obtaining a replacement
+when needed. Do not run this cutover inside a container: the original cron and
+ACME state would not be visible.
+
 ## OpenID Connect
 
 Super administrators can configure one or more OIDC providers under **Admin → OIDC**. Roxy-WI supports discovery metadata, signed ID token validation through JWKS, optional UserInfo claims, verified-email/domain policies, automatic user creation or email linking, and external-group mappings to Roxy-WI groups and roles. Local and LDAP login remain available.

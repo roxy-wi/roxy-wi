@@ -156,7 +156,14 @@ function deleteSsl(id) {
 	});
 }
 let provides = {'standalone': "Stand alone", 'route53': 'Route53', 'linode': 'Linode', 'cloudflare': 'Cloudflare', 'digitalocean': 'Digitalocean'};
+let leEditingId = null;
 $( function() {
+    if ($('#le_table').length) {
+        getLes();
+        setInterval(function () {
+            if (!document.hidden && $('#le_table').length) getLes();
+        }, 15000);
+    }
     let typeSelect = $( "#new-le-type" );
     typeSelect.on('selectmenuchange',function()  {
        if (typeSelect.val() === 'standalone') {
@@ -190,13 +197,15 @@ function addLe(dialogId) {
     if (type === 'cloudflare' || type === 'digitalocean' || type === 'linode') {
         allFields = $([]).add($('#new-le-domain')).add($('#new-le-token'));
         allFields.removeClass("ui-state-error");
-        valid = valid && checkLength($('#new-le-token'), "Token", 1);
+        if (!leEditingId) valid = valid && checkLength($('#new-le-token'), "Token", 1);
     }
     if (type === 'route53') {
         allFields = $([]).add($('#new-le-domain')).add($('#new-le-access_key_id')).add($('#new-le-secret_access_key'));
         allFields.removeClass("ui-state-error");
-        valid = valid && checkLength($('#new-le-access_key_id'), "Access key ID", 1);
-        valid = valid && checkLength($('#new-le-secret_access_key'), "Access key", 1);
+        if (!leEditingId) {
+            valid = valid && checkLength($('#new-le-access_key_id'), "Access key ID", 1);
+            valid = valid && checkLength($('#new-le-secret_access_key'), "Access key", 1);
+        }
     }
     valid = valid && checkLength($('#new-le-domain'), "Domains", 1);
     if ($('#new-le-server_id').val() === '------' || $('#new-le-server_id').val() === null) {
@@ -230,16 +239,16 @@ function addLe(dialogId) {
     }
     let jsonData = {
         'server_id': $('#new-le-server_id').val(),
-        'domains': domains,
+        'domains': domains.map(item => item.trim()),
         'email': email,
         'type': type,
-        'api_key': api_key,
-        'api_token': api_token,
+        'api_key': api_key || null,
+        'api_token': api_token || null,
         'description': $('#new-le-description').val(),
     }
     $.ajax({
-        url: '/service/letsencrypt',
-        method: 'POST',
+        url: '/service/letsencrypt' + (leEditingId ? '/' + leEditingId : ''),
+        method: leEditingId ? 'PUT' : 'POST',
         data: JSON.stringify(jsonData),
         contentType: "application/json; charset=utf-8",
         success: function (data) {
@@ -259,9 +268,7 @@ function removeLe(leId) {
         method: 'DELETE',
         contentType: "application/json; charset=utf-8",
         statusCode: {
-			202: function () {
-				$("#lets-" + leId).remove();
-			},
+			202: function () { getLes(); },
 			204: function (xhr) {
 				$("#lets-" + leId).remove();
 			},
@@ -286,7 +293,7 @@ function confirmDeleteLe(id) {
 		height: "auto",
 		width: 400,
 		modal: true,
-		title: delete_word + " Let's encrypt?",
+		title: 'Stop renewal? Deployed certificates will be kept.',
 		buttons: [{
 			text: delete_word,
 			click: function () {
@@ -301,14 +308,35 @@ function confirmDeleteLe(id) {
 		}]
 	});
 }
-function openLeDialog() {
+function openLeDialog(leId = null) {
+    leEditingId = leId;
+    $('#new-le-token, #new-le-access_key_id, #new-le-secret_access_key').val('');
+    if (leId) {
+        $.getJSON('/service/letsencrypt/' + leId, function (data) {
+            if (leEditingId !== leId) return;
+            $('#new-le-server_id').val(data.server_id).selectmenu('refresh');
+            $('#new-le-type').val(data.type).selectmenu('refresh').trigger('selectmenuchange');
+            $('#new-le-domain').val(data.domains.join(', '));
+            $('#new-le-email').val(data.email || '');
+            $('#new-le-description').val(data.description || '');
+            $('#new-le-token, #new-le-access_key_id, #new-le-secret_access_key').attr('placeholder', 'Leave empty to keep existing credentials');
+            openLeForm(leId);
+        });
+        return;
+    } else {
+        $('#new-le-domain, #new-le-email, #new-le-description').val('');
+        $('#new-le-token, #new-le-access_key_id, #new-le-secret_access_key').attr('placeholder', '');
+    }
+    openLeForm(leId);
+}
+function openLeForm(leId) {
     $("#le-add-table").dialog({
         autoOpen: true,
         resizable: false,
         height: "auto",
         width: 500,
         modal: true,
-        title: $('#translate').attr('data-create') + " Let's encrypt",
+        title: (leId ? 'Edit' : $('#translate').attr('data-create')) + " Let's Encrypt",
         show: {
             effect: "fade",
             duration: 200
@@ -319,7 +347,7 @@ function openLeDialog() {
         },
         buttons: [
 			{
-				text: $('#translate').attr('data-create'),
+				text: leId ? 'Save' : $('#translate').attr('data-create'),
 				click: function () {
 					addLe($(this));
 				}
@@ -367,15 +395,61 @@ function getLes() {
 function showLe(data) {
     const domains = Array.isArray(data['domains']) ? data['domains'] : [];
     const list_domains = domains.join(', ');
+    const state = data.state || {};
+    const busy = ['queued', 'running', 'deleting'].includes(state.status) || state.legacy_pending;
+    const date = value => value ? new Date(value).toLocaleString() : '—';
+    const item = (label, action, disabled = busy) => {
+        const button = elem('button', {type: 'button', class: 'admin-action-item', onclick: action}, label);
+        button.disabled = disabled;
+        return button;
+    };
+    const status = [elem('div', null, state.legacy_pending ? 'Waiting for migration' : state.status || 'pending'),
+        elem('div', null, 'Expires: ' + date(state.not_after)),
+        elem('div', null, 'PEM: ' + (state.pem_name || ''))];
+    if (state.last_error) status.push(elem('div', {class: 'text-danger'}, state.last_error));
+    for (const [server, target] of Object.entries(state.targets || {})) {
+        status.push(elem('div', null, 'Server #' + server + ': ' + target.status));
+    }
     let le_tag = elem("tr", {"id":"lets-" + data['id']}, [
-	elem("td", {"class":"padding10 first-collumn"}, data['server_id']['hostname']),
+	elem("td", {"class":"padding10 first-collumn"}, data.server_id.hostname || String(data.server_id)),
 	elem("td", {"style": "width: 10%;"}, provides[data['type']]),
-	elem("td", {"style": "width: 30%;"}, list_domains),
-	elem("td", {"style": "width: 38%;"}, data['description']),
-	elem("td", null, [
-		elem("a", {"class":"delete","onclick":"confirmDeleteLe("+data['id']+")","title":"Delete","style":"cursor: pointer; width: 5%;"}),
-		])
+	elem("td", null, list_domains),
+	elem("td", null, data['description'] || ''),
+    elem('td', null, status),
+    elem('td', null, date(state.retry_at || state.next_run_at)),
+    elem('td', {class: 'admin-actions-cell'}, [elem('div', {class: 'admin-actions'}, [
+        elem('button', {type: 'button', class: 'rw-icon-button admin-actions-toggle',
+            'aria-haspopup': 'menu', 'aria-expanded': 'false', 'aria-label': 'Actions'},
+            [elem('span', {class: 'fas fa-ellipsis-v', 'aria-hidden': 'true'})]),
+        elem('div', {class: 'admin-actions-menu', role: 'menu', hidden: 'hidden'}, [
+            item('Edit', () => openLeDialog(data.id)),
+            item('Check renewal', () => runLeAction(data.id, 'renew')),
+            item('Test renewal (staging)', () => runLeAction(data.id, 'test')),
+            item('Retry', () => runLeAction(data.id, 'retry'), busy || !state.can_retry),
+            item('History', () => showLeHistory(data.id), false),
+            item('Delete', () => confirmDeleteLe(data.id))
+        ])
+    ])])
     ])
+    $('#lets-' + data.id).remove();
     $('#le_table_body').append(le_tag);
+}
+
+function runLeAction(id, action) {
+    $.ajax({url: '/service/letsencrypt/' + id, method: 'PATCH',
+        contentType: 'application/json', data: JSON.stringify({action}),
+        success: function (data) { runInstallationTaskCheck(data.tasks_ids); getLes(); }
+    });
+}
+
+function showLeHistory(id) {
+    $.getJSON('/service/letsencrypt/' + id, function (data) {
+        const dialog = $('#le-history-dialog').empty();
+        for (const task of data.state.history || []) {
+            dialog.append(elem('p', null, '#' + task.id + ' · ' + task.status + ' · ' +
+                (task.started_at || '') + (task.error ? '\n' + task.error : '')));
+        }
+        dialog.dialog({title: "Let's Encrypt history", width: 650, modal: true});
+    });
 }
 

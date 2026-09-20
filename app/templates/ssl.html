@@ -64,8 +64,9 @@
         <td>{{lang.words.type|title()}}</td>
         <td>{{lang.words.domains|title()}}</td>
         <td>{{lang.words.desc|title()}}</td>
-        <td></td>
-        <td></td>
+        <td>Status / expiry</td>
+        <td>Next check</td>
+        <td class="admin-actions-cell">Actions</td>
     </tr>
     <tbody id="le_table_body"></tbody>
 </table>
@@ -110,12 +111,13 @@
                 <div class="tooltip tooltipTop">{{ lang.add_page.desc.comma_separated }}</div>
             </td>
         </tr>
-        <tr class="le-standalone">
+        <tr>
             <td class="padding20 first-collumn">
                 {{ lang.words.email|title() }}
             </td>
             <td>
                 {{ input('new-le-email') }}
+                <div class="le-standalone">Public HTTP port 80 must forward /.well-known/acme-challenge/ to this server's port 8888.</div>
             </td>
         </tr>
         <tr class="le-dns" style="display: none;">
@@ -123,7 +125,7 @@
                 {{ lang.words.token|title() }}
             </td>
             <td>
-                {{ input('new-le-token') }}
+                {{ input('new-le-token', type='password') }}
             </td>
         </tr>
         <tr class="le-aws" style="display: none;">
@@ -139,7 +141,7 @@
                 Secret access key
             </td>
             <td>
-                {{ input('new-le-secret_access_key') }}
+                {{ input('new-le-secret_access_key', type='password') }}
             </td>
         </tr>
         <tr>
@@ -152,4 +154,5 @@
         </tr>
     </table>
 </div>
+<div id="le-history-dialog" style="display: none;"></div>
 {% endblock %}

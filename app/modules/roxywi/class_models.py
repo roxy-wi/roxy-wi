@@ -5,7 +5,7 @@ from typing import Optional, Annotated, Union, Literal, Any, Dict, List
 from shlex import quote
 from pydantic_core import CoreSchema, core_schema
 from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, GetCoreSchemaHandler, AnyUrl, \
-    root_validator, EmailStr, model_validator, DirectoryPath
+    root_validator, EmailStr, model_validator, DirectoryPath, Field, field_validator
 
 DomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
 WildcardDomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9\*](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
@@ -326,39 +326,56 @@ class SavedServerRequest(BaseModel):
 
 
 class LetsEncryptRequest(BaseModel):
-    server_id: int
-    domains: List[WildcardDomainName]
+    server_id: int = Field(gt=0)
+    domains: List[str] = Field(min_length=1, max_length=100)
     email: Optional[EmailStr] = None
     type: Literal['standalone', 'route53', 'cloudflare', 'digitalocean', 'linode']
-    api_key: Optional[EscapedString] = None
-    api_token: EscapedString
-    description: Optional[EscapedString] = None
+    api_key: Optional[str] = Field(default=None, max_length=4096)
+    api_token: Optional[str] = Field(default=None, max_length=4096)
+    description: Optional[str] = Field(default=None, max_length=255)
 
-    @root_validator(pre=True)
+    @field_validator('domains')
     @classmethod
-    def is_email_when_standalone(cls, values):
-        cert_type = ''
-        email = ''
-        if 'type' in values:
-            cert_type = values['type']
-        if 'email' in values:
-            email = values['email']
-        if cert_type == 'standalone' and email == '':
-            raise ValueError('Email must be when type is standalone')
-        return values
+    def normalize_domains(cls, values):
+        result = []
+        for value in values:
+            value = value.strip().lower().rstrip('.')
+            wildcard = value.startswith('*.')
+            name = value[2:] if wildcard else value
+            name = name.encode('idna').decode('ascii')
+            if len(name) > 253 or not re.fullmatch(
+                r'(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z](?:[a-z0-9-]{0,61}[a-z0-9])?', name
+            ):
+                raise ValueError('Invalid certificate domain')
+            domain = ('*.' if wildcard else '') + name
+            if domain not in result:
+                result.append(domain)
+        return result
 
-    @root_validator(pre=True)
+    @field_validator('email', mode='before')
     @classmethod
-    def is_api_key_when_route53(cls, values):
-        cert_type = ''
-        api_key = ''
-        if 'type' in values:
-            cert_type = values['type']
-        if 'api_key' in values:
-            api_key = values['api_key']
-        if cert_type == 'route53' and api_key == '':
-            raise ValueError('api_key(secret key) must be when type is route53')
-        return values
+    def optional_email(cls, value):
+        return value or None
+
+    @field_validator('api_key', 'api_token')
+    @classmethod
+    def single_line_secret(cls, value):
+        if value is not None and any(c in value for c in '\r\n\x00'):
+            raise ValueError('Credentials must be a single line')
+        return value
+
+    @model_validator(mode='after')
+    def standalone_requirements(self):
+        if self.type == 'standalone':
+            if not self.email:
+                raise ValueError('Email is required for standalone')
+            if any(domain.startswith('*.') for domain in self.domains):
+                raise ValueError('Wildcard certificates require a DNS provider')
+        return self
+
+
+class LetsEncryptActionRequest(BaseModel):
+    action: Literal['renew', 'test', 'retry']
 
 
 class LetsEncryptDeleteRequest(BaseModel):

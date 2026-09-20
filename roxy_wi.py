@@ -55,7 +55,7 @@ def main() -> None:
     parser.add_argument(
         'role',
         choices=('web', 'migrate', 'wait-for-database', 'scheduler', 'service-events', 'operations', 'healthcheck',
-                 'migrate-backup-cron'),
+                 'migrate-backup-cron', 'migrate-le-cron'),
     )
     parser.add_argument('--role', dest='probe_role', choices=('web', 'scheduler', 'service-events', 'operations'))
     parser.add_argument('--check', choices=('live', 'ready'), default='ready')
@@ -79,6 +79,13 @@ def main() -> None:
         try:
             removed, activated = migrate_legacy_cron()
             print(f'Removed {removed} legacy backup cron entries; activated {activated} schedules')
+        finally:
+            close_database_connection()
+    elif args.role == 'migrate-le-cron':
+        from app.modules.service.le.le_migration import migrate_legacy
+        from app.modules.db.db_model import close_database_connection
+        try:
+            print(f'Activated {migrate_legacy()} Let\'s Encrypt schedules')
         finally:
             close_database_connection()
     elif args.role == 'scheduler':

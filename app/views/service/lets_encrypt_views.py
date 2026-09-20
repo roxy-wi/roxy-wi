@@ -1,34 +1,38 @@
-import ast
-from typing import Union
-
-from flask.views import MethodView
-from flask_pydantic import validate
 from flask import jsonify
+from flask.views import MethodView
 from flask_jwt_extended import jwt_required
-from playhouse.shortcuts import model_to_dict
+from flask_pydantic import validate
 
-import app.modules.db.sql as sql
-import app.modules.db.le as le_sql
-import app.modules.db.server as server_sql
-import app.modules.common.common as common
-import app.modules.roxywi.common as roxywi_common
-import app.modules.service.installation as service_mod
-from app.modules.db.db_model import InstallationTasks, LetsEncrypt
-from app.modules.server.ssh import return_ssh_keys_path
 from app.middleware import get_user_params, page_for_admin, check_group
-from app.modules.roxywi.class_models import LetsEncryptRequest, LetsEncryptDeleteRequest, IdResponse, GroupQuery, BaseResponse
+from app.modules.db.db_model import LetsEncrypt, LetsEncryptState, Server
+from app.modules.roxywi import common
+from app.modules.roxywi.class_models import LetsEncryptRequest, LetsEncryptActionRequest, GroupQuery
 from app.modules.common.common_classes import SupportClass
+from app.modules.service.le import le_store
+from app.modules.service.common import is_protected
+
+
+def accepted(le_id, task_id):
+    return {'id': le_id, 'status': 'accepted', 'tasks_ids': [task_id]}, 202
+
+
+def identity(query):
+    return SupportClass.return_group_id(query), common.get_jwt_token_claims().get('user_id')
+
+
+def protect(server_id, group_id):
+    for server in le_store.targets_for(server_id, group_id):
+        is_protected(server.ip, 'update certificates on')
 
 
 class LetsEncryptView(MethodView):
-    methods = ['GET', 'POST', 'PUT', 'DELETE']
     decorators = [jwt_required(), get_user_params(), page_for_admin(level=3), check_group()]
 
     @validate(query=GroupQuery)
     def get(self, le_id: int, query: GroupQuery):
-        """
-        Get Let's Encrypt details.
+        """Return certificate configuration and lifecycle state without DNS secrets.
         ---
+
         tags:
           - Let's Encrypt
         parameters:
@@ -50,10 +54,10 @@ class LetsEncryptView(MethodView):
               properties:
                 api_key:
                   type: string
-                  description: API key
+                  description: Always null; DNS credentials are never returned
                 api_token:
                   type: string
-                  description: API token
+                  description: Always null; use has_api_token to check configuration
                 description:
                   type: string
                   description: Description of the Let's Encrypt configuration
@@ -74,20 +78,16 @@ class LetsEncryptView(MethodView):
                   description: Type of the Let's Encrypt configuration
                   enum: ['standalone', 'route53', 'cloudflare', 'digitalocean', 'linode']
         """
-        group_id = SupportClass.return_group_id(query)
         try:
-            le = le_sql.get_le_with_group(le_id, group_id)
-            le_dict = model_to_dict(le, recurse=False)
-            le_dict['domains'] = ast.literal_eval(le_dict['domains'])
-            return jsonify(le_dict)
-        except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get Let\'s Encrypt')
+            return jsonify(le_store.public_config(le_store.get_owned(le_id, identity(query)[0]), query.recurse))
+        except Exception as error:
+            return common.handler_exceptions_for_json_data(error, "Cannot get Let's Encrypt")
 
-    @validate(body=LetsEncryptRequest)
-    def post(self, body: LetsEncryptRequest):
-        """
-        Create a Let's Encrypt configuration.
+    @validate(body=LetsEncryptRequest, query=GroupQuery)
+    def post(self, body: LetsEncryptRequest, query: GroupQuery):
+        """Queue certificate issuance and deployment.
         ---
+
         tags:
           - Let's Encrypt
         parameters:
@@ -132,20 +132,18 @@ class LetsEncryptView(MethodView):
             description: Let's Encrypt configuration accepted for asynchronous processing
         """
         try:
-            with InstallationTasks._meta.database.atomic():
-                last_id = le_sql.insert_le(**body.model_dump(mode='json'))
-                task_id = self._create_env(body, 'install')
-            response = IdResponse(id=last_id).model_dump()
-            response.update({'status': 'accepted', 'tasks_ids': [task_id]})
-            return response, 202
-        except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create Let\'s Encrypt')
+            group_id, user_id = identity(query)
+            protect(body.server_id, group_id)
+            le_id, task_id = le_store.create(body.model_dump(mode='json'), group_id, user_id)
+            return accepted(le_id, task_id)
+        except Exception as error:
+            return common.handler_exceptions_for_json_data(error, "Cannot create Let's Encrypt")
 
     @validate(body=LetsEncryptRequest, query=GroupQuery)
     def put(self, le_id: int, body: LetsEncryptRequest, query: GroupQuery):
-        """
-        Update a Let's Encrypt configuration.
+        """Apply a replacement only after successful certificate deployment.
         ---
+
         tags:
         - Let's Encrypt
         parameters:
@@ -194,40 +192,20 @@ class LetsEncryptView(MethodView):
           202:
             description: Let's Encrypt configuration update accepted for asynchronous processing
         """
-        group_id = SupportClass.return_group_id(query)
         try:
-            le = le_sql.get_le_with_group(le_id, group_id)
-        except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find Let\'s Encrypt')
-
-        try:
-            le_dict = _return_domains_list(le)
-            data = LetsEncryptRequest(**le_dict)
-        except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update Let\'s Encrypt on server')
-
-        try:
-            with InstallationTasks._meta.database.atomic():
-                old_step = self._create_env(data, 'delete', enqueue=False)
-                le_sql.update_le(le_id, **body.model_dump(mode='json'))
-                new_step = self._create_env(body, 'install', enqueue=False)
-                task_id = service_mod.run_ansible_workflow(
-                    [old_step, new_step], "Let's Encrypt certificate"
-                )
-            response = IdResponse(id=le_id).model_dump()
-            response.update({
-                'status': 'accepted',
-                'tasks_ids': [task_id],
-            })
-            return response, 202
-        except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update Let\'s Encrypt')
+            group_id, user_id = identity(query)
+            row = le_store.get_owned(le_id, group_id)
+            protect(row.server_id_id, group_id)
+            protect(body.server_id, group_id)
+            return accepted(le_id, le_store.update(le_id, body.model_dump(mode='json'), group_id, user_id))
+        except Exception as error:
+            return common.handler_exceptions_for_json_data(error, "Cannot update Let's Encrypt")
 
     @validate(query=GroupQuery)
     def delete(self, le_id: int, query: GroupQuery):
-        """
-        Delete Let's Encrypt details.
+        """Stop renewal and remove managed ACME state; keep deployed PEMs in use.
         ---
+
         tags:
           - Let's Encrypt
         parameters:
@@ -245,116 +223,58 @@ class LetsEncryptView(MethodView):
           202:
             description: Let's Encrypt deletion accepted for asynchronous processing
         """
-        group_id = SupportClass.return_group_id(query)
         try:
-            le = le_sql.get_le_with_group(le_id, group_id)
-        except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find Let\'s Encrypt')
+            group_id, user_id = identity(query)
+            row = le_store.get_owned(le_id, group_id)
+            protect(row.server_id_id, group_id)
+            return accepted(le_id, le_store.action(le_id, 'delete', group_id, user_id))
+        except Exception as error:
+            return common.handler_exceptions_for_json_data(error, "Cannot delete Let's Encrypt")
 
+    @validate(body=LetsEncryptActionRequest, query=GroupQuery)
+    def patch(self, le_id: int, body: LetsEncryptActionRequest, query: GroupQuery):
+        """Queue a renewal check, staging test, or retry of the last failed operation.
+        ---
+        tags:
+          - Let's Encrypt
+        parameters:
+          - name: le_id
+            in: path
+            type: integer
+            required: true
+          - name: body
+            in: body
+            required: true
+            schema:
+              type: object
+              required: [action]
+              properties:
+                action:
+                  type: string
+                  enum: [renew, test, retry]
+        responses:
+          202:
+            description: Operation accepted; response includes tasks_ids
+          409:
+            description: Another operation is active or legacy migration is required
+        """
         try:
-            le_dict = _return_domains_list(le)
-            le_dict['emails'] = None
-            data = LetsEncryptDeleteRequest(**le_dict)
-        except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete Let\'s Encrypt from server')
-
-        try:
-            with InstallationTasks._meta.database.atomic():
-                task_id = self._create_env(data, action='delete')
-                le_sql.delete_le(le_id)
-            return {'status': 'accepted', 'tasks_ids': [task_id]}, 202
-        except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete Let\'s Encrypt')
-
-    @staticmethod
-    def _create_env(
-            data: Union[LetsEncryptRequest, LetsEncryptDeleteRequest],
-            action: str = 'install',
-            enqueue: bool = True,
-    ):
-        server_ips = []
-        server_ip = 'localhost'
-        domains_command = ''
-        servers = {}
-        main_domain = data.domains[0]
-        inv = {"server": {"hosts": {}}}
-        masters = server_sql.is_master(server_ip)
-        ssl_path = common.return_nice_path(sql.get_setting('cert_path'), is_service=0)
-        haproxy_dir = sql.get_setting('haproxy_dir')
-
-        if data.type == 'standalone':
-            server_ip = server_sql.get_server(data.server_id).ip
-            ssh_settings = return_ssh_keys_path(server_ip)
-            servers[server_ip] = f"{ssh_settings['user']}@{ssh_settings['key']}"
-            ansible_role = 'letsencrypt_standalone'
-        else:
-            master_ip = server_sql.get_server(data.server_id).ip
-            ssh_settings = return_ssh_keys_path(master_ip)
-            servers[master_ip] = f"{ssh_settings['user']}@{ssh_settings['key']}"
-            ansible_role = 'letsencrypt'
-
-        for domain in data.domains:
-            domains_command += f' -d {domain}'
-
-        for master in masters:
-            if master[0] is not None:
-                ssh_settings = return_ssh_keys_path(master[0])
-                servers[master[0]] = f"{ssh_settings['user']}@{ssh_settings['key']}"
-
-                inv['server']['hosts'][master[0]] = {
-                    'token': data.api_token,
-                    'secret_key': data.api_key,
-                    'email': data.email,
-                    'ssl_path': ssl_path,
-                    'domains_command': domains_command,
-                    'main_domain': main_domain,
-                    'servers': servers,
-                    'action': action,
-                    'cert_type': data.type,
-                    'haproxy_dir': haproxy_dir
-                }
-                server_ips.append(master[0])
-
-        inv['server']['hosts'][server_ip] = {
-            'token': data.api_token,
-            'secret_key': data.api_key,
-            'email': data.email,
-            'ssl_path': ssl_path,
-            'domains_command': domains_command,
-            'main_domain': main_domain,
-            'servers': servers,
-            'action': action,
-            'cert_type': data.type,
-            'haproxy_dir': haproxy_dir
-        }
-
-        server_ips.append(server_ip)
-        step = {
-            'inventory': inv,
-            'server_ips': server_ips,
-            'ansible_role': ansible_role,
-            'run_locally': data.type != 'standalone',
-        }
-        if not enqueue:
-            return step
-        return service_mod.run_ansible_thread(
-            inv,
-            server_ips,
-            ansible_role,
-            "Let's Encrypt certificate",
-            run_locally=data.type != 'standalone',
-        )
+            group_id, user_id = identity(query)
+            row = le_store.get_owned(le_id, group_id)
+            protect(row.server_id_id, group_id)
+            return accepted(le_id, le_store.action(le_id, body.action, group_id, user_id))
+        except Exception as error:
+            return common.handler_exceptions_for_json_data(error, "Cannot run Let's Encrypt operation")
 
 
 class LetsEncryptsView(MethodView):
-    methods = ['GET']
     decorators = [jwt_required(), get_user_params(), page_for_admin(level=3), check_group()]
 
     @validate(query=GroupQuery)
     def get(self, query: GroupQuery):
-        """
-        Get all Let's Encrypt configurations.
+        """List certificate configurations and lifecycle states without DNS credentials.
         ---
+
         tags:
           - Let's Encrypt
         parameters:
@@ -373,10 +293,10 @@ class LetsEncryptsView(MethodView):
                 properties:
                   api_key:
                     type: string
-                    description: API key
+                    description: Always null; DNS credentials are never returned
                   api_token:
                     type: string
-                    description: API token
+                    description: Always null; use has_api_token to check configuration
                   description:
                     type: string
                     description: Description of the Let's Encrypt configuration
@@ -398,18 +318,11 @@ class LetsEncryptsView(MethodView):
                     type: string
                     description: Type of the Let's Encrypt configuration
         """
-        group_id = SupportClass.return_group_id(query)
-        le_list = []
         try:
-            les = le_sql.select_le_with_group(group_id)
-            for le in les:
-                le_list.append(_return_domains_list(le, query.recurse))
-            return jsonify(le_list)
-        except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get Let\'s Encrypts')
-
-
-def _return_domains_list(le: LetsEncrypt, recurse: bool = False) -> dict:
-    le_dict = model_to_dict(le, recurse=recurse)
-    le_dict['domains'] = ast.literal_eval(le_dict['domains'])
-    return le_dict
+            group_id = identity(query)[0]
+            rows = (LetsEncrypt.select().join(Server).switch(LetsEncrypt)
+                    .join(LetsEncryptState, on=(LetsEncryptState.le_id == LetsEncrypt.id))
+                    .where((Server.group_id == str(group_id)) & (LetsEncryptState.status != 'deleted')))
+            return jsonify([le_store.public_config(row, query.recurse) for row in rows])
+        except Exception as error:
+            return common.handler_exceptions_for_json_data(error, "Cannot get Let's Encrypt certificates")
