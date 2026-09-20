@@ -1,0 +1,187 @@
+name: Roxy-WI native packages
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build and publish
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      component:
+        required: true
+        type: string
+      tag:
+        required: true
+        type: string
+    secrets:
+      REPO_PACKAGING_REPOSITORY: {required: true}
+      REPO_PACKAGING_SSH_KEY: {required: true}
+      REPO_S3_ACCESS_KEY_ID: {required: true}
+      REPO_S3_SECRET_ACCESS_KEY: {required: true}
+      REPO_GPG_PRIVATE_KEY: {required: true}
+      REPO_GPG_PASSPHRASE: {required: true}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: native-packages-${{ github.repository }}-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  PACKAGE_COMPONENT: ${{ inputs.component || 'roxy-wi' }}
+  RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+
+jobs:
+  metadata:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.metadata.outputs.version }}
+      revision: ${{ steps.metadata.outputs.revision }}
+      tooling-revision: ${{ steps.tooling.outputs.revision }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: refs/tags/${{ env.RELEASE_TAG }}
+          persist-credentials: false
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ secrets.REPO_PACKAGING_REPOSITORY }}
+          ref: ${{ vars.REPO_PACKAGING_REF }}
+          ssh-key: ${{ secrets.REPO_PACKAGING_SSH_KEY }}
+          path: build-support
+          persist-credentials: false
+      - id: tooling
+        run: echo "revision=$(git -C build-support rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - id: metadata
+        run: |
+          python3 - <<'PY'
+          import os, sys
+          sys.path.insert(0, 'build-support/package_tools/roxywi')
+          from build import COMPONENTS
+          if COMPONENTS.get(os.environ['PACKAGE_COMPONENT'], '').lower() != os.environ['GITHUB_REPOSITORY'].lower():
+              raise SystemExit('This repository cannot publish the selected component')
+          PY
+          python3 build-support/package_tools/roxywi/build.py metadata --component "$PACKAGE_COMPONENT" --tag "$RELEASE_TAG"
+          echo "revision=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: metadata
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ needs.metadata.outputs.revision }}
+          persist-credentials: false
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ secrets.REPO_PACKAGING_REPOSITORY }}
+          ref: ${{ needs.metadata.outputs.tooling-revision }}
+          ssh-key: ${{ secrets.REPO_PACKAGING_SSH_KEY }}
+          path: build-support
+          persist-credentials: false
+      - run: docker build -t roxywi-package-tools build-support/package_tools/roxywi
+      - name: Test repository publication and release validation
+        run: docker run --rm -v "$PWD:/src:ro" roxywi-package-tools python3 -m pytest build-support/package_tools/roxywi/tests -q -p no:cacheprovider
+      - name: Build DEB and EL9/EL10 RPM packages from the same commit
+        run: |
+          mkdir -p dist
+          for format in deb el9 el10; do
+            docker run --rm -v "$PWD:/src:ro" -v "$PWD/dist:/output" roxywi-package-tools \
+              python3 build-support/package_tools/roxywi/build.py "$format" \
+              --component "$PACKAGE_COMPONENT" --tag "$RELEASE_TAG" --output /output
+          done
+      - name: Verify DEB dependencies on Ubuntu and Debian
+        run: |
+          for image in ubuntu:24.04 debian:12 debian:13; do
+            docker run --rm -v "$PWD/dist:/packages:ro" "$image" sh -ec \
+              'apt-get update -qq; apt-get -s install /packages/*.deb'
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-packages
+          path: |
+            dist/*.deb
+            dist/*.rpm
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
+
+  publish:
+    needs: [metadata, build]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      REPO_S3_ENDPOINT: ${{ vars.REPO_S3_ENDPOINT }}
+      REPO_S3_BUCKET: ${{ vars.REPO_S3_BUCKET }}
+      REPO_S3_REGION: ${{ vars.REPO_S3_REGION }}
+      REPO_PUBLIC_URL: ${{ vars.REPO_PUBLIC_URL }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.REPO_S3_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.REPO_S3_SECRET_ACCESS_KEY }}
+      REPO_GPG_KEY_ID: ${{ vars.REPO_GPG_KEY_ID }}
+      REPO_GPG_PRIVATE_KEY: ${{ secrets.REPO_GPG_PRIVATE_KEY }}
+      REPO_GPG_PASSPHRASE: ${{ secrets.REPO_GPG_PASSPHRASE }}
+      RELEASE_VERSION: ${{ needs.metadata.outputs.version }}
+      RELEASE_REVISION: ${{ needs.metadata.outputs.revision }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ secrets.REPO_PACKAGING_REPOSITORY }}
+          ref: ${{ needs.metadata.outputs.tooling-revision }}
+          ssh-key: ${{ secrets.REPO_PACKAGING_SSH_KEY }}
+          path: build-support
+          persist-credentials: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-packages
+          path: dist
+      - run: docker build -t roxywi-package-tools build-support/package_tools/roxywi
+      - name: Sign packages and rebuild the shared S3 repository under a publication lock
+        run: |
+          docker run --rm -v "$PWD:/src:ro" \
+            --env REPO_S3_ENDPOINT --env REPO_S3_BUCKET --env REPO_S3_REGION --env REPO_PUBLIC_URL \
+            --env AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY \
+            --env REPO_GPG_KEY_ID --env REPO_GPG_PRIVATE_KEY --env REPO_GPG_PASSPHRASE \
+            --env GITHUB_REPOSITORY --env GITHUB_RUN_ID \
+            roxywi-package-tools python3 build-support/package_tools/roxywi/repository.py \
+            --artifacts /src/dist --component "$PACKAGE_COMPONENT" \
+            --version "$RELEASE_VERSION" --revision "$RELEASE_REVISION"
+
+  verify:
+    needs: [metadata, publish]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {image: 'ubuntu:24.04', format: ubuntu}
+          - {image: 'debian:12', format: debian}
+          - {image: 'debian:13', format: debian}
+          - {image: 'rockylinux:9', format: el9}
+          - {image: 'rockylinux/rockylinux:10', format: el10}
+    env:
+      ROXYWI_PACKAGE_REPOSITORY: ${{ vars.REPO_PUBLIC_URL }}
+      PACKAGE_COMPONENT: ${{ inputs.component || 'roxy-wi' }}
+      PACKAGE_VERSION: ${{ needs.metadata.outputs.version }}-1
+      REPO_GPG_KEY_ID: ${{ vars.REPO_GPG_KEY_ID }}
+      TEST_IMAGE: ${{ matrix.image }}
+      TEST_FORMAT: ${{ matrix.format }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          repository: ${{ secrets.REPO_PACKAGING_REPOSITORY }}
+          ref: ${{ needs.metadata.outputs.tooling-revision }}
+          ssh-key: ${{ secrets.REPO_PACKAGING_SSH_KEY }}
+          path: build-support
+          persist-credentials: false
+      - name: Download and verify the published version through APT or DNF
+        run: |
+          docker run --rm -v "$PWD/build-support/package_tools/roxywi/tests:/checks:ro" \
+            --env ROXYWI_PACKAGE_REPOSITORY --env PACKAGE_COMPONENT --env PACKAGE_VERSION --env REPO_GPG_KEY_ID \
+            "$TEST_IMAGE" bash /checks/repository.sh "$TEST_FORMAT"
