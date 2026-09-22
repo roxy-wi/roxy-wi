@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Usage questions
+    url: https://github.com/orgs/roxy-wi/discussions
+    about: Ask the community about configuration and usage.
+  - name: Security reports
+    url: https://github.com/roxy-wi/roxy-wi/security/policy
+    about: Read the private reporting instructions before disclosing a vulnerability.
+  - name: Commercial support
+    url: https://roxy-wi.org/pricing
+    about: Compare support options and subscription features.

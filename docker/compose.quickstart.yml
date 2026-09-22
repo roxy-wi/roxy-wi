@@ -1,0 +1,23 @@
+# Merge with docker-compose.sqlite.yml; use quickstart.py to generate secrets.
+services:
+  web:
+    ports: !override []
+
+  https:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8443:443"
+    volumes:
+      - ./Caddyfile.quickstart:/etc/caddy/Caddyfile:ro
+      - quickstart-caddy-data:/data
+      - quickstart-caddy-config:/config
+    depends_on:
+      web:
+        condition: service_healthy
+    networks:
+      - roxy-sqlite
+
+volumes:
+  quickstart-caddy-data:
+  quickstart-caddy-config:

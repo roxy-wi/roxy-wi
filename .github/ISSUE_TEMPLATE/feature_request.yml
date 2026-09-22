@@ -1,0 +1,26 @@
+name: Feature request
+description: Describe a problem Roxy-WI could help solve.
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do?
+      description: Describe the operator's task, who needs it and what gets in the way.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: What would a successful result look like?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Current workaround or alternatives
+  - type: input
+    id: version
+    attributes:
+      label: Roxy-WI version and installation method
+      placeholder: For example, 9.1.0 with Docker Compose

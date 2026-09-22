@@ -1,0 +1,57 @@
+name: Bug report
+description: Report a reproducible problem in Roxy-WI.
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For Roxy-WI 9.1 and later. Please remove secrets and private infrastructure details.
+        Report vulnerabilities privately to hello@roxy-wi.org, not in this form.
+  - type: input
+    id: version
+    attributes:
+      label: Roxy-WI version or commit
+      placeholder: 9.1.0 or a commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: deployment
+    attributes:
+      label: Installation method
+      options:
+        - Linux packages
+        - Docker Compose
+        - Kubernetes / Helm
+        - Source / other
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, database and relevant managed service versions. For containers, include the image tag and Compose or Helm version.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include the page or API endpoint, relevant settings and a minimal example.
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior and diagnostics
+      description: Include sanitized logs, screenshots and operation IDs where relevant. Do not upload environment files, tokens or database dumps.
+    validations:
+      required: true

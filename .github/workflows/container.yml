@@ -108,3 +108,6 @@ jobs:
 
       - name: Verify role probes and dependency outage recovery
         run: python3 tests/container_health_smoke.py
+
+      - name: Verify documented quick start and HTTPS login after restart
+        run: python3 tests/quickstart_smoke.py
