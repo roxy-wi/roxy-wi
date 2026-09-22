@@ -12,7 +12,48 @@ $(function () {
     let iconRefreshScheduled = false;
     let allChanges = [];
     let changesLoaded = false;
+    let loadingChanges = false;
+    let loadGeneration = 0;
     const filterStorageKey = 'roxywi-change-center-filters:v1';
+
+    function operationActive(change) {
+        return Boolean(change && change.operation && change.operation.active);
+    }
+
+    function syncActionPolling() {
+        const needed = activeRequests > 0 || allChanges.some(function (change) {
+            return operationActive(change) || change.status === 'scheduled';
+        });
+        if (needed && !actionPoll) actionPoll = window.setInterval(loadChanges, 1500);
+        if (!needed && actionPoll) {
+            window.clearInterval(actionPoll);
+            actionPoll = null;
+        }
+    }
+
+    function rememberQueued(response) {
+        if (response.status !== 'accepted') return false;
+        loadGeneration += 1;
+        const change = response.data;
+        const index = allChanges.findIndex(function (item) { return item.id === change.id; });
+        if (index >= 0) allChanges[index] = change;
+        else allChanges.push(change);
+        changesById[change.id] = change;
+        syncActionPolling();
+        toastr.info(i18n.operationQueued + ' #' + change.operation.id);
+        return true;
+    }
+
+    function operationLabel(change) {
+        const operation = change.operation;
+        if (!operation) return $();
+        const label = operation.active
+            ? (operation.status === 'running' ? i18n.operationRunning : i18n.operationQueued)
+            : (operation.status === 'failed' ? i18n.operationFailed : i18n.operationSuccess);
+        const element = $('<small class="change-operation-status">').text(label + ' #' + operation.id);
+        if (operation.error) element.append($('<span class="change-operation-error">').text(operation.error));
+        return element;
+    }
 
     function textCell(value) {
         return $('<td>').text(value == null ? '' : value);
@@ -144,6 +185,15 @@ $(function () {
         if (change.recoverable) {
             primary.append(actionButton('fa-unlock-alt', i18n.recover, 'recover', change.id));
         }
+        if (operationActive(change)) {
+            primary.add(menu).find('button').each(function () {
+                const button = $(this);
+                const allowed = button.hasClass('change-action-details') || button.hasClass('change-action-report') ||
+                    (change.status === 'deploying' && button.hasClass('change-action-pause')) ||
+                    (change.status === 'pause_requested' && button.hasClass('change-action-resume'));
+                if (!allowed) button.prop('disabled', true);
+            });
+        }
         if (menu.children().length) {
             const more = $('<button type="button" class="ui-button ui-widget ui-corner-all change-action-more">')
                 .attr({'title': i18n.moreActions, 'aria-label': i18n.moreActions, 'aria-haspopup': 'menu', 'aria-expanded': 'false', 'aria-controls': menuId})
@@ -171,6 +221,7 @@ $(function () {
             row.append(textCell(change.service));
             row.append(textCell((change.server_name || '') + (change.server_ip ? ' (' + change.server_ip + ')' : '')));
             const status = $('<td>').append(statusLabel(change.status));
+            status.append(operationLabel(change));
             if (change.status === 'scheduled' && change.scheduled_at) {
                 status.append($('<small class="change-scheduled-at">').text(new Date(change.scheduled_at).toLocaleString()));
             }
@@ -255,6 +306,9 @@ $(function () {
     }
 
     function loadChanges() {
+        if (loadingChanges) return;
+        loadingChanges = true;
+        const generation = loadGeneration;
         if (!changesLoaded) {
             setListState('loading');
         } else {
@@ -262,6 +316,14 @@ $(function () {
         }
         return $.getJSON('/changes/api')
             .done(function (response) {
+                if (generation !== loadGeneration) return;
+                (response.data || []).forEach(function (change) {
+                    const previous = changesById[change.id];
+                    if (operationActive(previous) && change.operation && !change.operation.active) {
+                        if (change.operation.status === 'failed') toastr.error(escapeHtml(change.operation.error || i18n.operationFailed));
+                        else toastr.success(i18n.operationSuccess + ' #' + change.operation.id);
+                    }
+                });
                 allChanges = response.data || [];
                 changesLoaded = true;
                 changesById = {};
@@ -269,8 +331,10 @@ $(function () {
                 updateFilterOptions();
                 applyFilters();
                 setListState('ready');
+                syncActionPolling();
             })
-            .fail(function () { setListState('error'); });
+            .fail(function () { if (generation === loadGeneration) setListState('error'); })
+            .always(function () { loadingChanges = false; });
     }
 
     function formatDuration(seconds) {
@@ -331,6 +395,7 @@ $(function () {
 
     function renderTargetActions(change, target) {
         const actions = $('<div class="change-target-actions">');
+        if (operationActive(change)) return actions;
         const controllable = ['paused', 'awaiting_promotion', 'deployment_interrupted', 'auto_rolled_back', 'auto_rollback_failed', 'rollback_failed'];
         if (target.excluded) {
             if (controllable.includes(change.status) || ['draft', 'validation_failed'].includes(change.status)) {
@@ -386,6 +451,7 @@ $(function () {
             .append(change.scheduled_at ? $('<p>').text(i18n.schedule + ': ' + new Date(change.scheduled_at).toLocaleString()) : $())
             .append($('<p>').append(driftLabel(driftValue(change))))
             .append($('<p>').text(change.description || ''));
+        $('#change-details-summary').append(operationLabel(change));
         renderRollout(change);
         renderDiff(change.diff);
         const driftEligible = change.status === 'deployed';
@@ -531,9 +597,7 @@ $(function () {
             beforeSend: function () {
                 toastr.clear();
                 activeRequests += 1;
-                if (!actionPoll) {
-                    actionPoll = window.setInterval(loadChanges, 1500);
-                }
+                syncActionPolling();
             },
             success: function (response) {
                 const messages = {
@@ -546,7 +610,7 @@ $(function () {
                 };
                 const responseStatus = response.data && response.data.status;
                 const statusKey = responseStatus ? responseStatus.replace(/_([a-z])/g, function (_match, letter) { return letter.toUpperCase(); }) : '';
-                toastr.success(i18n[statusKey] || messages[action] || i18n.operationSuccess);
+                if (!rememberQueued(response)) toastr.success(i18n[statusKey] || messages[action] || i18n.operationSuccess);
                 loadChanges();
             },
             error: function () {
@@ -554,10 +618,7 @@ $(function () {
             },
             complete: function () {
                 activeRequests = Math.max(0, activeRequests - 1);
-                if (!activeRequests) {
-                    window.clearInterval(actionPoll);
-                    actionPoll = null;
-                }
+                syncActionPolling();
             }
         });
     }
@@ -645,21 +706,16 @@ $(function () {
             beforeSend: function () {
                 toastr.clear();
                 activeRequests += 1;
-                if (!actionPoll) {
-                    actionPoll = window.setInterval(loadChanges, 1500);
-                }
+                syncActionPolling();
             },
-            success: function () {
-                toastr.success(i18n.operationSuccess);
+            success: function (response) {
+                if (!rememberQueued(response)) toastr.success(i18n.operationSuccess);
                 loadChanges();
             },
             error: function () { loadChanges(); },
             complete: function () {
                 activeRequests = Math.max(0, activeRequests - 1);
-                if (!activeRequests) {
-                    window.clearInterval(actionPoll);
-                    actionPoll = null;
-                }
+                syncActionPolling();
             }
         });
     }

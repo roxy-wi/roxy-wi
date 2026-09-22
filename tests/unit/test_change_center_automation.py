@@ -10,6 +10,7 @@ import pytest
 
 import app.modules.change.automation as automation
 import app.modules.change.service as change_service
+import app.modules.change.operations as change_operations
 import app.modules.db.change as change_sql
 from app.modules.change.schemas import (
     ConfigChangeSchedule,
@@ -162,7 +163,7 @@ def test_schedule_rejects_wrong_group_past_time_and_unready_change(
         automation.schedule_change(change.id, future, GROUP_ID)
 
 
-def test_due_scheduler_runs_once_and_marks_expired_windows(
+def test_due_scheduler_queues_once_and_marks_expired_windows(
     managed_server, tmp_path, monkeypatch
 ):
     due = _change(
@@ -184,22 +185,20 @@ def test_due_scheduler_runs_once_and_marks_expired_windows(
     )
     calls = []
 
-    def deploy(change_id, group_id, actor_id=None):
+    def enqueue(change_id, action, group_id, actor_id, *, scheduled):
+        assert action == 'deploy' and scheduled
         calls.append((change_id, group_id, actor_id))
-        return change_sql.update_change(
-            change_id,
-            status='deployed',
-            finished_at=automation.utc_now(),
-            deployed_at=automation.utc_now(),
-        )
+        return change_sql.transition_change(change_id, ('scheduled',), 'validated')
 
-    monkeypatch.setattr(change_service, 'deploy_change', deploy)
+    monkeypatch.setattr(change_operations, 'enqueue', enqueue)
+    monkeypatch.setattr(change_service, 'deploy_change', lambda *_a, **_kw: pytest.fail('Scheduler must not deploy'))
 
     result = automation.run_due_scheduled_changes()
 
-    assert result == {'executed': 1, 'missed': 1, 'failed': 0}
+    assert result == {'queued': 1, 'missed': 1, 'failed': 0}
     assert calls == [(due.id, GROUP_ID, None)]
     assert change_sql.get_change(expired.id).status == 'schedule_missed'
+    assert automation.run_due_scheduled_changes() == {'queued': 0, 'missed': 0, 'failed': 0}
 
 
 def test_record_event_creates_timeline_and_notification_outbox(

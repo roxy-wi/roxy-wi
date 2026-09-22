@@ -21,7 +21,7 @@ _UPDATABLE_FIELDS = {
     'diff', 'execution_mode', 'health_check_interval', 'health_check_mode',
     'health_check_retries', 'manual_promotion', 'max_parallel', 'pause_requested',
     'maintenance_window_end', 'notification_channels', 'notification_destinations', 'schedule_base_status',
-    'scheduled_at', 'drift_checked_at', 'drift_diff', 'drift_status', 'finished_at',
+    'scheduled_at', 'scheduled_by', 'drift_checked_at', 'drift_diff', 'drift_status', 'finished_at',
     'rollback_output', 'started_at', 'status', 'title', 'updated_at', 'validation_output',
 }
 

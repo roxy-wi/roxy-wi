@@ -92,7 +92,7 @@ def update_owner_on_log():
     misfire_grace_time=30,
 )
 def run_change_center_scheduled_deployments():
-    """Run due Change Center deployments from the dedicated scheduler process."""
+    """Queue due Change Center deployments from the dedicated scheduler process."""
     def run():
         from app.modules.change import automation
         return automation.run_due_scheduled_changes()
@@ -229,6 +229,15 @@ def run_backup_history_retention():
     def run():
         from app.modules.service.backup_scheduler import cleanup_backup_history
         return cleanup_backup_history()
+    return _run_database_job(run)
+
+
+@scheduler.task('interval', id='change_center_history_retention', hours=1, max_instances=1,
+                coalesce=True, misfire_grace_time=300)
+def run_change_center_history_retention():
+    def run():
+        from app.modules.change.operations import cleanup_history
+        return cleanup_history()
     return _run_database_job(run)
 
 

@@ -59,6 +59,32 @@ run. Use `scheduler`, `service-events` or `operations` with the probe above.
 | A configuration backup fails | Saved configuration files, shared storage and destination permissions; see [backups](configuration-backups.md). |
 | Certificate issuance or deployment fails | Per-domain and per-target diagnostics on the SSL page; see [LE](letsencrypt.md). |
 
+## Change Center tasks
+
+Change Center stores queued commands in the database and sends them to Operations
+through RabbitMQ. Web returns HTTP `202` with the change data and `tasks_ids` for
+validation, deploy, rollback, resume, promotion, per-node retry/rollback/include
+and drift requests. The change's `operation` field contains the task ID, status,
+active flag and any failure message. Approval, scheduling, cancellation and pause
+signals return their immediate result.
+
+Use the change details and timeline to follow task progress. If a task stays queued,
+check Scheduler, RabbitMQ and Operations. All application roles must share the
+database, credential encryption key, saved configurations and `lib_path`.
+Operations uses `lib_path/change-locks` to prevent overlapping execution of a
+recovered task; this storage must support advisory file locks across workers.
+
+An interrupted worker is detected after `ROXYWI_OPERATIONS_LEASE_SECONDS`
+(default 300 seconds). Commands that had started require inspection of the remote
+state before retry, resume or rollback. A Web restart does not interrupt queued
+work. Pause is a signal to the active rollout and takes effect after the current
+batch; cancelling a pending pause does not launch another worker.
+
+Scheduler prunes completed Change Center task records older than 30 days every
+hour, preserving active tasks and the latest task for each change. Set
+`ROXYWI_CHANGE_HISTORY_RETENTION_DAYS` to change this period; `0` disables pruning.
+This does not delete the change, configuration snapshots or its audit timeline.
+
 ## Preserve and restore application state
 
 Configuration backups copy saved proxy configurations. They do **not** back up the

@@ -25,6 +25,11 @@ Open the change details and inspect the highlighted diff and selected targets.
 Choose **Validate**. Each included target must accept its configuration before the
 change can proceed. A validation failure remains visible with that node's output.
 
+Validation, deployment, rollback, resume, promotion, per-node retry/rollback/include
+and drift checks run through **Operations**. The change shows the task ID and
+whether it is queued, running or finished. You can close the page while it runs;
+reopening it resumes progress updates. A queued task has not yet applied the change.
+
 If approval is required, a second administrator reviews and approves the validated
 change. The author cannot approve their own request.
 
@@ -53,6 +58,12 @@ The details identify any target that still needs attention.
 
 You can also roll back a completed test deployment. An interrupted operation has
 explicit recovery controls; inspect remote state and target output before retrying.
+
+If an Operations process stops unexpectedly, its expired lease makes the task
+available for recovery. Work that had already started is marked as interrupted
+and requires review before retrying. It is not automatically deployed again.
+Pending work that had not started can run after Operations returns. A scheduled
+deployment also checks its maintenance window when it leaves the queue.
 
 | Question during an incident | Where to look |
 | --- | --- |

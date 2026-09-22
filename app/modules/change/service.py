@@ -3,6 +3,7 @@ import re
 import shutil
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextvars import copy_context
 from datetime import datetime, timedelta
 from pathlib import Path
 from shlex import quote
@@ -582,6 +583,8 @@ def _stored_list(value: str | None) -> list:
 
 
 def is_recoverable(change, now: datetime | None = None) -> bool:
+    if getattr(change, 'active_task_id', None):
+        return False
     if change.status not in IN_PROGRESS_STATUSES:
         return False
     if not change.updated_at:
@@ -617,6 +620,7 @@ def _serialize_target(target) -> dict:
 
 
 def serialize_change(change) -> dict:
+    from app.modules.change.operations import serialize_operation
     try:
         server = server_sql.get_server(change.server_id)
         server_name = server.hostname
@@ -626,6 +630,7 @@ def serialize_change(change) -> dict:
         server_ip = None
     return {
         'id': change.id,
+        'operation': serialize_operation(change),
         'server_id': change.server_id,
         'server_name': server_name,
         'server_ip': server_ip,
@@ -1178,6 +1183,7 @@ def _deploy_batch(
         ) as executor:
             futures = {
                 executor.submit(
+                    copy_context().run,
                     _apply_target_result_worker,
                     change,
                     target,
@@ -2088,14 +2094,15 @@ def cancel_change(change_id: int, group_id: int, actor_id: int | None = None):
     return change
 
 
-def recover_change(change_id: int, group_id: int, actor_id: int | None = None):
+def recover_change(change_id: int, group_id: int, actor_id: int | None = None, *, abandoned=False):
     """Unlock an abandoned workflow operation without touching the remote configuration."""
-    require_feature(CHANGE_CENTER)
+    if not abandoned:
+        require_feature(CHANGE_CENTER)
     change = change_sql.get_change(change_id)
     _require_change_group(change, group_id)
     if change.status not in IN_PROGRESS_STATUSES:
         raise RoxywiConflictError('Only an in-progress operation can be recovered')
-    if not is_recoverable(change):
+    if not abandoned and not is_recoverable(change):
         raise RoxywiConflictError(
             'The operation is still within the five-minute recovery timeout'
         )

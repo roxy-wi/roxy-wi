@@ -56,6 +56,9 @@ def execute_operation(operation_id: str, task_id: int) -> str:
         if task.operation_type == 'letsencrypt':
             from app.modules.service.le.le_execution import execute
             return execute(task)
+        if task.operation_type == 'change':
+            from app.modules.change.operations import execute
+            return execute(task)
         if task.operation_type != 'ansible':
             raise ValueError(f'Unsupported operation type: {task.operation_type}')
         payload = deserialize_operation_payload(task.operation_payload)
@@ -219,7 +222,12 @@ class OperationWorker:
                             error=str(error),
                             finish_date=utc_now(),
                             updated_at=utc_now(),
-                        ).where(InstallationTasks.id == task_id).execute()
+                        ).where(
+                            (InstallationTasks.id == task_id)
+                            # Change operations recover their reservation and domain
+                            # state under a shared lock after lease expiry.
+                            & (InstallationTasks.operation_type != 'change')
+                        ).execute()
                     finally:
                         close_database_connection()
         finally:

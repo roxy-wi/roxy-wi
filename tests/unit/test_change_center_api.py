@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from contextlib import contextmanager
 
 import pytest
 from flask_jwt_extended import create_access_token
@@ -12,11 +13,18 @@ from app.modules.roxywi.exception import (
 
 
 def _change(change_id=1, service='haproxy', group_id=1):
-    return SimpleNamespace(id=change_id, service=service, group_id=group_id, server_id=10)
+    return SimpleNamespace(id=change_id, service=service, group_id=group_id, server_id=10, status='paused', active_task_id=None)
 
 
 @pytest.fixture()
 def change_api(app, monkeypatch):
+    @contextmanager
+    def locked_change(change_id, _group_id, **_kwargs):
+        # These tests isolate HTTP contracts. Real row locking and contention
+        # are exercised against the database in test_change_operations.py.
+        yield change_routes.change_sql.get_change(change_id)
+
+    monkeypatch.setattr(change_routes.change_operations, 'locked_change', locked_change)
     user_params = {
         'user_id': 1,
         'user': 'admin',
@@ -250,11 +258,20 @@ def test_change_api_maps_update_conflict(client, monkeypatch, change_api):
 def test_change_api_exposes_workflow_actions(client, monkeypatch, change_api, action):
     _user_params, headers = change_api
     change = _change(8)
+    queued = action in ('validate', 'deploy', 'rollback', 'resume', 'promote')
+    calls = []
+
+    def enqueue(change_id, operation, group_id, actor_id, **kwargs):
+        calls.append((change_id, operation, group_id, actor_id, kwargs))
+        change.active_task_id = 42
+        return change
+
+    monkeypatch.setattr(change_routes.change_operations, 'enqueue', enqueue)
     monkeypatch.setattr(change_routes.change_sql, 'get_change', lambda _change_id: change)
     monkeypatch.setattr(
         change_routes.change_service,
         f'{action}_change',
-        lambda *_args: change,
+        lambda *_args: pytest.fail('Web must queue remote work') if queued else change,
     )
     monkeypatch.setattr(
         change_routes.change_service,
@@ -264,8 +281,14 @@ def test_change_api_exposes_workflow_actions(client, monkeypatch, change_api, ac
 
     response = client.post(f'/changes/api/{change.id}/{action}', headers=headers)
 
-    assert response.status_code == 200
+    assert response.status_code == (202 if queued else 200)
     assert response.get_json()['data']['id'] == change.id
+    if queued:
+        assert response.get_json()['status'] == 'accepted'
+        assert response.get_json()['tasks_ids'] == [42]
+        assert calls == [(change.id, action, 1, 1, {'target_id': None})]
+    else:
+        assert calls == []
 
 
 def test_change_api_requires_admin_for_approval(client, monkeypatch, change_api):
@@ -304,11 +327,19 @@ def test_change_api_exposes_per_target_actions(
 ):
     _user_params, headers = change_api
     change = _change(12)
+    calls = []
+
+    def enqueue(change_id, operation, group_id, actor_id, *, target_id):
+        calls.append((change_id, operation, group_id, actor_id, target_id))
+        change.active_task_id = 42
+        return change
+
+    monkeypatch.setattr(change_routes.change_operations, 'enqueue', enqueue)
     monkeypatch.setattr(change_routes.change_sql, 'get_change', lambda _change_id: change)
     monkeypatch.setattr(
         change_routes.change_service,
         f'{action}_target' if action in ('retry', 'rollback', 'exclude', 'include') else action,
-        lambda *_args, **_kwargs: change,
+        lambda *_args, **_kwargs: change if action == 'exclude' else pytest.fail('Web must queue remote work'),
     )
     monkeypatch.setattr(
         change_routes.change_service,
@@ -322,8 +353,9 @@ def test_change_api_exposes_per_target_actions(
         json={} if action == 'exclude' else None,
     )
 
-    assert response.status_code == 200
+    assert response.status_code == (200 if action == 'exclude' else 202)
     assert response.get_json()['data']['id'] == 12
+    assert calls == ([] if action == 'exclude' else [(12, action, 1, 1, 22)])
 
 
 def test_change_api_allows_distinct_admin_to_approve(client, monkeypatch, change_api):
@@ -343,20 +375,20 @@ def test_change_api_allows_distinct_admin_to_approve(client, monkeypatch, change
     assert response.get_json()['data']['id'] == 11
 
 
-def test_change_api_maps_workflow_validation_error(client, monkeypatch, change_api):
+def test_change_api_maps_queue_validation_error(client, monkeypatch, change_api):
     _user_params, headers = change_api
     change = _change(9)
     monkeypatch.setattr(change_routes.change_sql, 'get_change', lambda _change_id: change)
     monkeypatch.setattr(
-        change_routes.change_service,
-        'deploy_change',
-        lambda *_args: (_ for _ in ()).throw(RoxywiValidationError('Deployment check failed')),
+        change_routes.change_operations,
+        'enqueue',
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(RoxywiValidationError('Unsupported operation')),
     )
 
     response = client.post('/changes/api/9/deploy', headers=headers)
 
     assert response.status_code == 400
-    assert response.get_json()['error'] == 'Deployment check failed'
+    assert response.get_json()['error'] == 'Unsupported operation'
 
 
 def test_change_api_hides_unexpected_exception_behind_failed_response(
@@ -391,6 +423,13 @@ def test_change_api_exposes_automation_actions(
     user_params, headers = change_api
     change = _change(31)
     calls = []
+    if path == 'drift':
+        def enqueue(change_id, action, group_id, actor_id, **_kwargs):
+            assert action == 'drift'
+            calls.append((change_id, group_id, actor_id))
+            change.active_task_id = 42
+            return change
+        monkeypatch.setattr(change_routes.change_operations, 'enqueue', enqueue)
     monkeypatch.setattr(change_routes.change_sql, 'get_change', lambda _change_id: change)
     monkeypatch.setattr(
         change_routes.change_automation,
@@ -405,7 +444,7 @@ def test_change_api_exposes_automation_actions(
 
     response = client.post(f'/changes/api/31/{path}', headers=headers)
 
-    assert response.status_code == 200
+    assert response.status_code == (202 if path == 'drift' else 200)
     assert calls == [(31, 1, user_params['user_id'])]
 
 

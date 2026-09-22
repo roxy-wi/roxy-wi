@@ -14,7 +14,7 @@ storage. RabbitMQ carries background work between processes.
 | Role | Responsibility |
 | --- | --- |
 | Web | Serve the interface and API. |
-| Scheduler | Queue scheduled checks, backups and certificate work; run exactly one instance. |
+| Scheduler | Queue scheduled checks, backups, certificate work and Change Center deployments/drift checks; run exactly one instance. |
 | Service Events | Consume service events. |
 | Operations | Execute queued actions and record their progress and results. |
 | Migrate | Initialize or update the database, then exit before application roles start. |

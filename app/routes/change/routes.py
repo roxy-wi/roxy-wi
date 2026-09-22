@@ -1,9 +1,13 @@
+from functools import wraps
+
 from flask import Response, abort, g, jsonify, render_template, request
 from flask_jwt_extended import jwt_required
 from flask_pydantic import validate
+from werkzeug.exceptions import HTTPException
 
 import app.modules.change.service as change_service
 import app.modules.change.automation as change_automation
+import app.modules.change.operations as change_operations
 import app.modules.db.change as change_sql
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxywi.auth as roxywi_auth
@@ -63,6 +67,35 @@ def _get_active_group_change(change_id: int):
     if not roxywi_auth.is_access_permit_to_service(change.service):
         raise RoxywiPermissionError(f'No access to {change.service.title()} changes')
     return change
+
+
+def _idle_change_required(handler):
+    @wraps(handler)
+    def wrapped(change_id, *args, **kwargs):
+        try:
+            _get_active_group_change(change_id)
+            with change_operations.locked_change(change_id, g.user_params['group_id']):
+                return handler(change_id, *args, **kwargs)
+        except HTTPException:
+            raise
+        except Exception as exc:
+            return _error_response(exc)
+    return wrapped
+
+
+def _queue_action(change_id, action, *, target_id=None):
+    try:
+        _get_active_group_change(change_id)
+        change = change_operations.enqueue(
+            change_id, action, g.user_params['group_id'], g.user_params['user_id'],
+            target_id=target_id,
+        )
+        return jsonify({
+            'status': 'accepted', 'data': change_service.serialize_change(change),
+            'tasks_ids': [change.active_task_id],
+        }), 202
+    except Exception as exc:
+        return _error_response(exc)
 
 
 @bp.get('')
@@ -153,6 +186,7 @@ def get_change(change_id: int):
 @bp.put('/api/<int:change_id>')
 @change_center_subscription_required
 @validate(body=ConfigChangeUpdate)
+@_idle_change_required
 def update_change(change_id: int, body: ConfigChangeUpdate):
     try:
         _get_active_group_change(change_id)
@@ -167,14 +201,7 @@ def update_change(change_id: int, body: ConfigChangeUpdate):
 @bp.post('/api/<int:change_id>/validate')
 @change_center_subscription_required
 def validate_change(change_id: int):
-    try:
-        _get_active_group_change(change_id)
-        change = change_service.validate_change(
-            change_id, g.user_params['group_id'], g.user_params['user_id']
-        )
-        return jsonify({'status': 'success', 'data': change_service.serialize_change(change)})
-    except Exception as exc:
-        return _error_response(exc)
+    return _queue_action(change_id, 'validate')
 
 
 @bp.post('/api/<int:change_id>/approve')
@@ -184,9 +211,10 @@ def approve_change(change_id: int):
         abort(403, 'Only administrators can approve changes')
     try:
         _get_active_group_change(change_id)
-        change = change_service.approve_change(
-            change_id, g.user_params['user_id'], g.user_params['group_id']
-        )
+        with change_operations.locked_change(change_id, g.user_params['group_id']):
+            change = change_service.approve_change(
+                change_id, g.user_params['user_id'], g.user_params['group_id']
+            )
         return jsonify({'status': 'success', 'data': change_service.serialize_change(change)})
     except Exception as exc:
         return _error_response(exc)
@@ -195,28 +223,30 @@ def approve_change(change_id: int):
 @bp.post('/api/<int:change_id>/deploy')
 @change_center_subscription_required
 def deploy_change(change_id: int):
-    try:
-        _get_active_group_change(change_id)
-        change = change_service.deploy_change(
-            change_id, g.user_params['group_id'], g.user_params['user_id']
-        )
-        roxywi_common.logging(
-            change.server_id,
-            f'Configuration change #{change.id} has been deployed',
-            service=change.service,
-        )
-        return jsonify({'status': 'success', 'data': change_service.serialize_change(change)})
-    except Exception as exc:
-        return _error_response(exc)
+    return _queue_action(change_id, 'deploy')
 
 
 def _run_rollout_action(change_id: int, action: str):
     try:
         _get_active_group_change(change_id)
-        handler = getattr(change_service, f'{action}_change')
-        change = handler(
-            change_id, g.user_params['group_id'], g.user_params['user_id']
-        )
+        with change_operations.locked_change(change_id, g.user_params['group_id'], idle=False) as current:
+            if action == 'pause':
+                change = change_service.pause_change(
+                    change_id, g.user_params['group_id'], g.user_params['user_id']
+                )
+            elif action == 'resume' and current.status == 'pause_requested':
+                # Cancel a pending pause without starting a second rollout.
+                # Holding the row lock prevents falling through to remote work
+                # if the worker has just reached the batch boundary.
+                change = change_sql.transition_change(
+                    change_id, ('pause_requested',), 'deploying', pause_requested=0,
+                )
+                change_automation.record_event(
+                    change.id, 'deployment.pause_cancelled', 'Pending pause was cancelled',
+                    actor_id=g.user_params['user_id'],
+                )
+            else:
+                return _queue_action(change_id, action)
         roxywi_common.logging(
             change.server_id,
             f'Configuration change #{change.id}: {action}',
@@ -260,17 +290,13 @@ def target_action(change_id: int, target_id: int, action: str):
             raise RoxywiResourceNotFound
         if action == 'exclude':
             body = ConfigChangeTargetUpdate.model_validate(request.get_json(silent=True) or {})
-            change = handlers[action](
-                change_id,
-                target_id,
-                g.user_params['group_id'],
-                body.reason,
-                g.user_params['user_id'],
-            )
+            with change_operations.locked_change(change_id, g.user_params['group_id']):
+                change = handlers[action](
+                    change_id, target_id, g.user_params['group_id'],
+                    body.reason, g.user_params['user_id'],
+                )
         else:
-            change = handlers[action](
-                change_id, target_id, g.user_params['group_id'], g.user_params['user_id']
-            )
+            return _queue_action(change_id, action, target_id=target_id)
         roxywi_common.logging(
             change.server_id,
             f'Configuration change #{change.id}, target #{target_id}: {action}',
@@ -284,23 +310,12 @@ def target_action(change_id: int, target_id: int, action: str):
 @bp.post('/api/<int:change_id>/rollback')
 @change_center_subscription_required
 def rollback_change(change_id: int):
-    try:
-        _get_active_group_change(change_id)
-        change = change_service.rollback_change(
-            change_id, g.user_params['group_id'], g.user_params['user_id']
-        )
-        roxywi_common.logging(
-            change.server_id,
-            f'Configuration change #{change.id} has been rolled back',
-            service=change.service,
-        )
-        return jsonify({'status': 'success', 'data': change_service.serialize_change(change)})
-    except Exception as exc:
-        return _error_response(exc)
+    return _queue_action(change_id, 'rollback')
 
 
 @bp.post('/api/<int:change_id>/cancel')
 @change_center_subscription_required
+@_idle_change_required
 def cancel_change(change_id: int):
     try:
         _get_active_group_change(change_id)
@@ -314,6 +329,7 @@ def cancel_change(change_id: int):
 
 @bp.post('/api/<int:change_id>/recover')
 @change_center_subscription_required
+@_idle_change_required
 def recover_change(change_id: int):
     try:
         _get_active_group_change(change_id)
@@ -333,6 +349,7 @@ def recover_change(change_id: int):
 @bp.post('/api/<int:change_id>/schedule')
 @change_center_subscription_required
 @validate(body=ConfigChangeSchedule)
+@_idle_change_required
 def schedule_change(change_id: int, body: ConfigChangeSchedule):
     try:
         _get_active_group_change(change_id)
@@ -346,6 +363,7 @@ def schedule_change(change_id: int, body: ConfigChangeSchedule):
 
 @bp.post('/api/<int:change_id>/schedule/cancel')
 @change_center_subscription_required
+@_idle_change_required
 def cancel_change_schedule(change_id: int):
     try:
         _get_active_group_change(change_id)
@@ -360,14 +378,7 @@ def cancel_change_schedule(change_id: int):
 @bp.post('/api/<int:change_id>/drift')
 @change_center_subscription_required
 def check_change_drift(change_id: int):
-    try:
-        _get_active_group_change(change_id)
-        change = change_automation.check_change_drift(
-            change_id, g.user_params['group_id'], g.user_params['user_id']
-        )
-        return jsonify({'status': 'success', 'data': change_service.serialize_change(change)})
-    except Exception as exc:
-        return _error_response(exc)
+    return _queue_action(change_id, 'drift')
 
 
 @bp.get('/api/<int:change_id>/events')

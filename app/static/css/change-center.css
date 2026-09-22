@@ -463,3 +463,9 @@ button.ui-button.change-confirm-button:hover {
 @media (min-width: 901px) {
     #change-center > .rw-table-shell { overflow: visible; }
 }
+
+.change-operation-status, .change-operation-error {
+    display: block;
+    margin-top: 0.35rem;
+    overflow-wrap: anywhere;
+}

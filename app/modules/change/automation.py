@@ -12,6 +12,7 @@ import os
 import socket
 import tempfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextvars import copy_context
 from datetime import datetime, timedelta
 from io import StringIO
 from pathlib import Path
@@ -566,6 +567,7 @@ def schedule_change(change_id: int, body, group_id: int, actor_id: int | None = 
         (change.status,),
         'scheduled',
         scheduled_at=scheduled_at,
+        scheduled_by=actor_id,
         maintenance_window_end=window_end,
         schedule_base_status=ready_status,
         finished_at=None,
@@ -599,6 +601,7 @@ def cancel_schedule(change_id: int, group_id: int, actor_id: int | None = None):
         ('scheduled',),
         restore_status,
         scheduled_at=None,
+        scheduled_by=None,
         maintenance_window_end=None,
         schedule_base_status=None,
     )
@@ -613,67 +616,32 @@ def cancel_schedule(change_id: int, group_id: int, actor_id: int | None = None):
 
 
 def run_due_scheduled_changes(*, limit: int = 10) -> dict:
-    """Claim and run due deployments from the dedicated scheduler process."""
-    from app.modules.change import service as change_service
+    """Atomically enqueue due deployments; the Scheduler never performs SSH."""
+    from app.modules.change import operations
 
     now = utc_now()
-    executed = missed = failed = 0
+    queued = missed = failed = 0
     for candidate in change_sql.list_due_scheduled(now, limit=limit):
-        if candidate.maintenance_window_end and candidate.maintenance_window_end < now:
-            try:
-                change_sql.transition_change(
-                    candidate.id,
-                    ('scheduled',),
-                    'schedule_missed',
-                    finished_at=now,
-                    deployment_output='Maintenance window expired before deployment could start.',
-                )
-                record_event(
-                    candidate.id,
-                    'schedule.missed',
-                    'Maintenance window expired before deployment could start',
-                )
-                missed += 1
-            except RoxywiConflictError:
-                pass
-            continue
-        base_status = candidate.schedule_base_status or (
-            'approved' if candidate.requires_approval else 'validated'
-        )
         try:
-            change_sql.transition_change(
-                candidate.id,
-                ('scheduled',),
-                base_status,
-                started_at=now,
-                finished_at=None,
-            )
+            with operations.locked_change(candidate.id, candidate.group_id) as change:
+                if change.status != 'scheduled' or change.scheduled_at > now:
+                    continue
+                if change.maintenance_window_end and change.maintenance_window_end < now:
+                    change_sql.transition_change(
+                        change.id, ('scheduled',), 'schedule_missed', finished_at=now,
+                        deployment_output='Maintenance window expired before deployment could start.',
+                    )
+                    record_event(change.id, 'schedule.missed', 'Maintenance window expired before deployment could start')
+                    missed += 1
+                else:
+                    operations.enqueue(change.id, 'deploy', change.group_id, None, scheduled=True)
+                    queued += 1
         except RoxywiConflictError:
-            continue
-        try:
-            change_service.deploy_change(candidate.id, candidate.group_id, actor_id=None)
-            executed += 1
+            continue  # Another Scheduler or an interactive request claimed it.
         except Exception as exc:
-            current = change_sql.get_change(candidate.id)
-            if current.status == base_status:
-                change_sql.update_change(
-                    candidate.id,
-                    status='schedule_missed',
-                    deployment_output=str(exc),
-                    finished_at=utc_now(),
-                )
-                record_event(
-                    candidate.id,
-                    'schedule.missed',
-                    f'Scheduled deployment could not start: {exc}',
-                )
             failed += 1
-            logger.error(
-                f'Scheduled Change Center deployment #{candidate.id} failed: {exc}',
-                service=candidate.service,
-                exception=exc,
-            )
-    return {'executed': executed, 'missed': missed, 'failed': failed}
+            logger.error(f'Cannot queue scheduled change #{candidate.id} ({type(exc).__name__})')
+    return {'queued': queued, 'missed': missed, 'failed': failed}
 
 
 def _drift_target(change, target) -> dict:
@@ -730,7 +698,7 @@ def check_change_drift(
     results = {}
     worker_count = min(4, len(targets))
     with ThreadPoolExecutor(max_workers=worker_count, thread_name_prefix='change-drift') as executor:
-        futures = {executor.submit(_drift_target, change, target): target for target in targets}
+        futures = {executor.submit(copy_context().run, _drift_target, change, target): target for target in targets}
         for future in as_completed(futures):
             results[futures[future].id] = future.result()
     aggregate_parts = []
@@ -777,18 +745,19 @@ def check_change_drift(
 
 
 def run_continuous_drift_scan(*, limit: int = 100) -> dict:
-    checked = failed = 0
+    from app.modules.change import operations
+
+    queued = failed = 0
     for change in change_sql.list_latest_deployed_changes(limit=limit):
         try:
-            check_change_drift(change.id, change.group_id)
-            checked += 1
+            operations.enqueue(change.id, 'drift', change.group_id, None)
+            queued += 1
+        except RoxywiConflictError:
+            continue  # Only one pending or running command per change.
         except Exception as exc:
             failed += 1
-            logger.warning(
-                f'Continuous drift check for change #{change.id} failed: {exc}',
-                service=change.service,
-            )
-    return {'checked': checked, 'failed': failed}
+            logger.warning(f'Cannot queue drift check for change #{change.id} ({type(exc).__name__})')
+    return {'queued': queued, 'failed': failed}
 
 
 def deployment_statistics(

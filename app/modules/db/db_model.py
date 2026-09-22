@@ -633,6 +633,9 @@ class ConfigVersion(BaseModel):
 
 
 class ConfigChange(BaseModel):
+    active_task_id = IntegerField(null=True, index=True)
+    last_task_id = IntegerField(null=True)
+    scheduled_by = IntegerField(null=True)
     id = AutoField()
     server_id = IntegerField(index=True)
     group_id = IntegerField(index=True)

@@ -38,7 +38,7 @@ ENV PYTHONUNBUFFERED=1 \
 RUN apt-get update \
     && apt-get install --yes --no-install-recommends \
         ca-certificates curl dnsutils git iputils-ping nmap netcat-openbsd \
-        openssh-client procps rsync socat whois \
+        dos2unix openssh-client procps rsync socat whois \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid "${ROXYWI_GID}" roxywi \
     && useradd --uid "${ROXYWI_UID}" --gid roxywi --home-dir /var/lib/roxy-wi --create-home roxywi

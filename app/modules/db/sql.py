@@ -3,6 +3,8 @@ import re
 
 from flask import g
 
+from app.modules.common.execution_context import group_id as execution_group_id
+
 from app.modules.db.db_model import GeoipCodes, Setting, Role
 from app.modules.db.common import out_error
 from app.modules.roxy_wi_tools import GetConfigVar
@@ -33,6 +35,8 @@ def _coerce_setting(param, value):
 def get_setting(param, **kwargs):
 	if kwargs.get('group_id'):
 		user_group_id = kwargs.get('group_id')
+	elif execution_group_id.get() is not None:
+		user_group_id = execution_group_id.get()
 	else:
 		try:
 			user_group_id = g.user_params['group_id']
