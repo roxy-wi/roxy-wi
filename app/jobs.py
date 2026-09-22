@@ -214,6 +214,15 @@ def run_letsencrypt_history_retention():
     return _run_database_job(run)
 
 
+@scheduler.task('interval', id='letsencrypt_notifications', minutes=5, max_instances=1,
+                coalesce=True, misfire_grace_time=300)
+def run_letsencrypt_notifications():
+    def run():
+        from app.modules.service.le.le_notifications import check_notifications
+        return check_notifications()
+    return _run_database_job(run)
+
+
 @scheduler.task('interval', id='backup_history_retention', hours=1, max_instances=1,
                 coalesce=True, misfire_grace_time=300)
 def run_backup_history_retention():

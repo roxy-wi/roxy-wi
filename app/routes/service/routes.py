@@ -23,6 +23,7 @@ from app.modules.service.haproxy_runtime import execute_runtime_command
 from app.views.service.views import ServiceActionView, ServiceBackendView, ServiceView
 if not app.config['TESTING']:
     from app.views.service.lets_encrypt_views import LetsEncryptView, LetsEncryptsView
+    from app.views.service.le_profile_views import LetsEncryptDnsProfilesView, LetsEncryptDnsProfileView
 from app.modules.roxywi.class_models import DomainName
 from app.modules.roxywi.exception import RoxywiPermissionError
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
@@ -37,6 +38,8 @@ if not app.config['TESTING']:
     bp.add_url_rule('/letsencrypt', view_func=LetsEncryptView.as_view('le_web'), methods=['POST'])
     bp.add_url_rule('/letsencrypt/<int:le_id>', view_func=LetsEncryptView.as_view('le_web_id'), methods=['GET', 'PUT', 'PATCH', 'DELETE'])
     bp.add_url_rule('/letsencrypts', view_func=LetsEncryptsView.as_view('le_webs'), methods=['GET'])
+    bp.add_url_rule('/letsencrypt/dns-profiles', view_func=LetsEncryptDnsProfilesView.as_view('le_profiles'), methods=['GET', 'POST'])
+    bp.add_url_rule('/letsencrypt/dns-profiles/<int:profile_id>', view_func=LetsEncryptDnsProfileView.as_view('le_profile'), methods=['PUT', 'DELETE'])
 
 
 def _service_status_payload(result):

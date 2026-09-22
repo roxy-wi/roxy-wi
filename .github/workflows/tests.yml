@@ -10,6 +10,26 @@ permissions:
   contents: read
 
 jobs:
+  le-linux-deployment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openssh-server openssl
+          python -m pip install -r requirements.txt -r requirements-dev.txt
+          docker pull haproxy:3.0-alpine
+      - name: Verify real SSH and Docker HAProxy certificate recovery
+        env:
+          ROXYWI_TEST_DOCKER_LE: '1'
+        run: python -m pytest tests/integration/test_letsencrypt_linux.py -q --no-cov
+
   unit-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 20

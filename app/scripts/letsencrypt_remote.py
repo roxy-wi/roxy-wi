@@ -13,6 +13,11 @@ import subprocess
 import sys
 import tempfile
 import re
+import socket
+import ssl
+import time
+from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 from contextlib import contextmanager
 
 
@@ -21,9 +26,57 @@ LEGACY = Path('/etc/letsencrypt')
 LEGACY_BACKUP = Path('/var/backups/roxy-wi-letsencrypt')
 
 
+class AcmeFailure(RuntimeError):
+    def __init__(self, message, code='acme_failed', retry_at=None):
+        super().__init__(message)
+        self.code, self.retry_at = code, retry_at
+
+
+def diagnose_acme(output):
+    """Classify CLI failures without returning provider output or credentials."""
+    if isinstance(output, bytes):
+        output = output.decode('utf-8', errors='replace')
+    lowered = output.lower()
+    if any(value in lowered for value in ('ratelimited', 'rate limit', 'too many', 'retry-after', 'retry after')):
+        now = datetime.now(timezone.utc)
+        retry_at = now + timedelta(days=1)
+        match = re.search(r'retry[- ]after[:\s]+(\d{4}-\d\d-\d\d[T ]\d\d:\d\d:\d\d(?:Z|\+00:00| UTC)?)', output, re.I)
+        if match:
+            try:
+                retry_at = datetime.strptime(match.group(1)[:19].replace('T', ' '), '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+            except ValueError:
+                pass  # A malformed provider date retains the conservative delay.
+        else:
+            match = re.search(r'retry-after[\s\x27\x22:]+([^\r\n]+)', output, re.I)
+            if match:
+                value = match.group(1).strip().strip('\x27\x22,')
+                try:
+                    retry_at = now + timedelta(seconds=int(value)) if value.isdigit() else parsedate_to_datetime(value)
+                except (ValueError, TypeError, OverflowError):
+                    pass  # Unknown provider date: retain the conservative one-day delay.
+        retry_at = max(now + timedelta(minutes=1), retry_at.astimezone(timezone.utc))
+        return AcmeFailure('ACME rate limit reached; retry after ' + retry_at.isoformat(), 'rate_limited', retry_at.isoformat())
+    for patterns, code, message in (
+        (('caa',), 'caa_denied', 'CAA policy does not authorize this certificate; check domain CAA records'),
+        (('invalid api', 'authentication error', 'invalid token', 'invalidclienttokenid', 'accessdenied', 'unauthorized to'),
+         'dns_credentials', 'DNS provider rejected the credentials or their permissions'),
+        (('nxdomain', 'no txt record', 'incorrect txt', 'dns problem', 'propagation'),
+         'dns_validation', 'DNS challenge record could not be validated; check the zone and propagation time'),
+        (('connection refused', 'timeout during connect', 'fetching http', 'invalid response from http'),
+         'http_validation', 'HTTP challenge is unreachable or returns the wrong response; check port 80 and HA routing'),
+        (('plugin does not appear', 'unrecognized arguments', 'no module named'),
+         'plugin_missing', 'Required Certbot plugin is unavailable or incompatible'),
+    ):
+        if any(value in lowered for value in patterns):
+            return AcmeFailure(message, code)
+    return AcmeFailure('ACME validation failed; run the staging setup check for domain and server diagnostics')
+
+
 def command(argv, stage, timeout=180, **kwargs):
     result = subprocess.run(argv, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=timeout, **kwargs)
     if result.returncode:
+        if 'ACME challenge' in stage:
+            raise diagnose_acme(result.stderr + result.stdout)
         raise RuntimeError(stage + ' failed; check server configuration and permissions')
     return result.stdout
 
@@ -78,6 +131,92 @@ def service_commands(data):
     return (['haproxy', '-c', '-f', data['config_path']], ['systemctl', 'reload', 'haproxy'])
 
 
+def runtime_endpoint(data):
+    port = int(data['runtime_port'])
+    if data.get('docker'):
+        networks = json.loads(command(['docker', 'inspect', '--format', '{{json .NetworkSettings}}',
+                                      data['container']], 'Inspect HAProxy runtime endpoint'))
+        for network in networks.get('Networks', {}).values():
+            if network.get('IPAddress'):
+                return network['IPAddress'], port
+    return '127.0.0.1', port
+
+
+def runtime_request(data, request):
+    with socket.create_connection(runtime_endpoint(data), timeout=3) as stream:
+        stream.settimeout(3)
+        stream.sendall((request + '\n').encode())
+        stream.shutdown(socket.SHUT_WR)
+        output = bytearray()
+        while len(output) < 1024 * 1024:
+            chunk = stream.recv(65536)
+            if not chunk:
+                return output.decode('utf-8', errors='replace')
+            output.extend(chunk)
+    raise RuntimeError('HAProxy runtime response exceeds the allowed size')
+
+
+def runtime_pid(data):
+    response = runtime_request(data, 'show info')
+    match = re.search(r'^Pid:\s*(\d+)\s*$', response, re.M)
+    if not match:
+        raise RuntimeError('HAProxy runtime API is unavailable; check the configured socket port')
+    return match.group(1)
+
+
+def certificate_runtime_path(data):
+    path = Path(data['cert_dir']) / data['pem_name']
+    if data.get('docker'):
+        mounts = json.loads(command(['docker', 'inspect', '--format', '{{json .Mounts}}',
+                                    data['container']], 'Inspect HAProxy certificate mount'))
+        for mount in sorted(mounts, key=lambda item: len(item['Source']), reverse=True):
+            source = Path(mount['Source'])
+            if path == source or source in path.parents:
+                path = Path(mount['Destination']) / path.relative_to(source)
+                break
+    return str(path)
+
+
+def verify_runtime(data, pem, previous_pid=None, timeout=30, require_loaded=False):
+    if not data.get('runtime_port'):
+        raise RuntimeError('HAProxy runtime port is required to verify certificate deployment')
+    certificate = re.search(r'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----', pem, re.S)
+    expected = hashlib.sha1(ssl.PEM_cert_to_DER_cert(certificate.group(0))).hexdigest().upper() if certificate else None
+    path = certificate_runtime_path(data)
+    if any(char in path for char in '\r\n;'):
+        raise ValueError('Invalid certificate runtime path')
+    path = path.replace('\\', '\\\\').replace(' ', '\\ ')
+    deadline = time.monotonic() + timeout
+    while True:
+        try:
+            pid = runtime_pid(data)
+            if previous_pid is None or pid != previous_pid:
+                response = runtime_request(data, 'show ssl cert ' + path)
+                fingerprint = re.search(r'^SHA1 FingerPrint:\s*([0-9A-Fa-f:]+)', response, re.M)
+                if fingerprint and expected and fingerprint.group(1).replace(':', '').upper() == expected:
+                    return 'loaded'
+                # A new certificate may intentionally be stored before configuring its bind.
+                if not require_loaded and ('Can\'t display the certificate' in response or 'Certificate not found' in response):
+                    return 'stored_unreferenced'
+        except (OSError, RuntimeError):
+            pass  # A short runtime socket interruption is expected during reload.
+        if time.monotonic() >= deadline:
+            raise RuntimeError('HAProxy reload was not confirmed by its runtime API; certificate deployment was rejected')
+        time.sleep(0.25)
+
+
+def reload_verified(data, pem, check, reload, rollback=False):
+    command(check, 'Rollback configuration validation' if rollback else 'HAProxy configuration validation')
+    previous_pid = runtime_pid(data)
+    path = certificate_runtime_path(data)
+    if any(char in path for char in '\r\n;'):
+        raise ValueError('Invalid certificate runtime path')
+    info = runtime_request(data, 'show ssl cert ' + path.replace('\\', '\\\\').replace(' ', '\\ '))
+    require_loaded = 'Status: Used' in info and bool(pem)
+    command(reload, 'Rollback HAProxy reload' if rollback else 'HAProxy reload')
+    return verify_runtime(data, pem, previous_pid, require_loaded=require_loaded)
+
+
 def private_file(path, data):
     descriptor, temporary = tempfile.mkstemp(dir=path.parent)
     try:
@@ -92,6 +231,44 @@ def private_file(path, data):
             os.unlink(temporary)
 
 
+def deployment_journal(data):
+    target = certificate_directory(data) / data['pem_name']
+    if Path(data['pem_name']).name != data['pem_name'] or not data['pem_name'].endswith('.pem'):
+        raise ValueError('Invalid PEM name')
+    journal = ROOT / 'deployments' / hashlib.sha256(str(target).encode()).hexdigest()
+    journal.mkdir(parents=True, exist_ok=True, mode=0o700)
+    return target, journal
+
+
+def finish_deployment(data):
+    target, journal = deployment_journal(data)
+    pending, previous, receipt = journal / 'pending.json', journal / 'previous.pem', journal / 'applied'
+    if not pending.exists():
+        return {'finished': True}
+    saved = json.loads(pending.read_text())
+    if saved.get('transaction') != data.get('transaction'):
+        raise RuntimeError('Another certificate deployment owns the recovery journal')
+    if data['operation'] == 'rollback':
+        if saved['had_old']:
+            with tempfile.TemporaryDirectory(prefix='.roxywi-le-', dir=target.parent) as directory:
+                temporary = Path(directory) / 'certificate'
+                shutil.copyfile(previous, temporary)
+                os.chmod(temporary, saved['mode'])
+                os.chown(temporary, saved['uid'], saved['gid'])
+                os.replace(temporary, target)
+        elif target.exists():
+            target.unlink()
+        check, reload = service_commands(data)
+        rollback_pem = target.read_text() if target.exists() else ''
+        reload_verified(data, rollback_pem, check, reload, rollback=True)
+        if receipt.exists():
+            receipt.unlink()
+    pending.unlink()
+    if previous.exists():
+        previous.unlink()
+    return {'finished': True}
+
+
 def deploy(data):
     name = data['pem_name']
     if Path(name).name != name or not name.endswith('.pem'):
@@ -102,8 +279,7 @@ def deploy(data):
         raise RuntimeError('Refusing to replace a certificate symlink')
     pem = data['pem'].encode('ascii')
     check, reload = service_commands(data)
-    journal = ROOT / 'deployments' / hashlib.sha256(str(target).encode()).hexdigest()
-    journal.mkdir(parents=True, exist_ok=True, mode=0o700)
+    _, journal = deployment_journal(data)
     pending, previous, receipt = journal / 'pending.json', journal / 'previous.pem', journal / 'applied'
 
     def rollback():
@@ -117,25 +293,36 @@ def deploy(data):
                 os.replace(restored, target)
         elif target.exists():
             target.unlink()
-        command(check, 'Rollback configuration validation')
-        command(reload, 'Rollback HAProxy reload')
+        rollback_pem = target.read_text() if target.exists() else ''
+        reload_verified(data, rollback_pem, check, reload, rollback=True)
         pending.unlink()
         if previous.exists():
             previous.unlink()
 
-    if pending.exists():
-        rollback()  # Recover a killed worker before accepting another PEM.
     digest = hashlib.sha256(pem).hexdigest()
+    if pending.exists():
+        saved = json.loads(pending.read_text())
+        if saved.get('transaction'):
+            if saved['transaction'] != data.get('transaction'):
+                raise RuntimeError('Finish the previous certificate deployment before replacing this PEM')
+            # Repeat validation/reload after a lost SSH response or killed worker.
+            if target.exists() and target.read_bytes() == pem:
+                verification = reload_verified(data, data['pem'], check, reload)
+                private_file(receipt, digest.encode())
+                return {'deployed': True, 'sha256': digest, 'verification': verification}
+        rollback()  # Recover a killed worker before accepting another PEM.
     if receipt.exists() and target.exists() and receipt.read_text() == digest and target.read_bytes() == pem:
         command(check, 'HAProxy configuration validation')
-        return {'deployed': True, 'sha256': digest}
+        verification = verify_runtime(data, data['pem'])
+        return {'deployed': True, 'sha256': digest, 'verification': verification}
+    runtime_pid(data)  # Refuse to change files if we cannot verify the reload.
     # Keep all intermediate files in a subdirectory, outside HAProxy's PEM scan.
     with tempfile.TemporaryDirectory(prefix='.roxywi-le-', dir=directory) as temporary:
         staged = Path(temporary) / 'certificate'
         staged.write_bytes(pem)
         os.chmod(staged, 0o600)
         had_old = target.exists()
-        saved = {'had_old': had_old}
+        saved = {'had_old': had_old, 'transaction': data.get('transaction')}
         if had_old:
             private_file(previous, target.read_bytes())
             info = target.stat()
@@ -146,21 +333,23 @@ def deploy(data):
         # A retry always reloads: the previous worker may have died after rename.
         os.replace(staged, target)
         try:
-            command(check, 'HAProxy configuration validation')
-            command(reload, 'HAProxy reload')
+            verification = reload_verified(data, data['pem'], check, reload)
         except Exception:
             rollback()
             raise
         private_file(receipt, digest.encode())
-        pending.unlink()
-        if previous.exists():
-            previous.unlink()
-    return {'deployed': True, 'sha256': digest}
+        if not data.get('transaction'):
+            pending.unlink()
+            if previous.exists():
+                previous.unlink()
+    return {'deployed': True, 'sha256': digest, 'verification': verification}
 
 
 def issue(data):
     root = ROOT / str(int(data['le_id'])) / ('r' + str(int(data['revision'])))
     root.mkdir(parents=True, exist_ok=True, mode=0o700)
+    accounts = ROOT / 'accounts' / str(int(data['group_id']))
+    copy_accounts(accounts, root / 'config' / 'accounts')
     environment = os.environ.copy()
     if data.get('proxy') and data['proxy'] != 'None':
         environment.update(http_proxy=data['proxy'], https_proxy=data['proxy'])
@@ -183,11 +372,38 @@ def issue(data):
         args.extend(['-d', domain])
     if data.get('test'):
         args.append('--dry-run')
-    command(args, 'Standalone ACME challenge (public port 80 must reach port 8888)', timeout=1200, env=environment)
+    try:
+        command(args, 'Standalone ACME challenge (public port 80 must reach port 8888)', timeout=1200, env=environment)
+    finally:
+        copy_accounts(root / 'config' / 'accounts', accounts)
     if data.get('test'):
         return {'tested': True}
     live = root / 'config' / 'live' / name
     return {'fullchain': (live / 'fullchain.pem').read_text(), 'key': (live / 'privkey.pem').read_text()}
+
+
+def copy_accounts(source, destination):
+    """Reuse one account per CA, preserving existing lineages' account identity.
+
+    The caller holds the group/host lock. Never merge multiple accounts for the
+    same CA into a fresh config-dir: noninteractive Certbot cannot choose one.
+    """
+    for registration in sorted(source.glob('**/regr.json')):
+        if any(part.startswith('.') for part in registration.relative_to(source).parts):
+            continue
+        account = registration.parent
+        ca = destination / account.parent.relative_to(source)
+        if list(ca.glob('*/regr.json')):
+            continue
+        ca.mkdir(parents=True, exist_ok=True, mode=0o700)
+        target = ca / account.name
+        with tempfile.TemporaryDirectory(prefix='.account-', dir=ca) as temporary:
+            staged = Path(temporary) / account.name
+            shutil.copytree(account, staged)
+            for path in staged.rglob('*'):
+                os.chmod(path, 0o700 if path.is_dir() else 0o600)
+            os.chmod(staged, 0o700)
+            os.replace(staged, target)
 
 
 def delete(data):
@@ -198,6 +414,19 @@ def delete(data):
         shutil.rmtree(target)
     # Deployed PEMs remain available to existing HAProxy configurations.
     return {'deleted': True}
+
+
+def preflight(data):
+    directory = certificate_directory(data)
+    with tempfile.TemporaryDirectory(prefix='.roxywi-check-', dir=directory) as temporary:
+        private_file(Path(temporary) / 'write-check', b'check')
+    check, _reload = service_commands(data)
+    command(check, 'HAProxy configuration validation')
+    runtime_pid(data)
+    if data.get('standalone'):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+            listener.bind(('0.0.0.0', 8888))
+    return {'checked': True}
 
 
 def remove_legacy_entries(crontab):
@@ -295,12 +524,14 @@ def main():
         data = json.load(sys.stdin)
         with host_lock():
             result = {'issue': issue, 'deploy': deploy, 'delete': delete,
+                      'rollback': finish_deployment, 'commit': finish_deployment, 'preflight': preflight,
                       'legacy-export': legacy_export, 'legacy-disable': legacy_disable}[data['operation']](data)
         print(json.dumps(result))
     except Exception as error:
         # Only our fixed messages are public. Never print subprocess output/input.
         detail = str(error) if isinstance(error, RuntimeError) else type(error).__name__
-        print(json.dumps({'error': detail}))
+        print(json.dumps({'error': detail, 'code': getattr(error, 'code', 'remote_failed'),
+                          'retry_at': getattr(error, 'retry_at', None)}))
         sys.exit(1)
 
 

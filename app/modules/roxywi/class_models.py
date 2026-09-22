@@ -333,6 +333,8 @@ class LetsEncryptRequest(BaseModel):
     api_key: Optional[str] = Field(default=None, max_length=4096)
     api_token: Optional[str] = Field(default=None, max_length=4096)
     description: Optional[str] = Field(default=None, max_length=255)
+    dns_profile_id: Optional[int] = Field(default=None, gt=0)
+    draft: bool = False
 
     @field_validator('domains')
     @classmethod
@@ -375,7 +377,28 @@ class LetsEncryptRequest(BaseModel):
 
 
 class LetsEncryptActionRequest(BaseModel):
-    action: Literal['renew', 'test', 'retry']
+    action: Literal['renew', 'test', 'retry', 'preflight', 'issue']
+
+
+class LetsEncryptDnsProfileRequest(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
+    provider: Literal['route53', 'cloudflare', 'digitalocean', 'linode']
+    api_key: Optional[str] = Field(default=None, max_length=4096)
+    api_token: Optional[str] = Field(default=None, max_length=4096)
+    propagation_seconds: int = Field(default=60, ge=10, le=3600)
+
+    @field_validator('name')
+    @classmethod
+    def profile_name(cls, value):
+        value = value.strip()
+        if not value or any(ord(char) < 32 for char in value):
+            raise ValueError('Profile name must contain printable characters')
+        return value
+
+    @field_validator('api_key', 'api_token')
+    @classmethod
+    def single_line_secret(cls, value):
+        return LetsEncryptRequest.single_line_secret(value)
 
 
 class LetsEncryptDeleteRequest(BaseModel):

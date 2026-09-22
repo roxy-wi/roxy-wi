@@ -8,16 +8,26 @@ from app.modules.db.db_model import LetsEncrypt, LetsEncryptState, Server
 from app.modules.roxywi import common
 from app.modules.roxywi.class_models import LetsEncryptRequest, LetsEncryptActionRequest, GroupQuery
 from app.modules.common.common_classes import SupportClass
+from app.modules.roxywi.exception import RoxywiPublicError
 from app.modules.service.le import le_store
 from app.modules.service.common import is_protected
 
 
 def accepted(le_id, task_id):
+    if task_id is None:
+        return {'id': le_id, 'status': 'draft', 'tasks_ids': []}, 201
     return {'id': le_id, 'status': 'accepted', 'tasks_ids': [task_id]}, 202
 
 
 def identity(query):
     return SupportClass.return_group_id(query), common.get_jwt_token_claims().get('user_id')
+
+
+def le_error(error, context):
+    response, status = common.handler_exceptions_for_json_data(error, context)
+    if isinstance(error, RoxywiPublicError):
+        response['error'] = context + ': ' + error.public_message
+    return response, status
 
 
 def protect(server_id, group_id):
@@ -81,11 +91,11 @@ class LetsEncryptView(MethodView):
         try:
             return jsonify(le_store.public_config(le_store.get_owned(le_id, identity(query)[0]), query.recurse))
         except Exception as error:
-            return common.handler_exceptions_for_json_data(error, "Cannot get Let's Encrypt")
+            return le_error(error, "Cannot get Let's Encrypt")
 
     @validate(body=LetsEncryptRequest, query=GroupQuery)
     def post(self, body: LetsEncryptRequest, query: GroupQuery):
-        """Queue certificate issuance and deployment.
+        """Save a draft or queue certificate issuance and deployment.
         ---
 
         tags:
@@ -127,7 +137,16 @@ class LetsEncryptView(MethodView):
                   type: string
                   description: Type of the Let's Encrypt configuration
                   enum: ['standalone', 'route53', 'cloudflare', 'digitalocean', 'linode']
+                draft:
+                  type: boolean
+                  default: false
+                  description: Save without issuance; run preflight and issue actions later
+                dns_profile_id:
+                  type: integer
+                  description: Reusable DNS profile owned by the selected group
         responses:
+          201:
+            description: Draft saved without queuing issuance
           202:
             description: Let's Encrypt configuration accepted for asynchronous processing
         """
@@ -137,7 +156,7 @@ class LetsEncryptView(MethodView):
             le_id, task_id = le_store.create(body.model_dump(mode='json'), group_id, user_id)
             return accepted(le_id, task_id)
         except Exception as error:
-            return common.handler_exceptions_for_json_data(error, "Cannot create Let's Encrypt")
+            return le_error(error, "Cannot create Let's Encrypt")
 
     @validate(body=LetsEncryptRequest, query=GroupQuery)
     def put(self, le_id: int, body: LetsEncryptRequest, query: GroupQuery):
@@ -197,9 +216,9 @@ class LetsEncryptView(MethodView):
             row = le_store.get_owned(le_id, group_id)
             protect(row.server_id_id, group_id)
             protect(body.server_id, group_id)
-            return accepted(le_id, le_store.update(le_id, body.model_dump(mode='json'), group_id, user_id))
+            return accepted(le_id, le_store.update(le_id, body.model_dump(mode='json', exclude_unset=True), group_id, user_id))
         except Exception as error:
-            return common.handler_exceptions_for_json_data(error, "Cannot update Let's Encrypt")
+            return le_error(error, "Cannot update Let's Encrypt")
 
     @validate(query=GroupQuery)
     def delete(self, le_id: int, query: GroupQuery):
@@ -229,11 +248,11 @@ class LetsEncryptView(MethodView):
             protect(row.server_id_id, group_id)
             return accepted(le_id, le_store.action(le_id, 'delete', group_id, user_id))
         except Exception as error:
-            return common.handler_exceptions_for_json_data(error, "Cannot delete Let's Encrypt")
+            return le_error(error, "Cannot delete Let's Encrypt")
 
     @validate(body=LetsEncryptActionRequest, query=GroupQuery)
     def patch(self, le_id: int, body: LetsEncryptActionRequest, query: GroupQuery):
-        """Queue a renewal check, staging test, or retry of the last failed operation.
+        """Queue renewal, staging validation, draft issuance or recovery.
         ---
         tags:
           - Let's Encrypt
@@ -251,7 +270,7 @@ class LetsEncryptView(MethodView):
               properties:
                 action:
                   type: string
-                  enum: [renew, test, retry]
+                  enum: [renew, test, retry, preflight, issue]
         responses:
           202:
             description: Operation accepted; response includes tasks_ids
@@ -264,7 +283,7 @@ class LetsEncryptView(MethodView):
             protect(row.server_id_id, group_id)
             return accepted(le_id, le_store.action(le_id, body.action, group_id, user_id))
         except Exception as error:
-            return common.handler_exceptions_for_json_data(error, "Cannot run Let's Encrypt operation")
+            return le_error(error, "Cannot run Let's Encrypt operation")
 
 
 class LetsEncryptsView(MethodView):
@@ -325,4 +344,4 @@ class LetsEncryptsView(MethodView):
                     .where((Server.group_id == str(group_id)) & (LetsEncryptState.status != 'deleted')))
             return jsonify([le_store.public_config(row, query.recurse) for row in rows])
         except Exception as error:
-            return common.handler_exceptions_for_json_data(error, "Cannot get Let's Encrypt certificates")
+            return le_error(error, "Cannot get Let's Encrypt certificates")

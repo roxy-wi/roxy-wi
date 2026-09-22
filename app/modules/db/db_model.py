@@ -1308,9 +1308,29 @@ class LetsEncryptState(BaseModel):
     last_error = TextField(null=True)
     targets = TextField(default='{}')
     issuer_servers = TextField(default='[]')
+    deployment = TextField(default='{}')
+    last_error_code = CharField(null=True)
+    dns_profile_id = IntegerField(null=True)
+    draft = BooleanField(default=False)
+    preflight = TextField(default='{}')
+    notification_state = TextField(default='{}')
 
     class Meta:
         table_name = 'lets_encrypt_state'
+
+
+class LetsEncryptDnsProfile(BaseModel):
+    id = AutoField()
+    group_id = IntegerField(index=True)
+    name = CharField()
+    provider = CharField()
+    credentials = TextField()
+    propagation_seconds = IntegerField(default=60)
+    revision = IntegerField(default=1)
+
+    class Meta:
+        table_name = 'lets_encrypt_dns_profiles'
+        indexes = ((('group_id', 'name'), True),)
 
 
 class InstallationTasks(BaseModel):
@@ -1348,5 +1368,5 @@ def create_tables():
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
              KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
-             HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, NginxSection, InstallationTasks]
+             HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, NginxSection, InstallationTasks]
         )

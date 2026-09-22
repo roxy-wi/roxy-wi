@@ -71,6 +71,8 @@
     <tbody id="le_table_body"></tbody>
 </table>
 <br /><span class="add-button" title="{{lang.words.create|title()}}" onclick="openLeDialog()">+ {{lang.words.create|title()}}</span>
+<button type="button" onclick="showLeDnsProfiles()">DNS profiles</button>
+<p>New certificates: save a draft, check setup in staging, then issue the certificate.</p>
 <div id="ajax-ssl"></div>
 {% include 'include/del_confirm.html' %}
 <div id="dialog-confirm-cert" title="View certificate " style="display: none;">
@@ -120,6 +122,10 @@
                 <div class="le-standalone">Public HTTP port 80 must forward /.well-known/acme-challenge/ to this server's port 8888.</div>
             </td>
         </tr>
+        <tr class="le-profile" style="display: none;">
+            <td class="padding20 first-collumn">DNS profile</td>
+            <td><select id="new-le-dns-profile"><option value="">Credentials for this certificate</option></select></td>
+        </tr>
         <tr class="le-dns" style="display: none;">
             <td class="padding20 first-collumn">
                 {{ lang.words.token|title() }}
@@ -155,4 +161,19 @@
     </table>
 </div>
 <div id="le-history-dialog" style="display: none;"></div>
+<div id="le-profiles-dialog" style="display: none;">
+    <table><thead><tr><th>Name</th><th>Provider</th><th>DNS propagation</th><th>Actions</th></tr></thead>
+        <tbody id="le-profile-list"></tbody></table>
+    <button type="button" onclick="editLeDnsProfile()">Add DNS profile</button>
+</div>
+<div id="le-profile-form" style="display: none;">
+    <p><label for="le-profile-name">Name</label> {{ input('le-profile-name') }}</p>
+    <p><label for="le-profile-provider">Provider</label>
+        <select id="le-profile-provider"><option value="cloudflare">Cloudflare</option><option value="route53">Route53</option>
+            <option value="digitalocean">DigitalOcean</option><option value="linode">Linode</option></select></p>
+    <p><label for="le-profile-key">Access key ID (Route53)</label> {{ input('le-profile-key', type='password') }}</p>
+    <p><label for="le-profile-token">Token / secret access key</label> {{ input('le-profile-token', type='password') }}</p>
+    <p><label for="le-profile-propagation">DNS propagation (seconds)</label>
+        <input id="le-profile-propagation" type="number" min="10" max="3600" value="60"></p>
+</div>
 {% endblock %}

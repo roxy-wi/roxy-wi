@@ -316,7 +316,7 @@ def deliver_pending_notifications(limit: int = 100) -> int:
             else:
                 alerting.alert_routing(
                     payload['server_address'],
-                    SERVICE_IDS[payload['service']],
+                    SERVICE_IDS['haproxy' if payload['service'] == 'letsencrypt' else payload['service']],
                     payload['group_id'],
                     payload['level'],
                     payload['message'],

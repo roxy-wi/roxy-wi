@@ -56,6 +56,31 @@ assert.strictEqual(requests.at(-1).url, '/service/letsencrypts?recurse=True');
 context.runLeAction(7, 'test');
 assert.strictEqual(requests.at(-1).method, 'PATCH');
 assert.strictEqual(JSON.parse(requests.at(-1).data).action, 'test');
+data.draft = true;
+data.state.status = 'draft';
+data.state.can_issue = false;
+context.showLe(data);
+let draftActions = appended.at(-1).children[6].children[0].children[1].children;
+assert(!draftActions.find(button => button.children === 'Check setup (staging)').disabled);
+assert(draftActions.find(button => button.children === 'Issue certificate').disabled);
+assert(!draftActions.some(button => button.children === 'Check renewal'));
+data.state.status = 'ready';
+data.state.can_issue = true;
+context.showLe(data);
+draftActions = appended.at(-1).children[6].children[0].children[1].children;
+const issue = draftActions.find(button => button.children === 'Issue certificate');
+assert(!issue.disabled);
+issue.attrs.onclick();
+assert.strictEqual(JSON.parse(requests.at(-1).data).action, 'issue');
+data.state.status = 'failed';
+data.state.deployment_phase = 'rollback';
+data.state.can_retry = true;
+context.showLe(data);
+draftActions = appended.at(-1).children[6].children[0].children[1].children;
+assert(draftActions.find(button => button.children === 'Edit').disabled);
+assert(draftActions.find(button => button.children === 'Delete').disabled);
+assert(draftActions.find(button => button.children === 'Issue certificate').disabled);
+assert(!draftActions.find(button => button.children === 'Retry').disabled);
 '''
     result = subprocess.run([node, '-e', harness, str(source)], capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stderr

@@ -7,7 +7,7 @@ import shlex
 import subprocess
 import sys
 import tempfile
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -17,10 +17,15 @@ from app.modules.roxy_wi_tools import GetConfigVar
 from app.modules.roxywi.exception import RoxywiPublicError
 from app.modules.server.ssh import return_ssh_keys_path
 from app.modules.server.ssh_connection import SshConnection
+from app.modules.service.le.le_lock import file_lock
+from app.scripts.letsencrypt_remote import copy_accounts, diagnose_acme
 
 
 class CertificateError(RoxywiPublicError):
-    pass
+    def __init__(self, message, code='certificate_failed', retry_at=None):
+        super().__init__(message)
+        self.code = code
+        self.retry_at = datetime.fromisoformat(retry_at).astimezone(timezone.utc).replace(tzinfo=None) if retry_at else None
 
 
 def storage_root():
@@ -82,7 +87,8 @@ def remote(server, data):
         except (ValueError, UnicodeDecodeError):
             raise CertificateError('SSH certificate helper failed; check Python 3 and noninteractive sudo access') from None
         if status or result.get('error'):
-            raise CertificateError(result.get('error') or 'Remote certificate operation failed')
+            raise CertificateError(result.get('error') or 'Remote certificate operation failed',
+                                   result.get('code', 'remote_failed'), result.get('retry_at'))
         return result
 
 
@@ -102,7 +108,7 @@ def dns_command(data, root, le_id, test=False):
         if provider == 'linode':
             content += 'dns_linode_version = 4\n'
         plugin = [f'--dns-{provider}', f'--dns-{provider}-credentials', str(credentials.resolve()),
-                  f'--dns-{provider}-propagation-seconds', '60']
+                  f'--dns-{provider}-propagation-seconds', str(data.get('propagation_seconds', 60))]
     private_write(credentials, content)
     args = [sys.executable, '-c', 'from certbot.main import main; raise SystemExit(main())',
             'certonly', '--non-interactive', '--agree-tos',
@@ -122,26 +128,34 @@ def obtain(data, state, server, test=False):
     bundle_path = root / 'bundle.json'
     if not test and bundle_path.exists():
         bundle = json.loads(bundle_path.read_text())
-        try:
-            expires, _ = inspect_bundle(bundle, data['domains'])
-        except (ValueError, CertificateError):
-            pass  # Invalid/expired stored material must be replaced by ACME.
-        else:
-            # Renew short-lived certificates too; Certbot makes the final due decision.
-            if expires > datetime.now(timezone.utc).replace(tzinfo=None) + timedelta(days=30):
+        if bundle.get('imported'):
+            inspect_bundle(bundle, data['domains'], allow_expired=True)
+            from app.modules.service.le.le_legacy_renewal import due
+            proxy = sql.get_setting('proxy', group_id=server.group_id)
+            proxies = {'http': proxy, 'https': proxy} if proxy and proxy != 'None' else None
+            if not due(bundle, root, proxies):
                 return bundle
+    # Always let Certbot check ARI and its lifetime-dependent renewal window.
+    # A cached bundle is a deployment artifact, not a renewal decision.
     if data['type'] == 'standalone':
         bundle = remote(server, dict(operation='issue', domains=data['domains'], email=data['email'],
-                                     le_id=state.le_id, revision=state.revision, test=test,
+                                     le_id=state.le_id, revision=state.revision, test=test, group_id=int(server.group_id),
                                      proxy=sql.get_setting('proxy', group_id=server.group_id)))
     else:
         args, environment = dns_command(data, root, state.le_id, test)
         proxy = sql.get_setting('proxy', group_id=server.group_id)
         if proxy and proxy != 'None':
             environment.update(http_proxy=proxy, https_proxy=proxy, HTTP_PROXY=proxy, HTTPS_PROXY=proxy)
-        result = subprocess.run(args, env=environment, capture_output=True, timeout=1200)
+        accounts = storage_root() / 'accounts' / str(int(server.group_id))
+        with file_lock(storage_root() / f'accounts-{int(server.group_id)}.lock'):
+            copy_accounts(accounts, root / 'config' / 'accounts')
+            try:
+                result = subprocess.run(args, env=environment, capture_output=True, timeout=1200)
+            finally:
+                copy_accounts(root / 'config' / 'accounts', accounts)
         if result.returncode:
-            raise CertificateError('DNS ACME challenge failed; check provider credentials, DNS propagation and Certbot plugins')
+            error = diagnose_acme(result.stderr + result.stdout)
+            raise CertificateError(str(error), error.code, error.retry_at)
         if test:
             return None
         live = root / 'config' / 'live' / f'roxywi-{state.le_id}'
@@ -153,11 +167,17 @@ def obtain(data, state, server, test=False):
     return bundle
 
 
-def deploy(server, bundle, pem_name):
-    return remote(server, {
-        'operation': 'deploy', 'pem': bundle['fullchain'].rstrip() + '\n' + bundle['key'].rstrip() + '\n',
+def deployment_settings(server, pem_name):
+    return {
         'pem_name': pem_name, 'cert_dir': sql.get_setting('cert_path', group_id=server.group_id),
         'config_path': sql.get_setting('haproxy_config_path', group_id=server.group_id),
         'docker': service_sql.select_service_setting(server.server_id, 'haproxy', 'dockerized') == '1',
         'container': sql.get_setting('haproxy_container_name', group_id=server.group_id),
-    })
+        'runtime_port': int(sql.get_setting('haproxy_sock_port', group_id=server.group_id)),
+    }
+
+
+def deploy(server, bundle, pem_name, *, settings=None, transaction=None):
+    data = settings or deployment_settings(server, pem_name)
+    return remote(server, dict(data, operation='deploy', transaction=transaction,
+                              pem=bundle['fullchain'].rstrip() + '\n' + bundle['key'].rstrip() + '\n'))

@@ -1,10 +1,11 @@
 """Atomically rotate the Fernet key used for stored Roxy-WI credentials."""
 
 import os
+from itertools import chain
 
 from cryptography.fernet import Fernet, InvalidToken
 
-from app.modules.db.db_model import Cred, InstallationTasks, LetsEncryptState, OidcProvider
+from app.modules.db.db_model import Cred, InstallationTasks, LetsEncryptState, LetsEncryptDnsProfile, OidcProvider
 
 
 SECRET_FIELDS = ('password', 'passphrase', 'private_key')
@@ -97,14 +98,15 @@ def rotate_credentials() -> int:
             ).where(InstallationTasks.id == task.id).execute()
             rotated_credentials += 1
 
-        for state in LetsEncryptState.select():
+        for state in chain(LetsEncryptState.select(), LetsEncryptDnsProfile.select()):
             updates = {}
-            for field in ('credentials', 'pending_config'):
+            fields = ('credentials', 'pending_config') if isinstance(state, LetsEncryptState) else ('credentials',)
+            for field in fields:
                 value = getattr(state, field)
                 if not value:
                     continue
                 if not value.startswith('fernet:'):
-                    raise RuntimeError(f'Certificate {state.le_id} contains invalid encrypted state')
+                    raise RuntimeError(f'LE secret record {state.id} contains invalid encrypted state')
                 token = value.removeprefix('fernet:').encode('ascii')
                 try:
                     plaintext = old_fernet.decrypt(token)
@@ -112,11 +114,11 @@ def rotate_credentials() -> int:
                     try:
                         new_fernet.decrypt(token)
                     except InvalidToken:
-                        raise RuntimeError(f'Certificate {state.le_id} cannot be decrypted') from error
+                        raise RuntimeError(f'LE secret record {state.id} cannot be decrypted') from error
                     continue
                 updates[field] = 'fernet:' + new_fernet.encrypt(plaintext).decode('ascii')
             if updates:
-                LetsEncryptState.update(**updates).where(LetsEncryptState.id == state.id).execute()
+                type(state).update(**updates).where(type(state).id == state.id).execute()
                 rotated_credentials += 1
 
     return rotated_credentials

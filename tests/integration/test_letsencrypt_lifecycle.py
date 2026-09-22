@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.x509.oid import NameOID
 from peewee import SqliteDatabase
 
-from app.modules.db.db_model import LetsEncrypt, LetsEncryptState, InstallationTasks, Server
+from app.modules.db.db_model import LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, ServiceNotification, InstallationTasks, Server
 from app.modules.operations.queue import deserialize_operation_payload
 from app.modules.operations.worker import claim_operation, execute_operation
 from app.modules.roxywi.class_models import LetsEncryptRequest
@@ -19,7 +19,7 @@ from app.modules.roxywi.exception import RoxywiConflictError, RoxywiResourceNotF
 from app.modules.service.le import le_store as store, le_execution as execution, le_certbot as certbot
 
 
-MODELS = [LetsEncrypt, LetsEncryptState, InstallationTasks, Server]
+MODELS = [LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, ServiceNotification, InstallationTasks, Server]
 DATA = dict(server_id=1, domains=['example.com'], email='admin@example.com', type='cloudflare',
             api_key=None, api_token='private-dns-token', description='example certificate')
 
@@ -28,6 +28,11 @@ DATA = dict(server_id=1, domains=['example.com'], email='admin@example.com', typ
 def database(tmp_path, monkeypatch):
     db = SqliteDatabase(tmp_path / 'le.db', pragmas={'journal_mode': 'wal', 'busy_timeout': 10000})
     monkeypatch.setenv('ROXYWI_LIB_PATH', str(tmp_path / 'lib'))
+    monkeypatch.setattr(certbot, 'deployment_settings', lambda server, name: {'pem_name': name})
+    def finish(server, data):
+        assert data['operation'] in ('commit', 'rollback')
+        return {'finished': True}
+    monkeypatch.setattr(certbot, 'remote', finish)
     with db.bind_ctx(MODELS, bind_refs=False, bind_backrefs=False):
         db.create_tables(MODELS)
         Server.create(server_id=1, ip='192.0.2.1', hostname='primary', group_id='1')
@@ -60,7 +65,7 @@ def run_task(task_id):
 
 def fake_issuer(monkeypatch, bundle, deploy=None):
     monkeypatch.setattr(certbot, 'obtain', lambda *args, **kwargs: bundle)
-    monkeypatch.setattr(certbot, 'deploy', deploy or (lambda *args: None))
+    monkeypatch.setattr(certbot, 'deploy', lambda *args, **kwargs: deploy(*args) if deploy else None)
 
 
 def test_configuration_is_encrypted_and_api_is_sanitized():
@@ -113,7 +118,7 @@ def test_full_lifecycle_is_idempotent_and_scheduled(monkeypatch, bundle):
     assert LetsEncryptState.get().last_task_id != task_id
 
 
-def test_failed_ha_target_retries_without_repeating_completed_target(monkeypatch, bundle):
+def test_failed_ha_target_rolls_back_before_retrying(monkeypatch, bundle):
     calls = []
     def deploy(server, *_):
         calls.append(server.server_id)
@@ -125,10 +130,10 @@ def test_failed_ha_target_retries_without_repeating_completed_target(monkeypatch
     state = LetsEncryptState.get()
     assert state.status == 'failed' and state.retry_at
     assert 'private-dns-token' not in state.last_error
-    assert json.loads(state.targets)['1']['status'] == 'deployed'
+    assert json.loads(state.targets)['1']['status'] == 'rolled_back'
     assert store.dispatch_due(state.retry_at) == 1
     assert run_task(LetsEncryptState.get().active_task_id) == 'completed'
-    assert calls == [1, 2, 2]
+    assert calls == [1, 2, 1, 2]
 
 
 def test_failed_update_keeps_working_config_and_credentials(monkeypatch, bundle):
@@ -240,7 +245,7 @@ def test_recovered_delivery_waits_without_executing_twice(database, monkeypatch,
             raise certbot.CertificateError('ACME failed')
         return bundle
     monkeypatch.setattr(certbot, 'obtain', obtain)
-    monkeypatch.setattr(certbot, 'deploy', lambda *args: None)
+    monkeypatch.setattr(certbot, 'deploy', lambda *args, **kwargs: None)
     _, task_id = store.create(DATA, '1')
     task = InstallationTasks.get_by_id(task_id)
     claim_operation(task.operation_id, task_id)
@@ -393,3 +398,242 @@ def test_scheduler_recovers_failure_outside_certificate_handler(monkeypatch, bun
     assert state.retry_at and state.last_error == 'Worker transport failure'
     assert store.dispatch_due(state.retry_at) == 1
     assert run_task(LetsEncryptState.get().active_task_id) == 'completed'
+
+
+def test_partial_replacement_is_rolled_back_immediately_and_recovery_blocks_edits(monkeypatch, bundle):
+    fake_issuer(monkeypatch, bundle)
+    le_id, task_id = store.create(DATA, '1')
+    run_task(task_id)
+    rollback = []
+    def remote(server, request):
+        if request['operation'] == 'rollback':
+            rollback.append(server.server_id)
+            if server.server_id == 2:
+                raise OSError('SSH unavailable')
+    monkeypatch.setattr(certbot, 'remote', remote)
+    def fail_second(server, *_):
+        if server.server_id == 2:
+            raise OSError('SSH unavailable')
+    fake_issuer(monkeypatch, bundle, fail_second)
+    replacement = store.update(le_id, DATA | {'description': 'new'}, '1')
+    assert run_task(replacement) == 'failed'
+    assert rollback == [1, 2]
+    state = LetsEncryptState.get()
+    assert json.loads(state.targets)['1']['status'] == 'rolled_back'
+    assert json.loads(state.targets)['2']['status'] == 'rollback_failed'
+    assert json.loads(state.deployment)['phase'] == 'rollback'
+    assert state.retry_at < store.utc_now() + timedelta(minutes=6)
+    assert LetsEncrypt.get().description == DATA['description']
+    with pytest.raises(RoxywiConflictError, match='recovery'):
+        store.update(le_id, DATA, '1')
+    monkeypatch.setattr(certbot, 'remote', lambda *args: None)
+    store.dispatch_due(state.retry_at)
+    assert run_task(LetsEncryptState.get().active_task_id) == 'failed'
+    assert LetsEncryptState.get().deployment == '{}'
+    assert all(item['status'] == 'rolled_back' for item in json.loads(LetsEncryptState.get().targets).values())
+
+
+def test_failed_finalize_retries_without_issuing_or_rolling_back_applied_certificate(monkeypatch, bundle):
+    fake_issuer(monkeypatch, bundle)
+    calls = []
+    def remote(server, request):
+        calls.append((server.server_id, request['operation']))
+        if server.server_id == 2:
+            raise OSError('Lost response')
+    monkeypatch.setattr(certbot, 'remote', remote)
+    _, task_id = store.create(DATA, '1')
+    assert run_task(task_id) == 'failed'
+    state = LetsEncryptState.get()
+    assert state.applied_revision == 1 and json.loads(state.deployment)['phase'] == 'commit'
+    monkeypatch.setattr(certbot, 'obtain', lambda *args, **kwargs: pytest.fail('Must not issue during finalization'))
+    monkeypatch.setattr(certbot, 'remote', lambda server, request: calls.append((server.server_id, request['operation'])))
+    store.dispatch_due(state.retry_at)
+    assert run_task(LetsEncryptState.get().active_task_id) == 'completed'
+    assert calls == [(1, 'commit'), (2, 'commit'), (2, 'commit')]
+
+
+def test_dns_profiles_are_tenant_scoped_and_rotation_is_used_at_execution(monkeypatch, bundle):
+    from app.modules.service.le import le_profiles
+    profile = le_profiles.save(dict(name='Production', provider='cloudflare', api_token='first-secret', propagation_seconds=120), '1')
+    assert 'first-secret' not in json.dumps(profile)
+    with pytest.raises(RoxywiResourceNotFound):
+        store.create(DATA | {'dns_profile_id': profile['id']}, '2')
+    le_id, task_id = store.create(DATA | {'dns_profile_id': profile['id']}, '1')
+    le_profiles.save(dict(name='Production', provider='cloudflare', api_token='rotated-secret', propagation_seconds=180), '1', profile['id'])
+    used = []
+    monkeypatch.setattr(certbot, 'obtain', lambda data, *args, **kwargs: used.append((data['api_token'], data['propagation_seconds'])) or bundle)
+    monkeypatch.setattr(certbot, 'deploy', lambda *args, **kwargs: None)
+    assert run_task(task_id) == 'completed'
+    assert used == [('rotated-secret', 180)]
+    state = LetsEncryptState.get()
+    assert deserialize_operation_payload(state.credentials)['api_token'] is None
+    assert store.public_config(LetsEncrypt.get())['dns_profile'] == 'Production'
+    with pytest.raises(RoxywiConflictError, match='used'):
+        le_profiles.delete(profile['id'], '1')
+
+
+def test_draft_requires_current_staging_check_before_production(monkeypatch, bundle):
+    from app.modules.service.le import le_preflight, le_profiles
+    profile = le_profiles.save(dict(name='DNS', provider='cloudflare', api_token='secret', propagation_seconds=60), '1')
+    le_id, task_id = store.create(DATA | {'draft': True, 'dns_profile_id': profile['id']}, '1')
+    assert task_id is None and store.dispatch_due(datetime.now() + timedelta(days=1)) == 0
+    with pytest.raises(RoxywiConflictError, match='setup check'):
+        store.action(le_id, 'issue', '1')
+    monkeypatch.setattr(le_preflight, 'check_dns', lambda *args: 'DNS checked')
+    monkeypatch.setattr(certbot, 'remote', lambda *args: {'checked': True})
+    calls = []
+    monkeypatch.setattr(certbot, 'obtain', lambda *args, **kwargs: calls.append(kwargs.get('test', False)) or (None if kwargs.get('test') else bundle))
+    monkeypatch.setattr(certbot, 'deploy', lambda *args, **kwargs: None)
+    assert run_task(store.action(le_id, 'preflight', '1')) == 'completed'
+    assert calls == [True] and LetsEncryptState.get().draft
+    assert LetsEncryptState.get().next_run_at is None
+    assert store.public_config(LetsEncrypt.get())['state']['can_issue']
+    production = store.action(le_id, 'issue', '1')
+    le_profiles.save(dict(name='DNS', provider='cloudflare', api_token='rotated', propagation_seconds=60), '1', profile['id'])
+    assert not store.public_config(LetsEncrypt.get())['state']['can_issue']
+    assert run_task(production) == 'failed'  # queued check became stale
+    assert calls == [True]
+    assert run_task(store.action(le_id, 'preflight', '1')) == 'completed'
+    assert run_task(store.action(le_id, 'issue', '1')) == 'completed'
+    assert calls == [True, True, False]
+    assert not LetsEncryptState.get().draft and LetsEncryptState.get().next_run_at
+
+
+def test_rate_limit_defers_automatic_and_manual_retries(monkeypatch):
+    retry = store.utc_now() + timedelta(days=2)
+    def limited(*args, **kwargs):
+        raise certbot.CertificateError('ACME rate limit reached', 'rate_limited', retry.isoformat() + '+00:00')
+    monkeypatch.setattr(certbot, 'obtain', limited)
+    le_id, task_id = store.create(DATA, '1')
+    assert run_task(task_id) == 'failed'
+    assert LetsEncryptState.get().retry_at == retry
+    assert store.dispatch_due(retry - timedelta(seconds=1)) == 0
+    with pytest.raises(RoxywiConflictError, match='retry time'):
+        store.action(le_id, 'retry', '1')
+    with pytest.raises(RoxywiConflictError, match='retry time'):
+        store.update(le_id, DATA | {'description': 'edit while rate limited'}, '1')
+    assert LetsEncryptState.get().retry_at == retry
+    monkeypatch.setattr(store, 'utc_now', lambda: retry)
+    assert store.dispatch_due(retry) == 1
+
+
+def test_expiry_failure_and_recovery_notifications_are_deduplicated(monkeypatch, bundle):
+    from app.modules.service.le.le_notifications import check_notifications
+    fake_issuer(monkeypatch, bundle)
+    _, task_id = store.create(DATA, '1')
+    run_task(task_id)
+    now = store.utc_now()
+    LetsEncryptState.update(not_after=now + timedelta(days=6), failures=3, status='failed', last_error='ACME unavailable').execute()
+    assert check_notifications(now) == 2
+    assert check_notifications(now) == 0
+    assert ServiceNotification.select().count() == 2
+    LetsEncryptState.update(status='active', failures=0).execute()
+    assert check_notifications(now) == 1
+    assert check_notifications(now) == 0
+
+
+def test_dns_profile_and_draft_http_contract(monkeypatch):
+    from flask import Flask
+    from app.views.service import lets_encrypt_views as views, le_profile_views as profiles
+    from app.modules.roxywi.error_handler import register_error_handlers
+    api = Flask('le-release-contract')
+    api.config['FLASK_PYDANTIC_VALIDATION_ERROR_RAISE'] = True
+    register_error_handlers(api)
+    group = ['1']
+    monkeypatch.setattr(views, 'identity', lambda query: (group[0], 7))
+    monkeypatch.setattr(profiles, 'identity', lambda query: (group[0], 7))
+    monkeypatch.setattr(views, 'protect', lambda *args: None)
+    api.add_url_rule('/profiles', endpoint='list_profiles', view_func=profiles.LetsEncryptDnsProfilesView().get)
+    api.add_url_rule('/profiles', endpoint='add_profile', view_func=profiles.LetsEncryptDnsProfilesView().post, methods=['POST'])
+    api.add_url_rule('/profiles/<int:profile_id>', endpoint='edit_profile', view_func=profiles.LetsEncryptDnsProfileView().put, methods=['PUT'])
+    api.add_url_rule('/profiles/<int:profile_id>', endpoint='delete_profile', view_func=profiles.LetsEncryptDnsProfileView().delete, methods=['DELETE'])
+    api.add_url_rule('/le', view_func=views.LetsEncryptView().post, methods=['POST'])
+    client = api.test_client()
+    data = dict(name='DNS account', provider='cloudflare', api_token='profile-secret', propagation_seconds=90)
+    profile = client.post('/profiles', json=data)
+    assert profile.status_code == 201
+    profile_id = profile.json['id']
+    assert profile.json['has_api_token'] and 'profile-secret' not in profile.text
+    assert 'api_token' not in client.get('/profiles').json[0]
+    assert client.post('/profiles', json=data | {'name': 'Other', 'api_token': 'token\ninvalid'}).status_code == 400
+    draft = client.post('/le', json=DATA | {'dns_profile_id': profile_id, 'draft': True, 'api_token': None})
+    assert draft.status_code == 201 and draft.json['tasks_ids'] == []
+    assert InstallationTasks.select().count() == 0
+    response = client.put(f'/profiles/{profile_id}', json=data | {'api_token': None, 'propagation_seconds': 120})
+    assert response.status_code == 200 and response.json['revision'] == 2
+    assert response.json['has_api_token']
+    deletion = client.delete(f'/profiles/{profile_id}')
+    assert deletion.status_code == 409 and 'used by a certificate' in deletion.json['error']
+    group[0] = '2'
+    assert client.get('/profiles').json == []
+    assert client.put(f'/profiles/{profile_id}', json=data).status_code == 404
+    assert client.delete(f'/profiles/{profile_id}').status_code == 404
+
+
+def test_recovery_rejects_changed_target_address_before_reusing_progress(monkeypatch, bundle):
+    fake_issuer(monkeypatch, bundle)
+    le_id, task_id = store.create(DATA, '1')
+    state = LetsEncryptState.get()
+    _, fingerprint = certbot.inspect_bundle(bundle, DATA['domains'])
+    state.deployment = json.dumps({'id': 'interrupted', 'phase': 'apply', 'targets': {
+        '1': {'address': '192.0.2.1', 'settings': {}}, '2': {'address': '192.0.2.2', 'settings': {}}}})
+    state.targets = json.dumps({'1': {'status': 'deployed', 'fingerprint': fingerprint, 'address': '192.0.2.1'}})
+    state.save()
+    Server.update(ip='192.0.2.99').where(Server.server_id == 1).execute()
+    recovered = []
+    monkeypatch.setattr(certbot, 'remote', lambda server, data: recovered.append(server.server_id))
+    monkeypatch.setattr(certbot, 'obtain', lambda *args, **kwargs: pytest.fail('Recovery must precede new issuance'))
+    assert run_task(task_id) == 'failed'
+    state = LetsEncryptState.get()
+    assert json.loads(state.deployment)['phase'] == 'rollback'
+    assert json.loads(state.targets)['1']['status'] == 'rollback_failed'
+    assert recovered == [2]  # Never write the old certificate to the changed address.
+
+
+def test_imported_renewal_falls_back_safely_with_corrupt_cache(tmp_path, bundle, monkeypatch):
+    from app.modules.service.le import le_legacy_renewal
+    warnings = []
+    monkeypatch.setattr(le_legacy_renewal.logger, 'warning', warnings.append)
+    (tmp_path / 'imported-ari.json').write_text('{invalid json')
+    now = datetime.now(timezone.utc)
+    assert not le_legacy_renewal.due(bundle, tmp_path, now=now)
+    assert le_legacy_renewal.due(bundle, tmp_path, now=now + timedelta(days=70))
+    assert any('cache is invalid' in message for message in warnings)
+
+
+def test_imported_renewal_uses_ari_window_and_retry_after(tmp_path, monkeypatch):
+    from app.modules.service.le import le_legacy_renewal
+    now = datetime.now(timezone.utc)
+    key = ec.generate_private_key(ec.SECP256R1())
+    name = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, 'example.com')])
+    certificate = (x509.CertificateBuilder().subject_name(name).issuer_name(name).public_key(key.public_key())
+        .serial_number(128).not_valid_before(now - timedelta(days=1)).not_valid_after(now + timedelta(days=89))
+        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(key.public_key()), critical=False)
+        .sign(key, hashes.SHA256()))
+    bundle = {'fullchain': certificate.public_bytes(serialization.Encoding.PEM).decode()}
+    calls = []
+    class Response:
+        headers = {'Retry-After': '3600'}
+        def __init__(self, url):
+            self.url = url
+        def __enter__(self):
+            return self
+        def __exit__(self, *args):
+            return False
+        def raise_for_status(self):
+            return None
+        def json(self):
+            if self.url.endswith('/directory'):
+                return {'renewalInfo': 'https://acme.example.test/renewal-info'}
+            return {'suggestedWindow': {'start': (now - timedelta(hours=2)).isoformat(),
+                                         'end': (now - timedelta(hours=1)).isoformat()}}
+    monkeypatch.setattr(le_legacy_renewal.requests, 'get', lambda url, **kwargs: calls.append(url) or Response(url))
+    assert le_legacy_renewal.due(bundle, tmp_path, now=now)  # ARI can renew long before lifetime fallback.
+    assert len(calls) == 2 and calls[-1].startswith('https://acme.example.test/renewal-info/')
+    assert calls[-1].endswith('.AIA')  # Positive DER INTEGER 00:80, without base64 padding.
+    assert le_legacy_renewal.due(bundle, tmp_path, now=now + timedelta(minutes=30))
+    assert len(calls) == 2
+    assert le_legacy_renewal.due(bundle, tmp_path, now=now + timedelta(hours=1))
+    assert len(calls) == 4
+    assert le_legacy_renewal.due(bundle, tmp_path, now=now + timedelta(days=90))
+    assert len(calls) == 4  # Never query ARI for expired certificates.

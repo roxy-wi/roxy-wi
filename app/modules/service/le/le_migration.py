@@ -56,6 +56,7 @@ def migrate_legacy():
         if matched:
             expires, fingerprint, bundle = max(matched, key=lambda item: item[0])
             root = le_certbot.revision_root(state.le_id, state.revision)
+            bundle['imported'] = True
             le_certbot.private_write(root / 'bundle.json', json.dumps(bundle))
             state.not_after, state.fingerprint = expires, fingerprint
             names = [entry[2]['name'] for entry in matched]
