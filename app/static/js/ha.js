@@ -92,7 +92,7 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 					toastr.error(data.error);
 				} else {
 					for (let i in data) {
-						$('#ha-cluster-master').append('<option value="' + data[i]['ip'] + '" selected="selected" data-id="'+data[i]['server_id']+'">' + data[i]['hostname'] + '</option>');
+						$('#ha-cluster-master').append($('<option>').val(data[i]['ip']).prop('selected', true).attr('data-id', data[i]['server_id']).text(data[i]['hostname']));
 					}
 					$('#ha-cluster-master').selectmenu("refresh");
 				}
@@ -106,10 +106,10 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 		let master_name = $('#master-server-'+cluster_id).text();
 		let master_ip = $('#master-ip-'+cluster_id).text();
 		let master_id = $('#master-id-'+cluster_id).text();
-		$("#ha-cluster-master option").not(master_name).each(function (index) {
+		$("#ha-cluster-master option").each(function (index) {
 			$(this).prop('disabled', true);
 		});
-		$('#ha-cluster-master').append('<option value="' + master_ip + '" selected="selected" data-id="'+master_id+'">' + master_name + '</option>').selectmenu("refresh");
+		$('#ha-cluster-master').append($('<option>').val(master_ip).prop('selected', true).attr('data-id', master_id).text(master_name)).selectmenu("refresh");
 		get_keepalived_ver($('#cur_master_ver'), master_ip);
 		$.ajax({
 			url: api_prefix + "/ha/cluster/" + cluster_id,

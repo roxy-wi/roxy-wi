@@ -1,3 +1,6 @@
+import shlex
+import re
+
 import app.modules.db.sql as sql
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
@@ -69,6 +72,10 @@ def show_roxy_log(
 		if '..' in serv: raise Exception('error: nice try')
 
 	if service in ('nginx', 'haproxy', 'apache', 'keepalived'):
+		serv = str(roxywi_common.require_server_access(serv).ip)
+		# A syslog directory is one hostname/IP component, never a shell fragment.
+		if not re.fullmatch(r'[A-Za-z0-9_.:-]+', serv) or '..' in serv:
+			raise ValueError('Invalid managed server address')
 		syslog_server_enable = sql.get_setting('syslog_server_enable')
 		if syslog_server_enable is None or syslog_server_enable == 0:
 			local_path_logs = sql.get_setting(f'{service}_path_logs')
@@ -85,7 +92,8 @@ def show_roxy_log(
 		else:
 			if '..' in serv: raise Exception('error: nice try')
 
-			commands = "sudo cat /var/log/%s/syslog.log | sed '/ %s:00/,/ %s:00/! d' |tail -%s %s %s %s" % (serv, date, date1, rows, grep_act, grep, exgrep_act)
+			log_path = shlex.quote(f'/var/log/{serv}/syslog.log')
+			commands = "sudo cat -- %s | sed '/ %s:00/,/ %s:00/! d' |tail -%s %s %s" % (log_path, date, date1, rows, grep_act, exgrep_act)
 			syslog_server = sql.get_setting('syslog_server')
 			if syslog_server is None or syslog_server == '':
 				raise Exception('error: Syslog server is enabled, but there is no IP for syslog server')

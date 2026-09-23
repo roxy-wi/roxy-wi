@@ -14,6 +14,8 @@ import app.modules.roxywi.common as roxywi_common
 
 
 def stat_page_action(server_ip: str, group_id: int) -> bytes:
+    server_ip = str(roxywi_common.require_server_access(server_ip).ip)
+    server_ip = f'[{server_ip}]' if ':' in server_ip else server_ip
     haproxy_user = sql.get_setting('haproxy_stats_user', group_id=group_id)
     haproxy_pass = sql.get_setting('haproxy_stats_password', group_id=group_id)
     haproxy_pass = haproxy_pass.replace("'", "")
@@ -35,7 +37,7 @@ def stat_page_action(server_ip: str, group_id: int) -> bytes:
     }
 
     try:
-        data = requests.post(url, headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass), timeout=5)
+        data = requests.post(url, headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass), timeout=5, allow_redirects=False)
     except ConnectionError as e:
         if "Max retries exceeded" in str(e):
             raise Exception(f"error: Max retries exceeded with url: {url}")

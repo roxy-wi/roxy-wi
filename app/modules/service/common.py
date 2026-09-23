@@ -225,6 +225,8 @@ def get_overview_last_edit(server_ip: str, service: str) -> str:
 
 
 def get_stat_page(server_ip: str, service: str, group_id: int) -> str:
+	server_ip = str(roxywi_common.require_server_access(server_ip).ip)
+	server_ip = f'[{server_ip}]' if ':' in server_ip else server_ip
 	stats_user = sql.get_setting(f'{service}_stats_user', group_id=group_id)
 	stats_pass = sql.get_setting(f'{service}_stats_password', group_id=group_id)
 	stats_pass = stats_pass.replace("'", "")
@@ -232,7 +234,7 @@ def get_stat_page(server_ip: str, service: str, group_id: int) -> str:
 	stats_page = sql.get_setting(f'{service}_stats_page', group_id=group_id)
 
 	try:
-		response = requests.get(f'http://{server_ip}:{stats_port}/{stats_page}', auth=(stats_user, stats_pass), timeout=5)
+		response = requests.get(f'http://{server_ip}:{stats_port}/{stats_page}', auth=(stats_user, stats_pass), timeout=5, allow_redirects=False)
 	except requests.exceptions.ConnectTimeout:
 		return 'error: Connection timeout occurred!'
 	except requests.exceptions.ReadTimeout:

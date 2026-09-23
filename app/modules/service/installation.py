@@ -8,6 +8,8 @@ from packaging import version
 from urllib.parse import urlparse
 
 import ansible
+from ansible.module_utils.common.json import AnsibleJSONEncoder
+from ansible.utils.unsafe_proxy import wrap_var
 from werkzeug.utils import secure_filename
 
 import app.modules.db.sql as sql
@@ -178,7 +180,9 @@ def _create_secure_inventory(inv: dict) -> str:
 	)
 	try:
 		with os.fdopen(file_descriptor, 'w', encoding='utf-8') as inventory_file:
-			json.dump(inv, inventory_file)
+			# Preserve literal strings through Ansible's JSON loader, including
+			# nested config values that Ansible would otherwise template again.
+			json.dump(wrap_var(inv), inventory_file, cls=AnsibleJSONEncoder, preprocess_unsafe=True)
 		if os.name == 'posix':
 			os.chmod(inventory, 0o600)
 	except Exception:

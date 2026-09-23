@@ -76,7 +76,7 @@
 			{% set editor_path = remote_config_path|default('', true) %}
 			{% set editor_name = editor_path.split('/')[-1] if editor_path else service_desc.service ~ ' config' %}
 			<form action="/config/{{service}}/{{serv}}" name="saveconfig" id="saveconfig" method="post" class="left-space config-editor-form">
-				<input type="hidden" value="{{ cfg }}.old" name="config_local_path">
+				<input type="hidden" value="{{ cfg ~ '.old' if cfg else '' }}" name="config_local_path">
 				<input type="hidden" value="{{ service }}" name="service">
 				<input type="hidden" value="{{ config_file_name }}" name="file_path">
 				<div id="config-draft-banner" class="rw-operation-result config-draft-banner" hidden>

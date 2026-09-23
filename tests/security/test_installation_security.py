@@ -180,7 +180,7 @@ def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_
     with pytest.raises(RuntimeError, match='runner failed'):
         installation.run_ansible(inventory, ['192.0.2.10'], 'haproxy')
 
-    assert observed['data']['server']['hosts']['192.0.2.10']['ansible_password'] == 'temporary-secret'
+    assert observed['data']['server']['hosts']['192.0.2.10']['ansible_password'] == {'__ansible_unsafe': 'temporary-secret'}
     if os.name == 'posix':
         assert observed['mode'] == 0o600
         assert stat.S_IMODE(inventory_dir.stat().st_mode) == 0o700

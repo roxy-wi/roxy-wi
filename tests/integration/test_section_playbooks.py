@@ -16,6 +16,44 @@ pytestmark = pytest.mark.skipif(os.name != 'posix', reason='Ansible requires a P
 ROLES_DIR = Path(__file__).resolve().parents[2] / 'app/scripts/ansible/roles'
 
 
+@pytest.fixture
+def section_runtime(tmp_path, monkeypatch):
+    private = tmp_path / 'ansible'
+    monkeypatch.setattr(installation, 'ANSIBLE_PRIVATE_DATA_DIR', str(private))
+    monkeypatch.setattr(installation, 'ANSIBLE_INVENTORY_DIR', str(private / 'inventory'))
+    monkeypatch.setattr(installation, 'ANSIBLE_ROLE_SEARCH_PATHS', (str(ROLES_DIR),))
+    monkeypatch.setattr(installation, '_ANSIBLE_PLAYBOOKS', {
+        f'{service}_section': str(ROLES_DIR / f'{service}_section.yml')
+        for service in ('nginx', 'haproxy')
+    })
+    monkeypatch.setattr(installation.sql, 'get_setting', lambda name: {
+        'cert_path': '/etc/ssl', 'haproxy_dir': '/etc/haproxy', 'nginx_dir': '/etc/nginx',
+    }.get(name))
+    return private
+
+
+@pytest.mark.security
+@pytest.mark.parametrize('expression', [
+    "{{ lookup('pipe', 'touch MARKER') }}",
+    "{% if lookup('pipe', 'touch MARKER') %}value{% endif %}",
+    '{{ 31337 + 1 }}',
+    '$host literal header',
+])
+def test_section_inventory_strings_are_literal_after_loading(expression, section_runtime, tmp_path):
+    marker = tmp_path / 'lookup-must-not-run'
+    expression = expression.replace('MARKER', str(marker))
+    config = NginxProxyPassRequest(
+        name='example.com', port=8080, security={},
+        locations=[{'upstream': 'test_backend', 'headers': [
+            {'action': 'add_header', 'name': 'X-Test', 'value': expression},
+        ]}],
+    )
+    rendered = installation.generate_section_preview(config.model_dump(mode='json'), 'nginx')
+    assert not marker.exists()
+    assert expression in rendered
+    assert list((section_runtime / 'inventory').iterdir()) == []
+
+
 @pytest.mark.parametrize('service, config, expected', [
     pytest.param(
         'haproxy',

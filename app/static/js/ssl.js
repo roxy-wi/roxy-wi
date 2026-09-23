@@ -1,3 +1,6 @@
+function certToastText(value) {
+    return $('<div>').text(String(value)).html();
+}
 $( function() {
     $("#ssl_key_or_crt_upload").click(function () {
         if (!checkIsServerFiled('#serv6')) return false;
@@ -21,9 +24,9 @@ $( function() {
                     for (let i = 0; i < data.length; i++) {
                         if (data[i]) {
                             if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
-                                toastr.error(data[i]);
+                                toastr.error(certToastText(data[i]));
                             } else {
-                                toastr.success(data[i]);
+                                toastr.success(certToastText(data[i]));
                             }
                         }
                     }
@@ -37,29 +40,15 @@ $( function() {
             url: "/add/certs/" + $('#serv5').val(),
             success: function (data) {
                 if (data.indexOf('error:') != '-1') {
-                    toastr.error(data);
+                    toastr.error(certToastText(data));
                 } else {
-                    let i;
-                    let new_data = "";
-                    data = data.split("\n");
-                    let j = 1
-                    for (i = 0; i < data.length; i++) {
-                        data[i] = data[i].replace(/\s+/g, ' ');
-                        if (data[i] != '') {
-                            if (j % 2) {
-                                if (j != 0) {
-                                    new_data += '</span>'
-                                }
-                                new_data += '<span class="list_of_lists">'
-                            } else {
-                                new_data += '</span><span class="list_of_lists">'
-
-                            }
-                            j += 1
-                            new_data += ' <a onclick="view_ssl(\'' + data[i] + '\')" title="View ' + data[i] + ' cert">' + data[i] + '</a> '
-                        }
+                    const container = $("#ajax-show-ssl").empty();
+                    for (const name of data.split("\n")) {
+                        if (!name) continue;
+                        const link = $('<a>').text(name).attr('title', 'View ' + name + ' cert');
+                        link.on('click', () => view_ssl(name));
+                        container.append($('<span>').addClass('list_of_lists').append(link));
                     }
-                    $("#ajax-show-ssl").html(new_data);
                 }
             }
         });
@@ -69,10 +58,10 @@ function view_ssl(id) {
 	let raw_word = translate_div.attr('data-raw');
 	if(!checkIsServerFiled('#serv5')) return false;
 	$.ajax( {
-		url: "/add/cert/" + $('#serv5').val() + '/' + id,
+		url: "/add/cert/" + $('#serv5').val() + '/' + encodeURIComponent(id),
 		success: function( data ) {
 			if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
+				toastr.error(certToastText(data));
 			} else {
 				$('#dialog-confirm-body').text(data);
 				$( "#dialog-confirm-cert" ).dialog({
@@ -105,10 +94,10 @@ function view_ssl(id) {
 }
 function showRawSSL(id) {
 	$.ajax({
-		url: "/add/cert/get/raw/" + $('#serv5').val() + "/" + id,
+		url: "/add/cert/get/raw/" + $('#serv5').val() + "/" + encodeURIComponent(id),
 		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
+				toastr.error(certToastText(data));
 			} else {
 				$('#dialog-confirm-body').text(data);
 				$("#dialog-confirm-cert").dialog({
@@ -142,14 +131,14 @@ function showRawSSL(id) {
 function deleteSsl(id) {
 	if (!checkIsServerFiled('#serv5')) return false;
 	$.ajax({
-		url: "/add/cert/" + $("#serv5").val() + "/" + id,
+		url: "/add/cert/" + $("#serv5").val() + "/" + encodeURIComponent(id),
 		type: "DELETE",
 		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
+				toastr.error(certToastText(data));
 			} else {
 				toastr.clear();
-				toastr.success('SSL cert ' + id + ' has been deleted');
+				toastr.success(certToastText('SSL cert ' + id + ' has been deleted'));
 				$("#ssl_key_view").trigger("click");
 			}
 		}

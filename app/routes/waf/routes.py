@@ -1,4 +1,5 @@
 import os
+import tempfile
 from pathlib import Path
 
 from flask import render_template, request, g, abort, jsonify
@@ -138,21 +139,27 @@ def waf_rule_edit(service, server_ip, rule_id):
 
 
 @bp.route('/<service>/<server_ip>/rule/<rule_id>/save', methods=['POST'])
+@check_services
 def waf_save_config(service, server_ip, rule_id):
     roxywi_auth.page_for_admin(level=2)
     roxywi_common.check_is_server_in_group(server_ip)
 
-    get_date = roxy_wi_tools.GetDate(sql.get_setting('time_zone'))
+    data = request.get_json() if request.is_json else request.form
+    if not hasattr(data, 'get'):
+        abort(400, 'Invalid configuration request')
+    save = data.get('action') if request.is_json else data.get('save')
+    config_mod.validate_config_action(save)
+    config = data.get('config')
+    if not isinstance(config, str):
+        abort(400, 'Configuration content is required')
     configs_dir = sql.get_setting('tmp_config_path')
-    cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}"
-    config_file_name = request.form.get('config_file_name')
+    config_file_name = data.get('config_file_name')
     config_file_name = common.resolve_waf_config_path(service, config_file_name)
-    config = request.form.get('config')
-    oldcfg = request.form.get('oldconfig')
-    save = request.form.get('save')
+    oldcfg = data.get('oldconfig')
 
     try:
-        with open(cfg, "a") as conf:
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', prefix='waf-', dir=configs_dir, delete=False) as conf:
+            cfg = conf.name
             conf.write(config)
     except IOError as e:
         return f"error: Cannot read imported config file: {e}"
@@ -165,10 +172,12 @@ def waf_save_config(service, server_ip, rule_id):
     except OSError as e:
         return f'error: {e}'
 
+    if request.is_json:
+        return jsonify({'status': 'ok', 'data': stderr or ''})
     if stderr:
         return stderr
 
-    return
+    return ''
 
 
 @bp.route('/<server_ip>/rule/<int:rule_id>/<int:enable>', methods=['POST'])

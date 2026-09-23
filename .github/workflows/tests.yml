@@ -22,9 +22,11 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y openssh-server openssl
+          sudo apt-get install -y openssh-server openssl fail2ban
           python -m pip install -r requirements.txt -r requirements-dev.txt
           docker pull haproxy:3.0-alpine
+      - name: Verify authentication events with the real Fail2Ban filter
+        run: python -m pytest tests/integration/test_advisory_fail2ban.py -q --no-cov
       - name: Verify real SSH and Docker HAProxy certificate recovery
         env:
           ROXYWI_TEST_DOCKER_LE: '1'

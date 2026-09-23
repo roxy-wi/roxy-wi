@@ -5,6 +5,7 @@ import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
+from app.modules.server.command import build_remote_command
 
 
 def common_action(server_ip: str, action: str, service: str) -> None:
@@ -52,15 +53,16 @@ def get_action_command(service: str, action: str, server_id: int) -> str:
 
     :return: A list containing the action command that needs to be executed.
     """
+    if action not in ('start', 'stop', 'reload', 'restart'):
+        raise ValueError('Unsupported service action')
     is_docker = service_sql.select_service_setting(server_id, service, 'dockerized')
     if is_docker == '1':
         container_name = sql.get_setting(f'{service}_container_name')
-        if action == 'reload':
-            action = 'kill -s HUP'
-        commands = f"sudo docker {action} {container_name} > /dev/null"
+        arguments = ['kill', '-s', 'HUP'] if action == 'reload' else [action]
+        commands = build_remote_command('docker', [*arguments, container_name], sudo=True) + ' > /dev/null'
     else:
         service_name = service_common.get_correct_service_name(service, server_id)
-        commands = f"sudo systemctl {action} {service_name}"
+        commands = build_remote_command('systemctl', [action, service_name], sudo=True)
 
     return commands
 
@@ -70,7 +72,7 @@ def action_haproxy_waf(server_ip: str, action: str, service: str) -> None:
     roxywi_common.logging(
         server_ip, f'HAProxy WAF service has been {action}ed', keep_history=1, service='haproxy'
     )
-    command = f"sudo systemctl {action} waf"
+    command = get_action_command('waf', action, server_sql.get_server_by_ip(server_ip).server_id)
     server_mod.ssh_command(server_ip, command)
 
 

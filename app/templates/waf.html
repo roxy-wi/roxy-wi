@@ -86,9 +86,9 @@
 					{% if g.user_params['role'] <= 3 %}
 					<button type="submit" value="save" name="save" class="btn btn-default" title="{{lang.words.save|title()}} {{lang.words.without}} {{lang.words.reloading}}">{{lang.words.save|title()}}</button>
 					{% if service == 'haproxy' %}
-					<button type="submit" value="" name="" class="btn btn-default">{{lang.phrases.save_and_restart}}</button>
+					<button type="submit" value="restart" name="save" class="btn btn-default">{{lang.phrases.save_and_restart}}</button>
 					{% elif service == 'nginx' %}
-					<button type="submit" value="" name="reload" class="btn btn-default">{{lang.phrases.save_and_reload}}</button>
+					<button type="submit" value="reload" name="save" class="btn btn-default">{{lang.phrases.save_and_reload}}</button>
 					{% endif %}
 					{% endif %}
 				</p>

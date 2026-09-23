@@ -177,6 +177,9 @@ def check_user_password(login: str, password: str) -> dict:
         raise Exception('There is no login or password')
     try:
         user = user_sql.get_user_by_username(login)
+    except RoxywiResourceNotFound:
+        logger.authentication_failure()
+        raise Exception('ban')
     except Exception as e:
         roxywi_common.logging('Roxy-WI server', f'error: Cannot login user {e}')
         raise Exception('ban')
@@ -186,6 +189,7 @@ def check_user_password(login: str, password: str) -> dict:
         if login in user.username and check_in_ldap(login, password):
             return {'group': str(user.group_id), 'user': user.user_id, 'name': user.username}
         else:
+            logger.authentication_failure()
             raise Exception('ban')
     else:
         password_matches, needs_rehash = roxy_wi_tools.Tools.check_password(password, user.password)
@@ -194,4 +198,5 @@ def check_user_password(login: str, password: str) -> dict:
                 user_sql.update_user_password(password, user.user_id)
             return {'group': str(user.group_id), 'user': user.user_id, 'name': user.username}
         else:
+            logger.authentication_failure()
             raise Exception('ban')

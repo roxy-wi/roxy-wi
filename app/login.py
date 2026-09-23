@@ -1,5 +1,6 @@
 from flask import render_template, request, redirect, make_response, abort, g
 from flask_jwt_extended import get_jwt, unset_jwt_cookies, jwt_required
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError
 
 from app import app
 import app.modules.db.user as user_sql
@@ -47,6 +48,8 @@ def check_login():
         try:
             claims = roxywi_common.get_jwt_token_claims()
         except Exception as e:
+            if isinstance(e, InvalidTokenError) and not isinstance(e, ExpiredSignatureError):
+                logger.authentication_failure()
             logger.warning('Authentication token rejected', reason=str(e))
             abort(401)
 

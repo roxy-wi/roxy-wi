@@ -1,7 +1,11 @@
 import app.modules.db.sql as sql
+import app.modules.db.config as config_sql
 import app.modules.common.common as common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from pathlib import Path
+import os
+import re
+from uuid import uuid4
 from werkzeug.utils import secure_filename
 
 get_config_var = roxy_wi_tools.GetConfigVar()
@@ -40,15 +44,46 @@ def resolve_config_version_path(service: str, version: str) -> str:
 	if not version:
 		raise ValueError('Config version is required')
 	config_dir = Path(get_config_dir(service)).resolve()
-	candidate = Path(version)
-	if not candidate.is_absolute():
-		candidate = config_dir / candidate
-	candidate = candidate.resolve()
-	try:
-		candidate.relative_to(config_dir)
-	except ValueError as exc:
-		raise ValueError('Config version is outside the allowed directory') from exc
+	candidate = os.path.realpath(os.path.join(config_dir, version))
+	# Include the separator so sibling directories with the same prefix fail.
+	if not candidate.startswith(os.path.join(str(config_dir), '')):
+		raise ValueError('Config version is outside the allowed directory')
+	return candidate
+
+
+def resolve_config_baseline(service: str, server_ip: str, version: str) -> str:
+	"""Constrain a browser-supplied baseline to this server's saved configs."""
+	root = Path(get_config_dir(service)).resolve()
+	if version:
+		absolute = os.path.abspath(version)
+		if absolute.startswith(os.path.join(str(root), '')):
+			version = absolute
+	candidate = Path(resolve_config_version_path(service, version))
+	prefix = re.escape(secure_filename(str(server_ip)))
+	extension = re.escape(get_file_format(service))
+	# Match the complete generated name: a hostname prefix alone is ambiguous
+	# with another server such as 192.0.2.10-prod.example.com.
+	generated = re.fullmatch(
+		prefix + r'-\d{4}-\d{2}-\d{2}\.\d{2}:?\d{2}:?\d{2}(?:-[0-9a-f]{32})?\.'
+		+ extension + r'(?:\.old)?', candidate.name,
+	)
+	if candidate.parent != root:
+		raise ValueError('Config baseline does not belong to the selected server')
+	# Historical versions may include the remote filename. Their ownership is
+	# recorded in the database; never infer it from a partial filename match.
+	if not generated and not config_sql.config_version_exists(server_ip, service, str(candidate)):
+		raise ValueError('Config baseline does not belong to the selected server')
 	return str(candidate)
+
+
+def resolve_saved_config_path(service: str, server_ip: str, version: str) -> str:
+	"""Bind persisted versions to server_id, including after an address change."""
+	candidate = resolve_config_version_path(service, version)
+	stored = config_sql.get_config_version(server_ip, service, candidate)
+	if stored is None:
+		raise ValueError('Config version does not belong to the selected server')
+	# Use the owned database record, rather than a browser-supplied path.
+	return resolve_config_version_path(service, str(Path(stored.local_path).resolve()))
 
 
 def generate_config_path(service: str, server_ip: str) -> str:
@@ -64,7 +99,7 @@ def generate_config_path(service: str, server_ip: str) -> str:
 	file_format = get_file_format(service)
 	config_dir = get_config_dir(service)
 	config_filename = secure_filename(
-		f"{server_ip}-{get_date.return_date('config')}.{file_format}"
+		f"{server_ip}-{get_date.return_date('config')}-{uuid4().hex}.{file_format}"
 	)
 	if not config_filename:
 		raise ValueError('Cannot generate a safe configuration filename')

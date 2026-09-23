@@ -368,6 +368,16 @@ def require_active_group_access(group_id: int) -> None:
 		raise RoxywiGroupMismatch
 
 
+def require_server_access(server_ip: str):
+	"""Resolve a managed target before accessing its credentials or files."""
+	try:
+		server = server_sql.get_server_by_ip(str(server_ip))
+		require_active_group_access(server.group_id)
+	except Exception:
+		abort(403, 'Server does not belong to the active group')
+	return server
+
+
 def require_request_server_access() -> None:
 	"""Authorize a managed server referenced by a legacy blueprint request."""
 	view_args = request.view_args or {}

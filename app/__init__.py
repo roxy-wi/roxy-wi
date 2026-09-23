@@ -122,6 +122,8 @@ def _initialize_runtime() -> None:
         from app.routes.server import bp as server_bp
         from app.routes.admin import bp as admin_bp
 
+        from app.routes.logs import bp as logs_bp
+        app.register_blueprint(logs_bp, url_prefix='/logs')
         app.register_blueprint(add_bp, url_prefix='/add')
         app.register_blueprint(install_bp, url_prefix='/install')
         app.register_blueprint(server_bp, url_prefix='/server')

@@ -293,8 +293,10 @@ def show_config_version(service, server_ip: Union[IPvAnyAddress, DomainName], co
 def save_version(service, server_ip: Union[IPvAnyAddress, DomainName], configver):
     server_ip = str(server_ip)
     roxywi_auth.page_for_admin(level=3)
-    config_dir = config_common.get_config_dir('haproxy')
-    configver = config_dir + common.checkAjaxInput(configver)
+    try:
+        configver = config_common.resolve_saved_config_path(service, server_ip, configver)
+    except ValueError as exc:
+        return jsonify({'status': 'failed', 'error': str(exc)}), 400
     service_desc = service_sql.select_service(service)
     save_action = request.json.get('action')
     try:
@@ -389,7 +391,7 @@ def haproxy_section_save(server_ip: Union[IPvAnyAddress, DomainName]):
     hap_configs_dir = config_common.get_config_dir('haproxy')
     cfg = config_common.generate_config_path('haproxy', server_ip)
     config_file = request.json.get('config')
-    oldcfg = request.json.get('oldconfig')
+    oldcfg = config_common.resolve_config_baseline('haproxy', server_ip, request.json.get('oldconfig'))
     save = request.json.get('action')
     start_line = request.json.get('start_line')
     end_line = request.json.get('end_line')
@@ -463,7 +465,7 @@ def show_compare(service, server_ip):
     if '..' in left or '..' in right:
         return jsonify({'error': 'error: .. is not allowed'})
     try:
-        compare = config_mod.compare_config(service, left, right)
+        compare = config_mod.compare_config(service, server_ip, left, right)
     except Exception as e:
         return roxywi_common.handler_exceptions_for_json_data(e, '')
     return jsonify({'compare': compare})

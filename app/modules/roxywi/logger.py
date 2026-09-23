@@ -2,6 +2,7 @@ import logging
 import json
 import os
 import sys
+from ipaddress import ip_address
 from typing import Any, Optional
 
 from flask import request, has_request_context
@@ -34,11 +35,21 @@ class StructuredLogFormatter(logging.Formatter):
         Returns:
             A JSON string representation of the log record
         """
-        log_data = {
+        log_data = {}
+        if getattr(record, '_auth_failure', False) is True and has_request_context():
+            try:
+                client_ip = str(ip_address(request.remote_addr))
+            except ValueError:
+                client_ip = None
+            if client_ip:
+                # This leading field is reserved for genuine authentication
+                # failures; never derive it from a path, message or header.
+                log_data['authentication_failure'] = {'ip': client_ip}
+        log_data.update({
             'timestamp': utc_now().isoformat(),
             'level': record.levelname,
             'message': record.getMessage(),
-        }
+        })
 
         # Add exception info if available
         if record.exc_info:
@@ -58,6 +69,8 @@ class StructuredLogFormatter(logging.Formatter):
 
         # Add extra fields from the record
         for key, value in record.__dict__.items():
+            if key in ('_auth_failure', '_authentication_failure'):
+                continue
             if key.startswith('_') and not key.startswith('__'):
                 clean_key = key[1:]  # Remove the leading underscore
                 log_data[clean_key] = value
@@ -206,6 +219,10 @@ def debug(message: str, **kwargs: Any) -> None:
 def info(message: str, **kwargs: Any) -> None:
     """Log an INFO level message."""
     log(INFO, message, **kwargs)
+
+
+def authentication_failure() -> None:
+    warning('Authentication failed', auth_failure=True)
 
 
 def warning(message: str, **kwargs: Any) -> None:

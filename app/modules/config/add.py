@@ -162,9 +162,27 @@ def delete_bwlist(list_name: str, color: str, group: str, server_ip: str) -> str
 	return output
 
 
+def _map_path(map_name: str, group: str) -> Path:
+	"""Resolve a plain map filename inside the active group's directory."""
+	if not map_name or map_name in ('.', '..') or any(char in map_name for char in ('/', '\\', '\0')):
+		raise ValueError('Map name must be a filename')
+	if Path(map_name).name != map_name:
+		raise ValueError('Map name must be a filename')
+	maps_root = (Path(get_config.get_config_var('main', 'lib_path')) / 'maps').resolve()
+	group_path = maps_root / str(group)
+	if group_path.parent != maps_root or group_path.resolve() != group_path:
+		raise ValueError('Map directory does not belong to the selected group')
+	resolved = os.path.realpath(group_path / map_name)
+	if not resolved.startswith(os.path.join(str(group_path), '')):
+		raise ValueError('Map path does not belong to the selected group')
+	candidate = Path(resolved)
+	if candidate.parent != group_path:
+		raise ValueError('Map path does not belong to the selected group')
+	return candidate
+
+
 def edit_map(map_name: str, group: str) -> str:
-	lib_path = get_config.get_config_var('main', 'lib_path')
-	list_path = f"{lib_path}/maps/{group}/{map_name}"
+	list_path = _map_path(map_name, group)
 
 	try:
 		with open(list_path, 'r') as f:
@@ -177,13 +195,10 @@ def edit_map(map_name: str, group: str) -> str:
 
 def create_map(server_ip: str, map_name: str, group: str) -> str:
 	lib_path = Path(get_config.get_config_var('main', 'lib_path')).resolve()
+	_map_path(map_name, group)
 	map_name = f"{map_name.split('.')[0]}.map"
-	map_path = (lib_path / 'maps' / str(group)).resolve()
-	full_path = (map_path / map_name).resolve()
-	try:
-		full_path.relative_to((lib_path / 'maps').resolve())
-	except ValueError:
-		raise ValueError('Map path escapes the configured maps directory')
+	full_path = _map_path(map_name, group)
+	map_path = full_path.parent
 
 	try:
 		map_path.mkdir(parents=True, exist_ok=True)
@@ -200,8 +215,7 @@ def create_map(server_ip: str, map_name: str, group: str) -> str:
 
 
 def save_map(map_name: str, list_con: str, group: str, server_ip: str, action: str) -> str:
-	lib_path = get_config.get_config_var('main', 'lib_path')
-	map_path = f"{lib_path}/maps/{group}/{map_name}"
+	map_path = str(_map_path(map_name, group))
 	output = ''
 
 	try:
@@ -253,8 +267,7 @@ def save_map(map_name: str, list_con: str, group: str, server_ip: str, action: s
 
 def delete_map(map_name: str, group: str, server_ip: str) -> str:
 	servers = []
-	lib_path = get_config.get_config_var('main', 'lib_path')
-	list_path = f"{lib_path}/maps/{group}/{map_name}"
+	list_path = _map_path(map_name, group)
 	path = f"{sql.get_setting('haproxy_dir')}/maps"
 	output = ''
 

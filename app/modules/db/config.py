@@ -70,14 +70,7 @@ def delete_config_version(server_ip: str, service: str, local_path: str) -> bool
 
 
 def select_remote_path_from_version(server_ip: str, service: str, local_path: str):
-	server_id = get_server_by_ip(server_ip).server_id
-	try:
-		query_res = ConfigVersion.get(
-			(ConfigVersion.server_id == server_id)
-			& (ConfigVersion.service == service)
-			& (ConfigVersion.local_path == local_path)
-		).remote_path
-	except Exception as e:
-		out_error(e)
-	else:
-		return query_res
+	version = get_config_version(server_ip, service, local_path)
+	if version is None:
+		raise ValueError('Config version does not belong to the selected server')
+	return version.remote_path

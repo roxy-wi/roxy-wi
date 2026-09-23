@@ -119,16 +119,16 @@ function addServer(dialog_id) {
                     $(".controlgroup").controlgroup();
                     $("select").selectmenu();
                     let id = data.id;
-                    $('select:regex(id, git-server)').append('<option value=' + id + '>' + servername + '</option>').selectmenu("refresh");
-                    $('select:regex(id, backup-server)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
-                    $('select:regex(id, haproxy_exp_addserv)').append('<option value=' +ip + '>' + servername + '</option>').selectmenu("refresh");
-                    $('select:regex(id, nginx_exp_addserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
-                    $('select:regex(id, apache_exp_addserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
-                    $('select:regex(id, node_exp_addserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
-                    $('select:regex(id, geoipserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
-                    $('select:regex(id, haproxyaddserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
-                    $('select:regex(id, nginxaddserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
-                    $('select:regex(id, apacheaddserv)').append('<option value=' + ip + '>' + servername + '</option>').selectmenu("refresh");
+                    $('select:regex(id, git-server)').append($('<option>').val(id).text(servername)).selectmenu("refresh");
+                    $('select:regex(id, backup-server)').append($('<option>').val(ip).text(servername)).selectmenu("refresh");
+                    $('select:regex(id, haproxy_exp_addserv)').append($('<option>').val(ip).text(servername)).selectmenu("refresh");
+                    $('select:regex(id, nginx_exp_addserv)').append($('<option>').val(ip).text(servername)).selectmenu("refresh");
+                    $('select:regex(id, apache_exp_addserv)').append($('<option>').val(ip).text(servername)).selectmenu("refresh");
+                    $('select:regex(id, node_exp_addserv)').append($('<option>').val(ip).text(servername)).selectmenu("refresh");
+                    $('select:regex(id, geoipserv)').append($('<option>').val(ip).text(servername)).selectmenu("refresh");
+                    $('select:regex(id, haproxyaddserv)').append($('<option>').val(ip).text(servername)).selectmenu("refresh");
+                    $('select:regex(id, nginxaddserv)').append($('<option>').val(ip).text(servername)).selectmenu("refresh");
+                    $('select:regex(id, apacheaddserv)').append($('<option>').val(ip).text(servername)).selectmenu("refresh");
                 }
             }
         });

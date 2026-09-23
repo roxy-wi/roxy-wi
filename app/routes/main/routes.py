@@ -95,6 +95,7 @@ def stats(service, serv):
 @get_user_params()
 @validate()
 def show_stats(service: Literal['haproxy', 'apache', 'nginx'], server_ip: Union[IPvAnyAddress, DomainName]):
+    roxywi_common.require_server_access(server_ip)
     if service in ('nginx', 'apache'):
         try:
             return service_common.get_stat_page(server_ip, service, g.user_params['group_id'])

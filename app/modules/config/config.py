@@ -178,9 +178,12 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 
 	This method generates a list of commands based on the given parameters.
 	"""
+	validate_config_action(just_save)
 	container_name = sql.get_setting(f'{service}_container_name')
 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
-	reload_or_restart_command = f' && {service_action.get_action_command(service, just_save, server_id)}'
+	reload_or_restart_command = ''
+	if just_save in ('reload', 'restart'):
+		reload_or_restart_command = f' && {service_action.get_action_command(service, just_save, server_id)}'
 	move_config = f" sudo mv -f {tmp_file} {config_path}"
 	command_for_docker = f'sudo docker exec -it {container_name}'
 	command = {
@@ -234,6 +237,7 @@ def _prepare_config_version_diff(server_ip: str, service: str, config_path: str,
 	diff = ''
 
 	if old_cfg:
+		old_cfg = config_common.resolve_config_baseline(service, server_ip, old_cfg)
 		path = Path(old_cfg)
 	else:
 		old_cfg = ''
@@ -270,6 +274,11 @@ def normalize_config_file(cfg: str) -> None:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'There is no dos2unix')
 
 
+def validate_config_action(action: str) -> None:
+	if action not in ('save', 'test', 'reload', 'restart'):
+		raise ValueError('Unsupported configuration action')
+
+
 def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, **kwargs):
 	"""
 	:param server_ip: IP address of the server
@@ -281,6 +290,10 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	:return: Error message or service title
 
 	"""
+	validate_config_action(just_save)
+	if (kwargs.get('oldcfg') and service != 'waf' and kwargs.get('record_version', True)
+		and not kwargs.get('slave') and just_save != 'test'):
+		kwargs['oldcfg'] = config_common.resolve_config_baseline(service, server_ip, kwargs['oldcfg'])
 	policy_service = kwargs.get('deployment_policy_service', service)
 	if (
 		policy_service in deployment_policy.SERVICES
@@ -369,6 +382,9 @@ def master_slave_upload_and_restart(server_ip: str, cfg: str, just_save: str, se
 	:return: The output of the operation.
 
 	"""
+	validate_config_action(just_save)
+	if kwargs.get('oldcfg') and service != 'waf' and kwargs.get('record_version', True) and just_save != 'test':
+		kwargs['oldcfg'] = config_common.resolve_config_baseline(service, server_ip, kwargs['oldcfg'])
 	masters = list(server_sql.is_master(server_ip))
 	policy_service = kwargs.get('deployment_policy_service', service)
 	policy_bypass = kwargs.get('deployment_policy_bypass', False)
@@ -539,25 +555,29 @@ def show_compare_config(server_ip: str, service: str) -> str:
 	:return: Returns the rendered template as a string.
 	"""
 	lang = roxywi_common.get_user_lang_for_flask()
-	config_dir = config_common.get_config_dir(service)
-	file_format = config_common.get_file_format(service)
-	return_files = roxywi_common.get_files(config_dir, file_format, server_ip=server_ip)
+	config_dir = Path(config_common.get_config_dir(service)).resolve()
+	versions = config_sql.select_config_version(server_ip, service)
+	return_files = sorted({
+		Path(version.local_path).name for version in versions
+		if Path(version.local_path).resolve().parent == config_dir and Path(version.local_path).is_file()
+	}, reverse=True)
 
 	return render_template('ajax/show_compare_configs.html', serv=server_ip, return_files=return_files, lang=lang)
 
 
-def compare_config(service: str, left: str, right: str) -> str:
+def compare_config(service: str, server_ip: str, left: str, right: str) -> str:
 	"""
 	Compares the configuration files of a service.
 
 	:param service: The name of the service.
+	:param server_ip: The server that owns both saved configurations.
 	:param left: The name of the left configuration file.
 	:param right: The name of the right configuration file.
 	:return: The rendered template with the diff output and the user language for Flask.
 	"""
-	config_dir = config_common.get_config_dir(service)
-	output = diff_config(f'{config_dir}{left}', f'{config_dir}{right}')
-	return output
+	left_path = config_common.resolve_saved_config_path(service, server_ip, left)
+	right_path = config_common.resolve_saved_config_path(service, server_ip, right)
+	return diff_config(left_path, right_path)
 
 
 def show_config(server_ip: str, service: str, config_file_name: str, configver: str, claims: dict, edit_section: str) -> str:
@@ -600,7 +620,7 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 		except Exception as e:
 			raise Exception(e)
 	else:
-		cfg = configs_dir + configver
+		cfg = config_common.resolve_saved_config_path(service, server_ip, configver)
 
 	try:
 		with open(cfg, 'r', encoding='utf-8', errors='replace') as file:
@@ -685,33 +705,9 @@ def list_of_versions(server_ip: str, service: str, configver: str, for_delver: i
 
 
 def return_cfg(service: str, server_ip: str, config_file_name: str) -> str:
+	"""Return a unique config path bound to the selected server.
+
+	Remote filenames are retained in version metadata, not used to infer
+	ownership of controller files.
 	"""
-	:param service: The name of the service (e.g., 'nginx', 'apache')
-	:param server_ip: The IP address of the server
-	:param config_file_name: The name of the configuration file
-	:return: The path to the generated configuration file
-
-	This method returns the path to the generated configuration file based on the provided parameters. The file format is determined by the service. If the service is 'nginx' or 'apache
-	*', then the config_file_name is replaced with the correct path, and the resulting configuration file is named using the server_ip and the original file name. If the service is not '
-	*nginx' or 'apache', then the resulting configuration file is named using the server_ip. The file format is determined by calling the config_common.get_file_format() method.
-
-	Any existing old configuration files in the config_dir are removed before generating the new configuration file.
-
-	Note: This method depends on the config_common.get_file_format(), config_common.get_config_dir(), and get_date.return_date() methods.
-	"""
-	file_format = config_common.get_file_format(service)
-	config_dir = config_common.get_config_dir(service)
-
-	if service in ('nginx', 'apache'):
-		config_file_name = _replace_config_path_to_correct(config_file_name)
-		conf_file_name_short = config_file_name.split('/')[-1]
-		cfg = f"{config_dir}{server_ip}-{conf_file_name_short}-{get_date.return_date('config')}.{file_format}"
-	else:
-		cfg = config_common.generate_config_path(service, server_ip)
-
-	try:
-		os.remove(f'{config_dir}*.old')
-	except Exception:
-		pass
-
-	return cfg
+	return config_common.generate_config_path(service, server_ip)

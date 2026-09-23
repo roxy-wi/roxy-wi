@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for, g
+from flask import render_template, request, redirect, url_for, g, abort
 from flask_jwt_extended import jwt_required
 
 from app.modules.roxywi.exception import RoxywiResourceNotFound
@@ -96,7 +96,9 @@ def logs(service, waf):
 
 @bp.route('/<service>/<serv>', methods=['GET', 'POST'])
 @check_services
+@get_user_params()
 def show_remote_log_files(service, serv):
+    serv = str(roxywi_common.require_server_access(serv).ip)
     service = common.checkAjaxInput(service)
     serv = common.checkAjaxInput(serv)
     log_path = sql.get_setting(f'{service}_path_logs')
@@ -113,7 +115,12 @@ def show_remote_log_files(service, serv):
 
 @bp.route('/<service>/<serv>/<rows>', defaults={'waf': 0}, methods=['GET', 'POST'])
 @bp.route('/<service>/waf/<serv>/<rows>', defaults={'waf': 1}, methods=['GET', 'POST'])
+@get_user_params()
 def show_logs(service, serv, rows, waf):
+    if service in ('haproxy', 'nginx', 'apache', 'keepalived'):
+        serv = str(roxywi_common.require_server_access(serv).ip)
+        if not roxywi_auth.is_access_permit_to_service(service):
+            abort(403, 'Service access is not permitted')
     grep = request.form.get('grep') or request.args.get('grep')
     exgrep = request.form.get('exgrep') or request.args.get('exgrep')
     hour = request.form.get('hour') or request.args.get('hour')

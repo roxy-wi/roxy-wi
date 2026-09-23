@@ -216,6 +216,8 @@ def get_certs(server_id: int):
 @bp.route('/cert/<int:server_id>/<cert_id>', methods=['DELETE', 'GET'])
 @validate()
 def get_cert(server_id: int, cert_id: EscapedString):
+    if request.method == 'DELETE':
+        roxywi_auth.page_for_admin(level=3)
     server_ip = server_sql.get_server(server_id).ip
     if request.method == 'DELETE':
         return add_mod.del_ssl_cert(server_ip, cert_id)
@@ -226,6 +228,7 @@ def get_cert(server_id: int, cert_id: EscapedString):
 @bp.post('/cert/add')
 @validate(body=SSLCertUploadRequest)
 def upload_cert(body: SSLCertUploadRequest):
+    roxywi_auth.page_for_admin(level=3)
     try:
         data = add_mod.upload_ssl_cert(body.server_ip, body.name, body.cert.replace("'", ""), body.cert_type)
         return jsonify(data), 201
@@ -243,6 +246,8 @@ def get_cert_raw(server_id: int, cert_id: EscapedString):
 @bp.route('/map', methods=['POST', 'PUT', 'DELETE', 'GET'])
 @get_user_params()
 def create_map():
+    if request.method != 'GET':
+        roxywi_auth.page_for_admin(level=3)
     server_ip = common.checkAjaxInput(request.form.get('serv'))
     map_name = common.checkAjaxInput(request.form.get('map_name')) or common.checkAjaxInput(request.args.get('map_name'))
     group = g.user_params['group_id']
