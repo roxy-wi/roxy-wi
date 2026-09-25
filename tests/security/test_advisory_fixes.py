@@ -1,15 +1,17 @@
+import json
 import logging
 import re
+from datetime import datetime, timezone
+from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace
-from urllib.parse import quote
 
 import pytest
 from flask import g
 from flask_jwt_extended import create_access_token
 
 from app.modules.config import common as config_common, config as config_mod
-from app.modules.roxywi import auth, common, logger, logs
+from app.modules.roxywi import auth, common, logger, log_snapshot
 from app.modules.roxywi.class_models import SSLCertUploadRequest
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 from app.modules.service import action, common as service_common, haproxy
@@ -162,23 +164,46 @@ def test_waf_legitimate_save_contract(client, actor, monkeypatch, tmp_path, json
 
 @pytest.mark.parametrize('target', ['192.0.2.99', '192.0.2.20', '192.0.2.10;id', '192.0.2.10$(id)'])
 def test_log_target_cannot_inject_or_cross_groups(client, actor, monkeypatch, target):
-    calls = []
-    monkeypatch.setattr(logs.server_mod, 'ssh_command', lambda *a, **k: calls.append(a) or '')
-    response = client.get('/logs/haproxy/' + quote(target, safe='') + '/10', headers=actor[1])
-    assert not calls
+    monkeypatch.setattr(log_snapshot.ssh_mod, 'ssh_connect', lambda *a, **k: pytest.fail('Unauthorized SSH connection'))
+    response = client.post('/logs/query/haproxy', data={
+        'server': target, 'file': 'haproxy.log', 'relative': 3600,
+    }, headers=actor[1])
     assert response.status_code == 403 or 'Invalid managed server address' in response.get_data(as_text=True)
 
 
 @pytest.mark.parametrize('central', [0, 1])
-def test_guest_log_read_preserves_target_and_filters(app, actor, monkeypatch, central):
-    calls = []
-    monkeypatch.setattr(logs.sql, 'get_setting', lambda key: {'syslog_server_enable': central, 'syslog_server': '192.0.2.30', 'haproxy_path_logs': '/var/log/haproxy'}[key])
-    monkeypatch.setattr(logs.server_mod, 'ssh_command', lambda *a, **k: calls.append(a) or 'logs')
-    with app.test_request_context('/'):
-        g.user_params = actor[0]
-        assert logs.show_roxy_log('192.0.2.10', log_file='haproxy.log') == 'logs'
-    assert calls[0][0] == ('192.0.2.30' if central else '192.0.2.10')
-    assert ('/var/log/192.0.2.10/syslog.log' if central else '/var/log/haproxy/haproxy.log') in calls[0][1]
+def test_guest_log_read_preserves_target_and_filters(client, actor, monkeypatch, central):
+    hosts, commands = [], []
+    monkeypatch.setattr(log_snapshot.sql, 'get_setting', lambda key: {'syslog_server_enable': central, 'syslog_server': '192.0.2.30', 'haproxy_path_logs': '/var/log/haproxy'}[key])
+    timestamp = datetime.now(timezone.utc).isoformat()
+    content = ''.join(json.dumps({'timestamp': timestamp, 'message': message}) + '\n'
+                      for message in ('keep this', 'keep but drop', 'other')).encode()
+
+    class Connection:
+        def __enter__(self):
+            return SimpleNamespace(ssh=self)
+
+        def __exit__(self, *_):
+            return False
+
+        def exec_command(self, command, **kwargs):
+            commands.append(command)
+            stdout = BytesIO(content)
+            stdout.channel = SimpleNamespace(recv_exit_status=lambda: 0)
+            return BytesIO(), stdout, BytesIO()
+
+    def connect(host, **kwargs):
+        hosts.append(host)
+        return Connection()
+
+    monkeypatch.setattr(log_snapshot.ssh_mod, 'ssh_connect', connect)
+    response = client.post('/logs/query/haproxy', data={
+        'server': '192.0.2.10', 'file': 'haproxy.log', 'relative': 3600, 'search': 'keep', 'exclude': 'drop',
+    }, headers=actor[1])
+    assert response.status_code == 200
+    assert [json.loads(entry['text'])['message'] for entry in response.json['entries']] == ['keep this']
+    assert hosts == ['192.0.2.30' if central else '192.0.2.10']
+    assert ('/var/log/192.0.2.10/syslog.log' if central else '/var/log/haproxy/haproxy.log') in commands[0]
 
 
 @pytest.mark.parametrize('kind', ['absolute', 'traversal', 'foreign', 'symlink'])

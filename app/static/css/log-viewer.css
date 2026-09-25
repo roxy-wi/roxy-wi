@@ -1,0 +1,106 @@
+#log-viewer-form, #overview-logs {
+    --log-surface:#fff; --log-background:#f7f8fa; --log-text:#242c36; --log-muted:#626e7c;
+    --log-border:#dce1e7; --log-hover:#edf5f8; --log-accent:#027f9f; --log-accent-bg:#e7f4f8;
+    --log-warn:#825000; --log-warn-bg:#fff1d3; --log-error:#b23732; --log-error-bg:#ffebe8;
+    --log-mark:#ffe894;
+    padding:16px 24px 24px; margin:0; color:var(--log-text); font-size:13px; clear:both; color-scheme:light;
+}
+:is(#log-viewer, #overview-logs) {min-width:0;}
+:is(#log-viewer, #overview-logs) [hidden] {display:none!important;}
+:is(#log-viewer, #overview-logs) *, :is(#log-viewer, #overview-logs) *::before, :is(#log-viewer, #overview-logs) *::after {box-sizing:border-box;}
+:is(#log-viewer, #overview-logs) .log-toolbar {display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:12px; background:var(--log-surface); border:1px solid var(--log-border); border-radius:6px;}
+:is(#log-viewer, #overview-logs) .log-control {height:34px; min-width:0; margin:0; padding:0 10px; border:1px solid var(--log-border); border-radius:4px; background:var(--log-surface); color:var(--log-text); font:inherit; box-shadow:none;}
+:is(#log-viewer, #overview-logs) button.log-control, :is(#log-viewer, #overview-logs) summary.log-control {display:inline-flex; align-items:center; justify-content:center; gap:8px; cursor:pointer; white-space:nowrap;}
+:is(#log-viewer, #overview-logs) button:hover, :is(#log-viewer, #overview-logs) summary:hover {background:var(--log-hover);}
+:is(#log-viewer, #overview-logs) button:disabled, :is(#log-viewer, #overview-logs) select:disabled {opacity:.55; cursor:default;}
+:is(#log-viewer, #overview-logs) :is(button, input, select, summary):focus-visible {outline:2px solid var(--log-accent); outline-offset:2px;}
+#log-source {width:190px; flex:0 1 190px;}
+:is(#log-viewer, #overview-logs) #serv, #log_files {width:150px; flex:0 1 150px;}
+:is(#log-viewer, #overview-logs) .log-search-control {display:flex; align-items:center; gap:8px; flex:1 1 160px; min-width:120px; height:34px; padding:0 10px; margin:0; border:1px solid var(--log-border); border-radius:4px; color:var(--log-muted); background:var(--log-surface);}
+:is(#log-viewer, #overview-logs) :is(#log-search, #overview-log-search) {width:100%; min-width:0; height:30px; margin:0; padding:0; background:transparent; border:0; border-radius:0; box-shadow:none; color:var(--log-text); font:inherit; font-weight:400;}
+:is(#log-viewer, #overview-logs) .log-icon-control {width:34px; padding:0;}
+#log-filter-active {position:absolute; right:3px; top:-6px; color:var(--log-accent); font-size:20px;}
+:is(#log-viewer, #overview-logs) .log-popover {position:relative; flex-shrink:0;}
+:is(#log-viewer, #overview-logs) summary {list-style:none;}
+:is(#log-viewer, #overview-logs) summary::-webkit-details-marker {display:none;}
+#log-time-label {max-width:225px; overflow:hidden; text-overflow:ellipsis;}
+:is(#log-viewer, #overview-logs) .log-panel {position:absolute; right:0; top:calc(100% + 8px); z-index:100; padding:18px; background:var(--log-surface); border:1px solid var(--log-border); border-radius:6px; box-shadow:0 6px 20px #0002;}
+:is(#log-viewer, #overview-logs) .log-filter-panel {width:245px;}
+:is(#log-viewer, #overview-logs) .log-filter-panel>label {display:flex; flex-direction:column; gap:6px; margin:0 0 12px;}
+:is(#log-viewer, #overview-logs) .log-filter-panel .log-checkbox {flex-direction:row; align-items:center; gap:8px;}
+:is(#log-viewer, #overview-logs) input[type=checkbox] {appearance:auto; width:16px; height:16px; margin:0; accent-color:var(--log-accent);}
+:is(#log-viewer, #overview-logs) .log-time-panel {display:flex; gap:20px; width:550px;}
+:is(#log-viewer, #overview-logs) .log-presets, :is(#log-viewer, #overview-logs) .log-absolute {display:flex; flex-direction:column; gap:8px; min-width:0;}
+:is(#log-viewer, #overview-logs) .log-presets {flex:0 0 170px;}
+:is(#log-viewer, #overview-logs) .log-presets button {justify-content:flex-start;}
+:is(#log-viewer, #overview-logs) .log-presets button[aria-pressed=true] {background:var(--log-accent-bg); color:var(--log-accent); border-color:var(--log-accent);}
+:is(#log-viewer, #overview-logs) .log-absolute {flex:1;}
+:is(#log-viewer, #overview-logs) .log-absolute label {margin:0;}
+:is(#log-viewer, #overview-logs) .log-date-fields {display:flex; gap:8px;}
+:is(#log-viewer, #overview-logs) .log-date-fields input {flex:1; width:0; padding:0 6px;}
+:is(#log-viewer, #overview-logs) .log-absolute small {line-height:1.5; color:var(--log-muted);}
+#log-live {color:var(--log-accent)!important; border-color:var(--log-accent)!important;}
+#log-live[aria-pressed=true] {background:var(--log-accent-bg);}
+:is(#log-viewer, #overview-logs) .log-live-dot {width:6px; height:6px; background:currentColor; border-radius:50%;}
+:is(#log-viewer, #overview-logs) .log-statusbar {display:flex; justify-content:space-between; gap:12px; padding:14px 0 10px; color:var(--log-muted); font-size:12px;}
+:is(#log-notice, #overview-log-notice) {white-space:pre-line; color:var(--log-warn); background:var(--log-warn-bg); padding:8px 12px; margin-bottom:10px; border-radius:4px; font-size:12px;}
+:is(#log-output, #overview-log-output) {max-height:65vh; overflow:auto; border:1px solid var(--log-border); border-radius:6px; background:var(--log-surface); scrollbar-gutter:stable;}
+:is(#log-output, #overview-log-output):empty {display:none;}
+#log-empty {padding:30px; text-align:center; background:var(--log-surface); border:1px solid var(--log-border); border-radius:6px; color:var(--log-muted);}
+:is(#log-viewer, #overview-logs) .log-row+.log-row {border-top:1px solid var(--log-border);}
+:is(#log-viewer, #overview-logs) .log-row>summary {display:grid; grid-template-columns:12px 100px 65px 112px minmax(0,1fr); gap:10px; align-items:baseline; padding:10px 12px; cursor:pointer;}
+:is(#log-viewer, #overview-logs) .log-row>summary::before {content:'›'; color:var(--log-muted);}
+:is(#log-viewer, #overview-logs) .log-row[open]>summary::before {content:'⌄';}
+:is(#log-viewer, #overview-logs) .log-row[open]>summary {background:var(--log-hover);}
+:is(#log-viewer, #overview-logs) .log-time {color:var(--log-muted); font:12px/1.6 Consolas,monospace; white-space:nowrap;}
+:is(#log-viewer, #overview-logs) .log-level {font-size:11px; font-weight:600; padding:2px 5px; border-radius:3px; text-align:center; background:var(--log-background); color:var(--log-muted);}
+:is(#log-viewer, #overview-logs) .log-level[data-level=WARNING] {background:var(--log-warn-bg); color:var(--log-warn);}
+:is(#log-viewer, #overview-logs) .log-level[data-level=ERROR], :is(#log-viewer, #overview-logs) .log-level[data-level=CRITICAL] {background:var(--log-error-bg); color:var(--log-error);}
+:is(#log-viewer, #overview-logs) .log-process {font-size:12px; color:var(--log-muted); overflow-wrap:anywhere;}
+:is(#log-viewer, #overview-logs) .log-message {white-space:pre-wrap; overflow-wrap:anywhere; font:13px/1.6 Consolas,monospace;}
+:is(#log-viewer, #overview-logs) mark {background:var(--log-mark); color:var(--log-text); padding:0 1px; border-radius:2px;}
+:is(#log-viewer, #overview-logs) .log-match-details {display:inline-block; margin-left:10px; color:var(--log-accent); font-size:11px; font-family:inherit; line-height:1.5;}
+:is(#log-viewer, #overview-logs) .log-detail {padding:14px 20px 18px 34px; background:var(--log-background); border-top:1px solid var(--log-border);}
+:is(#log-viewer, #overview-logs) .log-detail-tabs {display:flex; gap:16px; margin-bottom:14px;}
+:is(#log-viewer, #overview-logs) .log-detail-tabs button {font:inherit; padding:0 0 5px; color:var(--log-muted); border:0; border-bottom:2px solid transparent; background:none; cursor:pointer;}
+:is(#log-viewer, #overview-logs) .log-detail-tabs button[aria-pressed=true] {border-color:var(--log-accent); color:var(--log-accent);}
+:is(#log-viewer, #overview-logs) .log-fields {display:grid; grid-template-columns:minmax(100px,170px) minmax(0,1fr); gap:8px 20px; margin:0; font-size:12px;}
+:is(#log-viewer, #overview-logs) .log-fields dt {color:var(--log-muted); overflow-wrap:anywhere;}
+:is(#log-viewer, #overview-logs) .log-fields dd {margin:0; white-space:pre-wrap; overflow-wrap:anywhere; font-family:Consolas,monospace;}
+:is(#log-viewer, #overview-logs) .log-raw {font:12px/1.6 Consolas,monospace; white-space:pre-wrap; overflow-wrap:anywhere; margin:0; padding:0; background:none; color:var(--log-text); border:0;}
+:is(#log-viewer, #overview-logs) .log-footer {font-size:11px; color:var(--log-muted); margin-top:10px;}
+@media(max-width:1100px) {#log-viewer-form[data-internal=false] :is(#serv,#log_files) {flex-basis:125px;width:125px;}}
+@media(max-width:760px) {
+    #log-viewer-form {padding:12px 16px 20px;}
+    :is(#log-viewer, #overview-logs) .log-time-panel {position:fixed; top:12vh; left:4vw; right:4vw; width:auto; max-height:75vh; overflow:auto; flex-wrap:wrap;}
+    :is(#log-viewer, #overview-logs) .log-row>summary {grid-template-columns:12px 100px 65px minmax(0,1fr); gap:6px 8px;}
+    :is(#log-viewer, #overview-logs) .log-message {grid-column:2/-1;}
+    #log-time-label {max-width:180px;}
+}
+@media(max-width:480px) {
+    #log-viewer-form {padding:12px;}
+    :is(#log-viewer, #overview-logs) .log-toolbar {padding:8px;gap:6px;}
+    #log-source {flex:1 1 100%;width:100%;}
+    :is(#log-viewer, #overview-logs) .log-search-control {flex-basis:100%;}
+    :is(#log-viewer, #overview-logs) .log-filter-panel {right:auto;left:0;}
+    :is(#log-viewer, #overview-logs) .log-statusbar {flex-wrap:wrap;}
+    :is(#log-viewer, #overview-logs) .log-detail {padding:12px;}
+    :is(#log-viewer, #overview-logs) .log-fields {grid-template-columns:90px minmax(0,1fr);gap:8px 12px;}
+}
+
+#overview-logs {float:none; clear:both; width:calc(100% - 34px); min-width:0; max-width:none; min-height:0; margin:0 20px 20px 7px; padding:12px;}
+#overview-logs #overview-log-title {color:var(--log-text); font-weight:600;}
+#overview-logs .overview-log-range {color:var(--log-muted); font-size:12px;}
+#overview-logs .log-search-control {margin-left:auto; max-width:260px;}
+#overview-logs .log-row>summary {grid-template-columns:12px 180px 65px 112px minmax(0,1fr);}
+#overview-log-expand {margin-top:10px!important;}
+@media(max-width:900px) {
+    #overview-logs .log-row>summary {grid-template-columns:12px 180px 65px minmax(0,1fr); gap:6px 8px;}
+    #overview-logs .log-message {grid-column:2/-1;}
+}
+@media(max-width:480px) {
+    #overview-logs {width:calc(100% - 14px); margin:0 7px 20px; padding:8px;}
+    #overview-logs .log-search-control {max-width:none;}
+    #overview-logs .log-row>summary {grid-template-columns:12px minmax(0,1fr) 65px;}
+    #overview-logs .log-process {grid-column:2/-1;}
+}

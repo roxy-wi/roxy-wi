@@ -53,6 +53,7 @@ config:
   logs:
     log_console: 1
     log_file_enabled: 0
+    log_store_enabled: 1
     log_level: INFO
   proxy:
     enabled: 1

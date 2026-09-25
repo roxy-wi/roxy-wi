@@ -384,7 +384,6 @@
     "return_to_config": "Voltar para a configuração",
     "check_config": "Verificar o config",
     "master_slave": "Se você econfigurar o servidor mestre, o escravo será reconfigurado automaticamente",
-    "read_about_files": "Você pode ler a descrição dos arquivos de configuração",
     "read_about_parameters": "Você pode ler a descrição de todos os parâmetros",
     "read_howto": "ler um HowTo sobre isso",
     "howto_user": "Como utilizar",
@@ -452,8 +451,6 @@
     "server_is_inaccessible_for_editing": "Este servidor está inacessível para edição por todos, exceto a função de administrador",
     "creating_ha": "Criando um novo cluster de alta disponibilidade",
     "adding_vrrp": "Adicionando um novo endereço VRRP",
-    "find_in_log": "Encontre em um arquivo de log. Suporta expressões regulares.",
-    "exclude_in_log": "Excluir da pesquisa em um arquivo de log. Suporta expressões regulares.",
     "bytes_in": "Bytes em",
     "bytes_out": "Bytes fora",
     "current_ses": "Current sessões",
@@ -1180,3 +1177,24 @@
     "inactive": "inativa",
     }
 %}
+{% set log_viewer = {
+    "source": "Origem dos logs", "all_processes": "Roxy-WI · todos os processos",
+    "find": "Pesquisar nos logs…", "filters": "Filtros adicionais", "apply_filters": "Aplicar filtros",
+    "select_file": "Selecione um arquivo de log", "refresh": "Atualizar", "fields": "Campos", "raw": "Registro original",
+    "details": "Detalhes do evento", "match_fields": "Correspondência nos detalhes", "load_files_failed": "Não foi possível listar os arquivos de log remotos",
+    "relative": "Intervalos de tempo relativos", "absolute": "Intervalo de tempo absoluto",
+    "last_5m": "Últimos 5 minutos", "last_15m": "Últimos 15 minutos", "last_30m": "Últimos 30 minutos",
+    "last_hour": "Última hora", "last_3h": "Últimas 3 horas", "last_6h": "Últimas 6 horas",
+    "last_12h": "Últimas 12 horas", "last_day": "Últimas 24 horas", "last_week": "Últimos 7 dias",
+    "from": "De", "to": "Até", "timezone": "Fuso horário", "browser_time": "Horário do navegador",
+    "timezone_hint": "Usado para as datas informadas e os registros de data e hora sem deslocamento de fuso. Intervalo máximo: 31 dias.",
+    "apply": "Aplicar intervalo", "autoscroll": "Rolagem automática", "pause": "Pausar", "paused": "Pausado",
+    "loading": "Carregando…", "ready": "Carregado", "empty": "Nenhum registro neste intervalo", "rows": "linhas",
+    "retry": "Conexão interrompida. Tentando novamente…", "failed": "Não foi possível carregar os logs",
+    "invalid_range": "Informe datas válidas: o início deve ser anterior ao fim e o intervalo não pode exceder 31 dias.",
+    "select_source": "Selecione uma origem de logs, ou um servidor e um arquivo.",
+    "limited": "Apenas um volume limitado dos registros mais recentes foi lido. Registros mais antigos podem não aparecer nesta visualização.",
+    "reset": "Um arquivo foi truncado ou registros não lidos foram excluídos durante a rotação. Alguns registros podem estar indisponíveis.",
+    "unparsed": "Linhas excluídas por não terem data e hora em um formato reconhecido:",
+    "buffer": "A visualização mantém até 1000 linhas.", "live_relative": "Live está disponível para intervalos relativos nos logs da aplicação e dos serviços gerenciados."
+} %}

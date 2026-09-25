@@ -21,7 +21,9 @@
   ignore_errors: yes
 
 - name: Add logs tasks.
-  include_tasks: ../../haproxy/tasks/logs.yml
+  include_role:
+    name: haproxy
+    tasks_from: logs
 
 - name: Setting sysctl values.
   sysctl:

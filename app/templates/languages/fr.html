@@ -385,7 +385,6 @@
     "return_to_config": "Retourner à la vue configuration",
     "check_config": "Vérifier la config",
     "master_slave": "Si vous reconfigurer le server Master, Le serveur Slave sera automatiquement reconfiguré",
-    "read_about_files": "Vous pouvez lire la déscription de tous les fichiers de logs",
     "read_about_parameters": "Vous pouvez lire la déscription de tous les paramètres",
     "read_howto": "lire le HowTo",
     "howto_user": "Comment utilser",
@@ -453,8 +452,6 @@
     "server_is_inaccessible_for_editing": "Ce serveur est inaccessible pour modification par tout le monde sauf le rôle d'administrateur",
     "creating_ha": "Créer un nouveau cluster haute disponibilité",
     "adding_vrrp": "Ajout d'une nouvelle adresse VRRP",
-    "find_in_log": "Rechercher dans un fichier journal. Prend en charge les expressions régulières.",
-    "exclude_in_log": "Exclure de la recherche dans un fichier journal. Prend en charge les expressions régulières.",
     "bytes_in": "Octets dans",
     "bytes_out": "Octets sortants",
     "current_ses": "Séances en cours",
@@ -1182,3 +1179,24 @@
     "inactive": "inactive",
     }
 %}
+{% set log_viewer = {
+    "source": "Source des journaux", "all_processes": "Roxy-WI · tous les processus",
+    "find": "Rechercher dans les journaux…", "filters": "Filtres supplémentaires", "apply_filters": "Appliquer les filtres",
+    "select_file": "Sélectionnez un fichier journal", "refresh": "Actualiser", "fields": "Champs", "raw": "Entrée brute",
+    "details": "Détails de l’événement", "match_fields": "Correspondance dans les détails", "load_files_failed": "Impossible de lister les fichiers journaux distants",
+    "relative": "Périodes relatives", "absolute": "Période absolue",
+    "last_5m": "5 dernières minutes", "last_15m": "15 dernières minutes", "last_30m": "30 dernières minutes",
+    "last_hour": "Dernière heure", "last_3h": "3 dernières heures", "last_6h": "6 dernières heures",
+    "last_12h": "12 dernières heures", "last_day": "Dernières 24 heures", "last_week": "7 derniers jours",
+    "from": "Du", "to": "Au", "timezone": "Fuseau horaire", "browser_time": "Heure du navigateur",
+    "timezone_hint": "Utilisé pour les dates saisies et les horodatages sans décalage horaire. Période maximale : 31 jours.",
+    "apply": "Appliquer la période", "autoscroll": "Défilement automatique", "pause": "Pause", "paused": "En pause",
+    "loading": "Chargement…", "ready": "Chargé", "empty": "Aucune entrée pour cette période", "rows": "lignes",
+    "retry": "Connexion interrompue. Nouvelle tentative…", "failed": "Impossible de charger les journaux",
+    "invalid_range": "Saisissez des dates valides : le début doit précéder la fin, avec une période maximale de 31 jours.",
+    "select_source": "Sélectionnez une source de journaux, ou un serveur et un fichier.",
+    "limited": "Seul un volume limité des dernières entrées a été lu. Les entrées plus anciennes peuvent ne pas figurer dans cet aperçu.",
+    "reset": "Un fichier a été tronqué ou des entrées non lues ont été supprimées lors de la rotation. Certaines entrées peuvent être indisponibles.",
+    "unparsed": "Lignes exclues faute d’horodatage reconnu :",
+    "buffer": "La vue conserve au maximum 1000 lignes.", "live_relative": "Live est disponible pour les périodes relatives dans les journaux de l’application et des services gérés."
+} %}

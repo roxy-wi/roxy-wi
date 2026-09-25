@@ -201,17 +201,6 @@ $( function() {
 		$("#show-all-groups").css("display", "block");
 	});
 
-	$( "#show-all-haproxy-wi-log" ).click( function() {
-		$(".show-haproxy-wi-log").show("fast");
-		$("#hide-all-haproxy-wi-log").css("display", "block");
-		$("#show-all-haproxy-wi-log").css("display", "none");
-	});
-	$( "#hide-all-haproxy-wi-log" ).click( function() {
-		$(".show-haproxy-wi-log").hide("fast");
-		$("#hide-all-haproxy-wi-log").css("display", "none");
-		$("#show-all-haproxy-wi-log").css("display", "block");
-	});
-
 	if (cur_url[0] == "" || cur_url[0] == "waf" || cur_url[0] == "metrics") {
 		$('#secIntervals').css('display', 'none');
 	}
@@ -727,18 +716,3 @@ $(document).on('click keydown', '.service-card[data-detail-url]', function (even
 	if (event.type === 'keydown') event.preventDefault();
 	window.location.href = $(this).data('detail-url');
 });
-function ShowOverviewLogs() {
-	$.ajax( {
-		url: "/overview/logs",
-		type: "GET",
-		beforeSend: function() {
-			$("#overview-logs").html('<img class="loading_small_bin_bout" style="padding-left: 40%;padding-top: 40px;padding-bottom: 40px;" src="/static/images/loading.gif" />');
-		},
-		success: function( data ) {
-			data = data.replace(/\s+/g,' ');
-			$("#overview-logs").html(data);
-			$.getScript(awesome)
-			$.getScript(overview)
-		}
-	} );
-}

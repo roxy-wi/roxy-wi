@@ -446,7 +446,6 @@
     "return_to_config": "Return to configuration view",
     "check_config": "Check config",
     "master_slave": "If you reconfigure Master server, Slave will be reconfigured automatically",
-    "read_about_files": "You can read the description about all logs file",
     "read_about_parameters": "You can read the description of all parameters",
     "read_howto": "read HowTo in this",
     "howto_user": "How to use",
@@ -514,8 +513,6 @@
     "server_is_inaccessible_for_editing": "This server is inaccessible for editing by everyone except the admin role",
     "creating_ha": "Creating a new High Availability cluster",
     "adding_vrrp": "Adding a new VRRP address",
-    "find_in_log": "Find in a log file. Supports regular expressions.",
-    "exclude_in_log": "Exclude from search in a log file. Supports regular expressions.",
     "bytes_in": "Bytes in",
     "bytes_out": "Bytes out",
     "current_ses": "Current sessions",
@@ -1244,3 +1241,24 @@
     "inactive": "inactive",
     }
 %}
+{% set log_viewer = {
+    'source': 'Log source', 'all_processes': 'Roxy-WI · all processes',
+    'find': 'Find in logs…', 'filters': 'Additional filters', 'apply_filters': 'Apply filters',
+    'select_file': 'Select a log file', 'refresh': 'Refresh', 'fields': 'Fields', 'raw': 'Raw',
+    'details': 'Event details', 'match_fields': 'Match in details', 'load_files_failed': 'Cannot list remote log files',
+    'relative': 'Relative time ranges', 'absolute': 'Absolute time range',
+    'last_5m': 'Last 5 minutes', 'last_15m': 'Last 15 minutes', 'last_30m': 'Last 30 minutes',
+    'last_hour': 'Last 1 hour', 'last_3h': 'Last 3 hours', 'last_6h': 'Last 6 hours',
+    'last_12h': 'Last 12 hours', 'last_day': 'Last 24 hours', 'last_week': 'Last 7 days',
+    'from': 'From', 'to': 'To', 'timezone': 'Timezone', 'browser_time': 'Browser time',
+    'timezone_hint': 'Used for entered dates and log timestamps without an offset. Maximum range: 31 days.',
+    'apply': 'Apply time range', 'autoscroll': 'Auto-scroll', 'pause': 'Pause', 'paused': 'Paused',
+    'loading': 'Loading…', 'ready': 'Loaded', 'empty': 'No entries in this range', 'rows': 'rows',
+    'retry': 'Connection interrupted. Retrying…', 'failed': 'Could not load logs',
+    'invalid_range': 'Enter valid dates, with From before To (maximum 31 days).',
+    'select_source': 'Select a log source, or a server and file.',
+    'limited': 'Only a bounded tail of the available logs was read. Older entries may be outside this snapshot.',
+    'reset': 'A file was truncated or unread entries expired during rotation. Some entries may be unavailable.',
+    'unparsed': 'Lines without a supported timestamp were excluded:',
+    'buffer': 'The view keeps at most 1000 rows.', 'live_relative': 'Live is available for relative ranges in application and managed service logs.'
+} %}

@@ -182,3 +182,11 @@ h3 {
     color: #f4f7fb;
 }
 .config-editor-shell .CodeMirror-dialog input { color: #f4f7fb; }
+
+body #log-viewer-form, body #overview-logs {
+    color-scheme:dark;
+    --log-surface:#222730; --log-background:#1b2027; --log-text:#e2e6ec; --log-muted:#a6b1c0;
+    --log-border:#3b4451; --log-hover:#2a3b46; --log-accent:#77d2e5; --log-accent-bg:#233f49;
+    --log-warn:#f6c77c; --log-warn-bg:#473a20; --log-error:#ffb4ac; --log-error-bg:#482b2c;
+    --log-mark:#6b581c;
+}

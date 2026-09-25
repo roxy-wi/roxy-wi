@@ -1,10 +1,21 @@
+- name: Ensure rsyslog is installed for HAProxy logs
+  package:
+    name: rsyslog
+    state: present
+
 - name: Installing HAProxy conf for rsyslog
   template:
    src: haproxy_rsyslog.conf.j2
    dest: /etc/rsyslog.d/49-haproxy.conf
    force: yes
-  ignore_errors: yes
+   validate: 'rsyslogd -N1 -f %s'
   notify: restart rsyslog
+
+- name: Enable HAProxy log collection
+  service:
+    name: rsyslog
+    state: started
+    enabled: yes
 
 - name: Installing HAProxy conf for logrotate on EL
   template:

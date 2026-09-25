@@ -1,0 +1,65 @@
+{% from 'languages/en.html' import log_viewer as log_fallback %}
+{% set lt = lang.log_viewer|default(log_fallback) %}
+{% set internal_logs = selects is defined %}
+<link rel="stylesheet" href="{{url_for('static', filename='css/log-viewer.css')}}">
+<div id="log-viewer" data-text='{{lt|tojson}}'>
+    <div class="log-toolbar">
+        {% if internal_logs %}
+        <select id="log-source" class="log-control" aria-label="{{lt.source}}" required>
+            {% if not selects %}<option value="" disabled selected>{{lt.select_source}}</option>{% endif %}
+            <optgroup label="Roxy-WI">
+                {% for key, label in selects %}
+                <option value="{{key}}" data-source="{{key}}" {% if key == serv %}selected{% endif %}>{{lt.all_processes if key == 'runtime' else label}}</option>
+                {% if key == 'runtime' or (key == 'roxy-wi.log' and 'runtime' not in selects|map(attribute=0)|list) %}
+                    {% for process in process_roles %}<option value="{{key}}:{{process}}" data-source="{{key}}" data-process="{{process}}">Roxy-WI · {{process}}</option>{% endfor %}
+                {% endif %}
+                {% endfor %}
+            </optgroup>
+        </select>
+        {% else %}
+        <select id="serv" class="log-control" aria-label="{{lang.words.server|title()}}" required>
+            <option value="" disabled {% if not serv %}selected{% endif %}>{{lang.words.server|title()}}</option>
+            {% for server in servers %}<option value="{{server.2}}" {% if server.2|string == serv|string %}selected{% endif %}>{{server.1}}</option>{% endfor %}
+        </select>
+        {% if not waf %}<select id="log_files" class="log-control" aria-label="{{lang.words.log|title()}}" required disabled><option value="">{{lt.select_file}}</option></select>{% endif %}
+        {% endif %}
+        <label class="log-search-control" for="log-search"><span class="fas fa-search" aria-hidden="true"></span><input id="log-search" type="search" maxlength="256" placeholder="{{lt.find}}" aria-label="{{lt.find}}" value="{{grep or ''}}"></label>
+        <details id="log-filters" class="log-popover">
+            <summary class="log-control log-icon-control" aria-label="{{lt.filters}}"><span class="fas fa-sliders-h" aria-hidden="true"></span><span id="log-filter-active" hidden>•</span></summary>
+            <div class="log-filter-panel log-panel">
+                <label for="log-exclude">{{lang.words.exclude|title()}}<input id="log-exclude" type="search" maxlength="256" class="log-control"></label>
+                <label for="log-limit">{{lang.words.rows|title()}}<input id="log-limit" type="number" min="1" max="1000" value="{{rows or 100}}" required class="log-control"></label>
+                <label for="log-autoscroll" class="log-checkbox"><input id="log-autoscroll" type="checkbox" checked>{{lt.autoscroll}}</label>
+                <button id="log-apply-filters" type="button" class="log-control">{{lt.apply_filters}}</button>
+            </div>
+        </details>
+        <details id="log-time-picker" class="log-popover">
+            <summary class="log-control"><span class="fas fa-clock" aria-hidden="true"></span><span id="log-time-label">{{lt.last_hour}}</span><span class="fas fa-chevron-down" aria-hidden="true"></span></summary>
+            <div class="log-time-panel log-panel">
+                <div class="log-presets" role="group" aria-label="{{lt.relative}}">
+                    <strong>{{lt.relative}}</strong>
+                    {% for seconds, key in [(300,'last_5m'),(900,'last_15m'),(1800,'last_30m'),(3600,'last_hour'),(10800,'last_3h'),(21600,'last_6h'),(43200,'last_12h'),(86400,'last_day'),(604800,'last_week')] %}<button type="button" class="log-control" data-log-relative="{{seconds}}">{{lt[key]}}</button>{% endfor %}
+                </div>
+                <div class="log-absolute">
+                    <strong>{{lt.absolute}}</strong>
+                    <label for="log-from-date">{{lt.from}}</label>
+                    <div class="log-date-fields"><input id="log-from-date" class="log-date log-control" placeholder="YYYY-MM-DD" autocomplete="off"><input id="log-from-time" class="log-control" type="time" step="1" aria-label="{{lt.from}}"></div>
+                    <label for="log-to-date">{{lt.to}}</label>
+                    <div class="log-date-fields"><input id="log-to-date" class="log-date log-control" placeholder="YYYY-MM-DD" autocomplete="off"><input id="log-to-time" class="log-control" type="time" step="1" aria-label="{{lt.to}}"></div>
+                    <label for="log-timezone">{{lt.timezone}}</label>
+                    <select id="log-timezone" class="log-control"><option value="browser">{{lt.browser_time}}</option><option value="UTC">UTC</option></select>
+                    <small>{{lt.timezone_hint}}</small>
+                    <button id="log-apply-time" class="log-control" type="button">{{lt.apply}}</button>
+                </div>
+            </div>
+        </details>
+        <button id="log-refresh" class="log-control log-icon-control" type="submit" aria-label="{{lt.refresh}}"><span class="fas fa-sync-alt" aria-hidden="true"></span></button>
+        <button id="log-live" class="log-control" type="button" aria-pressed="false"><span class="log-live-dot" aria-hidden="true"></span><span id="log-live-label">Live</span></button>
+    </div>
+    <div class="log-statusbar"><span id="log-status" role="status" aria-live="polite"></span><span><span id="log-count"></span> · <span id="log-zone"></span></span></div>
+    <div id="log-notice" role="status" hidden></div>
+    <div id="log-empty" hidden>{{lt.empty}}</div>
+    <div id="log-output" tabindex="0" aria-label="{{lang.words.logs|title()}}"></div>
+    <div class="log-footer">{{lt.buffer}}</div>
+</div>
+<script src="{{url_for('static', filename='js/log-viewer.js')}}"></script>

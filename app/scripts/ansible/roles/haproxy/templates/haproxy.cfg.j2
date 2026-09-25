@@ -1,7 +1,6 @@
 # BEGIN Roxy-WI MANAGED global do not edit it directly
 global
-    log         127.0.0.2 local0
-    log         127.0.0.1 local1 notice
+    log         127.0.0.1 len 8192 local0
     chroot      /var/lib/haproxy
     pidfile     /var/run/haproxy.pid
     maxconn     4000
@@ -18,7 +17,8 @@ global
 defaults
     mode                    http
     log                     global
-    option                  httplog
+    # JSON converters escape request data; captured HTTP fields are empty in TCP mode.
+    log-format '{"timestamp":"%[date,utime(%Y-%m-%dT%H:%M:%SZ)]","level":"INFO","process_role":"haproxy","message":"%ci:%cp [%[fe_name,json(utf8s)]] %[capture.req.method,json(utf8s)] %[capture.req.uri,json(utf8s)] status=%ST bytes=%B","client_ip":"%ci","client_port":%cp,"frontend":"%[fe_name,json(utf8s)]","backend":"%[be_name,json(utf8s)]","server":"%[srv_name,json(utf8s)]","method":"%[capture.req.method,json(utf8s)]","uri":"%[capture.req.uri,json(utf8s)]","http_version":"%[capture.req.ver,json(utf8s)]","status":%ST,"bytes":"%B","queue_ms":"%Tw","connect_ms":"%Tc","duration_ms":"%Tt","termination_state":"%ts"}'
     option                  dontlognull
     option http-server-close
     option forwardfor       except 127.0.0.0/8

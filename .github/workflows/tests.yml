@@ -10,6 +10,26 @@ permissions:
   contents: read
 
 jobs:
+  service-json-logs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Install log format test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y haproxy nginx rsyslog
+          python -m pip install Jinja2
+      - name: Verify real JSON logs on isolated loopback listeners
+        env:
+          ROXYWI_TEST_SERVICE_LOGS: '1'
+        run: python tests/integration/test_service_json_logs.py
+      - name: Verify incremental reads and rotation on Linux
+        run: python tests/integration/test_remote_log_reader.py
+
   le-linux-deployment:
     runs-on: ubuntu-latest
     timeout-minutes: 15

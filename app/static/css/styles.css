@@ -344,14 +344,6 @@ pre {
 	float: right;
 	margin-right: 1em;
 }
-.time-range {
-    border: 0;
-    background-color: var(--color-gray-light);
-    font-weight: bold;
-    width: 18px;
-    padding-left: 0;
-    padding-right: 0;
-}
 .comment {
 	color: #aaa;
 }

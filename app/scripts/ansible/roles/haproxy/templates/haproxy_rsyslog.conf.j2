@@ -3,13 +3,42 @@ $UDPServerAddress 127.0.0.1
 $UDPServerRun 514
 module(load="builtin:omfile")
 
+# Native traffic records are JSON. Wrap startup/errors and existing text formats
+# with the same envelope; never prepend a syslog header to JSON written to disk.
+template(name="RoxyWIHAProxyText" type="list") {
+  constant(value="{\"timestamp\":\"")
+  property(name="timereported" dateFormat="rfc3339")
+  constant(value="\",\"level\":\"")
+  property(name="$.roxywi_level" format="json")
+  constant(value="\",\"process_role\":\"haproxy\",\"message\":\"")
+  property(name="msg" format="json")
+  constant(value="\",\"hostname\":\"")
+  property(name="hostname" format="json")
+  constant(value="\"}")
+}
+template(name="RoxyWIHAProxyJSON" type="list") {
+  property(name="$.roxywi_line")
+  constant(value="\n")
+}
 
 if $programname startswith 'haproxy' then {
+  set $.roxywi_level = "INFO";
+  if $syslogseverity <= 2 then set $.roxywi_level = "CRITICAL";
+  else if $syslogseverity == 3 then set $.roxywi_level = "ERROR";
+  else if $syslogseverity == 4 then set $.roxywi_level = "WARNING";
+  else if $syslogseverity == 7 then set $.roxywi_level = "DEBUG";
+  set $.roxywi_json_result = parse_json($msg, "\$!roxywi");
+  if $.roxywi_json_result == 0 and $!roxywi!timestamp != "" then {
+    set $!roxywi!level = $.roxywi_level;
+    set $.roxywi_line = $!roxywi;
+  } else {
+    set $.roxywi_line = exec_template("RoxyWIHAProxyText");
+  }
   if $syslogseverity == 6 then
-      action(type="omfile" file="/var/log/haproxy/access.log")
+      action(type="omfile" file="/var/log/haproxy/access.log" template="RoxyWIHAProxyJSON")
   if $syslogseverity <= 3 then
-      action(type="omfile" file="/var/log/haproxy/error.log")
+      action(type="omfile" file="/var/log/haproxy/error.log" template="RoxyWIHAProxyJSON")
   if $syslogseverity <= 5 then
-      action(type="omfile" file="/var/log/haproxy/status.log")
+      action(type="omfile" file="/var/log/haproxy/status.log" template="RoxyWIHAProxyJSON")
       stop
 }

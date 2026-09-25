@@ -151,6 +151,7 @@ def logging(server_ip: Union[str, int], action: str, **kwargs) -> None:
 			user_id=user.user_id,
 			username=user.username,
 			user_group=user_group,
+			group_id=int(claims['group']),
 			client_ip=ip,
 			service=kwargs.get('service')
 		)

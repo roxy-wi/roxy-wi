@@ -206,8 +206,7 @@
 	</table>
 {% endif %}
 {% if g.user_params['role'] <= 2 %}
-	<script>ShowOverviewLogs();</script>
-	<table class="overview-wi" id="overview-logs"></table>
+    {% include 'include/overview_logs.html' %}
 {% endif %}
 {% if g.user_params['role'] <= 1 %}
 	<table class="overview-wi" id="overview-subs">

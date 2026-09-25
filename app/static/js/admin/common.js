@@ -222,30 +222,3 @@ function ajaxActionServices(action, service) {
 		}
 	} );
 }
-function showApacheLog(serv) {
-	let rows = $('#rows').val();
-	let grep = $('#grep').val();
-	let exgrep = $('#exgrep').val();
-	let hour = $('#time_range_out_hour').val();
-	let minute = $('#time_range_out_minut').val();
-	let hour1 = $('#time_range_out_hour1').val();
-	let minute1 = $('#time_range_out_minut1').val();
-	let url = "/logs/apache_internal/" + serv + "/" + rows;
-	$.ajax( {
-		url: url,
-		data: {
-			rows: rows,
-			serv: serv,
-			grep: grep,
-			exgrep: exgrep,
-			hour: hour,
-			minute: minute,
-			hour1: hour1,
-			minute1: minute1
-		},
-		type: "POST",
-		success: function( data ) {
-			$("#ajax").html(data);
-		}
-	} );
-}

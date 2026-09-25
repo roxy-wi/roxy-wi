@@ -384,7 +384,6 @@
     "return_to_config": "Volver a la vista de configuración",
     "check_config": "Comprobar configuración",
     "master_slave": "Si reconfiguras el servidor Maestro, el Esclavo se reconfigurará automáticamente",
-    "read_about_files": "Puedes leer la descripción de todos los archivos de registro",
     "read_about_parameters": "Puedes leer la descripción de todos los parámetros",
     "read_howto": "lee el manual en este",
     "howto_user": "Cómo usar",
@@ -452,8 +451,6 @@
     "server_is_inaccessible_for_editing": "Este servidor no puede ser editado excepto por el rol de administrador",
     "creating_ha": "Creando un nuevo clúster de alta disponibilidad",
     "adding_vrrp": "Añadiendo una nueva dirección VRRP",
-    "find_in_log": "Buscar en un archivo de registro. Soporta expresiones regulares.",
-    "exclude_in_log": "Excluir de la búsqueda en un archivo de registro. Soporta expresiones regulares.",
     "bytes_in": "Bytes entrantes",
     "bytes_out": "Bytes salientes",
     "current_ses": "Sesiones actuales",
@@ -1180,3 +1177,24 @@
     "inactive": "inactiva",
 }
 %}
+{% set log_viewer = {
+    "source": "Origen de los registros", "all_processes": "Roxy-WI · todos los procesos",
+    "find": "Buscar en los registros…", "filters": "Filtros adicionales", "apply_filters": "Aplicar filtros",
+    "select_file": "Selecciona un archivo de registro", "refresh": "Actualizar", "fields": "Campos", "raw": "Entrada original",
+    "details": "Detalles del evento", "match_fields": "Coincidencia en los detalles", "load_files_failed": "No se pueden listar los archivos de registro remotos",
+    "relative": "Intervalos de tiempo relativos", "absolute": "Intervalo de tiempo absoluto",
+    "last_5m": "Últimos 5 minutos", "last_15m": "Últimos 15 minutos", "last_30m": "Últimos 30 minutos",
+    "last_hour": "Última hora", "last_3h": "Últimas 3 horas", "last_6h": "Últimas 6 horas",
+    "last_12h": "Últimas 12 horas", "last_day": "Últimas 24 horas", "last_week": "Últimos 7 días",
+    "from": "Desde", "to": "Hasta", "timezone": "Zona horaria", "browser_time": "Hora del navegador",
+    "timezone_hint": "Se usa para las fechas introducidas y las marcas de tiempo sin desplazamiento horario. Intervalo máximo: 31 días.",
+    "apply": "Aplicar intervalo", "autoscroll": "Desplazamiento automático", "pause": "Pausar", "paused": "En pausa",
+    "loading": "Cargando…", "ready": "Cargado", "empty": "No hay entradas en este intervalo", "rows": "líneas",
+    "retry": "Conexión interrumpida. Reintentando…", "failed": "No se pudieron cargar los registros",
+    "invalid_range": "Introduce fechas válidas: el inicio debe ser anterior al final y el intervalo no debe superar los 31 días.",
+    "select_source": "Selecciona un origen de registros, o un servidor y un archivo.",
+    "limited": "Solo se ha leído un volumen limitado de las últimas entradas. Las entradas anteriores pueden quedar fuera de esta vista.",
+    "reset": "Se ha truncado un archivo o se han eliminado entradas sin leer durante la rotación. Algunas entradas pueden no estar disponibles.",
+    "unparsed": "Líneas excluidas por no tener una marca de tiempo reconocida:",
+    "buffer": "La vista conserva hasta 1000 líneas.", "live_relative": "Live está disponible para intervalos relativos en los registros de la aplicación y de los servicios administrados."
+} %}

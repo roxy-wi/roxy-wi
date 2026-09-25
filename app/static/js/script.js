@@ -385,96 +385,6 @@ function openVersions() {
 	let win = window.open(url,"_self");
 	win.focus();
 }
-function showLog() {
-	let service = $('#service').val();
-	let waf = findGetParameter('waf');
-	let file = $('#log_files').val();
-	let file_from_get = '';
-	if (!checkIsServerFiled('#serv')) return false;
-	let serv = $("#serv").val();
-	if ((file === undefined || file === null || file === 'Select a file') && (waf === '' || waf === undefined)) {
-		let file_from_get = findGetParameter('file');
-		if (file_from_get === undefined || file_from_get === null) {
-			toastr.warning('Select a log file first')
-			return false;
-		} else {
-			file = findGetParameter('file');
-		}
-	}
-	if ((file === undefined || file === null) && waf === '') {
-		toastr.warning('Select a log file first')
-		return false;
-	}
-	let rows = $('#rows').val();
-	let grep = $('#grep').val();
-	let exgrep = $('#exgrep').val();
-	let hour = $('#time_range_out_hour').val();
-	let minute = $('#time_range_out_minut').val();
-	let hour1 = $('#time_range_out_hour1').val();
-	let minute1 = $('#time_range_out_minut1').val();
-	let url = "/logs/" + service + "/" + serv + "/" + rows;
-	if (service === 'None') {
-		service = 'haproxy';
-	}
-	if (waf == '1') {
-		file = findGetParameter('file');
-		url = "/logs/" + service + "/waf/" + serv + "/" + rows + file_from_get;
-	}
-	$.ajax( {
-		url: url,
-		data: {
-			show_log: rows,
-			waf: waf,
-			grep: grep,
-			exgrep: exgrep,
-			hour: hour,
-			minute: minute,
-			hour1: hour1,
-			minute1: minute1,
-			file: file,
-		},
-		type: "POST",
-		success: function( data ) {
-			toastr.clear();
-			$("#ajax").html(data);
-		}
-	} );
-}
-function showRemoteLogFiles() {
-	let serv = $('#serv').val();
-	if (serv === undefined || serv === null) {
-		toastr.warning('Select a server firts');
-		return false;
-	}
-	var rows = $('#rows').val()
-	var grep = $('#grep').val()
-	var exgrep = $('#exgrep').val()
-	var hour = $('#time_range_out_hour').val()
-	var minute = $('#time_range_out_minut').val()
-	var hour1 = $('#time_range_out_hour1').val()
-	var minute1 = $('#time_range_out_minut1').val()
-	var service = $('#service').val()
-	if (service == 'None') {
-		service = 'haproxy';
-	}
-	$.ajax( {
-		url: "/logs/" + service + "/" + serv ,
-		data: {
-			serv: $("#serv").val(),
-		},
-		type: "POST",
-		success: function( data ) {
-			if (data.indexOf('error:') != '-1' || data.indexOf('ls: cannot access') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#remote_log_files").html(data);
-				$.getScript(configShow);
-			}
-		}
-	} );
-
-}
 function clearAllAjaxFields() {
 	$("#ajax").empty();
 	$('.alert').remove();
@@ -646,44 +556,6 @@ function findGetParameter(parameterName) {
     }
     return result;
 }
-function viewLogs() {
-	let viewlogs = $('#viewlogs').val();
-	if (viewlogs === '------' || viewlogs === null) { return false; }
-	if(viewlogs === 'roxy-wi.error.log' || viewlogs === 'roxy-wi.access.log' || viewlogs === 'fail2ban.log') {
-		showApacheLog(viewlogs);
-	} else {
-		let rows = $('#rows').val();
-		let grep = $('#grep').val();
-		let exgrep = $('#exgrep').val();
-		let hour = $('#time_range_out_hour').val();
-		let minute = $('#time_range_out_minut').val();
-		let hour1 = $('#time_range_out_hour1').val();
-		let minute1 = $('#time_range_out_minut1').val();
-		let type = findGetParameter('type')
-		if (viewlogs == null){
-			viewlogs = findGetParameter('viewlogs')
-		}
-		let url = "/logs/internal/" + viewlogs + "/" + rows;
-		$.ajax({
-			url: url,
-			data: {
-				viewlogs: viewlogs,
-				serv: viewlogs,
-				rows: rows,
-				grep: grep,
-				exgrep: exgrep,
-				hour: hour,
-				minute: minute,
-				hour1: hour1,
-				minute1: minute1,
-			},
-			type: "POST",
-			success: function (data) {
-				$("#ajax").html(data);
-			}
-		} );
-	}
-}
 $( function() {
 	checkTheme();
 	$('a').click(function(e) {
@@ -720,7 +592,7 @@ $( function() {
 		$("#show").css("cursor", "not-allowed");
 	}
 	$( "#tabs" ).tabs();
-	$( "select" ).selectmenu();
+	$( "select" ).not('#log-viewer-form select').selectmenu();
 
     $( "[title]" ).tooltip({
 		"content": function(){
@@ -728,80 +600,11 @@ $( function() {
 		},
 		show: {"delay": 1000}
 	});
-	$( "input[type=submit], button" ).button();
-	$( "input[type=checkbox]" ).checkboxradio();
+	$( "input[type=submit], button" ).not('#log-viewer-form button, #overview-logs button').button();
+	$( "input[type=checkbox]" ).not('#log-viewer-form input').checkboxradio();
 	$( ".controlgroup" ).controlgroup();
 	initializeAppNavigation();
 
-	var now = new Date(Date.now());
-	if($('#time_range_out_hour').val() != '' && $('#time_range_out_hour').val() != 'None') {
-		var date1 = parseInt($('#time_range_out_hour').val(), 10) * 60 + parseInt($('#time_range_out_minut').val(), 10)
-	} else {
-		var date1 = now.getHours() * 60 - 3 * 60;
-	}
-	if($('#time_range_out_hour').val() != '' && $('#time_range_out_hour').val() != 'None') {
-		var date2 = parseInt($('#time_range_out_hour1').val(), 10) * 60 + parseInt($('#time_range_out_minut1').val(), 10)
-	} else {
-		var date2 = now.getHours() * 60 + now.getMinutes();
-	}
-	$("#time-range").slider({
-		range: true,
-		min: 0,
-		max: 1440,
-		step: 15,
-		values: [ date1, date2 ],
-		slide: function(e, ui) {
-			var hours = Math.floor(ui.values[0] / 60);
-			var minutes = ui.values[0] - (hours * 60);
-
-			if(hours.toString().length == 1) hours = '0' + hours;
-			if(minutes.toString().length == 1) minutes = '0' + minutes;
-
-			var hours1 = Math.floor(ui.values[1] / 60);
-			var minutes1 = ui.values[1] - (hours1 * 60);
-
-			if(hours1.toString().length == 1) hours1 = '0' + hours1;
-			if(minutes1.toString().length == 1) minutes1 = '0' + minutes1;
-			if($('#time_range_out_hour').val() != '' && $('#time_range_out_hour').val() != 'None') {
-				$('#time_range_out_hour').val(hours);
-			}
-			if($('#time_range_out_minut').val() != '' && $('#time_range_out_minut').val() != 'None') {
-				$('#time_range_out_minut').val(minutes);
-			}
-			if($('#time_range_out_hour1').val() != '' && $('#time_range_out_hour1').val() != 'None') {
-				$('#time_range_out_hour1').val(hours1);
-			}
-			if($('#time_range_out_minut1').val() != '' && $('#time_range_out_minut1').val() != 'None') {
-				$('#time_range_out_minut1').val(minutes1);
-			}
-		}
-	});
-        var date1_hours = Math.floor(date1/60);
-        var date2_hours = date1_hours + 1;
-		var date2_minute = now.getMinutes()
-        if(date1_hours <= 9) date1_hours = '0' + date1_hours;
-        if(date2_hours <= 9) date2_hours = '0' + date2_hours;
-        if(date2_minute <= 9) date2_minute = '0' + date2_minute;
-	if($('#time_range_out_hour').val() != '' && $('#time_range_out_hour').val() != 'None') {
-		$('#time_range_out_hour').val($('#time_range_out_hour').val());
-	} else {
-		$('#time_range_out_hour').val(date1_hours);
-	}
-	if($('#time_range_out_minut').val() != '' && $('#time_range_out_minut').val() != 'None') {
-			$('#time_range_out_minut').val($('#time_range_out_minut').val());
-	} else {
-		$('#time_range_out_minut').val('00');
-	}
-	if($('#time_range_out_hour1').val() != '' && $('#time_range_out_hour1').val() != 'None') {
-		$('#time_range_out_hour1').val($('#time_range_out_hour1').val());
-	} else {
-		$('#time_range_out_hour1').val(date2_hours);
-	}
-	if($('#time_range_out_minut1').val() != '' && $('#time_range_out_minut1').val() != 'None') {
-		$('#time_range_out_minut1').val($('#time_range_out_minut1').val());
-	} else {
-		$('#time_range_out_minut1').val(date2_minute);
-	}
 	$('#auth').submit(function () {
 		let next_url = findGetParameter('next');
 		let json_data = {
@@ -841,14 +644,6 @@ $( function() {
 				}
 			}
 		});
-		return false;
-	});
-	$('#show_log_form').submit(function() {
-		showLog();
-		return false;
-	});
-	$('#show_internal_log_form').submit(function() {
-		viewLogs();
 		return false;
 	});
 	let cur_url = window.location.href.split('/').pop();
@@ -1502,7 +1297,7 @@ function openUserSettings(user_id) {
 				$("#ajax").html(data);
 			} else {
 				$('#show-user-settings-group').html(data);
-				$("select").selectmenu();
+				$("select").not('#log-viewer-form select').selectmenu();
 			}
 		}
 	});

@@ -1,0 +1,17 @@
+{% from 'languages/en.html' import log_viewer as log_fallback %}
+{% set lt = lang.log_viewer|default(log_fallback) %}
+<link rel="stylesheet" href="{{url_for('static', filename='css/log-viewer.css')}}">
+<section id="overview-logs" class="overview-wi" data-text='{{lt|tojson}}' aria-labelledby="overview-log-title">
+    <form class="log-toolbar" id="overview-log-form">
+        <a id="overview-log-title" href="{{url_for('logs.logs_internal', type=2)}}">{{lang.words.recent|title()}} Roxy-WI {{lang.words.logs}}</a>
+        <span class="overview-log-range">{{lt.last_week}}</span>
+        <label class="log-search-control" for="overview-log-search"><span class="fas fa-search" aria-hidden="true"></span><input id="overview-log-search" type="search" maxlength="256" placeholder="{{lt.find}}" aria-label="{{lt.find}}"></label>
+        <button class="log-control log-icon-control" type="submit" aria-label="{{lt.refresh}}"><span class="fas fa-sync-alt" aria-hidden="true"></span></button>
+    </form>
+    <div class="log-statusbar"><span id="overview-log-status" role="status" aria-live="polite">{{lt.loading}}</span><span id="overview-log-source"></span></div>
+    <div id="overview-log-notice" class="log-notice" role="status" hidden></div>
+    <div id="overview-log-output" class="log-output" tabindex="0" aria-label="{{lang.words.logs|title()}}"></div>
+    <button id="overview-log-expand" class="log-control" type="button" aria-expanded="false" aria-controls="overview-log-output" data-show="{{lang.words.show_all}}" data-hide="{{lang.words.hide|title()}} {{lang.words.logs}}" hidden>{{lang.words.show_all}}</button>
+</section>
+<script src="{{url_for('static', filename='js/log-viewer.js')}}"></script>
+<script src="{{url_for('static', filename='js/overview-logs.js')}}"></script>

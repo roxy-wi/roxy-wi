@@ -2,10 +2,11 @@ import logging
 import json
 import os
 import sys
+import socket
 from ipaddress import ip_address
 from typing import Any, Optional
 
-from flask import request, has_request_context
+from flask import request, g, has_request_context
 
 from app.modules.common.time import utc_now
 
@@ -46,7 +47,7 @@ class StructuredLogFormatter(logging.Formatter):
                 # failures; never derive it from a path, message or header.
                 log_data['authentication_failure'] = {'ip': client_ip}
         log_data.update({
-            'timestamp': utc_now().isoformat(),
+            'timestamp': utc_now().isoformat() + 'Z',
             'level': record.levelname,
             'message': record.getMessage(),
         })
@@ -74,6 +75,12 @@ class StructuredLogFormatter(logging.Formatter):
             if key.startswith('_') and not key.startswith('__'):
                 clean_key = key[1:]  # Remove the leading underscore
                 log_data[clean_key] = value
+
+        log_data['process_role'] = os.getenv('ROXYWI_PROCESS_ROLE', 'web')
+        log_data['instance'] = socket.gethostname()
+        log_data['pid'] = record.process
+        if has_request_context() and getattr(g, 'user_params', None):
+            log_data['group_id'] = g.user_params['group_id']
 
         return json.dumps(log_data)
 
@@ -120,6 +127,14 @@ def setup_logger(
         console_handler.setLevel(log_level)
         console_handler.setFormatter(StructuredLogFormatter())
         logger.addHandler(console_handler)
+
+    from app.modules.roxywi.log_store import JournalHandler, store_path
+    journal_path = store_path()
+    if journal_path is not None:
+        journal_handler = JournalHandler(journal_path)
+        journal_handler.setLevel(log_level)
+        journal_handler.setFormatter(StructuredLogFormatter())
+        logger.addHandler(journal_handler)
 
     _logger = logger
     return logger

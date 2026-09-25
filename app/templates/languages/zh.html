@@ -382,7 +382,6 @@
     "return_to_config": "返回配置视图",
     "check_config": "检查配置",
     "master_slave": "如果您重新配置主服务器，备份服务器将自动重新配置",
-    "read_about_files": "您可以阅读所有日志文件的说明",
     "read_about_parameters": "您可以阅读所有参数的说明",
     "read_howto": "在此阅读使用指南",
     "howto_user": "如何使用",
@@ -450,8 +449,6 @@
     "server_is_inaccessible_for_editing": "该服务器无法为非管理员角色编辑",
     "creating_ha": "创建新高可用集群",
     "adding_vrrp": "添加新 VRRP 地址",
-    "find_in_log": "在日志文件中查找。支持正则表达式。",
-    "exclude_in_log": "从日志搜索中排除。支持正则表达式。",
     "bytes_in": "进入字节数",
     "bytes_out": "输出字节数",
     "current_ses": "当前会话数",
@@ -1178,3 +1175,24 @@
     "inactive": "不活跃",
 }
 %}
+{% set log_viewer = {
+    "source": "日志来源", "all_processes": "Roxy-WI · 所有进程",
+    "find": "搜索日志…", "filters": "更多筛选条件", "apply_filters": "应用筛选条件",
+    "select_file": "选择日志文件", "refresh": "刷新", "fields": "字段", "raw": "原始记录",
+    "details": "事件详情", "match_fields": "详情中有匹配项", "load_files_failed": "无法获取远程日志文件列表",
+    "relative": "相对时间范围", "absolute": "绝对时间范围",
+    "last_5m": "最近 5 分钟", "last_15m": "最近 15 分钟", "last_30m": "最近 30 分钟",
+    "last_hour": "最近 1 小时", "last_3h": "最近 3 小时", "last_6h": "最近 6 小时",
+    "last_12h": "最近 12 小时", "last_day": "最近 24 小时", "last_week": "最近 7 天",
+    "from": "开始时间", "to": "结束时间", "timezone": "时区", "browser_time": "浏览器时间",
+    "timezone_hint": "用于输入的日期和不含时区偏移量的日志时间戳。最大时间范围为 31 天。",
+    "apply": "应用时间范围", "autoscroll": "自动滚动", "pause": "暂停", "paused": "已暂停",
+    "loading": "正在加载…", "ready": "已加载", "empty": "此时间范围内没有记录", "rows": "行",
+    "retry": "连接已中断，正在重试…", "failed": "无法加载日志",
+    "invalid_range": "请输入有效日期：开始时间必须早于结束时间，且时间范围不能超过 31 天。",
+    "select_source": "请选择日志来源，或选择服务器和文件。",
+    "limited": "仅读取了有限数量的最新日志。更早的记录可能不在本次结果中。",
+    "reset": "文件已被截断，或未读取的记录已在日志轮转期间被删除。部分记录可能无法访问。",
+    "unparsed": "因时间戳格式不受支持或缺少时间戳而排除的行数：",
+    "buffer": "视图最多保留 1000 行。", "live_relative": "Live 适用于应用程序和受管服务日志的相对时间范围。"
+} %}
