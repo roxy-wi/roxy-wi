@@ -100,6 +100,27 @@ def test_stopped_process_fails_both_checks(local_health):
     assert not worker.path.exists()
 
 
+@pytest.mark.parametrize('role', sorted(health.WORKER_ROLES))
+def test_shutdown_request_is_visible_while_callback_is_busy(local_health, monkeypatch, role):
+    worker = ready_worker(role)
+    monkeypatch.setattr(health, '_health', worker)
+    requested = threading.Event()
+    health.watch_shutdown(requested)
+    # A signal can arrive while the main loop owns a health lock. It only sets
+    # its event; the independent writer observes that event after the lock frees.
+    with worker._lock:
+        requested.set()
+    worker.write()
+    assert health.probe('ready', role) == (False, 'worker is not ready')
+    assert health.probe('live', role) == (True, 'live')
+    worker.pulse(rabbitmq=True)
+    worker.write()
+    assert health.probe('ready', role)[0] is False
+    worker.status('stopped')
+    worker.write()
+    assert health.probe('live', role) == (False, 'process stopped')
+
+
 def test_pid_reuse_does_not_reuse_previous_health(local_health):
     worker = ready_worker()
     snapshot = json.loads(worker.path.read_text())
@@ -278,11 +299,12 @@ def test_event_consumer_pulses_its_actual_idle_loop(local_health, monkeypatch):
     )
 
     def consume():
-        assert timers[0][0] == 5
+        assert timers[0][0] == 0
         timers.pop()[1]()
         worker.write()
         assert health.probe('ready', 'service-events')[0] is True
         assert len(timers) == 1
+        assert timers[0][0] == 1
 
     channel.start_consuming = consume
     monkeypatch.setattr(events.pika, 'BlockingConnection', lambda _: connection)
@@ -387,6 +409,7 @@ def test_consumer_shutdown_marks_draining(local_health, monkeypatch, role):
     else:
         worker = ServiceEventConsumer(RabbitConsumerSettings('broker', 5672, '/', 'test', 'test'))
     worker.stop()
+    worker.run()  # The loop, not the signal handler, publishes draining state.
     reporter.write()
     assert health.probe('live')[0] is True
     assert health.probe('ready')[0] is False

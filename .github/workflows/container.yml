@@ -1,14 +1,25 @@
-name: Container
+name: Container and Helm chart
 
 on:
   push:
     branches: [master]
+    tags: ['v*']
   pull_request:
     branches: [master]
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: container-artifacts-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  CHART_DIR: helm/roxy-wi
+  CHART_NAME: roxy-wi-charts
+  CHART_REGISTRY: ghcr.io/roxy-wi
 
 jobs:
   helm-check:
@@ -54,13 +65,72 @@ jobs:
             > /tmp/roxy-wi-ha.yaml
           test -s /tmp/roxy-wi-ha.yaml
 
+      - name: Reject insufficient Web shutdown window
+        run: |
+          if helm template roxy-wi helm/roxy-wi --set web.terminationGracePeriodSeconds=120 \
+            >/tmp/roxy-wi-invalid.yaml 2>/tmp/roxy-wi-invalid.log; then
+            echo "Chart accepted a Web stop window that is too short"
+            exit 1
+          fi
+          grep -F 'web.terminationGracePeriodSeconds must exceed' /tmp/roxy-wi-invalid.log
+
+      - name: Verify application resource identities
+        run: |
+          helm template custom-release "${CHART_DIR}" --show-only templates/service.yaml \
+            --set-string nameOverride= \
+            --set-string config.main.secret_key=container-ci-secret-key-with-at-least-32-characters \
+            --set-string config.main.secret_phrase=E2nCq8NnECvPQ5zUQntL_-Nt-qBncYkrEmMkYGzVpyM= \
+            --set-string rabbitmq.password=container-ci-rabbitmq-password > /tmp/roxy-wi-service.yaml
+          grep -Fxq '  name: custom-release-roxy-wi' /tmp/roxy-wi-service.yaml
+          grep -Eq '^[[:space:]]+app.kubernetes.io/name: roxy-wi$' /tmp/roxy-wi-service.yaml
+
   build-and-sqlite-smoke:
     needs: helm-check
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    permissions:
+      contents: read
+      packages: write
+    env:
+      PUBLISH_HELM: ${{ github.repository == 'roxy-wi/roxy-wi' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-') }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v5.0.1
+        with:
+          version: v4.2.3
+
+      - name: Validate chart release metadata
+        id: chart
+        shell: bash
+        run: |
+          chart_name="$(awk '$1 == "name:" {print $2; exit}' "${CHART_DIR}/Chart.yaml" | tr -d "\"'")"
+          chart_version="$(awk '$1 == "version:" {print $2; exit}' "${CHART_DIR}/Chart.yaml" | tr -d "\"'")"
+          app_version="$(awk '$1 == "appVersion:" {print $2; exit}' "${CHART_DIR}/Chart.yaml" | tr -d "\"'")"
+          if [[ "${chart_name}" != "${CHART_NAME}" ]]; then
+            echo "Chart name must be ${CHART_NAME} for the configured OCI address" >&2
+            exit 1
+          fi
+          if [[ -z "${chart_version}" || -z "${app_version}" ]]; then
+            echo "Chart version and appVersion must be set" >&2
+            exit 1
+          fi
+          if [[ "${PUBLISH_HELM}" == 'true' ]]; then
+            release_version="${GITHUB_REF_NAME#v}"
+            if [[ ! "${release_version}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+              echo "Stable Helm releases require a vMAJOR.MINOR.PATCH tag" >&2
+              exit 1
+            fi
+            if [[ "${chart_version}" != "${release_version}" || "${app_version}" != "${release_version}" ]]; then
+              echo "Chart version and appVersion must match release tag ${release_version}" >&2
+              exit 1
+            fi
+          fi
+          echo "version=${chart_version}" >> "${GITHUB_OUTPUT}"
 
       - name: Build production image
         run: docker build --file docker/Dockerfile --tag roxy-wi:test .
@@ -109,5 +179,56 @@ jobs:
       - name: Verify role probes and dependency outage recovery
         run: python3 tests/container_health_smoke.py
 
+      - name: Verify graceful shutdown and queued work after restart
+        run: |
+          python3 tests/container_shutdown_smoke.py
+          python3 tests/container_shutdown_smoke.py --database mysql
+
+      - name: Verify cold restore of application and broker state
+        run: |
+          python3 tests/container_restore_smoke.py
+          python3 tests/container_restore_smoke.py --database mysql
+
       - name: Verify documented quick start and HTTPS login after restart
         run: python3 tests/quickstart_smoke.py
+
+      - name: Package Helm chart
+        env:
+          CHART_VERSION: ${{ steps.chart.outputs.version }}
+        run: |
+          mkdir -p "${RUNNER_TEMP}/helm-dist"
+          helm package "${CHART_DIR}" --destination "${RUNNER_TEMP}/helm-dist"
+          test -f "${RUNNER_TEMP}/helm-dist/${CHART_NAME}-${CHART_VERSION}.tgz"
+
+      - name: Save Helm chart artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-chart
+          path: ${{ runner.temp }}/helm-dist/*.tgz
+          if-no-files-found: error
+          retention-days: 1
+
+      - name: Log in to GHCR with Helm
+        if: env.PUBLISH_HELM == 'true'
+        id: helm_login
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          printf '%s' "${GH_TOKEN}" | helm registry login "${REGISTRY}" \
+            --username "${GITHUB_ACTOR}" --password-stdin
+
+      - name: Publish and verify Helm OCI chart
+        if: env.PUBLISH_HELM == 'true'
+        env:
+          CHART_VERSION: ${{ steps.chart.outputs.version }}
+        run: |
+          archive="${RUNNER_TEMP}/helm-dist/${CHART_NAME}-${CHART_VERSION}.tgz"
+          helm push "${archive}" "oci://${CHART_REGISTRY}"
+          mkdir -p "${RUNNER_TEMP}/helm-pull"
+          helm pull "oci://${CHART_REGISTRY}/${CHART_NAME}" --version "${CHART_VERSION}" \
+            --destination "${RUNNER_TEMP}/helm-pull"
+          cmp "${archive}" "${RUNNER_TEMP}/helm-pull/${CHART_NAME}-${CHART_VERSION}.tgz"
+
+      - name: Log out of Helm registry
+        if: always() && steps.helm_login.outcome == 'success'
+        run: helm registry logout "${REGISTRY}"

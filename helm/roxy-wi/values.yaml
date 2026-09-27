@@ -94,6 +94,7 @@ persistence:
 
 web:
   replicaCount: 1
+  terminationGracePeriodSeconds: 150
   strategy:
     type: Recreate
   port: 8080
@@ -101,6 +102,7 @@ web:
     workers: 2
     threads: 4
     timeout: 120
+    gracefulTimeout: 120
   resources: {}
   podAnnotations: {}
   podLabels: {}
@@ -111,6 +113,7 @@ web:
 
 scheduler:
   enabled: true
+  terminationGracePeriodSeconds: 300
   strategy:
     type: Recreate
   resources: {}
@@ -123,6 +126,7 @@ scheduler:
 
 serviceEvents:
   enabled: true
+  terminationGracePeriodSeconds: 300
   replicaCount: 1
   resources: {}
   podAnnotations: {}

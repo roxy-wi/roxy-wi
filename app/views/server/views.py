@@ -15,6 +15,7 @@ from app.middleware import get_user_params, page_for_admin, check_group
 from app.modules.roxywi.class_models import BaseResponse, IdResponse, IdDataResponse, ServerRequest, GroupQuery, GroupRequest, \
     GroupDeploymentPolicyRequest
 from app.modules.common.common_classes import SupportClass
+from app.modules.roxywi.exception import RoxywiConflictError
 
 
 class ServerView(MethodView):
@@ -322,7 +323,10 @@ class ServerView(MethodView):
             server_mod.delete_server(server_id)
             return BaseResponse().model_dump(mode='json'), 204
         except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete server')
+            response, status = roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete server')
+            if isinstance(e, RoxywiConflictError):
+                response['error'] = e.public_message
+            return response, status
 
 
 class ServersView(MethodView):

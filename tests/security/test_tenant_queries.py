@@ -10,6 +10,17 @@ from app.modules.db.db_model import Backup, Groups, Option, Server, SMON
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
+@pytest.fixture(autouse=True)
+def isolated_tenant_records():
+    # These tests share the session DB with other suites. Random fixture IPs
+    # must not remain behind and collide with later managed-server fixtures.
+    with Server._meta.database.atomic() as transaction:
+        try:
+            yield
+        finally:
+            transaction.rollback()
+
+
 @pytest.mark.security
 def test_server_list_does_not_treat_group_one_as_global_access():
     suffix = uuid.uuid4().hex

@@ -15,6 +15,8 @@ import app.modules.db.portscanner as ps_sql
 import app.modules.server.ssh as mod_ssh
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
+from app.modules.db.db_model import LetsEncrypt, LetsEncryptState
+from app.modules.roxywi.exception import RoxywiConflictError
 
 
 def ssh_command(server_ip: str, commands: str, **kwargs):
@@ -478,10 +480,15 @@ def update_server_after_creating(hostname: str, ip: str) -> None:
 def delete_server(server_id: int) -> None:
 	server = server_sql.get_server(server_id)
 
-	if backup_sql.check_exists_backup(server.ip, 'fs'):
-		raise 'warning: Delete the backups first'
-	if backup_sql.check_exists_backup(server.ip, 's3'):
-		raise 'warning: Delete the S3 backups first'
+	for kind, label in (('fs', 'filesystem backups'), ('s3', 'S3 backups'), ('git', 'Git backup jobs')):
+		if backup_sql.check_exists_backup(server_id, kind):
+			raise RoxywiConflictError(f'Delete the {label} first')
+	# A secondary server is also a deployment target for its primary's certificates.
+	owners = [server_id, server.master] if server.master else [server_id]
+	for certificate in LetsEncrypt.select(LetsEncrypt.id).where(LetsEncrypt.server_id.in_(owners)):
+		state = LetsEncryptState.get_or_none(le_id=certificate.id)
+		if state is None or state.status != 'deleted':
+			raise RoxywiConflictError("Delete the Let's Encrypt certificates first and wait for cleanup to finish")
 	from app.modules.db.service_command import (
 		stop_checker_assignments_for_server,
 		stop_metrics_assignments_for_server,

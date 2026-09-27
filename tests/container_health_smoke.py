@@ -109,7 +109,7 @@ def main():
         raise
     finally:
         for name in reversed(containers):
-            result = docker('rm', '--force', name, check=False)
+            result = docker('rm', '--force', '--volumes', name, check=False)
             if result.returncode:
                 print(f'Cannot remove test container {name}: {result.stderr}')
         for kind, name in reversed(resources):

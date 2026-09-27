@@ -29,6 +29,7 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      terminationGracePeriodSeconds: {{ .Values.scheduler.terminationGracePeriodSeconds }}
       automountServiceAccountToken: false
       serviceAccountName: {{ include "roxy-wi.serviceAccountName" . }}
       securityContext:

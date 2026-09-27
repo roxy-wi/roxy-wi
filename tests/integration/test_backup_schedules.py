@@ -426,11 +426,13 @@ def test_removed_operation_delivery_is_acknowledged_without_execution(monkeypatc
     worker = operations.OperationWorker(OperationQueueSettings('broker', 5672, '/', 'test', 'test'))
     acks = []
     def basic_get(**_kwargs):
-        worker._stop_event.set()
         return SimpleNamespace(delivery_tag=1), None, json.dumps({
             'operation_id': task.operation_id, 'task_id': task.id,
         }).encode()
-    channel = SimpleNamespace(basic_get=basic_get, basic_ack=acks.append)
+    def acknowledge(tag):
+        acks.append(tag)
+        worker._stop_event.set()
+    channel = SimpleNamespace(basic_get=basic_get, basic_ack=acknowledge)
     connection = SimpleNamespace(is_open=True, channel=lambda: channel, close=lambda: None)
     monkeypatch.setattr(operations.pika, 'BlockingConnection', lambda _: connection)
     monkeypatch.setattr(operations, 'declare_operation_topology', lambda *_: None)

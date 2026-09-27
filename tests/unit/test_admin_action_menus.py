@@ -42,7 +42,7 @@ def test_admin_tables_use_one_labeled_actions_column():
 def test_admin_row_actions_share_the_same_dropdown_component():
     menu_template = Path('app/templates/include/admin_action_menu.html').read_text(encoding='utf-8')
     stylesheet = Path('app/static/css/ui-components.css').read_text(encoding='utf-8')
-    script = Path('app/static/js/admin/common.js').read_text(encoding='utf-8')
+    script = Path('app/static/js/ui-components.js').read_text(encoding='utf-8')
 
     assert 'admin-actions-toggle' in menu_template
     assert 'fa-ellipsis-v' in menu_template

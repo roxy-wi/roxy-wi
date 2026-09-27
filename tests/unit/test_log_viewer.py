@@ -3,6 +3,7 @@ import logging
 import os
 import shutil
 import subprocess
+from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from types import SimpleNamespace
@@ -56,20 +57,30 @@ def test_tail_keeps_repeated_lines_and_waits_for_partial_record(app, journal):
     assert read(app, cursor=fourth['cursor'], q=query(limit=2))['entries'] == []
 
 
-def test_cursor_survives_rotation_and_drains_backlog(app, journal):
+@pytest.mark.parametrize('same_mtime', [False, True])
+def test_cursor_survives_rotation_and_drains_backlog(app, journal, same_mtime):
     first_file = journal / 'rwi-old.log'
     first_file.write_text(event('before'), encoding='utf-8')
     first = read(app, query(limit=1))
     with first_file.open('a', encoding='utf-8') as stream:
         stream.write(event('during rotation'))
-    (journal / 'rwi-new.log').write_text(event('after rotation') * 2, encoding='utf-8')
+    new_file = journal / 'rwi-new.log'
+    new_file.write_text(event('after rotation') * 2, encoding='utf-8')
+    os.utime(first_file, (1, 1))
+    os.utime(new_file, (1, 1) if same_mtime else (2, 2))
     found = []
     cursor = first['cursor']
     for _ in range(4):
         response = read(app, query(limit=1), cursor=cursor)
         cursor = response['cursor']
         found += [json.loads(item['text'])['message'] for item in response['entries']]
-    assert found == ['during rotation', 'after rotation', 'after rotation']
+    expected = ['during rotation', 'after rotation', 'after rotation']
+    if same_mtime:
+        # Independent journal files with equal record times and mtimes have no
+        # cross-file ordering; every unread record must still appear exactly once.
+        assert Counter(found) == Counter(expected)
+    else:
+        assert found == expected
 
 
 def test_copytruncate_detected_even_if_replacement_is_longer(app, journal):

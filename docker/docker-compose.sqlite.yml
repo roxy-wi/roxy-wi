@@ -1,4 +1,5 @@
 x-roxy-wi: &roxy-wi
+  init: true
   image: ghcr.io/roxy-wi/roxy-wi:${ROXYWI_VERSION:-local}
   build:
     context: ..
@@ -20,6 +21,7 @@ x-roxy-wi: &roxy-wi
     ROXYWI_RABBITMQ_USER: roxy-wi
     ROXYWI_CACHE_TYPE: NullCache
     ROXYWI_PUBLIC_URL: ${ROXYWI_PUBLIC_URL}
+    ROXYWI_WEB_GRACEFUL_TIMEOUT: ${ROXYWI_WEB_GRACEFUL_TIMEOUT:-120}
     ROXYWI_SECRET_KEY: ${ROXYWI_SECRET_KEY}
     ROXYWI_SECRET_PHRASE: ${ROXYWI_SECRET_PHRASE}
     ROXYWI_RABBITMQ_PASSWORD: ${ROXYWI_RABBITMQ_PASSWORD}
@@ -39,6 +41,7 @@ services:
 
   web:
     <<: *roxy-wi
+    stop_grace_period: ${ROXYWI_WEB_STOP_GRACE_PERIOD:-150s}
     command: ["web"]
     restart: unless-stopped
     ports:
@@ -49,6 +52,7 @@ services:
 
   scheduler:
     <<: *roxy-wi
+    stop_grace_period: ${ROXYWI_SCHEDULER_STOP_GRACE_PERIOD:-5m}
     command: ["scheduler"]
     restart: unless-stopped
     depends_on:
@@ -59,6 +63,7 @@ services:
 
   service-events:
     <<: *roxy-wi
+    stop_grace_period: ${ROXYWI_EVENTS_STOP_GRACE_PERIOD:-5m}
     command: ["service-events"]
     restart: unless-stopped
     depends_on:
@@ -69,6 +74,7 @@ services:
 
   operations:
     <<: *roxy-wi
+    stop_grace_period: ${ROXYWI_OPERATIONS_STOP_GRACE_PERIOD:-30m}
     command: ["operations"]
     restart: unless-stopped
     depends_on:
@@ -79,6 +85,7 @@ services:
 
   rabbitmq:
     image: rabbitmq:4-management
+    hostname: ${ROXYWI_RABBITMQ_HOSTNAME:-rabbitmq}
     restart: unless-stopped
     environment:
       RABBITMQ_DEFAULT_USER: roxy-wi

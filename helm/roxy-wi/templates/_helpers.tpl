@@ -1,12 +1,13 @@
 {{- define "roxy-wi.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
+{{- /* Kubernetes identities are independent of the OCI chart package name. */ -}}
+{{- default "roxy-wi" .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{- define "roxy-wi.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
+{{- $name := default "roxy-wi" .Values.nameOverride }}
 {{- if contains $name .Release.Name }}
 {{- .Release.Name | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -58,6 +59,14 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end }}
 
 {{- define "roxy-wi.validateValues" -}}
+{{- range $role := list "web" "scheduler" "serviceEvents" "operations" -}}
+{{- if lt (int (get (index $.Values $role) "terminationGracePeriodSeconds")) 1 -}}
+{{- fail (printf "%s.terminationGracePeriodSeconds must be positive" $role) -}}
+{{- end -}}
+{{- end -}}
+{{- if or (lt (int .Values.web.gunicorn.gracefulTimeout) 1) (le (int .Values.web.terminationGracePeriodSeconds) (int .Values.web.gunicorn.gracefulTimeout)) -}}
+{{- fail "web.terminationGracePeriodSeconds must exceed the positive web.gunicorn.gracefulTimeout" -}}
+{{- end -}}
 {{- if not .Values.existingConfigSecret -}}
 {{- $main := default (dict) (get .Values.config "main") -}}
 {{- $secretKey := required "config.main.secret_key is required" (get $main "secret_key") | toString -}}

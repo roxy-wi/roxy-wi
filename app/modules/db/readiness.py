@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import atexit
+import logging
+import threading
+import time
+
 from app.modules.db.db_model import BaseModel
 from app.modules.db.migration_manager import Migration, get_migration_files
 
@@ -21,3 +26,45 @@ def database_schema_ready() -> tuple[bool, str]:
     except Exception as error:
         return False, str(error)
     return True, 'ready'
+
+
+class DatabaseReadinessMonitor:
+    """Keep slow database/DNS checks out of the HTTP worker pool."""
+
+    def __init__(self, check=database_schema_ready, interval=5, max_age=15):
+        self.check = check
+        self.interval = interval
+        self.max_age = max_age
+        self._lock = threading.Lock()
+        self._stop = threading.Event()
+        self._thread = None
+        self._result = (False, 'database check pending')
+        self._checked_at = None
+
+    def get(self) -> tuple[bool, str]:
+        with self._lock:
+            if self._thread is None:
+                self._thread = threading.Thread(target=self._run, name='database-readiness', daemon=True)
+                self._thread.start()
+                atexit.register(self.close)
+            if self._checked_at is None or time.monotonic() - self._checked_at > self.max_age:
+                return False, 'database check pending or expired'
+            return self._result
+
+    def _run(self):
+        while not self._stop.is_set():
+            started_at = time.monotonic()
+            try:
+                result = self.check()
+            except Exception:
+                logging.getLogger('roxy-wi').exception('Database readiness monitor failed')
+                result = (False, 'database check failed')
+            with self._lock:
+                self._result, self._checked_at = result, started_at
+            self._stop.wait(self.interval)
+
+    def close(self):
+        self._stop.set()
+        if self._thread is not None:
+            self._thread.join(timeout=1)
+        atexit.unregister(self.close)

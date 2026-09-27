@@ -12,6 +12,7 @@ Thumbs.db
 .junie/
 .codex-service-packages-*/
 .test-artifacts/
+test-results/
 .pytest_cache/
 .coverage
 .coverage.*

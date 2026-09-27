@@ -10,7 +10,7 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.server.ssh as ssh_mod
 from app.middleware import get_user_params, page_for_admin, check_group
 from app.modules.db.db_model import Cred
-from app.modules.roxywi.exception import RoxywiGroupMismatch, RoxywiResourceNotFound, RoxywiPermissionError
+from app.modules.roxywi.exception import RoxywiConflictError, RoxywiGroupMismatch, RoxywiResourceNotFound, RoxywiPermissionError
 from app.modules.roxywi.class_models import BaseResponse, GroupQuery, CredRequest, CredUploadRequest
 from app.modules.common.common_classes import SupportClass
 
@@ -230,7 +230,10 @@ class CredView(MethodView):
             ssh_mod.delete_ssh_key(cred_id)
             return BaseResponse().model_dump(mode='json'), 204
         except Exception as e:
-            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete SSH key')
+            response, status = roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete SSH key')
+            if isinstance(e, RoxywiConflictError):
+                response['error'] = e.public_message
+            return response, status
 
     @validate(body=CredUploadRequest)
     def patch(self, cred_id: int, body: CredUploadRequest):

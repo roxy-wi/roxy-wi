@@ -62,6 +62,7 @@ class LocalProcessHealth:
         self.ready_timeout = max(15, ready_timeout)
         self._lock = threading.Lock()
         self._stop = threading.Event()
+        self._shutdown_requested = None
         self._status = 'starting'
         self._progress_at = time.monotonic()
         self._dependencies = {}
@@ -84,12 +85,19 @@ class LocalProcessHealth:
         with self._lock:
             self._status = status
 
+    def watch_shutdown(self, requested: threading.Event) -> None:
+        self._shutdown_requested = requested
+
     def write(self) -> None:
         with self._lock:
+            status = self._status
+            if (status != 'stopped' and self._shutdown_requested is not None
+                    and self._shutdown_requested.is_set()):
+                status = 'draining'
             snapshot = {
                 **self.identity,
                 'role': self.role,
-                'status': self._status,
+                'status': status,
                 'sample_at': time.monotonic(),
                 'progress_at': self._progress_at,
                 'live_timeout': self.live_timeout,
@@ -140,6 +148,12 @@ def dependency(name: str, ready: bool) -> None:
 def draining() -> None:
     if _health is not None:
         _health.status('draining')
+
+
+def watch_shutdown(requested: threading.Event) -> None:
+    """Observe shutdown even during a callback, without health locks in signals."""
+    if _health is not None:
+        _health.watch_shutdown(requested)
 
 
 def _same_process(snapshot: dict) -> bool:

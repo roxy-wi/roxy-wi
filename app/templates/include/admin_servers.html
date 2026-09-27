@@ -176,9 +176,11 @@
 </script>
 {% endif %}
 <script>
+	$(function () {
 	{%- for server in servers %}
         sessionStorage.removeItem('server-{{ server.0 }}')
         setInterval(serverIsUp, 18000, '{{server.0}}');
 		serverIsUp('{{server.0}}');
 	{%- endfor %}
+	});
 </script>

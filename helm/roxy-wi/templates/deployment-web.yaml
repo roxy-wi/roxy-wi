@@ -30,6 +30,7 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      terminationGracePeriodSeconds: {{ .Values.web.terminationGracePeriodSeconds }}
       automountServiceAccountToken: false
       serviceAccountName: {{ include "roxy-wi.serviceAccountName" . }}
       securityContext:
@@ -55,6 +56,8 @@ spec:
               value: {{ .Values.web.gunicorn.threads | quote }}
             - name: ROXYWI_WEB_TIMEOUT
               value: {{ .Values.web.gunicorn.timeout | quote }}
+            - name: ROXYWI_WEB_GRACEFUL_TIMEOUT
+              value: {{ .Values.web.gunicorn.gracefulTimeout | quote }}
             {{- with .Values.web.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}

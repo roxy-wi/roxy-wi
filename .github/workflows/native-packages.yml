@@ -109,7 +109,7 @@ jobs:
             dist/*.deb
             dist/*.rpm
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 1
           overwrite: true
 
   publish:

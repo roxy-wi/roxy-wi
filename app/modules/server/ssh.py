@@ -9,12 +9,12 @@ import app.modules.db.cred as cred_sql
 import app.modules.db.group as group_sql
 import app.modules.db.server as server_sql
 from app.modules.server import ssh_connection
-from app.modules.db.db_model import Cred
+from app.modules.db.db_model import Backup, Cred, GitSetting, Server
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.modules.roxywi import logger
 from app.modules.roxywi.class_models import IdResponse, IdDataResponse, CredRequest
-from app.modules.roxywi.exception import RoxywiResourceNotFound
+from app.modules.roxywi.exception import RoxywiConflictError, RoxywiResourceNotFound
 
 get_config = roxy_wi_tools.GetConfigVar()
 
@@ -180,12 +180,15 @@ def update_ssh_key(body: CredRequest, group_id: int, ssh_id: int) -> None:
 
 def delete_ssh_key(ssh_id: int) -> None:
 	sshs = cred_sql.get_ssh(ssh_id)
+	for model in (Server, Backup, GitSetting):
+		if model.select().where(model.cred_id == ssh_id).exists():
+			raise RoxywiConflictError('Reassign or remove the servers and backup jobs using these SSH credentials first')
 
 	if sshs.key_enabled == 1:
 		ssh_key_name = _return_correct_ssh_file(sshs)
 		try:
 			os.remove(ssh_key_name)
-		except Exception:
+		except FileNotFoundError:
 			pass
 	try:
 		cred_sql.delete_ssh(ssh_id)

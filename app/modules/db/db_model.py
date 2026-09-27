@@ -755,6 +755,7 @@ class ServiceEventDelivery(BaseModel):
         column_name='event_id',
         backref='deliveries',
         on_delete='CASCADE',
+        unique=True,
     )
     status = CharField(default='pending', index=True, max_length=32)
     attempts = IntegerField(default=0)
@@ -765,7 +766,6 @@ class ServiceEventDelivery(BaseModel):
 
     class Meta:
         table_name = 'service_event_deliveries'
-        indexes = ((('event_id',), True),)
 
 
 class ServiceNotification(BaseModel):

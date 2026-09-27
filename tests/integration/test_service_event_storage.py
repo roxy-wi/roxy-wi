@@ -9,7 +9,7 @@ from itertools import permutations
 from uuid import uuid4
 
 import pytest
-from peewee import SqliteDatabase
+from peewee import IntegrityError, SqliteDatabase
 from playhouse.migrate import SqliteMigrator, migrate
 
 from app.modules.common.time import utc_now
@@ -53,6 +53,15 @@ def assignment(payload, **settings):
             'service': payload['service'],
         }, 'settings': settings}),
     )
+
+
+def test_legacy_outbox_accepts_only_one_delivery_per_event():
+    event = ServiceEvent.create(event_id=str(uuid4()), event_type='status', source='checker',
+                                service='haproxy', observed_at=utc_now(), payload='{}')
+    ServiceEventDelivery.create(event_id=event)
+    with pytest.raises(IntegrityError):
+        ServiceEventDelivery.create(event_id=event)
+    assert ServiceEventDelivery.select().count() == 1
 
 
 @pytest.mark.parametrize('arrival_order', list(permutations(range(3))))

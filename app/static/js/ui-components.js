@@ -205,6 +205,55 @@
 		enhanceTable: enhanceTable
 	};
 
+	function closeAdminActionMenus() {
+		$('.admin-actions-menu').prop('hidden', true).removeAttr('style');
+		$('.admin-actions-toggle').attr('aria-expanded', 'false');
+	}
+
+	function positionAdminActionMenu(button, menu) {
+		menu.prop('hidden', false).css({top: 0, left: 0, visibility: 'hidden'});
+		const buttonRect = button[0].getBoundingClientRect();
+		const menuWidth = menu.outerWidth();
+		const menuHeight = menu.outerHeight();
+		const viewportPadding = 8;
+		let left = buttonRect.right - menuWidth;
+		let top = buttonRect.bottom + 5;
+
+		left = Math.max(viewportPadding, Math.min(left, window.innerWidth - menuWidth - viewportPadding));
+		if (top + menuHeight > window.innerHeight - viewportPadding) {
+			top = Math.max(viewportPadding, buttonRect.top - menuHeight - 5);
+		}
+		menu.css({top: top + 'px', left: left + 'px', visibility: 'visible'});
+	}
+
+	$(document).on('click', '.admin-actions-toggle', function (event) {
+		event.preventDefault();
+		event.stopPropagation();
+		const button = $(this);
+		const menu = button.siblings('.admin-actions-menu');
+		const shouldOpen = menu.prop('hidden');
+		closeAdminActionMenus();
+		if (shouldOpen) {
+			positionAdminActionMenu(button, menu);
+			button.attr('aria-expanded', 'true');
+		}
+	});
+
+	$(document).on('click', '.admin-actions-menu .admin-action-item', function () {
+		closeAdminActionMenus();
+	});
+
+	$(document).on('click', function (event) {
+		if (!$(event.target).closest('.admin-actions').length) closeAdminActionMenus();
+	});
+
+	$(document).on('keydown', function (event) {
+		if (event.key === 'Escape') closeAdminActionMenus();
+	});
+
+	$(window).on('resize', closeAdminActionMenus);
+	document.addEventListener('scroll', closeAdminActionMenus, true);
+
 	$(function () {
 		$('table[data-ux-table]').each(function () { enhanceTable(this); });
 	});

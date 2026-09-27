@@ -10,29 +10,9 @@ permissions:
   contents: read
 
 jobs:
-  service-json-logs:
+  linux-integration:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
-      - name: Install log format test dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y haproxy nginx rsyslog
-          python -m pip install Jinja2
-      - name: Verify real JSON logs on isolated loopback listeners
-        env:
-          ROXYWI_TEST_SERVICE_LOGS: '1'
-        run: python tests/integration/test_service_json_logs.py
-      - name: Verify incremental reads and rotation on Linux
-        run: python tests/integration/test_remote_log_reader.py
-
-  le-linux-deployment:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -42,9 +22,34 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y openssh-server openssl fail2ban
+          sudo apt-get install -y openssh-server openssl fail2ban haproxy nginx rsyslog
+          # Ubuntu's rsyslog AppArmor profile permits /var/log/**, not /tmp/**.
+          sudo install -d -m 0700 -o "$(id -u)" -g "$(id -g)" /var/log/roxywi-tests
           python -m pip install -r requirements.txt -r requirements-dev.txt
+          python -m playwright install --with-deps chromium
           docker pull haproxy:3.0-alpine
+      - name: Verify product workflows in Chromium
+        env:
+          ROXYWI_TEST_BROWSER: '1'
+        run: >-
+          python -m pytest tests/product/browser -q --no-cov
+          --tracing retain-on-failure --screenshot only-on-failure
+          --output test-results/browser --junitxml=test-results/browser.xml
+      - name: Upload browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: product-browser-failures
+          path: test-results/
+          retention-days: 1
+          if-no-files-found: ignore
+      - name: Verify real JSON logs on isolated loopback listeners
+        env:
+          ROXYWI_TEST_SERVICE_LOGS: '1'
+          TMPDIR: /var/log/roxywi-tests
+        run: python tests/integration/test_service_json_logs.py
+      - name: Verify incremental reads and rotation on Linux
+        run: python tests/integration/test_remote_log_reader.py
       - name: Verify authentication events with the real Fail2Ban filter
         run: python -m pytest tests/integration/test_advisory_fail2ban.py -q --no-cov
       - name: Verify real SSH and Docker HAProxy certificate recovery
@@ -92,5 +97,5 @@ jobs:
           docker compose --env-file docker/.env.example -f docker/docker-compose.yml config --quiet
           docker compose --env-file docker/.env.example -f docker/docker-compose.sqlite.yml config --quiet
 
-      - name: Run unit and security tests
-        run: python -m pytest --ignore=tests/smoke --cov=app --cov-report=term-missing --cov-fail-under=25
+      - name: Run unit, security and product workflow tests
+        run: python -m pytest --ignore=tests/smoke --ignore=tests/product/browser --cov=app --cov-report=term-missing --cov-fail-under=25

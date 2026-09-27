@@ -2,6 +2,8 @@
 
 Opt in with ROXYWI_TEST_SERVICE_LOGS=1. Can also run directly with Python and
 Jinja2, without importing the application or installing pytest on the host.
+With Ubuntu's rsyslog AppArmor profile, set TMPDIR to a private, user-writable
+directory under /var/log (CI creates /var/log/roxywi-tests for this purpose).
 """
 import contextlib
 import json
@@ -55,7 +57,7 @@ def records(path):
 
 @contextlib.contextmanager
 def running(command, directory):
-    with tempfile.TemporaryFile(mode='w+') as output:
+    with tempfile.TemporaryFile(mode='w+', dir=directory) as output:
         process = subprocess.Popen(command, cwd=directory, stdout=output, stderr=output)
         try:
             yield process
@@ -114,7 +116,9 @@ class ServiceJSONLogs(unittest.TestCase):
         path = self.root / 'rsyslog.conf'
         path.write_text(config, encoding='utf-8')
         self.check_config(['rsyslogd', '-N1', '-f', str(path)])
-        with running(['rsyslogd', '-n', '-i', str(self.root / 'rsyslog.pid'), '-f', str(path)], self.root):
+        # The subprocess handle owns this instance's lifetime. Avoid a PID file:
+        # AppArmor allows log I/O under /var/log, but not PID-file locking there.
+        with running(['rsyslogd', '-n', '-iNONE', '-f', str(path)], self.root):
             # A UDP send can succeed before the receiver binds. Probe with an
             # informational record until it is actually written.
             def probe():

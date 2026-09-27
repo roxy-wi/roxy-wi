@@ -114,44 +114,30 @@ def _initialize_runtime() -> None:
     app.register_blueprint(change_bp, url_prefix='/changes')
     app.register_blueprint(health_bp)
 
-    if app.config['TESTING']:
-        # Register security-sensitive legacy blueprints in unit tests as well.
-        # Heavy Linux-only dependencies are imported lazily by their handlers.
-        from app.routes.add import bp as add_bp
-        from app.routes.install import bp as install_bp
-        from app.routes.server import bp as server_bp
-        from app.routes.admin import bp as admin_bp
+    # Tests render the same navigation and pages as production.
+    from app.routes.add import bp as add_bp
+    from app.routes.logs import bp as logs_bp
+    from app.routes.metric import bp as metric_bp
+    from app.routes.channel import bp as channel_bp
+    from app.routes.checker import bp as checker_bp
+    from app.routes.portscanner import bp as portscanner_bp
+    from app.routes.install import bp as install_bp
+    from app.routes.server import bp as server_bp
+    from app.routes.admin import bp as admin_bp
+    from app.routes.ha import bp as ha_bp
+    from app.routes.udp import bp as udp_bp
 
-        from app.routes.logs import bp as logs_bp
-        app.register_blueprint(logs_bp, url_prefix='/logs')
-        app.register_blueprint(add_bp, url_prefix='/add')
-        app.register_blueprint(install_bp, url_prefix='/install')
-        app.register_blueprint(server_bp, url_prefix='/server')
-        app.register_blueprint(admin_bp, url_prefix='/admin')
-    else:
-        from app.routes.add import bp as add_bp
-        from app.routes.logs import bp as logs_bp
-        from app.routes.metric import bp as metric_bp
-        from app.routes.channel import bp as channel_bp
-        from app.routes.checker import bp as checker_bp
-        from app.routes.portscanner import bp as portscanner_bp
-        from app.routes.install import bp as install_bp
-        from app.routes.server import bp as server_bp
-        from app.routes.admin import bp as admin_bp
-        from app.routes.ha import bp as ha_bp
-        from app.routes.udp import bp as udp_bp
-
-        app.register_blueprint(add_bp, url_prefix='/add')
-        app.register_blueprint(logs_bp, url_prefix='/logs')
-        app.register_blueprint(metric_bp, url_prefix='/metrics')
-        app.register_blueprint(checker_bp, url_prefix='/checker')
-        app.register_blueprint(channel_bp, url_prefix='/channel')
-        app.register_blueprint(portscanner_bp, url_prefix='/portscanner')
-        app.register_blueprint(install_bp, url_prefix='/install')
-        app.register_blueprint(server_bp, url_prefix='/server')
-        app.register_blueprint(admin_bp, url_prefix='/admin')
-        app.register_blueprint(ha_bp, url_prefix='/ha')
-        app.register_blueprint(udp_bp)
+    app.register_blueprint(add_bp, url_prefix='/add')
+    app.register_blueprint(logs_bp, url_prefix='/logs')
+    app.register_blueprint(metric_bp, url_prefix='/metrics')
+    app.register_blueprint(checker_bp, url_prefix='/checker')
+    app.register_blueprint(channel_bp, url_prefix='/channel')
+    app.register_blueprint(portscanner_bp, url_prefix='/portscanner')
+    app.register_blueprint(install_bp, url_prefix='/install')
+    app.register_blueprint(server_bp, url_prefix='/server')
+    app.register_blueprint(admin_bp, url_prefix='/admin')
+    app.register_blueprint(ha_bp, url_prefix='/ha')
+    app.register_blueprint(udp_bp)
 
     from app import login
     if not app.config['TESTING']:

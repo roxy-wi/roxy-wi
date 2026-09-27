@@ -11,12 +11,14 @@ def run_web() -> None:
     workers = os.environ.get('ROXYWI_WEB_WORKERS', '2')
     threads = os.environ.get('ROXYWI_WEB_THREADS', '4')
     timeout = os.environ.get('ROXYWI_WEB_TIMEOUT', '120')
+    graceful_timeout = os.environ.get('ROXYWI_WEB_GRACEFUL_TIMEOUT', '120')
     command = [
         'gunicorn',
         '--bind', bind,
         '--workers', workers,
         '--threads', threads,
         '--timeout', timeout,
+        '--graceful-timeout', graceful_timeout,
         '--access-logfile', '-',
         '--error-logfile', '-',
         'app:app',

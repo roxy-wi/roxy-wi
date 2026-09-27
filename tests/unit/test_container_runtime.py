@@ -2,6 +2,9 @@ from pathlib import Path
 from contextlib import nullcontext
 import importlib.util
 import subprocess
+import threading
+import time
+from types import SimpleNamespace
 
 import pytest
 import yaml
@@ -69,11 +72,63 @@ def test_mysql_database_settings_use_env_then_cfg(tmp_path, monkeypatch):
     assert settings.mysql_database == 'cfg-db'
 
 
-def test_health_endpoints_report_initialized_schema(client):
-    assert client.get('/health/live').get_json() == {'status': 'ok'}
-    response = client.get('/health/ready')
-    assert response.status_code == 200
-    assert response.get_json() == {'status': 'ok', 'database': 'ok'}
+def test_health_endpoints_report_initialized_schema(client, monkeypatch):
+    from app.modules.db.readiness import DatabaseReadinessMonitor
+    from app.routes.health import routes
+    monitor = DatabaseReadinessMonitor()
+    monkeypatch.setattr(routes, '_database_readiness', monitor)
+    try:
+        assert client.get('/health/live').get_json() == {'status': 'ok'}
+        deadline = time.monotonic() + 3
+        while True:
+            response = client.get('/health/ready')
+            if response.status_code == 200 or time.monotonic() >= deadline:
+                break
+            time.sleep(.01)
+        assert response.status_code == 200
+        assert response.get_json() == {'status': 'ok', 'database': 'ok'}
+    finally:
+        monitor.close()
+
+
+def test_slow_database_cannot_block_health_http_and_stale_success_expires(client, monkeypatch):
+    from app.modules.db import readiness
+    from app.routes.health import routes
+    blocked, release = threading.Event(), threading.Event()
+    clock = SimpleNamespace(monotonic=lambda: 1000)
+    monkeypatch.setattr(readiness, 'time', clock)
+    calls = []
+
+    def check():
+        calls.append(True)
+        if len(calls) > 1:
+            blocked.set()
+            assert release.wait(3)
+        return True, 'ready'
+
+    monitor = readiness.DatabaseReadinessMonitor(check, interval=.01)
+    monkeypatch.setattr(routes, '_database_readiness', monitor)
+    try:
+        # A healthy sample is followed by an unresponsive database connection.
+        deadline = time.monotonic() + 2
+        while client.get('/health/ready').status_code != 200:
+            assert time.monotonic() < deadline
+            time.sleep(.01)
+        assert blocked.wait(1)
+        clock.monotonic = lambda: 1016
+        started = time.monotonic()
+        for _ in range(5):
+            assert client.get('/health/ready').status_code == 503
+            assert client.get('/health/live').status_code == 200
+        assert time.monotonic() - started < .5
+        release.set()
+        deadline = time.monotonic() + 2
+        while client.get('/health/ready').status_code != 200:
+            assert time.monotonic() < deadline
+            time.sleep(.01)
+    finally:
+        release.set()
+        monitor.close()
 
 
 def test_application_setting_precedence_is_env_then_database_then_cfg(tmp_path, monkeypatch):
@@ -124,6 +179,8 @@ def test_rabbitmq_compose_healthchecks_use_the_image_privilege_drop():
         # The official image starts as root and only drops privileges in its
         # entrypoint. Healthchecks must use the same path before Erlang starts.
         assert command == ['CMD', 'docker-entrypoint.sh', 'rabbitmq-diagnostics', '-q', 'ping']
+        # Disk restores require the same node identity after container recreation.
+        assert document['services']['rabbitmq']['hostname'] == '${ROXYWI_RABBITMQ_HOSTNAME:-rabbitmq}'
 
 
 def test_container_smoke_does_not_create_a_root_owned_rabbitmq_cookie(monkeypatch):
@@ -191,7 +248,7 @@ def test_helm_chart_uses_incidentrelay_directory_layout():
     chart = yaml.safe_load((chart_path / 'Chart.yaml').read_text(encoding='utf-8'))
     values = yaml.safe_load((chart_path / 'values.yaml').read_text(encoding='utf-8'))
 
-    assert chart['name'] == 'roxy-wi'
+    assert chart['name'] == 'roxy-wi-charts'
     assert values['config']['cache']['type'] == 'NullCache'
     assert values['config']['main']['fullpath'] == '/var/www/haproxy-wi'
     assert values['config']['ansible']['private_data_dir'] == '/var/lib/roxy-wi/ansible'

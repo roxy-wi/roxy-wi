@@ -21,9 +21,8 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.roxywi.overview as roxy_overview
 from app.modules.service.haproxy_runtime import execute_runtime_command
 from app.views.service.views import ServiceActionView, ServiceBackendView, ServiceView
-if not app.config['TESTING']:
-    from app.views.service.lets_encrypt_views import LetsEncryptView, LetsEncryptsView
-    from app.views.service.le_profile_views import LetsEncryptDnsProfilesView, LetsEncryptDnsProfileView
+from app.views.service.lets_encrypt_views import LetsEncryptView, LetsEncryptsView
+from app.views.service.le_profile_views import LetsEncryptDnsProfilesView, LetsEncryptDnsProfileView
 from app.modules.roxywi.class_models import DomainName
 from app.modules.roxywi.exception import RoxywiPermissionError
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
@@ -34,12 +33,11 @@ bp.add_url_rule('/<service>/<server_id>/backend', view_func=ServiceBackendView.a
 bp.add_url_rule('/<service>/<int:server_id>/backend', view_func=ServiceBackendView.as_view('service_backend'), methods=['GET'])
 bp.add_url_rule('/<service>/<server_id>/status', view_func=ServiceView.as_view('service_ip'), methods=['GET'])
 bp.add_url_rule('/<service>/<int:server_id>/status', view_func=ServiceView.as_view('service'), methods=['GET'])
-if not app.config['TESTING']:
-    bp.add_url_rule('/letsencrypt', view_func=LetsEncryptView.as_view('le_web'), methods=['POST'])
-    bp.add_url_rule('/letsencrypt/<int:le_id>', view_func=LetsEncryptView.as_view('le_web_id'), methods=['GET', 'PUT', 'PATCH', 'DELETE'])
-    bp.add_url_rule('/letsencrypts', view_func=LetsEncryptsView.as_view('le_webs'), methods=['GET'])
-    bp.add_url_rule('/letsencrypt/dns-profiles', view_func=LetsEncryptDnsProfilesView.as_view('le_profiles'), methods=['GET', 'POST'])
-    bp.add_url_rule('/letsencrypt/dns-profiles/<int:profile_id>', view_func=LetsEncryptDnsProfileView.as_view('le_profile'), methods=['PUT', 'DELETE'])
+bp.add_url_rule('/letsencrypt', view_func=LetsEncryptView.as_view('le_web'), methods=['POST'])
+bp.add_url_rule('/letsencrypt/<int:le_id>', view_func=LetsEncryptView.as_view('le_web_id'), methods=['GET', 'PUT', 'PATCH', 'DELETE'])
+bp.add_url_rule('/letsencrypts', view_func=LetsEncryptsView.as_view('le_webs'), methods=['GET'])
+bp.add_url_rule('/letsencrypt/dns-profiles', view_func=LetsEncryptDnsProfilesView.as_view('le_profiles'), methods=['GET', 'POST'])
+bp.add_url_rule('/letsencrypt/dns-profiles/<int:profile_id>', view_func=LetsEncryptDnsProfileView.as_view('le_profile'), methods=['PUT', 'DELETE'])
 
 
 def _service_status_payload(result):

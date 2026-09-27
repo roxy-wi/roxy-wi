@@ -112,11 +112,19 @@ class OperationWorker:
     def __init__(self, settings: OperationQueueSettings | None = None):
         self.settings = settings or OperationQueueSettings.load()
         self._stop_event = threading.Event()
+        local_health.watch_shutdown(self._stop_event)
         self._connection = None
+        self._draining = False
 
     def stop(self, *_args) -> None:
-        local_health.draining()
+        # Called by a signal handler; never enter DB/health locks here.
         self._stop_event.set()
+
+    def _begin_draining(self) -> None:
+        if not self._draining:
+            self._draining = True
+            local_health.draining()
+            set_process_heartbeat_status('draining')
 
     @staticmethod
     def _decode(body: bytes) -> tuple[str, int]:
@@ -139,6 +147,13 @@ class OperationWorker:
                     queue=self.settings.queue,
                     auto_ack=False,
                 )
+                # SIGTERM may arrive while basic_get waits on RabbitMQ. Return
+                # an unclaimed delivery instead of starting another job.
+                if self._stop_event.is_set():
+                    self._begin_draining()
+                    if method is not None:
+                        channel.basic_nack(method.delivery_tag, requeue=True)
+                    break
                 if method is None:
                     self._connection.process_data_events(time_limit=1)
                     continue
@@ -183,6 +198,8 @@ class OperationWorker:
                 last_heartbeat = time.monotonic()
                 rabbit_connection_lost = False
                 while operation_thread.is_alive():
+                    if self._stop_event.is_set():
+                        self._begin_draining()
                     # Ansible runs on its own thread; a long installation is
                     # not a stalled queue/connection loop.
                     local_health.pulse(rabbitmq=not rabbit_connection_lost)
@@ -231,6 +248,8 @@ class OperationWorker:
                     finally:
                         close_database_connection()
         finally:
+            if self._stop_event.is_set():
+                self._begin_draining()
             local_health.dependency('rabbitmq', False)
             if self._connection is not None and self._connection.is_open:
                 self._connection.close()
@@ -253,6 +272,8 @@ class OperationWorker:
                 logger.error(f'Operations worker disconnected: {error}; retrying in {delay}s')
                 self._stop_event.wait(delay)
                 delay = min(delay * 2, 30)
+        if self._stop_event.is_set():
+            self._begin_draining()
 
 
 def run_worker() -> None:
