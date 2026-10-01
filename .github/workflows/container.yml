@@ -7,16 +7,22 @@ on:
   pull_request:
     branches: [master]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to publish (empty to only test this ref)
+        type: string
+        required: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: container-artifacts-${{ github.workflow }}-${{ github.ref }}
+  group: container-artifacts-${{ github.workflow }}-${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
   cancel-in-progress: false
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/roxy-wi/roxy-wi
   CHART_DIR: helm/roxy-wi
   CHART_NAME: roxy-wi-charts
   CHART_REGISTRY: ghcr.io/roxy-wi
@@ -32,6 +38,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
 
       - name: Set up Helm
         uses: azure/setup-helm@v5.0.1
@@ -92,11 +100,13 @@ jobs:
       contents: read
       packages: write
     env:
-      PUBLISH_HELM: ${{ github.repository == 'roxy-wi/roxy-wi' && startsWith(github.ref, 'refs/tags/v') && !contains(github.ref_name, '-') }}
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      PUBLISH_RELEASE: ${{ github.repository == 'roxy-wi/roxy-wi' && (github.ref_type == 'tag' || inputs.tag != '') && startsWith(inputs.tag || github.ref_name, 'v') && !contains(inputs.tag || github.ref_name, '-') }}
     steps:
       - name: Check out repository
         uses: actions/checkout@v5
         with:
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
           persist-credentials: false
 
       - name: Set up Helm
@@ -119,8 +129,8 @@ jobs:
             echo "Chart version and appVersion must be set" >&2
             exit 1
           fi
-          if [[ "${PUBLISH_HELM}" == 'true' ]]; then
-            release_version="${GITHUB_REF_NAME#v}"
+          if [[ "${PUBLISH_RELEASE}" == 'true' ]]; then
+            release_version="${RELEASE_TAG#v}"
             if [[ ! "${release_version}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
               echo "Stable Helm releases require a vMAJOR.MINOR.PATCH tag" >&2
               exit 1
@@ -133,7 +143,13 @@ jobs:
           echo "version=${chart_version}" >> "${GITHUB_OUTPUT}"
 
       - name: Build production image
-        run: docker build --file docker/Dockerfile --tag roxy-wi:test .
+        env:
+          IMAGE_VERSION: ${{ steps.chart.outputs.version }}
+        run: |
+          docker build --file docker/Dockerfile --tag roxy-wi:test \
+            --label "org.opencontainers.image.source=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}" \
+            --label "org.opencontainers.image.revision=$(git rev-parse HEAD)" \
+            --label "org.opencontainers.image.version=${IMAGE_VERSION}" .
 
       - name: Initialize SQLite database
         run: |
@@ -208,8 +224,30 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+      - name: Log in to GHCR with Docker
+        if: env.PUBLISH_RELEASE == 'true'
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish and verify container image
+        if: env.PUBLISH_RELEASE == 'true'
+        id: image
+        env:
+          IMAGE_VERSION: ${{ steps.chart.outputs.version }}
+        run: |
+          image="${IMAGE_NAME}:${IMAGE_VERSION}"
+          expected_id="$(docker image inspect --format '{{.Id}}' roxy-wi:test)"
+          docker tag roxy-wi:test "${image}"
+          docker push "${image}"
+          docker pull "${image}"
+          published_id="$(docker image inspect --format '{{.Id}}' "${image}")"
+          test "${published_id}" = "${expected_id}"
+
       - name: Log in to GHCR with Helm
-        if: env.PUBLISH_HELM == 'true'
+        if: env.PUBLISH_RELEASE == 'true'
         id: helm_login
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -218,7 +256,7 @@ jobs:
             --username "${GITHUB_ACTOR}" --password-stdin
 
       - name: Publish and verify Helm OCI chart
-        if: env.PUBLISH_HELM == 'true'
+        if: env.PUBLISH_RELEASE == 'true'
         env:
           CHART_VERSION: ${{ steps.chart.outputs.version }}
         run: |

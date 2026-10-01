@@ -1,4 +1,4 @@
-"""Exercise the release guard used by Actions before any registry write."""
+"""Exercise release validation and publication used by Actions."""
 import os
 from pathlib import Path
 import shutil
@@ -20,8 +20,8 @@ class HelmReleaseMetadata(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.root = Path(self.temp.name)
         workflow = yaml.safe_load((ROOT / '.github/workflows/container.yml').read_text())
-        steps = workflow['jobs']['build-and-sqlite-smoke']['steps']
-        script = next(step['run'] for step in steps if step.get('id') == 'chart')
+        self.steps = workflow['jobs']['build-and-sqlite-smoke']['steps']
+        script = next(step['run'] for step in self.steps if step.get('id') == 'chart')
         self.script = self.root / 'metadata.sh'
         with self.script.open('w', encoding='utf-8', newline='\n') as stream:
             stream.write(script)
@@ -32,10 +32,10 @@ class HelmReleaseMetadata(unittest.TestCase):
         (self.root / 'Chart.yaml').write_text(yaml.safe_dump(chart), encoding='utf-8')
         output = self.root / 'output'
         output.unlink(missing_ok=True)
-        result = subprocess.run([BASH, '-euo', 'pipefail', str(self.script)], capture_output=True,
-            text=True, timeout=10, env={**os.environ, 'CHART_DIR': str(self.root),
-                'CHART_NAME': 'roxy-wi-charts', 'GITHUB_REF_NAME': tag,
-                'PUBLISH_HELM': str(publish).lower(), 'GITHUB_OUTPUT': str(output)})
+        result = subprocess.run([BASH, '-euo', 'pipefail', self.script.as_posix()], capture_output=True,
+            text=True, timeout=10, env={**os.environ, 'CHART_DIR': self.root.as_posix(),
+                'CHART_NAME': 'roxy-wi-charts', 'GITHUB_REF_NAME': 'master', 'RELEASE_TAG': tag,
+                'PUBLISH_RELEASE': str(publish).lower(), 'GITHUB_OUTPUT': output.as_posix()})
         return result, output.read_text() if output.exists() else ''
 
     def test_matching_stable_release(self):
@@ -77,6 +77,69 @@ class HelmReleaseMetadata(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('configured OCI address', result.stderr)
         self.assertEqual(output, '')
+
+    def publish_image(self, **env):
+        step = next(step for step in self.steps if step.get('id') == 'image')
+        calls = self.root / 'docker-calls'
+        calls.write_text('')
+        script = self.root / 'publish.sh'
+        fake_docker = '''
+docker() {
+  printf '%s\\n' "$*" >> "$DOCKER_CALLS"
+  case "$1" in
+    push) return "${PUSH_EXIT_CODE:-0}" ;;
+    pull) return "${PULL_EXIT_CODE:-0}" ;;
+    image)
+      if [[ "${@: -1}" == 'roxy-wi:test' ]]; then
+        printf '%s\\n' 'sha256:tested'
+      else
+        if [[ "${INSPECT_EXIT_CODE:-0}" != '0' ]]; then return "$INSPECT_EXIT_CODE"; fi
+        printf '%s\\n' "${PULLED_IMAGE_ID:-sha256:tested}"
+      fi ;;
+  esac
+}
+'''
+        with script.open('w', encoding='utf-8', newline='\n') as stream:
+            stream.write(fake_docker + step['run'])
+        result = subprocess.run([BASH, '-euo', 'pipefail', script.as_posix()],
+            capture_output=True, text=True, timeout=10, env={**os.environ,
+                'DOCKER_CALLS': calls.as_posix(), 'IMAGE_NAME': 'ghcr.io/roxy-wi/roxy-wi',
+                'IMAGE_VERSION': '9.1.0', **env})
+        return result, calls.read_text().splitlines()
+
+    def test_publishes_and_verifies_the_tested_image(self):
+        result, calls = self.publish_image()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [
+            'image inspect --format {{.Id}} roxy-wi:test',
+            'tag roxy-wi:test ghcr.io/roxy-wi/roxy-wi:9.1.0',
+            'push ghcr.io/roxy-wi/roxy-wi:9.1.0',
+            'pull ghcr.io/roxy-wi/roxy-wi:9.1.0',
+            'image inspect --format {{.Id}} ghcr.io/roxy-wi/roxy-wi:9.1.0',
+        ])
+
+    def test_image_push_failure_stops_publication(self):
+        result, calls = self.publish_image(PUSH_EXIT_CODE='1')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(len(calls), 3)
+
+    def test_image_verification_failures_stop_publication(self):
+        for env in ({'PULL_EXIT_CODE': '1'}, {'INSPECT_EXIT_CODE': '1'},
+                    {'PULLED_IMAGE_ID': 'sha256:unexpected'}):
+            with self.subTest(env=env):
+                result, _ = self.publish_image(**env)
+                self.assertNotEqual(result.returncode, 0)
+
+    def test_image_publication_is_gated_by_smoke_tests_and_precedes_chart(self):
+        image = next(step for step in self.steps if step.get('id') == 'image')
+        chart = next(step for step in self.steps if step['name'] == 'Publish and verify Helm OCI chart')
+        smoke = next(step for step in self.steps if 'tests/quickstart_smoke.py' in step.get('run', ''))
+        self.assertEqual(image['if'], "env.PUBLISH_RELEASE == 'true'")
+        self.assertEqual(chart['if'], image['if'])
+        self.assertNotIn('continue-on-error', image)
+        self.assertNotIn('continue-on-error', smoke)
+        self.assertLess(self.steps.index(smoke), self.steps.index(image))
+        self.assertLess(self.steps.index(image), self.steps.index(chart))
 
 
 if __name__ == '__main__':
