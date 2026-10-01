@@ -1,7 +1,7 @@
 # Get help with Roxy-WI
 
-For **Roxy-WI 9.1 and later**, begin with the [documentation](docs/README.md),
-[quick start](docs/quick-start.md) and [operations guide](docs/operations.md).
+For **Roxy-WI 9.1 and later**, begin with the [documentation](https://roxy-wi.org/description),
+[quick start](https://roxy-wi.org/description/operations#quickstart) and [operations guide](https://roxy-wi.org/description/operations#runtime).
 
 | Need | Channel |
 | --- | --- |

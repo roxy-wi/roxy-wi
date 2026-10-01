@@ -11,7 +11,7 @@ Connect existing servers, review configuration changes, coordinate deployments
 and follow service health from one place. Built for operators and teams managing
 proxies across multiple servers and environments.
 
-**[Try the live demo](https://demo.roxy-wi.org) · [Get started](#get-started) · [Documentation](docs/README.md) · [Plans & support](https://roxy-wi.org/pricing)**
+**[Try the live demo](https://demo.roxy-wi.org) · [Get started](#get-started) · [Documentation](https://roxy-wi.org/description) · [Plans & support](https://roxy-wi.org/pricing)**
 
 [![Tests](https://github.com/roxy-wi/roxy-wi/actions/workflows/tests.yml/badge.svg)](https://github.com/roxy-wi/roxy-wi/actions/workflows/tests.yml)
 [![Container](https://github.com/roxy-wi/roxy-wi/actions/workflows/container.yml/badge.svg)](https://github.com/roxy-wi/roxy-wi/actions/workflows/container.yml)
@@ -34,7 +34,7 @@ proxies across multiple servers and environments.
 | Manage certificates and configuration history | Issue Let's Encrypt certificates, retain configuration versions and configure backup destinations. |
 
 Some capabilities require a subscription. Change Center requires **Premium**;
-see [feature availability](docs/plans.md) before planning an evaluation.
+see [feature availability](https://roxy-wi.org/pricing) before planning an evaluation.
 
 ## See a change through to deployment
 
@@ -51,8 +51,8 @@ flowchart LR
     E --> G[Rollback on failure]
 ```
 
-Try the [guided Change Center tour](docs/change-center-tour.md): a canary rollout
-with manual promotion, per-node results and a recorded recovery path.
+Read the [Change Center guide](https://roxy-wi.org/description/change-center) for
+canary rollouts, manual promotion, per-node results and recovery.
 
 For a browser-only look, open the [live demo](https://demo.roxy-wi.org) with
 `admin` / `admin`. It is a shared demonstration environment that resets hourly.
@@ -60,7 +60,7 @@ Use demonstration data only.
 
 ## Get started
 
-**Install Linux packages:** see [deployment platforms and installation](docs/deployment.md#linux-packages).
+**Install Linux packages:** see [deployment platforms and installation](https://roxy-wi.org/installation).
 
 **Try Roxy-WI locally:** use the Compose quick start below.
 It builds this checkout, starts the application and background workers, and exposes
@@ -79,26 +79,26 @@ Open **https://localhost:8443**, accept the local evaluation certificate, and si
 in as `admin` with the generated password. Secrets and application data persist
 between starts. The first build downloads application dependencies.
 
-Continue with [your first server](docs/quick-start.md#connect-your-first-server),
-or read the full [quick-start guide](docs/quick-start.md) for status, logs and stopping.
+Continue with [your first server](https://roxy-wi.org/howto/setup#server),
+or read the full [quick-start guide](https://roxy-wi.org/description/operations#quickstart) for status, logs and stopping.
 
 ## Deployment choices
 
 | Environment | Entry point |
 | --- | --- |
 | Linux packages | [Installation](https://roxy-wi.org/installation) and [update guide](https://roxy-wi.org/update-guide) |
-| Local evaluation | [Compose quick start](docs/quick-start.md) with SQLite and local HTTPS |
-| Compose for your infrastructure | [Deployment guide](docs/deployment.md), including MariaDB, HTTPS and persistent storage |
-| Kubernetes | [Helm deployment notes](docs/deployment.md#kubernetes) and the [chart](helm/roxy-wi) |
+| Local evaluation | [Compose quick start](https://roxy-wi.org/description/operations#quickstart) with SQLite and local HTTPS |
+| Compose for your infrastructure | [Deployment guide](https://roxy-wi.org/description/operations#compose), including MariaDB, HTTPS and persistent storage |
+| Kubernetes | [Helm deployment notes](https://roxy-wi.org/description/operations#kubernetes) and the [chart](helm/roxy-wi) |
 
 ## Documentation
 
 | Start here | Operate and integrate |
 | --- | --- |
-| [Documentation index](docs/README.md) | [Operations and troubleshooting](docs/operations.md) |
-| [Change Center tour](docs/change-center-tour.md) | [Configuration and authentication](docs/configuration.md) |
-| [Plans and feature availability](docs/plans.md) | [Configuration backups](docs/configuration-backups.md) |
-| [Deployment guide](docs/deployment.md) | [Let's Encrypt](docs/letsencrypt.md) |
+| [Documentation index](https://roxy-wi.org/description) | [Operations](https://roxy-wi.org/description/operations#runtime) and [troubleshooting](https://roxy-wi.org/troubleshooting) |
+| [Change Center guide](https://roxy-wi.org/description/change-center) | [Configuration and settings](https://roxy-wi.org/settings) |
+| [Plans and feature availability](https://roxy-wi.org/pricing) | [Configuration backups](https://roxy-wi.org/description/backup) |
+| [Deployment guide](https://roxy-wi.org/description/operations) | [Let's Encrypt](https://roxy-wi.org/description/letsencrypt) |
 
 ## Community and support
 

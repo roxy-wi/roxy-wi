@@ -22,10 +22,11 @@ python -m pytest -q
 On Windows, activate with `.venv\Scripts\Activate.ps1`. Some integration tests
 require Linux, Docker or SSH; the regular suite skips tests whose explicit runtime
 requirements are not enabled. See the [Tests workflow](.github/workflows/tests.yml)
-for the Linux checks and the [LE guide](docs/letsencrypt.md#release-verification)
-for running the certificate deployment test.
+for the Linux checks, including certificate deployment and recovery. The
+[Let's Encrypt guide](https://roxy-wi.org/description/letsencrypt) describes the
+certificate lifecycle.
 
-To inspect the UI, use the [Compose quick start](docs/quick-start.md). Use test
+To inspect the UI, use the [Compose quick start](https://roxy-wi.org/description/operations#quickstart). Use test
 servers and isolated application data for development.
 
 ## Prepare a pull request
@@ -42,7 +43,8 @@ and explain database migrations or operational requirements.
 - Update the relevant guide and [release notes](CHANGELOG.md) for user-visible changes.
 - Review the diff and run the checks appropriate to the affected paths.
 
-Check documentation links with `python tools/check_docs.py`. Container changes
+Check that documentation links point to the relevant pages and sections on
+[roxy-wi.org](https://roxy-wi.org/description). Container changes
 should also pass the [Container workflow](.github/workflows/container.yml).
 Pull requests should explain any required check that could not be run locally.
 
