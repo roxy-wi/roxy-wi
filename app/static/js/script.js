@@ -386,65 +386,33 @@ function openVersions() {
 	win.focus();
 }
 function clearAllAjaxFields() {
+	if (window.ConfigViewer) window.ConfigViewer.cancel();
 	$("#ajax").empty();
 	$('.alert').remove();
-	try {
-		myCodeMirror.toTextArea();
-	} catch (e) {
-		console.log(e)
+	if (window.myCodeMirror && typeof window.myCodeMirror.toTextArea === 'function') {
+		window.myCodeMirror.toTextArea();
+		window.myCodeMirror = null;
 	}
 	$("#saveconfig").remove();
 	$("h4").remove();
 	$("#ajax-compare").empty();
 	$("#config").empty();
 }
-function showConfig() {
-	let edit_section = '';
-	let edit_section_uri = '';
-	let service = $('#service').val();
-	let config_file = $('#config_file_name').val()
-	let config_file_name = encodeURI(config_file);
-	if (service === 'nginx' || service === 'apache') {
-		if (config_file === undefined || config_file === null) {
-			config_file_name = cur_url[7]
-			if (config_file_name === '') {
-				toastr.warning('Select a config file first');
-				return false;
-			} else {
-				showConfigFiles(true);
-			}
-		}
+function showConfig(selectedFile = null) {
+	if (!checkIsServerFiled('#serv')) return false;
+	const service = $('#service').val();
+	const server = $('#serv').val();
+	const file = selectedFile || $('#config_file_name').val() || null;
+	if ((service === 'nginx' || service === 'apache') && (!file || file === 'undefined')) {
+		const messages = JSON.parse(document.getElementById('config-viewer-messages').textContent);
+		toastr.warning(messages.select_file);
+		return false;
 	}
+	const section = service === 'haproxy' ? findGetParameter('section') : null;
 	clearAllAjaxFields();
-
-	if (service === 'haproxy') {
-		edit_section = findGetParameter('section');
-		if (edit_section != null) {
-			edit_section_uri = '?section=' + edit_section;
-		}
-	}
-	let json_data = {
-		"serv": $("#serv").val(),
-		"service": service,
-		"config_file_name": config_file_name,
-		"edit_section": edit_section
-	}
-	$.ajax({
-		url: "/config/" + service + "/show",
-		data: JSON.stringify(json_data),
-		type: "POST",
-		contentType: "application/json; charset=utf-8",
-		success: function (data) {
-			if (data.status === 'failed') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#ajax").html(data.data);
-				$.getScript(configShow);
-				window.history.pushState("Show config", "Show config", "/config/" + service + "/" + $("#serv").val() + "/show/" + config_file_name + edit_section_uri);
-			}
-		}
-	});
+	const url = '/config/' + encodeURIComponent(service) + '/' + encodeURIComponent(server) + '/show/' +
+		encodeURIComponent(file || 'undefined') + (section ? '?section=' + encodeURIComponent(section) : '');
+	ConfigViewer.load({serv: server, service: service, config_file_name: file, edit_section: section}, url);
 }
 function showConfigFiles(not_redirect=false, config_file_name=null) {
 	var service = $('#service').val();
@@ -458,6 +426,7 @@ function showConfigFiles(not_redirect=false, config_file_name=null) {
 		},
 		type: "POST",
 		success: function( data ) {
+			if ($('#service').val() !== service || $('#serv').val() !== server_ip) return;
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
@@ -465,7 +434,7 @@ function showConfigFiles(not_redirect=false, config_file_name=null) {
 				$("#ajax-config_file_name").html(data);
 				if (config_file_name) {
 					$('#config_file_name').val(config_file_name);
-					$('#config_file_name').selectmenu('refresh');
+					$('#config_file_name').trigger('change');
 				}
 				if (findGetParameter('findInConfig') === null) {
 					if (not_redirect) {
@@ -496,29 +465,12 @@ function showConfigFilesForEditing() {
 	}
 }
 function showUploadConfig() {
-	let service = $('#service').val();
-	let configver = $('#configver').val();
-	let serv = $("#serv").val()
-	let jsonData = {
-		"serv": serv,
-		"configver": configver
-	}
-	$.ajax( {
-		url: "/config/" + service + "/show",
-		data: JSON.stringify(jsonData),
-		contentType: "application/json; charset=utf-8",
-		type: "POST",
-		success: function( data ) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
-				toastr.clear();
-				$("#ajax").html(data.data);
-				window.history.pushState("Show config", "Show config", "/config/versions/" + service + "/" + serv + "/" + configver);
-				$.getScript(configShow);
-			}
-		}
-	} );
+	const service = $('#service').val();
+	const configver = $('#configver').val();
+	const server = $('#serv').val();
+	clearAllAjaxFields();
+	ConfigViewer.load({serv: server, service: service, configver: configver},
+		'/config/versions/' + encodeURIComponent(service) + '/' + encodeURIComponent(server) + '/' + encodeURIComponent(configver));
 }
 function showListOfVersion(for_delver) {
 	let cur_url = window.location.href.split('/').pop();
@@ -600,8 +552,8 @@ $( function() {
 		},
 		show: {"delay": 1000}
 	});
-	$( "input[type=submit], button" ).not('#log-viewer-form button, #overview-logs button').button();
-	$( "input[type=checkbox]" ).not('#log-viewer-form input').checkboxradio();
+	$( "input[type=submit], button" ).not('#log-viewer-form button, #overview-logs button, .config-viewer button').button();
+	$( "input[type=checkbox]" ).not('#log-viewer-form input, .config-viewer input').checkboxradio();
 	$( ".controlgroup" ).controlgroup();
 	initializeAppNavigation();
 

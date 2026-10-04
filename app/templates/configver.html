@@ -3,6 +3,7 @@
 {% block h2 %}{{ lang.menu_links.versions.h2 }} {{ lang.words[service] }}{% endblock %}
 {% block content %}
     <script src="/static/js/configshow.js"></script>
+    {% include 'include/config_viewer_assets.html' %}
 	<p>
 		<form action="/config/versions/{{service}}/{{serv}}" method="post" class="left-space">
 			<input type="hidden" id="service" value="{{service}}">

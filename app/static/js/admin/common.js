@@ -16,14 +16,17 @@ $( function() {
             loadupdatehapwi();
         } else if (activeTab == '#backup') {
             loadBackup();
+        } else if (activeTab == '#servers') {
+            focusAdminServer();
         }
     });
 } );
 
 window.onload = function() {
 	$('#tabs').tabs();
+	focusAdminServer();
 	let activeTabIdx = $('#tabs').tabs('option','active')
-	if (cur_url.split('#')[0] == 'admin') {
+	if (document.getElementById('admin-tabs')) {
 		if (activeTabIdx == 6) {
 			loadServices();
 		} else if (activeTabIdx == 3) {

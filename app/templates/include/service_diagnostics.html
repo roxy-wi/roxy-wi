@@ -1,0 +1,8 @@
+{% if g.user_params['role'] == 1 %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/service-diagnostics.css') }}">
+<div id="service-diagnostics" hidden data-title="{{ lang.service_diagnostics.title }}" data-loading="{{ lang.service_diagnostics.loading }}" data-failed="{{ lang.service_diagnostics.failed }}">
+    <div class="sd-toolbar"><button type="button" class="sd-refresh">{{ lang.service_diagnostics.refresh }}</button></div>
+    <div class="sd-content" aria-live="polite"></div>
+</div>
+<script src="{{ url_for('static', filename='js/service-diagnostics.js') }}"></script>
+{% endif %}

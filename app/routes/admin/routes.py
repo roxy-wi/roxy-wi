@@ -1,5 +1,5 @@
 import pytz
-from flask import render_template, g, jsonify
+from flask import render_template, g, jsonify, abort, make_response
 from flask_jwt_extended import jwt_required
 
 from app import scheduler
@@ -17,6 +17,7 @@ import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 from app.modules.oidc.access import is_oidc_available
 import app.modules.tools.common as tools_common
+from app.modules.tools.diagnostics import WORKER_SERVICES, service_diagnostics
 import app.modules.server.ssh as ssh_mod
 from app.views.admin.views import SettingsView
 from app.modules.roxywi.exception import RoxywiPermissionError
@@ -92,6 +93,21 @@ def show_tools():
     services = tools_common.get_services_status(update_cur_ver=1, worker_states=worker_states)
 
     return render_template('ajax/load_services.html', services=services, lang=lang)
+
+
+@bp.get('/tools/<service>/diagnostics')
+def worker_diagnostics(service):
+    roxywi_auth.page_for_admin()
+    if not roxywi_common.check_user_group_for_flask():
+        abort(403)
+    if service not in WORKER_SERVICES:
+        abort(404)
+    response = make_response(render_template(
+        'ajax/service_diagnostics.html', diagnostics=service_diagnostics(service),
+        lang=roxywi_common.get_user_lang_for_flask(),
+    ))
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
 @bp.post('/tools/update/<service>')

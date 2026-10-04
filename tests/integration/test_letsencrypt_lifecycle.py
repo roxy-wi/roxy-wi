@@ -218,6 +218,29 @@ def test_migration_encrypts_legacy_credentials_and_pauses_scheduling():
         store.action(row.id, 'renew', '1')
 
 
+def test_migration_preserves_null_server_after_server_deletion(database):
+    database.pragma('foreign_keys', 1)
+    row = LetsEncrypt.create(server_id=1, domains="['example.com']", email='admin@example.com',
+                             type='cloudflare', api_key='', api_token='legacy-token', description='')
+    Server.delete_by_id(1)
+    assert LetsEncrypt.get_by_id(row.id).server_id_id is None
+
+    migration = importlib.import_module('app.modules.db.migrations.20260919000000_letsencrypt_state')
+    migration.up()
+    migration.up()
+
+    migrated = LetsEncrypt.get_by_id(row.id)
+    state = LetsEncryptState.get(le_id=row.id)
+    assert migrated.server_id_id is None
+    assert migrated.api_key == migrated.api_token == ''
+    assert store.config_for(migrated, state)['api_token'] == 'legacy-token'
+    assert state.legacy_pending
+    assert state.status == 'migration_required'
+    assert state.next_run_at is None
+    assert LetsEncryptState.select().count() == 1
+    assert database.execute_sql('PRAGMA foreign_key_check').fetchall() == []
+
+
 @pytest.mark.parametrize('changes', [
     {'domains': []}, {'domains': ['bad.*.example.com']},
     {'type': 'standalone', 'email': None}, {'type': 'standalone', 'domains': ['*.example.com']},

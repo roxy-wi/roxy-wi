@@ -3,6 +3,7 @@ import re
 import app.modules.db.sql as sql
 import app.modules.server.server as server_mod
 from app.modules.common.common import return_nice_path
+from app.modules.config.viewer import HAPROXY_SECTIONS, haproxy_sections, source_lines
 
 
 SECTION_NAMES = (
@@ -20,7 +21,7 @@ def _extract_section_name(line: str):
 			 None otherwise.
 	"""
 	line = line.strip()
-	if line.startswith(SECTION_NAMES):
+	if line and (line.split()[0] in HAPROXY_SECTIONS or line in ('#HideBlockStart', '#HideBlockEnd')):
 		return line
 	return None
 
@@ -54,68 +55,42 @@ def get_sections(config: str, **kwargs) -> list:
 	return return_config
 
 
-def get_section_from_config(config: str, section) -> tuple:
-	"""
-	:param config: The path to the configuration file.
-	:param section: The section name to retrieve from the configuration file.
-	:return: A tuple containing the starting line number, ending line number, and the content of the specified section.
-	"""
-	record = False
-	start_line = ""
-	end_line = ""
-	return_config = ""
-	with open(config, 'r') as f:
-		for index, line in enumerate(f):
-			if line.startswith(section + '\n'):
-				start_line = index
-				return_config += line
-				record = True
-				continue
-			if record:
-				if _extract_section_name(line):
-					record = False
-					end_line = index
-					end_line = end_line - 1
-				else:
-					return_config += line
+def get_section_from_config(config: str, section: str, section_line: int = None) -> tuple:
+	"""Return inclusive, zero-based bounds and the exact section source.
 
-	if end_line == "":
-		f = open(config, "r")
-		line_list = f.readlines()
-		end_line = len(line_list)
-
-	return start_line, end_line, return_config
+	A viewer-supplied header line disambiguates duplicate section names. A stale
+	line fails explicitly rather than opening a different section.
+	"""
+	with open(config, encoding='utf-8', newline='') as file:
+		text = file.read()
+	lines = source_lines(text)
+	candidates = [
+		item for item in haproxy_sections(text)
+		if item['title'] == section.strip() and item['kind'] != 'preamble'
+		and (section_line is None or item['header'] + 1 == section_line)
+	]
+	if len(candidates) != 1:
+		raise ValueError('Section not found or ambiguous; reopen the configuration')
+	selected = candidates[0]
+	return selected['start'], selected['end'] - 1, ''.join(lines[selected['start']:selected['end']])
 
 
 def rewrite_section(start_line: str, end_line: str, config: str, section: str) -> str:
-	"""
-	:param start_line: The line number where the section to be rewritten starts.
-	:param end_line: The line number where the section to be rewritten ends.
-	:param config: The path to the configuration file.
-	:param section: The new section to be inserted in place of the existing section.
-	:return: The modified configuration with the section rewritten.
-	"""
-	record = False
-	start_line = int(start_line)
-	end_line = int(end_line)
-	return_config = ""
-	with open(config, 'r') as f:
-		for index, line in enumerate(f):
-			index = int(index)
-			if index == start_line:
-				record = True
-				return_config += section
-				return_config += "\n"
-				continue
-			if index == end_line:
-				record = False
-				continue
-			if record:
-				continue
-
-			return_config += line
-
-	return return_config
+	"""Replace an inclusive range without dropping adjacent lines or markers."""
+	with open(config, encoding='utf-8', newline='') as file:
+		lines = source_lines(file.read())
+	start, end = int(start_line), int(end_line)
+	# Older editor pages used len(lines) for the final section.
+	if end == len(lines):
+		end -= 1
+	if start < 0 or end < start or end >= len(lines):
+		raise ValueError('Invalid section line range')
+	if not isinstance(section, str):
+		raise ValueError('Section content must be text')
+	newline = '\r\n' if lines[start].endswith('\r\n') else '\n'
+	if section and not section.endswith('\n') and (end + 1 < len(lines) or lines[end].endswith('\n')):
+		section += newline
+	return ''.join(lines[:start]) + section + ''.join(lines[end + 1:])
 
 
 def get_remote_sections(server_ip: str, service: str) -> str:

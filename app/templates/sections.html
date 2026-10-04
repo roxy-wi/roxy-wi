@@ -40,9 +40,15 @@
 	</select>
 	<input type="hidden" value="{{ serv }}" name="serv" id="serv">
 	{% if g.user_params['role'] <= 3 %}
-		<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.edit|title()}} {{lang.words.running}} {{lang.words.config}}" onclick="openSection()">{{lang.words.edit|title()}}</a>
+		<button type="button" class="ui-button ui-widget ui-corner-all" id="open-text-section">{{lang.words.edit|title()}}</button>
 	{% endif %}
 </div>
+	<script>
+		document.getElementById('open-text-section')?.addEventListener('click', function () {
+			const section = document.getElementById('section').value;
+			window.location.assign('/config/section/haproxy/' + encodeURIComponent({{serv|tojson}}) + '/' + encodeURIComponent(section) + '?file_path=' + encodeURIComponent({{file_path|default('')|tojson}}));
+		});
+	</script>
 	{% if config %}
 		{% if g.user_params['role'] <= 3 %}
 			<div id="config" class="left-space">
@@ -53,6 +59,7 @@
 					<input type="hidden" value="{{ end_line }}" name="end_line">
 					<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
 					<input type="hidden" value="haproxy" name="service">
+					<input type="hidden" value="{{file_path}}" name="file_path">
 					<div style="width: 95%;">
 						<textarea name="config" class="config" id="config_text_area" rows="35" cols="100" style="height: 40%">{{ config }}</textarea>
 					</div>
@@ -65,7 +72,7 @@
 						<button type="submit" value="restart" name="save" class="btn btn-default">{{lang.phrases.save_and_restart}}</button>
 						{% endif %}
 						<button type="submit" value="reload" name="save" class="btn btn-default">{{lang.phrases.save_and_reload}}</button>
-						{% if section != 'globals' and section != 'defaults' %}
+						{% if section != 'global' and section != 'defaults' %}
 						<button type="submit" value="delete" name="save" class="btn btn-default">{{lang.words.delete|title()}} {{lang.words.this}} {{lang.words.section2}}</button>
 						{% endif %}
 						{% endif %}

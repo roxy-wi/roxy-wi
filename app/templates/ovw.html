@@ -2,6 +2,7 @@
 {% block title %}{{lang.menu_links.overview.title}}{% endblock %}
 {% block h2 %}{{lang.menu_links.overview.h2}}{% endblock %}
 {% block content %}
+{% include 'include/service_diagnostics.html' %}
 <link href="{{ url_for('static', filename='css/chart.min.css') }}" rel="stylesheet">
     <link href="{{ url_for('static', filename='css/new-style.css') }}" rel="stylesheet">
 <script src="/static/js/metrics.js"></script>

@@ -40,6 +40,19 @@ $( function() {
 		updateServer(id[1])
 	});
 });
+function focusAdminServer() {
+    if (window.location.hash !== '#servers') return;
+    const serverId = new URLSearchParams(window.location.search).get('server_id');
+    document.querySelectorAll('#ajax-servers .admin-server-target').forEach(row => row.classList.remove('admin-server-target'));
+    if (!serverId || !/^\d+$/.test(serverId)) return;
+    const row = document.getElementById('server-' + serverId);
+    const hostname = document.getElementById('hostname-' + serverId);
+    if (!row || !hostname) return;
+    row.classList.add('admin-server-target');
+    hostname.focus({preventScroll: true});
+    row.scrollIntoView({block: 'center', inline: 'nearest'});
+}
+
 function addServer(dialog_id) {
     toastr.clear()
     let valid = true;

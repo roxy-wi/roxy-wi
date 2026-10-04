@@ -2,6 +2,7 @@
 {% block title %}{{lang.words.admin_area|title()}}{% endblock %}
 {% block h2 %}{{lang.words.admin_area|title()}}{% endblock %}
 {% block content %}
+{% include 'include/service_diagnostics.html' %}
 {% from 'include/input_macros.html' import input, select, copy_to_clipboard, checkbox %}
 {% from 'include/admin_action_menu.html' import admin_action_menu %}
 <script src="{{ url_for('static', filename='js/admin/common.js') }}"></script>

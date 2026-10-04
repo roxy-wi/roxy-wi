@@ -21,6 +21,7 @@ import app.modules.service.common as service_common
 import app.modules.service.action as service_action
 import app.modules.config.common as config_common
 import app.modules.config.deployment_policy as deployment_policy
+from app.modules.config.viewer import build_document
 
 time_zone = sql.get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
@@ -29,14 +30,15 @@ get_config_var = roxy_wi_tools.GetConfigVar()
 
 def _replace_config_path_to_correct(config_path: str) -> str:
 	"""
-	Replace the characters '92' with '/' in the given config_path string.
+	Decode legacy path tokens while retaining already resolved absolute paths.
 
 	:param config_path: The config path to be sanitized.
 	:return: The sanitized config path string.
 	"""
+	absolute = bool(config_path and config_path.startswith('/'))
 	config_path = common.checkAjaxInput(config_path)
 	try:
-		return config_path.replace('92', '/')
+		return config_path if absolute else config_path.replace('92', '/')
 	except Exception as e:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot sanitize config file')
 
@@ -595,50 +597,37 @@ def show_config(server_ip: str, service: str, config_file_name: str, configver: 
 	"""
 	user_id = claims['user_id']
 	group_id = claims['group']
-	configs_dir = config_common.get_config_dir(service)
 	server = server_sql.get_server_by_ip(server_ip)
-
-	if config_file_name != 'undefined':
-		try:
-			config_file_name = config_file_name.replace('/', '92')
-		except Exception:
-			config_file_name = ''
-	else:
-		config_file_name = ''
-
-	if config_file_name and '..' in config_file_name:
-		raise Exception('error: nice try')
-	if configs_dir and '..' in configs_dir:
-		raise Exception('error: nice try')
-	if configver and '..' in configver:
-		raise Exception('error: nice try')
-
 	if configver is None:
+		remote_path = config_common.resolve_viewer_path(service, config_file_name)
 		cfg = config_common.generate_config_path(service, server_ip)
 		try:
-			get_config(server_ip, cfg, service=service, config_file_name=config_file_name)
-		except Exception as e:
-			raise Exception(e)
+			get_config(server_ip, cfg, service=service, config_file_name=remote_path)
+			with open(cfg, encoding='utf-8', errors='replace', newline='') as file:
+				text = file.read()
+		finally:
+			Path(cfg).unlink(missing_ok=True)
 	else:
 		cfg = config_common.resolve_saved_config_path(service, server_ip, configver)
-
-	try:
-		with open(cfg, 'r', encoding='utf-8', errors='replace') as file:
-			conf = file.readlines()
-	except Exception as e:
-		raise Exception(f'error: Cannot read config file: {e}')
-
-	if configver is None:
-		os.remove(cfg)
-
+		remote_path = config_sql.select_remote_path_from_version(server_ip, service, cfg)
+		with open(cfg, encoding='utf-8', errors='replace', newline='') as file:
+			text = file.read()
+	role = user_sql.get_user_role_in_group(user_id, group_id)
+	protected = server_sql.is_serv_protected(server_ip)
+	remote_path = str(remote_path or sql.get_setting(f'{service}_config_path'))
+	document = build_document(
+		text, service, server_ip, remote_path, version=configver,
+		editable=bool(role and role <= 3 and (not protected or role <= 2)),
+		main_file=remote_path == str(sql.get_setting(f'{service}_config_path')),
+	)
 	kwargs = {
-		'conf': conf,
+		'document': document,
 		'serv': server_ip,
 		'configver': configver,
-		'role': user_sql.get_user_role_in_group(user_id, group_id),
+		'role': role,
 		'service': service,
-		'config_file_name': config_file_name,
-		'is_serv_protected': server_sql.is_serv_protected(server_ip),
+		'config_file_name': document['source']['file_token'],
+		'is_serv_protected': protected,
 		'is_restart': service_sql.select_service_setting(server.server_id, service, 'restart'),
 		'lang': roxywi_common.get_user_lang_for_flask(),
 		'hostname': server.hostname,
@@ -691,12 +680,14 @@ def list_of_versions(server_ip: str, service: str, configver: str, for_delver: i
 	:return: The rendered HTML template with the list of versions.
 	"""
 	users = user_sql.select_users()
-	configs = config_sql.select_config_version(server_ip, service)
+	configs = list(config_sql.select_config_version(server_ip, service))
 	lang = roxywi_common.get_user_lang_for_flask()
 	action = f'/app/config/versions/{service}/{server_ip}'
-	config_dir = config_common.get_config_dir(service)
-	file_format = config_common.get_file_format(service)
-	files = roxywi_common.get_files(config_dir, file_format, server_ip)
+	config_dir = Path(config_common.get_config_dir(service)).resolve()
+	files = sorted({
+		Path(version.local_path).name for version in configs
+		if Path(version.local_path).resolve().parent == config_dir and Path(version.local_path).is_file()
+	}, reverse=True)
 
 	return render_template(
 		'ajax/show_list_version.html', server_ip=server_ip, service=service, action=action, return_files=files,

@@ -1,3 +1,7 @@
+body #service-diagnostics { --sd-border: #444; }
+body #service-diagnostics .sd-warning, body #service-diagnostics [data-worker-status=stale] .sd-state, body #service-diagnostics [data-worker-status=degraded] .sd-state {
+    color: #e3b25e;
+}
 body, .container, .footer {
     background-color: #171717 !important;
     color: #F0F0F0 !important;
@@ -189,4 +193,10 @@ body #log-viewer-form, body #overview-logs {
     --log-border:#3b4451; --log-hover:#2a3b46; --log-accent:#77d2e5; --log-accent-bg:#233f49;
     --log-warn:#f6c77c; --log-warn-bg:#473a20; --log-error:#ffb4ac; --log-error-bg:#482b2c;
     --log-mark:#6b581c;
+}
+
+body .config-viewer {
+    color-scheme:dark;
+    --cv-surface:#222730; --cv-background:#1b2027; --cv-text:#e2e6ec; --cv-muted:#a6b1c0;
+    --cv-border:#3b4451; --cv-accent:#77d2e5; --cv-hover:#2a3b46; --cv-mark:#6b581c;
 }

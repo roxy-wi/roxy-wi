@@ -78,7 +78,9 @@ def validate_config(data, group_id, previous=None):
 
 
 def write_config(row, state, data):
-    for field in ('server_id', 'email', 'type', 'description'):
+    # Legacy certificates retain a NULL reference after their server is deleted.
+    row.server_id = data.get('server_id')
+    for field in ('email', 'type', 'description'):
         setattr(row, field, data.get(field) or '')
     row.domains = json.dumps(data['domains'])
     # Secrets live only in the encrypted TextField, never the legacy varchar.

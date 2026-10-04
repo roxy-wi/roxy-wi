@@ -1,445 +1,71 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
-{% from 'include/input_macros.html' import input, checkbox, select %}
-	<div>
-		<h4>{{lang.words.config|title()}} {% if config_file_name != 'undefined' %}{{config_file_name.replace('92', '/')}}{%endif%} {{lang.words.from}} {{serv}} ({{hostname}})</h4>
-		<p class="accordion-expand-holder">
-			{% if role <= 3 %}
-				{% if not is_serv_protected or role <= 2 %}
-				{% if not configver %}
-                {% if service != 'nginx' %}
-				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" id="edit_link" href="/config/{{service}}/{{serv}}/edit/{{config_file_name}}">{{lang.words.edit|title()}}</a>
+{% import 'languages/en.html' as english %}
+{% set viewer = lang.config_viewer|default(english.config_viewer) %}
+<section class="config-viewer" id="config-viewer" aria-label="{{lang.words.config|title()}}"
+         data-edit-section="{{edit_section|default('', true)}}">
+    <header class="cv-header">
+        <div>
+            <h3>{{document.source.path.split('/')[-1]}}</h3>
+            <div class="cv-path">{{document.source.path}}</div>
+            <div class="cv-server">{{hostname}} · {{serv}}</div>
+        </div>
+        <div class="cv-file-actions">
+            <span class="cv-source-label">{{viewer.saved_version if configver else viewer.current_file}}</span>
+            {% if document.edit_url %}
+                {% if service == 'nginx' %}
+                <a class="cv-button" href="{{document.edit_url}}" id="edit_link" data-nginx-edit="{{config_file_name.split('92')[-1].removesuffix('.conf')}}">{{lang.words.edit|title()}}</a>
                 {% else %}
-				<a class="ui-button ui-widget ui-corner-all" title="Edit this run config" id="edit_link" onclick="openNginxSection('{{config_file_name.split("92")[-1].split(".conf")[0]}}')">{{lang.words.edit|title()}}</a>
+                <a class="cv-button" href="{{document.edit_url}}" id="edit_link">{{lang.words.edit|title()}}</a>
                 {% endif %}
-				{% endif %}
-				{% if service == 'haproxy' %}
-				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} {{lang.words.proxy}}" href="/add/haproxy#proxy">{{lang.words.add|title()}}</a>
-				{% elif service == 'keepalived' %}
-				<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.add|title()}} VRRP" href="/ha">{{lang.words.add|title()}}</a>
-				{% endif %}
-				{% endif %}
-			{% endif %}
-			<a class="accordion-expand-all ui-button ui-widget ui-corner-all" id="expand_link" href="#">{{lang.words.expand_all|title()}}</a>
-			<button id="raw">{{lang.words.raw|title()}}</button>
-			<button id="according" style="display: none;">According</button>
-		</p>
-	</div>
-
-	<div class="configShow">
-	{% set i = 0 -%}
-	{% set section_name = {} %}
-	{% for line in conf -%}
-		{% set i = i + loop.index0 %}
-		{% if not role %}
-			{% if line.startswith('#HideBlockStart') %}
-				<!--{{line}}
-				{% continue %}
-			{% endif %}
-			{% if line.startswith('#HideBlockEnd') %}
-				{{line}}-->
-				{% continue %}
-			{% endif %}
-		{% endif %}
-		{% if service == 'nginx' %}
-			{% if i == 0 and "server {" not in line %}
-				<span class="param">
-				</span><div>
-				<span class="configLine">
-					<span class="numRow">{{ i }}</span>
-					&emsp;&emsp;{{ line }}
-				</span><br />
-				{% continue %}
-			{% endif %}
-			{%- if "server {" in line -%}
-				{% if i > 1 %}
-					</div>
-				{% endif %}
-				<span class="param">{{ line }}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{%- if "stream {" in line -%}
-				{% if i > 1 %}
-					</div>
-				{% endif %}
-				<span class="param">{{ line }}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{%- if "http {" in line -%}
-				{% if i > 1 %}
-					</div>
-				{% endif %}
-				<span class="param">{{ line }}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{%- if "events {" in line -%}
-				</div>
-				<span class="param">{{ line }}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{%- if "upstream {" in line -%}
-				</div>
-				<span class="param">{{ line }}
-				</span><div>
-				{% continue %}
-			{% endif %}
-
-			{% if "listen " in line or "location" in line or "server_name" in line or "}" in line  %}
-				{% if "#" not in line %}
-					<span class="numRow">
-						{{ i }}
-					</span>
-					<span class="paramInSec">
-						&emsp;{{ line }}
-					</span><br />
-					{% continue %}
-				{% endif %}
-			{% endif %}
-			{% if "#" in line %}
-				<span class="numRow">
-					{{ i }}
-				</span>
-				<span class="comment">
-					&emsp;{{ line }}
-				</span><br />
-				{% continue %}
-			{% endif %}
-			{% if line|length > 1 %}
-				<span class="configLine">
-					<span class="numRow">{{ i }}</span>
-					&emsp;&emsp;{{ line }}
-				</span><br />
-			{% endif %}
-		{% elif service == 'apache' %}
-			{% if i == 0 and "<VirtualHost" not in line %}
-				<span class="param">
-				</span><div>
-				<span class="configLine">
-					<span class="numRow">{{ i }}</span>
-					&emsp;&emsp;{{ line }}
-				</span><br />
-				{% continue %}
-			{% endif %}
-			{%- if "<VirtualHost" in line -%}
-				{% if i > 1 %}
-					</div>
-				{% endif %}
-				<span class="param">{{ line }}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{% if "<" in line or "</" in line  %}
-				{% if "#" not in line %}
-					<span class="numRow">
-						{{ i }}
-					</span>
-					<span class="paramInSec">
-						&emsp;{{ line }}
-					</span><br />
-					{% continue %}
-				{% endif %}
-			{% endif %}
-			{% if "#" in line %}
-				<span class="numRow">
-					{{ i }}
-				</span>
-				<span class="comment">
-					&emsp;{{ line }}
-				</span><br />
-				{% continue %}
-			{% endif %}
-			{% if line|length > 1 %}
-				<span class="configLine">
-					<span class="numRow">{{ i }}</span>
-					&emsp;&emsp;{{ line }}
-				</span><br />
-			{% endif %}
-		{% elif service == 'keepalived' %}
-			{%- if "global_defs {" in line -%}
-				{% if i > 1 %}
-					</div>
-				{% endif %}
-				<span class="param">{{ line }}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{%- if "vrrp_instance " in line -%}
-				{% if i > 1 %}
-					</div>
-				{% endif %}
-				<span class="param">{{ line }}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{%- if "virtual_server " in line -%}
-				{% if i > 1 %}
-					</div>
-				{% endif %}
-				<span class="param">{{ line }}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{%- if "vrrp_script " in line -%}
-				{% if i > 1 %}
-					</div>
-				{% endif %}
-				<span class="param">{{ line }}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{% if "state " in line or "interface" in line or "priority" in line or "}" in line  %}
-				{% if "#" not in line %}
-					<span class="numRow">
-						{{ i }}
-					</span>
-					<span class="paramInSec">
-						&emsp;&emsp;{{ line }}
-					</span><br />
-					{% continue %}
-				{% endif %}
-			{% endif %}
-			{% if "#" in line %}
-				<span class="numRow">
-					{{ i }}
-				</span>
-				<span class="comment">
-					&emsp;&emsp;{{ line }}
-				</span><br />
-				{% continue %}
-			{% endif %}
-			{% if line|length > 1 %}
-				<span class="configLine">
-					<span class="numRow">{{ i }}</span>
-					&emsp;&emsp;{{ line }}
-				</span><br />
-			{% endif %}
-		{% else %}
-            {% if line.startswith('# BEGIN') or line.startswith('# END') %}
-                {% continue %}
+                {% if service == 'haproxy' %}
+                <a class="cv-button" href="/add/haproxy#proxy">{{lang.words.add|title()}}</a>
+                {% elif service == 'keepalived' %}
+                <a class="cv-button" href="/ha">{{lang.words.add|title()}}</a>
+                {% endif %}
             {% endif %}
-			{% if line.startswith('global') %}
-				<span class="param">{{ line }}
-					{% if role %}
-						{% if service != 'keepalived' %}
-                            <span class="accordion-link" onclick="openSection('{{ line| trim }}')">
-                                {{lang.words.edit|title()}}
-						    </span>
-						</span>
-						{% endif %}
-					{% endif %}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{% if line.startswith('defaults') %}
-				</div><span class="param">{{ line }}
-					{% if role %}
-						<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
-                            {{lang.words.edit|title()}}
-						</span>
-					{% endif %}
-					</span><div>
-				{% continue %}
-			{% endif %}
-			{%- if line.startswith('listen') -%}
-				</div><span class="param">{{- line -}}
-					{% if role %}
-					<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
-                        {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
-					</span>
-					{% endif %}
-					{%- set backend = line.split(' ') -%}
-					<span class="accordion-link">
-						<a href="/stats/haproxy/{{-serv-}}#{{- backend[1]-}}" target="_blank">{{lang.words.stats|title()}}</a>
-					</span>
-					{%- set backend = backend|join('_') -%}
-					{%- do section_name.update({i: backend}) -%}
-					<span id="{{-section_name[i]|replace('\n', '')-}}" class="accordion-link"></span>
-					</span><div>
-					{% continue %}
-			{%- endif -%}
-			{%- if line.startswith('frontend') -%}
-				</div><span class="param">{{ line }}
-					{% if role %}
-						<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
-                            {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
-						</span>
-					{% endif %}
-					{% set backend = line.split(' ') %}
-					<span class="accordion-link">
-						<a href="/stats/haproxy/{{-serv-}}#{{- backend[1]-}}" target="_blank">{{lang.words.stats|title()}}</a>
-					</span>
-					{% set backend = backend|join('_') %}
-					{% do section_name.update({i: backend}) %}
-					<span id="{{section_name[i]|replace('\n', '')}}" class="accordion-link"></span>
-					</span><div>
-					{% continue %}
-			{%- endif -%}
-			{% if line.startswith('backend') %}
-				</div><span class="param">{{ line }}
-					{% if role %}
-						<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
-                            {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
-						</span>
-					{% endif %}
-					{% set backend = line.split(' ') %}
-					<span class="accordion-link">
-						<a href="/stats/haproxy/{{-serv-}}#{{- backend[1]-}}" target="_blank">{{lang.words.stats|title()}}</a>
-					</span>
-					</span><div>
-				{% continue %}
-			{% endif %}
-			{% if line.startswith('cache') %}
-				</div><span class="param">{{ line }}
-					{% if role %}
-						<span class="accordion-link">
-							<a href="/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
-						</span>
-					{% endif %}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{% if line.startswith('peers') %}
-				</div><span class="param">{{ line }}
-					{% if role %}
-						<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
-                            {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
-						</span>
-					{% endif %}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{% if line.startswith('resolvers') %}
-				</div><span class="param">{{ line }}
-					{% if role %}
-						<span class="accordion-link">
-							<a href="/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
-						</span>
-					{% endif %}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{% if line.startswith('userlist') %}
-				</div><span class="param">{{ line }}
-					{% if role %}
-						<span class="accordion-link" onclick="openSection('{{ line| trim }}')">
-                            {{lang.words.edit|title()}}/{{lang.words.delete|title()}}
-						</span>
-					{% endif %}
-				</span><div>
-				{% continue %}
-			{% endif %}
-			{% if line.startswith('http-errors') %}
-				</div><span class="param">{{ line }}
-					{% if role %}
-						<span class="accordion-link">
-							<a href="/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
-						</span>
-					{% endif %}
-				</span><div>
-			{% continue %}
-			{% endif %}
-			{% if line.startswith('log-forward') %}
-				</div><span class="param">{{ line }}
-					{% if role %}
-						<span class="accordion-link">
-							<a href="/config/section/haproxy/{{serv}}/{{ line }}">{{lang.words.edit|title()}}/{{lang.words.delete|title()}}</a>
-						</span>
-					{% endif %}
-				</span><div>
-			{% continue %}
-			{% endif %}
-			{% if "acl" in line or "option" in line or "server" in line %}
-				{% if "timeout" not in line and "default-server" not in line and "#use_backend" not in line and "#" not in line%}
-					<span class="numRow">
-						{{ i }}
-					</span>
-					<span class="paramInSec">
-						{{ line }}
-					</span><br />
-					{% continue %}
-				{% endif %}
-			{% endif %}
-			{% if line.startswith("#") %}
-				<span class="numRow">
-					{{ i }}
-				</span>
-				<span class="comment">
-					{{ line }}
-				</span><br />
-				{% continue %}
-			{% endif %}
-			{% if line|length > 1 %}
-				<span class="configLine">
-					<span class="numRow">{{ i }}</span>
-					{{ line }}
-				</span><br />
-			{% endif %}
-			{%- if "bind" in line and "@" not in line and "-" not in line -%}
-				{%- set bind = line.split(':')[1] -%}
-				{%- set bind = bind.split(' ') -%}
-				<script>
-					{% set k = i - 1 %}
-					$('#{{-section_name[k]|replace("\n", "")-}}').html('<a href="http://{{-serv-}}:{{-bind[0]|replace("\n", "")-}}" title="Open {{serv-}}:{{-bind[0]|replace("\n", "")-}}" target="_blank">{{lang.words.open|title()}}</a>')
-				</script>
-			{%- endif -%}
-		{%- endif -%}
-	{%- endfor -%}
-	</div>
-	</div>
-	</div>
-	{% if configver %}
-	<br>
-		{% if role <= 3 %}
-		{% if (not is_serv_protected or role <= 2) and direct_deployment_allowed %}
-		<form action="/config/versions/{{service}}/{{serv}}/{{configver}}/save" id="save_version" method="post" class="left-space">
-			<input type="hidden" value="{{serv}}" name="serv">
-			<input type="hidden" value="{{service}}" name="service">
-			<input type="hidden" value="{{configver}}" name="configver">
-			<input type="hidden" value="1" name="config">
-			<button type='submit' value='save' name='save' class='btn btn-default' title="{{lang.phrases.save_title}}">{{lang.words.save|title()}}</button>
-			{% if is_restart|int == 0 %}
-			<button type='submit' value='' name='' class='btn btn-default'>{{lang.phrases.upload_and_restart}}</button>
-			{% endif %}
-			{% if service != 'keepalived' %}
-			<button type='submit' value='reload' name='save' class='btn btn-default'>{{lang.phrases.upload_and_reload}}</button>
-			{% endif %}
-		</form>
-		{% endif %}
-		{% endif %}
-		{% if not direct_deployment_allowed %}
-		<div class="alert alert-info"><b>{{lang.deployment_policy.change_center_only}}:</b> {{lang.deployment_policy.direct_disabled_help}}</div>
-		{% endif %}
-		<div class="alert alert-info"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave|title()}}</div>
-	{% endif %}
-	<script>
-		{% if role <= 3 %}
-			{% if not is_serv_protected or role <= 2 %}
-			$(document).bind('keydown', 'e', function (){
-				window.location = document.getElementById('edit_link').href;
-			});
-			{% endif %}
-		{% endif %}
-		$(document).on('keydown', null, 'r', raw_button);
-		function raw_button(event) {
-			$("#raw").trigger("click");
-		}
-		$(document).on('keydown', null, 'a', according_button);
-		function according_button(event) {
-			$("#according").click();
-		}
-		$(document).on('keydown', null, 'x', expand_button);
-		function expand_button(event) {
-			$("#expand_link").click();
-		}
-        {% if service == 'haproxy' and edit_section != '' and edit_section != None %}
-            openSection('{{ edit_section }}');
-        {% endif %}
-	</script>
-<input type="hidden" id="group_id" value="{{ g.user_params['group_id']|string() }}">
+        </div>
+    </header>
+    {% if configver %}<div class="cv-version-note">{{viewer.saved_version}} · {{configver}} · {{viewer.read_only}}</div>{% endif %}
+    <div class="cv-toolbar">
+        <div class="cv-modes" role="group" aria-label="{{viewer.mode}}">
+            <button class="cv-button" type="button" data-cv-mode="sections" aria-pressed="true">{{viewer.sections}}</button>
+            <button class="cv-button" type="button" data-cv-mode="raw" aria-pressed="false">{{viewer.source}}</button>
+        </div>
+        <label class="cv-search-label"><span class="fas fa-search" aria-hidden="true"></span>
+            <input type="search" class="cv-search" aria-label="{{viewer.search}}" placeholder="{{viewer.search}}">
+        </label>
+        <button class="cv-button cv-prev" type="button" aria-label="{{viewer.previous}}">↑</button>
+        <button class="cv-button cv-next" type="button" aria-label="{{viewer.next}}">↓</button>
+        <label class="cv-wrap-label"><input type="checkbox" class="cv-wrap" checked> {{viewer.wrap}}</label>
+        <button class="cv-button cv-expand" type="button">{{viewer.expand}}</button>
+        <button class="cv-button cv-copy" type="button">{{viewer['copy']}}</button>
+    </div>
+    <div class="cv-content cv-wrapped">
+        <div class="cv-sections"></div>
+        <div class="cv-raw" hidden></div>
+        <p class="cv-empty" hidden>{{viewer.empty}}</p>
+    </div>
+    <footer class="cv-footer"><span class="cv-status" role="status"></span><span>{{viewer.read_only}} · {{service}}</span></footer>
+    <script type="application/json" class="cv-document">{{document|tojson}}</script>
+    <script type="application/json" class="cv-i18n">{{viewer|tojson}}</script>
+</section>
+{% if configver %}
+    {% if role and role <= 3 and (not is_serv_protected or role <= 2) and direct_deployment_allowed %}
+    <form action="/config/versions/{{service}}/{{serv}}/{{configver}}/save" id="save_version" method="post" class="left-space">
+        <input type="hidden" value="{{serv}}" name="serv">
+        <input type="hidden" value="{{service}}" name="service">
+        <input type="hidden" value="{{configver}}" name="configver">
+        <input type="hidden" value="1" name="config">
+        <button type="submit" value="save" name="save">{{lang.words.save|title()}}</button>
+        {% if is_restart|int == 0 %}<button type="submit" value="restart" name="save">{{lang.phrases.upload_and_restart}}</button>{% endif %}
+        {% if service != 'keepalived' %}<button type="submit" value="reload" name="save">{{lang.phrases.upload_and_reload}}</button>{% endif %}
+    </form>
+    {% endif %}
+    {% if not direct_deployment_allowed %}
+    <div class="alert alert-info"><b>{{lang.deployment_policy.change_center_only}}:</b> {{lang.deployment_policy.direct_disabled_help}}</div>
+    {% endif %}
+    <div class="alert alert-info"><b>{{lang.words.note|title()}}:</b> {{lang.phrases.master_slave|title()}}</div>
+{% endif %}
+<input type="hidden" id="group_id" value="{{g.user_params['group_id']|string()}}">
 <div id="edit-section" style="display: none;"></div>
-<div id="dialog-confirm" style="display: none;">
-    <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
-</div>
+<div id="dialog-confirm" style="display: none;"><p>{{lang.phrases.are_you_sure}}</p></div>

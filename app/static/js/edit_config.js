@@ -1,10 +1,18 @@
-function openSection(section) {
-	let section_type = section.split(' ')[0];
-	let section_name = section.split(' ')[1];
-	let url = '/add/haproxy/' + $('#serv').val() + '/section/' + section_type + '/' + section_name;
+function openSection(section, context = {}) {
+	const server = context.server || $('#serv').val();
+	context = {...context, server};
+	const parts = section.trim().split(/\s+/);
+	let section_type = parts[0];
+	let section_name = parts[1];
+	const textUrl = context.textUrl || '/config/section/haproxy/' + encodeURIComponent(server) + '/' + encodeURIComponent(section);
+	if (context.mainFile === false || !['global', 'defaults', 'listen', 'frontend', 'backend', 'userlist', 'peers'].includes(section_type)) {
+		window.location.assign(textUrl);
+		return;
+	}
+	let url = '/add/haproxy/' + encodeURIComponent(server) + '/section/' + encodeURIComponent(section_type) + '/' + encodeURIComponent(section_name);
 	clearEditSection();
 	if (section === 'global' || section === 'defaults') {
-		url = '/add/haproxy/' + $('#serv').val() + '/section/' + section_type;
+		url = '/add/haproxy/' + encodeURIComponent(server) + '/section/' + section_type;
 		section_type = section;
 		section_name = section;
 	}
@@ -13,10 +21,14 @@ function openSection(section) {
 		contentType: "application/json; charset=utf-8",
 		statusCode: {
 			404: function (xhr) {
-				window.open('/config/section/haproxy/' + $('#serv').val() + '/' + section, '_blank').focus();
+				window.location.assign(textUrl);
 			}
 		},
 		async: false,
+		suppressGlobalError: true,
+		error: function (xhr) {
+			if (xhr.status !== 404) toastr.error((xhr.responseJSON && xhr.responseJSON.error) || context.errorMessage || translate_div.attr('data-something_wrong'));
+		},
 		success: function (data) {
 			$('.advance-show-button').click(function () {
 				$('.advance').fadeIn();
@@ -242,20 +254,20 @@ function openSection(section) {
 			}
 			$("select").selectmenu();
 			$("select").selectmenu('refresh');
-			$("input[type=checkbox]").checkboxradio();
-			$("input[type=checkbox]").checkboxradio('refresh');
+			$("input[type=checkbox]").not(".config-viewer input").checkboxradio();
+			$("input[type=checkbox]").not(".config-viewer input").checkboxradio('refresh');
 			$(section_id + ' select[name="server"]').val(data.server_id).change();
 			$(section_id + ' select[name="server"]').selectmenu('disable').parent().parent().hide();
 			$(section_id + ' input[name="name"]').prop("readonly", true).parent().parent().hide();
 			let buttons = [{
 					text: edit_word,
 					click: function () {
-						editProxy('add-' + section_type, $(this));
+						editProxy('add-' + section_type, $(this), false, context);
 					}
 				}, {
 					text: delete_word,
 					click: function () {
-						confirmDeleteSection(section_type, section_name, $('#serv').val(), $(this));
+						confirmDeleteSection(section_type, section_name, server, $(this));
 					}
 				}, {
 					text: cancel_word,
@@ -268,7 +280,7 @@ function openSection(section) {
 				buttons = [{
 					text: edit_word,
 					click: function () {
-						editProxy('add-' + section_type, $(this));
+						editProxy('add-' + section_type, $(this), false, context);
 					}
 				}, {
 					text: cancel_word,
@@ -401,15 +413,16 @@ function addProxy(form_name, generate=false) {
 		}
 	});
 }
-function editProxy(form_name, dialog_id, generate=false) {
+function editProxy(form_name, dialog_id, generate=false, context = {}) {
+	const server = context.server || $('#serv').val();
 	let frm = $('#'+form_name);
 	let name_id = '#' +form_name + ' input[name="name"]';
 	if(!checkIsServerFiled(name_id, 'The name cannot be empty')) return false;
 	let json_data = getFormData(frm, form_name);
 	let section_type = form_name.split('-')[1]
-	let url = '/add/haproxy/' + $('#serv').val() + '/section/' + section_type + '/' + $(name_id).val();
+	let url = '/add/haproxy/' + encodeURIComponent(server) + '/section/' + section_type + '/' + $(name_id).val();
 	if (section_type === 'defaults' || section_type === 'global') {
-		url = '/add/haproxy/' + $('#serv').val() + '/section/' + section_type;
+		url = '/add/haproxy/' + encodeURIComponent(server) + '/section/' + section_type;
 	}
 	$.ajax({
 		url: url,
@@ -852,8 +865,8 @@ function openNginxSection(section) {
 			}
 			$(section_id + ' select[name="server"]').selectmenu();
 			$(section_id + ' select[name="server"]').selectmenu('refresh');
-			$("input[type=checkbox]").checkboxradio();
-			$("input[type=checkbox]").checkboxradio('refresh');
+			$("input[type=checkbox]").not(".config-viewer input").checkboxradio();
+			$("input[type=checkbox]").not(".config-viewer input").checkboxradio('refresh');
 			$(section_id + ' select[name="server"]').val(data.server_id).change();
 			$(section_id + ' select[name="server"]').selectmenu('disable').parent().parent().hide();
 			$(section_id + ' input[name="name"]').prop("readonly", true).parent().parent().hide();

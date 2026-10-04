@@ -28,6 +28,7 @@
 <script src="{{ url_for('static', filename='js/diff2html/diff2html.min.js', v='41c3aca') }}"></script>
 <script src="{{ url_for('static', filename='js/diff2html/diff2html-ui.min.js', v='7a22ebb') }}"></script>
 <script src="/static/js/configshow.js"></script>
+{% include 'include/config_viewer_assets.html' %}
 <script src="/static/js/add.js"></script>
 <script src="/static/js/add_nginx.js"></script>
 <script src="/static/js/edit_config.js"></script>
@@ -222,10 +223,10 @@
 		showCompareConfigs();
 	}
 	if (cur_url[6] === 'show') {
-        if (cur_url[4] === 'nginx') {
-            showConfigFiles(false, cur_url[7]);
+        if (cur_url[4] === 'nginx' || cur_url[4] === 'apache') {
+            showConfigFiles(false, cur_url[7] ? decodeURIComponent(cur_url[7]) : null);
         }
-		showConfig();
+		showConfig(cur_url[7] ? decodeURIComponent(cur_url[7]) : null);
 	}
 	if (cur_url[6] === 'show-files') {
 		showConfigFiles();

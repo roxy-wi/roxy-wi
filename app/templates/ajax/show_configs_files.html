@@ -86,7 +86,7 @@
 			// window.history.pushState("Find in config", "Find in config", cur_url[0] + '?service='+ $('#service').val()+'&serv='+$('#serv').val()+'&showConfigFiles&findInConfig='+ words);
 			return false;
 		});
-		$( "input[type=submit], button" ).button()
+		$( "input[type=submit], button" ).not('.config-viewer button').button()
 		$('#open_find_form').on('click', function (){
 			if ($('#find_p').css('display') == 'none') {
 				$('#find_p').show();

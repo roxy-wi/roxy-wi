@@ -166,7 +166,7 @@ def find_in_config(service):
 @bp.route('/<service>/<serv>/<edit>/', defaults={'config_file_name': None, 'new': None}, methods=['GET', 'POST'])
 @bp.route('/<service>/<serv>/show', defaults={'edit': None, 'config_file_name': None, 'new': None}, methods=['GET', 'POST'])
 @bp.route('/<service>/<serv>/show/<config_file_name>', defaults={'edit': None, 'new': None}, methods=['GET', 'POST'])
-@bp.route('/<service>/<serv>/show-files', defaults={'edit': None, 'config_file_name': None, 'new': None}, methods=['GET', 'POST'])
+@bp.route('/<service>/<serv>/show-files', endpoint='config_files_page', defaults={'edit': None, 'config_file_name': None, 'new': None}, methods=['GET', 'POST'])
 @bp.route('/<service>/<serv>/<edit>/<config_file_name>', defaults={'new': None}, methods=['GET', 'POST'])
 @bp.route('/<service>/<serv>/<edit>/<config_file_name>/<new>', methods=['GET', 'POST'])
 @check_services
@@ -328,13 +328,20 @@ def save_version(service, server_ip: Union[IPvAnyAddress, DomainName], configver
 @validate()
 def haproxy_section(server_ip: Union[IPvAnyAddress, DomainName]):
     server_ip = str(server_ip)
+    file_path = config_common.resolve_viewer_path('haproxy', request.args.get('file_path'))
     cfg = config_common.generate_config_path('haproxy', server_ip)
-    error = config_mod.get_config(server_ip, cfg)
+    try:
+        error = config_mod.get_config(server_ip, cfg, config_file_name=file_path)
+        sections = section_mod.get_sections(cfg)
+    finally:
+        Path(cfg).unlink(missing_ok=True)
     kwargs = {
         'is_restart': 0,
         'config': '',
         'serv': server_ip,
-        'sections': section_mod.get_sections(cfg),
+        'sections': sections,
+        'file_path': file_path,
+        'is_serv_protected': server_sql.is_serv_protected(server_ip),
         'error': error,
         'direct_deployment_allowed': deployment_policy.direct_deployment_allowed(
             server_sql.get_server_by_ip(server_ip).group_id, 'haproxy'
@@ -351,13 +358,23 @@ def haproxy_section(server_ip: Union[IPvAnyAddress, DomainName]):
 def haproxy_section_show(server_ip: Union[IPvAnyAddress, DomainName], section):
     server_ip = str(server_ip)
     server = server_sql.get_server_by_ip(server_ip)
+    try:
+        file_path = config_common.resolve_viewer_path('haproxy', request.args.get('file_path'))
+        section_line = request.args.get('section_line')
+        section_line = int(section_line) if section_line is not None else None
+    except ValueError as exc:
+        return jsonify({'status': 'failed', 'error': str(exc)}), 400
     cfg = config_common.generate_config_path('haproxy', server_ip)
-    error = config_mod.get_config(server_ip, cfg)
-    start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section)
+    try:
+        error = config_mod.get_config(server_ip, cfg, config_file_name=file_path)
+        start_line, end_line, config_read = section_mod.get_section_from_config(cfg, section, section_line)
+        sections = section_mod.get_sections(cfg)
+        Path(cfg).replace(f'{cfg}.old')
+    except ValueError as exc:
+        return jsonify({'status': 'failed', 'error': str(exc)}), 409
+    finally:
+        Path(cfg).unlink(missing_ok=True)
     server_id = server_sql.get_server_by_ip(server_ip).server_id
-    sections = section_mod.get_sections(cfg)
-
-    Path(cfg).replace(f'{cfg}.old')
 
     try:
         roxywi_common.logging(server_ip, f"A section {section} has been opened")
@@ -373,6 +390,8 @@ def haproxy_section_show(server_ip: Union[IPvAnyAddress, DomainName], section):
         'start_line': start_line,
         'end_line': end_line,
         'section': section,
+        'file_path': file_path,
+        'is_serv_protected': server_sql.is_serv_protected(server_ip),
         'error': error,
         'direct_deployment_allowed': deployment_policy.direct_deployment_allowed(
             server.group_id, 'haproxy'
@@ -392,6 +411,10 @@ def haproxy_section_save(server_ip: Union[IPvAnyAddress, DomainName]):
     cfg = config_common.generate_config_path('haproxy', server_ip)
     config_file = request.json.get('config')
     oldcfg = config_common.resolve_config_baseline('haproxy', server_ip, request.json.get('oldconfig'))
+    try:
+        file_path = config_common.resolve_viewer_path('haproxy', request.json.get('file_path'))
+    except ValueError as exc:
+        return jsonify({'status': 'failed', 'error': str(exc)}), 400
     save = request.json.get('action')
     start_line = request.json.get('start_line')
     end_line = request.json.get('end_line')
@@ -413,12 +436,12 @@ def haproxy_section_save(server_ip: Union[IPvAnyAddress, DomainName]):
     config_file = section_mod.rewrite_section(start_line, end_line, oldcfg, config_file)
 
     try:
-        with open(cfg, "w") as conf:
+        with open(cfg, "w", encoding='utf-8', newline='') as conf:
             conf.write(config_file)
     except IOError as e:
         return f"error: Cannot read import config file: {e}"
 
-    stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, 'haproxy', oldcfg=oldcfg)
+    stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, 'haproxy', oldcfg=oldcfg, config_file_name=file_path)
 
     try:
         os.remove(f"{hap_configs_dir}*.old")

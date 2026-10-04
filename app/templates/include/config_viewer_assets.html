@@ -1,0 +1,4 @@
+{% import 'languages/en.html' as english %}
+<link rel="stylesheet" href="{{url_for('static', filename='css/config-viewer.css')}}">
+<script src="{{url_for('static', filename='js/config-viewer.js')}}"></script>
+<script type="application/json" id="config-viewer-messages">{{lang.config_viewer|default(english.config_viewer)|tojson}}</script>

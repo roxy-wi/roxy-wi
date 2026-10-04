@@ -1,0 +1,30 @@
+{% import 'languages/' + lang|default('en') + '.html' as language %}
+{% set t = language.service_diagnostics %}
+<p class="sd-caption">{{ t.snapshot }} <time datetime="{{ diagnostics.checked_at }}">{{ diagnostics.checked_at }}</time></p>
+{% if diagnostics.limited %}<p class="sd-warning">{{ t.limited }}</p>{% endif %}
+{% for worker in diagnostics.workers %}
+<article class="sd-worker" data-worker-status="{{ worker.status }}">
+    <header><strong>{{ worker.hostname or worker.instance or worker.id }}</strong><span class="sd-state">{{ t[worker.status] }}</span></header>
+    <dl class="sd-facts">
+        <dt>{{ t.worker }}</dt><dd>{{ worker.id }}</dd>
+        <dt>{{ t.version }}</dt><dd>{{ worker.version or '—' }}</dd>
+        <dt>{{ t.heartbeat }}</dt><dd><time datetime="{{ worker.heartbeat }}">{{ worker.heartbeat }}</time></dd>
+        <dt>{{ t.expires }}</dt><dd><time datetime="{{ worker.expires }}">{{ worker.expires }}</time></dd>
+        <dt>{{ t.assignments }}</dt><dd>{{ worker.assignments }}{% if worker.capacity %} / {{ worker.capacity }}{% endif %}</dd>
+    </dl>
+    <p>{{ t[worker.reason + '_hint'] }}</p>
+    {% if worker.status in ('stale', 'stopped') and worker.issues %}<p class="sd-warning">{{ t.old_errors }}</p>{% endif %}
+    {% for issue in worker.issues %}
+    <section class="sd-issue">
+        {% if issue.server %}<strong>{{ issue.server }} · {{ issue.address }} · {{ issue.service }}</strong> · <a class="sd-admin-link" href="{{ url_for('admin.admin', server_id=issue.server_id) }}#servers">{{ t.server_settings }}</a>{% endif %}
+        {% if issue.assignment %}<div class="sd-caption">{{ t.assignment }}: {{ issue.assignment }}</div>{% endif %}
+        <p><strong>{{ t.reason }}:</strong> {{ t[issue.reason + '_reason'] }}</p>
+        <p><strong>{{ t.remedy }}:</strong> {{ t[issue.reason + '_remedy'] }}</p>
+        <details><summary>{{ t.technical }}</summary><pre>{{ issue.error }}</pre></details>
+    </section>
+    {% endfor %}
+    {% if worker.status == 'degraded' and not worker.issues %}<p>{{ t.no_reason }}</p>{% endif %}
+</article>
+{% else %}<p>{{ t.no_workers }}</p>{% endfor %}
+<a class="sd-admin-link" href="{{ url_for('admin.admin') }}#tools">{{ t.tools }}</a>
+<a class="sd-logs-link" href="{{ url_for('logs.logs_internal', type=2) }}">{{ t.logs }}</a>

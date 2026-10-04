@@ -1,4 +1,5 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
+{% set dt = lang.service_diagnostics %}
 {% set service_names = {
 	'roxy-wi-web': 'Web',
 	'roxy-wi-scheduler': 'Scheduler',
@@ -17,6 +18,7 @@
 {% set is_warning = service.1 in ('degraded', 'draining') or metadata.get('stale', 0) %}
 <div class="services-overview-card{% if is_warning %} services-overview-card-warning{% endif %}">
 	<div class="services-overview-name">
+		{% if role == 1 %}<button type="button" class="service-diagnostics-trigger" data-service-name="{{ name }}" data-diagnostics-url="{{ url_for('admin.worker_diagnostics', service=service.0) }}" aria-label="{{ dt.title }}: {{ name }}" title="{{ dt.open }}">{% endif %}
 		{% if is_healthy and not is_warning %}
 		<span class="serverUp server-status-small" title="{{ name }} is running"></span>
 		{% elif is_warning %}
@@ -26,6 +28,7 @@
 		{% else %}
 		<span class="serverNone server-status-small" title="{{ name }} status is unknown"></span>
 		{% endif %}
+		{% if role == 1 %}</button>{% endif %}
 		{% if role <= 1 %}<a href="{{ url_for('admin.admin') }}#tools" class="logs_link">{{ name }}</a>{% else %}<b>{{ name }}</b>{% endif %}
 		<span class="services-overview-version">v{{ service.2.get('current_version', '—') }}</span>
 	</div>
@@ -35,7 +38,7 @@
 		{% else %}
 		{{ metadata.get('instances', 0) }} instances{% if metadata.get('heartbeat_age_seconds') is not none %} · {{ metadata.get('heartbeat_age_seconds') }}s ago{% endif %}
 		{% endif %}
-		{% if metadata.get('stale', 0) %} · {{ metadata.get('stale') }} stale{% endif %}
+		{% if metadata.get('stale', 0) %} · {% if role == 1 %}<button type="button" class="service-diagnostics-trigger" data-service-name="{{ name }}" data-diagnostics-url="{{ url_for('admin.worker_diagnostics', service=service.0) }}" title="{{ dt.open }}">{% endif %}{{ metadata.get('stale') }} {{ dt.stale }}{% if role == 1 %}</button>{% endif %}{% endif %}
 	</div>
 </div>
 {% endmacro %}

@@ -18,9 +18,9 @@ proxies across multiple servers and environments.
 [![CodeQL](https://github.com/roxy-wi/roxy-wi/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/roxy-wi/roxy-wi/actions/workflows/codeql-analysis.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
-[![Roxy-WI Overview: servers and service status in one dashboard](https://roxy-wi.org/static/images/roxy-wi-overview.webp)](https://demo.roxy-wi.org)
+[![Roxy-WI Overview: servers, worker health and recent logs](.github/images/overview.jpg)](.github/images/overview.jpg)
 
-*See the infrastructure overview, then open a server's configuration, logs or service controls.*
+*Current demo interface with worker health and recent logs. Click a service status to inspect its diagnostics.*
 
 ## What you can do
 
@@ -35,6 +35,15 @@ proxies across multiple servers and environments.
 
 Some capabilities require a subscription. Change Center requires **Premium**;
 see [feature availability](https://roxy-wi.org/pricing) before planning an evaluation.
+
+<details>
+<summary>See the HAProxy configuration workspace</summary>
+
+[![Roxy-WI HAProxy configuration workspace: expandable sections, search and editing controls](.github/images/haproxy-config.jpg)](.github/images/haproxy-config.jpg)
+
+*Search configuration sections, switch to source view and edit through a form or text editor, depending on how the section was created.*
+
+</details>
 
 ## See a change through to deployment
 
@@ -89,7 +98,27 @@ or read the full [quick-start guide](https://roxy-wi.org/description/operations#
 | Linux packages | [Installation](https://roxy-wi.org/installation) and [update guide](https://roxy-wi.org/update-guide) |
 | Local evaluation | [Compose quick start](https://roxy-wi.org/description/operations#quickstart) with SQLite and local HTTPS |
 | Compose for your infrastructure | [Deployment guide](https://roxy-wi.org/description/operations#compose), including MariaDB, HTTPS and persistent storage |
-| Kubernetes | [Helm deployment notes](https://roxy-wi.org/description/operations#kubernetes) and the [chart](helm/roxy-wi) |
+| Kubernetes | [Published Helm chart](https://github.com/roxy-wi/roxy-wi/pkgs/container/roxy-wi-charts), [deployment guide](https://roxy-wi.org/description/operations#kubernetes) and [chart source](helm/roxy-wi) |
+
+### Install the Helm chart
+
+The chart is published at `oci://ghcr.io/roxy-wi/roxy-wi-charts`.
+Version `9.1.0` uses the published `ghcr.io/roxy-wi/roxy-wi:9.1.0` application image
+by default. Prepare `roxy-wi-values.yaml` using the
+[Helm deployment guide](https://roxy-wi.org/description/operations#kubernetes),
+including application secrets, RabbitMQ, persistent storage, database settings
+and HTTPS ingress, then install:
+
+```sh
+helm upgrade --install roxy-wi oci://ghcr.io/roxy-wi/roxy-wi-charts \
+  --version 9.1.0 --namespace roxy-wi --create-namespace \
+  --values roxy-wi-values.yaml --wait --wait-for-jobs --timeout 10m
+```
+
+RabbitMQ and an optional external MariaDB/MySQL database are provisioned separately.
+SQLite is the chart default for one Web replica. For an existing installation,
+follow the [Helm update procedure](https://roxy-wi.org/description/operations#helm-updates)
+before running an upgrade.
 
 ## Documentation
 

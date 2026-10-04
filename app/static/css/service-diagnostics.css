@@ -1,0 +1,21 @@
+button.service-diagnostics-trigger {display:inline-flex; align-items:center; gap:6px; padding:2px 4px; margin:0; height:auto; min-width:22px; border:0; background:transparent; color:inherit; font:inherit; cursor:pointer; box-shadow:none; text-align:left;}
+button.service-diagnostics-trigger:hover {background:var(--color-gray-alpha); border-radius:4px;}
+button.service-diagnostics-trigger:focus-visible {outline:2px solid var(--color-blue); outline-offset:2px;}
+#ajax-servers .admin-server-target {outline:2px solid var(--color-blue); outline-offset:-2px;}
+button.service-diagnostics-trigger .server-status-small, button.service-diagnostics-trigger .server-status {margin:0; flex-shrink:0;}
+.services-overview-meta button.service-diagnostics-trigger {padding:0; color:inherit; text-decoration:underline dotted; text-underline-offset:3px;}
+#service-diagnostics {--sd-border:var(--color-gray); box-sizing:border-box; min-width:0;}
+#service-diagnostics a {color:var(--blue-color);}
+#service-diagnostics .sd-toolbar {display:flex; justify-content:flex-end; margin-bottom:12px;}
+#service-diagnostics .sd-caption {color:var(--color-secondary); font-size:12px; overflow-wrap:anywhere;}
+#service-diagnostics .sd-worker {padding:14px; margin-bottom:14px; border:1px solid var(--sd-border); border-radius:6px;}
+#service-diagnostics header {display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px;}
+#service-diagnostics .sd-state {font-weight:600;}
+#service-diagnostics .sd-warning, #service-diagnostics [data-worker-status=stale] .sd-state, #service-diagnostics [data-worker-status=degraded] .sd-state {color:#986000;}
+#service-diagnostics .sd-facts {display:grid; grid-template-columns:minmax(110px, 1fr) minmax(0, 3fr); gap:6px 12px;}
+#service-diagnostics dd {margin:0; overflow-wrap:anywhere;}
+#service-diagnostics .sd-issue {border-top:1px solid var(--sd-border); padding:12px 0; overflow-wrap:anywhere;}
+#service-diagnostics summary {cursor:pointer; color:var(--color-blue);}
+#service-diagnostics pre {white-space:pre-wrap; overflow-wrap:anywhere; padding:8px; font:12px/1.5 Consolas,monospace;}
+#service-diagnostics .sd-logs-link {margin-left:16px;}
+@media(max-width:480px) {#service-diagnostics .sd-facts {grid-template-columns:1fr;} #service-diagnostics dd {margin-bottom:6px;}}

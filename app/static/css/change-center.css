@@ -368,14 +368,14 @@ button.ui-button.change-confirm-button:hover {
 @keyframes change-live-pulse { 50% { opacity: .35; } }
 
 .change-timeline {
-    border-left: 2px solid var(--rw-border, #ddd);
-    margin: 0 0 16px 12px;
+    margin: 0 0 16px;
     max-height: 300px;
     overflow: auto;
-    padding: 4px 10px 4px 22px;
+    padding: 4px 10px;
 }
 
-.change-timeline-item { display: grid; margin: 0 0 14px; position: relative; }
+.change-timeline-item { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 12px; padding-bottom: 14px; position: relative; }
+.change-timeline-item::before { content: ''; position: absolute; left: 10px; top: 0; bottom: 0; border-left: 2px solid var(--rw-border, #ddd); }
 .change-timeline-icon {
     align-items: center;
     background: var(--rw-surface, #fff);
@@ -384,12 +384,10 @@ button.ui-button.change-confirm-button:hover {
     border-radius: 50%;
     height: 22px;
     justify-content: center;
-    left: -34px;
-    position: absolute;
-    top: 0;
+    position: relative;
     width: 22px;
 }
-.change-timeline-content { display: grid; gap: 3px; }
+.change-timeline-content { display: grid; gap: 3px; overflow-wrap: anywhere; }
 .change-timeline-content time,
 .change-timeline-content > span { color: var(--rw-text-muted, #66717d); font-size: .85em; }
 .change-timeline-item[class*="failed"] .change-timeline-icon { color: var(--red-color); }

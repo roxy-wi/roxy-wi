@@ -20,6 +20,37 @@ def selectmenu(page, selector, label):
     page.locator(selector + '-menu').get_by_role('option', name=label, exact=True).click()
 
 
+@pytest.mark.parametrize('locale', ['en', 'ru', 'es-ES', 'fr', 'pt-br', 'zh'])
+def test_overview_logs_match_other_tiles(logged_in, product_url, product, locale):
+    journal = product.root / 'journal'
+    journal.mkdir()
+    timestamp = datetime.now(timezone.utc).isoformat()
+    (journal / 'rwi-product.log').write_text(''.join(
+        json.dumps(dict(timestamp=timestamp, message=f'Event {index}: configuration updated',
+                        level='INFO', process_role='service-events')) + '\n'
+        for index in range(6)
+    ), encoding='utf-8')
+    page = logged_in
+    page.context.add_cookies([{'name': 'lang', 'value': locale, 'url': product_url}])
+    # Server status is unrelated to the tile layout; synthetic hosts have no SSH listener.
+    page.route('**/overview/server/**', lambda route: route.fulfill(body=''))
+    assert page.goto(product_url + '/overview').status == 200
+    tile = page.locator('#overview-logs')
+    expect(tile.locator('.log-row:visible')).to_have_count(3)
+    for width in (1440, 1000):
+        page.set_viewport_size({'width': width, 'height': 1000})
+        assert abs(tile.bounding_box()['width'] - page.locator('#overview-roles').bounding_box()['width']) <= 1
+        assert tile.evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
+    page.locator('#overview-log-expand').click()
+    expect(tile.locator('.log-row:visible')).to_have_count(6)
+    tile.locator('.log-row summary').first.click()
+    expect(tile.locator('.log-detail').first).to_be_visible()
+    page.locator('#overview-log-expand').click()
+    expect(tile.locator('.log-row:visible')).to_have_count(3)
+    page.set_viewport_size({'width': 390, 'height': 1000})
+    assert tile.evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
+
+
 def backup_tab(page, url):
     response = page.goto(url + '/admin')
     assert response.status == 200, response.text()

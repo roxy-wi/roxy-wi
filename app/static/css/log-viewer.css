@@ -3,9 +3,10 @@
     --log-border:#dce1e7; --log-hover:#edf5f8; --log-accent:#027f9f; --log-accent-bg:#e7f4f8;
     --log-warn:#825000; --log-warn-bg:#fff1d3; --log-error:#b23732; --log-error-bg:#ffebe8;
     --log-mark:#ffe894;
-    padding:16px 24px 24px; margin:0; color:var(--log-text); font-size:13px; clear:both; color-scheme:light;
+    color:var(--log-text); font-size:13px; color-scheme:light;
 }
-:is(#log-viewer, #overview-logs) {min-width:0;}
+#log-viewer-form {padding:16px 24px 24px; margin:0; clear:both;}
+#log-viewer {min-width:0;}
 :is(#log-viewer, #overview-logs) [hidden] {display:none!important;}
 :is(#log-viewer, #overview-logs) *, :is(#log-viewer, #overview-logs) *::before, :is(#log-viewer, #overview-logs) *::after {box-sizing:border-box;}
 :is(#log-viewer, #overview-logs) .log-toolbar {display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding:12px; background:var(--log-surface); border:1px solid var(--log-border); border-radius:6px;}
@@ -88,18 +89,17 @@
     :is(#log-viewer, #overview-logs) .log-fields {grid-template-columns:90px minmax(0,1fr);gap:8px 12px;}
 }
 
-#overview-logs {float:none; clear:both; width:calc(100% - 34px); min-width:0; max-width:none; min-height:0; margin:0 20px 20px 7px; padding:12px;}
+#overview-logs {box-sizing:border-box;}
 #overview-logs #overview-log-title {color:var(--log-text); font-weight:600;}
 #overview-logs .overview-log-range {color:var(--log-muted); font-size:12px;}
 #overview-logs .log-search-control {margin-left:auto; max-width:260px;}
-#overview-logs .log-row>summary {grid-template-columns:12px 180px 65px 112px minmax(0,1fr);}
+#overview-logs .log-row>summary {grid-template-columns:12px minmax(0,1fr) 65px 112px; gap:6px 8px;}
+#overview-logs .log-message {grid-column:2/-1;}
 #overview-log-expand {margin-top:10px!important;}
-@media(max-width:900px) {
-    #overview-logs .log-row>summary {grid-template-columns:12px 180px 65px minmax(0,1fr); gap:6px 8px;}
-    #overview-logs .log-message {grid-column:2/-1;}
+@media(max-width:620px) {
+    #overview-logs {min-width:0;}
 }
 @media(max-width:480px) {
-    #overview-logs {width:calc(100% - 14px); margin:0 7px 20px; padding:8px;}
     #overview-logs .log-search-control {max-width:none;}
     #overview-logs .log-row>summary {grid-template-columns:12px minmax(0,1fr) 65px;}
     #overview-logs .log-process {grid-column:2/-1;}

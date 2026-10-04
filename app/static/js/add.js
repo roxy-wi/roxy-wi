@@ -696,7 +696,7 @@ function resetProxySettings() {
 	$('[name=ssl-check]').prop( "checked", true );
 	$('[name=ssl-dis-check]').prop( "checked", false );
 	$('[name=check-servers]').prop( "checked", true );
-	$('input:checkbox').checkboxradio("refresh");
+	$('input:checkbox').not('.config-viewer input').checkboxradio("refresh");
 	$('.advance-show').fadeIn();
 	$('.advance').fadeOut();
 	$('[id^=https-hide]').hide();
@@ -726,7 +726,7 @@ function createSsl(TabId, proxy) {
 	$('#ssl-dis-check-'+proxy).prop( "checked", true );
 	$('#ssl-check-'+proxy).prop( "checked", false );
 	$('#ssl-check-'+proxy).checkboxradio('disable');
-	$('input:checkbox').checkboxradio("refresh");
+	$('input:checkbox').not('.config-viewer input').checkboxradio("refresh");
 	$("#path-cert-"+proxy ).attr('required',true);
 	if (TabId == 1) {
 		TabId = '';

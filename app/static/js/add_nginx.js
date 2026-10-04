@@ -149,7 +149,7 @@ function resetProxySettings() {
 	$('[name=name]').val('');
 	$('input:checkbox').prop("checked", false);
 	$('[name=check-servers]').prop("checked", true);
-	$('input:checkbox').checkboxradio("refresh");
+	$('input:checkbox').not('.config-viewer input').checkboxradio("refresh");
 	$('.advance-show').fadeIn();
 	$('.advance').fadeOut();
 	$('select').selectmenu('refresh');
@@ -342,7 +342,7 @@ function createSsl(TabId) {
 	$("#hide-scheme").show("fast");
 	$('#scheme').val('https');
 	$('#ssl_offloading').prop("checked", true);
-	$('input:checkbox').checkboxradio("refresh");
+	$('input:checkbox').not('.config-viewer input').checkboxradio("refresh");
 	$("#ssl_key").attr('required', true);
 	if (TabId === 1) {
 		TabId = '';

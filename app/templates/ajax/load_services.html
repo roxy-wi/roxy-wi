@@ -1,5 +1,6 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/admin_action_menu.html' import admin_action_menu %}
+{% set dt = lang.service_diagnostics %}
 {% set services_name = {
 	'roxy-wi-web': { 'name': 'Web', 'desc': 'Roxy-WI HTTP API and user interface' },
 	'roxy-wi-scheduler': { 'name': 'Scheduler', 'desc': 'Runs scheduled Roxy-WI jobs' },
@@ -27,22 +28,24 @@
 <tr class="admin-tool-row" id="{{service.0}}">
     <td class="padding10 first-collumn"><b>{{service_info['name']}}</b></td>
     <td class="admin-tool-status-cell">
+        {% if metadata.get('category') in ('internal', 'distributed') %}<button type="button" class="service-diagnostics-trigger" data-service-name="{{ service_info.name }}" data-diagnostics-url="{{ url_for('admin.worker_diagnostics', service=service.0) }}" title="{{ dt.open }}">{% endif %}
         {% if service.1 in ('active', 'RUNNING') %}
             <span class="serverUp server-status" title="{{service_info['name']}} is running{% if service.3 %}; workers: {{ service.3.get('active', 0) }}; {{ activity_label }}: {{ service.3.get('assignments', 0) }}{% endif %}{% if metadata.get('last_heartbeat') %}; last heartbeat: {{ metadata.get('last_heartbeat') }}{% endif %}"></span>
-            <span>Running</span>
+            <span>{{ dt.running }}</span>
         {% elif service.1 in ('degraded', 'draining') %}
             <span class="serverWarn server-status" title="{{ service_info['name'] }} workers: active {{ service.3.get('active', 0) }}; degraded {{ service.3.get('degraded', 0) }}; draining {{ service.3.get('draining', 0) }}; stale {{ service.3.get('stale', 0) }}; {{ activity_label }} {{ service.3.get('assignments', 0) }}"></span>
-            <span>Degraded</span>
+            <span>{{ dt[service.1] }}</span>
         {% elif service.1 in ('inactive', 'failed', 'activating', 'STOPPED', 'stale', 'stopped') and is_installed %}
             <span class="serverDown server-status" title="{{service_info['name']}} is stopped{% if service.3 %}; stale workers: {{ service.3.get('stale', 0) }}; stopped workers: {{ service.3.get('stopped', 0) }}{% endif %}"></span>
-            <span>Stopped</span>
+            <span>{{ dt.stale if service.1 == 'stale' else dt.stopped }}</span>
         {% else %}
             <span class="serverNone server-status" title="{{service_info['name']}} status is unknown"></span>
             <span>Unknown</span>
         {% endif %}
+        {% if metadata.get('category') in ('internal', 'distributed') %}</button>{% endif %}
     </td>
     <td class="admin-tool-instances">
-        {{ metadata.get('instances', 0) }}{% if metadata.get('stale', 0) %} <span class="admin-tool-stale">+ {{ metadata.get('stale') }} stale</span>{% endif %}
+        {{ metadata.get('instances', 0) }}{% if metadata.get('stale', 0) %} <button type="button" class="admin-tool-stale service-diagnostics-trigger" data-service-name="{{ service_info.name }}" data-diagnostics-url="{{ url_for('admin.worker_diagnostics', service=service.0) }}" title="{{ dt.open }}">+ {{ metadata.get('stale') }} {{ dt.stale }}</button>{% endif %}
     </td>
 	<td class="admin-version-cell">
         {% if is_installed %}{{service.2['current_version']}}{% else %}—{% endif %}
