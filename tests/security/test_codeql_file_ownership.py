@@ -42,7 +42,7 @@ def versions(tmp_path, monkeypatch):
 
     def make(service, owner=SERVER, content='own config\n'):
         path = Path(config_common.generate_config_path(service, owner))
-        path.write_text(content)
+        path.write_text(content, encoding='utf-8', newline='')
         records[(owner, service, str(path.resolve()))] = SimpleNamespace(local_path=str(path), remote_path='/etc/service/site.conf')
         return path
     return make
@@ -96,10 +96,16 @@ def test_own_versions_remain_comparable_readable_and_deployable(client, editor, 
     monkeypatch.setattr(config_mod.service_sql, 'select_service_setting', lambda *a: '1')
     monkeypatch.setattr(common, 'get_user_lang_for_flask', lambda: {})
     monkeypatch.setattr(config_mod.deployment_policy, 'direct_deployment_allowed', lambda *a: True)
-    monkeypatch.setattr(config_mod, 'render_template', lambda template, **kw: ''.join(kw['conf']))
+    def render_version(template, **kwargs):
+        document = kwargs['document']
+        assert document['source']['path'] == '/etc/service/site.conf'
+        assert document['source']['version'] == new.name
+        assert document['edit_url'] is None
+        return document['text']
+    monkeypatch.setattr(config_mod, 'render_template', render_version)
     response = client.post(f'/config/{service}/show', headers=editor,
                            json={'serv': SERVER, 'configver': new.name})
-    assert response.status_code == 200 and response.json['data'] == 'after\n'
+    assert response.status_code == 200 and response.json['data'] == 'after\n', response.json
 
     uploads = []
     monkeypatch.setattr(routes.deployment_policy, 'require_direct_deployment_for_server', lambda *a, **k: None)

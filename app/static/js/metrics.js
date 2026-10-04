@@ -402,32 +402,36 @@ function loadMetrics() {
         }
     });
 }
-function getChartDataHapWiRam(ip) {
-    let json_data = {
-        'ip': ip
-    }
-    $.ajax({
-        url: "/metrics/ram",
-		data: JSON.stringify(json_data),
-        contentType: "application/json",
-		beforeSend: function() {
-			$('#ram').html('<img class="loading_hapwi_overview" src="/static/images/loading.gif" alt="loading..." />')
-		},
-		type: "POST",
-        success: function (result) {  
-            let data = [];
-            data.push(result.chartData.rams);
-            // Получение значений из строки и разделение их на массив
-            const ramsData = data[0].trim().split(' ');
-
-            // Преобразование значений в числа
-            const formattedData = ramsData.map(value => parseFloat(value));
-            renderChartHapWiRam(formattedData);
+const hostMetricGenerations = {cpu: 0, ram: 0};
+function getHostMetricData(metric, ip, field, render) {
+    const canvas = document.getElementById(metric);
+    if (!canvas) return;
+    const generation = ++hostMetricGenerations[metric];
+    return $.ajax({
+        url: '/metrics/' + metric,
+        data: JSON.stringify({ip}),
+        contentType: 'application/json',
+        type: 'POST',
+        success: function (result) {
+            // A refresh or a different server may finish before this request.
+            if (generation !== hostMetricGenerations[metric] || document.getElementById(metric) !== canvas) return;
+            render(result.chartData[field].trim().split(/\s+/).map(value => parseFloat(value)));
         }
     });
 }
+function getChartDataHapWiRam(ip) {
+    return getHostMetricData('ram', ip, 'rams', renderChartHapWiRam);
+}
 function renderChartHapWiRam(data) {
-    let ctx = document.getElementById('ram').getContext('2d');
+    const canvas = document.getElementById('ram');
+    if (!canvas) return;
+    const existing = Chart.getChart(canvas);
+    if (existing) {
+        existing.data.datasets[0].data = data;
+        existing.update();
+        return;
+    }
+    let ctx = canvas.getContext('2d');
     let myChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -481,26 +485,18 @@ function renderChartHapWiRam(data) {
     charts.push(myChart);
 }
 function getChartDataHapWiCpu(ip) {
-    let json_data = {
-        'ip': ip
-    }
-    $.ajax({
-        url: "/metrics/cpu",
-		data: JSON.stringify(json_data),
-        contentType: "application/json",
-		type: "POST",
-        success: function (result) {   
-            // Получение значений из строки и разделение их на массив
-            const ramsData = result.chartData.cpus.trim().split(' ').map(parseFloat);
-
-            // Преобразование значений в числа
-            const formattedData = ramsData.map(value => parseFloat(value));
-            renderChartHapWiCpu(formattedData);
-        }
-    });
+    return getHostMetricData('cpu', ip, 'cpus', renderChartHapWiCpu);
 }
 function renderChartHapWiCpu(data) {
-    let ctx = document.getElementById('cpu').getContext('2d');
+    const canvas = document.getElementById('cpu');
+    if (!canvas) return;
+    const existing = Chart.getChart(canvas);
+    if (existing) {
+        existing.data.datasets[0].data = data;
+        existing.update();
+        return;
+    }
+    let ctx = canvas.getContext('2d');
     let myChart = new Chart(ctx, {
         type: 'bar',
         data: {
@@ -595,7 +591,6 @@ $( function() {
     });
 });
 function showOverviewHapWI() {
-    removeData();
 	getChartDataHapWiCpu('127.0.0.1');
 	getChartDataHapWiRam('127.0.0.1');
 	NProgress.configure({showSpinner: false});

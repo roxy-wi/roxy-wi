@@ -39,6 +39,22 @@ def browser_errors(page):
 
 
 @pytest.fixture
+def host_metrics(monkeypatch):
+    # The production collector uses Linux-specific psutil fields. Keep real
+    # routes and charts on every test host, replacing only the OS readings.
+    samples = {'ram': [1024, 512, 32, 256, 768, 2048],
+               'cpu': [10, 5, 0, 80, 2, 1, 2, 0, 20]}
+    for metric, field in [('ram', 'rams'), ('cpu', 'cpus')]:
+        monkeypatch.setattr(
+            f'app.modules.roxywi.metrics.show_{metric}_metrics',
+            lambda _ip, metric=metric, field=field: {
+                'chartData': {field: ' '.join(map(str, samples[metric]))},
+            },
+        )
+    return samples
+
+
+@pytest.fixture
 def logged_in(page, product_url):
     response = page.request.post(product_url + '/login', data={
         'login': 'admin', 'pass': 'TestBootstrapPassword!', 'next': '/admin',

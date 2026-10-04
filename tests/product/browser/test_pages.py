@@ -21,7 +21,7 @@ def selectmenu(page, selector, label):
 
 
 @pytest.mark.parametrize('locale', ['en', 'ru', 'es-ES', 'fr', 'pt-br', 'zh'])
-def test_overview_logs_match_other_tiles(logged_in, product_url, product, locale):
+def test_overview_logs_match_other_tiles(logged_in, product_url, product, host_metrics, locale):
     journal = product.root / 'journal'
     journal.mkdir()
     timestamp = datetime.now(timezone.utc).isoformat()

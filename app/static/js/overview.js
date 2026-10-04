@@ -77,7 +77,6 @@ function showOverview(serv, hostnamea) {
 	}
 	showSubOverview();
 	showServicesOverview();
-	updatingCpuRamCharts();
 }
 function showOverviewCallBack(serv, hostnamea) {
 	$.ajax( {
