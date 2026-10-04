@@ -163,7 +163,7 @@ class InstallView(MethodView):
                 return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot update Tools settings for {service.title()}')
         else:
             return jsonify({"status": "accepted", "tasks_ids": [task_id]}), 202
-        return IdStrResponse(id=f'{server_id}-{service}').model_dump(mode='json'), 201
+        return {'id': f'{server_id}-{service}', 'tasks_ids': [task_id]}, 201
 
     @validate(body=ServiceInstall)
     def put(self, service: Literal['haproxy', 'nginx', 'apache', 'keepalived'], server_id: Union[int, str, None], body: ServiceInstall):

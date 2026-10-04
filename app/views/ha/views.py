@@ -261,13 +261,15 @@ class HAView(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create cluster')
 
+        tasks_ids = []
         if body.reconfigure:
             try:
-                self._install_service(body, cluster_id)
+                response, _ = self._install_service(body, cluster_id)
+                tasks_ids = response.get_json()['tasks_ids']
             except Exception as e:
                 return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot reconfigure cluster')
 
-        return IdResponse(id=cluster_id).model_dump(mode='json'), 201
+        return {'id': cluster_id, 'tasks_ids': tasks_ids}, 201
 
     @validate(body=HAClusterRequest)
     def put(self, service: str, cluster_id: int, body: HAClusterRequest):

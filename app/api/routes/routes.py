@@ -1,5 +1,6 @@
 from flask_swagger import swagger
-from flask import jsonify, render_template, abort
+from flask import jsonify, render_template, abort, g
+from flask_jwt_extended import jwt_required
 from flask_pydantic import validate
 
 from app import app
@@ -23,6 +24,8 @@ from app.views.tools.views import CheckerView
 from app.views.tools.port_scanner_views import PortScannerView, PortScannerPortsView
 from app.views.admin.views import SettingsView
 from app.modules.roxywi.class_models import LoginRequest
+from app.modules.db.db_model import InstallationTasks
+from app.middleware import get_user_params, page_for_admin
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 from app.api.routes import change_routes as change_api_routes
@@ -35,6 +38,20 @@ def before_request():
     if user_subscription['user_status'] == 0 or user_subscription['user_plan'] == 'user':
         abort(401, 'Your subscription is not active or you are on a Home plan.')
     pass
+
+
+@bp.get('/operations/<int:task_id>')
+@jwt_required()
+@get_user_params()
+@page_for_admin(level=3)
+def operation_status(task_id):
+    task = InstallationTasks.get_or_none(
+        (InstallationTasks.id == task_id) &
+        (InstallationTasks.group_id == g.user_params['group_id'])
+    )
+    if task is None:
+        return {'error': 'Operation not found'}, 404
+    return {'task_id': task.id, 'status': task.status}
 
 
 def register_api(view, endpoint, url, pk='listener_id', pk_type='int'):
