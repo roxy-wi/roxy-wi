@@ -4,6 +4,7 @@ from difflib import unified_diff
 from pathlib import Path
 from shlex import quote
 from typing import Any
+from uuid import uuid4
 
 from flask import render_template, g
 
@@ -21,6 +22,8 @@ import app.modules.service.common as service_common
 import app.modules.service.action as service_action
 import app.modules.config.common as config_common
 import app.modules.config.deployment_policy as deployment_policy
+from app.modules.config import haproxy_files
+from app.modules.config.path_tokens import encode_file_path, decode_file_path
 from app.modules.config.viewer import build_document
 
 time_zone = sql.get_setting('time_zone')
@@ -29,50 +32,28 @@ get_config_var = roxy_wi_tools.GetConfigVar()
 
 
 def _replace_config_path_to_correct(config_path: str) -> str:
-	"""
-	Decode legacy path tokens while retaining already resolved absolute paths.
-
-	:param config_path: The config path to be sanitized.
-	:return: The sanitized config path string.
-	"""
-	absolute = bool(config_path and config_path.startswith('/'))
-	config_path = common.checkAjaxInput(config_path)
-	try:
-		return config_path if absolute else config_path.replace('92', '/')
-	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot sanitize config file')
+	"""Decode and validate a path; shell quoting belongs at command construction."""
+	if config_path in (None, '', 'undefined'):
+		return ''
+	path = decode_file_path(config_path)
+	common.checkAjaxInput(path)
+	if '\x00' in path or '\\' in path:
+		raise ValueError('Invalid configuration file path')
+	return path
 
 
 def get_config(server_ip, cfg, service='haproxy', **kwargs):
-	"""
-	:param service: The service for what needed to get config. Valid values are 'haproxy', 'nginx', 'apache' and 'keepalived'.
-	:param server_ip: The IP address of the server from which to retrieve the configuration.
-	:param cfg: The name of the configuration file.
-	:param kwargs: Additional keyword arguments.
-		- service: The name of the service for which the configuration is retrieved.
-		- config_file_name: The name of the configuration file for 'nginx' or 'apache' services.
-		- waf: The name of the Web Application Firewall (WAF) service.
-		- waf_rule_file: The name of the WAF rule file.
+	"""Download the selected configuration to a local candidate/baseline file.
 
-	:return: None
-
-	Retrieves the configuration file for the specified service on the given server IP. The configuration file is stored in the provided 'cfg' variable.
-
-	The method first determines the correct path for the configuration file based on the 'service' parameter:
-	- If the service is 'keepalived' or 'haproxy', the method retrieves the configuration path from the SQL database using the service name appended with '_config_path'.
-	- If the service is 'nginx' or 'apache', the method replaces the configuration file name with the correct path using the '_replace_config_path_to_correct' function and the 'config_file
-	*_name' parameter.
-	- If the 'waf' parameter is provided, the method retrieves the service directory from the SQL database using the 'waf' parameter appended with '_dir'. If the 'waf' parameter is 'hap
-	*roxy' or 'nginx', the method constructs the configuration path by appending the service directory with '/waf/rules/' and the 'waf_rule_file' parameter.
-
-	After determining the configuration path, the method validates that the configuration file exists using the 'common.check_is_conf' function.
-
-	Finally, the method establishes an SSH connection to the server IP using the 'mod_ssh.ssh_connect' function and retrieves the configuration file using the 'ssh.get_sftp' function. Any
-	* exceptions that occur during this process are handled by the 'roxywi_common.handle_exceptions' function, displaying an error message with the relevant details.
+	HAProxy defaults to its main file and accepts .cfg files within haproxy_dir.
+	NGINX/Apache retain their explicit paths; Keepalived uses its main file.
+	WAF rules retain their separate directory resolution.
 	"""
 	config_path = ''
 
-	if service in ('keepalived', 'haproxy') and not kwargs.get("waf"):
+	if service == 'haproxy' and not kwargs.get('waf'):
+		config_path = haproxy_files.resolve_path(kwargs.get('config_file_name'))
+	elif service == 'keepalived' and not kwargs.get("waf"):
 		config_path = sql.get_setting(f'{service}_config_path')
 	elif service in ('nginx', 'apache'):
 		config_path = _replace_config_path_to_correct(kwargs.get('config_file_name'))
@@ -83,6 +64,14 @@ def get_config(server_ip, cfg, service='haproxy', **kwargs):
 	common.check_is_conf(config_path)
 
 	try:
+		if service == 'haproxy' and not kwargs.get('waf'):
+			command = haproxy_files.read_path_command(config_path, missing_ok=kwargs.get('missing_ok', False))
+			config_path = server_mod.ssh_command(server_ip, command, rc=1, error_context='Cannot read the selected HAProxy configuration file').strip()
+			if kwargs.get('missing_ok') and config_path == '__ROXYWI_MISSING_CONFIG__':
+				Path(cfg).write_text('', encoding='utf-8')
+				return
+			if not config_path.startswith('/'):
+				raise ValueError('Cannot resolve the selected HAProxy configuration file')
 		with mod_ssh.ssh_connect(server_ip) as ssh:
 			ssh.get_sftp(config_path, cfg)
 	except Exception as e:
@@ -109,14 +98,16 @@ def validate_candidate_config(server_ip: str, cfg: str, service: str, config_fil
 	"""Validate a candidate without leaving it as the active on-disk configuration."""
 	server_id = server_sql.get_server_by_ip(server_ip).server_id
 	config_path = config_file_name
-	if config_path and config_path != 'undefined':
+	if service != 'haproxy' and config_path and config_path != 'undefined':
 		config_path = _replace_config_path_to_correct(config_path)
-	if service in ('haproxy', 'keepalived'):
+	if service == 'haproxy':
+		config_path = haproxy_files.resolve_path(config_path)
+	elif service == 'keepalived':
 		config_path = sql.get_setting(f'{service}_config_path')
 	common.check_is_conf(config_path)
 
 	tmp_file = (
-		f"{sql.get_setting('tmp_config_path')}/{get_date.return_date('config')}."
+		f"{sql.get_setting('tmp_config_path')}/{uuid4().hex}."
 		f"candidate.{config_common.get_file_format(service)}"
 	)
 	try:
@@ -124,10 +115,16 @@ def validate_candidate_config(server_ip: str, cfg: str, service: str, config_fil
 	except OSError:
 		# dos2unix is optional; the actual service validator is authoritative.
 		pass
-	upload(server_ip, tmp_file, cfg)
-
 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
 	container_name = sql.get_setting(f'{service}_container_name')
+	if service == 'haproxy':
+		command = haproxy_files.candidate_command(
+			config_path, tmp_file, 'test', sources=haproxy_files.config_sources(server_ip, server_id),
+			container=container_name if is_dockerized == '1' else ''
+		)
+		upload(server_ip, tmp_file, cfg)
+		return str(server_mod.ssh_command(server_ip, command, rc=1, timeout=90,
+			error_context='HAProxy configuration validation failed') or '').strip() or 'HAProxy configuration is valid'
 	if is_dockerized == '1':
 		checks = {
 			'haproxy': f'sudo docker exec {quote(container_name)} haproxy -c -f {quote(config_path)}',
@@ -161,6 +158,7 @@ def validate_candidate_config(server_ip: str, cfg: str, service: str, config_fil
 		)
 
 	try:
+		upload(server_ip, tmp_file, cfg)
 		output = server_mod.ssh_command(server_ip, command, rc=1)
 	except Exception as e:
 		roxywi_common.handle_exceptions(e, server_ip, f'Cannot validate {service} candidate configuration')
@@ -183,16 +181,28 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 	validate_config_action(just_save)
 	container_name = sql.get_setting(f'{service}_container_name')
 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
+	if service == 'haproxy':
+		if service_common.is_not_allowed_to_restart(server_id, service, just_save):
+			raise Exception('error: This server is not allowed to be restarted')
+		action_command = service_action.get_action_command(service, just_save, server_id) if just_save in ('reload', 'restart') else ''
+		commands = haproxy_files.candidate_command(
+			config_path, tmp_file, just_save, sources=haproxy_files.config_sources(server_ip, server_id),
+			container=container_name if is_dockerized == '1' else '',
+			reload_command=action_command
+		)
+		if just_save != 'test' and server_sql.return_firewall(server_ip):
+			commands += _open_port_firewalld(cfg, server_ip, service)
+		return commands
 	reload_or_restart_command = ''
 	if just_save in ('reload', 'restart'):
 		reload_or_restart_command = f' && {service_action.get_action_command(service, just_save, server_id)}'
-	move_config = f" sudo mv -f {tmp_file} {config_path}"
-	command_for_docker = f'sudo docker exec -it {container_name}'
+	move_config = f" sudo mv -f {quote(tmp_file)} {quote(config_path)}"
+	command_for_docker = f'sudo docker exec -it {quote(container_name)}'
 	command = {
 		'haproxy': {'0': f'sudo haproxy -c -f {tmp_file} ', '1': f'{command_for_docker} haproxy -c -f {tmp_file} '},
 		'nginx': {'0': 'sudo nginx -t ', '1': f'{command_for_docker} nginx -t '},
 		'apache': {'0': 'sudo apachectl -t ', '1': f'{command_for_docker} apachectl -t '},
-		'keepalived': {'0': f'keepalived -t -f {tmp_file} ', '1': ' '},
+		'keepalived': {'0': f'keepalived -t -f {quote(tmp_file)} ', '1': ' '},
 		'waf': {'0': ' ', '1': ' '}
 	}
 
@@ -202,7 +212,7 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 		raise Exception(f'error: Cannot generate command: {e}')
 
 	if just_save == 'test':
-		return f"{check_config} && sudo rm -f {tmp_file}"
+		return f"{check_config} && sudo rm -f {quote(tmp_file)}"
 	elif just_save == 'save':
 		reload_or_restart_command = ''
 	else:
@@ -246,6 +256,10 @@ def _prepare_config_version_diff(server_ip: str, service: str, config_path: str,
 		path = Path(old_cfg)
 
 	if not path.is_file():
+		if service == 'haproxy':
+			old_cfg = f'{cfg}.old'
+			get_config(server_ip, old_cfg, service=service, config_file_name=config_path, missing_ok=True)
+			return diff_config(old_cfg, cfg)
 		old_cfg = f'{tmp_file}.old'
 		try:
 			get_config(server_ip, old_cfg, service=service, config_file_name=config_path)
@@ -307,23 +321,20 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 
 	config_path = kwargs.get('config_file_name')
 	server_id = server_sql.get_server_by_ip(server_ip).server_id
-	tmp_file = f"{sql.get_setting('tmp_config_path')}/{get_date.return_date('config')}.{config_common.get_file_format(service)}"
+	tmp_file = f"{sql.get_setting('tmp_config_path')}/{uuid4().hex}.{config_common.get_file_format(service)}"
 
-	if config_path and config_path != 'undefined':
+	if service != 'haproxy' and config_path and config_path != 'undefined':
 		config_path = _replace_config_path_to_correct(kwargs.get('config_file_name'))
 
-	if service in ('haproxy', 'keepalived'):
+	if service == 'haproxy':
+		config_path = haproxy_files.resolve_path(config_path)
+	elif service == 'keepalived':
 		config_path = sql.get_setting(f'{service}_config_path')
 
 	common.check_is_conf(config_path)
 
 	if kwargs.get('normalize_config', True):
 		normalize_config_file(cfg)
-
-	try:
-		upload(server_ip, tmp_file, cfg)
-	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot upload config')
 
 	should_record_version = (
 		not kwargs.get('slave')
@@ -348,7 +359,14 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot generate command for service {service}')
 
 	try:
-		error = server_mod.ssh_command(server_ip, commands, rc=1)
+		upload(server_ip, tmp_file, cfg)
+	except Exception as e:
+		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot upload config')
+
+	try:
+		error = server_mod.ssh_command(server_ip, commands, rc=1, **(
+			{'timeout': 90, 'error_context': 'HAProxy configuration validation or application failed'} if service == 'haproxy' else {}
+		))
 	except Exception as e:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot {just_save} {service}')
 
@@ -651,22 +669,52 @@ def show_config_files(server_ip: str, service: str, config_file_name: str, edit_
 	:return: The rendered template.
 	"""
 	service_config_dir = sql.get_setting(f'{service}_dir')
-	return_files = server_mod.get_remote_files(server_ip, service_config_dir, 'conf')
-	return_files += ' ' + sql.get_setting(f'{service}_config_path')
+	discovery = None
+	multiple_files = False
+	if service == 'haproxy':
+		server_id = server_sql.get_server_by_ip(server_ip).server_id
+		multiple_files = haproxy_files.multiple_files_enabled(server_id)
+		if multiple_files:
+			discovery = haproxy_files.discover_sources(server_ip, server_id)
+	files = ([haproxy_files.resolve_path()] if discovery and discovery['state'] == 'error'
+		else list_config_files(server_ip, service))
 	lang = roxywi_common.get_user_lang_for_flask()
 
-	if 'error: ' in return_files:
-		raise Exception(return_files)
-
-	try:
-		config_file_name = _replace_config_path_to_correct(config_file_name)
-	except Exception:
-		config_file_name = ''
+	if service == 'haproxy' and config_file_name in (None, '', 'undefined') and files:
+		main = haproxy_files.resolve_path()
+		config_file_name = main if main in files else files[0]
+	config_file_name = haproxy_files.resolve_path(config_file_name) if service == 'haproxy' else _replace_config_path_to_correct(config_file_name)
+	if not config_file_name:
+		config_file_name = sql.get_setting(f'{service}_config_path')
 
 	return render_template(
-		'ajax/show_configs_files.html', serv=server_ip, service=service, return_files=return_files, lang=lang,
-		config_file_name=config_file_name, path_dir=service_config_dir, edit_mode=edit_mode
+		'ajax/show_configs_files.html', serv=server_ip, service=service, files=files, lang=lang,
+		config_file_name=config_file_name, path_dir=service_config_dir, edit_mode=edit_mode,
+		file_extension=config_common.get_file_format(service), encode_file_path=encode_file_path,
+		discovery=discovery, multiple_files=multiple_files,
+		server_id=server_id if service == 'haproxy' else None
 	)
+
+
+def list_config_files(server_ip: str, service: str) -> list[str]:
+	main = str(sql.get_setting(f'{service}_config_path'))
+	if service == 'keepalived':
+		return [main]
+	root = str(sql.get_setting(f'{service}_dir')).rstrip('/')
+	if service == 'haproxy':
+		server_id = server_sql.get_server_by_ip(server_ip).server_id
+		if not haproxy_files.multiple_files_enabled(server_id):
+			return [main]
+		discovery = haproxy_files.discover_sources(server_ip, server_id)
+		if discovery['state'] == 'error':
+			raise ValueError('Cannot determine HAProxy configuration sources (%s)' % discovery['code'])
+		return [haproxy_files.resolve_path(path) for path in discovery['files']]
+	else:
+		output = server_mod.get_remote_files(server_ip, root, 'conf')
+		if 'error: ' in output:
+			raise ValueError(output)
+		files = [path for path in output.split('\x00') if path]
+	return [main, *sorted(set(files) - {main})]
 
 
 def list_of_versions(server_ip: str, service: str, configver: str, for_delver: int) -> str:

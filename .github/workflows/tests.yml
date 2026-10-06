@@ -56,6 +56,10 @@ jobs:
         env:
           ROXYWI_TEST_DOCKER_LE: '1'
         run: python -m pytest tests/integration/test_letsencrypt_linux.py -q --no-cov
+      - name: Verify HAProxy configuration files and Docker directory mounts
+        env:
+          ROXYWI_TEST_DOCKER_CONFIG: '1'
+        run: python -m pytest tests/integration/test_haproxy_config_files_linux.py -q --no-cov
 
   unit-tests:
     runs-on: ubuntu-latest

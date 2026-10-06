@@ -403,22 +403,20 @@ function serverSettings(id, name) {
 	$.ajax({
 		url: "/service/settings/" + service + "/" + id,
 		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
-				$("#dialog-settings-service").html(data)
-				$("input[type=checkbox]").checkboxradio();
-				$("#dialog-settings-service").dialog({
+				const dialog = $("#dialog-settings-service").html(data);
+				dialog.find("input[type=checkbox]").checkboxradio();
+				dialog.dialog({
 					resizable: false,
 					height: "auto",
-					width: 400,
+					width: Math.min(640, window.innerWidth - 32),
 					modal: true,
 					title: settings_word + " " + for_word + " " + name,
 					buttons: [{
 						text: save_word,
 						click: function () {
-							$(this).dialog("close");
 							serverSettingsSave(id, name, service, $(this));
 						}
 					}, {
@@ -428,40 +426,38 @@ function serverSettings(id, name) {
 						}
 					}]
 				});
+				const panel = dialog.find('#haproxy-sources-settings');
+				if (panel.length) {
+					function refreshSources() {
+						const enabled = dialog.find('[name="multiple_config_files"]').is(':checked');
+						panel.prop('hidden', !enabled);
+						if (enabled) loadHaproxySources(panel, dialog.find('[name="dockerized"]').is(':checked'));
+					}
+					dialog.find('[name="multiple_config_files"], [name="dockerized"]').on('change', refreshSources);
+					refreshSources();
+				}
 			}
 		}
 	});
 }
 function serverSettingsSave(id, name, service, dialog_id) {
-	let service_dockerized = 0;
-	let service_restart = 0;
-	if ($('#haproxy_dockerized').is(':checked')) {
-		service_dockerized = '1';
-	}
-	if ($('#nginx_dockerized').is(':checked')) {
-		service_dockerized = '1';
-	}
-	if ($('#apache_dockerized').is(':checked')) {
-		service_dockerized = '1';
-	}
-	if ($('#haproxy_restart').is(':checked')) {
-		service_restart = '1';
-	}
-	if ($('#nginx_restart').is(':checked')) {
-		service_restart = '1';
-	}
-	if ($('#apache_restart').is(':checked')) {
-		service_restart = '1';
+	const data = {
+		serverSettingsSave: id,
+		serverSettingsDockerized: dialog_id.find('[name="dockerized"]').is(':checked') ? '1' : '0',
+		serverSettingsRestart: dialog_id.find('[name="restart"]').is(':checked') ? '1' : '0',
+		token: $('#token').val()
+	};
+	const multipleConfigs = dialog_id.find('[name="multiple_config_files"]');
+	if (multipleConfigs.length) {
+		data.serverSettingsMultipleConfigs = multipleConfigs.is(':checked') ? '1' : '0';
 	}
 	$.ajax({
 		url: "/service/settings/" + service,
-		data: {
-			serverSettingsSave: id,
-			serverSettingsDockerized: service_dockerized,
-			serverSettingsRestart: service_restart,
-			token: $('#token').val()
-		},
+		data: data,
 		type: "POST",
+		error: function (xhr) {
+			toastr.error(xhr.responseJSON?.error || xhr.statusText);
+		},
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('error:') != '-1') {
@@ -701,6 +697,8 @@ $(document).on('click', '.service-action-command', function () {
 	confirmAjaxAction(button.data('action'), button.data('service'), button.data('server-id'));
 });
 $(document).on('click', '.service-settings-command', function () {
+	$(this).closest('.service-actions-menu').prop('hidden', true);
+	$(this).closest('.service-actions').find('.service-actions-toggle').attr('aria-expanded', 'false');
 	serverSettings($(this).data('server-id'), $(this).data('server-name'));
 });
 $(document).on('click', function (event) {

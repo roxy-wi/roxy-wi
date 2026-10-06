@@ -122,6 +122,34 @@ before running an upgrade.
 
 ## Documentation
 
+### HAProxy configuration files
+
+Enable **Use multiple configuration files** in the settings of the HAProxy service
+on the selected server. It is disabled by default. Roxy-WI reads the ordered
+configuration sources from systemd (including environment files and overrides)
+or Docker, and compares them with the running HAProxy process when available.
+There is no separate argument list to maintain in Roxy-WI.
+
+The settings panel shows detected files and directories. If only the main file
+is configured, it explains how to add a directory with `-f` to systemd or the
+container command and provides a **Check again** button. Permission, connectivity,
+missing-path and unsupported-startup errors are reported separately. Custom
+wrapper scripts are not executed or guessed; use an explicit HAProxy command.
+The managed host needs Python 3 and permission to inspect startup settings.
+
+Add forms, text editing, saved versions and Change Center retain the selected
+file path. Validation uses the detected sources in their original order before
+replacing a file. Only non-hidden `.cfg` files directly inside each source
+directory participate; subdirectories need their own startup argument. Sources
+must remain inside `haproxy_dir` (the configured main file is also allowed).
+Docker paths are mapped through existing mounts; saving requires a writable
+directory mount because a single-file mount cannot follow atomic replacements.
+
+Configuration links for HAProxy, NGINX, Apache and Keepalived use the same
+lossless `_p_` path tokens. The previous slash-to-`92` URL format is no longer
+accepted. Open files from the configuration list to obtain new links. Browser
+history and drafts keyed by the old format are not migrated.
+
 | Start here | Operate and integrate |
 | --- | --- |
 | [Documentation index](https://roxy-wi.org/description) | [Operations](https://roxy-wi.org/description/operations#runtime) and [troubleshooting](https://roxy-wi.org/troubleshooting) |

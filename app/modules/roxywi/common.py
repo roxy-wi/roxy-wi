@@ -290,7 +290,9 @@ def get_users_params(**kwargs):
 	user_params = {
 		'user': user.username,
 		'role': role,
-		'servers': servers,
+		# Finish the read cursor before a handler starts writing. An open SQLite
+		# cursor can retain a stale WAL snapshot and make a concurrent save fail.
+		'servers': list(servers),
 		'user_services': user_services,
 		'lang': user_lang,
 		'user_id': user_id,

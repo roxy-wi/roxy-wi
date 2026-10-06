@@ -398,11 +398,53 @@ function clearAllAjaxFields() {
 	$("#ajax-compare").empty();
 	$("#config").empty();
 }
+function encodeConfigPath(path) {
+	return '_p_' + btoa(String.fromCharCode(...new TextEncoder().encode(path))).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
+}
+function decodeConfigPath(value) {
+	if (value.startsWith('/')) return value;
+	if (value.startsWith('_p_')) {
+		const token = value.slice(3).replaceAll('-', '+').replaceAll('_', '/');
+		const path = new TextDecoder('utf-8', {fatal: true}).decode(Uint8Array.from(atob(token), char => char.charCodeAt(0)));
+		if (path.startsWith('/')) return path;
+	}
+	throw new Error('Invalid configuration file path');
+}
+function loadHaproxySources(target, dockerized = null) {
+	const revision = (target.data('revision') || 0) + 1;
+	target.data('revision', revision);
+	const server = target.attr('data-server-id');
+	const failure = target.attr('data-failed');
+	target.empty().text(target.attr('data-loading')).attr('aria-busy', 'true');
+	$.ajax({
+		url: '/service/settings/haproxy/' + encodeURIComponent(server) + '/sources',
+		data: dockerized === null ? {} : {dockerized: dockerized ? '1' : '0'},
+		success: function (html) {
+			if (target.data('revision') !== revision) return;
+			if (target.hasClass('haproxy-sources-panel')) target.replaceWith(html);
+			else target.html(html).attr('aria-busy', 'false');
+		},
+		error: function () {
+			if (target.data('revision') === revision) {
+				target.text(failure).attr('aria-busy', 'false').append($('<button>', {
+					type: 'button', class: 'rw-button rw-button-secondary haproxy-sources-retry',
+					text: target.attr('data-retry')
+				}));
+			}
+		}
+	});
+}
+$(document).on('click', '.haproxy-sources-retry', function () {
+	const settings = $(this).closest('#haproxy-sources-settings');
+	const panel = settings.length ? settings : $(this).closest('.haproxy-sources-panel');
+	loadHaproxySources(panel, settings.length ? $('#haproxy_dockerized').is(':checked') : null);
+});
 function showConfig(selectedFile = null) {
 	if (!checkIsServerFiled('#serv')) return false;
 	const service = $('#service').val();
 	const server = $('#serv').val();
-	const file = selectedFile || $('#config_file_name').val() || null;
+	let file = selectedFile || $('#config_file_name').val() || null;
+	if (file && file.startsWith('/')) file = encodeConfigPath(file);
 	if ((service === 'nginx' || service === 'apache') && (!file || file === 'undefined')) {
 		const messages = JSON.parse(document.getElementById('config-viewer-messages').textContent);
 		toastr.warning(messages.select_file);
@@ -414,7 +456,8 @@ function showConfig(selectedFile = null) {
 		encodeURIComponent(file || 'undefined') + (section ? '?section=' + encodeURIComponent(section) : '');
 	ConfigViewer.load({serv: server, service: service, config_file_name: file, edit_section: section}, url);
 }
-function showConfigFiles(not_redirect=false, config_file_name=null) {
+function showConfigFiles(not_redirect=false, config_file_name=null, open_selected=false) {
+	const revision = showConfigFiles.revision = (showConfigFiles.revision || 0) + 1;
 	var service = $('#service').val();
 	var server_ip = $("#serv").val();
 	clearAllAjaxFields();
@@ -422,19 +465,20 @@ function showConfigFiles(not_redirect=false, config_file_name=null) {
 		url: "/config/" + service + "/show-files",
 		data: {
 			serv: server_ip,
-			service: service
+			service: service,
+			config_file_name: config_file_name
 		},
 		type: "POST",
 		success: function( data ) {
-			if ($('#service').val() !== service || $('#serv').val() !== server_ip) return;
+			if (revision !== showConfigFiles.revision || $('#service').val() !== service || $('#serv').val() !== server_ip) return;
 			if (data.indexOf('error:') != '-1') {
 				toastr.error(data);
 			} else {
 				toastr.clear();
 				$("#ajax-config_file_name").html(data);
-				if (config_file_name) {
-					$('#config_file_name').val(config_file_name);
-					$('#config_file_name').trigger('change');
+				if (open_selected || $('#config_file_name').is('[data-config-auto-open]')) {
+					showConfig(config_file_name);
+					return;
 				}
 				if (findGetParameter('findInConfig') === null) {
 					if (not_redirect) {

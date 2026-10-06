@@ -46,7 +46,7 @@
 		<form action="{{ action }}" method="post" class="left-space">
 			<input type="hidden" id="service" value="{{service|default('haproxy', true)}}" />
 			{{ select('serv', values=g.user_params['servers'], is_servers='true', selected=serv) }}
-			{% if service == 'nginx' or service == 'apache' %}
+			{% if service in ('haproxy', 'nginx', 'apache') %}
 			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.running}} {{lang.words.config}}" onclick="showConfigFiles()">{{lang.words.open|title()}}</a>
 			{% else %}
 			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.show|title()}} {{lang.words.running}} {{lang.words.config}}" onclick="showConfig()">{{lang.words.open|title()}}</a>
@@ -79,7 +79,7 @@
 			<form action="/config/{{service}}/{{serv}}" name="saveconfig" id="saveconfig" method="post" class="left-space config-editor-form">
 				<input type="hidden" value="{{ cfg ~ '.old' if cfg else '' }}" name="config_local_path">
 				<input type="hidden" value="{{ service }}" name="service">
-				<input type="hidden" value="{{ config_file_name }}" name="file_path">
+				<input type="hidden" value="{{ remote_config_path }}" name="file_path">
 				<div id="config-draft-banner" class="rw-operation-result config-draft-banner" hidden>
 					<span>{{lang.ux.draft_available}}</span>
 					<button type="button" id="config-restore-draft" class="rw-button rw-button-primary">{{lang.ux.restore}}</button>
@@ -223,10 +223,12 @@
 		showCompareConfigs();
 	}
 	if (cur_url[6] === 'show') {
-        if (cur_url[4] === 'nginx' || cur_url[4] === 'apache') {
-            showConfigFiles(false, cur_url[7] ? decodeURIComponent(cur_url[7]) : null);
-        }
-		showConfig(cur_url[7] ? decodeURIComponent(cur_url[7]) : null);
+		const selectedFile = cur_url[7] ? decodeURIComponent(cur_url[7]) : null;
+		if (['haproxy', 'nginx', 'apache'].includes(cur_url[4])) {
+			showConfigFiles(false, selectedFile, true);
+		} else {
+			showConfig(selectedFile);
+		}
 	}
 	if (cur_url[6] === 'show-files') {
 		showConfigFiles();

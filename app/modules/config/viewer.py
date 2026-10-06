@@ -10,6 +10,8 @@ import re
 from collections import Counter
 from urllib.parse import quote, urlencode
 
+from app.modules.config.path_tokens import encode_file_path
+
 
 HAPROXY_SECTIONS = {
     'global', 'defaults', 'frontend', 'backend', 'listen', 'peers', 'resolvers',
@@ -121,7 +123,7 @@ def build_document(text: str, service: str, server: str, file_path: str, *,
     sections = haproxy_sections(text) if service == 'haproxy' else _block_sections(text, service)
     occurrences = Counter((section['kind'], section['name']) for section in sections)
     encoded_server = quote(server, safe='')
-    file_token = file_path.replace('/', '92')
+    file_token = encode_file_path(file_path)
     file_edit_url = f'/config/{service}/{encoded_server}/edit/{quote(file_token, safe="")}'
     lines = source_lines(text)
     for section in sections:
@@ -146,15 +148,14 @@ def build_document(text: str, service: str, server: str, file_path: str, *,
                 f'/config/section/haproxy/{encoded_server}/{quote(section["title"], safe="")}?'
                 + urlencode({'file_path': file_path, 'section_line': section['header_line']})
             )
-            # The existing Add API stores (server, type, name), not a file path.
-            # Until that API becomes file-aware, only main-file, unique sections
-            # can use it. Its 404 response selects the ordinary text editor.
+            # The Add API uses the source file identity. Its 404 response
+            # selects the ordinary text editor for manually written sections.
             simple_header = section['title'] == (
                 section['kind'] if section['kind'] == section['name']
                 else f'{section["kind"]} {section["name"]}'
             )
             section['editor'] = 'form-or-text' if (
-                main_file and simple_header and section['kind'] in FORM_SECTIONS
+                simple_header and section['kind'] in FORM_SECTIONS
                 and occurrences[(section['kind'], section['name'])] == 1
                 and (section['kind'] not in ('global', 'defaults') or section['name'] == section['kind'])
             ) else 'text'

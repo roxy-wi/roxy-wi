@@ -3,7 +3,7 @@ from typing import Union, Literal
 
 from flask.views import MethodView
 from flask_pydantic import validate
-from flask import jsonify, g
+from flask import jsonify, g, request, has_request_context
 from flask_jwt_extended import jwt_required
 from playhouse.shortcuts import model_to_dict
 
@@ -19,6 +19,10 @@ from app.modules.roxywi.class_models import BaseResponse, DataStrResponse, Hapro
     HaproxyUserListRequest, HaproxyPeersRequest, HaproxyGlobalRequest, HaproxyDefaultsRequest, IdDataStrResponse, \
     ErrorResponse
 from app.modules.common.common_classes import SupportClass
+
+
+def _selected_file():
+    return config_common.resolve_viewer_path('haproxy', request.args.get('file_path') if has_request_context() else None)
 
 
 class HaproxySectionView(MethodView):
@@ -37,7 +41,7 @@ class HaproxySectionView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find a server')
 
         try:
-            section = add_sql.get_section(server_id, section_type, section_name)
+            section = add_sql.get_section(server_id, section_type, section_name, config_path=_selected_file())
             output = {'server_id': section.server_id.server_id, **model_to_dict(section, recurse=False),
                       'id': f'{server_id}-{section_name}'}
             output.update(section.config)
@@ -77,7 +81,7 @@ class HaproxySectionView(MethodView):
             return ErrorResponse(error=output).model_dump(mode='json'), 500
 
         try:
-            add_sql.insert_new_section(server_id, section_type, body.name, body)
+            add_sql.insert_new_section(server_id, section_type, body.name, body, config_path=_selected_file())
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot add HAProxy section')
 
@@ -110,9 +114,9 @@ class HaproxySectionView(MethodView):
         else:
             try:
                 if section_name in ('global', 'defaults'):
-                    add_sql.insert_or_update_new_section(server_id, section_name, section_name, body)
+                    add_sql.insert_or_update_new_section(server_id, section_name, section_name, body, config_path=_selected_file())
                 else:
-                    add_sql.update_section(server_id, section_type, section_name, body)
+                    add_sql.update_section(server_id, section_type, section_name, body, config_path=_selected_file())
             except Exception as e:
                 return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update HAProxy section')
 
@@ -131,7 +135,7 @@ class HaproxySectionView(MethodView):
 
         try:
             self._edit_config(service, server, '', 'delete', section_type=section_type, section_name=section_name)
-            add_sql.delete_section(server_id, section_type, section_name)
+            add_sql.delete_section(server_id, section_type, section_name, config_path=_selected_file())
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete HAProxy section')
 
@@ -139,6 +143,7 @@ class HaproxySectionView(MethodView):
 
     @staticmethod
     def _edit_config(service, server: Server, body: HaproxyConfigRequest, action: Literal['create', 'delete'], **kwargs) -> str:
+        config_path = _selected_file()
         cfg = config_common.generate_config_path(service, server.ip)
         if action == 'create':
             inv = service_mod.generate_section_inv(body.model_dump(mode='json'), cfg, service)
@@ -146,7 +151,7 @@ class HaproxySectionView(MethodView):
             inv = service_mod.generate_section_inv_for_del(cfg, kwargs.get('section_type'), kwargs.get('section_name'))
 
         try:
-            config_mod.get_config(server.ip, cfg, service=service)
+            config_mod.get_config(server.ip, cfg, service=service, config_file_name=config_path)
         except Exception as e:
             raise e
 
@@ -166,7 +171,7 @@ class HaproxySectionView(MethodView):
         else:
             action = 'save'
 
-        output = config_mod.master_slave_upload_and_restart(server.ip, cfg, action, 'haproxy', oldcfg=f'{cfg}.old')
+        output = config_mod.master_slave_upload_and_restart(server.ip, cfg, action, 'haproxy', oldcfg=f'{cfg}.old', config_file_name=config_path)
 
         return output
 

@@ -2,6 +2,7 @@ import os
 import tempfile
 from pathlib import Path
 from typing import Optional, Union
+from shlex import quote
 
 from flask import render_template, request, g, jsonify
 from flask_jwt_extended import jwt_required, get_jwt
@@ -24,13 +25,16 @@ import app.modules.config.section as section_mod
 import app.modules.service.haproxy as service_haproxy
 import app.modules.service.nginx as service_nginx
 import app.modules.server.server as server_mod
-from app.views.service.views import ServiceConfigView, ServiceConfigVersionsView
+from app.views.service.views import ServiceConfigView, ServiceConfigVersionsView, ServiceConfigList
 from app.modules.roxywi.class_models import DataStrResponse, DomainName
 from app.modules.common.common_classes import SupportClass
 from app.modules.roxywi.exception import RoxywiPermissionError
+from app.modules.config.path_tokens import decode_file_path
 
 bp.add_url_rule('/<service>/<server_id>', view_func=ServiceConfigView.as_view('config_view_ip'), methods=['POST'])
 bp.add_url_rule('/<service>/<server_id>/versions', view_func=ServiceConfigVersionsView.as_view('config_version'), methods=['DELETE'])
+bp.add_url_rule('/<service>/<server_id>/files', view_func=ServiceConfigList.as_view('config_file_list'), methods=['GET'])
+bp.add_url_rule('/<service>/<int:server_id>/files', view_func=ServiceConfigList.as_view('config_file_list_id'), methods=['GET'])
 
 
 @bp.before_request
@@ -146,10 +150,13 @@ def show_config_files(service):
 @check_services
 def find_in_config(service):
     server_ip = common.is_ip_or_dns(request.form.get('serv'))
-    finding_words = common.checkAjaxInput(request.form.get('words'))
+    finding_words = request.form.get('words', '')
+    if not finding_words or '\x00' in finding_words:
+        return 'error: Enter valid search text', 400
     log_path = sql.get_setting(service + '_dir')
     log_path = common.return_nice_path(log_path)
-    commands = f'sudo grep "{finding_words}" {log_path}*/*.conf -C 2 -Rn'
+    extension = config_common.get_file_format(service)
+    commands = f'sudo grep -F -r -n -C 2 --include={quote("*." + extension)} -e {quote(finding_words)} -- {quote(log_path)}'
     try:
         return_find = server_mod.ssh_command(server_ip, commands, raw=1)
         return_find = config_mod.show_finding_in_config(return_find, grep=finding_words)
@@ -179,10 +186,15 @@ def config(service, serv, edit, config_file_name, new):
     is_serv_protected = ''
     new_config = new
     remote_config_path = ''
-    if config_file_name and config_file_name != 'undefined':
-        remote_config_path = config_file_name.replace('92', '/')
-    elif service in ('haproxy', 'nginx', 'apache', 'keepalived'):
-        remote_config_path = str(sql.get_setting(f'{service}_config_path') or '')
+    try:
+        if config_file_name and config_file_name != 'undefined':
+            remote_config_path = decode_file_path(config_file_name)
+        elif service in ('haproxy', 'nginx', 'apache', 'keepalived'):
+            remote_config_path = str(sql.get_setting(f'{service}_config_path') or '')
+        if serv:
+            remote_config_path = config_common.resolve_viewer_path(service, remote_config_path)
+    except ValueError as exc:
+        return jsonify({'status': 'failed', 'error': str(exc)}), 400
 
     deployment_mode = deployment_policy.DEFAULT_MODE
     if serv and service in deployment_policy.SERVICES:
@@ -314,7 +326,7 @@ def save_version(service, server_ip: Union[IPvAnyAddress, DomainName], configver
 
     if service == 'keepalived':
         stderr = config_mod.upload_and_restart(server_ip, configver, save_action, service)
-    elif service in ('nginx', 'apache'):
+    elif service in ('haproxy', 'nginx', 'apache'):
         config_file_name = config_sql.select_remote_path_from_version(server_ip=server_ip, service=service, local_path=configver)
         stderr = config_mod.master_slave_upload_and_restart(server_ip, configver, save_action, service_desc.slug, config_file_name=config_file_name)
     else:

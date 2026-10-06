@@ -22,6 +22,11 @@
 <script src="/static/js/add.js"></script>
 <script src="/static/js/add_common.js"></script>
 <script src="/static/js/edit_config.js"></script>
+<script id="haproxy-file-messages" type="application/json">{{lang.config_files|tojson}}</script>
+{% set file_servers = [] %}
+{% for server in g.user_params['servers'] %}{% set _ = file_servers.append([server.0, server.1, server.2]) %}{% endfor %}
+<script id="haproxy-file-servers" type="application/json">{{file_servers|tojson}}</script>
+<script defer src="/static/js/haproxy-files.js"></script>
 <div id="tabs">
 	<ul>
 		<li><a href="#create" title="{{lang.words.add|title()}} {{lang.words.proxy}}: {{lang.words.create|title()}} {{lang.words.proxy}} - Roxy-WI">{{lang.words.create|title()}} {{lang.words.proxy}}</a></li>

@@ -5,7 +5,7 @@ function openSection(section, context = {}) {
 	let section_type = parts[0];
 	let section_name = parts[1];
 	const textUrl = context.textUrl || '/config/section/haproxy/' + encodeURIComponent(server) + '/' + encodeURIComponent(section);
-	if (context.mainFile === false || !['global', 'defaults', 'listen', 'frontend', 'backend', 'userlist', 'peers'].includes(section_type)) {
+	if (!['global', 'defaults', 'listen', 'frontend', 'backend', 'userlist', 'peers'].includes(section_type)) {
 		window.location.assign(textUrl);
 		return;
 	}
@@ -16,6 +16,7 @@ function openSection(section, context = {}) {
 		section_type = section;
 		section_name = section;
 	}
+	if (context.filePath) url += '?file_path=' + encodeURIComponent(context.filePath);
 	$.ajax({
 		url: url,
 		contentType: "application/json; charset=utf-8",
@@ -267,7 +268,7 @@ function openSection(section, context = {}) {
 				}, {
 					text: delete_word,
 					click: function () {
-						confirmDeleteSection(section_type, section_name, server, $(this));
+						confirmDeleteSection(section_type, section_name, server, $(this), 'haproxy', context);
 					}
 				}, {
 					text: cancel_word,
@@ -304,9 +305,9 @@ function openSection(section, context = {}) {
 		}
 	});
 }
-function delete_section(section_type, section_name, server_id, service) {
+function delete_section(section_type, section_name, server_id, service, context = {}) {
 	$.ajax({
-		url: '/add/' + service + '/' + server_id + '/section/' + section_type + '/' + section_name,
+		url: '/add/' + service + '/' + server_id + '/section/' + section_type + '/' + encodeURIComponent(section_name) + (context.filePath ? '?file_path=' + encodeURIComponent(context.filePath) : ''),
 		contentType: "application/json; charset=utf-8",
 		method: "DELETE",
 		statusCode: {
@@ -374,6 +375,9 @@ function addProxy(form_name, generate=false) {
 	if (generate) {
 		q_generate = '?generate=1';
 	}
+	const targetFile = frm.find('[name="config_target"]').val();
+	if (!generate && frm.find('[name="config_target"]').length && !targetFile) return false;
+	if (targetFile) q_generate += (q_generate ? '&' : '?') + 'file_path=' + encodeURIComponent(targetFile);
 	$.ajax({
 		url: '/add/haproxy/' + $(serv).val() + '/section/' + section_type + q_generate,
 		data: JSON.stringify(json_data),
@@ -424,6 +428,7 @@ function editProxy(form_name, dialog_id, generate=false, context = {}) {
 	if (section_type === 'defaults' || section_type === 'global') {
 		url = '/add/haproxy/' + encodeURIComponent(server) + '/section/' + section_type;
 	}
+	if (context.filePath) url += '?file_path=' + encodeURIComponent(context.filePath);
 	$.ajax({
 		url: url,
 		data: JSON.stringify(json_data),
@@ -441,7 +446,7 @@ function editProxy(form_name, dialog_id, generate=false, context = {}) {
 				if (returnNiceCheckingConfig(data.data) === 0) {
 					toastr.info('Section has been updated. Do not forget to restart the server');
 					$('#edit-section').remove();
-					showConfig();
+					showConfig(context.filePath || null);
 					$(dialog_id).dialog( "close" );
 				}
 			}
@@ -667,7 +672,7 @@ function getFormData($form, form_name) {
 		'options', 'options1', 'options2', 'cookie_domain', 'cookie_name', 'dynamic', 'dynamic-cookie-key', 'nocache', 'postonly',
 		'rewrite', 'prefix', 'saved-options', 'blacklist_checkbox', 'whitelist_checkbox', 'circuit_breaking_error_limit',
 		'circuit_breaking_observe', 'circuit_breaking_on_error', 'check-servers', 'checks_http_domain', 'checks_http_path',
-		'options-listen-show', 'cert', 'ssl-check', 'template', 'template-number', 'fall', 'inner', 'rise',  'template-prefix',
+		'options-listen-show', 'cert', 'ssl-check', 'template', 'template-number', 'fall', 'inner', 'rise', 'config_target', 'template-prefix',
 		'saved-options1', 'userlist-group', 'userlist-password', 'userlist-user', 'userlist-user-group', 'servers_name',
 		'servers', 'server_port', 'serv', 'check', 'client', 'connect', 'queue', 'server', 'http_keep_alive', 'http_request']
 	for (let element of elementsForDelete) {
@@ -675,7 +680,7 @@ function getFormData($form, form_name) {
 	}
 	return indexed_array;
 }
-function confirmDeleteSection(section_type, section_name, serv_val, dialog_id, service='haproxy') {
+function confirmDeleteSection(section_type, section_name, serv_val, dialog_id, service='haproxy', context = {}) {
 	$("#dialog-confirm").dialog({
 		resizable: false,
 		height: "auto",
@@ -686,7 +691,7 @@ function confirmDeleteSection(section_type, section_name, serv_val, dialog_id, s
 			text: delete_word,
 			click: function () {
 				$(this).dialog("close");
-				delete_section(section_type, section_name, serv_val, service);
+				delete_section(section_type, section_name, serv_val, service, context);
 				dialog_id.dialog("close");
 			}
 		}, {
@@ -697,21 +702,23 @@ function confirmDeleteSection(section_type, section_name, serv_val, dialog_id, s
 		}]
 	});
 }
-function openNginxSection(section) {
+function openNginxSection(section, context = {}) {
+	const server = context.server || $('#serv').val();
+	const textUrl = context.textUrl || '/config/nginx/' + encodeURIComponent(server) + '/edit/' + encodeURIComponent($('#config_file_name').val());
 	let parts = section.split('_');
 	let section_type = parts[0];
 	let section_name = parts.slice(1).join('_');
 	if (section_type === 'proxy-pass') {
 		section_type = 'proxy_pass';
 	}
-	let url = '/add/nginx/' + $('#serv').val() + '/section/' + section_type + '/' + section_name;
+	let url = '/add/nginx/' + encodeURIComponent(server) + '/section/' + encodeURIComponent(section_type) + '/' + encodeURIComponent(section_name);
 	clearEditNginxSection();
 	$.ajax({
 		url: url,
 		contentType: "application/json; charset=utf-8",
 		statusCode: {
 			404: function (xhr) {
-				window.open('/config/nginx/' + $('#serv').val() + '/edit/' + $('#config_file_name').val(), '_self').focus();
+				window.location.assign(textUrl);
 			}
 		},
 		async: false,

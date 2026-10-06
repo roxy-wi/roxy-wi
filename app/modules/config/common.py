@@ -8,6 +8,7 @@ import re
 import posixpath
 from uuid import uuid4
 from werkzeug.utils import secure_filename
+from app.modules.config.path_tokens import decode_file_path
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 time_zone = sql.get_setting('time_zone')
@@ -17,19 +18,21 @@ get_date = roxy_wi_tools.GetDate(time_zone)
 def resolve_viewer_path(service: str, file_path: str = None) -> str:
 	"""Resolve the selected file without silently substituting another file.
 
-	HAProxy/Keepalived transport currently supports the main file only. Keep this
-	boundary explicit until directory support extends reading AND writing.
+	HAProxy paths are restricted to its configured directory and main file.
 	"""
+	if service == 'haproxy':
+		from app.modules.config.haproxy_files import resolve_path
+		return resolve_path(file_path)
 	main = str(sql.get_setting(f'{service}_config_path') or '')
 	if file_path in (None, '', 'undefined'):
 		file_path = main
 	if not isinstance(file_path, str):
 		raise ValueError('Invalid configuration file path')
-	file_path = file_path.replace('92', '/') if not file_path.startswith('/') else file_path
+	file_path = decode_file_path(file_path)
 	if '..' in file_path.split('/') or '\\' in file_path or '\x00' in file_path:
 		raise ValueError('Invalid configuration file path')
 	file_path = posixpath.normpath(file_path)
-	if service in ('haproxy', 'keepalived') and file_path != posixpath.normpath(main):
+	if service == 'keepalived' and file_path != posixpath.normpath(main):
 		raise ValueError('Only the main configuration file is supported for this service')
 	common.check_is_conf(file_path)
 	return file_path

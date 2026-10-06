@@ -4,6 +4,7 @@ import distro
 from flask import render_template, request, g, jsonify
 from flask_jwt_extended import jwt_required
 from flask_pydantic import validate
+from peewee import SqliteDatabase
 from pydantic import IPvAnyAddress
 
 from app import app, cache
@@ -13,7 +14,7 @@ import app.modules.db.waf as waf_sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
-from app.middleware import check_services, get_user_params
+from app.middleware import check_services, get_user_params, page_for_admin
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.service.common as service_common
@@ -311,34 +312,75 @@ def change_pos(server_id, pos):
 
 @bp.route('/settings/<service>/<int:server_id>')
 @check_services
+@get_user_params()
+@page_for_admin(level=3)
 def show_service_settings(service, server_id):
-    settings = service_sql.select_service_settings(server_id, service)
-    return render_template('ajax/service_settings.html', settings=settings, service=service)
+    server = server_sql.get_server(server_id)
+    roxywi_common.require_active_group_access(server.group_id)
+    settings = {row.setting: str(row.value) for row in service_sql.select_service_settings(server_id, service)}
+    return render_template('ajax/service_settings.html', settings=settings, service=service,
+                           server_id=server_id, lang=g.user_params['lang'])
+
+
+@bp.get('/settings/<any(haproxy):service>/<int:server_id>/sources')
+@check_services
+@get_user_params()
+@page_for_admin(level=3)
+def show_haproxy_sources(service, server_id):
+    from app.modules.config.haproxy_files import discover_sources
+    server = server_sql.get_server(server_id)
+    roxywi_common.require_active_group_access(server.group_id)
+    dockerized = request.args.get('dockerized')
+    if dockerized not in (None, '0', '1'):
+        return jsonify({'status': 'failed', 'error': 'Invalid Docker setting'}), 400
+    discovery = discover_sources(server.ip, server_id, dockerized=None if dockerized is None else dockerized == '1')
+    return render_template('include/haproxy_sources.html', discovery=discovery,
+                           server_id=server_id, lang_code=g.user_params['lang'])
 
 
 @bp.post('/settings/<service>')
 @check_services
+@get_user_params()
+@page_for_admin(level=3)
 def save_service_settings(service):
-    server_id = int(request.form.get('serverSettingsSave'))
-    service_dockerized = int(request.form.get('serverSettingsDockerized'))
-    service_restart = int(request.form.get('serverSettingsRestart'))
-    server_ip = server_sql.get_server(server_id).ip
+    from app.modules.db.db_model import ServiceSetting
+    try:
+        server_id = int(request.form.get('serverSettingsSave'))
+        server = server_sql.get_server(server_id)
+    except (ValueError, TypeError):
+        return jsonify({'status': 'failed', 'error': 'Invalid server'}), 400
+    roxywi_common.require_active_group_access(server.group_id)
+    values = {'dockerized': request.form.get('serverSettingsDockerized'),
+              'restart': request.form.get('serverSettingsRestart')}
+    if service == 'haproxy' and 'serverSettingsMultipleConfigs' in request.form:
+        values['multiple_config_files'] = request.form['serverSettingsMultipleConfigs']
+    if any(value not in ('0', '1') for value in values.values()):
+        return jsonify({'status': 'failed', 'error': 'Invalid service setting'}), 400
+    try:
+        database = ServiceSetting._meta.database
+        # Wait for the SQLite writer before starting the settings transaction.
+        # Deferred transactions can fail immediately when a worker writes too.
+        transaction_args = ('IMMEDIATE',) if isinstance(database, SqliteDatabase) else ()
+        with database.atomic(*transaction_args):
+            for setting, value in values.items():
+                if not service_sql.insert_or_update_service_setting(server_id, service, setting, value):
+                    raise RuntimeError('Cannot save service settings')
+    except Exception as exc:
+        return roxywi_common.handler_exceptions_for_json_data(exc, 'Cannot save service settings')
+    server_ip = server.ip
+    service_dockerized, service_restart = values['dockerized'], values['restart']
     service_docker = f'Service {service.title()} has been flagged as a dockerized'
     service_systemd = f'Service {service.title()} has been flagged as a system service'
     disable_restart = f'Restart option is disabled for {service.title()} service'
-    enable_restart = f'Restart option is disabled for {service.title()} service'
+    enable_restart = f'Restart option is enabled for {service.title()} service'
 
-    if service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', service_dockerized):
-        if service_dockerized == '1':
-            roxywi_common.logging(server_ip, service_docker, keep_history=1, service=service)
-        else:
-            roxywi_common.logging(server_ip, service_systemd, keep_history=1, service=service)
-
-    if service_sql.insert_or_update_service_setting(server_id, service, 'restart', service_restart):
-        if service_restart == '1':
-            roxywi_common.logging(server_ip, disable_restart, keep_history=1, service=service)
-        else:
-            roxywi_common.logging(server_ip, enable_restart, keep_history=1, service=service)
+    roxywi_common.logging(server_ip, service_docker if service_dockerized == '1' else service_systemd,
+                          keep_history=1, service=service)
+    roxywi_common.logging(server_ip, disable_restart if service_restart == '1' else enable_restart,
+                          keep_history=1, service=service)
+    if 'multiple_config_files' in values:
+        roxywi_common.logging(server_ip, 'HAProxy multiple configuration files: ' + values['multiple_config_files'],
+                              keep_history=1, service=service)
 
     return 'ok'
 

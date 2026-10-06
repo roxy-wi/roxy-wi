@@ -125,10 +125,7 @@ class SettingsView(MethodView):
           201:
             description: OK
         """
-        try:
-            val = body.value.replace('92', '/')
-        except Exception:
-            val = body.value
+        val = body.value
         try:
             group_id = SupportClass.return_group_id(query)
         except Exception as e:
@@ -136,7 +133,7 @@ class SettingsView(MethodView):
         try:
             sql.update_setting(body.param, val, group_id)
         except Exception as e:
-            roxywi_common.handle_json_exceptions(e, 'Cannot update settings')
+            return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update settings')
         roxywi_common.logging('Roxy-WI server', f'The {body.param} setting has been changed to: {val}', roxywi=1, login=1)
 
         if body.param == 'master_port':

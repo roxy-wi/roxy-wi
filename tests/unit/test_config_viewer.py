@@ -9,6 +9,7 @@ import pytest
 
 from app.modules.config import config as config_mod, common, section
 from app.modules.config.viewer import build_document, haproxy_sections, source_lines
+from app.modules.config.path_tokens import encode_file_path
 
 
 def document(text, **kwargs):
@@ -44,12 +45,12 @@ def test_section_editing_preserves_both_form_and_text_paths():
     assert web['stats_url'].endswith('#web')
 
 
-def test_file_identity_and_duplicate_names_cannot_select_main_file_form():
+def test_file_identity_supports_forms_and_duplicate_names_require_text():
     source = 'backend web\n server one :80\n'
     main = document(source)['sections'][0]
     other = document(source, file_path='/etc/haproxy/conf.d/extra.cfg', main_file=False)['sections'][0]
     assert other['id'] != main['id']
-    assert other['editor'] == 'text'
+    assert other['editor'] == 'form-or-text'
     assert parse_qs(urlsplit(other['edit_url']).query)['file_path'] == ['/etc/haproxy/conf.d/extra.cfg']
     repeated = document(source + source)['sections']
     assert all(item['editor'] == 'text' for item in repeated)
@@ -139,16 +140,19 @@ def test_viewer_localization_is_complete_and_template_escapes_config(app, locale
 
 
 def test_selected_path_cannot_silently_fall_back_to_main(monkeypatch):
-    monkeypatch.setattr(common.sql, 'get_setting', lambda name: '/etc/haproxy/haproxy.cfg')
+    monkeypatch.setattr(common.sql, 'get_setting', lambda name: '/etc/haproxy' if name == 'haproxy_dir' else '/etc/haproxy/haproxy.cfg')
     monkeypatch.setattr(common.common, 'check_is_conf', lambda path: True)
     assert common.resolve_viewer_path('haproxy') == '/etc/haproxy/haproxy.cfg'
-    with pytest.raises(ValueError, match='main configuration'):
-        common.resolve_viewer_path('haproxy', '/etc/haproxy/conf.d/other.cfg')
+    assert common.resolve_viewer_path('haproxy', '/etc/haproxy/conf.d/other.cfg') == '/etc/haproxy/conf.d/other.cfg'
+    with pytest.raises(ValueError, match='HAProxy directory'):
+        common.resolve_viewer_path('haproxy', '/etc/nginx/other.cfg')
 
 
 def test_resolved_file_path_keeps_literal_92():
     assert config_mod._replace_config_path_to_correct('/etc/nginx/site92.conf') == '/etc/nginx/site92.conf'
-    assert config_mod._replace_config_path_to_correct('92etc92nginx92site.conf') == '/etc/nginx/site.conf'
+    assert config_mod._replace_config_path_to_correct(encode_file_path('/etc/nginx/site92.conf')) == '/etc/nginx/site92.conf'
+    with pytest.raises(ValueError):
+        config_mod._replace_config_path_to_correct('92etc92nginx92site.conf')
 
 
 def test_version_list_uses_owned_records_not_filename_prefix(monkeypatch, tmp_path):

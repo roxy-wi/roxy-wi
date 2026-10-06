@@ -245,7 +245,10 @@ def test_valid_and_missing_baselines_preserve_diff(tmp_path, monkeypatch):
 
 
 def test_save_and_test_do_not_generate_service_verbs(monkeypatch):
-    monkeypatch.setattr(config_mod.sql, 'get_setting', lambda *a: 'test')
+    monkeypatch.setattr(config_mod.sql, 'get_setting', lambda name: {
+        'haproxy_dir': '/etc/haproxy', 'haproxy_config_path': '/etc/haproxy.cfg',
+        'haproxy_container_name': 'test',
+    }[name])
     monkeypatch.setattr(config_mod.service_sql, 'select_service_setting', lambda *a: '0')
     monkeypatch.setattr(config_mod.service_action, 'get_action_command', lambda *a: pytest.fail('Invalid service verb requested'))
     monkeypatch.setattr(config_mod.server_sql, 'return_firewall', lambda *a: False)

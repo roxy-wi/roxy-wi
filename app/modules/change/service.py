@@ -88,7 +88,9 @@ def _write_private_file(path: Path, content: str) -> None:
 
 
 def _remote_path(service: str, requested_path: str | None) -> str:
-    if service in ('haproxy', 'keepalived'):
+    if service == 'haproxy':
+        return config_common.resolve_viewer_path(service, requested_path)
+    if service == 'keepalived':
         path = sql.get_setting(f'{service}_config_path')
     else:
         path = config_mod._replace_config_path_to_correct(requested_path)

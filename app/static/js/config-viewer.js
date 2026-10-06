@@ -311,7 +311,7 @@
         const nginxEdit = root.querySelector('[data-nginx-edit]');
         if (nginxEdit && typeof window.openNginxSection === 'function') nginxEdit.addEventListener('click', event => {
             event.preventDefault();
-            window.openNginxSection(nginxEdit.dataset.nginxEdit);
+            window.openNginxSection(nginxEdit.dataset.nginxEdit, {server: config.source.server, textUrl: config.edit_url});
         });
         render();
         const selected = config.sections.find(section => section.title === root.dataset.editSection && section.edit_url);

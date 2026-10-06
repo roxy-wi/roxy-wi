@@ -68,11 +68,6 @@ function hideAndShowSettings(section) {
 	}
 }
 function updateSettings(param, section, val) {
-	try {
-		val = val.replace(/\//g, "92");
-	} catch (e) {
-		val = val;
-	}
 	toastr.clear();
 	let json_data = {
 		'param': param,
@@ -85,7 +80,7 @@ function updateSettings(param, section, val) {
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
 			if (data.status === 'failed') {
-				toastr.error(data);
+				toastr.error(data.error || data);
 			} else {
 				toastr.clear();
 				$("#" + param).parent().parent().addClass("update", 1000);

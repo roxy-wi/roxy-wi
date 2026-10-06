@@ -1,0 +1,17 @@
+{% if lang_code is defined %}{% import 'languages/'+lang_code|default('en')+'.html' as lang %}{% endif %}
+<div class="haproxy-sources-panel rw-operation-result" data-server-id="{{server_id}}" data-loading="{{lang.config_files.loading}}" data-failed="{{lang.config_files.connection_failed}}" data-retry="{{lang.config_files.retry}}">
+    <strong>{{lang.config_files.get(discovery.code, lang.config_files.inspection_failed)}}</strong>
+    {% if discovery.sources %}
+    <ol class="haproxy-sources-list">
+        {% for source in discovery.sources %}<li><code>{{source.path}}</code>{% if source.runtime_path != source.path %}<br><span>{{lang.config_files.container_path}}: <code>{{source.runtime_path}}</code></span>{% endif %}</li>{% endfor %}
+    </ol>
+    {% endif %}
+    {% if discovery.state != 'error' %}<p>{{lang.config_files.running_verified if discovery.verified_running else lang.config_files.stopped}}</p>{% endif %}
+    {% if discovery.state == 'single' %}
+    <p class="haproxy-sources-hint">{{lang.config_files.source_hint}}</p>
+    <p>{{lang.config_files.setup_docker if discovery.mode == 'docker' else lang.config_files.setup_systemd}}</p>
+    <pre>{{discovery.example}}</pre>
+    <p>{{lang.config_files.setup_keep_options}}</p>
+    {% endif %}
+    <button type="button" class="rw-button rw-button-secondary haproxy-sources-retry">{{lang.config_files.retry}}</button>
+</div>

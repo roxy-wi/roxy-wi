@@ -13,7 +13,7 @@
             <span class="cv-source-label">{{viewer.saved_version if configver else viewer.current_file}}</span>
             {% if document.edit_url %}
                 {% if service == 'nginx' %}
-                <a class="cv-button" href="{{document.edit_url}}" id="edit_link" data-nginx-edit="{{config_file_name.split('92')[-1].removesuffix('.conf')}}">{{lang.words.edit|title()}}</a>
+                <a class="cv-button" href="{{document.edit_url}}" id="edit_link" data-nginx-edit="{{document.source.path.split('/')[-1].removesuffix('.conf')}}">{{lang.words.edit|title()}}</a>
                 {% else %}
                 <a class="cv-button" href="{{document.edit_url}}" id="edit_link">{{lang.words.edit|title()}}</a>
                 {% endif %}

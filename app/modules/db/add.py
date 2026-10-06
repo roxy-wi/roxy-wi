@@ -1,4 +1,5 @@
 from typing import Union, Literal
+import hashlib
 
 from app.modules.db.db_model import SavedServer, Option, HaproxySection, NginxSection
 from app.modules.db.common import out_error
@@ -9,6 +10,21 @@ SectionModel = {
 	'haproxy': HaproxySection,
 	'nginx': NginxSection,
 }
+
+
+def _file_values(service, config_path):
+	if service != 'haproxy':
+		return {}
+	from app.modules.config.haproxy_files import resolve_path
+	path = resolve_path(config_path)
+	return {'config_path': path, 'file_id': hashlib.sha256(path.encode()).hexdigest()}
+
+
+def _section_identity(model, server_id, section_type, section_name, service, config_path):
+	condition = (model.server_id == server_id) & (model.type == section_type) & (model.name == section_name)
+	if service == 'haproxy':
+		condition &= model.file_id == _file_values(service, config_path)['file_id']
+	return condition
 
 
 def update_saved_server(server, description, saved_id, group_id):
@@ -127,7 +143,7 @@ def insert_new_section(
 		section_type: str,
 		section_name: str,
 		body: Union[HaproxyConfigRequest, NginxUpstreamRequest],
-		service: Literal['haproxy', 'nginx'] = 'haproxy'
+		service: Literal['haproxy', 'nginx'] = 'haproxy', config_path: str = None
 ):
 	model = SectionModel[service]
 	try:
@@ -135,7 +151,7 @@ def insert_new_section(
 			server_id=server_id,
 			type=section_type,
 			name=section_name,
-			config=body.model_dump(mode='json')
+			config=body.model_dump(mode='json'), **_file_values(service, config_path)
 		).execute())
 	except Exception as e:
 		out_error(e)
@@ -145,14 +161,14 @@ def insert_or_update_new_section(
 		server_id: int,
 		section_type: str,
 		section_name: str,
-		body: Union[HaproxyGlobalRequest, HaproxyDefaultsRequest]
+		body: Union[HaproxyGlobalRequest, HaproxyDefaultsRequest], config_path: str = None
 ):
 	try:
 		return (HaproxySection.insert(
 			server_id=server_id,
 			type=section_type,
 			name=section_name,
-			config=body.model_dump(mode='json')
+			config=body.model_dump(mode='json'), **_file_values('haproxy', config_path)
 		).on_conflict('replace').execute())
 	except Exception as e:
 		out_error(e)
@@ -163,14 +179,14 @@ def update_section(
 		section_type: str,
 		section_name: str,
 		body: Union[HaproxyConfigRequest, NginxUpstreamRequest],
-		service: Literal['haproxy', 'nginx'] = 'haproxy'
+		service: Literal['haproxy', 'nginx'] = 'haproxy', config_path: str = None
 ):
 	model = SectionModel[service]
 	try:
 		model.update(
 			config=body.model_dump(mode='json')
 		).where(
-			(model.server_id == server_id) & (model.type == section_type) & (model.name == section_name)
+			_section_identity(model, server_id, section_type, section_name, service, config_path)
 		).execute()
 	except model.DoesNotExist:
 		raise RoxywiResourceNotFound
@@ -182,14 +198,12 @@ def get_section(
 		server_id: int,
 		section_type: str,
 		section_name: str,
-		service: Literal['haproxy', 'nginx'] = 'haproxy'
+		service: Literal['haproxy', 'nginx'] = 'haproxy', config_path: str = None
 ) -> Union[HaproxySection, NginxSection]:
 	model = SectionModel[service]
 	try:
 		return model.get(
-			(model.server_id == server_id)
-			& (model.type == section_type)
-			& (model.name == section_name)
+			_section_identity(model, server_id, section_type, section_name, service, config_path)
 		)
 	except model.DoesNotExist:
 		raise RoxywiResourceNotFound
@@ -197,13 +211,11 @@ def get_section(
 		out_error(e)
 
 
-def delete_section(server_id: int, section_type: str, section_name: str, service: Literal['haproxy', 'nginx'] = 'haproxy') -> None:
+def delete_section(server_id: int, section_type: str, section_name: str, service: Literal['haproxy', 'nginx'] = 'haproxy', config_path: str = None) -> None:
 	model = SectionModel[service]
 	try:
 		model.delete().where(
-			(model.server_id == server_id)
-			& (model.type == section_type)
-			& (model.name == section_name)
+			_section_identity(model, server_id, section_type, section_name, service, config_path)
 		).execute()
 	except model.DoesNotExist:
 		raise RoxywiResourceNotFound

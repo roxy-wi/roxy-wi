@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+from shlex import quote
 
 from flask import render_template
 
@@ -49,7 +50,8 @@ def ssh_command(server_ip: str, commands: str, **kwargs):
 						roxywi_common.handle_exceptions(line, server_ip, line)
 
 			if stdout.channel.recv_exit_status() and kwargs.get('rc'):
-				roxywi_common.handle_exceptions(stdout.read().decode('utf-8'), server_ip, f'Cannot perform SSH command: {command} ')
+				context = kwargs.get('error_context') or f'Cannot perform SSH command: {command} '
+				roxywi_common.handle_exceptions(stdout.read().decode('utf-8'), server_ip, context)
 
 			if kwargs.get('raw'):
 				return stdout.readlines()
@@ -110,7 +112,7 @@ def is_service_active(server_ip: str, service_name: str) -> bool:
 def get_remote_files(server_ip: str, config_dir: str, file_format: str):
 	config_dir = common.return_nice_path(config_dir)
 	if file_format == 'conf':
-		command = f'sudo ls {config_dir}*/*.{file_format}'
+		command = f"sudo find -L {quote(config_dir)} -mindepth 2 -maxdepth 2 -type f -name '*.conf' -print0"
 	else:
 		command = f'sudo ls {config_dir}|grep {file_format}$'
 	config_files = ssh_command(server_ip, command)

@@ -1,11 +1,13 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import input %}
-{% if edit_mode|default(false) %}
+{% if service == 'haproxy' and not multiple_files %}
+<input type="hidden" id="{{ 'editor_config_file_name' if edit_mode|default(false) else 'config_file_name' }}" value="{{ encode_file_path(config_file_name) }}" data-config-auto-open>
+{% elif edit_mode|default(false) %}
 <div class="config-editor-file-picker">
 	<label for="editor_config_file_name">{{lang.phrases.config_file_name}}:</label>
 	<select required id="editor_config_file_name">
-		{% for file in return_files.split() %}
-		<option value="{{ file.replace('/', '92') }}"{% if file == config_file_name %} selected{% endif %}>{{ file }}</option>
+		{% for file in files %}
+		<option value="{{ encode_file_path(file) }}"{% if file == config_file_name %} selected{% endif %}>{{ file }}</option>
 		{% endfor %}
 	</select>
 	<button type="button" class="rw-button rw-button-secondary" id="open-editor-config-file">{{lang.words.open|title()}}</button>
@@ -26,19 +28,19 @@
 </script>
 {% else %}
 <div style="margin-top: 20px; margin-left: 15px;">
-	{% if 'cannot access' not in return_files %}
+	{% if files %}
 		{% if config_file_name == '' %}
-		<h4>Config files from {{serv}}</h4>
+		<h4>{{lang.config_files.title}} {{serv}}</h4>
 		{% endif %}
 		<form action="" method="post">
 		<p>
 			<select autofocus required name="config_file_name" id="config_file_name" style="width: 365px;">
 				<option disabled selected>{{lang.words.select|title()}} {{lang.words.w_a}} {{lang.words.config}} {{lang.words.file}}</option>
-				{% for file in return_files.split() %}
+				{% for file in files %}
 					{% if file == config_file_name %}
-					<option value="{{ file.replace('/', '92') }}" selected>{{ file.split('/', maxsplit=3)[3] }}</option>
+						<option data-path="{{file}}" value="{{ encode_file_path(file) }}" selected>{{ file }}</option>
 					{% else %}
-					<option value="{{ file.replace('/', '92') }}">{{ file.split('/', maxsplit=3)[3] }}</option>
+						<option data-path="{{file}}" value="{{ encode_file_path(file) }}">{{ file }}</option>
 					{% endif %}
 				{% endfor %}
 			</select>
@@ -46,28 +48,35 @@
 			{{ input('serv', type='hidden', value=serv) }}
 			{{ input('open', type='hidden', value='open') }}
 			<a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang.words.open|title()}} {{lang.words.config}}" onclick="showConfig()">{{lang.words.open|title()}}</a>
+			{% if service != 'haproxy' or (multiple_files and discovery.state == 'ready') %}
 			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.config}} {{lang.words.file}}" onclick="addNewConfig('{{serv}}', '{{service}}')">{{lang.words.create|title()}} {{ lang.words.new }} {{ lang.words.config }} </a>
-			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.create|title()}} {{lang.words.w_a}} {{lang.words.new}} {{lang.words.config}} {{lang.words.file}} via Wizard" href="https://demo.roxy-wi.org/add/nginx#proxy", '{{service}}')">{{lang.words.add|title()}} </a>
+			{% endif %}
+			{% if service in ('haproxy', 'nginx') %}
+			<a class="ui-button ui-widget ui-corner-all" id="config-add-section" href="/add/{{service}}">{{lang.words.add|title()}}</a>
+			{% endif %}
 			<a class="ui-button ui-widget ui-corner-all" title="{{lang.words.find|title()}} {{lang.words.in}} {{lang.words.config}} {{lang.words.files}}" id="open_find_form">{{lang.words.find|title()}}</a>
 		</p>
 		</form>
 	<form action="" method="post" id="finding_words_from">
 		<p id="find_p" style="display: none;">
 			{{ input('words', type='text', style='height: 25.5px;width: 250px;') }}
-			<button type="submit" name="find" id="find_in_configs" value="Find" title="Find in configs">{{lang.words.find|title()}}</button>
+			<button type="submit" name="find" id="find_in_configs" value="Find" title="{{lang.words.find|title()}}">{{lang.words.find|title()}}</button>
 		</p>
 		{% else %}
-		<div class="alert alert-warning">{{return_files}}</div>
+		<div class="alert alert-warning">{{lang.config_files.failed}}</div>
 		{% endif %}
 	</form>
 	</div>
+	{% if service == 'haproxy' and discovery %}
+		{% include 'include/haproxy_sources.html' %}
+	{% endif %}
 
 <div id="add-new-config" style="display: none">
 	<table class="overview">
 			{% include 'include/tr_validate_tips.html' %}
 			<tr>
 				<td class="padding20">{{lang.phrases.config_file_name}}:</td>
-				<td>{{ input('new_config_name', type='text', placeholder='conf.d/config_name', title='Format: sub-directory/config_name') }}</td>
+				<td>{{ input('new_config_name', type='text', placeholder='conf.d/config_name.' + file_extension, title=lang.config_files.path_hint) }}</td>
 			</tr>
 			{{ input('path_config_name', type='hidden', value=path_dir) }}
 	</table>
@@ -76,10 +85,15 @@
 <script>
 	$(document).ready(function() {
 		$('#config_file_name').select2();
+		$('#config-add-section').on('click', function (event) {
+			event.preventDefault();
+			const file = $('#config_file_name option:selected').attr('data-path');
+			window.location.assign('/add/' + {{service|tojson}} + '?server_id=' + encodeURIComponent({{serv|tojson}}) + '&file_path=' + encodeURIComponent(file || '') + '#listen');
+		});
 		$('#finding_words_from').submit(function() {
 			let words = $('#words').val();
 			if (words == '') {
-				toastr.warning('Enter words for searching');
+				toastr.warning({{lang.config_files.search_required|tojson}});
 				return false;
 			}
 			findInConfig(words);
@@ -116,13 +130,12 @@
 					click: function () {
 						let config_file_name = $('#new_config_name').val();
 						let path_dir = $('#path_config_name').val();
-						config_file_name = config_file_name.replaceAll('\/', '92');
-						path_dir = path_dir.replaceAll('\/', '92');
-						service = escapeHtml(service);
-						serv = escapeHtml(serv);
-						path_dir = escapeHtml(path_dir);
-						config_file_name = escapeHtml(config_file_name);
-						window.location.replace('/config/' + service + '/' + serv + '/edit/' + path_dir + '92' + config_file_name + '.conf/new');
+						const extension = '.' + {{file_extension|tojson}};
+						if (!config_file_name.trim()) return;
+						if (!config_file_name.endsWith(extension)) config_file_name += extension;
+						const fullPath = path_dir.replace(/\/$/, '') + '/' + config_file_name;
+						const token = encodeConfigPath(fullPath);
+						window.location.replace('/config/' + service + '/' + encodeURIComponent(serv) + '/edit/' + encodeURIComponent(token) + '/new');
 						$(this).dialog("close");
 					}
 				}, {

@@ -1258,10 +1258,12 @@ class HaproxySection(BaseModel):
     type = CharField()
     name = CharField()
     config = JSONField()
+    config_path = TextField(default='')
+    file_id = CharField(max_length=64, default='')
 
     class Meta:
         table_name = 'haproxy_sections'
-        constraints = [SQL('UNIQUE (server_id, type, name)')]
+        constraints = [SQL('UNIQUE (server_id, type, name, file_id)')]
 
 
 class NginxSection(BaseModel):

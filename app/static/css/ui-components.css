@@ -396,6 +396,13 @@ table[data-ux-table] thead th[aria-sort="descending"]::after { color: var(--rw-p
 	margin: 14px var(--indent) 0 15px;
 }
 .config-editor-file-picker label { flex: 0 0 auto; font-weight: 600; }
+.haproxy-sources-panel { margin: 12px 0; max-width: 900px; text-align: left; padding: 16px; }
+.service-settings-table { width: 100%; }
+.service-settings-table td:first-child { width: 78%; }
+#dialog-settings-service { max-height: 75vh !important; overflow-y: auto; }
+.haproxy-sources-panel pre, .haproxy-sources-list code { white-space: pre-wrap; overflow-wrap: anywhere; }
+.haproxy-sources-list { padding-left: 24px; }
+.haproxy-sources-list li { margin: 6px 0; }
 .config-editor-file-picker .select2-container { width: min(520px, 48vw) !important; }
 .config-editor-form { margin-top: 14px; margin-right: var(--indent); }
 .change-advanced-settings {

@@ -6,9 +6,11 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect
 
-from app.modules.config import config as config_mod, common as config_common
-from app.modules.db.db_model import HaproxySection, ConfigVersion
-from app.modules.roxywi.class_models import HaproxyGlobalRequest
+from app.modules.config import config as config_mod, common as config_common, haproxy_files
+from app.modules.db.db_model import ServiceSetting, ConfigVersion, Setting
+from app.modules.db import add as add_sql
+from app.modules.roxywi.class_models import HaproxyGlobalRequest, NginxUpstreamRequest
+from app.modules.config.path_tokens import encode_file_path
 
 
 pytestmark = [pytest.mark.browser, pytest.mark.skipif(
@@ -22,11 +24,86 @@ TEXT = ('# Example configuration\n\nglobal\n    daemon\n\n'
 
 
 @pytest.fixture
-def remote_config(monkeypatch):
+def remote_config(monkeypatch, product):
+    ServiceSetting.create(server_id=11, service='haproxy', setting='multiple_config_files', value='1')
+    monkeypatch.setattr(haproxy_files, 'discover_sources', lambda *a, **kw: {
+        'state': 'ready', 'code': 'ready', 'sources': [{'path': '/etc/haproxy/conf.d', 'runtime_path': '/etc/haproxy/conf.d', 'kind': 'directory'}],
+        'files': ['/etc/haproxy/haproxy.cfg', '/etc/haproxy/conf.d/site92.cfg'], 'mode': 'systemd', 'verified_running': True})
     def download(server, path, **kwargs):
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         Path(path).write_text(TEXT, encoding='utf-8', newline='')
     monkeypatch.setattr(config_mod, 'get_config', download)
+    monkeypatch.setattr(config_mod, 'list_config_files', lambda server, service: ['/etc/haproxy/haproxy.cfg', '/etc/haproxy/conf.d/site92.cfg'])
+
+
+@pytest.mark.parametrize('locale', ['en', 'ru', 'es-ES', 'fr', 'pt-br', 'zh'])
+def test_single_file_mode_opens_main_without_a_picker(logged_in, product_url, product, monkeypatch, locale):
+    main = '/etc/haproxy/haproxy.cfg'
+    token = encode_file_path(main)
+    downloads = []
+
+    def download(server, local, **kwargs):
+        downloads.append((server, kwargs.get('config_file_name')))
+        Path(local).parent.mkdir(parents=True, exist_ok=True)
+        Path(local).write_text(TEXT, encoding='utf-8')
+
+    monkeypatch.setattr(config_mod, 'get_config', download)
+    monkeypatch.setattr(haproxy_files, 'discover_sources', lambda *a, **kw: pytest.fail('Single-file mode must not inspect startup'))
+    page = logged_in
+    page.context.add_cookies([{'name': 'lang', 'value': locale, 'url': product_url}])
+    page.goto(product_url + '/config/haproxy/192.0.2.11/show-files')
+    expect(page.locator('.cv-path')).to_have_text(main)
+    expect(page).to_have_url(product_url + '/config/haproxy/192.0.2.11/show/' + token)
+    expect(page.locator('#ajax-config_file_name')).to_have_text('')
+    expect(page.locator('#ajax-config_file_name select')).to_have_count(0)
+    expect(page.locator('.haproxy-sources-panel')).to_have_count(0)
+    assert downloads == [('192.0.2.11', main)]
+
+    page.locator('#edit_link').click()
+    expect(page.locator('#saveconfig input[name="file_path"]')).to_have_value(main)
+    expect(page.locator('#editor_config_file_name')).to_have_value(token)
+    expect(page.locator('.config-editor-file-picker')).to_have_count(0)
+
+    # The Open button follows the same direct flow when choosing a server.
+    page.goto(product_url + '/config/haproxy/')
+    page.evaluate('''() => {
+        $('#serv').val('192.0.2.11').selectmenu('refresh');
+    }''')
+    page.locator('a[onclick="showConfigFiles()"]').click()
+    expect(page.locator('.cv-path')).to_have_text(main)
+    expect(page.locator('#ajax-config_file_name')).to_have_text('')
+
+
+def test_extra_file_picker_and_form_keep_the_selected_file(logged_in, product_url, product, remote_config):
+    extra = '/etc/haproxy/conf.d/site92.cfg'
+    add_sql.insert_or_update_new_section(11, 'global', 'global', HaproxyGlobalRequest(daemon=True))
+    add_sql.insert_or_update_new_section(11, 'global', 'global', HaproxyGlobalRequest(daemon=False), config_path=extra)
+    page = logged_in
+    page.goto(product_url + '/config/haproxy/192.0.2.11/show/' + encode_file_path(extra))
+    expect(page.locator('.cv-path')).to_have_text(extra)
+    expect(page.locator('#config_file_name')).to_have_value(encode_file_path(extra))
+    page.locator('.cv-section').filter(has=page.locator('.cv-title', has_text='global')).locator('summary').click()
+    page.locator('.cv-section[open] .cv-edit-section').click()
+    expect(page.locator('#edit-section')).to_be_visible()
+    expect(page.locator('#global-daemon')).not_to_be_checked()
+    page.locator('.ui-dialog-titlebar-close:visible').click()
+    page.locator('#config-add-section').click()
+    expect(page).to_have_url(re.compile(r'/add/haproxy\?.*#listen'))
+    for kind in ('listen', 'frontend', 'backend', 'userlist', 'peers'):
+        expect(page.locator(f'#{kind}-config-target')).to_have_value(extra)
+
+
+@pytest.mark.parametrize('locale', ['en', 'ru', 'es-ES', 'fr', 'pt-br', 'zh'])
+def test_new_haproxy_file_keeps_extension_and_name(logged_in, product_url, remote_config, locale):
+    page = logged_in
+    page.context.add_cookies([{'name': 'lang', 'value': locale, 'url': product_url}])
+    page.goto(product_url + '/config/haproxy/192.0.2.11/show')
+    expect(page.locator('#config_file_name option')).to_have_count(3)
+    page.evaluate("addNewConfig('192.0.2.11', 'haproxy')")
+    page.locator('#new_config_name').fill('conf.d/fresh92.cfg')
+    page.locator('.ui-dialog:visible .ui-dialog-buttonpane button').first.click()
+    expect(page).to_have_url(re.compile('/edit/' + encode_file_path('/etc/haproxy/conf.d/fresh92.cfg') + '/new$'))
+    expect(page.locator('#saveconfig input[name="file_path"]')).to_have_value('/etc/haproxy/conf.d/fresh92.cfg')
 
 
 def test_viewer_accordion_search_source_and_repeat_loading(logged_in, product_url, remote_config):
@@ -65,8 +142,7 @@ def test_viewer_accordion_search_source_and_repeat_loading(logged_in, product_ur
 
 
 def test_add_section_opens_form_and_manual_section_opens_text(logged_in, product_url, product, remote_config, monkeypatch):
-    HaproxySection.create(server_id=product.server.server_id, type='global', name='global',
-                          config=HaproxyGlobalRequest(daemon=True).model_dump(mode='json'))
+    add_sql.insert_or_update_new_section(product.server.server_id, 'global', 'global', HaproxyGlobalRequest(daemon=True))
     page = logged_in
     page.goto(product_url + '/config/haproxy/192.0.2.11/show')
     viewer = page.locator('#config-viewer')
@@ -169,9 +245,68 @@ def test_other_services_render_source_and_correct_file(logged_in, product_url, p
     remote = {'nginx': '/etc/nginx/nginx.conf', 'apache': '/etc/apache2/apache2.conf', 'keepalived': '/etc/keepalived/keepalived.conf'}[service]
     monkeypatch.setattr(config_mod.server_mod, 'get_remote_files', lambda *args: remote)
     page = logged_in
-    page.goto(product_url + f'/config/{service}/192.0.2.11/show/' + remote.replace('/', '92'))
+    page.goto(product_url + f'/config/{service}/192.0.2.11/show/' + encode_file_path(remote))
     viewer = page.locator('#config-viewer')
     expect(viewer.locator('.cv-path')).to_have_text(remote)
     viewer.locator('[data-cv-mode="raw"]').click()
     expect(viewer.locator('.cv-raw .cv-line')).to_have_count(len(text.splitlines()))
     assert viewer.locator('.cv-raw .cv-text').all_text_contents() == text.splitlines()
+
+
+@pytest.mark.parametrize('service,root', [('haproxy', '/etc/haproxy'), ('nginx', '/etc/nginx'),
+                                        ('apache', '/etc/apache2'), ('keepalived', '/etc/keepalived')])
+def test_unicode_file_links_picker_editor_and_creation(logged_in, product_url, product, monkeypatch, service, root):
+    setattr(product.server, service, 1)
+    product.server.save()
+    extension = '.cfg' if service == 'haproxy' else '.conf'
+    remote = root + '/сайт 92' + extension
+    token = encode_file_path(remote)
+    Setting.update(value=remote).where(Setting.param == service + '_config_path', Setting.group_id == 1).execute()
+    Setting.update(value=root).where(Setting.param == service + '_dir', Setting.group_id == 1).execute()
+    def download(server, local, **kwargs):
+        Path(local).parent.mkdir(parents=True, exist_ok=True)
+        Path(local).write_text('# file with a Unicode name\n', encoding='utf-8')
+    monkeypatch.setattr(config_mod, 'get_config', download)
+    monkeypatch.setattr(config_mod.server_mod, 'get_remote_files', lambda *a: remote + '\x00')
+    page = logged_in
+    page.goto(product_url + f'/config/{service}/192.0.2.11/show/' + token)
+    expect(page.locator('.cv-path')).to_have_text(remote)
+    assert page.evaluate('(path) => encodeConfigPath(path)', remote) == token
+    assert page.evaluate('(token) => decodeConfigPath(token)', token) == remote
+    if service != 'keepalived':
+        expect(page.locator('#config_file_name')).to_have_value(token)
+    if service == 'nginx':
+        expect(page.locator('#edit_link')).to_have_attribute('data-nginx-edit', 'сайт 92')
+    page.locator('#edit_link').click()
+    expect(page).to_have_url(product_url + f'/config/{service}/192.0.2.11/edit/' + token)
+    expect(page.locator('#saveconfig input[name="file_path"]')).to_have_value(remote)
+    expect(page.locator('#editor_config_file_name')).to_have_value(token)
+
+    if service in ('nginx', 'apache'):
+        page.goto(product_url + f'/config/{service}/192.0.2.11/show-files')
+        page.wait_for_function('typeof addNewConfig === "function"')
+        page.evaluate('(service) => addNewConfig("192.0.2.11", service)', service)
+        page.locator('#new_config_name').fill('conf.d/новый 92')
+        page.locator('.ui-dialog:visible .ui-dialog-buttonpane button').first.click()
+        created = root + '/conf.d/новый 92.conf'
+        expect(page).to_have_url(product_url + f'/config/{service}/192.0.2.11/edit/' + encode_file_path(created) + '/new')
+        expect(page.locator('#saveconfig input[name="file_path"]')).to_have_value(created)
+
+
+def test_nginx_form_editor_keeps_92_in_section_name(logged_in, product_url, product, monkeypatch):
+    remote = '/etc/nginx/conf.d/upstream_app92.conf'
+    body = NginxUpstreamRequest(name='app92', balance='round_robin', backend_servers=[
+        {'server': '192.0.2.12', 'port': 80, 'max_fails': 3, 'fail_timeout': 10}])
+    add_sql.insert_new_section(11, 'upstream', 'app92', body, service='nginx')
+    def download(server, local, **kwargs):
+        Path(local).parent.mkdir(parents=True, exist_ok=True)
+        Path(local).write_text('upstream app92 {\n server 192.0.2.12:80;\n}\n', encoding='utf-8')
+    monkeypatch.setattr(config_mod, 'get_config', download)
+    monkeypatch.setattr(config_mod.server_mod, 'get_remote_files', lambda *a: remote + '\x00')
+    page = logged_in
+    page.goto(product_url + '/config/nginx/192.0.2.11/show/' + encode_file_path(remote))
+    expect(page.locator('#edit_link')).to_have_attribute('data-nginx-edit', 'upstream_app92')
+    with page.expect_response(lambda response: '/section/upstream/app92' in response.url) as response:
+        page.locator('#edit_link').click()
+    assert response.value.status == 200
+    expect(page.locator('#add-upstream input[name="name"]')).to_have_value('app92')

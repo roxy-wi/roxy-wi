@@ -404,9 +404,6 @@ class ServiceConfigView(MethodView):
         """
         if service in ('nginx', 'apache') and (query.file_path is None and query.version is None):
             return ErrorResponse(error=f'There is must be "file_path" as query parameter for {service.title()}')
-        if query.file_path:
-            query.file_path = query.file_path.replace('/', '92')
-
         try:
             server_ip = SupportClass(False).return_server_ip_or_id(server_id)
         except Exception as e:
@@ -571,31 +568,16 @@ class ServiceConfigList(MethodView):
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot find the server')
 
-        files = []
-        service_config_dir = sql.get_setting(f'{service}_dir')
-
         try:
-            return_files = server_mod.get_remote_files(server_ip, service_config_dir, 'conf')
+            files = config_mod.list_config_files(server_ip, service)
+            result = DataResponse(data=files).model_dump(mode='json')
+            if service == 'haproxy':
+                from app.modules.config.haproxy_files import multiple_files_enabled
+                result['multiple_files'] = multiple_files_enabled(server_sql.get_server_by_ip(server_ip).server_id)
+            return result
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get configs')
 
-        return_files = return_files.split('\t\t')
-        for file in return_files:
-            if '\r\n' in file:
-                for f in file.split('\r\n'):
-                    if f == '':
-                        continue
-                    elif '\t' in f:
-                        for f1 in f.split('\t'):
-                            files.append(f1)
-                    else:
-                        files.append(f)
-            elif file == '':
-                continue
-            else:
-                files.append(file)
-        files.append(sql.get_setting(f'{service}_config_path'))
-        return DataResponse(data=files).model_dump(mode='json')
 
 
 class ServiceConfigVersionsView(MethodView):
