@@ -41,12 +41,20 @@ class DatabaseReadinessMonitor:
         self._result = (False, 'database check pending')
         self._checked_at = None
 
-    def get(self) -> tuple[bool, str]:
+    def start(self) -> None:
+        """Start once in the serving process, after the web worker has forked."""
         with self._lock:
-            if self._thread is None:
+            if self._thread is None and not self._stop.is_set():
                 self._thread = threading.Thread(target=self._run, name='database-readiness', daemon=True)
                 self._thread.start()
                 atexit.register(self.close)
+
+    def get(self) -> tuple[bool, str]:
+        # Keep lazy initialization for WSGI servers without lifecycle hooks.
+        self.start()
+        with self._lock:
+            if self._stop.is_set():
+                return False, 'database readiness monitor stopped'
             if self._checked_at is None or time.monotonic() - self._checked_at > self.max_age:
                 return False, 'database check pending or expired'
             return self._result
@@ -64,7 +72,9 @@ class DatabaseReadinessMonitor:
             self._stop.wait(self.interval)
 
     def close(self):
-        self._stop.set()
-        if self._thread is not None:
-            self._thread.join(timeout=1)
+        with self._lock:
+            self._stop.set()
+            thread = self._thread
+        if thread is not None:
+            thread.join(timeout=1)
         atexit.unregister(self.close)

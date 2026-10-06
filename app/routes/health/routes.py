@@ -3,7 +3,7 @@ from flask import current_app, jsonify
 from app.modules.db.readiness import DatabaseReadinessMonitor
 from app.routes.health import bp
 
-_database_readiness = DatabaseReadinessMonitor()
+database_readiness = DatabaseReadinessMonitor()
 
 
 @bp.get('/health/live')
@@ -13,7 +13,7 @@ def live():
 
 @bp.get('/health/ready')
 def ready():
-    is_ready, detail = _database_readiness.get()
+    is_ready, detail = database_readiness.get()
     if not is_ready:
         current_app.logger.warning('Database readiness check failed: %s', detail)
         return jsonify({'status': 'unavailable', 'database': detail}), 503

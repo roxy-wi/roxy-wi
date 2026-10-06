@@ -12,7 +12,9 @@ pytestmark = [pytest.mark.browser, pytest.mark.skipif(
 
 
 @pytest.mark.parametrize('locale', ['en', 'ru', 'es-ES', 'fr', 'pt-br', 'zh'])
-def test_service_checkbox_discovers_retries_and_persists(logged_in, product_url, product, host_metrics, monkeypatch, locale):
+def test_service_checkbox_discovers_retries_and_persists(
+    logged_in, product_url, product, host_metrics, last_config_edit, monkeypatch, locale,
+):
     monkeypatch.setattr('app.routes.service.routes.server_mod.subprocess_execute', lambda command: (['0'], ''))
     state = {'state': 'single', 'code': 'not_configured', 'sources': [], 'files': [], 'mode': 'systemd',
              'verified_running': True, 'example': '-f /etc/haproxy/haproxy.cfg -f /etc/haproxy/conf.d'}
@@ -29,6 +31,7 @@ def test_service_checkbox_discovers_retries_and_persists(logged_in, product_url,
     response = page.goto(product_url + '/service/haproxy')
     assert response.status == 200, response.text()
     card = page.locator('#div-server-11')
+    expect(card.locator('[id="edit_date_192.0.2.11"]')).to_have_text(last_config_edit)
     card.locator('.service-actions-toggle').click()
     card.locator('.service-settings-command').click()
     dialog = page.locator('#dialog-settings-service')
@@ -49,13 +52,23 @@ def test_service_checkbox_discovers_retries_and_persists(logged_in, product_url,
     expect(dialog.locator('.haproxy-sources-list')).to_contain_text('/etc/haproxy/conf.d')
     expect(dialog.locator('.haproxy-sources-hint')).to_have_count(0)
     assert dialog.evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
-    with page.expect_response(lambda response: response.url.endswith('/service/settings/haproxy') and response.request.method == 'POST') as saved:
-        dialog.locator('..').locator('.ui-dialog-buttonpane button').first.click()
+    # A pending background request after reload must not delay reopening settings.
+    pending_last_edit = []
+    page.route('**/service/*/*/last-edit', lambda route: pending_last_edit.append(route))
+    # Register before Save: reloading keeps the same URL and starts background requests.
+    with page.expect_event('load'):
+        with page.expect_response(
+            lambda response: response.url.endswith('/service/settings/haproxy')
+            and response.request.method == 'POST'
+        ) as saved:
+            dialog.locator('..').locator('.ui-dialog-buttonpane button').first.click()
     assert saved.value.status == 200
     assert ServiceSetting.get(ServiceSetting.setting == 'multiple_config_files').value == '1'
     assert seen and all(server_id == 11 and dockerized is False for server_id, dockerized in seen)
-    page.wait_for_load_state('networkidle')
     card.locator('.service-actions-toggle').click()
     card.locator('.service-settings-command').click()
     expect(page.locator('#haproxy_multiple_config_files')).to_be_checked()
     expect(page.locator('.haproxy-sources-list')).to_be_visible()
+    assert pending_last_edit
+    for route in pending_last_edit:
+        route.fulfill(body=last_config_edit)

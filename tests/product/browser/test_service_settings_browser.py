@@ -13,7 +13,9 @@ pytestmark = [pytest.mark.browser, pytest.mark.skipif(
 
 @pytest.mark.parametrize('locale', ['en', 'ru', 'es-ES', 'fr', 'pt-br', 'zh'])
 @pytest.mark.parametrize('service', ['haproxy', 'nginx', 'apache'])
-def test_shared_service_settings_layout_and_save(logged_in, product_url, product, host_metrics, monkeypatch, service, locale):
+def test_shared_service_settings_layout_and_save(
+    logged_in, product_url, product, host_metrics, last_config_edit, monkeypatch, service, locale,
+):
     setattr(product.server, service, 1)
     product.server.save()
     monkeypatch.setattr('app.routes.service.routes.server_mod.subprocess_execute', lambda command: (['0'], ''))
@@ -25,6 +27,7 @@ def test_shared_service_settings_layout_and_save(logged_in, product_url, product
     response = page.goto(product_url + '/service/' + service)
     assert response.status == 200, response.text()
     card = page.locator('#div-server-11')
+    expect(card.locator('[id="edit_date_192.0.2.11"]')).to_have_text(last_config_edit)
     card.locator('.service-actions-toggle').click()
     card.locator('.service-settings-command').click()
     dialog = page.locator('#dialog-settings-service')
@@ -41,16 +44,22 @@ def test_shared_service_settings_layout_and_save(logged_in, product_url, product
         input.type = 'checkbox'; input.id = otherService + '_dockerized'; input.checked = true;
         document.body.append(input);
     }''', 'nginx' if service == 'haproxy' else 'haproxy')
-    with page.expect_response(lambda response: response.url.endswith('/service/settings/' + service)
-                              and response.request.method == 'POST') as saved:
-        dialog.locator('..').locator('.ui-dialog-buttonpane button').first.click()
+    # A pending background request after reload must not delay reopening settings.
+    pending_last_edit = []
+    page.route('**/service/*/*/last-edit', lambda route: pending_last_edit.append(route))
+    # Register before Save: reloading keeps the same URL and starts background requests.
+    with page.expect_event('load'):
+        with page.expect_response(
+            lambda response: response.url.endswith('/service/settings/' + service)
+            and response.request.method == 'POST'
+        ) as saved:
+            dialog.locator('..').locator('.ui-dialog-buttonpane button').first.click()
     assert saved.value.status == 200
     settings = {row.setting: row.value for row in ServiceSetting.select().where(
         ServiceSetting.server_id == 11, ServiceSetting.service == service)}
     assert settings['restart'] == '1' and settings['dockerized'] == '0'
     assert ('multiple_config_files' in settings) == (service == 'haproxy')
 
-    page.wait_for_load_state('networkidle')
     page.set_viewport_size({'width': 390, 'height': 844})
     card.locator('.service-actions-toggle').click()
     card.locator('.service-settings-command').click()
@@ -59,3 +68,6 @@ def test_shared_service_settings_layout_and_save(logged_in, product_url, product
     bounds = dialog.locator('..').bounding_box()
     assert bounds['x'] >= 0 and bounds['x'] + bounds['width'] <= 391
     assert dialog.evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
+    assert pending_last_edit
+    for route in pending_last_edit:
+        route.fulfill(body=last_config_edit)

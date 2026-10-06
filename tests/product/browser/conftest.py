@@ -39,6 +39,20 @@ def browser_errors(page):
 
 
 @pytest.fixture
+def last_config_edit(monkeypatch):
+    # Keep the real last-edit route without connecting to a synthetic SSH host.
+    value = 'Jan 1 12:00'
+
+    def ssh_command(server_ip, command, **kwargs):
+        assert server_ip == '192.0.2.11'
+        assert command.startswith('ls -l ')
+        return value
+
+    monkeypatch.setattr(server_module, 'ssh_command', ssh_command)
+    return value
+
+
+@pytest.fixture
 def host_metrics(monkeypatch):
     # The production collector uses Linux-specific psutil fields. Keep real
     # routes and charts on every test host, replacing only the OS readings.

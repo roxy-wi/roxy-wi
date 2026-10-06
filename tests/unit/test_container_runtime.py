@@ -2,6 +2,7 @@ from pathlib import Path
 from contextlib import nullcontext
 import importlib.util
 import subprocess
+import sys
 import threading
 import time
 from types import SimpleNamespace
@@ -76,7 +77,7 @@ def test_health_endpoints_report_initialized_schema(client, monkeypatch):
     from app.modules.db.readiness import DatabaseReadinessMonitor
     from app.routes.health import routes
     monitor = DatabaseReadinessMonitor()
-    monkeypatch.setattr(routes, '_database_readiness', monitor)
+    monkeypatch.setattr(routes, 'database_readiness', monitor)
     try:
         assert client.get('/health/live').get_json() == {'status': 'ok'}
         deadline = time.monotonic() + 3
@@ -88,6 +89,83 @@ def test_health_endpoints_report_initialized_schema(client, monkeypatch):
         assert response.status_code == 200
         assert response.get_json() == {'status': 'ok', 'database': 'ok'}
     finally:
+        monitor.close()
+
+
+def test_web_worker_checks_database_before_its_first_health_request(client, monkeypatch):
+    import roxy_wi
+    import roxy_wi_gunicorn
+    import roxy_wi_health
+    from app.modules.db.readiness import DatabaseReadinessMonitor
+    from app.routes.health import routes
+
+    command = []
+    monkeypatch.setattr(roxy_wi_health, 'register_web', lambda: None)
+    monkeypatch.setattr(roxy_wi.os, 'execvp', lambda executable, arguments: command.extend(arguments))
+    roxy_wi.run_web()
+    assert command[command.index('--config') + 1] == 'python:roxy_wi_gunicorn'
+
+    monitor = DatabaseReadinessMonitor()
+    monkeypatch.setattr(routes, 'database_readiness', monitor)
+    worker = SimpleNamespace()
+    try:
+        roxy_wi_gunicorn.post_worker_init(worker)
+        deadline = time.monotonic() + 3
+        # Do not call get() or the endpoint: startup itself must run the check.
+        while monitor._checked_at is None:
+            assert time.monotonic() < deadline
+            time.sleep(.01)
+        response = client.get('/health/ready')
+        assert response.status_code == 200, response.json
+    finally:
+        roxy_wi_gunicorn.worker_exit(None, worker)
+    assert not monitor._thread.is_alive()
+    assert monitor.get()[0] is False
+    roxy_wi_gunicorn.worker_exit(None, SimpleNamespace())
+
+
+def test_gunicorn_config_does_not_import_app_in_master_process():
+    result = subprocess.run(
+        [sys.executable, '-c', 'import sys, roxy_wi_gunicorn; assert "app" not in sys.modules'],
+        capture_output=True, text=True, timeout=10,
+        cwd=Path(__file__).resolve().parents[2],
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_database_monitor_concurrent_start_is_single_and_pending_is_not_ready(client, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from app.modules.db.readiness import DatabaseReadinessMonitor
+    from app.routes.health import routes
+
+    entered, release = threading.Event(), threading.Event()
+    calls = []
+
+    def check():
+        calls.append(threading.get_ident())
+        entered.set()
+        assert release.wait(3)
+        return False, 'database unavailable'
+
+    monitor = DatabaseReadinessMonitor(check, interval=60)
+    monkeypatch.setattr(routes, 'database_readiness', monitor)
+    try:
+        with ThreadPoolExecutor(max_workers=8) as executor:
+            list(executor.map(lambda _: monitor.start(), range(16)))
+        assert entered.wait(1)
+        assert len(calls) == 1
+        assert client.get('/health/ready').status_code == 503
+        assert client.get('/health/live').status_code == 200
+        release.set()
+        deadline = time.monotonic() + 2
+        while monitor._checked_at is None:
+            assert time.monotonic() < deadline
+            time.sleep(.01)
+        response = client.get('/health/ready')
+        assert response.status_code == 503
+        assert response.json['database'] == 'database unavailable'
+    finally:
+        release.set()
         monitor.close()
 
 
@@ -107,7 +185,7 @@ def test_slow_database_cannot_block_health_http_and_stale_success_expires(client
         return True, 'ready'
 
     monitor = readiness.DatabaseReadinessMonitor(check, interval=.01)
-    monkeypatch.setattr(routes, '_database_readiness', monitor)
+    monkeypatch.setattr(routes, 'database_readiness', monitor)
     try:
         # A healthy sample is followed by an unresponsive database connection.
         deadline = time.monotonic() + 2
