@@ -17,6 +17,7 @@ import app.modules.server.ssh as mod_ssh
 import app.modules.server.server as server_mod
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
+from app.modules.roxywi import logger
 import app.modules.roxy_wi_tools as roxy_wi_tools
 import app.modules.service.common as service_common
 import app.modules.service.action as service_action
@@ -164,7 +165,10 @@ def validate_candidate_config(server_ip: str, cfg: str, service: str, config_fil
 	return str(output or '').strip() or f'{service.title()} configuration is valid'
 
 
-def _generate_command(service: str, server_id: int, just_save: str, config_path: str, tmp_file: str, cfg: str, server_ip: str) -> str:
+def _generate_command(
+	service: str, server_id: int, just_save: str, config_path: str, tmp_file: str, cfg: str, server_ip: str,
+	waf_service: str = None
+) -> str:
 	"""
 	:param service: The name of the service.
 	:param server_id: The ID of the server.
@@ -173,11 +177,22 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 	:param tmp_file: The temporary file path.
 	:param cfg: The configuration object.
 	:param server_ip: The IP address of the server.
+	:param waf_service: The proxy owning the WAF rule, used to select its runtime service.
 	:return: A list of commands.
 
 	This method generates a list of commands based on the given parameters.
 	"""
 	validate_config_action(just_save)
+	if service == 'waf':
+		if waf_service not in ('haproxy', 'nginx') or just_save == 'test':
+			raise ValueError('Unsupported WAF configuration action')
+		action_service = 'nginx' if waf_service == 'nginx' else 'waf'
+		if service_common.is_not_allowed_to_restart(server_id, action_service, just_save):
+			raise ValueError('This server is not allowed to be restarted')
+		command = f'sudo mv -f {quote(tmp_file)} {quote(config_path)}'
+		if just_save in ('reload', 'restart'):
+			command += f' && {service_action.get_action_command(action_service, just_save, server_id)}'
+		return command
 	container_name = sql.get_setting(f'{service}_container_name')
 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
 	if service == 'haproxy':
@@ -202,7 +217,6 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 		'nginx': {'0': 'sudo nginx -t ', '1': f'{command_for_docker} nginx -t '},
 		'apache': {'0': 'sudo apachectl -t ', '1': f'{command_for_docker} apachectl -t '},
 		'keepalived': {'0': f'keepalived -t -f {quote(tmp_file)} ', '1': ' '},
-		'waf': {'0': ' ', '1': ' '}
 	}
 
 	try:
@@ -218,9 +232,7 @@ def _generate_command(service: str, server_id: int, just_save: str, config_path:
 		if service_common.is_not_allowed_to_restart(server_id, service, just_save):
 			raise Exception('error: This server is not allowed to be restarted')
 
-	if service == 'waf':
-		commands = f'{move_config} {reload_or_restart_command}'
-	elif service in ('nginx', 'apache'):
+	if service in ('nginx', 'apache'):
 		commands = f'{move_config} && {check_config} {reload_or_restart_command}'
 	else:
 		commands = f'{check_config} && {move_config} {reload_or_restart_command}'
@@ -358,20 +370,23 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 		)
 
 	try:
-		commands = _generate_command(service, server_id, just_save, config_path, tmp_file, cfg, server_ip)
+		commands = _generate_command(service, server_id, just_save, config_path, tmp_file, cfg, server_ip, **(
+			{'waf_service': kwargs.get('waf')} if service == 'waf' else {}
+		))
 	except Exception as e:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot generate command for service {service}')
 
 	try:
 		upload(server_ip, tmp_file, cfg)
-	except Exception as e:
-		roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot upload config')
-
-	try:
 		error = server_mod.ssh_command(server_ip, commands, rc=1, **(
 			{'timeout': 90, 'error_context': 'HAProxy configuration validation or application failed'} if service == 'haproxy' else {}
 		))
 	except Exception as e:
+		if service == 'waf':
+			try:
+				server_mod.ssh_command(server_ip, f'sudo rm -f -- {quote(tmp_file)}', rc=1)
+			except Exception as cleanup_error:
+				logger.exception('Cannot remove temporary WAF upload', exc=cleanup_error, server_ip=server_ip)
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot {just_save} {service}')
 
 	# A saved version represents a successful remote operation, not merely an
@@ -383,7 +398,8 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 		)
 
 	if just_save in ('reload', 'restart'):
-		roxywi_common.logging(server_ip, f'Service {service.title()} has been {just_save}ed', keep_history=1, service=service)
+		action_service = 'nginx' if service == 'waf' and kwargs.get('waf') == 'nginx' else service
+		roxywi_common.logging(server_ip, f'Service {action_service.title()} has been {just_save}ed', keep_history=1, service=action_service)
 	if just_save != 'test':
 		roxywi_common.logging(server_ip, 'A new config file has been uploaded', keep_history=1, service=service)
 
@@ -439,6 +455,8 @@ def master_slave_upload_and_restart(server_ip: str, cfg: str, just_save: str, se
 				)
 				slave_output += f'<br>slave_server:\n{slv_output}'
 			except Exception as e:
+				if service == 'waf':
+					raise
 				slave_output += f'<br>slave_server:\n error: {e}'
 	try:
 		output = upload_and_restart(
@@ -447,6 +465,8 @@ def master_slave_upload_and_restart(server_ip: str, cfg: str, just_save: str, se
 			deployment_policy_bypass=True, deployment_policy_service=policy_service
 		)
 	except Exception as e:
+		if service == 'waf':
+			raise
 		output = f'error: {e}'
 
 	output = server.hostname + ':\n' + output

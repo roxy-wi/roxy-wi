@@ -70,11 +70,12 @@
 		<script src="/static/js/codemirror/addon/scroll/annotatescrollbar.js"></script>
 		<script src="/static/js/codemirror/mode/modsec.js"></script>
 		<script src="/static/js/codemirror/keymap/sublime.js"></script>
-		<script src="/static/js/configshow.js"></script>
 			<h4>{{lang.words.config|title()}} {{waf_rule_file}} {{lang.words.from|title()}} {{ serv }}</h4>
-			<form action="/waf/{{service}}/{{serv}}/rule/{{waf_rule_id}}/save" name="saveconfig" id="saveconfig" method="post">
+			<form action="/waf/{{service}}/{{serv}}/rule/{{waf_rule_id}}/save" name="saveconfig" id="saveconfig" method="post"
+                  data-waf-editor data-save-error="{{ lang.waf_editor.save_failed }}"
+                  data-save-success="{{ lang.waf_editor.saved }}" data-reload-success="{{ lang.waf_editor.reloaded }}"
+                  data-restart-success="{{ lang.waf_editor.restarted }}">
 				<input type="hidden" value="{{ serv }}" name="serv">
-				<input type="hidden" value="{{ cfg }}.old" name="oldconfig">
 				<input type="hidden" value="{{ token }}" name="token">
 				<input type="hidden" value="waf_{{ service }}" name="service">
 				<input type="hidden" value="{{ config_file_name }}" name="config_file_name">

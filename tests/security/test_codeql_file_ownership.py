@@ -229,12 +229,17 @@ def test_waf_candidates_have_independent_paths(client, editor, tmp_path, monkeyp
     monkeypatch.setattr(waf_routes.waf_sql, 'get_waf_rule',
                         lambda *a: SimpleNamespace(service='haproxy', rule_file='test.conf'))
     candidates = []
+    contents = []
+    def upload(server, cfg, *args, **kwargs):
+        candidates.append(Path(cfg))
+        contents.append(Path(cfg).read_text())
+        return 'saved'
     monkeypatch.setattr(config_mod, 'master_slave_upload_and_restart',
-                        lambda server, cfg, *a, **kw: candidates.append(Path(cfg)) or 'saved')
+                        upload)
     for content in ['first', 'second']:
         response = client.post(f'/waf/haproxy/{SERVER}/rule/1/save', headers=editor,
                                json={'action': 'save', 'config': content, 'config_file_name': 'test.conf'})
         assert response.status_code == 200 and response.json['data'] == 'saved'
     assert len(set(candidates)) == 2
-    assert [path.read_text() for path in candidates] == ['first', 'second']
-    assert all(path.parent == tmp_path for path in candidates)
+    assert contents == ['first', 'second']
+    assert all(path.parent.parent == tmp_path and not path.exists() for path in candidates)

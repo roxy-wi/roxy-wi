@@ -136,6 +136,13 @@
     }
 }
 %}
+{% set waf_editor = {
+    "read_failed": "Impossible d’ouvrir la règle WAF. Vérifiez la connexion au serveur, les permissions du fichier et les journaux de Roxy-WI.",
+    "save_failed": "L’enregistrement ou l’application de la règle WAF n’a pas abouti. Vérifiez les serveurs cibles et les journaux de Roxy-WI avant de réessayer.",
+    "saved": "Règle WAF enregistrée.",
+    "reloaded": "Règle WAF enregistrée ; service rechargé.",
+    "restarted": "Règle WAF enregistrée ; service redémarré."
+} %}
 {% set ux = {
     "search": "Rechercher",
     "all": "Tous",

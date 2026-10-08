@@ -136,6 +136,13 @@
     }
 }
 %}
+{% set waf_editor = {
+    "read_failed": "No se pudo abrir la regla WAF. Compruebe la conexión al servidor, los permisos del archivo y los registros de Roxy-WI.",
+    "save_failed": "No se completó el guardado o la aplicación de la regla WAF. Compruebe los servidores de destino y los registros de Roxy-WI antes de volver a intentarlo.",
+    "saved": "Regla WAF guardada.",
+    "reloaded": "Regla WAF guardada; servicio recargado.",
+    "restarted": "Regla WAF guardada; servicio reiniciado."
+} %}
 {% set ux = {
     "search": "Buscar",
     "all": "Todos",

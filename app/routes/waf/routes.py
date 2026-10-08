@@ -1,8 +1,7 @@
-import os
 import tempfile
 from pathlib import Path
 
-from flask import render_template, request, g, abort, jsonify
+from flask import render_template, request, g, abort, jsonify, current_app
 from flask_jwt_extended import jwt_required, get_jwt
 
 from app.routes.waf import bp
@@ -10,15 +9,26 @@ import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
 from app.middleware import check_services, get_user_params, page_for_admin
 import app.modules.common.common as common
-import app.modules.roxy_wi_tools as roxy_wi_tools
 import app.modules.roxywi.waf as roxy_waf
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.config.config as config_mod
 from app.modules.roxywi.exception import RoxywiPermissionError, RoxywiPublicError
+from app.modules.roxywi import logger
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
 
-get_config = roxy_wi_tools.GetConfigVar()
+
+def _editor_error_response(error_key: str, exc: Exception, server_ip: str):
+    logger.exception(f'WAF editor: {error_key}', exc=exc, server_ip=server_ip)
+    language = g.user_params['lang']
+    languages = current_app.jinja_env.get_template('languages/languages.html').module.languages
+    if language not in languages:
+        language = 'en'
+    messages = current_app.jinja_env.get_template(f'languages/{language}.html').module.waf_editor
+    message = messages[error_key]
+    if request.is_json or request.accept_mimetypes.best == 'application/json':
+        return jsonify({'status': 'failed', 'error': message}), 500
+    return render_template('error.html', title='WAF', e=message, lang=language), 500
 
 
 @bp.before_request
@@ -100,20 +110,14 @@ def waf_rule_edit(service, server_ip, rule_id):
     rule = roxy_waf.get_waf_rule(server_ip, rule_id, service)
     waf_rule_file = rule.rule_file
     config_file_name = common.resolve_waf_config_path(rule.service, waf_rule_file)
-    get_date = roxy_wi_tools.GetDate(sql.get_setting('time_zone'))
     configs_dir = sql.get_setting('tmp_config_path')
     try:
-        cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}-{waf_rule_file}"
-        config_mod.get_config(server_ip, cfg, waf=service, waf_rule_file=waf_rule_file)
-    except Exception:
-        pass
-
-    try:
-        conf = open(cfg, "r")
-        config_read = conf.read()
-        conf.close()
-    except IOError as e:
-        return f'error: Cannot read imported config file: {e}'
+        with tempfile.TemporaryDirectory(prefix='waf-read-', dir=configs_dir) as workdir:
+            cfg = Path(workdir) / waf_rule_file
+            config_mod.get_config(server_ip, str(cfg), waf=service, waf_rule_file=waf_rule_file)
+            config_read = cfg.read_text(encoding='utf-8')
+    except Exception as exc:
+        return _editor_error_response('read_failed', exc, server_ip)
 
     kwargs = {
         'title': 'Edit a WAF rule',
@@ -125,7 +129,6 @@ def waf_rule_edit(service, server_ip, rule_id):
         'waf_rule_file': waf_rule_file,
         'waf_rule_id': rule_id,
         'config': config_read,
-        'cfg': cfg,
         'config_file_name': config_file_name,
         'service': service,
         'lang': g.user_params['lang']
@@ -145,6 +148,8 @@ def waf_save_config(service, server_ip, rule_id):
         abort(400, 'Invalid configuration request')
     save = data.get('action') if request.is_json else data.get('save')
     config_mod.validate_config_action(save)
+    if save == 'test':
+        abort(400, 'WAF rule validation is not available')
     config = data.get('config')
     if not isinstance(config, str):
         abort(400, 'Configuration content is required')
@@ -153,23 +158,14 @@ def waf_save_config(service, server_ip, rule_id):
     if data.get('config_file_name') not in (None, rule.rule_file, config_file_name):
         abort(400, 'Configuration path does not match the WAF rule')
     configs_dir = sql.get_setting('tmp_config_path')
-    oldcfg = data.get('oldconfig')
-
     try:
-        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', prefix='waf-', dir=configs_dir, delete=False) as conf:
-            cfg = conf.name
-            conf.write(config)
-    except IOError as e:
-        return f"error: Cannot read imported config file: {e}"
-
-    stderr = config_mod.master_slave_upload_and_restart(
-        server_ip, cfg, save, 'waf', waf=rule.service, oldcfg=oldcfg, config_file_name=config_file_name)
-
-    try:
-        for old_config in Path(configs_dir).glob('*.old'):
-            old_config.unlink()
-    except OSError as e:
-        return f'error: {e}'
+        with tempfile.TemporaryDirectory(prefix='waf-save-', dir=configs_dir) as workdir:
+            cfg = Path(workdir) / rule.rule_file
+            cfg.write_text(config, encoding='utf-8', newline='')
+            stderr = config_mod.master_slave_upload_and_restart(
+                server_ip, str(cfg), save, 'waf', waf=rule.service, config_file_name=config_file_name)
+    except Exception as exc:
+        return _editor_error_response('save_failed', exc, server_ip)
 
     if request.is_json:
         return jsonify({'status': 'ok', 'data': stderr or ''})

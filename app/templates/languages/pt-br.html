@@ -136,6 +136,13 @@
     }
 }
 %}
+{% set waf_editor = {
+    "read_failed": "Não foi possível abrir a regra WAF. Verifique a conexão com o servidor, as permissões do arquivo e os logs do Roxy-WI.",
+    "save_failed": "O salvamento ou a aplicação da regra WAF não foi concluído. Verifique os servidores de destino e os logs do Roxy-WI antes de tentar novamente.",
+    "saved": "Regra WAF salva.",
+    "reloaded": "Regra WAF salva; serviço recarregado.",
+    "restarted": "Regra WAF salva; serviço reiniciado."
+} %}
 {% set ux = {
     "search": "Pesquisar",
     "all": "Todos",

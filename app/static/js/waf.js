@@ -91,6 +91,43 @@ function changeWafMode(id) {
 	});
 }
 $( function() {
+	const editor = $('#saveconfig[data-waf-editor]');
+	editor.on('submit', function (event) {
+		event.preventDefault();
+		if (editor.data('saving')) return;
+		const submitter = event.originalEvent && event.originalEvent.submitter;
+		const action = submitter ? submitter.value : 'save';
+		myCodeMirror.save();
+		const payload = {};
+		editor.serializeArray().forEach(function (field) { payload[field.name] = field.value; });
+		payload.config = myCodeMirror.getValue();
+		payload.action = action;
+		const buttons = editor.find(':submit');
+		editor.data('saving', true);
+		buttons.prop('disabled', true);
+		$.ajax({
+			url: editor.attr('action'), type: 'POST', dataType: 'json',
+			contentType: 'application/json; charset=utf-8', data: JSON.stringify(payload),
+			suppressGlobalError: true,
+			success: function (data) {
+				toastr.clear();
+				if (data.status !== 'ok') {
+					toastr.error(editor.attr('data-save-error'));
+					return;
+				}
+				toastr.success(editor.attr('data-' + action + '-success'));
+				if (myCodeMirror.getValue() === payload.config) $(window).off('beforeunload');
+			},
+			error: function () {
+				toastr.clear();
+				toastr.error(editor.attr('data-save-error'));
+			},
+			complete: function () {
+				editor.data('saving', false);
+				buttons.prop('disabled', false);
+			}
+		});
+	});
 	$("#waf_rules input").change(function () {
 		let id = $(this).attr('id').split('-');
 		waf_rules_en(id[1])

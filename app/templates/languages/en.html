@@ -136,6 +136,13 @@
     }
 }
 %}
+{% set waf_editor = {
+    "read_failed": "Could not open the WAF rule. Check the server connection, file permissions and Roxy-WI logs.",
+    "save_failed": "Saving or applying the WAF rule did not complete. Check the target servers and Roxy-WI logs before retrying.",
+    "saved": "WAF rule saved.",
+    "reloaded": "WAF rule saved; service reloaded.",
+    "restarted": "WAF rule saved; service restarted."
+} %}
 {% set ux = {
     "search": "Search",
     "all": "All",

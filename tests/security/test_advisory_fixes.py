@@ -148,18 +148,21 @@ def test_waf_legitimate_save_contract(client, actor, monkeypatch, tmp_path, json
     actor[0]['role'] = 2
     calls = []
     monkeypatch.setattr(waf_routes.roxywi_common, 'check_is_server_in_group', lambda *a: None)
-    monkeypatch.setattr(waf_routes.roxy_wi_tools, 'GetDate', lambda *_: SimpleNamespace(return_date=lambda _: '2026-09-22'))
     monkeypatch.setattr(waf_routes.sql, 'get_setting', lambda name, **k: 'UTC' if name == 'time_zone' else str(tmp_path) + '/')
     monkeypatch.setattr(waf_routes.common, 'resolve_waf_config_path', lambda *a: '/etc/waf/test.conf')
     monkeypatch.setattr(waf_routes.waf_sql, 'get_waf_rule',
                         lambda *a: SimpleNamespace(service='haproxy', rule_file='test.conf'))
-    monkeypatch.setattr(waf_routes.config_mod, 'master_slave_upload_and_restart', lambda *a, **k: calls.append(a) or 'saved')
+    def upload(*args, **kwargs):
+        calls.append((args, Path(args[1]).read_text()))
+        return 'saved'
+    monkeypatch.setattr(waf_routes.config_mod, 'master_slave_upload_and_restart', upload)
     data = {'config': 'synthetic', 'config_file_name': 'test.conf', ('action' if json_request else 'save'): verb}
     response = client.post('/waf/haproxy/192.0.2.10/rule/1/save', headers=actor[1], **({'json': data} if json_request else {'data': data}))
     assert response.status_code == 200
     assert calls, response.get_data(as_text=True)
-    assert calls[0][2] == verb
-    assert Path(calls[0][1]).read_text() == 'synthetic'
+    assert calls[0][0][2] == verb
+    assert calls[0][1] == 'synthetic'
+    assert not Path(calls[0][0][1]).exists()
     if json_request:
         assert response.json['data'] == 'saved'
 

@@ -136,6 +136,13 @@
     }
 }
 %}
+{% set waf_editor = {
+    "read_failed": "无法打开 WAF 规则。请检查服务器连接、文件权限和 Roxy-WI 日志。",
+    "save_failed": "WAF 规则保存或应用未完成。重试前请检查目标服务器和 Roxy-WI 日志。",
+    "saved": "WAF 规则已保存。",
+    "reloaded": "WAF 规则已保存；服务已重新加载。",
+    "restarted": "WAF 规则已保存；服务已重启。"
+} %}
 {% set ux = {
     "search": "搜索",
     "all": "全部",
