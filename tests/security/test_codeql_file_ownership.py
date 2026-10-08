@@ -226,6 +226,8 @@ def test_waf_candidates_have_independent_paths(client, editor, tmp_path, monkeyp
     monkeypatch.setattr(waf_routes.roxywi_common, 'check_is_server_in_group', lambda *a: None)
     monkeypatch.setattr(waf_routes.sql, 'get_setting', lambda key: str(tmp_path) + '/')
     monkeypatch.setattr(waf_routes.common, 'resolve_waf_config_path', lambda *a: '/etc/waf/rules/test.conf')
+    monkeypatch.setattr(waf_routes.waf_sql, 'get_waf_rule',
+                        lambda *a: SimpleNamespace(service='haproxy', rule_file='test.conf'))
     candidates = []
     monkeypatch.setattr(config_mod, 'master_slave_upload_and_restart',
                         lambda server, cfg, *a, **kw: candidates.append(Path(cfg)) or 'saved')

@@ -1,5 +1,6 @@
 from app.modules.db.db_model import Waf, WafNginx, WafRules, Server
 from app.modules.db.common import out_error
+from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
 def select_waf_metrics_enable_server(ip):
@@ -264,11 +265,15 @@ def delete_waf_rules(serv):
 		out_error(e)
 
 
-def select_waf_rule_by_id(rule_id):
+def get_waf_rule(rule_id: int, server_ip: str, service: str = None) -> WafRules:
+	"""Look up a rule within its server and, when supplied, its service."""
+	query = WafRules.select().where((WafRules.id == rule_id) & (WafRules.serv == server_ip))
+	if service is not None:
+		query = query.where(WafRules.service == service)
 	try:
-		return WafRules.get(WafRules.id == rule_id).rule_file
-	except Exception as e:
-		out_error(e)
+		return query.get()
+	except WafRules.DoesNotExist as exc:
+		raise RoxywiResourceNotFound() from exc
 
 
 def update_enable_waf_rules(rule_id, serv, en):

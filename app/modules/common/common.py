@@ -1,5 +1,6 @@
 import re
 import os
+import posixpath
 import dateutil
 from datetime import datetime
 
@@ -12,6 +13,7 @@ import subprocess
 from markupsafe import escape
 
 import app.modules.db.sql as sql
+from app.modules.roxywi.exception import RoxywiValidationError
 
 
 def _convert_to_time_zone(date: datetime) -> datetime:
@@ -246,14 +248,21 @@ def set_correct_owner(path: str) -> None:
 	subprocess.run(['sudo', 'chown', owner, '-R', path], check=False)
 
 
+def get_waf_directory(service: str) -> str:
+	"""Resolve the remote Linux WAF directory independently of the local OS."""
+	if service not in ('haproxy', 'nginx'):
+		raise RoxywiValidationError('Unsupported WAF service')
+	base = sql.get_setting(f'{service}_dir')
+	if not isinstance(base, str) or not base.startswith('/') or any(char in base for char in ('\x00', '\n', '\r', '\\')):
+		raise RoxywiValidationError('Invalid WAF service directory')
+	return posixpath.join(posixpath.normpath(base), 'waf')
+
+
 def resolve_waf_config_path(service: str, config_file_name: str) -> str:
-	if not re.match(r'^[A-Za-z0-9._-]+\.conf$', config_file_name):
-		raise Exception('bad WAF rule filename')
-	base = os.path.realpath(sql.get_setting(f'{service}_dir')) + '/waf/rules/'
-	target = os.path.realpath(os.path.join(base, config_file_name))
-	if not target.startswith(base):
-		raise Exception('outside WAF rules dir')
-	return target
+	"""Resolve a rule basename inside the configured remote rules directory."""
+	if not isinstance(config_file_name, str) or not re.fullmatch(r'[A-Za-z0-9._-]+\.conf', config_file_name):
+		raise RoxywiValidationError('Invalid WAF rule filename')
+	return posixpath.join(get_waf_directory(service), 'rules', config_file_name)
 
 
 def safe_ip_target(s: str) -> str:

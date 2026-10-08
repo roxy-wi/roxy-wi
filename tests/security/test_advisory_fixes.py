@@ -151,6 +151,8 @@ def test_waf_legitimate_save_contract(client, actor, monkeypatch, tmp_path, json
     monkeypatch.setattr(waf_routes.roxy_wi_tools, 'GetDate', lambda *_: SimpleNamespace(return_date=lambda _: '2026-09-22'))
     monkeypatch.setattr(waf_routes.sql, 'get_setting', lambda name, **k: 'UTC' if name == 'time_zone' else str(tmp_path) + '/')
     monkeypatch.setattr(waf_routes.common, 'resolve_waf_config_path', lambda *a: '/etc/waf/test.conf')
+    monkeypatch.setattr(waf_routes.waf_sql, 'get_waf_rule',
+                        lambda *a: SimpleNamespace(service='haproxy', rule_file='test.conf'))
     monkeypatch.setattr(waf_routes.config_mod, 'master_slave_upload_and_restart', lambda *a, **k: calls.append(a) or 'saved')
     data = {'config': 'synthetic', 'config_file_name': 'test.conf', ('action' if json_request else 'save'): verb}
     response = client.post('/waf/haproxy/192.0.2.10/rule/1/save', headers=actor[1], **({'json': data} if json_request else {'data': data}))

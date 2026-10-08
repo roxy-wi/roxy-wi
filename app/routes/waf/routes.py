@@ -15,7 +15,7 @@ import app.modules.roxywi.waf as roxy_waf
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.config.config as config_mod
-from app.modules.roxywi.exception import RoxywiPermissionError
+from app.modules.roxywi.exception import RoxywiPermissionError, RoxywiPublicError
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
 
 get_config = roxy_wi_tools.GetConfigVar()
@@ -97,20 +97,16 @@ def waf_rule_edit(service, server_ip, rule_id):
         abort(403, f'You do not have needed permissions to access to {service.title()} service')
     roxywi_common.check_is_server_in_group(server_ip)
 
-    if service == 'nginx':
-        config_path = sql.get_setting('nginx_dir')
-    else:
-        config_path = sql.get_setting('haproxy_dir')
-
+    rule = roxy_waf.get_waf_rule(server_ip, rule_id, service)
+    waf_rule_file = rule.rule_file
+    config_file_name = common.resolve_waf_config_path(rule.service, waf_rule_file)
     get_date = roxy_wi_tools.GetDate(sql.get_setting('time_zone'))
-    waf_rule_file = waf_sql.select_waf_rule_by_id(rule_id)
     configs_dir = sql.get_setting('tmp_config_path')
     try:
         cfg = f"{configs_dir}{server_ip}-{get_date.return_date('config')}-{waf_rule_file}"
         config_mod.get_config(server_ip, cfg, waf=service, waf_rule_file=waf_rule_file)
     except Exception:
         pass
-    config_file_name = common.return_nice_path(config_path) + 'waf/rules/' + waf_rule_file
 
     try:
         conf = open(cfg, "r")
@@ -126,7 +122,7 @@ def waf_rule_edit(service, server_ip, rule_id):
         'servers_all': '',
         'manage_rules': '',
         'rules': waf_sql.select_waf_rules(server_ip, service),
-        'waf_rule_file': waf_sql.select_waf_rule_by_id(rule_id),
+        'waf_rule_file': waf_rule_file,
         'waf_rule_id': rule_id,
         'config': config_read,
         'cfg': cfg,
@@ -138,7 +134,7 @@ def waf_rule_edit(service, server_ip, rule_id):
     return render_template('waf.html', **kwargs)
 
 
-@bp.route('/<service>/<server_ip>/rule/<rule_id>/save', methods=['POST'])
+@bp.route('/<any(haproxy, nginx):service>/<server_ip>/rule/<int:rule_id>/save', methods=['POST'])
 @check_services
 def waf_save_config(service, server_ip, rule_id):
     roxywi_auth.page_for_admin(level=2)
@@ -152,9 +148,11 @@ def waf_save_config(service, server_ip, rule_id):
     config = data.get('config')
     if not isinstance(config, str):
         abort(400, 'Configuration content is required')
+    rule = roxy_waf.get_waf_rule(server_ip, rule_id, service)
+    config_file_name = common.resolve_waf_config_path(rule.service, rule.rule_file)
+    if data.get('config_file_name') not in (None, rule.rule_file, config_file_name):
+        abort(400, 'Configuration path does not match the WAF rule')
     configs_dir = sql.get_setting('tmp_config_path')
-    config_file_name = data.get('config_file_name')
-    config_file_name = common.resolve_waf_config_path(service, config_file_name)
     oldcfg = data.get('oldconfig')
 
     try:
@@ -164,7 +162,8 @@ def waf_save_config(service, server_ip, rule_id):
     except IOError as e:
         return f"error: Cannot read imported config file: {e}"
 
-    stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, 'waf', oldcfg=oldcfg, config_file_name=config_file_name)
+    stderr = config_mod.master_slave_upload_and_restart(
+        server_ip, cfg, save, 'waf', waf=rule.service, oldcfg=oldcfg, config_file_name=config_file_name)
 
     try:
         for old_config in Path(configs_dir).glob('*.old'):
@@ -187,6 +186,8 @@ def enable_rule(server_ip, rule_id, enable):
     try:
         roxy_waf.switch_waf_rule(server_ip, enable, rule_id)
         return jsonify({'status': 'updated'})
+    except RoxywiPublicError:
+        raise
     except Exception as e:
         return roxywi_common.handle_json_exceptions(e, f'Cannot enable WAF rule {rule_id}', server_ip)
 

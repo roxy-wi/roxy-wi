@@ -51,17 +51,16 @@ def get_config(server_ip, cfg, service='haproxy', **kwargs):
 	"""
 	config_path = ''
 
-	if service == 'haproxy' and not kwargs.get('waf'):
+	if kwargs.get('waf'):
+		config_path = common.resolve_waf_config_path(kwargs['waf'], kwargs.get('waf_rule_file'))
+	elif service == 'haproxy':
 		config_path = haproxy_files.resolve_path(kwargs.get('config_file_name'))
-	elif service == 'keepalived' and not kwargs.get("waf"):
+	elif service == 'keepalived':
 		config_path = sql.get_setting(f'{service}_config_path')
 	elif service in ('nginx', 'apache'):
 		config_path = _replace_config_path_to_correct(kwargs.get('config_file_name'))
-	elif kwargs.get("waf"):
-		service_dir = sql.get_setting(f"{kwargs.get('waf')}_dir")
-		if kwargs.get("waf") in ('haproxy', 'nginx'):
-			config_path = f'{service_dir}/waf/rules/{kwargs.get("waf_rule_file")}'
-	common.check_is_conf(config_path)
+	if not kwargs.get('waf'):
+		common.check_is_conf(config_path)
 
 	try:
 		if service == 'haproxy' and not kwargs.get('waf'):
@@ -331,7 +330,12 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	elif service == 'keepalived':
 		config_path = sql.get_setting(f'{service}_config_path')
 
-	common.check_is_conf(config_path)
+	if service == 'waf':
+		expected_path = common.resolve_waf_config_path(kwargs.get('waf'), (config_path or '').rsplit('/', 1)[-1])
+		if config_path != expected_path:
+			raise ValueError('Configuration path does not match the WAF service directory')
+	else:
+		common.check_is_conf(config_path)
 
 	if kwargs.get('normalize_config', True):
 		normalize_config_file(cfg)
