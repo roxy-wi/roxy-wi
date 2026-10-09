@@ -136,6 +136,15 @@
     }
 }
 %}
+{% set waf_create = {
+    "title": "Create a WAF rule",
+    "filename": "File name",
+    "filename_hint": "Start with a Latin letter, digit or underscore. Use Latin letters, digits, _, - and .; .conf is added automatically.",
+    "invalid": "Enter a rule name (up to 255 characters), a description (up to 4096 characters) and a valid file name (up to 255 characters including .conf).",
+    "forbidden": "You do not have permission to create WAF rules for this service.",
+    "conflict": "A rule with this name or file already exists, or its Include has changed. Check the existing rules and the file on the server.",
+    "failed": "Could not finish creating the WAF rule. Check the server connection, file permissions and Roxy-WI logs, then retry with the same values."
+} %}
 {% set waf_editor = {
     "read_failed": "Could not open the WAF rule. Check the server connection, file permissions and Roxy-WI logs.",
     "save_failed": "Saving or applying the WAF rule did not complete. Check the target servers and Roxy-WI logs before retrying.",

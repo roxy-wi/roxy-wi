@@ -1,6 +1,11 @@
-from shlex import quote
+import hashlib
+import json
+from pathlib import Path
+import re
+from shlex import join, quote
 
 from flask import render_template
+from peewee import IntegrityError
 
 import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
@@ -11,7 +16,9 @@ import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxywi.auth as roxywi_auth
 from app.modules.db.db_model import WafRules
-from app.modules.roxywi.exception import RoxywiPermissionError, RoxywiValidationError
+from app.modules.common.file_lock import file_lock
+from app.modules.roxy_wi_tools import GetConfigVar
+from app.modules.roxywi.exception import RoxywiConflictError, RoxywiPermissionError, RoxywiValidationError
 
 
 def get_waf_rule(server_ip: str, rule_id: int, service: str = None) -> WafRules:
@@ -123,24 +130,69 @@ def switch_waf_rule(serv: str, enable: int, rule_id: int):
     server_mod.ssh_command(serv, cmd)
 
 
+def _existing_created_rule(serv: str, service: str, name: str, filename: str, description: str) -> int | None:
+    rules = waf_sql.find_waf_rule_conflicts(serv, service, name, filename)
+    if not rules:
+        return None
+    if len(rules) == 1:
+        rule = rules[0]
+        if (rule.rule_name, rule.rule_file, rule.desc) == (name, filename, description):
+            return rule.id
+    raise RoxywiConflictError('A WAF rule with this name or filename already exists')
+
+
 def create_waf_rule(serv: str, service: str, json_data: dict) -> int:
-    new_waf_rule = common.checkAjaxInput(json_data['new_waf_rule'])
-    new_rule_desc = common.checkAjaxInput(json_data['new_rule_description'])
-    rule_file = common.checkAjaxInput(json_data['new_rule_file'])
-    rule_file = f'{rule_file}.conf'
-    waf_path = ''
-
-    if service == 'haproxy':
-        waf_path = common.return_nice_path(sql.get_setting('haproxy_dir'))
-    elif service == 'nginx':
-        waf_path = common.return_nice_path(sql.get_setting('nginx_dir'))
-
-    conf_file_path = f'{waf_path}waf/modsecurity.conf'
-    rule_file_path = f'{waf_path}waf/rules/{rule_file}'
-
-    cmd = f"sudo echo Include {rule_file_path} >> {conf_file_path} && sudo touch {rule_file_path}"
-    server_mod.ssh_command(serv, cmd)
-    last_id = waf_sql.insert_new_waf_rule(new_waf_rule, rule_file, new_rule_desc, service, serv)
-    roxywi_common.logging('WAF', f'A new rule has been created {rule_file} on the server {serv}')
-
-    return last_id
+    if service not in ('haproxy', 'nginx'):
+        raise RoxywiValidationError('Unsupported WAF service')
+    if not roxywi_auth.is_access_permit_to_service(service):
+        raise RoxywiPermissionError()
+    if not isinstance(json_data, dict):
+        raise RoxywiValidationError('Invalid rule creation request')
+    values = [json_data.get(key) for key in ('new_waf_rule', 'new_rule_description', 'new_rule_file')]
+    if any(not isinstance(value, str) or not value.strip() or any(ord(c) < 32 or ord(c) == 127 for c in value)
+           for value in values):
+        raise RoxywiValidationError('Rule name, description and filename are required')
+    name, description, filename = (value.strip() for value in values)
+    # Keep the existing API accepting a filename stem; the UI supplies .conf.
+    if not filename.endswith('.conf'):
+        filename += '.conf'
+    if (len(name) > 255 or len(description) > 4096 or len(filename) > 255
+            or not re.fullmatch(r'[A-Za-z0-9_][A-Za-z0-9._-]*\.conf', filename)):
+        raise RoxywiValidationError('Invalid rule name, description or filename')
+    root = common.get_waf_directory(service)
+    rule_path = common.resolve_waf_config_path(service, filename)
+    # Both installations load modsecurity.conf. Keep custom rules here until
+    # Include placement and the existing rule toggle are updated together.
+    entrypoint = root + '/modsecurity.conf'
+    request_id = hashlib.sha256(json.dumps([serv, service, name, filename, description],
+                                           ensure_ascii=True).encode('utf-8')).hexdigest()
+    lock_id = hashlib.sha256(f'{serv}\0{service}'.encode('utf-8')).hexdigest()
+    lock_dir = Path(GetConfigVar().get_config_var('main', 'lib_path')) / 'waf-locks'
+    lock_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    # Serialize the catalog check, SSH and insert across workers on shared storage.
+    # No database transaction is held while waiting for the remote host.
+    with file_lock(lock_dir / f'{lock_id}.lock'):
+        existing = _existing_created_rule(serv, service, name, filename, description)
+        if existing is not None:
+            return existing
+        script = Path(__file__).with_name('waf_rule_file.py').read_text(encoding='utf-8')
+        remote_lock = hashlib.sha256(root.encode('utf-8')).hexdigest()
+        command = join(['sudo', '-n', 'flock', '-w', '30', f'/var/lock/roxywi-waf-{remote_lock}.lock',
+                        'python3', '-c', script, entrypoint, rule_path, request_id])
+        output = server_mod.ssh_command(serv, command, rc=1, timeout=45, error_context='Cannot create WAF rule')
+        result = json.loads(output)
+        if result == {'status': 'conflict'}:
+            raise RoxywiConflictError('The WAF rule file or its Include already exists or has changed')
+        if result != {'status': 'ok'}:
+            raise RuntimeError('Unexpected WAF rule creation result')
+        try:
+            last_id = waf_sql.insert_new_waf_rule(name, filename, description, service, serv)
+        except IntegrityError:
+            existing = _existing_created_rule(serv, service, name, filename, description)
+            if existing is not None:
+                return existing
+            raise
+        # A failed insert/SSH response leaves an empty marked file. An identical
+        # retry resumes creation without overwriting files or repeating Include.
+        roxywi_common.logging('WAF', f'A new rule has been created {filename} on the server {serv}')
+        return last_id

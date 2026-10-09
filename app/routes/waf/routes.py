@@ -1,7 +1,7 @@
 import tempfile
 from pathlib import Path
 
-from flask import render_template, request, g, abort, jsonify, current_app
+from flask import render_template, request, g, abort, jsonify, current_app, url_for
 from flask_jwt_extended import jwt_required, get_jwt
 
 from app.routes.waf import bp
@@ -13,22 +13,23 @@ import app.modules.roxywi.waf as roxy_waf
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.config.config as config_mod
-from app.modules.roxywi.exception import RoxywiPermissionError, RoxywiPublicError
+from app.modules.roxywi.exception import RoxywiConflictError, RoxywiPermissionError, RoxywiPublicError, RoxywiValidationError
 from app.modules.roxywi import logger
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
 
 
-def _editor_error_response(error_key: str, exc: Exception, server_ip: str):
-    logger.exception(f'WAF editor: {error_key}', exc=exc, server_ip=server_ip)
+def _waf_error_response(error_key: str, exc: Exception, server_ip: str, *, section='waf_editor', status=500):
+    if status == 500:
+        logger.exception(f'WAF: {error_key}', exc=exc, server_ip=server_ip)
     language = g.user_params['lang']
     languages = current_app.jinja_env.get_template('languages/languages.html').module.languages
     if language not in languages:
         language = 'en'
-    messages = current_app.jinja_env.get_template(f'languages/{language}.html').module.waf_editor
+    messages = getattr(current_app.jinja_env.get_template(f'languages/{language}.html').module, section)
     message = messages[error_key]
     if request.is_json or request.accept_mimetypes.best == 'application/json':
-        return jsonify({'status': 'failed', 'error': message}), 500
-    return render_template('error.html', title='WAF', e=message, lang=language), 500
+        return jsonify({'status': 'failed', 'error': message}), status
+    return render_template('error.html', title='WAF', e=message, lang=language), status
 
 
 @bp.before_request
@@ -117,7 +118,7 @@ def waf_rule_edit(service, server_ip, rule_id):
             config_mod.get_config(server_ip, str(cfg), waf=service, waf_rule_file=waf_rule_file)
             config_read = cfg.read_text(encoding='utf-8')
     except Exception as exc:
-        return _editor_error_response('read_failed', exc, server_ip)
+        return _waf_error_response('read_failed', exc, server_ip)
 
     kwargs = {
         'title': 'Edit a WAF rule',
@@ -165,7 +166,7 @@ def waf_save_config(service, server_ip, rule_id):
             stderr = config_mod.master_slave_upload_and_restart(
                 server_ip, str(cfg), save, 'waf', waf=rule.service, config_file_name=config_file_name)
     except Exception as exc:
-        return _editor_error_response('save_failed', exc, server_ip)
+        return _waf_error_response('save_failed', exc, server_ip)
 
     if request.is_json:
         return jsonify({'status': 'ok', 'data': stderr or ''})
@@ -195,9 +196,16 @@ def create_rule(service, server_ip):
 
     try:
         last_id = roxy_waf.create_waf_rule(server_ip, service, json_data)
-        return jsonify({'status': 'Ok', 'id': last_id})
-    except Exception as e:
-        return roxywi_common.handle_json_exceptions(e, 'Cannot create WAF rule', server_ip,)
+        return jsonify({'status': 'Ok', 'id': last_id,
+                        'edit_url': url_for('waf.waf_rule_edit', service=service, server_ip=server_ip, rule_id=last_id)})
+    except RoxywiPermissionError as exc:
+        return _waf_error_response('forbidden', exc, server_ip, section='waf_create', status=403)
+    except RoxywiValidationError as exc:
+        return _waf_error_response('invalid', exc, server_ip, section='waf_create', status=400)
+    except RoxywiConflictError as exc:
+        return _waf_error_response('conflict', exc, server_ip, section='waf_create', status=409)
+    except Exception as exc:
+        return _waf_error_response('failed', exc, server_ip, section='waf_create')
 
 
 @bp.route('/<any(haproxy, nginx):service>/mode/<int:server_id>/<any(On, Off, DetectionOnly):waf_mode>', methods=['POST'])

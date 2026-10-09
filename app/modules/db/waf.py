@@ -284,18 +284,20 @@ def update_enable_waf_rules(rule_id, serv, en):
 
 
 def insert_new_waf_rule(rule_name: str, rule_file: str, rule_description: str, service: str, serv: str) -> int:
-	try:
-		last_id = WafRules.insert(
-			serv=serv,
-			rule_name=rule_name,
-			rule_file=rule_file,
-			desc=rule_description,
-			service=service
-		).execute()
-	except Exception as e:
-		out_error(e)
-	else:
-		return last_id
+	return WafRules.insert(
+		serv=serv,
+		rule_name=rule_name,
+		rule_file=rule_file,
+		desc=rule_description,
+		service=service
+	).execute()
+
+
+def find_waf_rule_conflicts(serv: str, service: str, rule_name: str, rule_file: str) -> list[WafRules]:
+	return list(WafRules.select().where(
+		(WafRules.serv == serv) & (WafRules.service == service)
+		& ((WafRules.rule_name == rule_name) | (WafRules.rule_file == rule_file))
+	))
 
 
 def delete_waf_server(server_id):

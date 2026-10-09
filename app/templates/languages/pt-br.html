@@ -136,6 +136,15 @@
     }
 }
 %}
+{% set waf_create = {
+    "title": "Criar uma regra WAF",
+    "filename": "Nome do arquivo",
+    "filename_hint": "Comece com uma letra latina, um dígito ou um sublinhado. Use letras latinas, dígitos, _, - e .; .conf é adicionado automaticamente.",
+    "invalid": "Insira um nome de regra (até 255 caracteres), uma descrição (até 4096 caracteres) e um nome de arquivo válido (até 255 caracteres, incluindo .conf).",
+    "forbidden": "Você não tem permissão para criar regras WAF para este serviço.",
+    "conflict": "Já existe uma regra com esse nome ou arquivo, ou sua diretiva Include foi alterada. Verifique as regras existentes e o arquivo no servidor.",
+    "failed": "Não foi possível concluir a criação da regra WAF. Verifique a conexão com o servidor, as permissões dos arquivos e os logs do Roxy-WI; depois, tente novamente com os mesmos valores."
+} %}
 {% set waf_editor = {
     "read_failed": "Não foi possível abrir a regra WAF. Verifique a conexão com o servidor, as permissões do arquivo e os logs do Roxy-WI.",
     "save_failed": "O salvamento ou a aplicação da regra WAF não foi concluído. Verifique os servidores de destino e os logs do Roxy-WI antes de tentar novamente.",

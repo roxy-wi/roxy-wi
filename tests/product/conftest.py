@@ -1,5 +1,9 @@
 """Product scenarios use real routes, authentication, templates and a fresh database."""
 from dataclasses import replace
+from contextlib import contextmanager
+import json
+from pathlib import Path, PurePosixPath
+import shlex
 from types import SimpleNamespace
 
 import pytest
@@ -9,6 +13,8 @@ from app import cache, initialize_database
 from app.modules.db import db_model as models
 from app.modules.db.migration_manager import Migration
 from app.modules.roxywi import common, roxy
+from app.modules.roxywi import waf, waf_rule_file
+from app.modules.config import config
 from app.modules.server.ssh import crypt_password
 
 
@@ -51,3 +57,59 @@ def product_client(client, product):
     client.environ_base['HTTP_X_CSRF_TOKEN'] = client.get_cookie('csrf_access_token').value
     client.environ_base['HTTP_ACCEPT'] = 'application/json'
     return client
+
+
+@pytest.fixture
+def waf_creation(product, monkeypatch):
+    """Real remote file operation on isolated files; replace only SSH transport."""
+    state = SimpleNamespace(commands=[], roots={}, fail_before=False, lose_response=False)
+    for service in ('haproxy', 'nginx'):
+        root = product.root / service / 'waf'
+        (root / 'rules').mkdir(parents=True)
+        (root / 'modsecurity.conf').write_text('SecRuleEngine On\n', encoding='utf-8')
+        (root / 'waf.conf').write_text('Include /existing/modsecurity.conf\n', encoding='utf-8')
+        state.roots[service] = root
+        models.Setting.update(value=f'/srv/{service} custom').where(
+            models.Setting.param == f'{service}_dir', models.Setting.group_id == 1).execute()
+    models.Setting.update(value=str(product.root)).where(
+        models.Setting.param == 'tmp_config_path', models.Setting.group_id == 1).execute()
+
+    def local_path(remote):
+        for service, root in state.roots.items():
+            prefix = f'/srv/{service} custom/waf/'
+            if remote.startswith(prefix):
+                return root.joinpath(*PurePosixPath(remote[len(prefix):]).parts)
+        pytest.fail(f'Unexpected WAF path: {remote}')
+
+    def ssh(server, command, **kwargs):
+        assert server == product.server.ip
+        assert kwargs['rc'] == 1
+        assert kwargs['timeout'] > 30
+        tokens = shlex.split(command)
+        assert tokens[:5] == ['sudo', '-n', 'flock', '-w', '30']
+        assert tokens[6:8] == ['python3', '-c']
+        assert tokens[8] == Path(waf_rule_file.__file__).read_text(encoding='utf-8')
+        state.commands.append((server, tokens[-3:]))
+        if state.fail_before:
+            raise OSError('synthetic SSH failure')
+        try:
+            waf_rule_file.create_rule(local_path(tokens[-3]), local_path(tokens[-2]), tokens[-1])
+        except waf_rule_file.RuleConflict:
+            return json.dumps({'status': 'conflict'})
+        if state.lose_response:
+            state.lose_response = False
+            raise OSError('synthetic lost SSH response')
+        return json.dumps({'status': 'ok'})
+
+    @contextmanager
+    def connect(server):
+        assert server == product.server.ip
+
+        def download(remote, local):
+            Path(local).write_bytes(local_path(remote).read_bytes())
+
+        yield SimpleNamespace(get_sftp=download)
+
+    monkeypatch.setattr(waf.server_mod, 'ssh_command', ssh)
+    monkeypatch.setattr(config.mod_ssh, 'ssh_connect', connect)
+    return state

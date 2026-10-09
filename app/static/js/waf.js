@@ -158,13 +158,64 @@ function waf_rules_en(id) {
 	});
 }
 function addNewConfig() {
-	$("#add-new-config").dialog({
+	const dialog = $("#add-new-config");
+	if (dialog.data('creating')) return;
+	const form = $('#waf-create-form');
+	const error = $('#waf-create-error');
+	form.off('submit.wafCreate').on('submit.wafCreate', function (event) {
+		event.preventDefault();
+		if (dialog.data('creating')) return;
+		error.prop('hidden', true).text('');
+		const payload = {
+			new_waf_rule: $('#new_rule_name').val().trim(),
+			new_rule_description: $('#new_rule_description').val().trim(),
+			new_rule_file: $('#new_rule_file').val().trim()
+		};
+		if (!payload.new_rule_file.endsWith('.conf')) payload.new_rule_file += '.conf';
+		if (!payload.new_waf_rule || !payload.new_rule_description ||
+			payload.new_waf_rule.length > 255 || payload.new_rule_description.length > 4096 ||
+			payload.new_rule_file.length > 255 || !/^[A-Za-z0-9_][A-Za-z0-9._-]*\.conf$/.test(payload.new_rule_file) ||
+			Object.values(payload).some(value => /[\x00-\x1f\x7f]/.test(value))) {
+			error.text(dialog.attr('data-invalid-error')).prop('hidden', false);
+			return;
+		}
+		dialog.data('creating', true);
+		const buttons = dialog.dialog('widget').find('button');
+		buttons.prop('disabled', true);
+		form.find('input').prop('disabled', true);
+		$.ajax({
+			url: dialog.attr('data-create-url'),
+			data: JSON.stringify(payload),
+			contentType: 'application/json; charset=utf-8',
+			dataType: 'json',
+			type: 'POST',
+			suppressGlobalError: true,
+			success: function (data) {
+				if (data.status === 'Ok' && data.edit_url) {
+					window.location.assign(data.edit_url);
+				} else {
+					error.text(dialog.attr('data-create-error')).prop('hidden', false);
+				}
+			},
+			error: function (xhr) {
+				const key = {400: 'invalid', 403: 'forbidden', 409: 'conflict'}[xhr.status] || 'create';
+				error.text(dialog.attr('data-' + key + '-error')).prop('hidden', false);
+			},
+			complete: function () {
+				dialog.data('creating', false);
+				buttons.prop('disabled', false);
+				form.find('input').prop('disabled', false);
+			}
+		});
+	});
+	dialog.dialog({
 		autoOpen: true,
 		resizable: false,
 		height: "auto",
 		width: 600,
 		modal: true,
-		title: "Create a new rule",
+		title: dialog.attr('data-title'),
+		beforeClose: function () { return !dialog.data('creating'); },
 		show: {
 			effect: "fade",
 			duration: 200
@@ -173,50 +224,9 @@ function addNewConfig() {
 			effect: "fade",
 			duration: 200
 		},
-		buttons: {
-			"Create": function () {
-				let valid = true;
-				let new_rule_name_id = $('#new_rule_name');
-				let new_rule_description_id = $('#new_rule_description');
-				allFields = $([]).add(new_rule_name_id).add(new_rule_description_id)
-				allFields.removeClass("ui-state-error");
-				valid = valid && checkLength(new_rule_name_id, "New rule name", 1);
-				valid = valid && checkLength(new_rule_description_id, "New rule description", 1);
-				if (valid) {
-					let new_rule_name = new_rule_name_id.val();
-					let new_rule_description = new_rule_description_id.val();
-					let new_rule_file = new_rule_name.replaceAll(' ', '_');
-					let service = cur_url[0];
-					let serv = cur_url[2];
-					service = escapeHtml(service);
-					new_rule_name = escapeHtml(new_rule_name);
-					new_rule_description = escapeHtml(new_rule_description);
-					new_rule_file = escapeHtml(new_rule_file);
-					serv = escapeHtml(serv);
-					jsonData = {
-						"new_waf_rule": new_rule_name,
-						"new_rule_description": new_rule_description,
-						"new_rule_file": new_rule_file
-					}
-					$.ajax({
-						url: "/waf/" + service + "/" + serv + "/rule/create",
-						data: JSON.stringify(jsonData),
-						contentType: "application/json; charset=utf-8",
-						type: "POST",
-						success: function (data) {
-							if (data.status === 'failed') {
-								toastr.error(data.error);
-							} else {
-								window.location.replace("/waf/" + service + "/" + serv + "/rule/" + data.id);
-							}
-						}
-					});
-					$(this).dialog("close");
-				}
-			},
-			Cancel: function () {
-				$(this).dialog("close");
-			}
-		}
+		buttons: [
+			{text: dialog.attr('data-create-label'), click: function () { form.trigger('submit'); }},
+			{text: dialog.attr('data-cancel-label'), click: function () { dialog.dialog('close'); }}
+		]
 	});
 }

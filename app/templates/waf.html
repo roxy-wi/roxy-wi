@@ -6,6 +6,11 @@
 <script src="{{ url_for('static', filename='js/waf.js') }}"></script>
 {% if manage_rules == '1' %}
 	{% from 'include/input_macros.html' import input, checkbox %}
+	<style>
+		#waf-create-form [hidden] { display: none !important; }
+		#waf-create-form .form-control { width: 100%; box-sizing: border-box; }
+		#waf-create-error { margin: 12px 0 0; }
+	</style>
 	<table class="overview" id="waf_rules">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn">
@@ -34,18 +39,31 @@
 		{% endfor %}
 	</table>
 	<p><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} WAF {{lang.words.rule}}" onclick="addNewConfig()" style="margin-right: 20px;">+ {{lang.words.add|title()}}</span></p><br><br>
-	<div id="add-new-config" style="display: none">
+	<div id="add-new-config" style="display: none"
+         data-create-url="{{ url_for('waf.create_rule', service=service, server_ip=serv) }}"
+         data-title="{{ lang.waf_create.title }}" data-create-label="{{ lang.words.create|title() }}"
+         data-cancel-label="{{ lang.words.cancel|title() }}" data-create-error="{{ lang.waf_create.failed }}"
+         data-invalid-error="{{ lang.waf_create.invalid }}" data-forbidden-error="{{ lang.waf_create.forbidden }}"
+         data-conflict-error="{{ lang.waf_create.conflict }}">
+		<form id="waf-create-form">
 		<table class="overview">
-			{% include 'include/tr_validate_tips.html' %}
 			<tr>
-				<td class="padding20">{{lang.words.rule_name}}:<span class="need-field">*</span></td>
-				<td>{{ input('new_rule_name', type='text', placeholder='New protected rule', title='New protected rule') }}</td>
+				<td class="padding20"><label for="new_rule_name">{{lang.words.rule_name}}:<span class="need-field">*</span></label></td>
+				<td><input id="new_rule_name" class="form-control" type="text" maxlength="255" autocomplete="off"></td>
 			</tr>
 			<tr>
-				<td class="padding20">{{lang.words.desc|title()}}:<span class="need-field">*</span></td>
-				<td>{{ input('new_rule_description', type='text', placeholder='This rule protects again attacks', title='This rule protects again attacks') }}</td>
+				<td class="padding20"><label for="new_rule_file">{{lang.waf_create.filename}}:<span class="need-field">*</span></label></td>
+				<td><input id="new_rule_file" class="form-control" type="text" maxlength="255" placeholder="custom-rule.conf" aria-describedby="waf-filename-hint" autocomplete="off">
+                    <p id="waf-filename-hint">{{lang.waf_create.filename_hint}}</p></td>
+			</tr>
+			<tr>
+				<td class="padding20"><label for="new_rule_description">{{lang.words.desc|title()}}:<span class="need-field">*</span></label></td>
+				<td><input id="new_rule_description" class="form-control" type="text" maxlength="4096" autocomplete="off"></td>
 			</tr>
 		</table>
+		<p id="waf-create-error" class="alert alert-danger" role="alert" hidden></p>
+		<button type="submit" hidden></button>
+		</form>
 	</div>
 {% elif waf_rule_file %}
 	<div class="left-space">
