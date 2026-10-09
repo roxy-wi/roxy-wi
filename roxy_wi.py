@@ -12,9 +12,12 @@ def run_web() -> None:
     threads = os.environ.get('ROXYWI_WEB_THREADS', '4')
     timeout = os.environ.get('ROXYWI_WEB_TIMEOUT', '120')
     graceful_timeout = os.environ.get('ROXYWI_WEB_GRACEFUL_TIMEOUT', '120')
+    # Keep our worker hooks as the default without masking an explicit Gunicorn
+    # config supplied by the operator. Gunicorn uses the last -c/--config value.
+    extra_args = os.environ.get('GUNICORN_CMD_ARGS', '')
+    os.environ['GUNICORN_CMD_ARGS'] = f'--config python:roxy_wi_gunicorn {extra_args}'.rstrip()
     command = [
         'gunicorn',
-        '--config', 'python:roxy_wi_gunicorn',
         '--bind', bind,
         '--workers', workers,
         '--threads', threads,

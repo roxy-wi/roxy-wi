@@ -150,6 +150,19 @@ lossless `_p_` path tokens. The previous slash-to-`92` URL format is no longer
 accepted. Open files from the configuration list to obtain new links. Browser
 history and drafts keyed by the old format are not migrated.
 
+### Custom Gunicorn configuration
+
+The `web` launcher uses `roxy_wi_gunicorn` by default. To select a custom config,
+set `GUNICORN_CMD_ARGS="--config /path/to/gunicorn.conf.py"`. Keep the database
+readiness monitor lifecycle by importing its hooks in that config:
+
+```python
+from roxy_wi_gunicorn import post_worker_init, worker_exit
+```
+
+If you define your own versions of these hooks, call the corresponding Roxy-WI
+hook from each one. Application imports belong inside worker hooks, after fork.
+
 | Start here | Operate and integrate |
 | --- | --- |
 | [Documentation index](https://roxy-wi.org/description) | [Operations](https://roxy-wi.org/description/operations#runtime) and [troubleshooting](https://roxy-wi.org/troubleshooting) |

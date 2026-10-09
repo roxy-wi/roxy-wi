@@ -100,10 +100,12 @@ def test_web_worker_checks_database_before_its_first_health_request(client, monk
     from app.routes.health import routes
 
     command = []
+    monkeypatch.delenv('GUNICORN_CMD_ARGS', raising=False)
     monkeypatch.setattr(roxy_wi_health, 'register_web', lambda: None)
     monkeypatch.setattr(roxy_wi.os, 'execvp', lambda executable, arguments: command.extend(arguments))
     roxy_wi.run_web()
-    assert command[command.index('--config') + 1] == 'python:roxy_wi_gunicorn'
+    assert '--config' not in command
+    assert roxy_wi.os.environ['GUNICORN_CMD_ARGS'] == '--config python:roxy_wi_gunicorn'
 
     monitor = DatabaseReadinessMonitor()
     monkeypatch.setattr(routes, 'database_readiness', monitor)

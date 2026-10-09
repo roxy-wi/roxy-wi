@@ -28,8 +28,10 @@ def gate(role, identifier):
 
 def post_worker_init(worker):
     """Gunicorn test config: hold one real HTTP request across SIGTERM."""
+    from roxy_wi_gunicorn import post_worker_init as initialize_worker
     from app import app
     from flask import request
+    initialize_worker(worker)
     original = app.view_functions['health.live']
 
     def live():
@@ -41,12 +43,20 @@ def post_worker_init(worker):
     app.view_functions['health.live'] = live
 
 
+def worker_exit(server, worker):
+    from roxy_wi_gunicorn import worker_exit as close_worker
+    close_worker(server, worker)
+
+
 def fixture(action):
     sys.path.insert(0, '/var/www/haproxy-wi')
     if action == 'web-request':
         import urllib.request
         with urllib.request.urlopen(f'http://{os.environ["SHUTDOWN_WEB_HOST"]}:8080/health/live?shutdown-test=1', timeout=90) as response:
-            assert response.status == 200 and response.read() == b'completed'
+            body = response.read()
+            assert response.status == 200 and body == b'completed', (
+                f'Unexpected shutdown response: HTTP {response.status}: {body[:512]!r}'
+            )
         (DATA / 'web-response-received').touch()
         return
     if action == 'inspect':
@@ -157,11 +167,14 @@ def docker(*args, check=True):
     return result
 
 
-def wait_for(callback, description, timeout=90):
+def wait_for(callback, description, timeout=90, *, failed=None):
     deadline = time.monotonic() + timeout
     while time.monotonic() < deadline:
         if callback():
             return
+        failure = failed() if failed is not None else None
+        if failure:
+            raise AssertionError(f'Failed waiting for {description}: {failure}')
         time.sleep(1)
     raise AssertionError(f'Timed out: {description}')
 
@@ -256,7 +269,8 @@ def main(database='sqlite'):
                                  '--check', 'live', check=False).returncode == 0, 'web readiness')
         start(client, *common, '--no-healthcheck', '--env', f'SHUTDOWN_WEB_HOST={web}',
               '--entrypoint', 'python', image, '/shutdown_test.py', '--fixture', 'web-request')
-        wait_for(lambda: 'web-started-1' in files(web), 'HTTP request in progress')
+        wait_for(lambda: 'web-started-1' in files(web), 'HTTP request in progress',
+                 failed=lambda: 'HTTP client exited; see its container logs' if exited(client) else None)
         docker('kill', '--signal=TERM', web)
         assert not exited(web), 'Web exited before completing the request'
         docker('exec', web, 'python', '/shutdown_test.py', '--fixture', 'release-web')
