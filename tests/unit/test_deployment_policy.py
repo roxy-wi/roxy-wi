@@ -144,7 +144,7 @@ def test_change_center_internal_upload_can_apply_when_direct_writes_are_disabled
     )
     monkeypatch.setattr(config_module, '_generate_command', lambda *_args: 'apply')
     monkeypatch.setattr(
-        config_module.server_mod, 'ssh_command', lambda *_args, **_kwargs: ''
+        config_module.server_mod, 'ssh_command', lambda *_args, **_kwargs: '{"status":"ok"}'
     )
     monkeypatch.setattr(
         config_module.roxywi_common, 'logging', lambda *_args, **_kwargs: None
