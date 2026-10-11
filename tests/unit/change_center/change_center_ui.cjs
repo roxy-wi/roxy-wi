@@ -1,9 +1,10 @@
 // Exercise the page's queue/polling functions with deterministic AJAX and timers.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const path = require('node:path');
 const vm = require('node:vm');
 
-const source = fs.readFileSync('app/static/js/change-center.js', 'utf8');
+const source = fs.readFileSync(path.resolve(__dirname, '../../..', 'app/static/js/change-center.js'), 'utf8');
 const helpers = source.slice(source.indexOf('    function operationActive('), source.indexOf('    function textCell('));
 const loader = source.slice(source.indexOf('    function loadChanges('), source.indexOf('    function formatDuration('));
 const context = vm.createContext({assert});

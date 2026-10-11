@@ -10,7 +10,7 @@ def test_certificate_list_treats_remote_names_as_text_and_encodes_requests():
     node = shutil.which('node')
     if not node:
         pytest.skip('Node.js is required for browser-script regression tests')
-    source = Path(__file__).resolve().parents[2] / 'app/static/js/ssl.js'
+    source = Path(__file__).resolve().parents[3] / 'app/static/js/ssl.js'
     harness = r'''
 const fs = require('fs'), vm = require('vm'), assert = require('assert');
 const ready = [], requests = [], toasts = [], elements = new Map();

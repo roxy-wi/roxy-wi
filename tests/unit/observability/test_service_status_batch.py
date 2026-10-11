@@ -34,7 +34,7 @@ def test_batch_status_rejects_non_mapping_results():
 
 
 def test_batch_status_route_documents_and_limits_input():
-    routes = (Path(__file__).resolve().parents[2] / 'app/routes/service/routes.py').read_text(encoding='utf-8')
+    routes = (Path(__file__).resolve().parents[3] / 'app/routes/service/routes.py').read_text(encoding='utf-8')
 
     assert "@bp.post('/<service>/statuses')" in routes
     assert "len(server_ids) > 100" in routes
@@ -60,7 +60,7 @@ def test_last_edit_ssh_failure_is_a_local_card_result(monkeypatch):
 
 
 def test_service_status_ssh_checks_use_bounded_connection_timeouts():
-    views = (Path(__file__).resolve().parents[2] / 'app/views/service/views.py').read_text(encoding='utf-8')
+    views = (Path(__file__).resolve().parents[3] / 'app/views/service/views.py').read_text(encoding='utf-8')
 
     assert views.count('connect_timeout=10, banner_timeout=10') == 4
 

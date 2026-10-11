@@ -12,7 +12,7 @@ def test_select_labels_are_text_and_preserve_option_values(scenario, label):
     node = shutil.which('node')
     if not node:
         pytest.skip('Node.js is required for browser-script regression tests')
-    root = Path(__file__).resolve().parents[2]
+    root = Path(__file__).resolve().parents[3]
     harness = r'''
 const fs = require('fs'), vm = require('vm'), assert = require('assert');
 const root = process.argv[1], scenario = process.argv[2], label = process.argv[3];

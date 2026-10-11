@@ -719,7 +719,7 @@ def test_js_follow_state_and_calendar_validation():
     node = shutil.which('node')
     if not node:
         pytest.skip('Node.js is required')
-    script = Path(__file__).parents[2] / 'app/static/js/log-viewer.js'
+    script = Path(__file__).parents[3] / 'app/static/js/log-viewer.js'
     harness = r'''
 const assert = require('assert');
 require(process.argv[1]);

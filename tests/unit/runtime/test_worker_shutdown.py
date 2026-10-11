@@ -188,7 +188,7 @@ def test_web_forwards_configured_graceful_timeout(monkeypatch):
 
 
 def test_compose_and_helm_allow_roles_to_finish_work():
-    root = Path(__file__).resolve().parents[2]
+    root = Path(__file__).resolve().parents[3]
     for filename in ('docker-compose.yml', 'docker-compose.sqlite.yml'):
         manifest = yaml.safe_load((root / 'docker' / filename).read_text())
         for role, duration in [('web', '150s'), ('scheduler', '5m'), ('service-events', '5m'), ('operations', '30m')]:

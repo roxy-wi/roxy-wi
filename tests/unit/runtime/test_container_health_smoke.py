@@ -8,7 +8,7 @@ import pytest
 
 @pytest.fixture
 def smoke(monkeypatch):
-    path = Path(__file__).resolve().parents[1] / 'container_health_smoke.py'
+    path = Path(__file__).resolve().parents[2] / 'container_health_smoke.py'
     spec = importlib.util.spec_from_file_location('container_health_smoke', path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

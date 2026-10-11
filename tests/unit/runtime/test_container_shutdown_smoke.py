@@ -20,7 +20,7 @@ from app.routes.health import routes
 
 @pytest.fixture
 def smoke():
-    path = Path(__file__).resolve().parents[1] / 'container_shutdown_smoke.py'
+    path = Path(__file__).resolve().parents[2] / 'container_shutdown_smoke.py'
     spec = importlib.util.spec_from_file_location('container_shutdown_smoke', path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

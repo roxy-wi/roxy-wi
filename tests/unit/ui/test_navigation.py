@@ -5,7 +5,7 @@ from flask import g, render_template, request
 
 
 LANGUAGES = ('en', 'ru', 'fr', 'es-ES', 'pt-br', 'zh')
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def render_navigation(app, role):

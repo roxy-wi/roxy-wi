@@ -241,7 +241,7 @@ def test_cli_does_not_import_application_or_initialize_database(local_health):
            'ROXYWI_PROCESS_ROLE': 'scheduler', 'ROXYWI_SCHEDULER_ENABLED': '1'}
     result = subprocess.run([sys.executable, '-c', code, str(local_health)],
                             capture_output=True, text=True, env=env, timeout=10,
-                            cwd=Path(__file__).resolve().parents[2])
+                            cwd=Path(__file__).resolve().parents[3])
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == 'ready'
     assert not (local_health / 'missing.cfg').exists()

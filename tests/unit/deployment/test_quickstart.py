@@ -9,7 +9,7 @@ import pytest
 from cryptography.fernet import Fernet
 
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 spec = importlib.util.spec_from_file_location('roxywi_quickstart', ROOT / 'docker' / 'quickstart.py')
 quickstart = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(quickstart)

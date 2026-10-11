@@ -10,7 +10,7 @@ def test_le_ui_renders_lifecycle_and_keeps_deletion_pending():
     node = shutil.which('node')
     if not node:
         pytest.skip('Node.js is required for the browser-script regression test')
-    source = Path(__file__).resolve().parents[2] / 'app/static/js/ssl.js'
+    source = Path(__file__).resolve().parents[3] / 'app/static/js/ssl.js'
     harness = r'''
 const fs = require('fs'), vm = require('vm'), assert = require('assert');
 const requests = [], appended = [], removed = [], dialogs = [];

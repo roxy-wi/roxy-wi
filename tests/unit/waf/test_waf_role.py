@@ -6,7 +6,7 @@ import pytest
 import yaml
 
 
-ROLE_DIR = Path(__file__).resolve().parents[2] / 'app/scripts/ansible/roles/waf'
+ROLE_DIR = Path(__file__).resolve().parents[3] / 'app/scripts/ansible/roles/waf'
 
 
 def role_data():

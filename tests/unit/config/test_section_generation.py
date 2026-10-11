@@ -15,7 +15,7 @@ from app.views.service.haproxy_section_views import HaproxySectionView
 from app.views.service.nginx_section_views import NginxSectionView
 
 
-ROLES_DIR = Path(__file__).resolve().parents[2] / 'app/scripts/ansible/roles'
+ROLES_DIR = Path(__file__).resolve().parents[3] / 'app/scripts/ansible/roles'
 SERVICES = ('haproxy', 'nginx')
 
 

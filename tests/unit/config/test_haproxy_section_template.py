@@ -7,7 +7,7 @@ import yaml
 from app.modules.roxywi.class_models import HaproxyConfigRequest
 
 
-ROLE_DIR = Path(__file__).resolve().parents[2] / 'app/scripts/ansible/roles/haproxy_section'
+ROLE_DIR = Path(__file__).resolve().parents[3] / 'app/scripts/ansible/roles/haproxy_section'
 
 
 @pytest.fixture

@@ -130,7 +130,7 @@ def test_gunicorn_config_does_not_import_app_in_master_process():
     result = subprocess.run(
         [sys.executable, '-c', 'import sys, roxy_wi_gunicorn; assert "app" not in sys.modules'],
         capture_output=True, text=True, timeout=10,
-        cwd=Path(__file__).resolve().parents[2],
+        cwd=Path(__file__).resolve().parents[3],
     )
     assert result.returncode == 0, result.stderr
 
@@ -240,7 +240,7 @@ def test_application_setting_precedence_is_env_then_database_then_cfg(tmp_path, 
 
 
 def test_compose_manifests_are_parseable_and_use_no_shared_cache():
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[3]
     for compose_file in ('docker-compose.yml', 'docker-compose.sqlite.yml'):
         document = yaml.safe_load(
             (project_root / 'docker' / compose_file).read_text(encoding='utf-8')
@@ -252,7 +252,7 @@ def test_compose_manifests_are_parseable_and_use_no_shared_cache():
 
 
 def test_rabbitmq_compose_healthchecks_use_the_image_privilege_drop():
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[3]
     for compose_file in ('docker-compose.yml', 'docker-compose.sqlite.yml'):
         document = yaml.safe_load((project_root / 'docker' / compose_file).read_text(encoding='utf-8'))
         command = document['services']['rabbitmq']['healthcheck']['test']
@@ -264,7 +264,7 @@ def test_rabbitmq_compose_healthchecks_use_the_image_privilege_drop():
 
 
 def test_container_smoke_does_not_create_a_root_owned_rabbitmq_cookie(monkeypatch):
-    script = Path(__file__).resolve().parents[1] / 'container_health_smoke.py'
+    script = Path(__file__).resolve().parents[2] / 'container_health_smoke.py'
     spec = importlib.util.spec_from_file_location('container_health_smoke', script)
     smoke = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(smoke)
@@ -305,7 +305,7 @@ def test_container_smoke_does_not_create_a_root_owned_rabbitmq_cookie(monkeypatc
 
 
 def test_docker_healthcheck_uses_role_aware_readiness():
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[3]
     dockerfile = (project_root / 'docker' / 'Dockerfile').read_text()
     healthcheck = dockerfile.split('HEALTHCHECK', 1)[1].split('ENTRYPOINT', 1)[0]
     assert '["python", "/var/www/haproxy-wi/roxy_wi.py", "healthcheck"]' in healthcheck
@@ -313,7 +313,7 @@ def test_docker_healthcheck_uses_role_aware_readiness():
 
 
 def test_helm_workers_have_separate_local_and_readiness_probes():
-    templates = Path(__file__).resolve().parents[2] / 'helm' / 'roxy-wi' / 'templates'
+    templates = Path(__file__).resolve().parents[3] / 'helm' / 'roxy-wi' / 'templates'
     helper = (templates / '_helpers.tpl').read_text().split('define "roxy-wi.workerProbes"', 1)[1]
     helper = helper.split('{{- end }}', 1)[0]
     assert helper.count('"--check", "live"') == 2
@@ -323,7 +323,7 @@ def test_helm_workers_have_separate_local_and_readiness_probes():
 
 
 def test_helm_chart_uses_incidentrelay_directory_layout():
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[3]
     chart_path = project_root / 'helm' / 'roxy-wi'
     chart = yaml.safe_load((chart_path / 'Chart.yaml').read_text(encoding='utf-8'))
     values = yaml.safe_load((chart_path / 'values.yaml').read_text(encoding='utf-8'))
@@ -347,7 +347,7 @@ def test_helm_chart_uses_incidentrelay_directory_layout():
 
 
 def test_default_package_config_uses_shared_paths_and_no_cache():
-    project_root = Path(__file__).resolve().parents[2]
+    project_root = Path(__file__).resolve().parents[3]
     config = GetConfigVar()
     config.path_config = str(project_root / 'roxy-wi.cfg')
     config.config.read(config.path_config)
