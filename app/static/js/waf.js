@@ -111,16 +111,18 @@ $( function() {
 			suppressGlobalError: true,
 			success: function (data) {
 				toastr.clear();
-				if (data.status !== 'ok') {
+				if (!data || data.status !== 'ok') {
 					toastr.error(editor.attr('data-save-error'));
 					return;
 				}
 				toastr.success(editor.attr('data-' + action + '-success'));
 				if (myCodeMirror.getValue() === payload.config) $(window).off('beforeunload');
 			},
-			error: function () {
+			error: function (xhr) {
 				toastr.clear();
-				toastr.error(editor.attr('data-save-error'));
+				const message = xhr.responseJSON && typeof xhr.responseJSON.error === 'string'
+					? xhr.responseJSON.error : editor.attr('data-save-error');
+				toastr.error($('<div>').text(message).html());
 			},
 			complete: function () {
 				editor.data('saving', false);

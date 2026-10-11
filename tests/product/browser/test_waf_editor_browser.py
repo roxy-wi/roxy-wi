@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+import json
 import os
 from pathlib import Path
 from types import SimpleNamespace
@@ -41,12 +42,13 @@ def waf_editor(product, monkeypatch):
         state.commands.append(command)
         if state.fail:
             raise OSError('synthetic apply failure')
-        return ''
+        return json.dumps(state.result)
 
     monkeypatch.setattr(config.mod_ssh, 'ssh_connect', connect)
     monkeypatch.setattr(config, 'upload', upload)
     monkeypatch.setattr(config.server_mod, 'ssh_command', ssh)
     monkeypatch.setattr(config.subprocess, 'run', lambda *a, **kw: None)
+    state.result = {'status': 'ok'}
     return state
 
 
@@ -97,6 +99,29 @@ def test_waf_read_failure_is_localized_and_has_no_editor(logged_in, product_url,
     expect(page.locator('h4')).to_contain_text(message)
     expect(page.locator('#saveconfig')).to_have_count(0)
     assert not list(product.root.glob('waf-read-*'))
+
+
+@pytest.mark.parametrize('locale', LOCALES)
+@pytest.mark.parametrize('code', ['validation_failed', 'recovery_failed'])
+def test_nginx_transaction_failure_is_localized_and_keeps_unsaved_edits(logged_in, product_url, product,
+                                                                       waf_editor, app, locale, code):
+    page = logged_in
+    page.context.add_cookies([{'name': 'lang', 'value': locale, 'url': product_url}])
+    rule_id = waf_editor.rules['nginx'].id
+    url = f'/waf/nginx/{product.server.ip}/rule/{rule_id}'
+    page.goto(product_url + url)
+    waf_editor.result = {'status': 'failed', 'code': code}
+    changed = TEXT + '# unsaved change\n'
+    page.evaluate('(text) => myCodeMirror.setValue(text)', changed)
+    with page.expect_response(lambda response: response.url.endswith(url + '/save')) as failed:
+        page.locator('#saveconfig button[value="reload"]').click()
+    assert failed.value.status == 500
+    message = app.jinja_env.get_template(f'languages/{locale}.html').module.waf_editor['nginx_' + code]
+    expect(page.locator('.toast-error')).to_contain_text(message)
+    expect(page.locator('.toast-success')).to_have_count(0)
+    expect(page.locator('#saveconfig button[value="reload"]')).to_be_enabled()
+    assert page.evaluate('myCodeMirror.getValue()') == changed
+    assert page.evaluate("!!($._data(window, 'events') || {}).beforeunload")
 
 
 def test_edits_during_save_remain_unsaved_and_double_submit_is_ignored(logged_in, product_url, product, waf_editor):

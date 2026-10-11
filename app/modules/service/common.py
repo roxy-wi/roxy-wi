@@ -12,6 +12,8 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.config.section as section_mod
 import app.modules.config.common as config_common
 from app.modules.config.path_tokens import encode_file_path
+from app.modules.config.candidate import check_result, REMOTE_TIMEOUT
+from app.modules.config.haproxy_files import check_command
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
@@ -131,8 +133,8 @@ def check_service_config(server_ip: str, server_id: int, service: str) -> None:
 
 	The command depends on the service type and can be one of the following:
 	- For haproxy:
-	    - If not dockerized: `haproxy -c -f {config_path}`
-	    - If dockerized: `sudo docker exec -it {container_name} haproxy -c -f {config_path}`
+	    - Use the shared transaction to validate the ordered startup sources with `haproxy -c`.
+	    - Docker paths are resolved through the container mounts.
 	- For nginx:
 	    - If not dockerized: `sudo nginx -q -t -p {config_path}`
 	    - If dockerized: `sudo docker exec -it {container_name} nginx -t`
@@ -150,18 +152,17 @@ def check_service_config(server_ip: str, server_id: int, service: str) -> None:
 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
 	container_name = sql.get_setting(f'{service}_container_name')
 	if service == 'haproxy':
-		from app.modules.config.haproxy_files import check_command
-		server_mod.ssh_command(server_ip, check_command(server_ip, server_id, container_name if is_dockerized == '1' else None), rc=1,
-			timeout=90, error_context='HAProxy configuration validation failed')
+		output = server_mod.ssh_command(server_ip, check_command(server_ip, server_id, container_name if is_dockerized == '1' else None), rc=1,
+			timeout=REMOTE_TIMEOUT, error_context='HAProxy configuration validation failed')
+		check_result(output)
 		return
 	command_for_docker = f'sudo docker exec -it {container_name}'
 	config_path = ''
 
-	if service in ('haproxy', 'keepalived'):
+	if service == 'keepalived':
 		config_path = sql.get_setting(f'{service}_config_path')
 
 	command = {
-		'haproxy': {'0': f'haproxy -c -f {config_path} ', '1': f'{command_for_docker} haproxy -c -f {config_path} '},
 		'nginx': {'0': 'sudo nginx -q -t ', '1': f'{command_for_docker} nginx -t '},
 		'apache': {'0': 'sudo apachectl -t ', '1': f'{command_for_docker} apachectl -t '},
 		'keepalived': {'0': f'keepalived -t -f {config_path} ', '1': ' '}

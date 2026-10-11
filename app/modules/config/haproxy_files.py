@@ -3,12 +3,12 @@ import posixpath
 import shlex
 import json
 from pathlib import Path
-from uuid import uuid4
 
 from flask import g, has_request_context
 
 import app.modules.db.sql as sql
 from app.modules.config.path_tokens import decode_file_path
+from app.modules.config.candidate import candidate_command
 
 
 def absolute_path(value: str) -> str:
@@ -123,22 +123,11 @@ printf '%s' "$target"'''
 
 
 def check_command(server_ip: str, server_id: int, container: str | None = None) -> str:
-    sources = config_sources(server_ip, server_id)
-    if container:
-        return candidate_command(resolve_path(), '', 'check', sources=sources, container=container)
-    args = ['haproxy', '-c']
-    for source in sources:
-        args.extend(['-f', source])
-    args.insert(0, 'sudo')
-    return shlex.join(args)
+    return candidate_command('haproxy', resolve_path(), '', 'check', container=container or '',
+                             **configuration_context(server_ip, server_id))
 
 
-def candidate_command(target: str, candidate: str, action: str, *, sources: list[str], container: str = '', reload_command: str = '') -> str:
-    """Serialize validation and replacement on the target, including across workers."""
-    if action not in ('test', 'save', 'reload', 'restart', 'check'):
-        raise ValueError('Unsupported configuration action')
-    script = Path(__file__).with_name('haproxy_candidate.sh').read_text(encoding='utf-8')
-    args = [resolve_path(target), candidate, action, container or '', reload_command,
-            absolute_path(sql.get_setting('haproxy_dir')), resolve_path(), uuid4().hex, *sources]
-    return shlex.join(['sudo', 'flock', '-w', '30', '/var/lock/roxywi-haproxy-config.lock',
-                       'sh', '-c', script, 'roxywi-haproxy', *args])
+def configuration_context(server_ip: str, server_id: int = None) -> dict:
+    """Resolve service-specific identity and startup sources before uploading."""
+    return {'main': resolve_path(), 'root': absolute_path(sql.get_setting('haproxy_dir')),
+            'sources': config_sources(server_ip, server_id)}

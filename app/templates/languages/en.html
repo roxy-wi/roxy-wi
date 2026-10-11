@@ -154,6 +154,11 @@
     "failed": "Could not finish creating the WAF rule. Check the server connection, file permissions and Roxy-WI logs, then retry with the same values."
 } %}
 {% set waf_editor = {
+    "nginx_validation_failed": "NGINX configuration validation failed. The previous rule file is in place. Run nginx -t with the configured main file, correct the errors and retry.",
+    "nginx_apply_failed": "NGINX could not apply the rule. The previous file was restored and the recovery command completed. Check NGINX status and logs before retrying.",
+    "nginx_recovery_failed": "Automatic recovery did not complete. Check the rule file and NGINX status before retrying. The backup location is recorded in the Roxy-WI logs.",
+    "nginx_mount_failed": "The NGINX container must mount the WAF rules directory and the configured main configuration file. Check its bind mounts; a single-file mount cannot follow atomic rule replacement.",
+    "nginx_save_failed": "Could not finish saving the NGINX WAF rule. Check the target server and Roxy-WI logs before retrying.",
     "read_failed": "Could not open the WAF rule. Check the server connection, file permissions and Roxy-WI logs.",
     "save_failed": "Saving or applying the WAF rule did not complete. Check the target servers and Roxy-WI logs before retrying.",
     "saved": "WAF rule saved.",

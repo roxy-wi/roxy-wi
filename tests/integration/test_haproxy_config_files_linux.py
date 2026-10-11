@@ -12,10 +12,11 @@ from uuid import uuid4
 
 import pytest
 
+from app.modules.config import candidate as transaction
+
 
 pytestmark = pytest.mark.skipif(sys.platform != 'linux' or not shutil.which('haproxy'), reason='Linux and HAProxy required')
-SCRIPT = Path(os.environ.get('ROXYWI_HAPROXY_TEST_SCRIPT',
-                            Path(__file__).resolve().parents[2] / 'app/modules/config/haproxy_candidate.sh'))
+SCRIPT = Path(os.environ.get('ROXYWI_HAPROXY_TEST_SCRIPT', transaction.__file__))
 DISCOVERY = Path(os.environ.get('ROXYWI_HAPROXY_DISCOVERY_SCRIPT',
                                Path(__file__).resolve().parents[2] / 'app/modules/config/haproxy_discovery.py'))
 MAIN = ('global\n'
@@ -41,18 +42,20 @@ def apply(tree, text, action='test', *, target=None, sources=None, command='', c
     root, main, original = tree
     target = target or original
     candidate = root.parent / (uuid4().hex + '.cfg')
-    candidate.write_text(text)
-    args = [str(target), str(candidate), action, container, command, str(root), str(main), uuid4().hex]
-    args += [str(p) for p in (sources or [main, original.parent])]
-    result = subprocess.run(['flock', '-w', '5', str(root.parent / 'config.lock'), 'sh', '-c', SCRIPT.read_text(), 'roxywi-test', *args],
+    if action != 'check':
+        candidate.write_text(text)
+    spec = dict(service='haproxy', target=str(target), candidate=str(candidate) if action != 'check' else '', action=action, container=container,
+                action_command=command, root=str(root), main=str(main), sources=[str(p) for p in (sources or [main, original.parent])])
+    result = subprocess.run(['flock', '-w', '5', str(root.parent / 'config.lock'), sys.executable, str(SCRIPT), json.dumps(spec)],
                             text=True, capture_output=True, timeout=20)
     assert not candidate.exists(), result.stderr
-    return result
+    assert result.returncode == 0, result.stderr
+    return json.loads(result.stdout)
 
 
 def test_validation_uses_other_files_without_replacing_working_file(tree):
     result = apply(tree, BACKEND.replace('20001', '20002'))
-    assert result.returncode == 0, result.stderr
+    assert result == {'status': 'ok'}, result
     assert tree[2].read_text() == BACKEND
 
 
@@ -62,14 +65,14 @@ def test_invalid_configuration_never_replaces_working_file(tree, failure):
     if failure == 'other_file':
         tree[1].write_text(MAIN.replace('default_backend web', 'default_backend missing'))
     result = apply(tree, text, 'save')
-    assert result.returncode != 0
+    assert result['status'] == 'failed'
     assert tree[2].read_text() == BACKEND
 
 
 def test_save_changes_only_selected_file_and_preserves_permissions(tree):
     text = BACKEND.replace('20001', '20002')
     result = apply(tree, text, 'save')
-    assert result.returncode == 0, result.stderr
+    assert result == {'status': 'ok'}, result
     assert tree[2].read_text() == text
     assert tree[2].stat().st_mode & 0o777 == 0o640
     assert tree[1].read_text() == MAIN
@@ -78,7 +81,7 @@ def test_save_changes_only_selected_file_and_preserves_permissions(tree):
 def test_new_file_with_spaces_joins_directory_in_lexical_order(tree):
     target = tree[2].parent / '30-extra 92.cfg'
     result = apply(tree, 'backend extra\n server two 127.0.0.1:20002\n', 'save', target=target)
-    assert result.returncode == 0, result.stderr
+    assert result == {'status': 'ok'}, result
     assert target.read_text().startswith('backend extra\n')
     assert tree[2].read_text() == BACKEND
 
@@ -88,9 +91,9 @@ def test_sources_and_directory_files_keep_their_order(tree):
     folder = tree[2].parent
     (folder / '10-defaults.cfg').write_text('defaults named\n mode http\n timeout connect 1s\n timeout client 1s\n timeout server 1s\n')
     result = apply(tree, 'backend web from named\n server one 127.0.0.1:20001\n')
-    assert result.returncode == 0, result.stderr
+    assert result == {'status': 'ok'}, result
     result = apply(tree, BACKEND, sources=[folder, tree[1]])
-    assert result.returncode == 0, result.stderr
+    assert result == {'status': 'ok'}, result
 
 
 def test_hidden_and_nested_files_are_not_implicitly_loaded(tree):
@@ -98,20 +101,20 @@ def test_hidden_and_nested_files_are_not_implicitly_loaded(tree):
     nested = tree[2].parent / 'nested'
     nested.mkdir()
     (nested / 'invalid.cfg').write_text('invalid\n')
-    assert apply(tree, BACKEND).returncode == 0
+    assert apply(tree, BACKEND) == {'status': 'ok'}
 
 
 def test_file_outside_f_sources_cannot_be_applied(tree):
     other = tree[0] / 'inactive.cfg'
     other.write_text('backend inactive\n')
     result = apply(tree, 'backend inactive2\n', 'save', target=other)
-    assert result.returncode != 0 and 'not included' in result.stderr
+    assert result['status'] == 'failed' and 'not included' in result['reason']
     assert other.read_text() == 'backend inactive\n'
 
 
 def test_overlapping_sources_are_rejected(tree):
     result = apply(tree, BACKEND, sources=[tree[1], tree[2].parent, tree[2]])
-    assert result.returncode != 0 and 'more than once' in result.stderr
+    assert result['status'] == 'failed' and 'more than once' in result['reason']
 
 
 def test_symlink_outside_allowed_root_is_rejected(tree):
@@ -120,30 +123,33 @@ def test_symlink_outside_allowed_root_is_rejected(tree):
     tree[2].unlink()
     tree[2].symlink_to(outside)
     result = apply(tree, BACKEND.replace('web', 'other'), 'save')
-    assert result.returncode != 0 and 'outside' in result.stderr
+    assert result['status'] == 'failed' and 'outside' in result['reason']
     assert outside.read_text() == BACKEND
 
 
 def test_failed_reload_restores_original_file_and_metadata(tree):
     result = apply(tree, BACKEND.replace('20001', '20002'), 'reload', command='exit 7')
-    assert result.returncode != 0 and 'restored' in result.stderr
+    assert result['status'] == 'failed' and result['restored']
     assert tree[2].read_text() == BACKEND
     assert tree[2].stat().st_mode & 0o777 == 0o640
 
 
 def test_failed_restore_preserves_recovery_copy(tree, monkeypatch):
-    binary = shutil.which('mv')
-    bin_dir = tree[0].parent / 'bin'
-    bin_dir.mkdir()
-    wrapper = bin_dir / 'mv'
-    wrapper.write_text('#!/bin/sh\nfor arg do\ncase "$arg" in *.roxywi-restore.*) exit 1;; esac\ndone\nexec ' +
-                       shlex.quote(binary) + ' "$@"\n')
-    wrapper.chmod(0o755)
-    monkeypatch.setenv('PATH', str(bin_dir) + os.pathsep + os.environ['PATH'])
-    monkeypatch.setenv('TMPDIR', str(tree[0].parent))
-    result = apply(tree, BACKEND.replace('20001', '20002'), 'reload', command='exit 7')
-    assert result.returncode != 0 and 'backup retained at ' in result.stderr
-    backup = Path(result.stderr.split('backup retained at ', 1)[1].splitlines()[0])
+    replace = transaction.os.replace
+
+    def fail_restore(source, destination):
+        if destination == tree[2] and Path(source).read_text() == BACKEND:
+            raise OSError('synthetic restore failure')
+        return replace(source, destination)
+
+    monkeypatch.setattr(transaction.os, 'replace', fail_restore)
+    candidate = tree[0].parent / 'candidate.cfg'
+    candidate.write_text(BACKEND.replace('20001', '20002'))
+    result = transaction.execute(dict(service='haproxy', target=str(tree[2]), main=str(tree[1]), root=str(tree[0]),
+                                      sources=[str(tree[1]), str(tree[2].parent)], candidate=str(candidate),
+                                      action='reload', action_command='exit 7'))
+    assert result['code'] == 'recovery_failed'
+    backup = Path(result['backup'])
     assert backup.read_text() == BACKEND
 
 
@@ -161,7 +167,7 @@ def test_concurrent_saves_serialize_validation_and_replacement(tree, monkeypatch
     candidates = [BACKEND.replace('20001', port) for port in ('20002', '20003')]
     with ThreadPoolExecutor(max_workers=2) as executor:
         results = list(executor.map(lambda text: apply(tree, text, 'save'), candidates))
-    assert all(result.returncode == 0 for result in results), [result.stderr for result in results]
+    assert all(result == {'status': 'ok'} for result in results), results
     assert log.read_text().splitlines() == ['start', 'end', 'start', 'end']
     assert tree[2].read_text() in candidates
 
@@ -189,15 +195,15 @@ def test_docker_mount_visibility_is_checked_before_saving(tree, mount):
         text = BACKEND.replace('20001', '20002')
         result = apply(tree, text, 'save', container=name)
         if mount in ('file', 'read_only'):
-            assert result.returncode != 0 and 'Mount the HAProxy configuration directory' in result.stderr
+            assert result['status'] == 'failed' and 'Mount the configuration directory' in result['reason']
             assert tree[2].read_text() == BACKEND
             return
-        assert result.returncode == 0, result.stderr
+        assert result == {'status': 'ok'}, result
         container_target = '/configs/conf.d/' + tree[2].name if mount in ('different_path', 'readonly_tmp', 'readonly_alias_first') else str(tree[2])
         content = subprocess.check_output(['docker', 'exec', name, 'cat', container_target], text=True)
         assert content == text
         result = apply(tree, text, 'check', container=name)
-        assert result.returncode == 0, result.stderr
+        assert result == {'status': 'ok'}, result
     finally:
         subprocess.run(['docker', 'rm', '-f', name], check=True, capture_output=True)
 

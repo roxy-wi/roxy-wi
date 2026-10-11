@@ -1463,7 +1463,7 @@ def test_config_version_is_written_only_after_successful_apply(app, managed_serv
     monkeypatch.setattr(config_module, '_generate_command', lambda *_args: 'validate-and-apply')
     monkeypatch.setattr(config_module, '_prepare_config_version_diff', lambda *_args: 'diff')
     monkeypatch.setattr(config_module, '_create_config_version', lambda *args, **kwargs: versions.append((args, kwargs)))
-    monkeypatch.setattr(config_module.server_mod, 'ssh_command', lambda *_args, **_kwargs: '')
+    monkeypatch.setattr(config_module.server_mod, 'ssh_command', lambda *_args, **_kwargs: '{"status":"ok"}')
 
     with app.test_request_context('/'):
         g.user_params = {'user_id': 1}
@@ -1511,7 +1511,7 @@ def test_upload_without_version_history_does_not_require_request_context(
     config_path.write_text('global\n', encoding='utf-8')
     monkeypatch.setattr(config_module, 'upload', lambda *_args: None)
     monkeypatch.setattr(config_module, '_generate_command', lambda *_args: 'apply')
-    monkeypatch.setattr(config_module.server_mod, 'ssh_command', lambda *_args, **_kwargs: '')
+    monkeypatch.setattr(config_module.server_mod, 'ssh_command', lambda *_args, **_kwargs: '{"status":"ok"}')
     monkeypatch.setattr(config_module.roxywi_common, 'logging', lambda *_args, **_kwargs: None)
     monkeypatch.setattr(
         config_module,

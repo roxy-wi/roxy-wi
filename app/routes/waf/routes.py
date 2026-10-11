@@ -13,6 +13,7 @@ import app.modules.roxywi.waf as roxy_waf
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.config.config as config_mod
+from app.modules.config.candidate import CandidateApplyError
 from app.modules.roxywi.exception import RoxywiConflictError, RoxywiPermissionError, RoxywiPublicError, RoxywiValidationError
 from app.modules.roxywi import logger
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
@@ -165,6 +166,8 @@ def waf_save_config(service, server_ip, rule_id):
             cfg.write_text(config, encoding='utf-8', newline='')
             stderr = config_mod.master_slave_upload_and_restart(
                 server_ip, str(cfg), save, 'waf', waf=rule.service, config_file_name=config_file_name)
+    except CandidateApplyError as exc:
+        return _waf_error_response('nginx_' + exc.code, exc, server_ip)
     except Exception as exc:
         return _waf_error_response('save_failed', exc, server_ip)
 

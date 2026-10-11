@@ -8,7 +8,7 @@ from types import SimpleNamespace
 import pytest
 from peewee import SqliteDatabase
 
-from app.modules.config import config, haproxy_files
+from app.modules.config import config, haproxy_files, candidate
 from app.modules.config.path_tokens import encode_file_path, decode_file_path
 from app.modules.db import add as add_sql
 from app.modules.db.db_model import Groups, Setting, Server, HaproxySection
@@ -30,12 +30,12 @@ def settings(monkeypatch):
 
 
 def test_sources_preserve_argument_and_directory_order(settings):
-    assert shlex.split(haproxy_files.check_command('192.0.2.11', 11)) == [
-        'sudo', 'haproxy', '-c', '-f', '/etc/haproxy/haproxy.cfg', '-f', '/etc/haproxy/conf.d']
-    command = shlex.split(haproxy_files.check_command('192.0.2.11', 11, 'proxy'))
-    args = command[command.index('roxywi-haproxy') + 1:]
-    assert args[:4] == ['/etc/haproxy/haproxy.cfg', '', 'check', 'proxy']
-    assert args[-2:] == ['/etc/haproxy/haproxy.cfg', '/etc/haproxy/conf.d']
+    for container in ('', 'proxy'):
+        command = shlex.split(haproxy_files.check_command('192.0.2.11', 11, container))
+        spec = json.loads(command[-1])
+        assert [spec[key] for key in ('target', 'candidate', 'action', 'container')] == [
+            '/etc/haproxy/haproxy.cfg', '', 'check', container]
+        assert spec['sources'] == ['/etc/haproxy/haproxy.cfg', '/etc/haproxy/conf.d']
 
 
 def test_disabled_mode_keeps_main_file_and_does_not_inspect_startup(settings, monkeypatch):
@@ -121,7 +121,7 @@ def test_candidate_validation_and_save_keep_file_identity(settings, monkeypatch,
     monkeypatch.setattr(config, 'normalize_config_file', lambda *a: None)
     monkeypatch.setattr(config, 'upload', lambda *a: None)
     commands = []
-    monkeypatch.setattr(config.server_mod, 'ssh_command', lambda ip, cmd, **kw: commands.append(shlex.split(cmd)) or '')
+    monkeypatch.setattr(config.server_mod, 'ssh_command', lambda ip, cmd, **kw: commands.append(shlex.split(cmd)) or '{"status":"ok"}')
     target = '/etc/haproxy/conf.d/site92.cfg'
     candidate = tmp_path / 'candidate.cfg'
     candidate.write_text('backend web\n', encoding='utf-8')
@@ -129,11 +129,57 @@ def test_candidate_validation_and_save_keep_file_identity(settings, monkeypatch,
     config.upload_and_restart('192.0.2.11', str(candidate), 'save', 'haproxy',
                               config_file_name=target, record_version=False)
     for command, action in zip(commands, ('test', 'save')):
-        args = command[command.index('roxywi-haproxy') + 1:]
-        assert args[0] == target
-        assert args[2] == action
-        assert args[-2:] == ['/etc/haproxy/haproxy.cfg', '/etc/haproxy/conf.d']
+        spec = json.loads(command[-1])
+        assert spec['target'] == target
+        assert spec['action'] == action
+        assert spec['sources'] == ['/etc/haproxy/haproxy.cfg', '/etc/haproxy/conf.d']
     assert commands[0] != commands[1]
+
+
+@pytest.mark.parametrize('flow', ['test', 'save', 'service'])
+@pytest.mark.parametrize('result', ['ok', 'failed', 'empty'])
+def test_remote_result_is_required_before_service_firewall_or_version_changes(settings, monkeypatch, tmp_path, flow, result):
+    commands, versions = [], []
+    monkeypatch.setattr(config.service_sql, 'select_service_setting', lambda *a: '0')
+    monkeypatch.setattr(config.deployment_policy, 'require_direct_deployment_for_server', lambda *a, **kw: None)
+    monkeypatch.setattr(config.service_common, 'is_protected', lambda *a: None)
+    monkeypatch.setattr(config.service_action, 'get_action_command', lambda *a: 'sudo systemctl reload haproxy')
+    monkeypatch.setattr(config.roxywi_common, 'logging', lambda *a, **kw: None)
+    monkeypatch.setattr(config, 'upload', lambda *a: None)
+    monkeypatch.setattr(config.server_sql, 'return_firewall', lambda ip: True)
+    monkeypatch.setattr(config, '_open_port_firewalld', lambda *a: ' && sudo firewall-cmd --reload -q')
+    monkeypatch.setattr(config, '_prepare_config_version_diff', lambda *a: 'diff')
+    monkeypatch.setattr(config.user_sql, 'get_user_id', lambda user_id: SimpleNamespace(user_id=user_id))
+    monkeypatch.setattr(config, '_create_config_version', lambda *a, **kw: versions.append(a))
+
+    def ssh(ip, command, **kwargs):
+        commands.append(command)
+        if len(commands) > 1:
+            return ''
+        assert kwargs['timeout'] == candidate.REMOTE_TIMEOUT and kwargs['rc'] == 1
+        return {'ok': '{"status":"ok"}', 'failed': '{"status":"failed","code":"validation_failed"}', 'empty': ''}[result]
+
+    monkeypatch.setattr(config.server_mod, 'ssh_command', ssh)
+    cfg = tmp_path / 'candidate.cfg'
+    cfg.write_text('backend web\n')
+
+    def perform():
+        if flow == 'test':
+            config.validate_candidate_config('192.0.2.11', str(cfg), 'haproxy')
+        elif flow == 'save':
+            config.upload_and_restart('192.0.2.11', str(cfg), 'save', 'haproxy', user_id=1, normalize_config=False)
+        else:
+            config.service_action.service_action('192.0.2.11', 'reload', 'haproxy')
+
+    if result == 'ok':
+        perform()
+        assert len(commands) == (1 if flow == 'test' else 2)
+        assert bool(versions) == (flow == 'save')
+    else:
+        with pytest.raises(Exception):
+            perform()
+        assert len(commands) == 1
+        assert not versions
 
 
 @pytest.mark.parametrize('partially_migrated', [False, True])

@@ -23,7 +23,7 @@ import app.modules.service.common as service_common
 import app.modules.service.action as service_action
 import app.modules.config.common as config_common
 import app.modules.config.deployment_policy as deployment_policy
-from app.modules.config import haproxy_files
+from app.modules.config import haproxy_files, candidate
 from app.modules.config.path_tokens import encode_file_path, decode_file_path
 from app.modules.config.viewer import build_document
 
@@ -118,23 +118,23 @@ def validate_candidate_config(server_ip: str, cfg: str, service: str, config_fil
 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
 	container_name = sql.get_setting(f'{service}_container_name')
 	if service == 'haproxy':
-		command = haproxy_files.candidate_command(
-			config_path, tmp_file, 'test', sources=haproxy_files.config_sources(server_ip, server_id),
+		command = candidate.candidate_command(
+			'haproxy', config_path, tmp_file, 'test', **haproxy_files.configuration_context(server_ip, server_id),
 			container=container_name if is_dockerized == '1' else ''
 		)
 		upload(server_ip, tmp_file, cfg)
-		return str(server_mod.ssh_command(server_ip, command, rc=1, timeout=90,
-			error_context='HAProxy configuration validation failed') or '').strip() or 'HAProxy configuration is valid'
+		output = server_mod.ssh_command(server_ip, command, rc=1, timeout=candidate.REMOTE_TIMEOUT,
+			error_context='HAProxy configuration validation failed')
+		candidate.check_result(output)
+		return 'HAProxy configuration is valid'
 	if is_dockerized == '1':
 		checks = {
-			'haproxy': f'sudo docker exec {quote(container_name)} haproxy -c -f {quote(config_path)}',
 			'nginx': f'sudo docker exec {quote(container_name)} nginx -t',
 			'apache': f'sudo docker exec {quote(container_name)} apachectl -t',
 			'keepalived': f'sudo docker exec {quote(container_name)} keepalived -t -f {quote(config_path)}',
 		}
 	else:
 		checks = {
-			'haproxy': f'sudo haproxy -c -f {quote(tmp_file)}',
 			'nginx': 'sudo nginx -t',
 			'apache': 'sudo apachectl -t',
 			'keepalived': f'sudo keepalived -t -f {quote(tmp_file)}',
@@ -189,6 +189,11 @@ def _generate_command(
 		action_service = 'nginx' if waf_service == 'nginx' else 'waf'
 		if service_common.is_not_allowed_to_restart(server_id, action_service, just_save):
 			raise ValueError('This server is not allowed to be restarted')
+		if waf_service == 'nginx':
+			container = sql.get_setting('nginx_container_name') if service_sql.select_service_setting(server_id, 'nginx', 'dockerized') == '1' else ''
+			action = service_action.get_action_command('nginx', just_save, server_id) if just_save in ('reload', 'restart') else ''
+			return candidate.candidate_command('nginx_waf', config_path, tmp_file, just_save,
+				main=sql.get_setting('nginx_config_path'), container=container, action_command=action)
 		command = f'sudo mv -f {quote(tmp_file)} {quote(config_path)}'
 		if just_save in ('reload', 'restart'):
 			command += f' && {service_action.get_action_command(action_service, just_save, server_id)}'
@@ -199,13 +204,11 @@ def _generate_command(
 		if service_common.is_not_allowed_to_restart(server_id, service, just_save):
 			raise Exception('error: This server is not allowed to be restarted')
 		action_command = service_action.get_action_command(service, just_save, server_id) if just_save in ('reload', 'restart') else ''
-		commands = haproxy_files.candidate_command(
-			config_path, tmp_file, just_save, sources=haproxy_files.config_sources(server_ip, server_id),
+		commands = candidate.candidate_command(
+			'haproxy', config_path, tmp_file, just_save, **haproxy_files.configuration_context(server_ip, server_id),
 			container=container_name if is_dockerized == '1' else '',
-			reload_command=action_command
+			action_command=action_command
 		)
-		if just_save != 'test' and server_sql.return_firewall(server_ip):
-			commands += _open_port_firewalld(cfg, server_ip, service)
 		return commands
 	reload_or_restart_command = ''
 	if just_save in ('reload', 'restart'):
@@ -213,7 +216,6 @@ def _generate_command(
 	move_config = f" sudo mv -f {quote(tmp_file)} {quote(config_path)}"
 	command_for_docker = f'sudo docker exec -it {quote(container_name)}'
 	command = {
-		'haproxy': {'0': f'sudo haproxy -c -f {tmp_file} ', '1': f'{command_for_docker} haproxy -c -f {tmp_file} '},
 		'nginx': {'0': 'sudo nginx -t ', '1': f'{command_for_docker} nginx -t '},
 		'apache': {'0': 'sudo apachectl -t ', '1': f'{command_for_docker} apachectl -t '},
 		'keepalived': {'0': f'keepalived -t -f {quote(tmp_file)} ', '1': ' '},
@@ -237,7 +239,7 @@ def _generate_command(
 	else:
 		commands = f'{check_config} && {move_config} {reload_or_restart_command}'
 
-	if service in ('haproxy', 'nginx'):
+	if service == 'nginx':
 		if server_sql.return_firewall(server_ip):
 			commands += _open_port_firewalld(cfg, server_ip, service)
 	return commands
@@ -378,15 +380,23 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 
 	try:
 		upload(server_ip, tmp_file, cfg)
+		uses_candidate = service == 'haproxy' or (service == 'waf' and kwargs.get('waf') == 'nginx')
 		error = server_mod.ssh_command(server_ip, commands, rc=1, **(
-			{'timeout': 90, 'error_context': 'HAProxy configuration validation or application failed'} if service == 'haproxy' else {}
+			{'timeout': candidate.REMOTE_TIMEOUT, 'error_context': 'Configuration transaction did not complete'} if uses_candidate else {}
 		))
+		if uses_candidate:
+			candidate.check_result(error)
+			error = ''
+			if service == 'haproxy' and just_save != 'test' and server_sql.return_firewall(server_ip):
+				server_mod.ssh_command(server_ip, 'true' + _open_port_firewalld(cfg, server_ip, service), rc=1)
 	except Exception as e:
 		if service == 'waf':
 			try:
 				server_mod.ssh_command(server_ip, f'sudo rm -f -- {quote(tmp_file)}', rc=1)
 			except Exception as cleanup_error:
 				logger.exception('Cannot remove temporary WAF upload', exc=cleanup_error, server_ip=server_ip)
+		if isinstance(e, candidate.CandidateApplyError):
+			raise
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot {just_save} {service}')
 
 	# A saved version represents a successful remote operation, not merely an

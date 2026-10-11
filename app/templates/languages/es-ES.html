@@ -154,6 +154,11 @@
     "failed": "No se pudo completar la creación de la regla WAF. Compruebe la conexión al servidor, los permisos de los archivos y los registros de Roxy-WI; después, reinténtelo con los mismos valores."
 } %}
 {% set waf_editor = {
+    "nginx_validation_failed": "La configuración de NGINX no superó la validación. El archivo anterior de la regla sigue en su lugar. Ejecute nginx -t con el archivo principal configurado, corrija los errores y vuelva a intentarlo.",
+    "nginx_apply_failed": "NGINX no pudo aplicar la regla. Se restauró el archivo anterior y se completó el comando de recuperación. Compruebe el estado y los registros de NGINX antes de volver a intentarlo.",
+    "nginx_recovery_failed": "La recuperación automática no se completó. Compruebe el archivo de la regla y el estado de NGINX antes de volver a intentarlo. La ubicación de la copia de seguridad figura en los registros de Roxy-WI.",
+    "nginx_mount_failed": "El contenedor NGINX debe montar el directorio de reglas WAF y el archivo principal configurado. Revise los montajes bind; el montaje de un archivo individual no admite su sustitución atómica.",
+    "nginx_save_failed": "No se pudo completar el guardado de la regla WAF de NGINX. Compruebe el servidor de destino y los registros de Roxy-WI antes de volver a intentarlo.",
     "read_failed": "No se pudo abrir la regla WAF. Compruebe la conexión al servidor, los permisos del archivo y los registros de Roxy-WI.",
     "save_failed": "No se completó el guardado o la aplicación de la regla WAF. Compruebe los servidores de destino y los registros de Roxy-WI antes de volver a intentarlo.",
     "saved": "Regla WAF guardada.",

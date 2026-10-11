@@ -1,0 +1,387 @@
+"""Shared configuration transaction, also executed standalone on managed hosts.
+
+Only validators know how each service loads a candidate. File replacement,
+recovery, command execution and the result contract belong to this module.
+"""
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+from pathlib import Path, PurePosixPath
+import re
+import shlex
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+from uuid import uuid4
+
+
+ERROR_CODES = {'validation_failed', 'apply_failed', 'recovery_failed', 'mount_failed', 'save_failed'}
+# Allow lock acquisition, Docker staging, validation, apply and recovery to finish.
+REMOTE_TIMEOUT = 360
+
+
+class CandidateApplyError(RuntimeError):
+    def __init__(self, result: dict):
+        self.code = result['code']
+        super().__init__(json.dumps(result))
+
+
+class _ConfigurationError(ValueError):
+    """A controlled diagnostic that contains neither rule text nor command output."""
+
+
+def check_result(output: str) -> None:
+    result = json.loads(output)
+    if result == {'status': 'ok'}:
+        return
+    if isinstance(result, dict) and result.get('status') == 'failed' and result.get('code') in ERROR_CODES:
+        raise CandidateApplyError(result)
+    raise RuntimeError('Unconfirmed configuration transaction result')
+
+
+def candidate_command(service: str, target: str, candidate: str, action: str, *, main: str,
+                      root: str = '', sources=(), container: str = '', action_command: str = '') -> str:
+    if service not in ('haproxy', 'nginx_waf') or action not in ('test', 'check', 'save', 'reload', 'restart'):
+        raise ValueError('Unsupported configuration transaction')
+    if service == 'nginx_waf':
+        root = str(PurePosixPath(target).parent.parent)
+        lock_id = hashlib.sha256(root.encode('utf-8')).hexdigest()
+        lock = f'/var/lock/roxywi-waf-{lock_id}.lock'
+    else:
+        lock = '/var/lock/roxywi-haproxy-config.lock'
+    spec = dict(service=service, target=target, candidate=candidate, action=action, main=main,
+                root=root, sources=list(sources), container=container, action_command=action_command)
+    script = Path(__file__).read_text(encoding='utf-8')
+    return shlex.join(['sudo', '-n', 'flock', '-w', '30', lock, 'python3', '-c', script, json.dumps(spec)])
+
+
+def _run(arguments: list[str], *, timeout=30) -> subprocess.CompletedProcess:
+    # Native diagnostics can contain configuration secrets; only metadata crosses SSH.
+    return subprocess.run(arguments, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT, timeout=timeout, check=False)
+
+
+def _regular(path: Path) -> None:
+    if path.is_symlink() or not path.is_file():
+        raise _ConfigurationError('Expected a regular file')
+
+
+def _contents(path: Path):
+    if path.is_symlink():
+        raise _ConfigurationError('Configuration changed to a symlink')
+    if not path.exists():
+        return None
+    _regular(path)
+    return path.read_bytes()
+
+
+def _copy(source: Path, destination: Path) -> None:
+    shutil.copy2(source, destination)
+    if os.name == 'posix':
+        metadata = source.stat()
+        os.chown(destination, metadata.st_uid, metadata.st_gid)
+
+
+def _install(source: Path, target: Path, expected, metadata: Path = None) -> None:
+    fd, name = tempfile.mkstemp(prefix='.roxywi-config-', dir=target.parent)
+    os.close(fd)
+    temporary = Path(name)
+    try:
+        if metadata is not None:
+            _copy(metadata, temporary)
+        else:
+            temporary.chmod(0o644)
+        with temporary.open('wb') as stream:
+            stream.write(source.read_bytes())
+            stream.flush()
+            os.fsync(stream.fileno())
+        if _contents(target) != expected:
+            raise _ConfigurationError('Configuration changed during the transaction')
+        os.replace(temporary, target)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _container_path(path: Path, mounts: list, *, directory=False, writable=False, aliases=False, bind_only=False) -> str:
+    matches = []
+    for mount in mounts:
+        source = Path(mount.get('Source', ''))
+        if not source.is_absolute():
+            continue
+        try:
+            relative = path.resolve().relative_to(source.resolve())
+        except ValueError:
+            continue
+        matches.append((len(source.resolve().parts), mount, source, relative))
+    if not matches:
+        raise _ConfigurationError('Configuration path is not mounted in the container')
+    longest = max(item[0] for item in matches)
+    matches = [item for item in matches if item[0] == longest]
+    if len(matches) > 1 and not aliases:
+        raise _ConfigurationError('Configuration path has ambiguous container mounts')
+    # HAProxy can read any alias. Prefer the writable one, as in its existing deployment role.
+    _, mount, source, relative = max(matches, key=lambda item: bool(item[1].get('RW')))
+    destination = PurePosixPath(mount.get('Destination', ''))
+    if (not destination.is_absolute() or (directory and not source.is_dir())
+            or (writable and not mount.get('RW')) or (bind_only and mount.get('Type') != 'bind')):
+        raise _ConfigurationError('Mount the configuration directory with the required access before saving')
+    runtime = destination.joinpath(*relative.parts)
+    for other in mounts:
+        other_destination = PurePosixPath(other.get('Destination', ''))
+        if other is mount or not other_destination.is_absolute():
+            continue
+        try:
+            runtime.relative_to(other_destination)
+        except ValueError:
+            continue
+        if len(other_destination.parts) >= len(destination.parts):
+            raise _ConfigurationError('Another container mount hides the selected configuration path')
+    return str(runtime)
+
+
+class _Validator:
+    validate_before_install = True
+
+    def __init__(self, spec, target, main):
+        self.spec, self.target, self.main = spec, target, main
+        self.container = spec.get('container', '')
+        self.mounts = []
+
+    def inspect(self):
+        if self.container:
+            result = _run(['docker', 'inspect', '--format', '{{json .Mounts}}', self.container], timeout=10)
+            if result.returncode:
+                raise _ConfigurationError('Cannot inspect container mounts')
+            self.mounts = json.loads(result.stdout)
+
+    def close(self):
+        return
+
+
+class _NginxWafValidator(_Validator):
+    validate_before_install = False
+
+    def inspect(self):
+        super().inspect()
+        if self.container:
+            _container_path(self.target, self.mounts, directory=True, bind_only=True)
+            main = _container_path(self.main, self.mounts, bind_only=True)
+            self.command = ['docker', 'exec', self.container, 'nginx', '-t', '-c', main]
+        else:
+            self.command = ['nginx', '-t', '-c', str(self.main)]
+
+    def validate(self, staged=None):
+        return _run(self.command).returncode == 0
+
+
+class _HaproxyValidator(_Validator):
+    def __init__(self, *args):
+        super().__init__(*args)
+        self.copied = False
+        self.container_candidate = '/roxywi-' + uuid4().hex + '.cfg'
+
+    def inspect(self):
+        super().inspect()
+        if self.container and self.spec['action'] not in ('test', 'check'):
+            _container_path(self.target, self.mounts, directory=True, writable=True, aliases=True)
+
+    def files(self, candidate):
+        files = []
+        for source in self.spec['sources']:
+            source = Path(source)
+            if not source.is_absolute():
+                raise _ConfigurationError('Configuration sources must be absolute paths')
+            if source.is_dir():
+                entries = {path for path in source.glob('*.cfg') if path.is_file() and not path.name.startswith('.')}
+                if candidate and self.target.parent.resolve() == source.resolve() and not self.target.name.startswith('.'):
+                    entries.add(source / self.target.name)
+                files.extend(sorted(entries, key=lambda path: os.fsencode(str(path))))
+            else:
+                files.append(source)
+        canonical = [path.resolve() for path in files]
+        if len(set(canonical)) != len(canonical):
+            raise _ConfigurationError('Overlapping -f sources load the same file more than once')
+        if candidate and canonical.count(self.target) != 1:
+            raise _ConfigurationError('Selected file is not included in HAProxy startup sources; configure startup with -f')
+        return canonical
+
+    def validate(self, staged=None):
+        files = self.files(staged is not None)
+        if staged is not None and self.container and not self.copied:
+            # /tmp may be a read-only bind mount. Use a unique path at the container root.
+            self.copied = True
+            if _run(['docker', 'cp', str(staged), self.container + ':' + self.container_candidate]).returncode:
+                raise _ConfigurationError('Cannot stage the container candidate')
+            uid = _run(['docker', 'exec', self.container, 'id', '-u'], timeout=10)
+            gid = _run(['docker', 'exec', self.container, 'id', '-g'], timeout=10)
+            if uid.returncode or gid.returncode:
+                raise _ConfigurationError('Cannot determine the container user')
+            owner = uid.stdout.decode().strip() + ':' + gid.stdout.decode().strip()
+            if not re.fullmatch(r'[0-9]+:[0-9]+', owner):
+                raise _ConfigurationError('Invalid container user identity')
+            if _run(['docker', 'exec', '-u', '0', self.container, 'chown', owner, self.container_candidate], timeout=10).returncode:
+                raise _ConfigurationError('Cannot set container candidate ownership')
+        arguments = []
+        for path in files:
+            if staged is not None and path == self.target:
+                value = self.container_candidate if self.container else str(staged)
+            elif self.container:
+                value = _container_path(path, self.mounts, aliases=True)
+            else:
+                value = str(path)
+            arguments.extend(['-f', value])
+        command = (['docker', 'exec', self.container] if self.container else []) + ['haproxy', '-c', *arguments]
+        return _run(command).returncode == 0
+
+    def close(self):
+        if self.copied and _run(['docker', 'exec', '-u', '0', self.container, 'rm', '-f', self.container_candidate], timeout=10).returncode:
+            raise _ConfigurationError('Cannot remove the container candidate')
+
+
+def _target(spec):
+    target, main = Path(spec['target']), Path(spec['main'])
+    if not target.is_absolute() or not main.is_absolute():
+        raise _ConfigurationError('Configuration paths must be absolute')
+    if spec['service'] == 'haproxy':
+        if not Path(spec['root']).is_absolute():
+            raise _ConfigurationError('HAProxy directory must be absolute')
+        root = Path(spec['root']).resolve()
+        target, main = target.resolve(), main.resolve()
+        if target != main and (root not in target.parents or target.suffix != '.cfg'):
+            raise _ConfigurationError('Selected configuration resolves outside the HAProxy directory')
+    else:
+        if (target.parent.name != 'rules' or target.parent.parent.name != 'waf'
+                or target.parent.is_symlink() or not re.fullmatch(r'[A-Za-z0-9._-]+\.conf', target.name)):
+            raise _ConfigurationError('Invalid WAF rule path')
+        _regular(target)
+        if not main.is_file():
+            raise _ConfigurationError('Main NGINX configuration is missing')
+    return target, main
+
+
+def execute(spec: dict) -> dict:
+    """Run one transaction under the lock acquired by candidate_command."""
+    result = {'status': 'failed', 'code': 'save_failed'}
+    work = upload = validator = None
+    installed = action_started = keep_backup = False
+    original = content = None
+    phase = 'prepare'
+    try:
+        service, action = spec['service'], spec['action']
+        if service not in ('haproxy', 'nginx_waf') or action not in ('test', 'check', 'save', 'reload', 'restart'):
+            raise _ConfigurationError('Unsupported configuration transaction')
+        if action != 'check':
+            path = Path(spec['candidate'])
+            if not path.is_absolute() or path.resolve() in (Path(spec['target']).resolve(), Path(spec['main']).resolve()):
+                raise _ConfigurationError('Invalid candidate path')
+            _regular(path)
+            upload = path
+            content = upload.read_bytes()
+        target, main = _target(spec)
+        action_command = spec.get('action_command', '') if action in ('reload', 'restart') else ''
+        if action in ('reload', 'restart') and not action_command:
+            raise _ConfigurationError('Service action command is missing')
+        original = _contents(target)
+        validator_type = _HaproxyValidator if service == 'haproxy' else _NginxWafValidator
+        validator = validator_type(spec, target, main)
+        phase = 'mount'
+        validator.inspect()
+        phase = 'validate'
+        if action == 'check':
+            if not validator.validate():
+                raise _ConfigurationError('Current configuration validation failed')
+            result = {'status': 'ok'}
+        else:
+            # Baseline failure must not prevent repairing an already invalid file.
+            baseline_valid = validator.validate() if action_command or not validator.validate_before_install else False
+            phase = 'prepare'
+            work = Path(tempfile.mkdtemp(prefix='roxywi-candidate-'))
+            backup, staged = work / 'before', work / 'candidate.cfg'
+            if original is not None:
+                _copy(target, backup)
+                if backup.read_bytes() != original:
+                    raise _ConfigurationError('Configuration changed before staging')
+            staged.write_bytes(content)
+            staged.chmod(0o600)
+            phase = 'validate'
+            if validator.validate_before_install and not validator.validate(staged):
+                raise _ConfigurationError('Candidate configuration validation failed')
+            if action != 'test' or not validator.validate_before_install:
+                phase = 'prepare'
+                installed = True
+                _install(staged, target, original, backup if original is not None else None)
+                phase = 'validate'
+                if not validator.validate_before_install and not validator.validate(staged):
+                    raise _ConfigurationError('Candidate configuration validation failed')
+                if _contents(target) != content:
+                    raise _ConfigurationError('Configuration changed during validation')
+                if action == 'test':
+                    _install(backup, target, content, backup)
+                    installed = False
+                elif action_command:
+                    phase = 'apply'
+                    action_started = True
+                    if _run(['sh', '-c', action_command]).returncode:
+                        raise _ConfigurationError('Service action failed')
+            result = {'status': 'ok'}
+    except Exception as exc:
+        code = {'validate': 'validation_failed', 'apply': 'apply_failed', 'mount': 'mount_failed'}.get(phase, 'save_failed')
+        result = {'status': 'failed', 'code': code, 'phase': phase, 'cause': type(exc).__name__}
+        if isinstance(exc, _ConfigurationError):
+            result['reason'] = str(exc)
+        if installed:
+            try:
+                if _contents(target) != original:
+                    if original is None:
+                        if _contents(target) != content:
+                            raise _ConfigurationError('New configuration changed during the transaction')
+                        target.unlink()
+                    else:
+                        _install(backup, target, content, backup)
+                result['restored'] = True
+                if action_started:
+                    if not baseline_valid or not validator.validate():
+                        raise _ConfigurationError('The previous configuration cannot be applied safely')
+                    if _run(['sh', '-c', action_command]).returncode:
+                        raise _ConfigurationError('Service recovery action failed')
+            except Exception as recovery_error:
+                keep_backup = True
+                result.update(code='recovery_failed', backup=str(backup if original is not None else work),
+                              recovery=type(recovery_error).__name__)
+    finally:
+        # Independent cleanup attempts: a failed Docker cleanup must not leak the upload.
+        cleanups = []
+        if validator:
+            cleanups.append(validator.close)
+        if upload:
+            cleanups.append(lambda: upload.unlink(missing_ok=True))
+        if work and not keep_backup:
+            cleanups.append(lambda: shutil.rmtree(work))
+        for cleanup in cleanups:
+            try:
+                cleanup()
+            except Exception as cleanup_error:
+                result.update(status='failed', cleanup=type(cleanup_error).__name__)
+                result.setdefault('code', 'save_failed')
+    return result
+
+
+def main() -> None:
+    signals = [getattr(signal, name) for name in ('SIGHUP', 'SIGINT', 'SIGTERM') if hasattr(signal, name)]
+
+    def interrupted(signum, frame):
+        for number in signals:
+            signal.signal(number, signal.SIG_IGN)
+        raise InterruptedError('Configuration transaction interrupted')
+
+    for number in signals:
+        signal.signal(number, interrupted)
+    print(json.dumps(execute(json.loads(sys.argv[1]))))
+
+
+if __name__ == '__main__':
+    main()

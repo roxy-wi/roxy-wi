@@ -50,6 +50,8 @@ jobs:
         run: python tests/integration/test_service_json_logs.py
       - name: Verify incremental reads and rotation on Linux
         run: python tests/integration/test_remote_log_reader.py
+      - name: Verify NGINX WAF validation, rollback and live reload
+        run: python -m pytest tests/integration/test_waf_nginx_linux.py -q --no-cov
       - name: Verify authentication events with the real Fail2Ban filter
         run: python -m pytest tests/integration/test_advisory_fail2ban.py -q --no-cov
       - name: Verify real SSH and Docker HAProxy certificate recovery
