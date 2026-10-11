@@ -134,26 +134,49 @@ $( function() {
 	});
 });
 function waf_rules_en(id) {
-	let enable = 0;
-	let cur_url = window.location.href.split('/');
-	let serv = cur_url[5];
-	if ($('#rule_id-' + id).is(':checked')) {
-		enable = '1';
+	const checkbox = $('#rule_id-' + id);
+	const row = $('#rule-' + id);
+	const table = $('#waf_rules');
+	function refresh(checked, disabled) {
+		checkbox.prop('checked', checked).prop('disabled', disabled);
+		if (checkbox.checkboxradio('instance')) checkbox.checkboxradio('refresh');
 	}
+	if (row.data('toggling')) {
+		refresh(row.data('requested') === 1, true);
+		return;
+	}
+	const previous = row.attr('data-enabled') === '1';
+	const enable = checkbox.is(':checked') ? 1 : 0;
+	function failure(key) {
+		refresh(previous, true);
+		toastr.clear();
+		toastr.error(table.attr('data-' + key + '-error'));
+	}
+	row.data('toggling', true).data('requested', enable);
+	refresh(enable === 1, true);
 	$.ajax({
-		url: "/waf/" + serv + "/rule/" + id + "/" + enable,
+		url: row.attr(enable ? 'data-enable-url' : 'data-disable-url'),
 		type: "POST",
+		dataType: 'json',
 		contentType: "application/json; charset=utf-8",
+		suppressGlobalError: true,
 		success: function (data) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
-				toastr.info('Do not forget restart WAF service');
-				$('#rule-' + id).addClass("update", 1000);
-				setTimeout(function () {
-					$('#rule-' + id).removeClass("update");
-				}, 2500);
+			if (!data || data.status !== 'updated' || data.enabled !== enable) {
+				failure('toggle');
+				return;
 			}
+			row.attr('data-enabled', String(enable)).addClass('update');
+			refresh(enable === 1, true);
+			toastr.clear();
+			toastr.info(table.attr('data-toggle-success'));
+			setTimeout(function () { row.removeClass('update'); }, 2500);
+		},
+		error: function (xhr) {
+			failure({400: 'invalid', 403: 'forbidden', 409: 'conflict'}[xhr.status] || 'toggle');
+		},
+		complete: function () {
+			row.data('toggling', false);
+			refresh(checkbox.is(':checked'), false);
 		}
 	});
 }

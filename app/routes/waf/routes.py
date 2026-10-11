@@ -177,16 +177,23 @@ def waf_save_config(service, server_ip, rule_id):
 
 
 @bp.route('/<server_ip>/rule/<int:rule_id>/<int:enable>', methods=['POST'])
-def enable_rule(server_ip, rule_id, enable):
+@bp.route('/<any(haproxy, nginx):service>/<server_ip>/rule/<int:rule_id>/<int:enable>', methods=['POST'])
+def enable_rule(server_ip, rule_id, enable, service=None):
     server_ip = common.is_ip_or_dns(server_ip)
 
     try:
-        roxy_waf.switch_waf_rule(server_ip, enable, rule_id)
-        return jsonify({'status': 'updated'})
+        roxy_waf.switch_waf_rule(server_ip, enable, rule_id, service)
+        return jsonify({'status': 'updated', 'enabled': enable})
+    except RoxywiValidationError as exc:
+        return _waf_error_response('invalid', exc, server_ip, section='waf_toggle', status=400)
+    except RoxywiPermissionError as exc:
+        return _waf_error_response('forbidden', exc, server_ip, section='waf_toggle', status=403)
+    except RoxywiConflictError as exc:
+        return _waf_error_response('conflict', exc, server_ip, section='waf_toggle', status=409)
     except RoxywiPublicError:
         raise
-    except Exception as e:
-        return roxywi_common.handle_json_exceptions(e, f'Cannot enable WAF rule {rule_id}', server_ip)
+    except Exception as exc:
+        return _waf_error_response('failed', exc, server_ip, section='waf_toggle')
 
 
 @bp.route('/<any(haproxy, nginx):service>/<server_ip>/rule/create', methods=['POST'])

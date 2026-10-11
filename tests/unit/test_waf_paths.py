@@ -34,3 +34,9 @@ def test_unsupported_waf_service_is_rejected_before_settings(monkeypatch):
     monkeypatch.setattr(common.sql, 'get_setting', lambda *a: pytest.fail('Unsupported service reached settings'))
     with pytest.raises(RoxywiValidationError):
         common.resolve_waf_config_path('apache', 'test.conf')
+
+
+@pytest.mark.parametrize('service,filename', [('haproxy', 'modsecurity.conf'), ('nginx', 'waf.conf')])
+def test_each_service_uses_its_actual_waf_entrypoint(monkeypatch, service, filename):
+    monkeypatch.setattr(common.sql, 'get_setting', lambda key: '/srv/custom proxy/')
+    assert common.get_waf_entrypoint(service) == f'/srv/custom proxy/waf/{filename}'

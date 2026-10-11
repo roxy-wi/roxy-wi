@@ -23,6 +23,7 @@ def test_scheduler_api_is_disabled_and_scheduler_is_not_started_in_web_process(a
     '/runtimeapi/table/clear/<server_ip>/<table>',
     '/runtimeapi/session/delete/<server_ip>/<sess_id>',
     '/waf/<server_ip>/rule/<int:rule_id>/<int:enable>',
+    '/waf/<any(haproxy, nginx):service>/<server_ip>/rule/<int:rule_id>/<int:enable>',
     '/waf/<any(haproxy, nginx):service>/mode/<int:server_id>/<any(On, Off, DetectionOnly):waf_mode>',
     '/waf/metric/enable/<int:enable>/<int:server_id>',
     '/admin/tools/update/<service>',

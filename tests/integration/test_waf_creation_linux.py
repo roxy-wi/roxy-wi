@@ -50,3 +50,27 @@ def test_missing_entrypoint_returns_failure_without_creating_rule(tmp_path):
                             capture_output=True, text=True, timeout=5)
     assert result.returncode != 0
     assert not rule.exists()
+
+
+def test_concurrent_remote_disables_do_not_stack_comment_markers(tmp_path):
+    (tmp_path / 'rules').mkdir()
+    entrypoint = tmp_path / 'modsecurity.conf'
+    entrypoint.write_text('SecRuleEngine On\n')
+    rule = tmp_path / 'rules/test.conf'
+    created = subprocess.run([sys.executable, str(SCRIPT), str(entrypoint), str(rule), 'a' * 64],
+                             capture_output=True, text=True, timeout=5)
+    assert created.returncode == 0, created.stderr
+    command = ['flock', '-w', '30', str(tmp_path / '.lock'), sys.executable, str(SCRIPT),
+               'toggle', str(entrypoint), str(rule), '0']
+    processes = [subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) for _ in range(2)]
+    try:
+        for process in processes:
+            stdout, stderr = process.communicate(timeout=35)
+            assert process.returncode == 0, stderr
+            assert json.loads(stdout) == {'status': 'ok', 'enabled': 0}
+    finally:
+        for process in processes:
+            if process.poll() is None:
+                process.kill()
+                process.wait()
+    assert entrypoint.read_text() == f'SecRuleEngine On\n# Include {rule}\n'

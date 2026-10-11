@@ -136,6 +136,14 @@
     }
 }
 %}
+{% set waf_toggle = {
+    "failed": "无法确认规则状态。请检查服务器连接和 Roxy-WI 日志，然后重试相同的更改。",
+    "conflict": "无法自动更改此规则。请确认规则文件存在，且仅在一个配置文件中通过精确的 Include 路径引用，不使用通配符。",
+    "invalid": "请为有效的 WAF 规则选择启用或禁用状态。",
+    "forbidden": "您没有更改此服务的 WAF 规则的权限。",
+    "saved_haproxy": "规则设置已保存。请重启 WAF 服务以应用更改。",
+    "saved_nginx": "规则设置已保存。请重新加载 NGINX 以应用更改。"
+} %}
 {% set waf_create = {
     "title": "创建 WAF 规则",
     "filename": "文件名",

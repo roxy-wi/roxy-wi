@@ -11,7 +11,10 @@
 		#waf-create-form .form-control { width: 100%; box-sizing: border-box; }
 		#waf-create-error { margin: 12px 0 0; }
 	</style>
-	<table class="overview" id="waf_rules">
+	<table class="overview" id="waf_rules"
+           data-toggle-error="{{ lang.waf_toggle.failed }}" data-conflict-error="{{ lang.waf_toggle.conflict }}"
+           data-invalid-error="{{ lang.waf_toggle.invalid }}" data-forbidden-error="{{ lang.waf_toggle.forbidden }}"
+           data-toggle-success="{{ lang.waf_toggle['saved_' + service] }}">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn">
 				{{lang.words.rule_name}}
@@ -21,7 +24,9 @@
 			<td></td>
 		</tr>
 		{% for r in rules %}
-		<tr class="{{ loop.cycle('odd', 'even') }}" id="rule-{{r.id}}">
+		<tr class="{{ loop.cycle('odd', 'even') }}" id="rule-{{r.id}}" data-enabled="{{ r.en }}"
+            data-enable-url="{{ url_for('waf.enable_rule', service=service, server_ip=serv, rule_id=r.id, enable=1) }}"
+            data-disable-url="{{ url_for('waf.enable_rule', service=service, server_ip=serv, rule_id=r.id, enable=0) }}">
 			<td class="padding10 first-collumn">{{r.rule_name}}</td>
 			<td class="checkbox">
 				{% set id = 'rule_id-' + r.id|string() %}

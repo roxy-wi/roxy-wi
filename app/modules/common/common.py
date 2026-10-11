@@ -258,6 +258,10 @@ def get_waf_directory(service: str) -> str:
 	return posixpath.join(posixpath.normpath(base), 'waf')
 
 
+def get_waf_entrypoint(service: str) -> str:
+	return posixpath.join(get_waf_directory(service), 'waf.conf' if service == 'nginx' else 'modsecurity.conf')
+
+
 def resolve_waf_config_path(service: str, config_file_name: str) -> str:
 	"""Resolve a rule basename inside the configured remote rules directory."""
 	if not isinstance(config_file_name, str) or not re.fullmatch(r'[A-Za-z0-9._-]+\.conf', config_file_name):

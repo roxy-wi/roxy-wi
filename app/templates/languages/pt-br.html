@@ -136,6 +136,14 @@
     }
 }
 %}
+{% set waf_toggle = {
+    "failed": "Não foi possível confirmar o estado da regra. Verifique a conexão com o servidor e os logs do Roxy-WI; depois, repita a mesma alteração.",
+    "conflict": "Não é possível alterar esta regra automaticamente. Verifique se o arquivo existe e se há um Include exato em um único arquivo de configuração, sem curingas.",
+    "invalid": "Selecione o estado ativado ou desativado para uma regra WAF válida.",
+    "forbidden": "Você não tem permissão para alterar regras WAF deste serviço.",
+    "saved_haproxy": "Configuração da regra salva. Reinicie o serviço WAF para aplicá-la.",
+    "saved_nginx": "Configuração da regra salva. Recarregue o NGINX para aplicá-la."
+} %}
 {% set waf_create = {
     "title": "Criar uma regra WAF",
     "filename": "Nome do arquivo",

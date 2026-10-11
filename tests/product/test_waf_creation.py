@@ -23,7 +23,7 @@ def test_create_and_retry_keep_one_file_include_and_row(product_client, product,
     assert (rule.serv, rule.service, rule.rule_name, rule.desc, rule.rule_file) == (
         product.server.ip, service, PAYLOAD['new_waf_rule'], PAYLOAD['new_rule_description'], 'custom-rule.conf')
     root = waf_creation.roots[service]
-    entrypoint = root / 'modsecurity.conf'
+    entrypoint = root / ('waf.conf' if service == 'nginx' else 'modsecurity.conf')
     assert entrypoint.read_text().count('custom-rule.conf') == 1
     assert waf_creation.commands[0][1][:2] == [
         f'/srv/{service} custom/waf/{entrypoint.name}', f'/srv/{service} custom/waf/rules/custom-rule.conf']

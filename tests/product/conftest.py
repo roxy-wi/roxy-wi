@@ -67,7 +67,7 @@ def waf_creation(product, monkeypatch):
         root = product.root / service / 'waf'
         (root / 'rules').mkdir(parents=True)
         (root / 'modsecurity.conf').write_text('SecRuleEngine On\n', encoding='utf-8')
-        (root / 'waf.conf').write_text('Include /existing/modsecurity.conf\n', encoding='utf-8')
+        (root / 'waf.conf').write_text('Include ' + json.dumps(str(root / 'modsecurity.conf')) + '\n', encoding='utf-8')
         state.roots[service] = root
         models.Setting.update(value=f'/srv/{service} custom').where(
             models.Setting.param == f'{service}_dir', models.Setting.group_id == 1).execute()
@@ -92,14 +92,20 @@ def waf_creation(product, monkeypatch):
         state.commands.append((server, tokens[-3:]))
         if state.fail_before:
             raise OSError('synthetic SSH failure')
+        result = {'status': 'ok'}
         try:
-            waf_rule_file.create_rule(local_path(tokens[-3]), local_path(tokens[-2]), tokens[-1])
+            if tokens[9] == 'toggle':
+                enabled = int(tokens[-1])
+                waf_rule_file.switch_rule(local_path(tokens[-3]), local_path(tokens[-2]), enabled)
+                result['enabled'] = enabled
+            else:
+                waf_rule_file.create_rule(local_path(tokens[-3]), local_path(tokens[-2]), tokens[-1])
         except waf_rule_file.RuleConflict:
             return json.dumps({'status': 'conflict'})
         if state.lose_response:
             state.lose_response = False
             raise OSError('synthetic lost SSH response')
-        return json.dumps({'status': 'ok'})
+        return json.dumps(result)
 
     @contextmanager
     def connect(server):
@@ -112,4 +118,21 @@ def waf_creation(product, monkeypatch):
 
     monkeypatch.setattr(waf.server_mod, 'ssh_command', ssh)
     monkeypatch.setattr(config.mod_ssh, 'ssh_connect', connect)
+    return state
+
+
+@pytest.fixture
+def waf_switching(waf_creation, product):
+    state = waf_creation
+    state.rules = {}
+    state.entrypoints = {}
+    for service, root in state.roots.items():
+        rule = models.WafRules.create(serv=product.server.ip, service=service, rule_name='Test rule',
+                                      rule_file='test.conf', en=1)
+        path = root / 'rules/test.conf'
+        path.write_text('# customer rule content\n', encoding='utf-8')
+        entrypoint = root / ('waf.conf' if service == 'nginx' else 'modsecurity.conf')
+        waf_rule_file.switch_rule(entrypoint, path, 1)
+        state.rules[service] = rule
+        state.entrypoints[service] = entrypoint
     return state

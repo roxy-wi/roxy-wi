@@ -169,13 +169,16 @@ def test_save_keeps_rule_path_through_upload_pipeline(product_client, product, w
 @pytest.mark.parametrize('service', ['haproxy', 'nginx'])
 def test_legacy_toggle_uses_service_from_registered_rule(product_client, product, waf_rules, monkeypatch, service):
     commands = []
-    monkeypatch.setattr(waf.server_mod, 'ssh_command', lambda server, command: commands.append((server, command)))
+    monkeypatch.setattr(waf.server_mod, 'ssh_command',
+                        lambda server, command, **kwargs: commands.append((server, command)) or '{"status":"ok","enabled":0}')
     rule_id = waf_rules[service].id
     response = product_client.post(f'/waf/{product.server.ip}/rule/{rule_id}/0')
     assert response.status_code == 200, response.text
     assert response.json['status'] == 'updated'
     assert len(commands) == 1 and commands[0][0] == product.server.ip
-    assert shlex.split(commands[0][1])[-1] == f'{WAF_DIRS[service]}/waf/modsecurity.conf'
+    entrypoint = 'waf.conf' if service == 'nginx' else 'modsecurity.conf'
+    assert shlex.split(commands[0][1])[-4:] == [
+        'toggle', f'{WAF_DIRS[service]}/waf/{entrypoint}', f'{WAF_DIRS[service]}/waf/rules/test.conf', '0']
     assert f'{WAF_DIRS[service]}/waf/rules/test.conf' in commands[0][1]
     assert WafRules.get_by_id(rule_id).en == 0
     other_service = 'nginx' if service == 'haproxy' else 'haproxy'

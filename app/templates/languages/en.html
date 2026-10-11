@@ -136,6 +136,14 @@
     }
 }
 %}
+{% set waf_toggle = {
+    "failed": "Could not confirm the rule setting. Check the server connection and Roxy-WI logs, then retry the same change.",
+    "conflict": "Cannot change this rule automatically. Check that its file exists and it has an exact Include in one configuration file, without wildcard Includes.",
+    "invalid": "Select an enabled or disabled state for a valid WAF rule.",
+    "forbidden": "You do not have permission to change WAF rules for this service.",
+    "saved_haproxy": "Rule setting saved. Restart the WAF service to apply it.",
+    "saved_nginx": "Rule setting saved. Reload NGINX to apply it."
+} %}
 {% set waf_create = {
     "title": "Create a WAF rule",
     "filename": "File name",

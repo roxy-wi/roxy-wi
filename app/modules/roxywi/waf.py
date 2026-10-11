@@ -2,7 +2,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
-from shlex import join, quote
+from shlex import join
 
 from flask import render_template
 from peewee import IntegrityError
@@ -111,23 +111,42 @@ def change_waf_mode(waf_mode: str, server_id: int, service: str) -> None:
     roxywi_common.logging(serv.hostname, f'Has been changed WAF mod to {waf_mode}')
 
 
-def switch_waf_rule(serv: str, enable: int, rule_id: int):
-    rule = get_waf_rule(serv, rule_id)
-    rule_file = rule.rule_file
-    rule_file_path = f'Include {common.resolve_waf_config_path(rule.service, rule_file)}'
-    conf_file_path = common.get_waf_directory(rule.service) + '/modsecurity.conf'
+def _waf_lock(serv: str, service: str):
+    lock_id = hashlib.sha256(f'{serv}\0{service}'.encode('utf-8')).hexdigest()
+    lock_dir = Path(GetConfigVar().get_config_var('main', 'lib_path')) / 'waf-locks'
+    lock_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
+    return file_lock(lock_dir / f'{lock_id}.lock')
 
-    if enable == 0:
-        replacement = f's!{rule_file_path}!#{rule_file_path}!'
-        en_for_log = 'disabled'
-    else:
-        replacement = f's!#{rule_file_path}!{rule_file_path}!'
-        en_for_log = 'enabled'
-    cmd = f'sudo sed -i {quote(replacement)} {quote(conf_file_path)}'
 
-    roxywi_common.logging('WAF', f' Has been {en_for_log} WAF rule: {rule_file} for the server {serv}')
-    waf_sql.update_enable_waf_rules(rule_id, serv, enable)
-    server_mod.ssh_command(serv, cmd)
+def _run_waf_file_command(serv: str, root: str, arguments: list[str], expected: dict) -> None:
+    script = Path(__file__).with_name('waf_rule_file.py').read_text(encoding='utf-8')
+    remote_lock = hashlib.sha256(root.encode('utf-8')).hexdigest()
+    command = join(['sudo', '-n', 'flock', '-w', '30', f'/var/lock/roxywi-waf-{remote_lock}.lock',
+                    'python3', '-c', script, *arguments])
+    output = server_mod.ssh_command(serv, command, rc=1, timeout=45, error_context='Cannot update WAF rule files')
+    result = json.loads(output)
+    if result == {'status': 'conflict'}:
+        raise RoxywiConflictError('The WAF rule file or its Include is ambiguous or has changed')
+    if result != expected:
+        raise RuntimeError('Unexpected WAF file operation result')
+
+
+def switch_waf_rule(serv: str, enable: int, rule_id: int, service: str = None) -> None:
+    if enable not in (0, 1):
+        raise RoxywiValidationError('Rule state must be 0 or 1')
+    rule = get_waf_rule(serv, rule_id, service)
+    with _waf_lock(serv, rule.service):
+        rule = get_waf_rule(serv, rule_id, rule.service)
+        root = common.get_waf_directory(rule.service)
+        rule_path = common.resolve_waf_config_path(rule.service, rule.rule_file)
+        entrypoint = common.get_waf_entrypoint(rule.service)
+        # Always confirm the remote state, including after an interrupted SSH
+        # response or database write. Repeating the desired state is idempotent.
+        _run_waf_file_command(serv, root, ['toggle', entrypoint, rule_path, str(enable)],
+                              {'status': 'ok', 'enabled': enable})
+        waf_sql.update_enable_waf_rules(rule_id, serv, enable)
+        state = 'enabled' if enable else 'disabled'
+        roxywi_common.logging('WAF', f'WAF rule {rule.rule_file} {state} in configuration on {serv}')
 
 
 def _existing_created_rule(serv: str, service: str, name: str, filename: str, description: str) -> int | None:
@@ -161,30 +180,16 @@ def create_waf_rule(serv: str, service: str, json_data: dict) -> int:
         raise RoxywiValidationError('Invalid rule name, description or filename')
     root = common.get_waf_directory(service)
     rule_path = common.resolve_waf_config_path(service, filename)
-    # Both installations load modsecurity.conf. Keep custom rules here until
-    # Include placement and the existing rule toggle are updated together.
-    entrypoint = root + '/modsecurity.conf'
+    entrypoint = common.get_waf_entrypoint(service)
     request_id = hashlib.sha256(json.dumps([serv, service, name, filename, description],
                                            ensure_ascii=True).encode('utf-8')).hexdigest()
-    lock_id = hashlib.sha256(f'{serv}\0{service}'.encode('utf-8')).hexdigest()
-    lock_dir = Path(GetConfigVar().get_config_var('main', 'lib_path')) / 'waf-locks'
-    lock_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     # Serialize the catalog check, SSH and insert across workers on shared storage.
     # No database transaction is held while waiting for the remote host.
-    with file_lock(lock_dir / f'{lock_id}.lock'):
+    with _waf_lock(serv, service):
         existing = _existing_created_rule(serv, service, name, filename, description)
         if existing is not None:
             return existing
-        script = Path(__file__).with_name('waf_rule_file.py').read_text(encoding='utf-8')
-        remote_lock = hashlib.sha256(root.encode('utf-8')).hexdigest()
-        command = join(['sudo', '-n', 'flock', '-w', '30', f'/var/lock/roxywi-waf-{remote_lock}.lock',
-                        'python3', '-c', script, entrypoint, rule_path, request_id])
-        output = server_mod.ssh_command(serv, command, rc=1, timeout=45, error_context='Cannot create WAF rule')
-        result = json.loads(output)
-        if result == {'status': 'conflict'}:
-            raise RoxywiConflictError('The WAF rule file or its Include already exists or has changed')
-        if result != {'status': 'ok'}:
-            raise RuntimeError('Unexpected WAF rule creation result')
+        _run_waf_file_command(serv, root, [entrypoint, rule_path, request_id], {'status': 'ok'})
         try:
             last_id = waf_sql.insert_new_waf_rule(name, filename, description, service, serv)
         except IntegrityError:
