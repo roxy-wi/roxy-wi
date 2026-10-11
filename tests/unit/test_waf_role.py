@@ -40,6 +40,13 @@ def test_crb_is_scoped_to_supported_el9_package_transactions(distribution, major
         assert enabled == expected
 
 
+def test_waf_unit_does_not_offer_unsupported_signal_reload():
+    template = (ROLE_DIR / 'templates/waf.service.j2').read_text(encoding='utf-8')
+    unit = NativeEnvironment(undefined=StrictUndefined).from_string(template).render(SERVICE_PATH='/etc/haproxy')
+    assert 'ExecStart=/etc/haproxy/waf/bin/modsecurity -n 4 -f /etc/haproxy/waf/modsecurity.conf' in unit
+    assert 'ExecReload=' not in unit
+
+
 def test_cleanup_can_render_before_build_facts_exist():
     _, tasks = role_data()
     cleanup = tasks['always'][0]

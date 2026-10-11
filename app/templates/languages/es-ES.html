@@ -154,6 +154,14 @@
     "failed": "No se pudo completar la creación de la regla WAF. Compruebe la conexión al servidor, los permisos de los archivos y los registros de Roxy-WI; después, reinténtelo con los mismos valores."
 } %}
 {% set waf_editor = {
+    "haproxy_save_hint": "HAProxy WAF no admite una comprobación de sintaxis independiente. Guardar escribe el archivo; guardar y reiniciar aplica las reglas y comprueba el agente.",
+    "haproxy_saved": "Regla WAF guardada sin comprobar la sintaxis. Reinicie el agente WAF para aplicarla.",
+    "haproxy_reload_unsupported": "El agente HAProxy WAF no admite reload. Use guardar y reiniciar.",
+    "haproxy_validation_failed": "El archivo de la regla WAF cambió durante el guardado. Ábralo de nuevo, revise los cambios y vuelva a intentarlo.",
+    "haproxy_apply_failed": "El agente WAF no pudo aplicar la regla. Se restauró el archivo anterior y el agente vuelve a responder. Revise los registros de WAF antes de reintentar.",
+    "haproxy_recovery_failed": "La recuperación automática no se completó. Revise el archivo de la regla y el estado del agente WAF antes de reintentar. La ruta de la copia de seguridad está en los registros de Roxy-WI.",
+    "haproxy_mount_failed": "No se pudo preparar el agente WAF. Revise la ruta de inicio del servicio (-f) y los registros de Roxy-WI. En Docker, monte el directorio de reglas y la configuración principal mediante bind mounts e instale nsenter en el host.",
+    "haproxy_save_failed": "No se pudo completar el guardado de la regla HAProxy WAF. Revise el servidor de destino y los registros de Roxy-WI antes de reintentar.",
     "nginx_validation_failed": "La configuración de NGINX no superó la validación. El archivo anterior de la regla sigue en su lugar. Ejecute nginx -t con el archivo principal configurado, corrija los errores y vuelva a intentarlo.",
     "nginx_apply_failed": "NGINX no pudo aplicar la regla. Se restauró el archivo anterior y se completó el comando de recuperación. Compruebe el estado y los registros de NGINX antes de volver a intentarlo.",
     "nginx_recovery_failed": "La recuperación automática no se completó. Compruebe el archivo de la regla y el estado de NGINX antes de volver a intentarlo. La ubicación de la copia de seguridad figura en los registros de Roxy-WI.",

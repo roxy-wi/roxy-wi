@@ -1,6 +1,7 @@
 import json
 import logging
 import re
+import shlex
 from datetime import datetime, timezone
 from io import BytesIO
 from pathlib import Path
@@ -123,12 +124,17 @@ def test_service_actions_reject_shell_fragments_before_settings(monkeypatch, ver
 
 @pytest.mark.parametrize('docker', ['0', '1'])
 @pytest.mark.parametrize('verb', ['start', 'stop', 'restart', 'reload'])
-def test_service_action_commands_preserve_valid_verbs(monkeypatch, docker, verb):
+@pytest.mark.parametrize('service', ['waf', 'nginx'])
+def test_service_action_commands_preserve_valid_verbs(monkeypatch, docker, verb, service):
     monkeypatch.setattr(action.service_sql, 'select_service_setting', lambda *a: docker)
     monkeypatch.setattr(action.sql, 'get_setting', lambda *a: 'waf')
     monkeypatch.setattr(action.service_common, 'get_correct_service_name', lambda *a: 'waf')
+    if service == 'waf' and verb == 'reload':
+        with pytest.raises(ValueError, match='requires restart'):
+            action.get_action_command(service, verb, 1)
+        return
     expected = ('kill -s HUP' if verb == 'reload' else verb) if docker == '1' else verb
-    assert action.get_action_command('waf', verb, 1) == (f'sudo docker {expected} waf > /dev/null' if docker == '1' else f'sudo systemctl {verb} waf')
+    assert action.get_action_command(service, verb, 1) == (f'sudo docker {expected} waf > /dev/null' if docker == '1' else f'sudo systemctl {verb} waf')
 
 
 @pytest.mark.parametrize('json_request', [False, True])
@@ -144,7 +150,7 @@ def test_waf_rejects_actions_before_writing(client, actor, monkeypatch, json_req
 
 @pytest.mark.parametrize('json_request', [False, True])
 @pytest.mark.parametrize('verb', ['save', 'reload', 'restart'])
-def test_waf_legitimate_save_contract(client, actor, monkeypatch, tmp_path, json_request, verb):
+def test_waf_save_action_contract(client, actor, monkeypatch, tmp_path, json_request, verb):
     actor[0]['role'] = 2
     calls = []
     monkeypatch.setattr(waf_routes.roxywi_common, 'check_is_server_in_group', lambda *a: None)
@@ -158,6 +164,11 @@ def test_waf_legitimate_save_contract(client, actor, monkeypatch, tmp_path, json
     monkeypatch.setattr(waf_routes.config_mod, 'master_slave_upload_and_restart', upload)
     data = {'config': 'synthetic', 'config_file_name': 'test.conf', ('action' if json_request else 'save'): verb}
     response = client.post('/waf/haproxy/192.0.2.10/rule/1/save', headers=actor[1], **({'json': data} if json_request else {'data': data}))
+    if verb == 'reload':
+        assert response.status_code == 400
+        assert not calls
+        assert not list(tmp_path.glob('waf-save-*'))
+        return
     assert response.status_code == 200
     assert calls, response.get_data(as_text=True)
     assert calls[0][0][2] == verb
@@ -259,7 +270,8 @@ def test_save_and_test_do_not_generate_service_verbs(monkeypatch):
     monkeypatch.setattr(config_mod.server_sql, 'return_firewall', lambda *a: False)
     for verb in ('save', 'test'):
         command = config_mod._generate_command('haproxy', 1, verb, '/etc/haproxy.cfg', '/tmp/test.cfg', 'unused', '192.0.2.10')
-        assert 'systemctl' not in command
+        spec = json.loads(shlex.split(command)[-1])
+        assert spec['action'] == verb and not spec['action_command']
 
 
 def formatted_auth_log(app, path, client_ip, event, message='Authentication failed'):

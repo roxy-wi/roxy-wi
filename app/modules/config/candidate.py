@@ -5,6 +5,7 @@ recovery, command execution and the result contract belong to this module.
 """
 from __future__ import annotations
 
+import getopt
 import hashlib
 import json
 import os
@@ -16,12 +17,73 @@ import signal
 import subprocess
 import sys
 import tempfile
+import time
 from uuid import uuid4
 
 
 ERROR_CODES = {'validation_failed', 'apply_failed', 'recovery_failed', 'mount_failed', 'save_failed'}
 # Allow lock acquisition, Docker staging, validation, apply and recovery to finish.
 REMOTE_TIMEOUT = 360
+
+# SPOP 2.0 HELLO health check. This small program also runs in a Docker network
+# namespace with the host Python; the container needs no Python installation.
+# Protocol: https://github.com/haproxy/haproxy/blob/master/doc/SPOE.txt
+SPOA_HEALTHCHECK = r'''
+import socket
+import sys
+
+def buffer(value):
+    return bytes([len(value)]) + value
+
+def receive(connection, size):
+    data = b''
+    while len(data) < size:
+        part = connection.recv(size - len(data))
+        if not part:
+            raise ValueError('Incomplete frame')
+        data += part
+    return data
+
+try:
+    hello = (b'\x01\x00\x00\x00\x01\x00\x00'
+             + buffer(b'supported-versions') + b'\x08' + buffer(b'2.0')
+             + buffer(b'max-frame-size') + b'\x03\x80'
+             + buffer(b'capabilities') + b'\x08\x00'
+             + buffer(b'healthcheck') + b'\x11')
+    with socket.create_connection(('127.0.0.1', int(sys.argv[1])), timeout=2) as connection:
+        connection.sendall(len(hello).to_bytes(4, 'big') + hello)
+        size = int.from_bytes(receive(connection, 4), 'big')
+        if not 7 < size <= 128:
+            raise ValueError('Invalid frame size')
+        data = receive(connection, size)
+    if data[:7] != b'\x65\x00\x00\x00\x01\x00\x00':
+        raise ValueError('Expected AGENT-HELLO')
+    values, offset = {}, 7
+    while offset < len(data):
+        length = data[offset]
+        key = data[offset + 1:offset + 1 + length]
+        offset += 1 + length
+        kind = data[offset]
+        offset += 1
+        if kind == 3 and data[offset] < 240:
+            value = data[offset]
+            offset += 1
+        elif kind == 8 and data[offset] < 240:
+            length = data[offset]
+            value = data[offset + 1:offset + 1 + length]
+            offset += 1 + length
+        else:
+            raise ValueError('Unexpected value type')
+        if offset > len(data) or key in values:
+            raise ValueError('Invalid HELLO values')
+        values[key] = value
+    if (values.get(b'version') != b'2.0' or not isinstance(values.get(b'max-frame-size'), int)
+            or not size <= values[b'max-frame-size'] <= 128
+            or not isinstance(values.get(b'capabilities'), bytes)):
+        raise ValueError('Incompatible agent')
+except (OSError, ValueError, IndexError):
+    sys.exit(1)
+'''
 
 
 class CandidateApplyError(RuntimeError):
@@ -44,17 +106,19 @@ def check_result(output: str) -> None:
 
 
 def candidate_command(service: str, target: str, candidate: str, action: str, *, main: str,
-                      root: str = '', sources=(), container: str = '', action_command: str = '') -> str:
-    if service not in ('haproxy', 'nginx_waf') or action not in ('test', 'check', 'save', 'reload', 'restart'):
+                      root: str = '', sources=(), container: str = '', action_command: str = '', service_unit: str = '') -> str:
+    if service not in ('haproxy', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart'):
         raise ValueError('Unsupported configuration transaction')
-    if service == 'nginx_waf':
+    if service == 'haproxy_waf' and action not in ('save', 'restart'):
+        raise ValueError('HAProxy WAF supports save and restart only')
+    if service.endswith('_waf'):
         root = str(PurePosixPath(target).parent.parent)
         lock_id = hashlib.sha256(root.encode('utf-8')).hexdigest()
         lock = f'/var/lock/roxywi-waf-{lock_id}.lock'
     else:
         lock = '/var/lock/roxywi-haproxy-config.lock'
     spec = dict(service=service, target=target, candidate=candidate, action=action, main=main,
-                root=root, sources=list(sources), container=container, action_command=action_command)
+                root=root, sources=list(sources), container=container, action_command=action_command, service_unit=service_unit)
     script = Path(__file__).read_text(encoding='utf-8')
     return shlex.join(['sudo', '-n', 'flock', '-w', '30', lock, 'python3', '-c', script, json.dumps(spec)])
 
@@ -145,6 +209,7 @@ def _container_path(path: Path, mounts: list, *, directory=False, writable=False
 
 class _Validator:
     validate_before_install = True
+    can_validate = True
 
     def __init__(self, spec, target, main):
         self.spec, self.target, self.main = spec, target, main
@@ -161,21 +226,124 @@ class _Validator:
     def close(self):
         return
 
+    def apply(self):
+        if _run(['sh', '-c', self.spec['action_command']]).returncode:
+            raise _ConfigurationError('Service action failed')
 
-class _NginxWafValidator(_Validator):
+
+class _WafValidator(_Validator):
     validate_before_install = False
 
     def inspect(self):
         super().inspect()
+        self.runtime_main = str(self.main)
         if self.container:
             _container_path(self.target, self.mounts, directory=True, bind_only=True)
-            main = _container_path(self.main, self.mounts, bind_only=True)
-            self.command = ['docker', 'exec', self.container, 'nginx', '-t', '-c', main]
-        else:
-            self.command = ['nginx', '-t', '-c', str(self.main)]
+            self.runtime_main = _container_path(self.main, self.mounts, bind_only=True)
+
+
+class _NginxWafValidator(_WafValidator):
+    def inspect(self):
+        super().inspect()
+        self.command = (['docker', 'exec', self.container] if self.container else []) + ['nginx', '-t', '-c', self.runtime_main]
 
     def validate(self, staged=None):
         return _run(self.command).returncode == 0
+
+
+class _HaproxyWafValidator(_WafValidator):
+    # Upstream spoa-modsecurity has no syntax-check mode. Only a successful
+    # restart followed by its HELLO response confirms that it loaded the rules.
+    can_validate = False
+
+    def inspect(self):
+        super().inspect()
+        if self.main != self.target.parent.parent / 'modsecurity.conf':
+            raise _ConfigurationError('Unexpected ModSecurity entrypoint')
+        self.unit = self.spec.get('service_unit', '')
+        if self.spec['action'] == 'restart':
+            if self.container:
+                if not shutil.which('nsenter'):
+                    raise _ConfigurationError('Install util-linux on the Docker host to check WAF readiness')
+            else:
+                if not self.unit or self.unit.startswith('-'):
+                    raise _ConfigurationError('WAF systemd service name is required')
+                result = _run(['systemctl', 'show', self.unit, '--property=LoadState', '--value'], timeout=5)
+                if result.returncode or result.stdout.strip() != b'loaded':
+                    raise _ConfigurationError('WAF systemd service is not loaded')
+            pid = self.process_id()
+            if pid:
+                self.listener_port(pid)  # Reject mismatched startup paths before replacing the rule.
+
+    def process_id(self):
+        if self.container:
+            result = _run(['docker', 'inspect', '--format', '{{json .State}}', self.container], timeout=5)
+            if result.returncode:
+                return 0
+            state = json.loads(result.stdout)
+            return int(state['Pid']) if state.get('Running') and not state.get('Restarting') else 0
+        result = _run(['systemctl', 'show', self.unit, '--property=MainPID', '--property=ActiveState', '--property=SubState'], timeout=5)
+        if result.returncode:
+            return 0
+        state = dict(line.split('=', 1) for line in result.stdout.decode().splitlines() if '=' in line)
+        return int(state.get('MainPID', 0)) if state.get('ActiveState') == 'active' and state.get('SubState') == 'running' else 0
+
+    def listener_port(self, pid):
+        try:
+            arguments = [os.fsdecode(value) for value in (Path('/proc') / str(pid) / 'cmdline').read_bytes().split(b'\0') if value]
+        except (FileNotFoundError, ProcessLookupError):
+            return None
+        if not arguments:
+            return None  # Exiting processes can have an empty cmdline.
+        try:
+            options, remaining = getopt.getopt(arguments[1:], 'hdm:n:p:c:t:f:')
+            options = dict(options)
+        except getopt.GetoptError as exc:
+            raise _ConfigurationError('Unsupported WAF agent startup arguments') from exc
+        if remaining or options.get('-f') != self.runtime_main:
+            raise _ConfigurationError('Start the WAF agent directly with -f pointing to the configured modsecurity.conf')
+        port = int(options.get('-p', 12345))
+        if not 0 < port < 65536:
+            raise _ConfigurationError('Invalid WAF listener port')
+        return port
+
+    def ready(self, pid):
+        process = Path('/proc') / str(pid)
+        port = self.listener_port(pid)
+        if port is None:
+            return False
+        try:
+            sockets = set()
+            for descriptor in (process / 'fd').iterdir():
+                try:
+                    sockets.add(os.readlink(descriptor))
+                except FileNotFoundError:
+                    continue  # A descriptor can close while the process is starting.
+            listening = any(len(fields) > 9 and fields[3] == '0A' and int(fields[1].split(':')[1], 16) == port
+                            and 'socket:[' + fields[9] + ']' in sockets
+                            for fields in (line.split() for line in (process / 'net/tcp').read_text().splitlines()[1:]))
+            if not listening:
+                return False
+        except (FileNotFoundError, ProcessLookupError):
+            return False  # The service can exit between the status and /proc reads.
+        command = [sys.executable, '-c', SPOA_HEALTHCHECK, str(port)]
+        if self.container:
+            command = ['nsenter', '--target', str(pid), '--net', *command]
+        try:
+            return _run(command, timeout=3).returncode == 0
+        except subprocess.TimeoutExpired:
+            return False  # A bounded readiness loop reports failure to the transaction.
+
+    def apply(self):
+        previous_pid = self.process_id()
+        super().apply()
+        deadline = time.monotonic() + 15
+        while time.monotonic() < deadline:
+            pid = self.process_id()
+            if pid > 0 and pid != previous_pid and self.ready(pid) and self.process_id() == pid:
+                return
+            time.sleep(0.2)
+        raise _ConfigurationError('The restarted WAF agent did not become ready')
 
 
 class _HaproxyValidator(_Validator):
@@ -259,7 +427,7 @@ def _target(spec):
             raise _ConfigurationError('Invalid WAF rule path')
         _regular(target)
         if not main.is_file():
-            raise _ConfigurationError('Main NGINX configuration is missing')
+            raise _ConfigurationError('Main configuration is missing')
     return target, main
 
 
@@ -272,8 +440,10 @@ def execute(spec: dict) -> dict:
     phase = 'prepare'
     try:
         service, action = spec['service'], spec['action']
-        if service not in ('haproxy', 'nginx_waf') or action not in ('test', 'check', 'save', 'reload', 'restart'):
+        if service not in ('haproxy', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart'):
             raise _ConfigurationError('Unsupported configuration transaction')
+        if service == 'haproxy_waf' and action not in ('save', 'restart'):
+            raise _ConfigurationError('HAProxy WAF supports save and restart only')
         if action != 'check':
             path = Path(spec['candidate'])
             if not path.is_absolute() or path.resolve() in (Path(spec['target']).resolve(), Path(spec['main']).resolve()):
@@ -286,7 +456,7 @@ def execute(spec: dict) -> dict:
         if action in ('reload', 'restart') and not action_command:
             raise _ConfigurationError('Service action command is missing')
         original = _contents(target)
-        validator_type = _HaproxyValidator if service == 'haproxy' else _NginxWafValidator
+        validator_type = {'haproxy': _HaproxyValidator, 'nginx_waf': _NginxWafValidator, 'haproxy_waf': _HaproxyWafValidator}[service]
         validator = validator_type(spec, target, main)
         phase = 'mount'
         validator.inspect()
@@ -297,7 +467,9 @@ def execute(spec: dict) -> dict:
             result = {'status': 'ok'}
         else:
             # Baseline failure must not prevent repairing an already invalid file.
-            baseline_valid = validator.validate() if action_command or not validator.validate_before_install else False
+            baseline_valid = False
+            if validator.can_validate and (action_command or not validator.validate_before_install):
+                baseline_valid = validator.validate()
             phase = 'prepare'
             work = Path(tempfile.mkdtemp(prefix='roxywi-candidate-'))
             backup, staged = work / 'before', work / 'candidate.cfg'
@@ -315,7 +487,7 @@ def execute(spec: dict) -> dict:
                 installed = True
                 _install(staged, target, original, backup if original is not None else None)
                 phase = 'validate'
-                if not validator.validate_before_install and not validator.validate(staged):
+                if validator.can_validate and not validator.validate_before_install and not validator.validate(staged):
                     raise _ConfigurationError('Candidate configuration validation failed')
                 if _contents(target) != content:
                     raise _ConfigurationError('Configuration changed during validation')
@@ -325,8 +497,7 @@ def execute(spec: dict) -> dict:
                 elif action_command:
                     phase = 'apply'
                     action_started = True
-                    if _run(['sh', '-c', action_command]).returncode:
-                        raise _ConfigurationError('Service action failed')
+                    validator.apply()
             result = {'status': 'ok'}
     except Exception as exc:
         code = {'validate': 'validation_failed', 'apply': 'apply_failed', 'mount': 'mount_failed'}.get(phase, 'save_failed')
@@ -344,10 +515,9 @@ def execute(spec: dict) -> dict:
                         _install(backup, target, content, backup)
                 result['restored'] = True
                 if action_started:
-                    if not baseline_valid or not validator.validate():
+                    if validator.can_validate and (not baseline_valid or not validator.validate()):
                         raise _ConfigurationError('The previous configuration cannot be applied safely')
-                    if _run(['sh', '-c', action_command]).returncode:
-                        raise _ConfigurationError('Service recovery action failed')
+                    validator.apply()
             except Exception as recovery_error:
                 keep_backup = True
                 result.update(code='recovery_failed', backup=str(backup if original is not None else work),

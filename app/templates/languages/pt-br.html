@@ -154,6 +154,14 @@
     "failed": "Não foi possível concluir a criação da regra WAF. Verifique a conexão com o servidor, as permissões dos arquivos e os logs do Roxy-WI; depois, tente novamente com os mesmos valores."
 } %}
 {% set waf_editor = {
+    "haproxy_save_hint": "O HAProxy WAF não permite verificar a sintaxe separadamente. Salvar grava o arquivo; salvar e reiniciar aplica as regras e verifica o agente.",
+    "haproxy_saved": "Regra WAF salva sem verificação de sintaxe. Reinicie o agente WAF para aplicá-la.",
+    "haproxy_reload_unsupported": "O agente HAProxy WAF não oferece suporte a reload. Use salvar e reiniciar.",
+    "haproxy_validation_failed": "O arquivo da regra WAF mudou durante o salvamento. Abra-o novamente, revise as alterações e tente de novo.",
+    "haproxy_apply_failed": "O agente WAF não conseguiu aplicar a regra. O arquivo anterior foi restaurado e o agente voltou a responder. Verifique os logs do WAF antes de tentar novamente.",
+    "haproxy_recovery_failed": "A recuperação automática não foi concluída. Verifique o arquivo da regra e o estado do agente WAF antes de tentar novamente. O caminho do backup está nos logs do Roxy-WI.",
+    "haproxy_mount_failed": "Não foi possível preparar o agente WAF. Verifique o caminho de inicialização do serviço (-f) e os logs do Roxy-WI. No Docker, monte o diretório de regras e a configuração principal por bind mount e instale nsenter no host.",
+    "haproxy_save_failed": "Não foi possível concluir o salvamento da regra HAProxy WAF. Verifique o servidor de destino e os logs do Roxy-WI antes de tentar novamente.",
     "nginx_validation_failed": "A configuração do NGINX não passou na validação. O arquivo anterior da regra está preservado. Execute nginx -t com o arquivo principal configurado, corrija os erros e tente novamente.",
     "nginx_apply_failed": "O NGINX não conseguiu aplicar a regra. O arquivo anterior foi restaurado e o comando de recuperação foi concluído. Verifique o estado e os logs do NGINX antes de tentar novamente.",
     "nginx_recovery_failed": "A recuperação automática não foi concluída. Verifique o arquivo da regra e o estado do NGINX antes de tentar novamente. O local do backup está registrado nos logs do Roxy-WI.",

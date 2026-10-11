@@ -94,9 +94,10 @@
 		<script src="/static/js/codemirror/mode/modsec.js"></script>
 		<script src="/static/js/codemirror/keymap/sublime.js"></script>
 			<h4>{{lang.words.config|title()}} {{waf_rule_file}} {{lang.words.from|title()}} {{ serv }}</h4>
+			{% if service == 'haproxy' %}<p data-waf-save-hint>{{ lang.waf_editor.haproxy_save_hint }}</p>{% endif %}
 			<form action="/waf/{{service}}/{{serv}}/rule/{{waf_rule_id}}/save" name="saveconfig" id="saveconfig" method="post"
                   data-waf-editor data-save-error="{{ lang.waf_editor.save_failed }}"
-                  data-save-success="{{ lang.waf_editor.saved }}" data-reload-success="{{ lang.waf_editor.reloaded }}"
+                  data-save-success="{{ lang.waf_editor.haproxy_saved if service == 'haproxy' else lang.waf_editor.saved }}" data-reload-success="{{ lang.waf_editor.reloaded }}"
                   data-restart-success="{{ lang.waf_editor.restarted }}">
 				<input type="hidden" value="{{ serv }}" name="serv">
 				<input type="hidden" value="{{ token }}" name="token">

@@ -55,6 +55,8 @@ def get_action_command(service: str, action: str, server_id: int) -> str:
     """
     if action not in ('start', 'stop', 'reload', 'restart'):
         raise ValueError('Unsupported service action')
+    if service == 'waf' and action == 'reload':
+        raise ValueError('The HAProxy WAF agent requires restart to apply rules')
     is_docker = service_sql.select_service_setting(server_id, service, 'dockerized')
     if is_docker == '1':
         container_name = sql.get_setting(f'{service}_container_name')

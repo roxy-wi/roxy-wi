@@ -189,15 +189,12 @@ def _generate_command(
 		action_service = 'nginx' if waf_service == 'nginx' else 'waf'
 		if service_common.is_not_allowed_to_restart(server_id, action_service, just_save):
 			raise ValueError('This server is not allowed to be restarted')
-		if waf_service == 'nginx':
-			container = sql.get_setting('nginx_container_name') if service_sql.select_service_setting(server_id, 'nginx', 'dockerized') == '1' else ''
-			action = service_action.get_action_command('nginx', just_save, server_id) if just_save in ('reload', 'restart') else ''
-			return candidate.candidate_command('nginx_waf', config_path, tmp_file, just_save,
-				main=sql.get_setting('nginx_config_path'), container=container, action_command=action)
-		command = f'sudo mv -f {quote(tmp_file)} {quote(config_path)}'
-		if just_save in ('reload', 'restart'):
-			command += f' && {service_action.get_action_command(action_service, just_save, server_id)}'
-		return command
+		container = sql.get_setting(f'{action_service}_container_name') if service_sql.select_service_setting(server_id, action_service, 'dockerized') == '1' else ''
+		action = service_action.get_action_command(action_service, just_save, server_id) if just_save in ('reload', 'restart') else ''
+		main = sql.get_setting('nginx_config_path') if waf_service == 'nginx' else common.get_waf_entrypoint(waf_service)
+		unit = service_common.get_correct_service_name(action_service, server_id) if not container else ''
+		return candidate.candidate_command(f'{waf_service}_waf', config_path, tmp_file, just_save,
+			main=main, container=container, action_command=action, service_unit=unit)
 	container_name = sql.get_setting(f'{service}_container_name')
 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
 	if service == 'haproxy':
@@ -380,7 +377,7 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 
 	try:
 		upload(server_ip, tmp_file, cfg)
-		uses_candidate = service == 'haproxy' or (service == 'waf' and kwargs.get('waf') == 'nginx')
+		uses_candidate = service in ('haproxy', 'waf')
 		error = server_mod.ssh_command(server_ip, commands, rc=1, **(
 			{'timeout': candidate.REMOTE_TIMEOUT, 'error_context': 'Configuration transaction did not complete'} if uses_candidate else {}
 		))

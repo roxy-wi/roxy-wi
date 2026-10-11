@@ -154,6 +154,14 @@
     "failed": "Could not finish creating the WAF rule. Check the server connection, file permissions and Roxy-WI logs, then retry with the same values."
 } %}
 {% set waf_editor = {
+    "haproxy_save_hint": "HAProxy WAF does not support a separate syntax check. Save writes the file; save and restart applies the rules and checks the agent.",
+    "haproxy_saved": "WAF rule saved without a syntax check. Restart the WAF agent to apply it.",
+    "haproxy_reload_unsupported": "The HAProxy WAF agent does not support reload. Use save and restart.",
+    "haproxy_validation_failed": "The WAF rule file changed during saving. Reopen it, review the changes and retry.",
+    "haproxy_apply_failed": "The WAF agent could not apply the rule. The previous file was restored and the agent responds again. Check WAF logs before retrying.",
+    "haproxy_recovery_failed": "Automatic recovery did not complete. Check the rule file and WAF agent status before retrying. The backup location is recorded in the Roxy-WI logs.",
+    "haproxy_mount_failed": "Cannot prepare the WAF agent. Check the service startup path (-f) and Roxy-WI logs. For Docker, bind-mount the rules directory and main configuration and install nsenter on the host.",
+    "haproxy_save_failed": "Could not finish saving the HAProxy WAF rule. Check the target server and Roxy-WI logs before retrying.",
     "nginx_validation_failed": "NGINX configuration validation failed. The previous rule file is in place. Run nginx -t with the configured main file, correct the errors and retry.",
     "nginx_apply_failed": "NGINX could not apply the rule. The previous file was restored and the recovery command completed. Check NGINX status and logs before retrying.",
     "nginx_recovery_failed": "Automatic recovery did not complete. Check the rule file and NGINX status before retrying. The backup location is recorded in the Roxy-WI logs.",

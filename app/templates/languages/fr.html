@@ -154,6 +154,14 @@
     "failed": "La création de la règle WAF n’a pas pu être terminée. Vérifiez la connexion au serveur, les permissions des fichiers et les journaux Roxy-WI, puis réessayez avec les mêmes valeurs."
 } %}
 {% set waf_editor = {
+    "haproxy_save_hint": "HAProxy WAF ne permet pas de vérifier la syntaxe séparément. Enregistrer écrit le fichier ; enregistrer et redémarrer applique les règles et vérifie la réponse de l’agent.",
+    "haproxy_saved": "Règle WAF enregistrée sans vérification de syntaxe. Redémarrez l’agent WAF pour l’appliquer.",
+    "haproxy_reload_unsupported": "L’agent HAProxy WAF ne prend pas en charge reload. Utilisez enregistrer et redémarrer.",
+    "haproxy_validation_failed": "Le fichier de règle WAF a changé pendant l’enregistrement. Rouvrez-le, examinez les modifications et réessayez.",
+    "haproxy_apply_failed": "L’agent WAF n’a pas pu appliquer la règle. Le fichier précédent a été restauré et l’agent répond de nouveau. Vérifiez les journaux WAF avant de réessayer.",
+    "haproxy_recovery_failed": "La restauration automatique n’a pas abouti. Vérifiez le fichier de règle et l’état de l’agent WAF avant de réessayer. Le chemin de la sauvegarde figure dans les journaux Roxy-WI.",
+    "haproxy_mount_failed": "Impossible de préparer l’agent WAF. Vérifiez le chemin de démarrage du service (-f) et les journaux Roxy-WI. Pour Docker, montez le répertoire des règles et la configuration principale par bind mount et installez nsenter sur l’hôte.",
+    "haproxy_save_failed": "Impossible de terminer l’enregistrement de la règle HAProxy WAF. Vérifiez le serveur cible et les journaux Roxy-WI avant de réessayer.",
     "nginx_validation_failed": "La validation de la configuration NGINX a échoué. Le fichier précédent de la règle est en place. Exécutez nginx -t avec le fichier principal configuré, corrigez les erreurs et réessayez.",
     "nginx_apply_failed": "NGINX n’a pas pu appliquer la règle. Le fichier précédent a été restauré et la commande de récupération s’est terminée. Vérifiez l’état et les journaux de NGINX avant de réessayer.",
     "nginx_recovery_failed": "La récupération automatique ne s’est pas terminée. Vérifiez le fichier de la règle et l’état de NGINX avant de réessayer. L’emplacement de la sauvegarde figure dans les journaux Roxy-WI.",

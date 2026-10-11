@@ -164,13 +164,11 @@ def test_save_keeps_rule_path_through_upload_pipeline(product_client, product, w
     assert response.status_code == 200, response.text
     assert 'error' not in response.json['data'].lower()
     assert len(uploads) == 1 and uploads[0][0] == product.server.ip and uploads[0][2] == '# candidate'
-    if service == 'nginx':
-        assert commands[0][0] == product.server.ip
-        spec = json.loads(commands[0][1][-1])
-        assert [spec[key] for key in ('target', 'candidate', 'main', 'container', 'action_command')] == [
-            expected, uploads[0][1], '/etc/nginx/nginx.conf', '', '']
-    else:
-        assert commands == [(product.server.ip, ['sudo', 'mv', '-f', uploads[0][1], expected])]
+    assert commands[0][0] == product.server.ip
+    spec = json.loads(commands[0][1][-1])
+    main = '/etc/nginx/nginx.conf' if service == 'nginx' else f'{WAF_DIRS[service]}/waf/modsecurity.conf'
+    assert [spec[key] for key in ('service', 'target', 'candidate', 'main', 'container', 'action_command')] == [
+        f'{service}_waf', expected, uploads[0][1], main, '', '']
 
 
 @pytest.mark.parametrize('service', ['haproxy', 'nginx'])
@@ -232,21 +230,22 @@ def test_editor_uses_correct_runtime_service(product_client, product, waf_rules,
                         lambda server, command, **kw: commands.append(command) or '{"status":"ok"}')
     response = product_client.post(f'/waf/{service}/{product.server.ip}/rule/{waf_rules[service].id}/save',
                                    json={'action': action, 'config': '# rule', 'oldconfig': str(sentinel)})
+    if service == 'haproxy' and action == 'reload':
+        assert response.status_code == 400 and 'save and restart' in response.json['error']
+        assert not commands
+        assert not list(product.root.glob('waf-save-*'))
+        return
     assert response.status_code == 200, response.text
     assert response.json['status'] == 'ok'
     assert len(commands) == 1
     command = shlex.split(commands[0])
-    if service == 'nginx':
-        spec = json.loads(command[-1])
-        target_path, main, container, action_command = [spec[key] for key in ('target', 'main', 'container', 'action_command')]
-        assert target_path == f'{WAF_DIRS[service]}/waf/rules/test.conf'
-        assert main == '/etc/nginx/nginx.conf'
-        assert container == ('custom-waf-container' if docker == '1' else '')
-        runtime_command = shlex.split(action_command)
-    else:
-        assert command[:3] == ['sudo', 'mv', '-f']
-        assert command[4] == f'{WAF_DIRS[service]}/waf/rules/test.conf'
-        runtime_command = command[6:]
+    spec = json.loads(command[-1])
+    target_path, main, container, action_command = [spec[key] for key in ('target', 'main', 'container', 'action_command')]
+    assert target_path == f'{WAF_DIRS[service]}/waf/rules/test.conf'
+    assert main == ('/etc/nginx/nginx.conf' if service == 'nginx' else f'{WAF_DIRS[service]}/waf/modsecurity.conf')
+    assert container == ('custom-waf-container' if docker == '1' else '')
+    assert spec['service_unit'] == (target if docker == '0' else '')
+    runtime_command = shlex.split(action_command)
     if action == 'save':
         assert not runtime_command
     elif docker == '1':

@@ -102,26 +102,43 @@ def test_waf_read_failure_is_localized_and_has_no_editor(logged_in, product_url,
 
 
 @pytest.mark.parametrize('locale', LOCALES)
-@pytest.mark.parametrize('code', ['validation_failed', 'recovery_failed'])
-def test_nginx_transaction_failure_is_localized_and_keeps_unsaved_edits(logged_in, product_url, product,
-                                                                       waf_editor, app, locale, code):
+@pytest.mark.parametrize('service,action,code', [('nginx', 'reload', 'validation_failed'), ('nginx', 'reload', 'recovery_failed'),
+                                               ('haproxy', 'restart', 'apply_failed'), ('haproxy', 'restart', 'recovery_failed')])
+def test_transaction_failure_is_localized_and_keeps_unsaved_edits(logged_in, product_url, product,
+                                                                 waf_editor, app, locale, service, action, code):
     page = logged_in
     page.context.add_cookies([{'name': 'lang', 'value': locale, 'url': product_url}])
-    rule_id = waf_editor.rules['nginx'].id
-    url = f'/waf/nginx/{product.server.ip}/rule/{rule_id}'
+    rule_id = waf_editor.rules[service].id
+    url = f'/waf/{service}/{product.server.ip}/rule/{rule_id}'
     page.goto(product_url + url)
     waf_editor.result = {'status': 'failed', 'code': code}
     changed = TEXT + '# unsaved change\n'
     page.evaluate('(text) => myCodeMirror.setValue(text)', changed)
     with page.expect_response(lambda response: response.url.endswith(url + '/save')) as failed:
-        page.locator('#saveconfig button[value="reload"]').click()
+        page.locator(f'#saveconfig button[value="{action}"]').click()
     assert failed.value.status == 500
-    message = app.jinja_env.get_template(f'languages/{locale}.html').module.waf_editor['nginx_' + code]
+    message = app.jinja_env.get_template(f'languages/{locale}.html').module.waf_editor[service + '_' + code]
     expect(page.locator('.toast-error')).to_contain_text(message)
     expect(page.locator('.toast-success')).to_have_count(0)
-    expect(page.locator('#saveconfig button[value="reload"]')).to_be_enabled()
+    expect(page.locator(f'#saveconfig button[value="{action}"]')).to_be_enabled()
     assert page.evaluate('myCodeMirror.getValue()') == changed
     assert page.evaluate("!!($._data(window, 'events') || {}).beforeunload")
+
+
+@pytest.mark.parametrize('locale', LOCALES)
+def test_haproxy_plain_save_explains_no_syntax_validation(logged_in, product_url, product, waf_editor, app, locale):
+    page = logged_in
+    page.context.add_cookies([{'name': 'lang', 'value': locale, 'url': product_url}])
+    url = f'/waf/haproxy/{product.server.ip}/rule/{waf_editor.rules["haproxy"].id}'
+    page.goto(product_url + url)
+    messages = app.jinja_env.get_template(f'languages/{locale}.html').module.waf_editor
+    expect(page.locator('[data-waf-save-hint]')).to_have_text(messages['haproxy_save_hint'])
+    page.evaluate('myCodeMirror.setValue("# saved without validation")')
+    with page.expect_response(lambda response: response.url.endswith(url + '/save')) as response:
+        page.locator('#saveconfig button[value="save"]').click()
+    assert response.value.status == 200
+    expect(page.locator('.toast-success')).to_contain_text(messages['haproxy_saved'])
+    assert not any('sudo systemctl restart waf' in command for command in waf_editor.commands)
 
 
 def test_edits_during_save_remain_unsaved_and_double_submit_is_ignored(logged_in, product_url, product, waf_editor):

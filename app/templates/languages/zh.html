@@ -154,6 +154,14 @@
     "failed": "无法完成 WAF 规则的创建。请检查服务器连接、文件权限和 Roxy-WI 日志，然后使用相同的值重试。"
 } %}
 {% set waf_editor = {
+    "haproxy_save_hint": "HAProxy WAF 不支持单独检查语法。保存只写入文件；保存并重启会应用规则并检查代理是否响应。",
+    "haproxy_saved": "WAF 规则已保存，未检查语法。请重启 WAF 代理以应用规则。",
+    "haproxy_reload_unsupported": "HAProxy WAF 代理不支持 reload。请使用保存并重启。",
+    "haproxy_validation_failed": "保存期间 WAF 规则文件发生了变化。请重新打开文件，检查更改后重试。",
+    "haproxy_apply_failed": "WAF 代理无法应用规则。已恢复原文件，代理已重新响应。重试前请检查 WAF 日志。",
+    "haproxy_recovery_failed": "自动恢复未完成。重试前请检查规则文件和 WAF 代理状态。备份路径已记录在 Roxy-WI 日志中。",
+    "haproxy_mount_failed": "无法准备 WAF 代理。请检查服务启动路径（-f）和 Roxy-WI 日志。使用 Docker 时，请通过绑定挂载连接规则目录和主配置文件，并在宿主机上安装 nsenter。",
+    "haproxy_save_failed": "无法完成 HAProxy WAF 规则的保存。重试前请检查目标服务器和 Roxy-WI 日志。",
     "nginx_validation_failed": "NGINX 配置验证失败。原规则文件已保留或恢复。请使用已配置的主配置文件运行 nginx -t，修复错误后重试。",
     "nginx_apply_failed": "NGINX 无法应用规则。原文件已恢复，恢复命令已完成。重试前请检查 NGINX 状态和日志。",
     "nginx_recovery_failed": "自动恢复未完成。重试前请检查规则文件和 NGINX 状态。备份路径已记录在 Roxy-WI 日志中。",

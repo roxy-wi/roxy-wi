@@ -157,6 +157,8 @@ def waf_save_config(service, server_ip, rule_id):
         abort(400, 'Configuration content is required')
     rule = roxy_waf.get_waf_rule(server_ip, rule_id, service)
     config_file_name = common.resolve_waf_config_path(rule.service, rule.rule_file)
+    if service == 'haproxy' and save == 'reload':
+        return _waf_error_response('haproxy_reload_unsupported', ValueError('Unsupported WAF action'), server_ip, status=400)
     if data.get('config_file_name') not in (None, rule.rule_file, config_file_name):
         abort(400, 'Configuration path does not match the WAF rule')
     configs_dir = sql.get_setting('tmp_config_path')
@@ -167,7 +169,7 @@ def waf_save_config(service, server_ip, rule_id):
             stderr = config_mod.master_slave_upload_and_restart(
                 server_ip, str(cfg), save, 'waf', waf=rule.service, config_file_name=config_file_name)
     except CandidateApplyError as exc:
-        return _waf_error_response('nginx_' + exc.code, exc, server_ip)
+        return _waf_error_response(rule.service + '_' + exc.code, exc, server_ip)
     except Exception as exc:
         return _waf_error_response('save_failed', exc, server_ip)
 
