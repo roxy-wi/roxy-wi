@@ -23,7 +23,7 @@
         <span title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}">{{ service.0 }}</span>
 	{% endif %}
 	</td>
-	{% if service.3 == "On" or service.3 == "Off" or service.3 == "DetectionOnly" %}
+	{% if service.5|int() >= 1 %}
 		<td>
 		{% if role <= 2 %}
 			<a id="{{ service.1 }}" class="start-waf" title="{{lang.words.start|title()}} WAF {{lang.words.service}}">
@@ -45,18 +45,22 @@
 		</td>
 		<td>
 		{% if role <= 2 %}
-			<select class="waf_mode" id="{{ service.6 }}_select">
+			<select class="waf_mode" id="{{ service.6 }}_select" aria-label="{{ lang.waf_mode.label }}"
+                    data-confirmed-mode="{{ service.3 }}" {% if mode_error %}disabled{% endif %}
+                    data-save-success="{{ lang.waf_mode['saved_' + waf_service] }}"
+                    data-failed-error="{{ lang.waf_mode.failed }}" data-invalid-error="{{ lang.waf_mode.invalid }}"
+                    data-forbidden-error="{{ lang.waf_mode.forbidden }}" data-conflict-error="{{ lang.waf_mode.conflict }}">
+                {% if mode_error %}<option value="" selected>{{ lang.waf_mode.unavailable }}</option>{% endif %}
 				{% for waf_mode in waf_modes %}
-					{% if service.3 == waf_mode %}
-					<option value={{waf_mode}} selected="selected">{{waf_mode}}</option>
-					{% else %}
-					<option value={{waf_mode}}>{{waf_mode}}</option>
-					{% endif %}
+                    <option value="{{ waf_mode }}" {% if service.3 == waf_mode %}selected{% endif %}
+                            data-save-url="{{ url_for('waf.change_waf_mode', service=waf_service, server_id=service.6, waf_mode=waf_mode) }}">{{ lang.waf_mode[waf_mode] }}</option>
 				{% endfor %}
 			</select>
 		{% else %}
-			{{ service.3 }}
+			{{ lang.waf_mode[service.3] if not mode_error else lang.waf_mode.unavailable }}
 		{% endif %}
+            <p class="waf-mode-hint">{{ lang.waf_mode.read_failed if mode_error else lang.waf_mode['hint_' + waf_service] }}</p>
+            <p class="waf-mode-message" data-waf-mode-message role="status" aria-live="polite"></p>
 		</td>
 		{% if waf_service == 'haproxy' %}
 		<td class="ajaxwafstatus">
@@ -92,10 +96,6 @@
 	{% if role <= 2 %}
 		$( "select" ).selectmenu();
 		$( "input[type=checkbox]" ).checkboxradio();
-		$( ".waf_mode" ).on('selectmenuchange',function() {
-			var id = $(this).attr('id');
-			changeWafMode(id)
-		});
 		$( ".ajaxwafstatus input" ).change(function() {
 			var id = $(this).attr('id');
 			metrics_waf(id);
@@ -103,6 +103,8 @@
 	{% endif %}
 </script>
 <style>
-.ui-selectmenu-button.ui-button {width: 10em;}
+.waf_mode + .ui-selectmenu-button.ui-button {width: 15em;}
+.waf-mode-hint, .waf-mode-message {max-width: 26em; margin: 6px 0; font-size: 12px;}
+.waf-mode-message:empty {display: none;}
 .fa-play, .fa-stop, .fa-sync-alt { margin-bottom: -1px; }
 </style>

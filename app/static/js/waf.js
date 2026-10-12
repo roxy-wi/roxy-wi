@@ -70,27 +70,60 @@ function installWaf(ip1) {
 	});
 }
 function changeWafMode(id) {
-	let waf_mode = $('#' + id).val();
-	let server_hostname = id.split('_')[0];
-	let service = cur_url[0];
+	const select = $('#' + id);
+	const message = select.closest('td').find('[data-waf-mode-message]');
+	function refresh(value, disabled) {
+		select.val(value).prop('disabled', disabled);
+		if (select.selectmenu('instance')) select.selectmenu('option', 'disabled', disabled).selectmenu('refresh');
+	}
+	if (select.data('saving-mode')) {
+		refresh(select.data('requested-mode'), true);
+		return;
+	}
+	if (select.prop('disabled')) return;
+	const previous = select.attr('data-confirmed-mode');
+	const requested = select.val();
+	const url = select.find('option:selected').attr('data-save-url');
+	if (!url || requested === previous) return;
+	function failure(key) {
+		refresh(previous, true);
+		const text = select.attr('data-' + key + '-error');
+		message.text(text);
+		toastr.clear();
+		toastr.error(text);
+	}
+	select.data('saving-mode', true).data('requested-mode', requested);
+	message.empty();
+	refresh(requested, true);
 	$.ajax({
-		url: "/waf/" + service + "/mode/" + server_hostname + "/" + waf_mode,
+		url: url,
 		type: "POST",
+		dataType: 'json',
 		contentType: "application/json; charset=utf-8",
+		suppressGlobalError: true,
 		success: function (data) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
-				toastr.info('Do not forget restart WAF service');
-				$('#' + server_hostname + '-select-line').addClass("update", 1000);
-				setTimeout(function () {
-					$('#' + server_hostname + '-select-line').removeClass("update");
-				}, 2500);
+			if (!data || data.status !== 'Ok' || data.mode !== requested) {
+				failure('failed');
+				return;
 			}
+			select.attr('data-confirmed-mode', requested);
+			message.text(select.attr('data-save-success'));
+			toastr.clear();
+			toastr.info(select.attr('data-save-success'));
+		},
+		error: function (xhr) {
+			failure({400: 'invalid', 403: 'forbidden', 409: 'conflict'}[xhr.status] || 'failed');
+		},
+		complete: function () {
+			select.data('saving-mode', false);
+			refresh(select.val(), false);
 		}
 	});
 }
 $( function() {
+	$(document).off('selectmenuchange.wafMode', '.waf_mode').on('selectmenuchange.wafMode', '.waf_mode', function () {
+		changeWafMode(this.id);
+	});
 	const editor = $('#saveconfig[data-waf-editor]');
 	editor.on('submit', function (event) {
 		event.preventDefault();

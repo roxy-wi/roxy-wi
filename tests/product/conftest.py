@@ -89,12 +89,17 @@ def waf_creation(product, monkeypatch):
         assert tokens[:5] == ['sudo', '-n', 'flock', '-w', '30']
         assert tokens[6:8] == ['python3', '-c']
         assert tokens[8] == Path(waf_rule_file.__file__).read_text(encoding='utf-8')
-        state.commands.append((server, tokens[-3:]))
+        state.commands.append((server, tokens[9:]))
         if state.fail_before:
             raise OSError('synthetic SSH failure')
         result = {'status': 'ok'}
         try:
-            if tokens[9] == 'toggle':
+            if tokens[9] == 'read-mode':
+                result['mode'] = waf_rule_file.read_mode(local_path(tokens[10]))
+            elif tokens[9] == 'set-mode':
+                waf_rule_file.set_mode(local_path(tokens[10]), tokens[11])
+                result['mode'] = tokens[11]
+            elif tokens[9] == 'toggle':
                 enabled = int(tokens[-1])
                 waf_rule_file.switch_rule(local_path(tokens[-3]), local_path(tokens[-2]), enabled)
                 result['enabled'] = enabled
@@ -119,6 +124,22 @@ def waf_creation(product, monkeypatch):
     monkeypatch.setattr(waf.server_mod, 'ssh_command', ssh)
     monkeypatch.setattr(config.mod_ssh, 'ssh_connect', connect)
     return state
+
+
+@pytest.fixture
+def waf_modes(waf_creation, product, monkeypatch):
+    models.Waf.create(server_id=product.server.server_id, metrics=0)
+    models.WafNginx.create(server_id=product.server.server_id)
+    ssh = waf.server_mod.ssh_command
+
+    def command(server, command, **kwargs):
+        if command.startswith(('ps ax |grep waf/bin/modsecurity', 'grep -Rs --exclude-dir=waf')):
+            assert server == product.server.ip
+            return '1'
+        return ssh(server, command, **kwargs)
+
+    monkeypatch.setattr(waf.server_mod, 'ssh_command', command)
+    return waf_creation
 
 
 @pytest.fixture

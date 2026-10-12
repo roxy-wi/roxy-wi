@@ -2,7 +2,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
-from shlex import join
+from shlex import join, quote
 
 from flask import render_template
 from peewee import IntegrityError
@@ -19,6 +19,8 @@ from app.modules.db.db_model import WafRules
 from app.modules.common.file_lock import file_lock
 from app.modules.roxy_wi_tools import GetConfigVar
 from app.modules.roxywi.exception import RoxywiConflictError, RoxywiPermissionError, RoxywiValidationError
+from app.modules.roxywi import logger
+from app.modules.roxywi.waf_rule_file import WAF_MODES
 
 
 def get_waf_rule(server_ip: str, rule_id: int, service: str = None) -> WafRules:
@@ -35,6 +37,7 @@ def get_waf_rule(server_ip: str, rule_id: int, service: str = None) -> WafRules:
 
 
 def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
+    _require_waf_service(waf_service)
     server = server_sql.get_server_by_ip(serv)
     role = user_sql.get_user_role_in_group(claims['user_id'], claims['group'])
     returned_servers = []
@@ -44,6 +47,7 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
     waf_mode = ''
     is_waf_on_server = 0
     waf_len = 0
+    mode_error = False
     server_status = (
         server.hostname, server.ip, waf_process, waf_mode, metrics_en, waf_len, server.server_id
     )
@@ -60,19 +64,19 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
             metrics_en = waf_sql.select_waf_metrics_enable_server(server.ip)
         elif waf_service == 'nginx':
             waf = waf_sql.select_waf_nginx_servers(server.ip)
-        try:
-            waf_len = len(waf)
-        except Exception:
-            waf_len = 0
+        waf_len = int(bool(waf))
 
         if waf_len >= 1:
             if waf_service == 'haproxy':
                 command = "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"
             elif waf_service == 'nginx':
-                command = f"grep 'modsecurity on' {common.return_nice_path(config_path)}* --exclude-dir=waf -Rs |wc -l"
-            commands1 = f"grep SecRuleEngine {config_path}/waf/modsecurity.conf |grep -v '#' |awk '{{print $2}}'"
+                command = f"grep -Rs --exclude-dir=waf -- 'modsecurity on' {quote(config_path)} |wc -l"
             waf_process = server_mod.ssh_command(server.ip, command)
-            waf_mode = server_mod.ssh_command(server.ip, commands1).strip()
+            try:
+                waf_mode = read_waf_mode(server.ip, waf_service)
+            except Exception as exc:
+                mode_error = True
+                logger.exception('Cannot read WAF configuration mode', exc=exc, server_ip=server.ip)
 
             server_status = (server.hostname,
                              server.ip,
@@ -94,21 +98,37 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
     lang = roxywi_common.get_user_lang_for_flask()
     servers_sorted = sorted(returned_servers, key=common.get_key)
 
-    return render_template('ajax/overviewWaf.html', service_status=servers_sorted, role=role, waf_service=waf_service, lang=lang)
+    return render_template('ajax/overviewWaf.html', service_status=servers_sorted, role=role,
+                           waf_service=waf_service, lang=lang, mode_error=mode_error)
+
+
+def _require_waf_service(service: str) -> None:
+    if service not in ('haproxy', 'nginx'):
+        raise RoxywiValidationError('Unsupported WAF service')
+    if not roxywi_auth.is_access_permit_to_service(service):
+        raise RoxywiPermissionError()
+
+
+def read_waf_mode(serv: str, service: str) -> str:
+    _require_waf_service(service)
+    root = common.get_waf_directory(service)
+    result = _run_waf_file_command(serv, root, ['read-mode', root + '/modsecurity.conf'])
+    if set(result) != {'status', 'mode'} or result['mode'] not in WAF_MODES:
+        raise RuntimeError('Unconfirmed WAF configuration mode')
+    return result['mode']
 
 
 def change_waf_mode(waf_mode: str, server_id: int, service: str) -> None:
+    _require_waf_service(service)
+    if waf_mode not in WAF_MODES:
+        raise RoxywiValidationError('Unsupported WAF mode')
     serv = server_sql.get_server(server_id)
-
-    if service == 'haproxy':
-        config_dir = sql.get_setting('haproxy_dir')
-    elif service == 'nginx':
-        config_dir = sql.get_setting('nginx_dir')
-
-    commands = f"sudo sed -i 's/^SecRuleEngine.*/SecRuleEngine {waf_mode}/' {config_dir}/waf/modsecurity.conf"
-    server_mod.ssh_command(serv.ip, commands)
-
-    roxywi_common.logging(serv.hostname, f'Has been changed WAF mod to {waf_mode}')
+    roxywi_common.check_is_server_in_group(serv.ip)
+    root = common.get_waf_directory(service)
+    with _waf_lock(serv.ip, service):
+        _run_waf_file_command(serv.ip, root, ['set-mode', root + '/modsecurity.conf', waf_mode],
+                              {'status': 'ok', 'mode': waf_mode})
+        roxywi_common.logging(serv.hostname, f'WAF mode {waf_mode} saved in {service} configuration')
 
 
 def _waf_lock(serv: str, service: str):
@@ -118,7 +138,7 @@ def _waf_lock(serv: str, service: str):
     return file_lock(lock_dir / f'{lock_id}.lock')
 
 
-def _run_waf_file_command(serv: str, root: str, arguments: list[str], expected: dict) -> None:
+def _run_waf_file_command(serv: str, root: str, arguments: list[str], expected: dict = None) -> dict:
     script = Path(__file__).with_name('waf_rule_file.py').read_text(encoding='utf-8')
     remote_lock = hashlib.sha256(root.encode('utf-8')).hexdigest()
     command = join(['sudo', '-n', 'flock', '-w', '30', f'/var/lock/roxywi-waf-{remote_lock}.lock',
@@ -127,8 +147,9 @@ def _run_waf_file_command(serv: str, root: str, arguments: list[str], expected: 
     result = json.loads(output)
     if result == {'status': 'conflict'}:
         raise RoxywiConflictError('The WAF rule file or its Include is ambiguous or has changed')
-    if result != expected:
+    if not isinstance(result, dict) or result.get('status') != 'ok' or (expected is not None and result != expected):
         raise RuntimeError('Unexpected WAF file operation result')
+    return result
 
 
 def switch_waf_rule(serv: str, enable: int, rule_id: int, service: str = None) -> None:

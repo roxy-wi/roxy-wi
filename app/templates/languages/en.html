@@ -153,6 +153,22 @@
     "conflict": "A rule with this name or file already exists, or its Include has changed. Check the existing rules and the file on the server.",
     "failed": "Could not finish creating the WAF rule. Check the server connection, file permissions and Roxy-WI logs, then retry with the same values."
 } %}
+{% set waf_mode = {
+    "label": "Configured WAF mode",
+    "On": "Rules enabled (On)",
+    "Off": "Rules disabled (Off)",
+    "DetectionOnly": "Detection only",
+    "hint_haproxy": "Mode in modsecurity.conf. Restart the WAF agent to apply changes.",
+    "hint_nginx": "Mode in modsecurity.conf. Reload NGINX to apply changes.",
+    "saved_haproxy": "Mode saved. Restart the WAF agent to apply it.",
+    "saved_nginx": "Mode saved. Reload NGINX to apply it.",
+    "failed": "Could not confirm that the WAF mode was saved. Refresh the status before retrying.",
+    "invalid": "Invalid WAF mode.",
+    "forbidden": "You do not have permission to change the WAF mode.",
+    "conflict": "Cannot safely update the WAF mode. Check that modsecurity.conf contains exactly one active, global SecRuleEngine directive, then refresh and retry.",
+    "read_failed": "Cannot read a single configured mode. Check modsecurity.conf and the server connection, then refresh.",
+    "unavailable": "Unknown"
+} %}
 {% set waf_editor = {
     "haproxy_save_hint": "HAProxy WAF does not support a separate syntax check. Save writes the file; save and restart applies the rules and checks the agent.",
     "haproxy_saved": "WAF rule saved without a syntax check. Restart the WAF agent to apply it.",

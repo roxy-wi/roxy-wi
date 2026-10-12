@@ -153,6 +153,22 @@
     "conflict": "Ya existe una regla con este nombre o archivo, o su Include ha cambiado. Revise las reglas existentes y el archivo en el servidor.",
     "failed": "No se pudo completar la creación de la regla WAF. Compruebe la conexión al servidor, los permisos de los archivos y los registros de Roxy-WI; después, reinténtelo con los mismos valores."
 } %}
+{% set waf_mode = {
+    "label": "Modo WAF en la configuración",
+    "On": "Reglas activadas (On)",
+    "Off": "Reglas desactivadas (Off)",
+    "DetectionOnly": "Solo detección",
+    "hint_haproxy": "Modo en modsecurity.conf. Reinicie el agente WAF para aplicar los cambios.",
+    "hint_nginx": "Modo en modsecurity.conf. Recargue NGINX para aplicar los cambios.",
+    "saved_haproxy": "Modo guardado. Reinicie el agente WAF para aplicarlo.",
+    "saved_nginx": "Modo guardado. Recargue NGINX para aplicarlo.",
+    "failed": "No se pudo confirmar que el modo WAF se guardó. Actualice el estado antes de reintentar.",
+    "invalid": "Modo WAF no válido.",
+    "forbidden": "No tiene permiso para cambiar el modo WAF.",
+    "conflict": "No se puede cambiar el modo WAF de forma segura. Compruebe que modsecurity.conf contiene exactamente una directiva SecRuleEngine global y activa; después actualice y reintente.",
+    "read_failed": "No se puede determinar un único modo configurado. Compruebe modsecurity.conf y la conexión al servidor; después actualice.",
+    "unavailable": "Desconocido"
+} %}
 {% set waf_editor = {
     "haproxy_save_hint": "HAProxy WAF no admite una comprobación de sintaxis independiente. Guardar escribe el archivo; guardar y reiniciar aplica las reglas y comprueba el agente.",
     "haproxy_saved": "Regla WAF guardada sin comprobar la sintaxis. Reinicie el agente WAF para aplicarla.",

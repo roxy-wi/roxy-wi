@@ -17,6 +17,9 @@ import sys
 import tempfile
 
 
+WAF_MODES = ('On', 'Off', 'DetectionOnly')
+
+
 class RuleConflict(Exception):
     """The requested file belongs to another rule or was changed externally."""
 
@@ -55,6 +58,56 @@ def _read_config(path: Path) -> bytes:
     if path.is_symlink() or not stat.S_ISREG(path.stat().st_mode):
         raise RuleConflict('The WAF configuration must be a regular file')
     return path.read_bytes()
+
+
+def _mode_directive(config: Path):
+    if config.name != 'modsecurity.conf' or config.parent.name != 'waf':
+        raise ValueError('Invalid WAF mode configuration path')
+    original = _read_config(config)
+    lines = original.decode('utf-8').splitlines(keepends=True)
+    matches = []
+    continued, depth = False, 0
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if not stripped or stripped.startswith('#'):
+            continue
+        if continued:
+            continued = stripped.endswith('\\')
+            continue
+        if re.match(r'^[ \t]*SecRuleEngine(?:\s|$)', line, re.IGNORECASE):
+            match = re.fullmatch(
+                r'(?P<prefix>[ \t]*SecRuleEngine[ \t]+)(?P<quote>[\'\"]?)'
+                r'(?P<mode>On|Off|DetectionOnly)(?P=quote)(?P<suffix>[ \t]*(?:#[^\r\n]*)?(?:\r?\n)?)',
+                line, re.IGNORECASE,
+            )
+            if depth or not match:
+                raise RuleConflict('The WAF mode directive must be a single global directive')
+            matches.append((index, match))
+        continued = stripped.endswith('\\')
+        if stripped.startswith('</'):
+            depth -= 1
+        elif stripped.startswith('<') and not stripped.endswith('/>'):
+            depth += 1
+    if len(matches) != 1:
+        raise RuleConflict('The WAF configuration must contain exactly one active SecRuleEngine directive')
+    index, match = matches[0]
+    mode = next(value for value in WAF_MODES if value.lower() == match['mode'].lower())
+    return original, lines, index, match, mode
+
+
+def read_mode(config: Path) -> str:
+    """Read the explicit mode in the file, not the mode loaded by a process."""
+    return _mode_directive(config)[-1]
+
+
+def set_mode(config: Path, mode: str) -> None:
+    if mode not in WAF_MODES:
+        raise ValueError('Unsupported WAF mode')
+    original, lines, index, match, current = _mode_directive(config)
+    if current == mode:
+        return
+    lines[index] = match['prefix'] + match['quote'] + mode + match['quote'] + match['suffix']
+    _replace_config(config, original, ''.join(lines).encode('utf-8'))
 
 
 def _include(line: str):
@@ -191,7 +244,12 @@ def switch_rule(entrypoint: Path, rule: Path, enabled: int) -> None:
 
 def main() -> None:
     try:
-        if sys.argv[1] == 'toggle':
+        if sys.argv[1] == 'read-mode':
+            result = {'status': 'ok', 'mode': read_mode(Path(sys.argv[2]))}
+        elif sys.argv[1] == 'set-mode':
+            set_mode(Path(sys.argv[2]), sys.argv[3])
+            result = {'status': 'ok', 'mode': sys.argv[3]}
+        elif sys.argv[1] == 'toggle':
             enabled = int(sys.argv[4])
             switch_rule(Path(sys.argv[2]), Path(sys.argv[3]), enabled)
             result = {'status': 'ok', 'enabled': enabled}

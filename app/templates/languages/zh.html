@@ -153,6 +153,22 @@
     "conflict": "已存在同名规则或使用该文件的规则，或者其 Include 指令已更改。请检查现有规则和服务器上的文件。",
     "failed": "无法完成 WAF 规则的创建。请检查服务器连接、文件权限和 Roxy-WI 日志，然后使用相同的值重试。"
 } %}
+{% set waf_mode = {
+    "label": "配置中的 WAF 模式",
+    "On": "规则已启用（On）",
+    "Off": "规则已禁用（Off）",
+    "DetectionOnly": "仅检测",
+    "hint_haproxy": "modsecurity.conf 中的模式。请重启 WAF 代理以应用更改。",
+    "hint_nginx": "modsecurity.conf 中的模式。请重新加载 NGINX 以应用更改。",
+    "saved_haproxy": "模式已保存。请重启 WAF 代理以应用。",
+    "saved_nginx": "模式已保存。请重新加载 NGINX 以应用。",
+    "failed": "无法确认 WAF 模式已保存。请刷新状态后重试。",
+    "invalid": "无效的 WAF 模式。",
+    "forbidden": "您没有更改 WAF 模式的权限。",
+    "conflict": "无法安全更改 WAF 模式。请确认 modsecurity.conf 中只有一条生效的全局 SecRuleEngine 指令，然后刷新并重试。",
+    "read_failed": "无法确定唯一的配置模式。请检查 modsecurity.conf 和服务器连接，然后刷新。",
+    "unavailable": "未知"
+} %}
 {% set waf_editor = {
     "haproxy_save_hint": "HAProxy WAF 不支持单独检查语法。保存只写入文件；保存并重启会应用规则并检查代理是否响应。",
     "haproxy_saved": "WAF 规则已保存，未检查语法。请重启 WAF 代理以应用规则。",

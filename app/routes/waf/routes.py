@@ -3,6 +3,7 @@ from pathlib import Path
 
 from flask import render_template, request, g, abort, jsonify, current_app, url_for
 from flask_jwt_extended import jwt_required, get_jwt
+from werkzeug.exceptions import HTTPException
 
 from app.routes.waf import bp
 import app.modules.db.sql as sql
@@ -224,9 +225,17 @@ def create_rule(service, server_ip):
 def change_waf_mode(service, server_id, waf_mode):
     try:
         roxy_waf.change_waf_mode(waf_mode, server_id, service)
-        return jsonify({'status': 'Ok'})
-    except Exception as e:
-        return roxywi_common.handle_json_exceptions(e, 'Cannot change WAF mode', server_id)
+        return jsonify({'status': 'Ok', 'mode': waf_mode})
+    except RoxywiValidationError as exc:
+        return _waf_error_response('invalid', exc, server_id, section='waf_mode', status=400)
+    except RoxywiPermissionError as exc:
+        return _waf_error_response('forbidden', exc, server_id, section='waf_mode', status=403)
+    except RoxywiConflictError as exc:
+        return _waf_error_response('conflict', exc, server_id, section='waf_mode', status=409)
+    except (RoxywiPublicError, HTTPException):
+        raise
+    except Exception as exc:
+        return _waf_error_response('failed', exc, server_id, section='waf_mode')
 
 
 @bp.route('/overview/<any(haproxy, nginx):service>/<server_ip>')
