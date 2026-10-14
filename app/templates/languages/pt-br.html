@@ -153,6 +153,17 @@
     "conflict": "Já existe uma regra com esse nome ou arquivo, ou sua diretiva Include foi alterada. Verifique as regras existentes e o arquivo no servidor.",
     "failed": "Não foi possível concluir a criação da regra WAF. Verifique a conexão com o servidor, as permissões dos arquivos e os logs do Roxy-WI; depois, tente novamente com os mesmos valores."
 } %}
+{% set waf_apply = {
+    "unknown": "Aplicação não confirmada",
+    "pending": "Alterações aguardando aplicação confirmada",
+    "applied": "Aplicação confirmada",
+    "apply": "Aplicar configuração salva",
+    "confirm_haproxy": "Reiniciar o agente WAF e aplicar a configuração salva em",
+    "confirm_nginx": "Recarregar o NGINX e aplicar a configuração salva em",
+    "success": "Configuração WAF aplicada e confirmada.",
+    "failed": "Não foi possível confirmar a aplicação do WAF. Verifique a configuração, a conexão com o servidor e os logs do Roxy-WI antes de tentar novamente.",
+    "scope": "Acompanha alterações WAF feitas pelo Roxy-WI. Edições manuais e ações do serviço fora desta página WAF não são acompanhadas."
+} %}
 {% set waf_mode = {
     "label": "Modo WAF na configuração",
     "On": "Regras ativadas (On)",

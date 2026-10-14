@@ -153,6 +153,17 @@
     "conflict": "已存在同名规则或使用该文件的规则，或者其 Include 指令已更改。请检查现有规则和服务器上的文件。",
     "failed": "无法完成 WAF 规则的创建。请检查服务器连接、文件权限和 Roxy-WI 日志，然后使用相同的值重试。"
 } %}
+{% set waf_apply = {
+    "unknown": "应用状态未确认",
+    "pending": "更改等待确认应用",
+    "applied": "已确认应用",
+    "apply": "应用已保存的配置",
+    "confirm_haproxy": "重启 WAF 代理并应用已保存的配置，服务器：",
+    "confirm_nginx": "重新加载 NGINX 并应用已保存的配置，服务器：",
+    "success": "WAF 配置已应用并确认。",
+    "failed": "无法确认 WAF 配置已应用。请检查配置、服务器连接和 Roxy-WI 日志后重试。",
+    "scope": "仅跟踪通过 Roxy-WI 进行的 WAF 更改。不跟踪手动编辑或此 WAF 页面之外的服务操作。"
+} %}
 {% set waf_mode = {
     "label": "配置中的 WAF 模式",
     "On": "规则已启用（On）",

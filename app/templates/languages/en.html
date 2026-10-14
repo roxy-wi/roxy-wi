@@ -153,6 +153,17 @@
     "conflict": "A rule with this name or file already exists, or its Include has changed. Check the existing rules and the file on the server.",
     "failed": "Could not finish creating the WAF rule. Check the server connection, file permissions and Roxy-WI logs, then retry with the same values."
 } %}
+{% set waf_apply = {
+    "unknown": "Apply status unknown",
+    "pending": "Changes awaiting confirmed apply",
+    "applied": "Apply confirmed",
+    "apply": "Apply saved configuration",
+    "confirm_haproxy": "Restart the WAF agent and apply the saved configuration on",
+    "confirm_nginx": "Reload NGINX and apply the saved configuration on",
+    "success": "WAF configuration applied and confirmed.",
+    "failed": "Could not confirm the WAF apply. Check the configuration, server connection and Roxy-WI logs before retrying.",
+    "scope": "Tracks WAF changes made through Roxy-WI. Manual edits and service actions outside this WAF page are not tracked."
+} %}
 {% set waf_mode = {
     "label": "Configured WAF mode",
     "On": "Rules enabled (On)",

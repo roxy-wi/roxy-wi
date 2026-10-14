@@ -34,11 +34,11 @@
 			</a>
 			{% if waf_service == 'haproxy' %}
 			<a id="{{ service.1 }}" class="restart-waf" title="{{lang.words.restart|title()}} WAF {{lang.words.service}}">
-				<span class="service-reload" onclick="confirmAjaxAction('restart', 'waf', '{{service.6}}')"></span>
+				<span class="service-reload" data-waf-apply-button></span>
 			</a>
 			{% else %}
 			<a id="{{ service.1 }}" class="reload-waf" title="{{lang.words.reload|title()}} WAF {{lang.words.service}}">
-				<span class="service-reload" onclick="confirmAjaxAction('reload', 'nginx', '{{service.6}}')"></span>
+				<span class="service-reload" data-waf-apply-button></span>
 			</a>
 			{% endif %}
 		{% endif %}
@@ -61,6 +61,7 @@
 		{% endif %}
             <p class="waf-mode-hint">{{ lang.waf_mode.read_failed if mode_error else lang.waf_mode['hint_' + waf_service] }}</p>
             <p class="waf-mode-message" data-waf-mode-message role="status" aria-live="polite"></p>
+            {% include 'ajax/wafApplyState.html' %}
 		</td>
 		{% if waf_service == 'haproxy' %}
 		<td class="ajaxwafstatus">

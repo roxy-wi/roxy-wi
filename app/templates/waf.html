@@ -4,6 +4,15 @@
 {% block content %}
 <script src="{{ url_for('static', filename='js/install.js') }}"></script>
 <script src="{{ url_for('static', filename='js/waf.js') }}"></script>
+<style>
+    .waf-apply-state {margin: 8px 0; font-size: 12px;}
+    .waf-apply-state [data-waf-apply-label] {border-left: 3px solid #808080; padding-left: 7px;}
+    .waf-apply-state[data-state="pending"] [data-waf-apply-label] {border-color: #e69a18;}
+    .waf-apply-state[data-state="applied"] [data-waf-apply-label] {border-color: #42a359;}
+    .waf-apply-state button {margin-left: 12px;}
+    [data-waf-apply-button][aria-disabled="true"] {opacity: .5; pointer-events: none;}
+</style>
+{% if serv %}<div class="left-space">{% include 'ajax/wafApplyState.html' %}</div>{% endif %}
 {% if manage_rules == '1' %}
 	{% from 'include/input_macros.html' import input, checkbox %}
 	<style>

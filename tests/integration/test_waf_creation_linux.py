@@ -13,6 +13,25 @@ pytestmark = pytest.mark.skipif(sys.platform != 'linux' or not shutil.which('flo
 SCRIPT = Path(__file__).resolve().parents[2] / 'app/modules/roxywi/waf_rule_file.py'
 
 
+def test_default_host_python_can_create_toggle_and_change_mode(tmp_path):
+    executable = shutil.which('python3')
+    if not executable:
+        pytest.skip('Host python3 is unavailable')
+    root = tmp_path / 'waf'
+    (root / 'rules').mkdir(parents=True)
+    entrypoint = root / 'modsecurity.conf'
+    entrypoint.write_text('SecRuleEngine On\n')
+    rule = root / 'rules/test.conf'
+    for args in [[str(entrypoint), str(rule), 'a' * 64],
+                 ['toggle', str(entrypoint), str(rule), '0'], ['set-mode', str(entrypoint), 'Off']]:
+        result = subprocess.run([executable, str(SCRIPT), *args], capture_output=True, text=True, timeout=10)
+        assert result.returncode == 0, result.stderr
+        assert json.loads(result.stdout)['status'] == 'ok'
+    assert entrypoint.read_text() == f'SecRuleEngine Off\n# Include {rule}\n'
+    assert rule.is_file()
+    assert not list(tmp_path.rglob('.roxywi-*'))
+
+
 @pytest.mark.parametrize('same_request', [True, False])
 def test_concurrent_remote_creation(tmp_path, same_request):
     root = tmp_path / 'waf with spaces'

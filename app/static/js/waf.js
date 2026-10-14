@@ -1,3 +1,56 @@
+function refreshWafState(context) {
+	$(context).find('[data-waf-apply]').addBack('[data-waf-apply]').each(function () {
+		const panel = $(this);
+		if (panel.data('applying') || panel.data('confirming')) return;
+		const request = (panel.data('state-request') || 0) + 1;
+		panel.data('state-request', request);
+		function current() {
+			return panel[0].isConnected && !panel.data('applying') && !panel.data('confirming') && panel.data('state-request') === request;
+		}
+		$.ajax({
+			url: panel.attr('data-state-url'), dataType: 'html', suppressGlobalError: true,
+			success: function (html) { if (current()) panel.replaceWith(html); },
+			error: function () {
+				if (current()) panel.attr('data-state', 'unknown').find('[data-waf-apply-label]').text(panel.attr('data-unknown'));
+			}
+		});
+	});
+}
+function confirmWafApply(button) {
+	const panel = $(button).closest('[data-waf-apply]').length
+		? $(button).closest('[data-waf-apply]') : $(button).closest('tr').find('[data-waf-apply]');
+	if (!panel.length || panel.data('applying') || panel.data('confirming')) return;
+	panel.data('confirming', true);
+	RoxywiUI.confirm({
+		title: panel.attr('data-action-label'),
+		message: panel.attr('data-confirm'),
+		confirmText: panel.attr('data-action-label'),
+		cancelText: panel.attr('data-cancel-label')
+	}).then(function (confirmed) {
+		panel.data('confirming', false);
+		if (!confirmed) { refreshWafState(panel); return; }
+		if (!panel[0].isConnected || panel.data('applying')) return;
+		panel.data('applying', true).attr('data-state', 'pending');
+		panel.find('[data-waf-apply-label]').text(panel.attr('data-pending'));
+		const buttons = panel.find('[data-waf-apply-button]').add($(button));
+		buttons.prop('disabled', true).attr('aria-disabled', 'true');
+		$.ajax({
+			url: panel.attr('data-apply-url'), type: 'POST', dataType: 'json',
+			contentType: 'application/json; charset=utf-8', suppressGlobalError: true,
+			success: function (data) {
+				toastr.clear();
+				if (data && data.status === 'ok') toastr.success(panel.attr('data-success'));
+				else toastr.error(panel.attr('data-error'));
+			},
+			error: function () { toastr.clear(); toastr.error(panel.attr('data-error')); },
+			complete: function () {
+				panel.data('applying', false);
+				buttons.prop('disabled', false).removeAttr('aria-disabled');
+				refreshWafState(panel);
+			}
+		});
+	});
+}
 function showOverviewWaf(serv, hostname) {
 	let service = cur_url[0];
 	if (service === 'haproxy') {
@@ -13,6 +66,8 @@ function showOverviewWaf(serv, hostname) {
 }
 function showOverviewWafCallBack(serv, hostname) {
 	let service = cur_url[0];
+	const state = $("#" + hostname).find('[data-waf-apply]');
+	if (state.data('applying') || state.data('confirming')) return;
 	$.ajax({
 		url: "/waf/overview/" + service + "/" + serv,
 		beforeSend: function () {
@@ -117,10 +172,14 @@ function changeWafMode(id) {
 		complete: function () {
 			select.data('saving-mode', false);
 			refresh(select.val(), false);
+			refreshWafState(select.closest('tr'));
 		}
 	});
 }
 $( function() {
+	$(document).off('click.wafApply', '[data-waf-apply-button]').on('click.wafApply', '[data-waf-apply-button]', function () {
+		confirmWafApply(this);
+	});
 	$(document).off('selectmenuchange.wafMode', '.waf_mode').on('selectmenuchange.wafMode', '.waf_mode', function () {
 		changeWafMode(this.id);
 	});
@@ -160,6 +219,7 @@ $( function() {
 			complete: function () {
 				editor.data('saving', false);
 				buttons.prop('disabled', false);
+				refreshWafState(document);
 			}
 		});
 	});
@@ -212,6 +272,7 @@ function waf_rules_en(id) {
 		complete: function () {
 			row.data('toggling', false);
 			refresh(checkbox.is(':checked'), false);
+			refreshWafState(document);
 		}
 	});
 }
@@ -263,6 +324,7 @@ function addNewConfig() {
 				dialog.data('creating', false);
 				buttons.prop('disabled', false);
 				form.find('input').prop('disabled', false);
+				refreshWafState(document);
 			}
 		});
 	});

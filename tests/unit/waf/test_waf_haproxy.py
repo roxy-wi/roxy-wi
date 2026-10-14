@@ -217,3 +217,32 @@ def test_command_shares_rule_operation_lock_and_carries_waf_unit():
 def test_haproxy_waf_rejects_unsupported_actions(action):
     with pytest.raises(ValueError, match='save and restart only'):
         candidate.candidate_command('haproxy_waf', '/waf/rules/test.conf', '/tmp/upload', action, main='/waf/modsecurity.conf')
+
+
+@pytest.mark.parametrize('startup', ['/etc/haproxy//waf/modsecurity.conf', '/etc/haproxy/./waf/modsecurity.conf'])
+def test_legacy_unit_path_spelling_identifies_the_same_configuration(tmp_path, monkeypatch, startup):
+    process = tmp_path / '42'
+    process.mkdir()
+    (process / 'cmdline').write_bytes(b'modsecurity\0-f\0' + startup.encode() + b'\0-p\0' + b'23456\0')
+    validator = candidate._HaproxyWafValidator({}, Path('/etc/haproxy/waf/rules/test.conf'),
+                                              Path('/etc/haproxy/waf/modsecurity.conf'))
+    validator.runtime_main = '/etc/haproxy/waf/modsecurity.conf'
+    monkeypatch.setattr(candidate, 'Path', lambda _: tmp_path)
+    assert validator.listener_port(42) == 23456
+
+
+@pytest.mark.parametrize('container', ['', 'custom-waf'])
+@pytest.mark.parametrize('failure', ['', 'command_failed', 'unchanged', 'stopped'])
+def test_apply_saved_requires_readiness_and_preserves_saved_files(agent, container, failure):
+    agent.state.container = container
+    agent.state.outcomes = [failure] if failure else []
+    before = {path: (path.read_bytes(), path.stat().st_mtime_ns) for path in (agent.main, agent.target, agent.upload)}
+    response = candidate.execute(dict(service='haproxy_waf', target=str(agent.main), main=str(agent.main),
+                                      candidate='', apply_only=True, action='restart', service_unit='custom-waf.service',
+                                      container=container, action_command='restart saved WAF'))
+    assert response['code'] == 'apply_failed' if failure else response == {'status': 'ok'}
+    assert {path: (path.read_bytes(), path.stat().st_mtime_ns) for path in before} == before
+    assert len([args for args, _ in agent.state.calls if args[0] == 'sh']) == 1
+    if not failure:
+        assert agent.state.pid == 101 and len(agent.state.probes) == 1
+    assert not list(agent.root.glob('roxywi-candidate-*'))

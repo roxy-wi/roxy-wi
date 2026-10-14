@@ -71,15 +71,30 @@ http {{
             process.communicate(timeout=5)
 
 
-def run_transaction(root, target, main, text, action):
+def run_transaction(root, target, main, text, action, executable=sys.executable):
     candidate = root / 'upload.conf'
     candidate.write_text(text)
     args = json.dumps(dict(service='nginx_waf', target=str(target), candidate=str(candidate), main=str(main),
                            action='reload' if action else 'save', action_command=action))
-    result = subprocess.run(['flock', '-w', '5', str(root / 'waf.lock'), sys.executable,
+    result = subprocess.run(['flock', '-w', '5', str(root / 'waf.lock'), executable,
                              str(Path(transaction.__file__)), args], capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stderr
     return json.loads(result.stdout)
+
+
+def test_default_host_python_can_save_apply_and_clean_up(nginx):
+    # The managed host's python3 can be older than the application's Python.
+    # CentOS Stream 8, for example, invokes Python 3.6 through sudo python3.
+    root, target, main, url = nginx
+    executable = shutil.which('python3')
+    if not executable:
+        pytest.skip('Host python3 is unavailable')
+    response = run_transaction(root, target, main, 'map $http_host $waf_test { default legacy; }\n',
+                               shlex.join(['nginx', '-c', str(main), '-s', 'reload']), executable=executable)
+    assert response == {'status': 'ok'}
+    wait_for_response(url, b'legacy')
+    assert not list(root.rglob('.roxywi-*'))
+    assert not (root / 'upload.conf').exists()
 
 
 def test_invalid_candidate_is_restored_and_valid_reload_changes_live_response(nginx):

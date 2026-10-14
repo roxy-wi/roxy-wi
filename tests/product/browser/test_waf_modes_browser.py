@@ -51,6 +51,7 @@ def test_mode_restores_confirmed_value_on_failure_and_retries(logged_in, product
     expect(select).to_be_enabled()
     expect(select).to_have_attribute('data-confirmed-mode', 'Off')
     expect(message).to_have_text(messages['saved_' + service])
+    expect(page.locator('[data-waf-apply]')).to_have_attribute('data-state', 'pending')
     expect(page.locator('.toast-info')).to_contain_text(messages['saved_' + service])
     expect(page.locator('.toast-error')).to_have_count(0)
     assert (waf_modes.roots[service] / 'modsecurity.conf').read_text() == 'SecRuleEngine Off\n'
@@ -59,6 +60,7 @@ def test_mode_restores_confirmed_value_on_failure_and_retries(logged_in, product
     page.reload()
     expect(select).to_have_value('Off')
     expect(select).to_have_attribute('data-confirmed-mode', 'Off')
+    expect(page.locator('[data-waf-apply]')).to_have_attribute('data-state', 'pending')
 
 
 @pytest.mark.parametrize('locale', LOCALES)

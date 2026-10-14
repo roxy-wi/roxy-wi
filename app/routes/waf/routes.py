@@ -8,6 +8,7 @@ from werkzeug.exceptions import HTTPException
 from app.routes.waf import bp
 import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
+import app.modules.db.server as server_sql
 from app.middleware import check_services, get_user_params, page_for_admin
 import app.modules.common.common as common
 import app.modules.roxywi.waf as roxy_waf
@@ -15,6 +16,7 @@ import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.config.config as config_mod
 from app.modules.config.candidate import CandidateApplyError
+from app.modules.config import waf_state
 from app.modules.roxywi.exception import RoxywiConflictError, RoxywiPermissionError, RoxywiPublicError, RoxywiValidationError
 from app.modules.roxywi import logger
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
@@ -41,6 +43,33 @@ def _waf_error_response(error_key: str, exc: Exception, server_ip: str, *, secti
 def before_request():
     """ Protect all the admin endpoints. """
     roxywi_common.require_request_server_access()
+
+
+def _waf_apply_context(service: str, server_ip: str, *, button=True) -> dict:
+    if service not in ('haproxy', 'nginx') or not roxywi_auth.is_access_permit_to_service(service):
+        abort(403)
+    roxywi_common.check_is_server_in_group(server_ip)
+    server_id = server_sql.get_server_by_ip(server_ip).server_id
+    return dict(waf_apply_status=waf_state.status(server_id, service), waf_apply_ip=server_ip,
+                waf_apply_service=service, waf_apply_button=button)
+
+
+@bp.get('/<any(haproxy, nginx):service>/<server_ip>/state')
+def waf_apply_state(service, server_ip):
+    return render_template('ajax/wafApplyState.html', lang=g.user_params['lang'],
+                           **_waf_apply_context(service, server_ip, button=request.args.get('button') != '0'))
+
+
+@bp.post('/<any(haproxy, nginx):service>/<server_ip>/apply')
+def apply_waf(service, server_ip):
+    _waf_apply_context(service, server_ip)
+    try:
+        config_mod.apply_waf(server_ip, service)
+        return jsonify({'status': 'ok'})
+    except (RoxywiPermissionError, HTTPException):
+        raise
+    except Exception as exc:
+        return _waf_error_response('failed', exc, server_ip, section='waf_apply')
 
 
 @bp.route('/<service>')
@@ -96,7 +125,8 @@ def waf_rules(service, server_ip):
         'cfg': '',
         'config_file_name': '',
         'service': service,
-        'lang': g.user_params['lang']
+        'lang': g.user_params['lang'],
+        **_waf_apply_context(service, server_ip)
     }
 
     return render_template('waf.html', **kwargs)
@@ -134,7 +164,8 @@ def waf_rule_edit(service, server_ip, rule_id):
         'config': config_read,
         'config_file_name': config_file_name,
         'service': service,
-        'lang': g.user_params['lang']
+        'lang': g.user_params['lang'],
+        **_waf_apply_context(service, server_ip)
     }
 
     return render_template('waf.html', **kwargs)
@@ -167,7 +198,8 @@ def waf_save_config(service, server_ip, rule_id):
         with tempfile.TemporaryDirectory(prefix='waf-save-', dir=configs_dir) as workdir:
             cfg = Path(workdir) / rule.rule_file
             cfg.write_text(config, encoding='utf-8', newline='')
-            stderr = config_mod.master_slave_upload_and_restart(
+            # WAF rules, their Includes and apply state belong to this server.
+            stderr = config_mod.upload_and_restart(
                 server_ip, str(cfg), save, 'waf', waf=rule.service, config_file_name=config_file_name)
     except CandidateApplyError as exc:
         return _waf_error_response(rule.service + '_' + exc.code, exc, server_ip)

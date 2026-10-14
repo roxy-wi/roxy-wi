@@ -24,6 +24,14 @@ class RuleConflict(Exception):
     """The requested file belongs to another rule or was changed externally."""
 
 
+def _unlink(path: Path) -> None:
+    # Keep the standalone helper compatible with Python 3.6 on managed hosts.
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        pass
+
+
 def _replace_config(path: Path, original: bytes, content: bytes) -> None:
     # Work in the same filesystem and retain mode, ownership and xattrs (SELinux).
     fd, temporary = tempfile.mkstemp(prefix='.roxywi-waf-', dir=path.parent)
@@ -42,7 +50,7 @@ def _replace_config(path: Path, original: bytes, content: bytes) -> None:
             raise RuleConflict('The WAF configuration changed during update')
         os.replace(temporary, path)
     finally:
-        temporary.unlink(missing_ok=True)
+        _unlink(temporary)
 
 
 def _validate_location(entrypoint: Path, rule: Path) -> None:
@@ -203,7 +211,7 @@ def create_rule(entrypoint: Path, rule: Path, request_id: str) -> None:
             # link is exclusive: a concurrent creator must never be overwritten.
             os.link(temporary, rule)
         finally:
-            temporary.unlink(missing_ok=True)
+            _unlink(temporary)
 
     if not includes:
         _append_include(entrypoint, sources[entrypoint], rule)

@@ -35,7 +35,7 @@ def forbid_waf_io(monkeypatch):
     def unexpected(*args, **kwargs):
         pytest.fail('Rejected WAF request reached file or remote operations')
     monkeypatch.setattr(config.mod_ssh, 'ssh_connect', unexpected)
-    monkeypatch.setattr(config, 'master_slave_upload_and_restart', unexpected)
+    monkeypatch.setattr(config, 'upload_and_restart', unexpected)
     monkeypatch.setattr(waf.server_mod, 'ssh_command', unexpected)
     monkeypatch.setattr(routes.tempfile, 'TemporaryDirectory', unexpected)
 
@@ -113,7 +113,7 @@ def test_save_uses_registered_rule_path(product_client, product, waf_rules, monk
         assert kwargs['waf'] == service
         uploaded.append((server, Path(candidate).read_text(encoding='utf-8'), kwargs['config_file_name']))
 
-    monkeypatch.setattr(config, 'master_slave_upload_and_restart', upload)
+    monkeypatch.setattr(config, 'upload_and_restart', upload)
     data = {'action' if json_request else 'save': 'save', 'config': '# updated rule'}
     if filename != 'omitted':
         data['config_file_name'] = 'test.conf' if filename == 'basename' else expected
@@ -288,20 +288,20 @@ def test_failed_save_is_not_success_and_cleans_only_its_files(product_client, pr
     assert not list(product.root.glob('waf-save-*'))
 
 
-def test_failed_replica_save_does_not_report_success(product_client, product, waf_rules, monkeypatch):
+def test_failed_selected_server_save_does_not_report_success(product_client, product, waf_rules, monkeypatch):
     product.other.master = product.server.server_id
     product.other.save()
     calls = []
 
     def upload(server, *args, **kwargs):
         calls.append(server)
-        raise OSError('synthetic replica failure')
+        raise OSError('synthetic selected server failure')
 
     monkeypatch.setattr(config, 'upload_and_restart', upload)
     response = product_client.post(f'/waf/haproxy/{product.server.ip}/rule/{waf_rules["haproxy"].id}/save',
                                    json={'action': 'save', 'config': '# candidate'})
     assert response.status_code == 500 and response.json['status'] == 'failed'
-    assert calls == [product.other.ip]
+    assert calls == [product.server.ip]
     assert not list(product.root.glob('waf-save-*'))
 
 

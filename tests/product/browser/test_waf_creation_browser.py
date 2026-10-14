@@ -58,6 +58,7 @@ def test_creation_keeps_input_after_error_and_opens_correct_editor(logged_in, pr
     rule = WafRules.get(WafRules.service == service, WafRules.rule_file == 'custom-rule.conf')
     expect(page).to_have_url(f'{product_url}/waf/{service}/{product.server.ip}/rule/{rule.id}')
     expect(page.locator('#saveconfig')).to_be_visible()
+    expect(page.locator('[data-waf-apply]')).to_have_attribute('data-state', 'pending')
     assert '# Roxy-WI rule creation:' in page.evaluate('myCodeMirror.getValue()')
     assert (rule.rule_name, rule.desc, rule.service, rule.serv) == (NAME, DESCRIPTION, service, product.server.ip)
 

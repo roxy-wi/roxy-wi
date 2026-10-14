@@ -142,7 +142,7 @@ def test_service_action_commands_preserve_valid_verbs(monkeypatch, docker, verb,
 def test_waf_rejects_actions_before_writing(client, actor, monkeypatch, json_request, verb):
     actor[0]['role'] = 2
     monkeypatch.setattr(waf_routes.roxywi_common, 'check_is_server_in_group', lambda *a: None)
-    monkeypatch.setattr(waf_routes.config_mod, 'master_slave_upload_and_restart', lambda *a, **k: pytest.fail('WAF uploaded'))
+    monkeypatch.setattr(waf_routes.config_mod, 'upload_and_restart', lambda *a, **k: pytest.fail('WAF uploaded'))
     data = {'serv': '192.0.2.10', 'config': 'synthetic', 'config_file_name': 'test.conf', ('action' if json_request else 'save'): verb}
     response = client.post('/waf/haproxy/192.0.2.10/rule/1/save', headers=actor[1], **({'json': data} if json_request else {'data': data}))
     assert response.status_code == 400
@@ -161,7 +161,7 @@ def test_waf_save_action_contract(client, actor, monkeypatch, tmp_path, json_req
     def upload(*args, **kwargs):
         calls.append((args, Path(args[1]).read_text()))
         return 'saved'
-    monkeypatch.setattr(waf_routes.config_mod, 'master_slave_upload_and_restart', upload)
+    monkeypatch.setattr(waf_routes.config_mod, 'upload_and_restart', upload)
     data = {'config': 'synthetic', 'config_file_name': 'test.conf', ('action' if json_request else 'save'): verb}
     response = client.post('/waf/haproxy/192.0.2.10/rule/1/save', headers=actor[1], **({'json': data} if json_request else {'data': data}))
     if verb == 'reload':

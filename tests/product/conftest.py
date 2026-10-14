@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import json
 from pathlib import Path, PurePosixPath
 import shlex
+import shutil
 from types import SimpleNamespace
 
 import pytest
@@ -14,7 +15,7 @@ from app.modules.db import db_model as models
 from app.modules.db.migration_manager import Migration
 from app.modules.roxywi import common, roxy
 from app.modules.roxywi import waf, waf_rule_file
-from app.modules.config import config
+from app.modules.config import config, candidate
 from app.modules.server.ssh import crypt_password
 
 
@@ -156,4 +157,72 @@ def waf_switching(waf_creation, product):
         waf_rule_file.switch_rule(entrypoint, path, 1)
         state.rules[service] = rule
         state.entrypoints[service] = entrypoint
+    return state
+
+
+@pytest.fixture
+def waf_applying(waf_modes, product, monkeypatch):
+    """Execute file operations and apply transactions; simulate only host processes."""
+    state = waf_modes
+    state.apply_calls, state.uploads = [], {}
+    state.valid, state.ready, state.action_failed = True, True, False
+    state.apply_disconnected, state.apply_lost, state.apply_response = False, False, None
+    state.pid, state.clock = 1, 0
+    main = state.roots['nginx'].parent / 'nginx.conf'
+    main.write_text('# nginx main\n')
+    models.Setting.update(value='/srv/nginx custom/nginx.conf').where(
+        models.Setting.param == 'nginx_config_path', models.Setting.group_id == 1).execute()
+    original_ssh = waf.server_mod.ssh_command
+
+    def upload(server, remote, local):
+        staged = product.root / ('upload-' + Path(remote).name)
+        shutil.copyfile(local, staged)
+        state.uploads[remote] = staged
+
+    def ssh(server, command, **kwargs):
+        tokens = shlex.split(command)
+        if tokens[:3] == ['sudo', 'rm', '-f']:
+            if tokens[-1] in state.uploads:
+                state.uploads[tokens[-1]].unlink(missing_ok=True)
+            return ''
+        if len(tokens) < 9 or tokens[8] != Path(candidate.__file__).read_text(encoding='utf-8'):
+            return original_ssh(server, command, **kwargs)
+        assert server == product.server.ip
+        assert kwargs['rc'] == 1 and kwargs['timeout'] == candidate.REMOTE_TIMEOUT
+        spec = json.loads(tokens[-1])
+        state.apply_calls.append(spec.copy())
+        if state.apply_disconnected:
+            raise OSError('synthetic apply connection failure')
+        service = spec['service'].removesuffix('_waf')
+        root = state.roots[service]
+        spec.update(target=str(root / ('modsecurity.conf' if spec.get('apply_only') else 'rules/test.conf')),
+                    main=str(main if service == 'nginx' else root / 'modsecurity.conf'))
+        if spec['candidate']:
+            spec['candidate'] = str(state.uploads[spec['candidate']])
+        result = candidate.execute(spec)
+        if state.apply_lost:
+            state.apply_lost = False
+            raise OSError('synthetic lost apply response')
+        return state.apply_response if state.apply_response is not None else json.dumps(result)
+
+    def run(arguments, **kwargs):
+        if arguments[:2] == ['systemctl', 'show']:
+            return SimpleNamespace(returncode=0, stdout=b'loaded')
+        if arguments[0] == 'nginx':
+            return SimpleNamespace(returncode=int(not state.valid), stdout=b'')
+        assert arguments[:2] == ['sh', '-c']
+        state.pid += 1
+        return SimpleNamespace(returncode=int(state.action_failed), stdout=b'')
+
+    def tick(seconds):
+        state.clock += seconds
+
+    monkeypatch.setattr(config, 'upload', upload)
+    monkeypatch.setattr(waf.server_mod, 'ssh_command', ssh)
+    monkeypatch.setattr(candidate, '_run', run)
+    monkeypatch.setattr(candidate._HaproxyWafValidator, 'process_id', lambda _: state.pid)
+    monkeypatch.setattr(candidate._HaproxyWafValidator, 'listener_port', lambda *a: 12345)
+    monkeypatch.setattr(candidate._HaproxyWafValidator, 'ready', lambda *a: state.ready)
+    monkeypatch.setattr(candidate, 'time', SimpleNamespace(monotonic=lambda: state.clock, sleep=tick))
+    monkeypatch.setattr(config, 'normalize_config_file', lambda _: None)
     return state

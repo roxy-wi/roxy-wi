@@ -189,3 +189,57 @@ def test_command_uses_the_rule_operation_lock_and_quotes_all_arguments():
 def test_unconfirmed_remote_response_is_not_success(output):
     with pytest.raises((ValueError, RuntimeError)):
         remote.check_result(output)
+
+
+@pytest.mark.parametrize('container', ['', 'custom-nginx'])
+@pytest.mark.parametrize('results,code', [([], None), ([1], 'validation_failed'), ([0, 1], 'apply_failed')])
+def test_apply_saved_configuration_validates_without_replacing_any_file(files, runtime, container, results, code):
+    rule, upload, main = files
+    target = rule.parent.parent / 'modsecurity.conf'
+    target.write_bytes(b'SecRuleEngine On\n')
+    before = {path: (path.read_bytes(), path.stat().st_mtime_ns) for path in (target, rule, main, upload)}
+    runtime.results = results.copy()
+    response = remote.execute(dict(service='nginx_waf', target=str(target), main=str(main), candidate='',
+                                   apply_only=True, action='reload', container=container,
+                                   action_command='systemctl reload nginx'))
+    assert response == {'status': 'ok'} if code is None else response['code'] == code
+    assert {path: (path.read_bytes(), path.stat().st_mtime_ns) for path in before} == before
+    calls = runtime.calls[1:] if container else runtime.calls
+    check = (['docker', 'exec', container] if container else []) + ['nginx', '-t', '-c',
+             '/etc/custom nginx/nginx.conf' if container else str(main)]
+    assert calls[0][0] == check
+    assert len(calls) == (1 if code == 'validation_failed' else 2)
+
+
+@pytest.mark.parametrize('service,action', [('nginx_waf', 'reload'), ('haproxy_waf', 'restart')])
+def test_apply_saved_and_save_rule_use_the_same_remote_lock(service, action):
+    root = '/srv/proxy with spaces/waf'
+    save = shlex.split(remote.candidate_command(service, root + '/rules/test.conf', '/tmp/upload', 'save', main='/srv/main'))
+    apply = shlex.split(remote.candidate_command(service, root + '/modsecurity.conf', '', action, main='/srv/main', apply_only=True))
+    assert save[:8] == apply[:8]
+    assert json.loads(apply[-1])['apply_only'] is True
+
+
+@pytest.mark.parametrize('problem', ['rule_path', 'missing_entrypoint', 'missing_action', 'candidate', 'save', 'haproxy'])
+def test_invalid_apply_context_does_not_run_commands_or_change_files(files, runtime, problem):
+    rule, upload, main = files
+    target = rule.parent.parent / 'modsecurity.conf'
+    target.write_bytes(b'SecRuleEngine On\n')
+    spec = dict(service='nginx_waf', target=str(target), main=str(main), candidate='',
+                apply_only=True, action='reload', action_command='systemctl reload nginx')
+    if problem == 'rule_path':
+        spec['target'] = str(rule)
+    elif problem == 'missing_entrypoint':
+        target.unlink()
+    elif problem == 'missing_action':
+        spec['action_command'] = ''
+    elif problem == 'candidate':
+        spec['candidate'] = str(upload)
+    elif problem == 'save':
+        spec['action'] = 'save'
+    else:
+        spec['service'] = 'haproxy'
+    assert remote.execute(spec)['status'] == 'failed'
+    assert not runtime.calls
+    assert rule.read_bytes() == b'# original\n'
+    assert upload.read_bytes() == b'# candidate\n'

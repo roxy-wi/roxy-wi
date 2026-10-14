@@ -1,5 +1,6 @@
 import os
 import subprocess
+from contextlib import ExitStack
 from difflib import unified_diff
 from pathlib import Path
 from shlex import quote
@@ -23,7 +24,7 @@ import app.modules.service.common as service_common
 import app.modules.service.action as service_action
 import app.modules.config.common as config_common
 import app.modules.config.deployment_policy as deployment_policy
-from app.modules.config import haproxy_files, candidate
+from app.modules.config import haproxy_files, candidate, waf_state
 from app.modules.config.path_tokens import encode_file_path, decode_file_path
 from app.modules.config.viewer import build_document
 
@@ -167,7 +168,7 @@ def validate_candidate_config(server_ip: str, cfg: str, service: str, config_fil
 
 def _generate_command(
 	service: str, server_id: int, just_save: str, config_path: str, tmp_file: str, cfg: str, server_ip: str,
-	waf_service: str = None
+	waf_service: str = None, apply_only: bool = False
 ) -> str:
 	"""
 	:param service: The name of the service.
@@ -194,7 +195,7 @@ def _generate_command(
 		main = sql.get_setting('nginx_config_path') if waf_service == 'nginx' else common.get_waf_entrypoint(waf_service)
 		unit = service_common.get_correct_service_name(action_service, server_id) if not container else ''
 		return candidate.candidate_command(f'{waf_service}_waf', config_path, tmp_file, just_save,
-			main=main, container=container, action_command=action, service_unit=unit)
+			main=main, container=container, action_command=action, service_unit=unit, apply_only=apply_only)
 	container_name = sql.get_setting(f'{service}_container_name')
 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
 	if service == 'haproxy':
@@ -305,6 +306,22 @@ def validate_config_action(action: str) -> None:
 		raise ValueError('Unsupported configuration action')
 
 
+def apply_waf(server_ip: str, service: str) -> None:
+	"""Apply the saved WAF configuration under the same locks as rule writes."""
+	if service not in ('haproxy', 'nginx'):
+		raise ValueError('Unsupported WAF service')
+	server_id = server_sql.get_server_by_ip(server_ip).server_id
+	action = 'restart' if service == 'haproxy' else 'reload'
+	service_common.is_protected(server_ip, action)
+	command = _generate_command('waf', server_id, action, common.get_waf_directory(service) + '/modsecurity.conf',
+		'', '', server_ip, waf_service=service, apply_only=True)
+	with waf_state.operation_lock(server_ip, service), waf_state.track_changes(server_id, service, applying=True):
+		output = server_mod.ssh_command(server_ip, command, rc=1, timeout=candidate.REMOTE_TIMEOUT,
+			error_context='WAF configuration apply did not complete')
+		candidate.check_result(output)
+	roxywi_common.logging(server_ip, f'WAF configuration applied for {service}', keep_history=1, service=service)
+
+
 def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, **kwargs):
 	"""
 	:param server_ip: IP address of the server
@@ -376,16 +393,20 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot generate command for service {service}')
 
 	try:
-		upload(server_ip, tmp_file, cfg)
-		uses_candidate = service in ('haproxy', 'waf')
-		error = server_mod.ssh_command(server_ip, commands, rc=1, **(
-			{'timeout': candidate.REMOTE_TIMEOUT, 'error_context': 'Configuration transaction did not complete'} if uses_candidate else {}
-		))
-		if uses_candidate:
-			candidate.check_result(error)
-			error = ''
-			if service == 'haproxy' and just_save != 'test' and server_sql.return_firewall(server_ip):
-				server_mod.ssh_command(server_ip, 'true' + _open_port_firewalld(cfg, server_ip, service), rc=1)
+		with ExitStack() as operations:
+			if service == 'waf':
+				operations.enter_context(waf_state.operation_lock(server_ip, kwargs['waf']))
+				operations.enter_context(waf_state.track_changes(server_id, kwargs['waf'], applying=just_save in ('reload', 'restart')))
+			upload(server_ip, tmp_file, cfg)
+			uses_candidate = service in ('haproxy', 'waf')
+			error = server_mod.ssh_command(server_ip, commands, rc=1, **(
+				{'timeout': candidate.REMOTE_TIMEOUT, 'error_context': 'Configuration transaction did not complete'} if uses_candidate else {}
+			))
+			if uses_candidate:
+				candidate.check_result(error)
+				error = ''
+				if service == 'haproxy' and just_save != 'test' and server_sql.return_firewall(server_ip):
+					server_mod.ssh_command(server_ip, 'true' + _open_port_firewalld(cfg, server_ip, service), rc=1)
 	except Exception as e:
 		if service == 'waf':
 			try:

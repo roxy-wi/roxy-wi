@@ -16,8 +16,7 @@ import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxywi.auth as roxywi_auth
 from app.modules.db.db_model import WafRules
-from app.modules.common.file_lock import file_lock
-from app.modules.roxy_wi_tools import GetConfigVar
+from app.modules.config import waf_state
 from app.modules.roxywi.exception import RoxywiConflictError, RoxywiPermissionError, RoxywiValidationError
 from app.modules.roxywi import logger
 from app.modules.roxywi.waf_rule_file import WAF_MODES
@@ -99,7 +98,9 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
     servers_sorted = sorted(returned_servers, key=common.get_key)
 
     return render_template('ajax/overviewWaf.html', service_status=servers_sorted, role=role,
-                           waf_service=waf_service, lang=lang, mode_error=mode_error)
+                           waf_service=waf_service, lang=lang, mode_error=mode_error,
+                           waf_apply_status=waf_state.status(server.server_id, waf_service),
+                           waf_apply_ip=server.ip, waf_apply_service=waf_service, waf_apply_button=False)
 
 
 def _require_waf_service(service: str) -> None:
@@ -125,17 +126,10 @@ def change_waf_mode(waf_mode: str, server_id: int, service: str) -> None:
     serv = server_sql.get_server(server_id)
     roxywi_common.check_is_server_in_group(serv.ip)
     root = common.get_waf_directory(service)
-    with _waf_lock(serv.ip, service):
+    with waf_state.operation_lock(serv.ip, service), waf_state.track_changes(server_id, service):
         _run_waf_file_command(serv.ip, root, ['set-mode', root + '/modsecurity.conf', waf_mode],
                               {'status': 'ok', 'mode': waf_mode})
         roxywi_common.logging(serv.hostname, f'WAF mode {waf_mode} saved in {service} configuration')
-
-
-def _waf_lock(serv: str, service: str):
-    lock_id = hashlib.sha256(f'{serv}\0{service}'.encode('utf-8')).hexdigest()
-    lock_dir = Path(GetConfigVar().get_config_var('main', 'lib_path')) / 'waf-locks'
-    lock_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
-    return file_lock(lock_dir / f'{lock_id}.lock')
 
 
 def _run_waf_file_command(serv: str, root: str, arguments: list[str], expected: dict = None) -> dict:
@@ -156,15 +150,17 @@ def switch_waf_rule(serv: str, enable: int, rule_id: int, service: str = None) -
     if enable not in (0, 1):
         raise RoxywiValidationError('Rule state must be 0 or 1')
     rule = get_waf_rule(serv, rule_id, service)
-    with _waf_lock(serv, rule.service):
+    with waf_state.operation_lock(serv, rule.service):
         rule = get_waf_rule(serv, rule_id, rule.service)
         root = common.get_waf_directory(rule.service)
         rule_path = common.resolve_waf_config_path(rule.service, rule.rule_file)
         entrypoint = common.get_waf_entrypoint(rule.service)
         # Always confirm the remote state, including after an interrupted SSH
         # response or database write. Repeating the desired state is idempotent.
-        _run_waf_file_command(serv, root, ['toggle', entrypoint, rule_path, str(enable)],
-                              {'status': 'ok', 'enabled': enable})
+        server_id = server_sql.get_server_by_ip(serv).server_id
+        with waf_state.track_changes(server_id, rule.service):
+            _run_waf_file_command(serv, root, ['toggle', entrypoint, rule_path, str(enable)],
+                                  {'status': 'ok', 'enabled': enable})
         waf_sql.update_enable_waf_rules(rule_id, serv, enable)
         state = 'enabled' if enable else 'disabled'
         roxywi_common.logging('WAF', f'WAF rule {rule.rule_file} {state} in configuration on {serv}')
@@ -206,11 +202,13 @@ def create_waf_rule(serv: str, service: str, json_data: dict) -> int:
                                            ensure_ascii=True).encode('utf-8')).hexdigest()
     # Serialize the catalog check, SSH and insert across workers on shared storage.
     # No database transaction is held while waiting for the remote host.
-    with _waf_lock(serv, service):
+    with waf_state.operation_lock(serv, service):
         existing = _existing_created_rule(serv, service, name, filename, description)
         if existing is not None:
             return existing
-        _run_waf_file_command(serv, root, [entrypoint, rule_path, request_id], {'status': 'ok'})
+        server_id = server_sql.get_server_by_ip(serv).server_id
+        with waf_state.track_changes(server_id, service):
+            _run_waf_file_command(serv, root, [entrypoint, rule_path, request_id], {'status': 'ok'})
         try:
             last_id = waf_sql.insert_new_waf_rule(name, filename, description, service, serv)
         except IntegrityError:

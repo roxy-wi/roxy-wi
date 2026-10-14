@@ -3,8 +3,6 @@
 Only validators know how each service loads a candidate. File replacement,
 recovery, command execution and the result contract belong to this module.
 """
-from __future__ import annotations
-
 import getopt
 import hashlib
 import json
@@ -106,24 +104,29 @@ def check_result(output: str) -> None:
 
 
 def candidate_command(service: str, target: str, candidate: str, action: str, *, main: str,
-                      root: str = '', sources=(), container: str = '', action_command: str = '', service_unit: str = '') -> str:
+                      root: str = '', sources=(), container: str = '', action_command: str = '', service_unit: str = '',
+                      apply_only: bool = False) -> str:
     if service not in ('haproxy', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart'):
         raise ValueError('Unsupported configuration transaction')
     if service == 'haproxy_waf' and action not in ('save', 'restart'):
         raise ValueError('HAProxy WAF supports save and restart only')
+    if apply_only and (not service.endswith('_waf') or action not in ('reload', 'restart') or candidate):
+        raise ValueError('Unsupported WAF apply operation')
     if service.endswith('_waf'):
-        root = str(PurePosixPath(target).parent.parent)
+        root = str(PurePosixPath(target).parent if apply_only else PurePosixPath(target).parent.parent)
         lock_id = hashlib.sha256(root.encode('utf-8')).hexdigest()
         lock = f'/var/lock/roxywi-waf-{lock_id}.lock'
     else:
         lock = '/var/lock/roxywi-haproxy-config.lock'
     spec = dict(service=service, target=target, candidate=candidate, action=action, main=main,
                 root=root, sources=list(sources), container=container, action_command=action_command, service_unit=service_unit)
+    if apply_only:
+        spec['apply_only'] = True
     script = Path(__file__).read_text(encoding='utf-8')
     return shlex.join(['sudo', '-n', 'flock', '-w', '30', lock, 'python3', '-c', script, json.dumps(spec)])
 
 
-def _run(arguments: list[str], *, timeout=30) -> subprocess.CompletedProcess:
+def _run(arguments: list, *, timeout=30) -> subprocess.CompletedProcess:
     # Native diagnostics can contain configuration secrets; only metadata crosses SSH.
     return subprocess.run(arguments, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                           stderr=subprocess.STDOUT, timeout=timeout, check=False)
@@ -132,6 +135,14 @@ def _run(arguments: list[str], *, timeout=30) -> subprocess.CompletedProcess:
 def _regular(path: Path) -> None:
     if path.is_symlink() or not path.is_file():
         raise _ConfigurationError('Expected a regular file')
+
+
+def _unlink(path: Path) -> None:
+    # Managed hosts may use Python 3.6, before Path.unlink(missing_ok=...).
+    try:
+        path.unlink()
+    except FileNotFoundError:
+        pass
 
 
 def _contents(path: Path):
@@ -167,7 +178,7 @@ def _install(source: Path, target: Path, expected, metadata: Path = None) -> Non
             raise _ConfigurationError('Configuration changed during the transaction')
         os.replace(temporary, target)
     finally:
-        temporary.unlink(missing_ok=True)
+        _unlink(temporary)
 
 
 def _container_path(path: Path, mounts: list, *, directory=False, writable=False, aliases=False, bind_only=False) -> str:
@@ -258,7 +269,8 @@ class _HaproxyWafValidator(_WafValidator):
 
     def inspect(self):
         super().inspect()
-        if self.main != self.target.parent.parent / 'modsecurity.conf':
+        entrypoint = self.target if self.spec.get('apply_only') else self.target.parent.parent / 'modsecurity.conf'
+        if self.main != entrypoint:
             raise _ConfigurationError('Unexpected ModSecurity entrypoint')
         self.unit = self.spec.get('service_unit', '')
         if self.spec['action'] == 'restart':
@@ -300,7 +312,7 @@ class _HaproxyWafValidator(_WafValidator):
             options = dict(options)
         except getopt.GetoptError as exc:
             raise _ConfigurationError('Unsupported WAF agent startup arguments') from exc
-        if remaining or options.get('-f') != self.runtime_main:
+        if remaining or PurePosixPath(options.get('-f', '')) != PurePosixPath(self.runtime_main):
             raise _ConfigurationError('Start the WAF agent directly with -f pointing to the configured modsecurity.conf')
         port = int(options.get('-p', 12345))
         if not 0 < port < 65536:
@@ -422,7 +434,10 @@ def _target(spec):
         if target != main and (root not in target.parents or target.suffix != '.cfg'):
             raise _ConfigurationError('Selected configuration resolves outside the HAProxy directory')
     else:
-        if (target.parent.name != 'rules' or target.parent.parent.name != 'waf'
+        if spec.get('apply_only'):
+            if target.name != 'modsecurity.conf' or target.parent.name != 'waf' or target.parent.is_symlink():
+                raise _ConfigurationError('Invalid WAF entrypoint path')
+        elif (target.parent.name != 'rules' or target.parent.parent.name != 'waf'
                 or target.parent.is_symlink() or not re.fullmatch(r'[A-Za-z0-9._-]+\.conf', target.name)):
             raise _ConfigurationError('Invalid WAF rule path')
         _regular(target)
@@ -444,7 +459,10 @@ def execute(spec: dict) -> dict:
             raise _ConfigurationError('Unsupported configuration transaction')
         if service == 'haproxy_waf' and action not in ('save', 'restart'):
             raise _ConfigurationError('HAProxy WAF supports save and restart only')
-        if action != 'check':
+        apply_only = spec.get('apply_only', False)
+        if apply_only and (not service.endswith('_waf') or action not in ('reload', 'restart') or spec.get('candidate')):
+            raise _ConfigurationError('Unsupported WAF apply operation')
+        if action != 'check' and not apply_only:
             path = Path(spec['candidate'])
             if not path.is_absolute() or path.resolve() in (Path(spec['target']).resolve(), Path(spec['main']).resolve()):
                 raise _ConfigurationError('Invalid candidate path')
@@ -461,7 +479,15 @@ def execute(spec: dict) -> dict:
         phase = 'mount'
         validator.inspect()
         phase = 'validate'
-        if action == 'check':
+        if apply_only:
+            if validator.can_validate and not validator.validate():
+                raise _ConfigurationError('Current WAF configuration validation failed')
+            phase = 'apply'
+            validator.apply()
+            if _contents(target) != original:
+                raise _ConfigurationError('WAF entrypoint changed during apply')
+            result = {'status': 'ok'}
+        elif action == 'check':
             if not validator.validate():
                 raise _ConfigurationError('Current configuration validation failed')
             result = {'status': 'ok'}
@@ -528,7 +554,7 @@ def execute(spec: dict) -> dict:
         if validator:
             cleanups.append(validator.close)
         if upload:
-            cleanups.append(lambda: upload.unlink(missing_ok=True))
+            cleanups.append(lambda: _unlink(upload))
         if work and not keep_backup:
             cleanups.append(lambda: shutil.rmtree(work))
         for cleanup in cleanups:

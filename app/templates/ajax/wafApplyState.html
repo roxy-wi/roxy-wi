@@ -1,0 +1,13 @@
+{% if lang is string %}{% import 'languages/'+lang|default('en')+'.html' as lang %}{% endif %}
+<div class="waf-apply-state" data-waf-apply data-state="{{ waf_apply_status }}" role="status" aria-live="polite"
+     data-state-url="{{ url_for('waf.waf_apply_state', service=waf_apply_service, server_ip=waf_apply_ip, button=1 if waf_apply_button else 0) }}"
+     data-apply-url="{{ url_for('waf.apply_waf', service=waf_apply_service, server_ip=waf_apply_ip) }}"
+     data-confirm="{{ lang.waf_apply['confirm_' + waf_apply_service] }} {{ waf_apply_ip }}"
+     data-action-label="{{ lang.waf_apply.apply }}" data-cancel-label="{{ lang.words.cancel|title }}"
+     data-success="{{ lang.waf_apply.success }}" data-error="{{ lang.waf_apply.failed }}"
+     data-unknown="{{ lang.waf_apply.unknown }}" data-pending="{{ lang.waf_apply.pending }}">
+    <span data-waf-apply-label title="{{ lang.waf_apply.scope }}">{{ lang.waf_apply[waf_apply_status] }}</span>
+    {% if waf_apply_button %}
+    <button type="button" class="ui-button ui-widget ui-corner-all" data-waf-apply-button>{{ lang.waf_apply.apply }}</button>
+    {% endif %}
+</div>

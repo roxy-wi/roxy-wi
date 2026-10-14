@@ -454,6 +454,18 @@ class Waf(BaseModel):
         constraints = [SQL('UNIQUE (server_id)')]
 
 
+class WafConfigState(BaseModel):
+    server = ForeignKeyField(Server, column_name='server_id', on_delete='CASCADE')
+    service = CharField(max_length=16)
+    revision = CharField(max_length=32)
+    applied_revision = CharField(max_length=32, null=True)
+    applied_at = DateTimeField(null=True)
+
+    class Meta:
+        table_name = 'waf_config_states'
+        indexes = ((('server', 'service'), True),)
+
+
 class WafRules(BaseModel):
     id = AutoField()
     serv = CharField()
@@ -1369,7 +1381,7 @@ def create_tables():
              ServiceEventDelivery, ServiceNotification, ServiceEventPosition, ServiceEventRetention,
              WorkerState, ServiceAssignment, ServiceCommand,
              Cred, Backup, BackupSchedule, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
-             PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, GeoipCodes,
+             PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, WafConfigState, GeoipCodes,
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
              KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
