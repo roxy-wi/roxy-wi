@@ -221,25 +221,29 @@ def test_map_symlinks_cannot_target_other_groups(maps, directory_link):
     assert (foreign / 'routes.map').read_text() == 'foreign'
 
 
-def test_waf_candidates_have_independent_paths(client, editor, tmp_path, monkeypatch):
+@pytest.mark.parametrize('service', ['haproxy', 'nginx'])
+def test_waf_candidates_have_independent_paths(client, editor, tmp_path, monkeypatch, service):
     monkeypatch.setattr(auth, 'is_admin', lambda level=1, **_: 2 <= level)
     monkeypatch.setattr(waf_routes.roxywi_common, 'check_is_server_in_group', lambda *a: None)
     monkeypatch.setattr(waf_routes.sql, 'get_setting', lambda key: str(tmp_path) + '/')
     monkeypatch.setattr(waf_routes.common, 'resolve_waf_config_path', lambda *a: '/etc/waf/rules/test.conf')
     monkeypatch.setattr(waf_routes.waf_sql, 'get_waf_rule',
-                        lambda *a: SimpleNamespace(service='haproxy', rule_file='test.conf'))
+                        lambda *a: SimpleNamespace(service=service, rule_file='test.conf'))
     candidates = []
     contents = []
-    def upload(server, cfg, *args, **kwargs):
+    def upload(server, cfg, action, config_service, **kwargs):
+        assert (server, action, config_service) == (SERVER, 'save', 'waf')
+        assert kwargs == {'waf': service, 'config_file_name': '/etc/waf/rules/test.conf'}
         candidates.append(Path(cfg))
         contents.append(Path(cfg).read_text())
         return 'saved'
+    monkeypatch.setattr(config_mod, 'upload_and_restart', upload)
     monkeypatch.setattr(config_mod, 'master_slave_upload_and_restart',
-                        upload)
+                        lambda *a, **kw: pytest.fail('WAF saves must target only the selected server'))
     for content in ['first', 'second']:
-        response = client.post(f'/waf/haproxy/{SERVER}/rule/1/save', headers=editor,
+        response = client.post(f'/waf/{service}/{SERVER}/rule/1/save', headers=editor,
                                json={'action': 'save', 'config': content, 'config_file_name': 'test.conf'})
         assert response.status_code == 200 and response.json['data'] == 'saved'
     assert len(set(candidates)) == 2
     assert contents == ['first', 'second']
-    assert all(path.parent.parent == tmp_path and not path.exists() for path in candidates)
+    assert all(path.parent.parent == tmp_path and not path.parent.exists() for path in candidates)
