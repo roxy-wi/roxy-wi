@@ -106,14 +106,16 @@ def check_result(output: str) -> None:
 def candidate_command(service: str, target: str, candidate: str, action: str, *, main: str,
                       root: str = '', sources=(), container: str = '', action_command: str = '', service_unit: str = '',
                       apply_only: bool = False) -> str:
-    if service not in ('haproxy', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart'):
+    if service not in ('haproxy', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart', 'status'):
         raise ValueError('Unsupported configuration transaction')
-    if service == 'haproxy_waf' and action not in ('save', 'restart'):
+    if action == 'status' and (not service.endswith('_waf') or candidate or action_command or apply_only):
+        raise ValueError('Unsupported WAF status operation')
+    if service == 'haproxy_waf' and action not in ('save', 'restart', 'status'):
         raise ValueError('HAProxy WAF supports save and restart only')
     if apply_only and (not service.endswith('_waf') or action not in ('reload', 'restart') or candidate):
         raise ValueError('Unsupported WAF apply operation')
     if service.endswith('_waf'):
-        root = str(PurePosixPath(target).parent if apply_only else PurePosixPath(target).parent.parent)
+        root = str(PurePosixPath(target).parent if apply_only or action == 'status' else PurePosixPath(target).parent.parent)
         lock_id = hashlib.sha256(root.encode('utf-8')).hexdigest()
         lock = f'/var/lock/roxywi-waf-{lock_id}.lock'
     else:
@@ -126,10 +128,36 @@ def candidate_command(service: str, target: str, candidate: str, action: str, *,
     return shlex.join(['sudo', '-n', 'flock', '-w', '30', lock, 'python3', '-c', script, json.dumps(spec)])
 
 
-def _run(arguments: list, *, timeout=30) -> subprocess.CompletedProcess:
+def _run(arguments: list, *, timeout=30, separate_errors=False) -> subprocess.CompletedProcess:
     # Native diagnostics can contain configuration secrets; only metadata crosses SSH.
     return subprocess.run(arguments, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                          stderr=subprocess.STDOUT, timeout=timeout, check=False)
+                          stderr=subprocess.PIPE if separate_errors else subprocess.STDOUT, timeout=timeout, check=False)
+
+
+def service_process(container, unit):
+    """Return the service manager's state and its main PID, never a grep count."""
+    name = container or unit
+    if not name or name.startswith('-'):
+        raise _ConfigurationError('A service or container name is required')
+    if container:
+        result = _run(['docker', 'inspect', '--format', '{{json .State}}', container], timeout=5)
+        if result.returncode:
+            return 'unknown', 0
+        state = json.loads(result.stdout)
+        pid = int(state['Pid'])
+        if state.get('Running') and not state.get('Restarting') and not state.get('Paused') and pid > 0:
+            return 'running', pid
+        return 'stopped', 0
+    result = _run(['systemctl', 'show', unit, '--property=MainPID', '--property=ActiveState', '--property=SubState'], timeout=5)
+    if result.returncode:
+        return 'unknown', 0
+    state = dict(line.split('=', 1) for line in result.stdout.decode().splitlines() if '=' in line)
+    if not {'MainPID', 'ActiveState', 'SubState'}.issubset(state):
+        return 'unknown', 0
+    pid = int(state['MainPID'])
+    if state['ActiveState'] == 'active' and state['SubState'] == 'running' and pid > 0:
+        return 'running', pid
+    return 'stopped', 0
 
 
 def _regular(path: Path) -> None:
@@ -261,6 +289,33 @@ class _NginxWafValidator(_WafValidator):
     def validate(self, staged=None):
         return _run(self.command).returncode == 0
 
+    def module_state(self):
+        command = self.command.copy()
+        command[-3] = '-T'
+        result = _run(command, separate_errors=True)
+        if result.returncode:
+            return 'invalid', 'unknown'
+        # Parse directives only; comments, quoted values and inactive files must
+        # not be mistaken for an enabled module. Never return configuration text.
+        dump = result.stdout.decode('utf-8')
+        if not re.search(r'^# configuration file .+:$', dump, re.MULTILINE):
+            raise _ConfigurationError('NGINX did not return its configuration dump')
+        lexer = shlex.shlex(dump, posix=True, punctuation_chars=';{}')
+        lexer.whitespace_split = True
+        statement, states = [], set()
+        for token in lexer:
+            if token and all(char in ';{}' for char in token):
+                if token.startswith(';') and len(statement) == 2 and statement[0] == 'modsecurity':
+                    states.add(statement[1])
+                statement = []
+            else:
+                statement.append(token)
+        if not states:
+            return 'valid', 'not_configured'
+        if not states.issubset({'on', 'off'}):
+            return 'valid', 'unknown'
+        return 'valid', 'mixed' if len(states) > 1 else ('enabled' if 'on' in states else 'disabled')
+
 
 class _HaproxyWafValidator(_WafValidator):
     # Upstream spoa-modsecurity has no syntax-check mode. Only a successful
@@ -269,7 +324,7 @@ class _HaproxyWafValidator(_WafValidator):
 
     def inspect(self):
         super().inspect()
-        entrypoint = self.target if self.spec.get('apply_only') else self.target.parent.parent / 'modsecurity.conf'
+        entrypoint = self.target if self.spec.get('apply_only') or self.spec['action'] == 'status' else self.target.parent.parent / 'modsecurity.conf'
         if self.main != entrypoint:
             raise _ConfigurationError('Unexpected ModSecurity entrypoint')
         self.unit = self.spec.get('service_unit', '')
@@ -288,17 +343,7 @@ class _HaproxyWafValidator(_WafValidator):
                 self.listener_port(pid)  # Reject mismatched startup paths before replacing the rule.
 
     def process_id(self):
-        if self.container:
-            result = _run(['docker', 'inspect', '--format', '{{json .State}}', self.container], timeout=5)
-            if result.returncode:
-                return 0
-            state = json.loads(result.stdout)
-            return int(state['Pid']) if state.get('Running') and not state.get('Restarting') else 0
-        result = _run(['systemctl', 'show', self.unit, '--property=MainPID', '--property=ActiveState', '--property=SubState'], timeout=5)
-        if result.returncode:
-            return 0
-        state = dict(line.split('=', 1) for line in result.stdout.decode().splitlines() if '=' in line)
-        return int(state.get('MainPID', 0)) if state.get('ActiveState') == 'active' and state.get('SubState') == 'running' else 0
+        return service_process(self.container, self.unit)[1]
 
     def listener_port(self, pid):
         try:
@@ -434,7 +479,7 @@ def _target(spec):
         if target != main and (root not in target.parents or target.suffix != '.cfg'):
             raise _ConfigurationError('Selected configuration resolves outside the HAProxy directory')
     else:
-        if spec.get('apply_only'):
+        if spec.get('apply_only') or spec['action'] == 'status':
             if target.name != 'modsecurity.conf' or target.parent.name != 'waf' or target.parent.is_symlink():
                 raise _ConfigurationError('Invalid WAF entrypoint path')
         elif (target.parent.name != 'rules' or target.parent.parent.name != 'waf'
@@ -446,8 +491,57 @@ def _target(spec):
     return target, main
 
 
+def diagnose_waf(spec):
+    """Inspect WAF without installing files or invoking a service action.
+
+    These are point-in-time process and saved-configuration checks, not proof
+    that every virtual host sends requests through the WAF.
+    """
+    result = dict(status='ok', process='unknown', check='not_checked', module='unknown', error='')
+    phase = 'process_unavailable'
+    try:
+        if (spec['service'] not in ('nginx_waf', 'haproxy_waf') or spec.get('candidate')
+                or spec.get('action_command') or spec.get('apply_only')):
+            raise _ConfigurationError('Unsupported WAF status operation')
+        container, unit = spec.get('container', ''), spec.get('service_unit', '')
+        if not container:
+            if not unit or unit.startswith('-'):
+                raise _ConfigurationError('A service name is required')
+            loaded = _run(['systemctl', 'show', unit, '--property=LoadState', '--value'], timeout=5)
+            if loaded.returncode or loaded.stdout.strip() != b'loaded':
+                result['process'] = 'missing' if loaded.stdout.strip() == b'not-found' else 'unknown'
+                result['error'] = phase
+                return result
+        result['process'], pid = service_process(container, unit)
+        if result['process'] == 'unknown':
+            result['error'] = phase
+            return result
+        phase = 'config_unavailable'
+        target, main = _target(spec)
+        validator_type = _NginxWafValidator if spec['service'] == 'nginx_waf' else _HaproxyWafValidator
+        validator = validator_type(spec, target, main)
+        validator.inspect()
+        phase = 'check_unavailable'
+        if spec['service'] == 'haproxy_waf':
+            result['module'] = 'not_applicable'
+            if pid:
+                result['check'] = 'ready' if validator.ready(pid) else 'unready'
+        elif not container or pid:
+            result['check'], result['module'] = validator.module_state()
+        # A restart during the check invalidates the readiness observation.
+        if service_process(container, unit) != (result['process'], pid):
+            result.update(process='unknown', check='not_checked', error='process_changed')
+    except Exception:
+        # Return a bounded diagnostic, never configuration output or a command
+        # containing secrets. The caller logs this code and renders its remedy.
+        result['error'] = phase
+    return result
+
+
 def execute(spec: dict) -> dict:
     """Run one transaction under the lock acquired by candidate_command."""
+    if spec.get('action') == 'status':
+        return diagnose_waf(spec)
     result = {'status': 'failed', 'code': 'save_failed'}
     work = upload = validator = None
     installed = action_started = keep_backup = False

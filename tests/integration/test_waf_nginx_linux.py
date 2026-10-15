@@ -11,6 +11,7 @@ import socket
 import subprocess
 import sys
 import time
+from types import SimpleNamespace
 from urllib.request import urlopen
 
 import pytest
@@ -95,6 +96,32 @@ def test_default_host_python_can_save_apply_and_clean_up(nginx):
     wait_for_response(url, b'legacy')
     assert not list(root.rglob('.roxywi-*'))
     assert not (root / 'upload.conf').exists()
+
+
+def test_diagnostics_validate_only_included_files_without_reload(nginx, monkeypatch):
+    root, target, main, url = nginx
+    entrypoint = root / 'waf/modsecurity.conf'
+    entrypoint.write_text('SecRuleEngine On\n')
+    # A recursive grep would report this inactive file as enabled protection.
+    (root / 'inactive.conf').write_text('modsecurity on;\n')
+    pid = int((root / 'nginx.pid').read_text())
+    run = transaction._run
+
+    def checked_run(args, **kwargs):
+        if args[:2] == ['systemctl', 'show']:
+            output = b'loaded' if '--property=LoadState' in args else f'MainPID={pid}\nActiveState=active\nSubState=running'.encode()
+            return SimpleNamespace(returncode=0, stdout=output)
+        assert args == ['nginx', '-T', '-c', str(main)]
+        return run(args, **kwargs)
+
+    monkeypatch.setattr(transaction, '_run', checked_run)
+    before = {path: path.read_bytes() for path in (main, target, entrypoint)}
+    result = transaction.execute(dict(service='nginx_waf', action='status', candidate='', target=str(entrypoint),
+                                      main=str(main), service_unit='nginx'))
+    assert result == dict(status='ok', process='running', check='valid', module='not_configured', error='')
+    assert {path: path.read_bytes() for path in before} == before
+    assert int((root / 'nginx.pid').read_text()) == pid
+    wait_for_response(url, b'old')
 
 
 def test_invalid_candidate_is_restored_and_valid_reload_changes_live_response(nginx):

@@ -157,11 +157,22 @@ def waf_modes(waf_creation, product, monkeypatch):
     models.Waf.create(server_id=product.server.server_id, metrics=0)
     models.WafNginx.create(server_id=product.server.server_id)
     ssh = waf.server_mod.ssh_command
+    waf_creation.diagnostics = {
+        'haproxy': dict(status='ok', process='running', check='ready', module='not_applicable', error=''),
+        'nginx': dict(status='ok', process='running', check='valid', module='enabled', error=''),
+    }
+    waf_creation.diagnostic_error = None
 
     def command(server, command, **kwargs):
-        if command.startswith(('ps ax |grep waf/bin/modsecurity', 'grep -Rs --exclude-dir=waf')):
+        tokens = shlex.split(command)
+        if len(tokens) > 8 and tokens[8] == Path(candidate.__file__).read_text(encoding='utf-8'):
+            spec = json.loads(tokens[-1])
+            assert spec['action'] == 'status' and not spec['candidate'] and not spec['action_command']
             assert server == product.server.ip
-            return '1'
+            assert kwargs['rc'] == 1 and kwargs['timeout'] == 90
+            if waf_creation.diagnostic_error:
+                raise waf_creation.diagnostic_error
+            return json.dumps(waf_creation.diagnostics[spec['service'].removesuffix('_waf')])
         return ssh(server, command, **kwargs)
 
     monkeypatch.setattr(waf.server_mod, 'ssh_command', command)
@@ -211,6 +222,8 @@ def waf_applying(waf_modes, product, monkeypatch):
                 state.uploads[tokens[-1]].unlink(missing_ok=True)
             return ''
         if len(tokens) < 9 or tokens[8] != Path(candidate.__file__).read_text(encoding='utf-8'):
+            return original_ssh(server, command, **kwargs)
+        if json.loads(tokens[-1])['action'] == 'status':
             return original_ssh(server, command, **kwargs)
         assert server == product.server.ip
         assert kwargs['rc'] == 1 and kwargs['timeout'] == candidate.REMOTE_TIMEOUT

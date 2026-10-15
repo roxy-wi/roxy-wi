@@ -118,6 +118,26 @@ def test_save_does_not_pretend_to_validate_or_restart(agent, container):
 
 
 @pytest.mark.parametrize('container', ['', 'custom-waf'])
+@pytest.mark.parametrize('condition,check,error', [('ready', 'ready', ''), ('stopped', 'not_checked', ''),
+                                                 ('foreign_socket', 'unready', ''), ('no_response', 'unready', ''),
+                                                 ('wrong_path', 'not_checked', 'check_unavailable')])
+def test_status_reuses_agent_readiness_without_restart(agent, container, condition, check, error):
+    agent.state.container = container
+    if condition == 'stopped':
+        agent.state.pid = 0
+    elif condition == 'no_response':
+        agent.state.probe_results = [1]
+    elif condition in ('foreign_socket', 'wrong_path'):
+        setattr(agent.state, condition, True)
+    result = candidate.execute(dict(service='haproxy_waf', action='status', target=str(agent.main), main=str(agent.main),
+                                    candidate='', container=container, service_unit='custom-waf.service'))
+    assert result['check'] == check and result['error'] == error
+    assert result['process'] == ('stopped' if condition == 'stopped' else 'running')
+    assert agent.target.read_bytes() == b'# original\n' and agent.upload.exists()
+    assert not any(args[0] == 'sh' for args, _ in agent.state.calls)
+
+
+@pytest.mark.parametrize('container', ['', 'custom-waf'])
 def test_restart_requires_new_agent_and_checks_its_own_socket(agent, container):
     agent.state.container = container
     assert agent.apply() == {'status': 'ok'}

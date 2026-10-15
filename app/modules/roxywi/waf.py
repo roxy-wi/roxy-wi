@@ -2,12 +2,11 @@ import hashlib
 import json
 from pathlib import Path
 import re
-from shlex import join, quote
+from shlex import join
 
 from flask import render_template
 from peewee import IntegrityError
 
-import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
 import app.modules.db.user as user_sql
 import app.modules.db.server as server_sql
@@ -16,7 +15,7 @@ import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxywi.auth as roxywi_auth
 from app.modules.db.db_model import WafRules
-from app.modules.config import waf_state
+from app.modules.config import candidate, config, waf_state
 from app.modules.roxywi.exception import RoxywiConflictError, RoxywiPermissionError, RoxywiValidationError
 from app.modules.roxywi import logger
 from app.modules.roxywi.waf_rule_file import WAF_MODES
@@ -39,68 +38,72 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
     _require_waf_service(waf_service)
     server = server_sql.get_server_by_ip(serv)
     role = user_sql.get_user_role_in_group(claims['user_id'], claims['group'])
-    returned_servers = []
-    waf = ''
-    metrics_en = 0
-    waf_process = ''
-    waf_mode = ''
-    is_waf_on_server = 0
-    waf_len = 0
-    mode_error = False
-    server_status = (
-        server.hostname, server.ip, waf_process, waf_mode, metrics_en, waf_len, server.server_id
-    )
-
-    if waf_service == 'haproxy':
-        is_waf_on_server = server.haproxy
-    elif waf_service == 'nginx':
-        is_waf_on_server = server.nginx
-
-    if is_waf_on_server == 1:
-        config_path = sql.get_setting(f'{waf_service}_dir')
+    metrics_en, installed, waf_mode, mode_error = 0, False, '', False
+    diagnostics = None
+    if getattr(server, waf_service) == 1:
         if waf_service == 'haproxy':
-            waf = waf_sql.select_waf_servers(server.ip)
+            installed = bool(waf_sql.select_waf_servers(server.ip))
             metrics_en = waf_sql.select_waf_metrics_enable_server(server.ip)
-        elif waf_service == 'nginx':
-            waf = waf_sql.select_waf_nginx_servers(server.ip)
-        waf_len = int(bool(waf))
-
-        if waf_len >= 1:
-            if waf_service == 'haproxy':
-                command = "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"
-            elif waf_service == 'nginx':
-                command = f"grep -Rs --exclude-dir=waf -- 'modsecurity on' {quote(config_path)} |wc -l"
-            waf_process = server_mod.ssh_command(server.ip, command)
+        else:
+            installed = bool(waf_sql.select_waf_nginx_servers(server.ip))
+        if installed:
+            diagnostics = read_waf_diagnostics(server.ip, server.server_id, waf_service)
             try:
                 waf_mode = read_waf_mode(server.ip, waf_service)
             except Exception as exc:
                 mode_error = True
                 logger.exception('Cannot read WAF configuration mode', exc=exc, server_ip=server.ip)
 
-            server_status = (server.hostname,
-                             server.ip,
-                             waf_process,
-                             waf_mode,
-                             metrics_en,
-                             waf_len,
-                             server.server_id)
-        else:
-            server_status = (server.hostname,
-                             server.ip,
-                             waf_process,
-                             waf_mode,
-                             metrics_en,
-                             waf_len,
-                             server.server_id)
-    returned_servers.append(server_status)
-
-    lang = roxywi_common.get_user_lang_for_flask()
-    servers_sorted = sorted(returned_servers, key=common.get_key)
-
-    return render_template('ajax/overviewWaf.html', service_status=servers_sorted, role=role,
-                           waf_service=waf_service, lang=lang, mode_error=mode_error,
+    server_status = (server.hostname, server.ip, '', waf_mode, metrics_en, int(installed), server.server_id)
+    return render_template('ajax/overviewWaf.html', service_status=[server_status], role=role,
+                           waf_service=waf_service, lang=roxywi_common.get_user_lang_for_flask(), mode_error=mode_error,
+                           waf_diagnostics=diagnostics,
                            waf_apply_status=waf_state.status(server.server_id, waf_service),
                            waf_apply_ip=server.ip, waf_apply_service=waf_service, waf_apply_button=False)
+
+
+def read_waf_diagnostics(server_ip: str, server_id: int, service: str) -> dict:
+    _require_waf_service(service)
+    allowed = {
+        'status': {'ok'}, 'process': {'running', 'stopped', 'missing', 'unknown'},
+        'check': {'ready', 'unready', 'valid', 'invalid', 'not_checked'},
+        'module': {'enabled', 'disabled', 'mixed', 'not_configured', 'not_applicable', 'unknown'},
+        'error': {'', 'process_unavailable', 'config_unavailable', 'check_unavailable', 'process_changed'},
+    }
+    result = dict(process='unknown', check='not_checked', module='unknown', error='connection_failed')
+    try:
+        command = candidate.candidate_command(f'{service}_waf', common.get_waf_directory(service) + '/modsecurity.conf',
+                                              '', 'status', **config.waf_runtime_settings(service, server_id))
+        output = server_mod.ssh_command(server_ip, command, rc=1, timeout=90, error_context='Cannot inspect WAF status')
+        value = json.loads(output)
+        if (not isinstance(value, dict) or set(value) != set(allowed)
+                or any(not isinstance(value[key], str) or value[key] not in options for key, options in allowed.items())):
+            raise ValueError('Unconfirmed WAF diagnostic result')
+        result = value
+    except Exception as exc:
+        # SSH exceptions can contain remote output. Log only the exception type.
+        logger.warning('Cannot inspect WAF status', server_ip=server_ip, service=service, cause=type(exc).__name__)
+    if result['error']:
+        logger.warning('WAF diagnostic incomplete', server_ip=server_ip, service=service, reason=result['error'])
+    reason = result['error']
+    if result['process'] == 'missing':
+        reason = 'missing'
+    elif result['process'] == 'stopped':
+        reason = 'stopped'
+    elif not reason:
+        if result['check'] in ('invalid', 'unready'):
+            reason = result['check']
+        elif result['module'] in ('disabled', 'mixed', 'not_configured', 'unknown'):
+            reason = 'module_' + result['module']
+        elif result['process'] == 'running' and result['check'] == ('ready' if service == 'haproxy' else 'valid'):
+            reason = 'healthy'
+        else:
+            reason = 'check_unavailable'
+    result['reason'] = reason
+    result['tone'] = ('serverNone' if result['process'] == 'unknown' else
+                      'serverDown' if result['process'] in ('stopped', 'missing') else
+                      'serverUp' if reason == 'healthy' else 'serverWarn')
+    return result
 
 
 def _require_waf_service(service: str) -> None:
