@@ -14,6 +14,7 @@ import app.modules.db.waf as waf_sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
+import app.modules.db.service_event as service_event_sql
 from app.middleware import check_services, get_user_params, page_for_admin
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
@@ -142,16 +143,14 @@ def service_statuses(service):
 @check_services
 @get_user_params()
 def services(service, serv):
-    tools = []
+    worker_states = service_event_sql.worker_summary(group_id=int(g.user_params['group_id']))
+    tool_availability = {name: worker_states.get(name, {}).get('active', 0) > 0 for name in ('checker', 'metrics')}
     service_desc = service_sql.select_service(service)
     servers = roxywi_common.get_dick_permit(virt=1, service=service_desc.slug)
     servers_with_status1 = []
     waf_server = ''
     cmd = "ps ax |grep -e 'keep_alive.py' |grep -v grep |wc -l"
     keep_alive, stderr = server_mod.subprocess_execute(cmd)
-    services_name = {'roxy-wi-checker': 'Master backends checker service',
-                     'roxy-wi-keep_alive': 'Auto start service',
-                     'roxy-wi-metrics': 'Master metrics service'}
 
     if len(servers) == 1:
         serv = servers[0][2]
@@ -169,18 +168,14 @@ def services(service, serv):
         docker_settings = service_sql.select_docker_services_settings(service_desc.slug)
         restart_settings = service_sql.select_restart_services_settings(service_desc.slug)
 
-    for s, v in services_name.items():
-        if distro.id() == 'ubuntu':
-            if s == 'roxy-wi-keep_alive':
-                s = 'roxy-wi-keep-alive'
-            cmd = f"apt list --installed 2>&1 |grep {s}"
-        else:
-            cmd = "rpm --query " + s + "-* |awk -F\"" + s + "\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
-        service_ver, stderr = server_mod.subprocess_execute(cmd)
-        try:
-            tools.append([s, service_ver[0]])
-        except Exception:
-            tools.append([s, ''])
+    # Auto Start still uses the local keep_alive service. Checker and Metrics
+    # are distributed workers; packages on the web host do not describe them.
+    if distro.id() == 'ubuntu':
+        cmd = 'apt list --installed 2>&1 |grep roxy-wi-keep-alive'
+    else:
+        cmd = "rpm --query roxy-wi-keep_alive-* |awk -F\"roxy-wi-keep_alive\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
+    service_ver, stderr = server_mod.subprocess_execute(cmd)
+    tool_availability['keep_alive'] = bool(service_ver and service_ver[0] and 'is not installed' not in service_ver[0])
 
     for s in servers:
         servers_with_status = list()
@@ -213,7 +208,7 @@ def services(service, serv):
         'lang': g.user_params['lang'],
         'serv': serv,
         'service': service,
-        'services': tools,
+        'tool_availability': tool_availability,
         'service_desc': service_desc,
         'restart_settings': restart_settings,
         'docker_settings': docker_settings,

@@ -3,6 +3,9 @@
 {% block h2 %}{{ lang.menu_links.hapservers.h2 }} {{ service_desc.service }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
+{% set checker_disabled = 'disabled' if user_subscription['user_status'] == 0 or not tool_availability.checker else '' %}
+{% set metrics_disabled = 'disabled' if user_subscription['user_status'] == 0 or not tool_availability.metrics else '' %}
+{% set auto_start_disabled = 'disabled' if user_subscription['user_status'] == 0 or not tool_availability.keep_alive else '' %}
 <script src="/static/js/overview.js"></script>
 <link href="{{ url_for('static', filename='css/chart.min.css') }}" rel="stylesheet">
 <script src="/static/js/metrics.js"></script>
@@ -47,17 +50,6 @@
 			}
 			});
 		}
-		{% for s in services %}
-			{% if 'is not installed' in s.1 or s.1 == '' or user_subscription['user_status'] == 0 %}
-				{% if s.0 == 'roxy-wi-checker' %}
-					$(':regex(id, alert-)').checkboxradio('disable');
-				{% elif s.0 == 'roxy-wi-keep_alive' or s.0 == 'roxy-wi-keep-alive' %}
-					$(':regex(id, active-)').checkboxradio('disable');
-				{% elif s.0 == 'roxy-wi-metrics' %}
-					$(':regex(id, metrics-)').checkboxradio('disable');
-				{% endif %}
-			{% endif %}
-		{% endfor %}
 	});
 </script>
 {% if not serv and servers|length %}
@@ -314,25 +306,25 @@
 				{% if g.user_params['role'] <= 2 %}
 					{% set id = 'alert-' + s.4.0.0|string() %}
 					{% if is_checker_enabled == 1 %}
-						{{ checkbox(id, title=checker_desc, value='1', desc='Checker', checked='checked') }}
+						{{ checkbox(id, title=checker_desc, value='1', desc='Checker', checked='checked', disabled=checker_disabled) }}
 					{% else %}
-						{{ checkbox(id, title=checker_desc, value='1', desc='Checker') }}
+						{{ checkbox(id, title=checker_desc, value='1', desc='Checker', disabled=checker_disabled) }}
 					{% endif %}
 				{% endif %}
 				{% if g.user_params['role'] <= 2 and service != 'keepalived' %}
 					{% set id = 'metrics-' + s.4.0.0|string() %}
 					{% if is_metrics_enabled == 1 %}
-						{{ checkbox(id, title='Collecting metrics is enabled', value='1', desc='Metrics', checked='checked') }}
+						{{ checkbox(id, title='Collecting metrics is enabled', value='1', desc='Metrics', checked='checked', disabled=metrics_disabled) }}
 					{% else %}
-						{{ checkbox(id, title='Enable collecting metrics', value='1', desc='Metrics') }}
+						{{ checkbox(id, title='Enable collecting metrics', value='1', desc='Metrics', disabled=metrics_disabled) }}
 					{% endif %}
 				{% endif %}
 				{% if g.user_params['role'] <= 2 %}
 					{% set id = 'active-' + s.4.0.0|string() %}
 					{% if is_auto_start_enabled == 1 %}
-						{{ checkbox(id, title='Auto Start is enabled', value='1', desc='Auto Start', checked='checked') }}
+						{{ checkbox(id, title='Auto Start is enabled', value='1', desc='Auto Start', checked='checked', disabled=auto_start_disabled) }}
 					{% else %}
-						{{ checkbox(id, title='Enable Auto Start', value='1', desc='Auto Start') }}
+						{{ checkbox(id, title='Enable Auto Start', value='1', desc='Auto Start', disabled=auto_start_disabled) }}
 					{% endif %}
 				{% endif %}
 			</div>

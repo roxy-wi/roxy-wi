@@ -1,6 +1,7 @@
 """Product scenarios use real routes, authentication, templates and a fresh database."""
 from dataclasses import replace
 from contextlib import contextmanager
+from datetime import timedelta
 import json
 from pathlib import Path, PurePosixPath
 import shlex
@@ -17,6 +18,7 @@ from app.modules.roxywi import common, roxy
 from app.modules.roxywi import waf, waf_rule_file
 from app.modules.config import config, candidate
 from app.modules.server.ssh import crypt_password
+from app.modules.common.time import utc_now
 
 
 @pytest.fixture
@@ -58,6 +60,29 @@ def product_client(client, product):
     client.environ_base['HTTP_X_CSRF_TOKEN'] = client.get_cookie('csrf_access_token').value
     client.environ_base['HTTP_ACCEPT'] = 'application/json'
     return client
+
+
+@pytest.fixture
+def service_worker_controls(product, monkeypatch):
+    """Remote heartbeats are real database rows; local packages are absent."""
+    now = utc_now()
+    for service in ('checker', 'metrics'):
+        models.WorkerState.create(worker_id='remote-' + service, service=service, hostname='remote-worker',
+                                  status='running', group_ids=[1], last_heartbeat=now,
+                                  expires_at=now + timedelta(minutes=5))
+    state = SimpleNamespace(local_installed=False, commands=[])
+
+    def local_command(command):
+        state.commands.append(command)
+        # Checker/Metrics must never be gated on the web host's RPM/APT state.
+        assert 'roxy-wi-checker' not in command and 'roxy-wi-metrics' not in command
+        if 'keep_alive.py' in command:
+            return ['0'], ''
+        assert 'roxy-wi-keep_alive' in command or 'roxy-wi-keep-alive' in command
+        return (['1.0'] if state.local_installed else []), ''
+
+    monkeypatch.setattr('app.routes.service.routes.server_mod.subprocess_execute', local_command)
+    return state
 
 
 @pytest.fixture
