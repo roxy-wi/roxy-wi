@@ -23,12 +23,6 @@ def stat_page_action(server_ip: str, group_id: int) -> bytes:
     stats_page = sql.get_setting('haproxy_stats_page', group_id=group_id)
     url = f'http://{server_ip}:{stats_port}/{stats_page}'
 
-    postdata = {
-        'action': request.form.get('action'),
-        's': request.form.get('s'),
-        'b': request.form.get('b')
-    }
-
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 5.1; rv:20.0) Gecko/20100101 Firefox/20.0',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -37,7 +31,15 @@ def stat_page_action(server_ip: str, group_id: int) -> bytes:
     }
 
     try:
-        data = requests.post(url, headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass), timeout=5, allow_redirects=False)
+        if request.method == 'POST':
+            postdata = {
+                'action': request.form.get('action'),
+                's': request.form.get('s'),
+                'b': request.form.get('b')
+            }
+            data = requests.post(url, headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass), timeout=5, allow_redirects=False)
+        else:
+            data = requests.get(url, headers=headers, auth=(haproxy_user, haproxy_pass), timeout=5, allow_redirects=False)
     except ConnectionError as e:
         if "Max retries exceeded" in str(e):
             raise Exception(f"error: Max retries exceeded with url: {url}")
