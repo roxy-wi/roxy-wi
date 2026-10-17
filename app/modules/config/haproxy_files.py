@@ -96,11 +96,12 @@ def discover_sources(server_ip: str, server_id: int = None, *, dockerized: bool 
     return result
 
 
-def config_sources(server_ip: str, server_id: int = None) -> list[str]:
+def config_sources(server_ip: str, server_id: int = None, *, verify_startup: bool = False) -> list[str]:
+    """Installation verifies startup even when the multi-file editor is disabled."""
     from app.modules.db import server as server_sql
     if server_id is None:
         server_id = server_sql.get_server_by_ip(server_ip).server_id
-    if not multiple_files_enabled(server_id):
+    if not verify_startup and not multiple_files_enabled(server_id):
         return [resolve_path()]
     result = discover_sources(server_ip, server_id)
     if result['state'] == 'error':
@@ -127,7 +128,7 @@ def check_command(server_ip: str, server_id: int, container: str | None = None) 
                              **configuration_context(server_ip, server_id))
 
 
-def configuration_context(server_ip: str, server_id: int = None) -> dict:
+def configuration_context(server_ip: str, server_id: int = None, *, verify_startup: bool = False) -> dict:
     """Resolve service-specific identity and startup sources before uploading."""
     return {'main': resolve_path(), 'root': absolute_path(sql.get_setting('haproxy_dir')),
-            'sources': config_sources(server_ip, server_id)}
+            'sources': config_sources(server_ip, server_id, verify_startup=verify_startup)}

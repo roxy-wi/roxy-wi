@@ -568,6 +568,13 @@ def execute(spec: dict) -> dict:
         if action in ('reload', 'restart') and not action_command:
             raise _ConfigurationError('Service action command is missing')
         original = _contents(target)
+        # Callers that prepare a candidate from a snapshot can reject stale edits
+        # under the same lock that protects validation and file replacement.
+        if 'expected_sha256' in spec:
+            expected = spec['expected_sha256']
+            if (not isinstance(expected, str) or not re.fullmatch(r'[0-9a-f]{64}', expected)
+                    or original is None or hashlib.sha256(original).hexdigest() != expected):
+                raise _ConfigurationError('Configuration changed before the transaction; prepare a new candidate')
         validator_type = {'haproxy': _HaproxyValidator, 'nginx_waf': _NginxWafValidator, 'haproxy_waf': _HaproxyWafValidator}[service]
         validator = validator_type(spec, target, main)
         phase = 'mount'

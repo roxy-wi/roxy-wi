@@ -1,5 +1,6 @@
 import os
 import json
+import shlex
 import subprocess
 import tempfile
 from contextlib import contextmanager
@@ -20,6 +21,7 @@ import app.modules.db.service as service_sql
 import app.modules.service.udp as udp_mod
 import app.modules.service.common as service_common
 import app.modules.common.common as common
+from app.modules.config import candidate, haproxy_files
 from app.modules.common.time import utc_now
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
@@ -309,9 +311,21 @@ def generate_waf_inv(server_ip: str, installed_service: str) -> object:
 	inv = {"server": {"hosts": {}}}
 	server_ips = []
 
-	inv['server']['hosts'][server_ip] = {
-		'SERVICE_PATH': common.return_nice_path(sql.get_setting(f'{installed_service}_dir'))
-	}
+	inv['server']['hosts'][server_ip] = {}
+	if installed_service == 'haproxy':
+		server_id = server_sql.get_server_by_ip(server_ip).server_id
+		context = haproxy_files.configuration_context(server_ip, server_id, verify_startup=True)
+		container = (sql.get_setting('haproxy_container_name')
+			if service_sql.select_service_setting(server_id, 'haproxy', 'dockerized') == '1' else '')
+		inv['server']['hosts'][server_ip].update({
+			'SERVICE_PATH': context['root'],
+			'HAPROXY_CONFIG_PATH': context['main'],
+			# The role supplies its temporary candidate and original checksum.
+			'HAPROXY_CONFIG_COMMAND': shlex.split(candidate.candidate_command(
+				'haproxy', context['main'], '', 'save', **context, container=container)),
+		})
+	else:
+		inv['server']['hosts'][server_ip]['SERVICE_PATH'] = common.return_nice_path(sql.get_setting(f'{installed_service}_dir'))
 	server_ips.append(server_ip)
 
 	return inv, server_ips

@@ -324,16 +324,8 @@
         dest: "{{ SERVICE_PATH }}/waf.conf"
         mode: 0644
 
-    - name: Insert Modsec backend
-      blockinfile:
-        path: "{{ SERVICE_PATH }}/haproxy.cfg"
-        block: |
-          backend waf
-              mode tcp
-              fullconn   2000
-              timeout connect 5s
-              timeout server  3m
-              server waf 127.0.0.1:12345 check
+    - name: Configure HAProxy WAF backend
+      ansible.builtin.include_tasks: haproxy_config.yml
 
     - name: Daemon-reload for WAF service
       systemd:

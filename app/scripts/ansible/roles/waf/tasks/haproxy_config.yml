@@ -1,0 +1,57 @@
+---
+- name: Save WAF backend through the shared HAProxy configuration transaction
+  block:
+    - name: Create private HAProxy candidate
+      ansible.builtin.tempfile:
+        state: file
+        prefix: roxywi-waf-haproxy-
+        suffix: .cfg
+      register: waf_haproxy_candidate
+
+    - name: Copy the configured main file to the candidate
+      ansible.builtin.copy:
+        src: "{{ HAPROXY_CONFIG_PATH }}"
+        dest: "{{ waf_haproxy_candidate.path }}"
+        remote_src: true
+        mode: '0600'
+
+    - name: Record the original configuration checksum
+      ansible.builtin.stat:
+        path: "{{ waf_haproxy_candidate.path }}"
+        checksum_algorithm: sha256
+      register: waf_haproxy_original
+
+    - name: Insert Modsec backend into the candidate
+      ansible.builtin.blockinfile:
+        path: "{{ waf_haproxy_candidate.path }}"
+        marker: "# {mark} Roxy-WI MANAGED WAF backend"
+        block: |
+          backend waf
+              mode tcp
+              fullconn   2000
+              timeout connect 5s
+              timeout server  3m
+              server waf 127.0.0.1:12345 check
+      register: waf_haproxy_backend
+
+    - name: Validate all HAProxy configuration files and save the main file
+      ansible.builtin.command:
+        argv: >-
+          {{ HAPROXY_CONFIG_COMMAND[:-1] + [
+            (HAPROXY_CONFIG_COMMAND[-1] | from_json | combine({
+              'candidate': waf_haproxy_candidate.path,
+              'expected_sha256': waf_haproxy_original.stat.checksum
+            }) | to_json)
+          ] }}
+      register: waf_haproxy_save
+      changed_when: waf_haproxy_backend.changed
+      failed_when: >-
+        waf_haproxy_save.rc != 0 or
+        (waf_haproxy_save.stdout | from_json) != {'status': 'ok'}
+
+  always:
+    - name: Remove the HAProxy candidate
+      ansible.builtin.file:
+        path: "{{ waf_haproxy_candidate.path }}"
+        state: absent
+      when: waf_haproxy_candidate.path is defined

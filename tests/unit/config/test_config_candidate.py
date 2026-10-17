@@ -1,5 +1,6 @@
 """Exercise the common transaction with real files and a simulated process boundary."""
 import json
+import hashlib
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -202,3 +203,28 @@ def test_check_uses_current_sources_without_mutation_or_staging(tree, runtime):
     assert runtime.validations == [[(tree.main, b'global\n'), (tree.target, b'backend original\n')]]
     assert tree.upload.exists()
     assert not list(tree.root.parent.glob('roxywi-candidate-*'))
+
+
+@pytest.mark.parametrize('changed', [False, True])
+def test_candidate_prepared_from_a_snapshot_does_not_overwrite_a_later_edit(tree, runtime, changed):
+    tree.spec['expected_sha256'] = hashlib.sha256(tree.target.read_bytes()).hexdigest()
+    if changed:
+        tree.target.write_bytes(b'backend edited while preparing candidate\n')
+    result = candidate.execute(tree.spec)
+    if changed:
+        assert result['code'] == 'save_failed' and 'changed before' in result['reason']
+        assert tree.target.read_bytes() == b'backend edited while preparing candidate\n'
+        assert not runtime.calls
+    else:
+        assert result == {'status': 'ok'}
+        assert tree.target.read_bytes() == b'backend candidate\n'
+        assert len(runtime.validations) == 1
+    assert not tree.upload.exists()
+
+
+@pytest.mark.parametrize('expected', [None, '', 'bad', 123])
+def test_invalid_snapshot_checksum_never_disables_the_precondition(tree, runtime, expected):
+    tree.spec['expected_sha256'] = expected
+    assert candidate.execute(tree.spec)['status'] == 'failed'
+    assert tree.target.read_bytes() == b'backend original\n'
+    assert not runtime.calls and not tree.upload.exists()
