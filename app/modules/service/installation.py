@@ -1,8 +1,10 @@
 import os
 import json
+import re
 import shlex
 import subprocess
 import tempfile
+from pathlib import PurePosixPath
 from contextlib import contextmanager
 from typing import Callable, Union, Literal
 from packaging import version
@@ -20,6 +22,7 @@ import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
 import app.modules.service.udp as udp_mod
 import app.modules.service.common as service_common
+import app.modules.service.action as service_action
 import app.modules.common.common as common
 from app.modules.config import candidate, haproxy_files
 from app.modules.common.time import utc_now
@@ -324,8 +327,27 @@ def generate_waf_inv(server_ip: str, installed_service: str) -> object:
 			'HAPROXY_CONFIG_COMMAND': shlex.split(candidate.candidate_command(
 				'haproxy', context['main'], '', 'save', **context, container=container)),
 		})
+	elif installed_service == 'nginx':
+		server_id = server_sql.get_server_by_ip(server_ip).server_id
+		runtime = service_common.waf_runtime_settings('nginx', server_id)
+		if runtime['container']:
+			raise ValueError('Install the NGINX ModSecurity module in the container image before configuring WAF')
+		if (not isinstance(runtime['main'], str) or not runtime['main'].startswith('/')
+				or any(char in runtime['main'] for char in ('\x00', '\n', '\r', '\\'))):
+			raise ValueError('Invalid NGINX main configuration path')
+		root = common.get_waf_directory('nginx')
+		# ModSecurity expands Include paths as shell words, even inside quotes.
+		if not re.fullmatch(r'/[A-Za-z0-9_./:-]+', root):
+			raise ValueError('ModSecurity requires nginx_dir to use ASCII letters, digits or / _ . : - characters, without spaces or quotes')
+		inv['server']['hosts'][server_ip].update({
+			'SERVICE_PATH': str(PurePosixPath(root).parent),
+			'NGINX_CONFIG_PATH': runtime['main'],
+			'NGINX_CONFIG_COMMAND': shlex.split(candidate.candidate_command(
+				'nginx', runtime['main'], '', 'reload', root=root, **runtime,
+				action_command=service_action.get_action_command('nginx', 'reload', server_id))),
+		})
 	else:
-		inv['server']['hosts'][server_ip]['SERVICE_PATH'] = common.return_nice_path(sql.get_setting(f'{installed_service}_dir'))
+		raise ValueError('Unsupported WAF service')
 	server_ips.append(server_ip)
 
 	return inv, server_ips

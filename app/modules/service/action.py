@@ -1,3 +1,8 @@
+import hashlib
+from pathlib import Path, PurePosixPath
+import re
+from tempfile import TemporaryDirectory
+
 import app.modules.db.sql as sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
@@ -5,6 +10,10 @@ import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
+import app.modules.service.nginx as nginx
+import app.modules.server.ssh as mod_ssh
+from app.modules.config import candidate, waf_state
+from app.modules.roxywi import logger
 from app.modules.server.command import build_remote_command
 
 
@@ -79,13 +88,43 @@ def action_haproxy_waf(server_ip: str, action: str, service: str) -> None:
 
 
 def action_nginx_waf(server_ip: str, action: str, service: str) -> None:
+    if action not in ('start', 'stop'):
+        raise ValueError('NGINX WAF supports start and stop only')
     service_common.is_protected(server_ip, action)
-    config_dir = common.return_nice_path(sql.get_setting('nginx_dir'))
-    waf_new_state = 'on' if action == 'start' else 'off'
-    waf_old_state = 'off' if action == 'start' else 'on'
-
-    roxywi_common.logging(server_ip, f'NGINX WAF service has been {action}ed', keep_history=1, service='nginx')
-    command = (f"sudo sed -i 's/modsecurity {waf_old_state}/modsecurity {waf_new_state}/g' {config_dir}nginx.conf "
-               f"&& sudo systemctl reload nginx")
-
-    server_mod.ssh_command(server_ip, command)
+    server_id = server_sql.get_server_by_ip(server_ip).server_id
+    runtime = service_common.waf_runtime_settings('nginx', server_id)
+    root = common.get_waf_directory('nginx')
+    temporary = str(PurePosixPath(sql.get_setting('tmp_config_path')) / 'roxywi-nginx-waf-')
+    if not temporary.startswith('/') or any(char in temporary for char in ('\x00', '\r', '\n')):
+        raise ValueError('Invalid remote temporary configuration directory')
+    with waf_state.operation_lock(server_ip, 'nginx'), TemporaryDirectory(prefix='roxywi-nginx-waf-') as directory:
+        local = Path(directory) / 'nginx.conf'
+        with mod_ssh.ssh_connect(server_ip) as ssh:
+            ssh.get_sftp(runtime['main'], str(local))
+        original = local.read_bytes()
+        local.write_bytes(nginx.waf_configuration_candidate(original.decode('utf-8'), action == 'start').encode('utf-8'))
+        remote = ''
+        try:
+            remote = server_mod.ssh_command(server_ip, build_remote_command('mktemp', [temporary + 'XXXXXX']),
+                                            rc=1, error_context='Cannot prepare the NGINX WAF candidate').strip()
+            if not re.fullmatch(re.escape(temporary) + r'[A-Za-z0-9]{6,}', remote):
+                remote = ''
+                raise RuntimeError('Unconfirmed remote temporary file path')
+            with mod_ssh.ssh_connect(server_ip) as ssh:
+                ssh.put_sftp(str(local), remote)
+            command = candidate.candidate_command(
+                'nginx', runtime['main'], remote, 'reload', root=root, **runtime,
+                action_command=get_action_command('nginx', 'reload', server_id),
+                expected_sha256=hashlib.sha256(original).hexdigest())
+            with waf_state.track_changes(server_id, 'nginx', applying=True):
+                output = server_mod.ssh_command(server_ip, command, rc=1, timeout=candidate.REMOTE_TIMEOUT,
+                                                error_context='Cannot apply the NGINX WAF state')
+                candidate.check_result(output)
+        finally:
+            if remote:
+                try:
+                    server_mod.ssh_command(server_ip, build_remote_command('rm', ['-f', '--', remote], sudo=True),
+                                           rc=1, error_context='Cannot remove the NGINX WAF candidate')
+                except Exception as exc:
+                    logger.warning('Cannot remove the NGINX WAF candidate', server_ip=server_ip, cause=type(exc).__name__)
+    roxywi_common.logging(server_ip, f'NGINX WAF {action} applied', keep_history=1, service='nginx')

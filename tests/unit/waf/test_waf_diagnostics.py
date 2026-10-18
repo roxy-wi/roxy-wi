@@ -152,7 +152,7 @@ def test_dump_keeps_stderr_separate(monkeypatch):
         observed.update(kwargs)
         return SimpleNamespace(returncode=0, stdout=b'# configuration file /etc/nginx/nginx.conf:\nmodsecurity on;')
     monkeypatch.setattr(candidate.subprocess, 'run', run)
-    validator = candidate._NginxWafValidator({}, Path('/etc/nginx/waf/modsecurity.conf'), Path('/etc/nginx/nginx.conf'))
+    validator = candidate._NginxValidator({}, Path('/etc/nginx/waf/modsecurity.conf'), Path('/etc/nginx/nginx.conf'))
     validator.inspect()
     assert validator.module_state() == ('valid', 'enabled')
     assert observed['stderr'] == subprocess.PIPE

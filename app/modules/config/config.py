@@ -166,16 +166,6 @@ def validate_candidate_config(server_ip: str, cfg: str, service: str, config_fil
 	return str(output or '').strip() or f'{service.title()} configuration is valid'
 
 
-def waf_runtime_settings(service: str, server_id: int) -> dict:
-	"""Use the same runtime and paths for WAF saves, apply and diagnostics."""
-	if service not in ('haproxy', 'nginx'):
-		raise ValueError('Unsupported WAF service')
-	action_service = 'nginx' if service == 'nginx' else 'waf'
-	container = sql.get_setting(f'{action_service}_container_name') if service_sql.select_service_setting(server_id, action_service, 'dockerized') == '1' else ''
-	return dict(main=sql.get_setting('nginx_config_path') if service == 'nginx' else common.get_waf_entrypoint(service),
-		container=container, service_unit=service_common.get_correct_service_name(action_service, server_id) if not container else '')
-
-
 def _generate_command(
 	service: str, server_id: int, just_save: str, config_path: str, tmp_file: str, cfg: str, server_ip: str,
 	waf_service: str = None, apply_only: bool = False
@@ -202,7 +192,7 @@ def _generate_command(
 			raise ValueError('This server is not allowed to be restarted')
 		action = service_action.get_action_command(action_service, just_save, server_id) if just_save in ('reload', 'restart') else ''
 		return candidate.candidate_command(f'{waf_service}_waf', config_path, tmp_file, just_save,
-			**waf_runtime_settings(waf_service, server_id), action_command=action, apply_only=apply_only)
+			**service_common.waf_runtime_settings(waf_service, server_id), action_command=action, apply_only=apply_only)
 	container_name = sql.get_setting(f'{service}_container_name')
 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
 	if service == 'haproxy':

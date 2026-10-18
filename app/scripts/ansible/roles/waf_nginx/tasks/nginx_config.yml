@@ -1,0 +1,75 @@
+---
+- name: Connect WAF through the shared NGINX configuration transaction
+  block:
+    - name: Create private NGINX candidate
+      ansible.builtin.tempfile:
+        state: file
+        prefix: roxywi-waf-nginx-
+        suffix: .conf
+      register: waf_nginx_candidate
+
+    - name: Copy the configured main file to the candidate
+      ansible.builtin.copy:
+        src: "{{ NGINX_CONFIG_PATH }}"
+        dest: "{{ waf_nginx_candidate.path }}"
+        remote_src: true
+        mode: '0600'
+
+    - name: Record the original configuration checksum
+      ansible.builtin.stat:
+        path: "{{ waf_nginx_candidate.path }}"
+        checksum_algorithm: sha256
+      register: waf_nginx_original
+
+    - name: Read the candidate without exposing configuration contents
+      ansible.builtin.slurp:
+        src: "{{ waf_nginx_candidate.path }}"
+      register: waf_nginx_snapshot
+      no_log: true
+
+    - name: Load the connector when it is not already loaded
+      ansible.builtin.lineinfile:
+        path: "{{ waf_nginx_candidate.path }}"
+        line: 'load_module {{ (SERVICE_PATH ~ "/waf/modules/ngx_http_modsecurity_module.so") | to_json(ensure_ascii=False) }};'
+        insertbefore: BOF
+      when: not waf_nginx_module_loaded
+
+    - name: Connect WAF rules with protection initially disabled
+      ansible.builtin.blockinfile:
+        path: "{{ waf_nginx_candidate.path }}"
+        marker: "#-- {mark} WAF BLOCK --#"
+        insertafter: '(?m)^\s*http\s*\{[ \t]*(?:#.*)?$'
+        block: |
+          modsecurity off;
+          modsecurity_rules_file {{ (SERVICE_PATH ~ "/waf/waf.conf") | to_json(ensure_ascii=False) }};
+      when: "'#-- BEGIN WAF BLOCK --#' not in (waf_nginx_snapshot.content | b64decode)"
+
+    - name: Correct the managed rules path without resetting the enabled state
+      ansible.builtin.replace:
+        path: "{{ waf_nginx_candidate.path }}"
+        regexp: '(?m)^(\s*modsecurity_rules_file\s+)[^;\n]+;'
+        replace: 'modsecurity_rules_file {{ (SERVICE_PATH ~ "/waf/waf.conf") | to_json(ensure_ascii=False) }};'
+        after: '#-- BEGIN WAF BLOCK --#'
+        before: '#-- END WAF BLOCK --#'
+
+    - name: Validate the complete NGINX configuration and reload
+      ansible.builtin.command:
+        argv: >-
+          {{ NGINX_CONFIG_COMMAND[:-1] + [
+            (NGINX_CONFIG_COMMAND[-1] | from_json | combine({
+              'candidate': waf_nginx_candidate.path,
+              'expected_sha256': waf_nginx_original.stat.checksum
+            }) | to_json)
+          ] }}
+      register: waf_nginx_apply
+      changed_when: true
+      failed_when: >-
+        waf_nginx_apply.rc != 0 or
+        (waf_nginx_apply.stdout | from_json) != {'status': 'ok'}
+
+  always:
+    - name: Remove the NGINX candidate
+      ansible.builtin.file:
+        path: "{{ waf_nginx_candidate.path }}"
+        state: absent
+      when: waf_nginx_candidate.path is defined

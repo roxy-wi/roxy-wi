@@ -87,6 +87,8 @@ except (OSError, ValueError, IndexError):
 class CandidateApplyError(RuntimeError):
     def __init__(self, result: dict):
         self.code = result['code']
+        self.reason = result.get('reason', '')
+        self.cause = result.get('cause', '')
         super().__init__(json.dumps(result))
 
 
@@ -105,8 +107,8 @@ def check_result(output: str) -> None:
 
 def candidate_command(service: str, target: str, candidate: str, action: str, *, main: str,
                       root: str = '', sources=(), container: str = '', action_command: str = '', service_unit: str = '',
-                      apply_only: bool = False) -> str:
-    if service not in ('haproxy', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart', 'status'):
+                      apply_only: bool = False, expected_sha256: str = '') -> str:
+    if service not in ('haproxy', 'nginx', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart', 'status'):
         raise ValueError('Unsupported configuration transaction')
     if action == 'status' and (not service.endswith('_waf') or candidate or action_command or apply_only):
         raise ValueError('Unsupported WAF status operation')
@@ -114,8 +116,11 @@ def candidate_command(service: str, target: str, candidate: str, action: str, *,
         raise ValueError('HAProxy WAF supports save and restart only')
     if apply_only and (not service.endswith('_waf') or action not in ('reload', 'restart') or candidate):
         raise ValueError('Unsupported WAF apply operation')
-    if service.endswith('_waf'):
-        root = str(PurePosixPath(target).parent if apply_only or action == 'status' else PurePosixPath(target).parent.parent)
+    if service == 'nginx' or service.endswith('_waf'):
+        if service != 'nginx':
+            root = str(PurePosixPath(target).parent if apply_only or action == 'status' else PurePosixPath(target).parent.parent)
+        elif not PurePosixPath(root).is_absolute():
+            raise ValueError('NGINX WAF directory must be absolute')
         lock_id = hashlib.sha256(root.encode('utf-8')).hexdigest()
         lock = f'/var/lock/roxywi-waf-{lock_id}.lock'
     else:
@@ -124,6 +129,8 @@ def candidate_command(service: str, target: str, candidate: str, action: str, *,
                 root=root, sources=list(sources), container=container, action_command=action_command, service_unit=service_unit)
     if apply_only:
         spec['apply_only'] = True
+    if expected_sha256:
+        spec['expected_sha256'] = expected_sha256
     script = Path(__file__).read_text(encoding='utf-8')
     return shlex.join(['sudo', '-n', 'flock', '-w', '30', lock, 'python3', '-c', script, json.dumps(spec)])
 
@@ -281,7 +288,7 @@ class _WafValidator(_Validator):
             self.runtime_main = _container_path(self.main, self.mounts, bind_only=True)
 
 
-class _NginxWafValidator(_WafValidator):
+class _NginxValidator(_WafValidator):
     def inspect(self):
         super().inspect()
         self.command = (['docker', 'exec', self.container] if self.container else []) + ['nginx', '-t', '-c', self.runtime_main]
@@ -478,6 +485,11 @@ def _target(spec):
         target, main = target.resolve(), main.resolve()
         if target != main and (root not in target.parents or target.suffix != '.cfg'):
             raise _ConfigurationError('Selected configuration resolves outside the HAProxy directory')
+    elif spec['service'] == 'nginx':
+        target = target.resolve()
+        if target != main.resolve() or not main.is_file():
+            raise _ConfigurationError('Only the configured NGINX main file can be replaced')
+        _regular(target)
     else:
         if spec.get('apply_only') or spec['action'] == 'status':
             if target.name != 'modsecurity.conf' or target.parent.name != 'waf' or target.parent.is_symlink():
@@ -518,7 +530,7 @@ def diagnose_waf(spec):
             return result
         phase = 'config_unavailable'
         target, main = _target(spec)
-        validator_type = _NginxWafValidator if spec['service'] == 'nginx_waf' else _HaproxyWafValidator
+        validator_type = _NginxValidator if spec['service'] == 'nginx_waf' else _HaproxyWafValidator
         validator = validator_type(spec, target, main)
         validator.inspect()
         phase = 'check_unavailable'
@@ -549,7 +561,7 @@ def execute(spec: dict) -> dict:
     phase = 'prepare'
     try:
         service, action = spec['service'], spec['action']
-        if service not in ('haproxy', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart'):
+        if service not in ('haproxy', 'nginx', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart'):
             raise _ConfigurationError('Unsupported configuration transaction')
         if service == 'haproxy_waf' and action not in ('save', 'restart'):
             raise _ConfigurationError('HAProxy WAF supports save and restart only')
@@ -575,7 +587,8 @@ def execute(spec: dict) -> dict:
             if (not isinstance(expected, str) or not re.fullmatch(r'[0-9a-f]{64}', expected)
                     or original is None or hashlib.sha256(original).hexdigest() != expected):
                 raise _ConfigurationError('Configuration changed before the transaction; prepare a new candidate')
-        validator_type = {'haproxy': _HaproxyValidator, 'nginx_waf': _NginxWafValidator, 'haproxy_waf': _HaproxyWafValidator}[service]
+        validator_type = {'haproxy': _HaproxyValidator, 'nginx': _NginxValidator,
+                          'nginx_waf': _NginxValidator, 'haproxy_waf': _HaproxyWafValidator}[service]
         validator = validator_type(spec, target, main)
         phase = 'mount'
         validator.inspect()

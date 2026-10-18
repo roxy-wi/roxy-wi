@@ -1,0 +1,130 @@
+---
+- name: Read the actual NGINX binary version and configure arguments
+  ansible.builtin.script:
+    cmd: build_options.py
+    executable: python3
+  register: waf_nginx_build_output
+  changed_when: false
+
+- name: Keep the NGINX build inputs
+  ansible.builtin.set_fact:
+    waf_nginx_build: "{{ waf_nginx_build_output.stdout | from_json }}"
+
+- name: install the common RPMS for NGINX
+  yum:
+    name:
+      - libtool
+      - libxml2-devel
+      - gcc
+      - curl-devel
+      - pcre-devel
+      - pcre2-devel
+      - automake
+      - autoconf
+      - libevent-devel
+      - make
+      - gcc-c++
+      - git
+      - redhat-rpm-config
+      - openssl-devel
+      - libxslt-devel
+      - gd-devel
+      - perl-ExtUtils-Embed
+      - ssdeep-devel
+      - libmodsecurity-devel
+    state: present
+  when:
+    - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
+  environment:
+    http_proxy: "{{PROXY}}"
+    https_proxy: "{{PROXY}}"
+
+- name: Install GeoIP headers only when required by the NGINX binary
+  ansible.builtin.yum:
+    name: GeoIP-devel
+    state: present
+  when:
+    - ansible_facts['os_family'] == 'RedHat'
+    - waf_nginx_build.arguments | select('search', '^--with-(http|stream)_geoip_module') | list | length > 0
+  environment:
+    http_proxy: "{{PROXY}}"
+    https_proxy: "{{PROXY}}"
+
+- name: Install needed packages
+  apt:
+    name:
+      - libtool
+      - libevent-dev
+      - libxml2-dev
+      - libssl-dev
+      - gcc
+      - libpcre3
+      - libpcre3-dev
+      - libpcre2-dev
+      - libcurl4-nss-dev
+      - libyajl-dev
+      - libxml2
+      - automake
+      - autoconf
+      - g++
+      - make
+      - libxslt1-dev
+      - libgd-dev
+      - libperl-dev
+      - perl-modules
+      - libgeoip-dev
+      - libfuzzy2
+      - libmodsecurity-dev
+      - git
+      - zlib1g
+      - zlib1g-dev
+    state: present
+    update_cache: yes
+  when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
+  environment:
+    http_proxy: "{{PROXY}}"
+    https_proxy: "{{PROXY}}"
+
+- name: Clone the versioned NGINX connector
+  ansible.builtin.git:
+    repo: https://github.com/owasp-modsecurity/ModSecurity-nginx.git
+    dest: "{{ waf_nginx_work.path }}/nginx-connector"
+    version: "{{ modsecurity_nginx_ver }}"
+    depth: 1
+
+- name: Download matching NGINX sources
+  ansible.builtin.get_url:
+    url: "https://nginx.org/download/nginx-{{ waf_nginx_build.version }}.tar.gz"
+    dest: "{{ waf_nginx_work.path }}/nginx.tar.gz"
+    mode: '0600'
+
+- name: Extract NGINX sources
+  ansible.builtin.unarchive:
+    src: "{{ waf_nginx_work.path }}/nginx.tar.gz"
+    dest: "{{ waf_nginx_work.path }}"
+    remote_src: true
+
+- name: Configure the connector with the installed binary's options
+  ansible.builtin.command:
+    chdir: "{{ waf_nginx_work.path }}/nginx-{{ waf_nginx_build.version }}"
+    argv: "{{ ['./configure'] + waf_nginx_build.arguments + ['--add-dynamic-module=' ~ waf_nginx_work.path ~ '/nginx-connector'] }}"
+  environment:
+    CFLAGS: -Wno-error
+
+- name: Build the connector
+  ansible.builtin.command:
+    chdir: "{{ waf_nginx_work.path }}/nginx-{{ waf_nginx_build.version }}"
+    argv: [make, modules]
+
+- name: Create the connector directory
+  ansible.builtin.file:
+    path: "{{ SERVICE_PATH }}/waf/modules"
+    state: directory
+    mode: '0755'
+
+- name: Install the connector
+  ansible.builtin.copy:
+    src: "{{ waf_nginx_work.path }}/nginx-{{ waf_nginx_build.version }}/objs/ngx_http_modsecurity_module.so"
+    dest: "{{ SERVICE_PATH }}/waf/modules/ngx_http_modsecurity_module.so"
+    remote_src: true
+    mode: '0755'

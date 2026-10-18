@@ -7,6 +7,7 @@ from shlex import join
 from flask import render_template
 from peewee import IntegrityError
 
+import app.modules.service.common as service_common
 import app.modules.db.waf as waf_sql
 import app.modules.db.user as user_sql
 import app.modules.db.server as server_sql
@@ -73,7 +74,7 @@ def read_waf_diagnostics(server_ip: str, server_id: int, service: str) -> dict:
     result = dict(process='unknown', check='not_checked', module='unknown', error='connection_failed')
     try:
         command = candidate.candidate_command(f'{service}_waf', common.get_waf_directory(service) + '/modsecurity.conf',
-                                              '', 'status', **config.waf_runtime_settings(service, server_id))
+                                              '', 'status', **service_common.waf_runtime_settings(service, server_id))
         output = server_mod.ssh_command(server_ip, command, rc=1, timeout=90, error_context='Cannot inspect WAF status')
         value = json.loads(output)
         if (not isinstance(value, dict) or set(value) != set(allowed)

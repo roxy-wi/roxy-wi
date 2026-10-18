@@ -1,227 +1,123 @@
 ---
-- name: Installing WAF
+- name: Install NGINX WAF
   block:
-    - name: Check that WAF has been installed
-      stat:
-        path: "{{ SERVICE_PATH }}/waf/modsecurity.conf"
-      register: stat_result
+    - name: Require a directory supported by ModSecurity Include directives
+      ansible.builtin.assert:
+        that: SERVICE_PATH is match('^/[A-Za-z0-9_./:-]+$')
+        fail_msg: "ModSecurity requires nginx_dir to use ASCII letters, digits or / _ . : - characters, without spaces or quotes."
 
-    - name: Fail if has been installed
-      fail:
-        msg="info NGINX WAF has already installed"
-      when: stat_result.stat.exists
+    - name: Check the current NGINX configuration and loaded modules
+      ansible.builtin.command:
+        argv: [nginx, -T, -c, "{{ NGINX_CONFIG_PATH }}"]
+      register: waf_nginx_dump
+      changed_when: false
+      failed_when: false
+      no_log: true
 
-    - name: Gather Installed Packages Facts
-      package_facts:
-        manager: "auto"
+    - name: Require a valid NGINX configuration before installation
+      ansible.builtin.assert:
+        that: waf_nginx_dump.rc == 0
+        fail_msg: "Cannot inspect NGINX. Check the configured main file with nginx -t before installing WAF."
 
-    - name: install the common RPMS for NGINX
-      yum:
-        name:
-          - libtool
-          - libxml2-devel
-          - gcc
-          - curl-devel
-          - pcre-devel
-          - automake
-          - autoconf
-          - libevent-devel
-          - libtool
-          - make
-          - gcc-c++
-          - git
-          - redhat-rpm-config
-          - openssl-devel
-          - libxslt-devel
-          - gd-devel
-          - perl-ExtUtils-Embed
-          - GeoIP-devel
-          - ssdeep-devel
-        state: latest
-      when:
-        - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
-      environment:
-        http_proxy: "{{PROXY}}"
-        https_proxy: "{{PROXY}}"
+    - name: Detect an already loaded ModSecurity connector
+      ansible.builtin.set_fact:
+        waf_nginx_module_loaded: "{{ waf_nginx_dump.stdout is search('(?m)^\\s*load_module\\s+[^;\\n]*ngx_http_modsecurity_module[.]so') }}"
+      no_log: true
 
-    - name: Install needed packages
-      apt:
-        name:
-          - libtool
-          - libevent-dev
-          - libxml2-dev
-          - libssl-dev
-          - gcc
-          - libpcre3
-          - libpcre3-dev
-          - libcurl4-nss-dev
-          - libyajl-dev
-          - libxml2
-          - automake
-          - autoconf
-          - g++
-          - make
-          - libxslt-dev
-          - perl-modules
-          - libgeoip-dev
-          - libfuzzy2
-          - git
-          - zlib1g
-          - zlib1g-dev
-        state: present
-        update_cache: yes
-      when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
-      environment:
-        http_proxy: "{{PROXY}}"
-        https_proxy: "{{PROXY}}"
+    - name: Create a private installation workspace
+      ansible.builtin.tempfile:
+        state: directory
+        prefix: roxywi-waf-nginx-install-
+      register: waf_nginx_work
 
-    - name: Download ModSec
+    - name: Build the connector for the installed NGINX binary
+      ansible.builtin.include_tasks: build_module.yml
+      when: not waf_nginx_module_loaded
+
+    - name: Create WAF directories
+      ansible.builtin.file:
+        path: "{{ SERVICE_PATH }}/waf/{{ item }}"
+        state: directory
+        mode: '0755'
+      loop: ['', rules]
+
+    - name: Download the versioned initial ModSecurity configuration
       ansible.builtin.get_url:
-        url: "http://repo.roxy-wi.org/modsec/modsecv3.0.7-{{ ansible_facts.distribution | lower }}{{ ansible_facts.distribution_major_version }}.tar.gz"
-        dest: /usr/local/modsecv3.tar.gz
+        url: "https://raw.githubusercontent.com/owasp-modsecurity/ModSecurity/v{{ modsecurity_ver }}/modsecurity.conf-recommended"
+        dest: "{{ waf_nginx_work.path }}/modsecurity.conf"
+        mode: '0600'
 
-    - name: Untar ModSec
-      unarchive:
-        src: /usr/local/modsecv3.tar.gz
-        dest: /usr/local/
-        remote_src: true
+    - name: Use the absolute Unicode mapping path
+      ansible.builtin.lineinfile:
+        path: "{{ waf_nginx_work.path }}/modsecurity.conf"
+        regexp: '^SecUnicodeMapFile\s+'
+        line: 'SecUnicodeMapFile {{ SERVICE_PATH }}/waf/unicode.mapping 20127'
 
-    - set_fact:
-        nginx_version: "{{ ansible_facts.packages['nginx'][0].version.split('-')[0] }}"
-
-    - name: Get NGINX parameters
-      shell: /usr/sbin/nginx -V 2>&1 |grep configu |awk -F":" '{print $2}'
-      register: nginx_params
-
-    - name: Clone NGINX connector
-      shell: git clone --depth 1 https://github.com/SpiderLabs/ModSecurity-nginx.git /tmp/nginx-connector
-
-    - name: Download NGINX
-      ansible.builtin.get_url:
-        url: "http://nginx.org/download/nginx-{{ nginx_version }}.tar.gz"
-        dest: /tmp/nginx_src.tar.gz
-
-    - name: Create nginx_src directory
-      become: false
-      file:
-        path: /tmp/nginx_src/
-        state: directory
-
-    - name: Untar NGINX
-      become: false
-      unarchive:
-        src: /tmp/nginx_src.tar.gz
-        dest: /tmp/nginx_src/
-        remote_src: true
-
-    - name: Configure NGINX
-      become: true
-      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version }} ./configure {{ nginx_params.stdout }} --add-dynamic-module=../../nginx-connector"
-      environment:
-        CFLAGS: -Wno-error
-
-    - name: Make NGINX modules
-      become: true
-      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version }} make modules"
-
-    - name: Copy module for CentOS
-      become: true
-      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version }} cp objs/ngx_http_modsecurity_module.so /usr/lib64/nginx/modules/"
-      when:
-        - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
-
-    - name: Copy module for Ubuntu
-      become: true
-      command: "chdir=/tmp/nginx_src/nginx-{{ nginx_version }} cp objs/ngx_http_modsecurity_module.so /usr/lib/nginx/modules/"
-      when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
-
-    - name: Create modules directory
-      become: true
-      file:
-        path: /usr/share/nginx/modules/
-        state: directory
-
-    - name: Enable module for Centos
-      become: true
-      shell: echo 'load_module "modules/ngx_http_modsecurity_module.so";' > /usr/share/nginx/modules/mod-waf-connector.conf
-      when:
-        - ansible_facts['os_family'] == "RedHat" or ansible_facts['os_family'] == 'CentOS'
-
-    - name: Enable module for Ubuntu
-      lineinfile:
-        path: "{{ SERVICE_PATH }}/nginx.conf"
-        line: load_module modules/ngx_http_modsecurity_module.so;
-        insertbefore: BOF
-      when: ansible_facts['os_family'] == 'Debian' or ansible_facts['os_family'] == 'Ubuntu'
-
-    - name: Create WAF directory
-      become: false
-      file:
-        path: "{{ SERVICE_PATH }}/waf/"
-        state: directory
-
-    - name: Create WAF rules directory
-      become: false
-      file:
-        path: "{{ SERVICE_PATH }}/waf/rules"
-        state: directory
-
-    - name: Download modsecurity.conf
-      ansible.builtin.get_url:
-        url: https://raw.githubusercontent.com/SpiderLabs/ModSecurity/v3/master/modsecurity.conf-recommended
+    - name: Install initial configuration without resetting existing settings
+      ansible.builtin.copy:
+        src: "{{ waf_nginx_work.path }}/modsecurity.conf"
         dest: "{{ SERVICE_PATH }}/waf/modsecurity.conf"
+        remote_src: true
+        force: false
+        mode: '0644'
 
-    - name: Download unicode.mapping
+    - name: Download the raw Unicode mapping
       ansible.builtin.get_url:
-        url: https://github.com/SpiderLabs/ModSecurity/blob/v3/master/unicode.mapping
+        url: "https://raw.githubusercontent.com/owasp-modsecurity/ModSecurity/v{{ modsecurity_ver }}/unicode.mapping"
         dest: "{{ SERVICE_PATH }}/waf/unicode.mapping"
+        force: false
+        mode: '0644'
 
-    - name: Create WAF config
-      template:
+    - name: Create the initial rules entrypoint
+      ansible.builtin.template:
         src: waf.conf.j2
         dest: "{{ SERVICE_PATH }}/waf/waf.conf"
+        force: false
+        mode: '0644'
 
     - name: Download OWASP rules
       ansible.builtin.get_url:
         url: "https://github.com/coreruleset/coreruleset/archive/v{{ coreruleset_ver }}.tar.gz"
-        dest: /tmp/OWASP.tar.gz
+        dest: "{{ waf_nginx_work.path }}/OWASP.tar.gz"
+        mode: '0600'
 
-    - name: Untar NGINX
-      become: false
-      unarchive:
-        src: /tmp/OWASP.tar.gz
-        dest: /tmp/
+    - name: Extract OWASP rules
+      ansible.builtin.unarchive:
+        src: "{{ waf_nginx_work.path }}/OWASP.tar.gz"
+        dest: "{{ waf_nginx_work.path }}"
         remote_src: true
 
-    - name: Copy Modsec crs activated_rules files
-      copy:
-        src: "/tmp/coreruleset-{{ coreruleset_ver }}/rules/"
-        dest: "{{ SERVICE_PATH }}/waf/rules/"
-        remote_src: yes
+    - name: Find the distributed CRS rule and data files
+      ansible.builtin.find:
+        paths: "{{ waf_nginx_work.path }}/coreruleset-{{ coreruleset_ver }}/rules"
+        file_type: file
+      register: waf_nginx_crs_files
 
-    - name: Copy module
-      become: true
-      command: "chdir=/tmp/coreruleset-{{ coreruleset_ver }} cp crs-setup.conf.example {{ SERVICE_PATH }}/waf/rulescrs-setup.conf"
+    - name: Install missing CRS files without overwriting user edits
+      ansible.builtin.copy:
+        src: "{{ item.path }}"
+        dest: "{{ SERVICE_PATH }}/waf/rules/{{ item.path | basename }}"
+        remote_src: true
+        force: false
+        mode: '0644'
+      loop: "{{ waf_nginx_crs_files.files }}"
+      loop_control:
+        label: "{{ item.path | basename }}"
 
-    - name: Add waf Mod on
-      ansible.builtin.blockinfile:
-        path: "{{ SERVICE_PATH }}/nginx.conf"
-        marker: "#-- {mark} WAF BLOCK --#"
-        insertafter: "http {"
-        block: |
-            modsecurity off;
-            modsecurity_rules_file /etc/nginx/waf/waf.conf;
-      notify: reload NGINX
+    - name: Install the initial CRS settings
+      ansible.builtin.copy:
+        src: "{{ waf_nginx_work.path }}/coreruleset-{{ coreruleset_ver }}/crs-setup.conf.example"
+        dest: "{{ SERVICE_PATH }}/waf/rulescrs-setup.conf"
+        remote_src: true
+        force: false
+        mode: '0644'
+
+    - name: Connect and validate WAF
+      ansible.builtin.include_tasks: nginx_config.yml
 
   always:
-    - name: Clean up
+    - name: Remove the private installation workspace
       ansible.builtin.file:
-        path: "{{ item }}"
+        path: "{{ waf_nginx_work.path }}"
         state: absent
-      with_items:
-        - /tmp/nginx_src/
-        - /tmp/nginx_src.tar.gz
-        - /tmp/nginx-connector
-        - /tmp/OWASP.tar.gz
-        - /usr/local/modsecv3.tar.gz
-        - "/tmp/coreruleset-{{ coreruleset_ver }}"
+      when: waf_nginx_work.path is defined

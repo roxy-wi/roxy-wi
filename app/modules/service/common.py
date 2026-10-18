@@ -3,6 +3,7 @@ from typing import Union
 import requests
 from flask import render_template
 
+import app.modules.common.common as common
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
 import app.modules.db.server as server_sql
@@ -270,3 +271,13 @@ def get_stat_page(server_ip: str, service: str, group_id: int) -> str:
 		return render_template('ajax/nginx_stats.html', out=servers_with_status, lang=lang)
 	else:
 		return data.decode('utf-8')
+
+
+def waf_runtime_settings(service: str, server_id: int) -> dict:
+	"""Use the same runtime and paths for WAF saves, apply and diagnostics."""
+	if service not in ('haproxy', 'nginx'):
+		raise ValueError('Unsupported WAF service')
+	action_service = 'nginx' if service == 'nginx' else 'waf'
+	container = sql.get_setting(f'{action_service}_container_name') if service_sql.select_service_setting(server_id, action_service, 'dockerized') == '1' else ''
+	return dict(main=sql.get_setting('nginx_config_path') if service == 'nginx' else common.get_waf_entrypoint(service),
+		container=container, service_unit=get_correct_service_name(action_service, server_id) if not container else '')

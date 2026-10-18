@@ -39,7 +39,7 @@ def select_waf_nginx_servers(serv):
 def insert_waf_nginx_server(server_ip):
 	try:
 		server_id = Server.get(Server.ip == server_ip).server_id
-		WafNginx.insert(server_id=server_id).execute()
+		WafNginx.get_or_create(server_id=server_id)
 	except Exception as e:
 		out_error(e)
 
@@ -129,7 +129,7 @@ def insert_waf_rules(serv):
 					'that accept and display hyperlinks submitted by visitors. The spammers automatically post specially '
 					'crafted random comments which include links that point to the spammer\'s web site. The links artificially '
 					'increase the site\'s search engine ranking and may make the site more noticable in search results.'},
-		{'serv': serv, 'rule_name': 'Trojans Protections', 'rule_file': 'modsecurity_crs_45_trojans.conf ',
+		{'serv': serv, 'rule_name': 'Trojans Protections', 'rule_file': 'modsecurity_crs_45_trojans.conf',
 			'desc': 'The trojan access detection rules detects access to known Trojans already installed on a server. '
 					'Uploading of Trojans is part of the Anti-Virus rules  and uses external Anti Virus program when uploading '
 					'files. Detection of Trojans access is especially important in a hosting environment where the actual Trojan '
@@ -191,6 +191,8 @@ def insert_nginx_waf_rules(serv):
 			'desc': 'Method enforcement rule.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'DDOS protection', 'rule_file': 'REQUEST-912-DOS-PROTECTION.conf',
 			'desc': 'Anti-Automation rules to detect Denial of Service attacks.', 'service': 'nginx'},
+		{'serv': serv, 'rule_name': 'Scanner detection', 'rule_file': 'REQUEST-913-SCANNER-DETECTION.conf',
+			'desc': 'Scanner detection rules.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Protocol enforcement', 'rule_file': 'REQUEST-920-PROTOCOL-ENFORCEMENT.conf',
 			'desc': 'Some protocol violations are common in application layer attacks. Validating HTTP requests eliminates '
 					'a large number of application layer attacks. The purpose of this rules file is to enforce HTTP RFC '
@@ -199,12 +201,16 @@ def insert_nginx_waf_rules(serv):
 			'desc': 'Protocol attack rule.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Application attack LFI', 'rule_file': 'REQUEST-930-APPLICATION-ATTACK-LFI.conf',
 			'desc': 'Application attack LFI rule.', 'service': 'nginx'},
+		{'serv': serv, 'rule_name': 'Application attack RFI', 'rule_file': 'REQUEST-931-APPLICATION-ATTACK-RFI.conf',
+			'desc': 'Remote file inclusion rules.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Application attack RCE', 'rule_file': 'REQUEST-932-APPLICATION-ATTACK-RCE.conf',
 			'desc': 'Application attack RCE rule.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Application attack PHP', 'rule_file': 'REQUEST-933-APPLICATION-ATTACK-PHP.conf',
 			'desc': 'Application attack PHP rule.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Application attack NodeJS', 'rule_file': 'REQUEST-934-APPLICATION-ATTACK-NODEJS.conf',
 			'desc': 'Application attack NodeJS rule.', 'service': 'nginx'},
+		{'serv': serv, 'rule_name': 'Application attack XSS', 'rule_file': 'REQUEST-941-APPLICATION-ATTACK-XSS.conf',
+			'desc': 'Cross-site scripting rules.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Application attack SQLI', 'rule_file': 'REQUEST-942-APPLICATION-ATTACK-SQLI.conf',
 			'desc': 'Application attack SQLI rule.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Application attack session-fixation', 'rule_file': 'REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf',
@@ -213,10 +219,6 @@ def insert_nginx_waf_rules(serv):
 			'desc': 'Application attack JAVA rule.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Application attack blocking evaluation', 'rule_file': 'REQUEST-949-BLOCKING-EVALUATION.conf',
 			'desc': 'Application attack blocking evaluation rule.', 'service': 'nginx'},
-		{'serv': serv, 'rule_name': 'Data leakages', 'rule_file': 'RESPONSE-950-DATA-LEAKAGES.conf',
-			'desc': 'The paranoia level skip rules 950020, 950021 and 950022 have odd numbers not in sync with other paranoia '
-					'level skip rules in other. files. This is done to avoid rule id collisions with CRSv2. This is also true '
-					'for rule 950130.', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Data leakages SQL', 'rule_file': 'RESPONSE-951-DATA-LEAKAGES-SQL.conf',
 			'desc': 'Data leakages SQL rule', 'service': 'nginx'},
 		{'serv': serv, 'rule_name': 'Data leakages JAVA', 'rule_file': 'RESPONSE-952-DATA-LEAKAGES-JAVA.conf',
@@ -240,7 +242,11 @@ def insert_nginx_waf_rules(serv):
 			'service': 'nginx'},
 	]
 	try:
-		WafRules.insert_many(data_source).execute()
+		with WafRules._meta.database.atomic():
+			for rule in data_source:
+				WafRules.get_or_create(
+					serv=serv, service='nginx', rule_name=rule['rule_name'],
+					defaults={'rule_file': rule['rule_file'], 'desc': rule['desc']})
 	except Exception as e:
 		out_error(e)
 	else:

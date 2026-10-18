@@ -22,7 +22,7 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y openssh-server openssl fail2ban haproxy nginx rsyslog
+          sudo apt-get install -y openssh-server openssl fail2ban haproxy nginx libnginx-mod-http-modsecurity rsyslog
           # Ubuntu's rsyslog AppArmor profile permits /var/log/**, not /tmp/**.
           sudo install -d -m 0700 -o "$(id -u)" -g "$(id -g)" /var/log/roxywi-tests
           python -m pip install -r requirements.txt -r requirements-dev.txt

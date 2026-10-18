@@ -13,20 +13,24 @@ _PASS_DIRECTIVES = {'proxy_pass', 'fastcgi_pass', 'uwsgi_pass', 'scgi_pass', 'gr
 _SCOPES = {'http', 'stream', 'mail'}
 
 
-def _tokenize_config(config_text: str) -> list[str]:
+def _tokenize_config(config_text: str, *, with_spans=False) -> list:
     """Tokenize NGINX syntax without interpreting variables or regular expressions."""
     tokens = []
     current = []
     quote = None
     escaped = False
     comment = False
+    start = None
 
-    def flush() -> None:
-        if current:
-            tokens.append(''.join(current))
+    def flush(end) -> None:
+        nonlocal start
+        if start is not None:
+            value = ''.join(current)
+            tokens.append((value, start, end) if with_spans else value)
             current.clear()
+            start = None
 
-    for character in config_text:
+    for index, character in enumerate(config_text):
         if comment:
             if character == '\n':
                 comment = False
@@ -36,6 +40,8 @@ def _tokenize_config(config_text: str) -> list[str]:
             escaped = False
             continue
         if character == '\\':
+            if start is None:
+                start = index
             current.append(character)
             escaped = True
             continue
@@ -46,46 +52,62 @@ def _tokenize_config(config_text: str) -> list[str]:
                 current.append(character)
             continue
         if character in {'"', "'"}:
+            if start is None:
+                start = index
             quote = character
             continue
         if character == '#':
-            flush()
+            flush(index)
             comment = True
             continue
         if character.isspace():
-            flush()
+            flush(index)
             continue
         if character == ';':
-            flush()
-            tokens.append(character)
+            flush(index)
+            tokens.append((character, index, index + 1) if with_spans else character)
             continue
         # Block braces normally follow whitespace. Braces attached to a token
         # are kept intact so location regex quantifiers and ${variables} survive.
         if character in {'{', '}'} and not current:
-            tokens.append(character)
+            tokens.append((character, index, index + 1) if with_spans else character)
             continue
+        if start is None:
+            start = index
         current.append(character)
 
-    flush()
+    if quote or escaped:
+        raise ValueError('NGINX configuration has an unfinished quoted or escaped value')
+    flush(len(config_text))
     return tokens
 
 
-def _parse_config(config_text: str) -> list[dict]:
+def _parse_config(config_text: str, *, with_spans=False) -> list[dict]:
     # ``nginx -T`` writes successful syntax-check messages together with the
     # dumped configuration when stderr is redirected to stdout.
-    config_text = '\n'.join(
-        line for line in config_text.splitlines()
-        if not line.lstrip().startswith('nginx:')
-    )
+    if not with_spans:
+        config_text = '\n'.join(
+            line for line in config_text.splitlines()
+            if not line.lstrip().startswith('nginx:')
+        )
     root = []
     stack = [root]
     pending = []
+    spans = []
 
-    for token in _tokenize_config(config_text):
+    for token, start, end in _tokenize_config(config_text, with_spans=True):
+        if token in {';', '{', '}'} and config_text[start:end] != token:
+            pending.append(token)
+            spans.append((start, end))
+            continue
         if token == ';':
             if pending:
-                stack[-1].append({'name': pending[0].lower(), 'args': pending[1:], 'children': None})
+                directive = {'name': pending[0].lower(), 'args': pending[1:], 'children': None}
+                if with_spans:
+                    directive['arg_spans'] = spans[1:]
+                stack[-1].append(directive)
                 pending = []
+                spans = []
         elif token == '{':
             if not pending:
                 raise ValueError('NGINX block has no directive name')
@@ -93,6 +115,7 @@ def _parse_config(config_text: str) -> list[dict]:
             stack[-1].append(block)
             stack.append(block['children'])
             pending = []
+            spans = []
         elif token == '}':
             if pending:
                 raise ValueError('NGINX directive is missing a semicolon')
@@ -101,12 +124,30 @@ def _parse_config(config_text: str) -> list[dict]:
             stack.pop()
         else:
             pending.append(token)
+            spans.append((start, end))
 
     if len(stack) != 1:
         raise ValueError('NGINX configuration has an unclosed block')
     if pending:
         raise ValueError('NGINX directive is missing a semicolon')
     return root
+
+
+def waf_configuration_candidate(config_text: str, enabled: bool) -> str:
+    """Change the main HTTP switch while retaining comments and per-site overrides."""
+    if not isinstance(enabled, bool):
+        raise ValueError('The NGINX WAF state must be a boolean')
+    syntax = _parse_config(config_text, with_spans=True)
+    http = [item for item in syntax if item['name'] == 'http' and item['children'] is not None]
+    switches = _directives(http[0]['children'], 'modsecurity') if len(http) == 1 else []
+    if len(switches) != 1 or switches[0]['args'] not in (['on'], ['off']):
+        raise ValueError('The main NGINX http block must contain exactly one modsecurity on/off directive')
+    start, end = switches[0]['arg_spans'][0]
+    value = config_text[start:end]
+    state = 'on' if enabled else 'off'
+    if value.startswith(('"', "'")):
+        state = value[0] + state + value[0]
+    return config_text[:start] + state + config_text[end:]
 
 
 def _directives(items: list[dict], name: str) -> list[dict]:

@@ -1,1 +1,4 @@
 coreruleset_ver: 3.3.2
+# Starter configuration version; libmodsecurity is maintained by the OS package manager.
+modsecurity_ver: 3.0.7
+modsecurity_nginx_ver: v1.0.4

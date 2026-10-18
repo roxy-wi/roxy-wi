@@ -4,6 +4,7 @@ import shlex
 
 import pytest
 
+import app.modules.service.common as service_common
 from app.modules.config import config
 from app.modules.db.db_model import UserGroups, Waf, WafNginx
 from app.modules.roxywi import auth, waf
@@ -109,7 +110,7 @@ def test_diagnostics_share_paths_and_runtime_settings_with_apply(product_client,
     with product_client:
         response = product_client.get(f'/waf/overview/{service}/{product.server.ip}')
         assert response.status_code == 200 and 'serverUp server-status' in response.text
-        expected = config.waf_runtime_settings(service, product.server.server_id)
+        expected = service_common.waf_runtime_settings(service, product.server.server_id)
     spec = captured[0]
     assert {key: spec[key] for key in ('main', 'container', 'service_unit')} == expected
     assert spec['container'] == (settings[('nginx' if service == 'nginx' else 'waf') + '_container_name'] if dockerized == '1' else '')
