@@ -7,6 +7,7 @@ leave an unconfirmed change, never a stale successful-apply indication.
 from contextlib import contextmanager
 import hashlib
 from pathlib import Path
+from threading import local
 from uuid import uuid4
 
 from app.modules.common.file_lock import file_lock
@@ -15,11 +16,25 @@ from app.modules.db.db_model import WafConfigState
 from app.modules.roxy_wi_tools import GetConfigVar
 
 
+_locks = local()
+
+
+@contextmanager
 def operation_lock(server_ip: str, service: str):
+    """Serialize a whole operation, including nested create/upload/apply steps."""
     lock_id = hashlib.sha256(f'{server_ip}\0{service}'.encode('utf-8')).hexdigest()
+    held = getattr(_locks, 'held', set())
+    if lock_id in held:
+        yield
+        return
     lock_dir = Path(GetConfigVar().get_config_var('main', 'lib_path')) / 'waf-locks'
     lock_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
-    return file_lock(lock_dir / f'{lock_id}.lock')
+    with file_lock(lock_dir / f'{lock_id}.lock'):
+        _locks.held = held | {lock_id}
+        try:
+            yield
+        finally:
+            _locks.held = held
 
 
 def status(server_id: int, service: str) -> str:

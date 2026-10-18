@@ -14,6 +14,7 @@ CHANGE_CENTER = 'change_center'
 GIT_BACKUP = 'git_backup'
 SMON_STATUS_PAGES = 'smon_status_pages'
 MANAGED_SERVICES = 'managed_services'
+WAF_WIZARD = 'waf_wizard'
 
 # Package/systemd names accepted by the local installation controls.  Both
 # keep-alive spellings exist in older packages and must be covered.
@@ -36,6 +37,10 @@ class FeaturePolicy:
 
 
 FEATURE_POLICIES = MappingProxyType({
+    WAF_WIZARD: FeaturePolicy(
+        frozenset({'company', 'cloud', 'support'}),
+        'WAF Config Wizard requires an active Enterprise plan or higher',
+    ),
     OIDC: FeaturePolicy(
         frozenset({'company', 'cloud', 'support'}),
         'OIDC requires an active Company plan or higher',

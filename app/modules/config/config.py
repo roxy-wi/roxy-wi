@@ -303,6 +303,16 @@ def validate_config_action(action: str) -> None:
 		raise ValueError('Unsupported configuration action')
 
 
+def validate_waf_action(server_ip: str, service: str, action: str) -> None:
+	validate_config_action(action)
+	if service not in ('haproxy', 'nginx') or action == 'test' or (service == 'haproxy' and action == 'reload'):
+		raise ValueError('Unsupported WAF configuration action')
+	service_common.is_protected(server_ip, action)
+	server_id = server_sql.get_server_by_ip(server_ip).server_id
+	if service_common.is_not_allowed_to_restart(server_id, 'nginx' if service == 'nginx' else 'waf', action):
+		raise ValueError('This server is not allowed to be restarted')
+
+
 def apply_waf(server_ip: str, service: str) -> None:
 	"""Apply the saved WAF configuration under the same locks as rule writes."""
 	if service not in ('haproxy', 'nginx'):

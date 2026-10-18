@@ -23,8 +23,12 @@ def test_status_details_are_localized_and_keep_mode_and_apply_controls(product_c
     assert response.status_code == 200
     assert '<details class="waf-diagnostics"' in response.text
     assert messages['summary_' + service] in response.text
-    assert messages['scope_' + service] in response.text
-    assert messages['registered'] in response.text
+    assert 'scope_nginx' not in messages
+    if service == 'haproxy':
+        assert 'scope_haproxy' not in messages
+        assert 'SPOE' not in response.text
+    assert messages['registered'] not in response.text
+    assert f'<dt>{messages["installation"]}</dt>' not in response.text
     assert 'data-confirmed-mode="On"' in response.text
     assert 'data-waf-apply-button' in response.text
     assert 'installWaf(' not in response.text

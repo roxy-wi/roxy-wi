@@ -31,7 +31,7 @@ def test_mode_restores_confirmed_value_on_failure_and_retries(logged_in, product
     message = page.locator('[data-waf-mode-message]')
     expect(select).to_have_value('On')
     expect(page.locator('.overviewHead')).to_contain_text(messages['label'])
-    expect(page.locator('.waf-mode-hint')).to_have_text(messages['hint_' + service])
+    expect(page.locator('.waf-mode-hint')).to_have_count(0)
     waf_modes.fail_before = True
     url = f'/waf/{service}/mode/{product.server.server_id}/Off'
     with page.expect_response(lambda response: response.url.endswith(url)) as failure:
@@ -50,8 +50,9 @@ def test_mode_restores_confirmed_value_on_failure_and_retries(logged_in, product
     expect(select).to_have_value('Off')
     expect(select).to_be_enabled()
     expect(select).to_have_attribute('data-confirmed-mode', 'Off')
-    expect(message).to_have_text(messages['saved_' + service])
+    expect(message).to_be_empty()
     expect(page.locator('[data-waf-apply]')).to_have_attribute('data-state', 'pending')
+    expect(page.locator('[data-waf-apply-label]')).to_have_attribute('title', messages['hint_' + service])
     expect(page.locator('.toast-info')).to_contain_text(messages['saved_' + service])
     expect(page.locator('.toast-error')).to_have_count(0)
     assert (waf_modes.roots[service] / 'modsecurity.conf').read_text() == 'SecRuleEngine Off\n'

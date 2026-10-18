@@ -473,6 +473,7 @@ class WafRules(BaseModel):
     rule_file = CharField()
     desc = TextField(null=True)
     en = IntegerField(constraints=[SQL('DEFAULT 1')])
+    wizard = BooleanField(default=False, constraints=[SQL('DEFAULT 0')])
     service = CharField(constraints=[SQL('DEFAULT "haproxy"')])
 
     class Meta:

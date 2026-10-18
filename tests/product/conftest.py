@@ -88,7 +88,7 @@ def service_worker_controls(product, monkeypatch):
 @pytest.fixture
 def waf_creation(product, monkeypatch):
     """Real remote file operation on isolated files; replace only SSH transport."""
-    state = SimpleNamespace(commands=[], roots={}, fail_before=False, lose_response=False)
+    state = SimpleNamespace(commands=[], roots={}, fail_before=False, lose_response=False, failed_hosts=set())
     for service in ('haproxy', 'nginx'):
         root = product.root / service / 'waf'
         (root / 'rules').mkdir(parents=True)
@@ -100,15 +100,32 @@ def waf_creation(product, monkeypatch):
     models.Setting.update(value=str(product.root)).where(
         models.Setting.param == 'tmp_config_path', models.Setting.group_id == 1).execute()
 
-    def local_path(remote):
-        for service, root in state.roots.items():
+    state.host_roots = {product.server.ip: state.roots}
+
+    def add_server(server):
+        roots = {}
+        for service, source in state.roots.items():
+            root = product.root / server.ip / service / 'waf'
+            shutil.copytree(source, root)
+            for path in root.rglob('*.conf'):
+                path.write_text(path.read_text().replace(str(source).replace('\\', '\\\\'),
+                                                         str(root).replace('\\', '\\\\')))
+            roots[service] = root
+        (roots['nginx'].parent / 'nginx.conf').write_text('# nginx main\n')
+        state.host_roots[server.ip] = roots
+        return roots
+
+    state.add_server = add_server
+
+    def local_path(remote, server):
+        for service, root in state.host_roots[server].items():
             prefix = f'/srv/{service} custom/waf/'
             if remote.startswith(prefix):
                 return root.joinpath(*PurePosixPath(remote[len(prefix):]).parts)
         pytest.fail(f'Unexpected WAF path: {remote}')
 
     def ssh(server, command, **kwargs):
-        assert server == product.server.ip
+        assert server in state.host_roots
         assert kwargs['rc'] == 1
         assert kwargs['timeout'] > 30
         tokens = shlex.split(command)
@@ -116,21 +133,29 @@ def waf_creation(product, monkeypatch):
         assert tokens[6:8] == ['python3', '-c']
         assert tokens[8] == Path(waf_rule_file.__file__).read_text(encoding='utf-8')
         state.commands.append((server, tokens[9:]))
-        if state.fail_before:
+        if state.fail_before or server in state.failed_hosts:
             raise OSError('synthetic SSH failure')
+        def path(remote):
+            return local_path(remote, server)
         result = {'status': 'ok'}
         try:
-            if tokens[9] == 'read-mode':
-                result['mode'] = waf_rule_file.read_mode(local_path(tokens[10]))
+            if tokens[9] == 'inspect-ids':
+                result['ids'] = waf_rule_file.inspect_rule_ids(path(tokens[10]), path(tokens[11]))
+            elif tokens[9] == 'create-before':
+                waf_rule_file.create_rule(path(tokens[10]), path(tokens[11]), tokens[12], before_rules=True)
+            elif tokens[9] == 'read-mode':
+                result['mode'] = waf_rule_file.read_mode(path(tokens[10]))
             elif tokens[9] == 'set-mode':
-                waf_rule_file.set_mode(local_path(tokens[10]), tokens[11])
+                waf_rule_file.set_mode(path(tokens[10]), tokens[11])
                 result['mode'] = tokens[11]
+            elif tokens[9] == 'delete':
+                waf_rule_file.delete_rule(path(tokens[10]), path(tokens[11]))
             elif tokens[9] == 'toggle':
                 enabled = int(tokens[-1])
-                waf_rule_file.switch_rule(local_path(tokens[-3]), local_path(tokens[-2]), enabled)
+                waf_rule_file.switch_rule(path(tokens[-3]), path(tokens[-2]), enabled)
                 result['enabled'] = enabled
             else:
-                waf_rule_file.create_rule(local_path(tokens[-3]), local_path(tokens[-2]), tokens[-1])
+                waf_rule_file.create_rule(path(tokens[-3]), path(tokens[-2]), tokens[-1])
         except waf_rule_file.RuleConflict:
             return json.dumps({'status': 'conflict'})
         if state.lose_response:
@@ -140,16 +165,35 @@ def waf_creation(product, monkeypatch):
 
     @contextmanager
     def connect(server):
-        assert server == product.server.ip
+        assert server in state.host_roots
 
         def download(remote, local):
-            Path(local).write_bytes(local_path(remote).read_bytes())
+            if server in state.failed_hosts:
+                raise OSError('synthetic SFTP failure')
+            Path(local).write_bytes(local_path(remote, server).read_bytes())
 
         yield SimpleNamespace(get_sftp=download)
 
     monkeypatch.setattr(waf.server_mod, 'ssh_command', ssh)
     monkeypatch.setattr(config.mod_ssh, 'ssh_connect', connect)
     return state
+
+
+@pytest.fixture
+def wizard_host(waf_applying):
+    for service, root in waf_applying.roots.items():
+        crs = root / 'rules/crs.conf'
+        crs.write_text('SecRule ARGS "attack" "id:942100,phase:2,deny"\n')
+        entry = root / ('waf.conf' if service == 'nginx' else 'modsecurity.conf')
+        entry.write_text(entry.read_text() + 'Include ' + json.dumps(str(crs)) + '\n')
+    return waf_applying
+
+
+@pytest.fixture
+def waf_cluster(product, wizard_host):
+    slave = models.Server.create(server_id=33, hostname='Product Slave', ip='192.0.2.33', group_id='1',
+                                 cred_id=11, haproxy=1, nginx=1, master=product.server.server_id)
+    return slave, wizard_host.add_server(slave)
 
 
 @pytest.fixture
@@ -200,7 +244,8 @@ def waf_switching(waf_creation, product):
 def waf_applying(waf_modes, product, monkeypatch):
     """Execute file operations and apply transactions; simulate only host processes."""
     state = waf_modes
-    state.apply_calls, state.uploads = [], {}
+    state.apply_calls, state.uploads, state.apply_hosts = [], {}, []
+    state.lost_apply_hosts, state.failed_apply_hosts = set(), set()
     state.valid, state.ready, state.action_failed = True, True, False
     state.apply_disconnected, state.apply_lost, state.apply_response = False, False, None
     state.pid, state.clock = 1, 0
@@ -225,21 +270,23 @@ def waf_applying(waf_modes, product, monkeypatch):
             return original_ssh(server, command, **kwargs)
         if json.loads(tokens[-1])['action'] == 'status':
             return original_ssh(server, command, **kwargs)
-        assert server == product.server.ip
+        assert server in state.host_roots
         assert kwargs['rc'] == 1 and kwargs['timeout'] == candidate.REMOTE_TIMEOUT
         spec = json.loads(tokens[-1])
         state.apply_calls.append(spec.copy())
-        if state.apply_disconnected:
+        state.apply_hosts.append(server)
+        if state.apply_disconnected or server in state.failed_apply_hosts:
             raise OSError('synthetic apply connection failure')
         service = spec['service'].removesuffix('_waf')
-        root = state.roots[service]
-        spec.update(target=str(root / ('modsecurity.conf' if spec.get('apply_only') else 'rules/test.conf')),
-                    main=str(main if service == 'nginx' else root / 'modsecurity.conf'))
+        root = state.host_roots[server][service]
+        spec.update(target=str(root / ('modsecurity.conf' if spec.get('apply_only') else 'rules/' + PurePosixPath(spec['target']).name)),
+                    main=str(root.parent / 'nginx.conf' if service == 'nginx' else root / 'modsecurity.conf'))
         if spec['candidate']:
             spec['candidate'] = str(state.uploads[spec['candidate']])
         result = candidate.execute(spec)
-        if state.apply_lost:
+        if state.apply_lost or server in state.lost_apply_hosts:
             state.apply_lost = False
+            state.lost_apply_hosts.discard(server)
             raise OSError('synthetic lost apply response')
         return state.apply_response if state.apply_response is not None else json.dumps(result)
 

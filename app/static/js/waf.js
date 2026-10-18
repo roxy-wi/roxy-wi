@@ -1,3 +1,8 @@
+function wafErrorMessage(xhr, fallback) {
+	const message = xhr.responseJSON && typeof xhr.responseJSON.error === 'string'
+		? xhr.responseJSON.error : fallback;
+	return $('<div>').text(message).html();
+}
 function refreshWafState(context) {
 	$(context).find('[data-waf-apply]').addBack('[data-waf-apply]').each(function () {
 		const panel = $(this);
@@ -11,7 +16,8 @@ function refreshWafState(context) {
 			url: panel.attr('data-state-url'), dataType: 'html', suppressGlobalError: true,
 			success: function (html) { if (current()) panel.replaceWith(html); },
 			error: function () {
-				if (current()) panel.attr('data-state', 'unknown').find('[data-waf-apply-label]').text(panel.attr('data-unknown'));
+				if (current()) panel.attr('data-state', 'unknown').find('[data-waf-apply-label]')
+					.text(panel.attr('data-unknown')).attr('title', panel.attr('data-scope'));
 			}
 		});
 	});
@@ -31,7 +37,7 @@ function confirmWafApply(button) {
 		if (!confirmed) { refreshWafState(panel); return; }
 		if (!panel[0].isConnected || panel.data('applying')) return;
 		panel.data('applying', true).attr('data-state', 'pending');
-		panel.find('[data-waf-apply-label]').text(panel.attr('data-pending'));
+		panel.find('[data-waf-apply-label]').text(panel.attr('data-pending')).attr('title', panel.attr('data-apply-hint'));
 		const buttons = panel.find('[data-waf-apply-button]').add($(button));
 		buttons.prop('disabled', true).attr('aria-disabled', 'true');
 		$.ajax({
@@ -42,7 +48,7 @@ function confirmWafApply(button) {
 				if (data && data.status === 'ok') toastr.success(panel.attr('data-success'));
 				else toastr.error(panel.attr('data-error'));
 			},
-			error: function () { toastr.clear(); toastr.error(panel.attr('data-error')); },
+			error: function (xhr) { toastr.clear(); toastr.error(wafErrorMessage(xhr, panel.attr('data-error'))); },
 			complete: function () {
 				panel.data('applying', false);
 				buttons.prop('disabled', false).removeAttr('aria-disabled');
@@ -162,7 +168,6 @@ function changeWafMode(id) {
 				return;
 			}
 			select.attr('data-confirmed-mode', requested);
-			message.text(select.attr('data-save-success'));
 			toastr.clear();
 			toastr.info(select.attr('data-save-success'));
 		},
@@ -177,6 +182,9 @@ function changeWafMode(id) {
 	});
 }
 $( function() {
+	$(document).off('click.wafDelete', '[data-waf-delete]').on('click.wafDelete', '[data-waf-delete]', function () {
+		deleteWafRule(this);
+	});
 	$(document).off('click.wafApply', '[data-waf-apply-button]').on('click.wafApply', '[data-waf-apply-button]', function () {
 		confirmWafApply(this);
 	});
@@ -212,9 +220,7 @@ $( function() {
 			},
 			error: function (xhr) {
 				toastr.clear();
-				const message = xhr.responseJSON && typeof xhr.responseJSON.error === 'string'
-					? xhr.responseJSON.error : editor.attr('data-save-error');
-				toastr.error($('<div>').text(message).html());
+				toastr.error(wafErrorMessage(xhr, editor.attr('data-save-error')));
 			},
 			complete: function () {
 				editor.data('saving', false);
@@ -236,6 +242,10 @@ function waf_rules_en(id) {
 		checkbox.prop('checked', checked).prop('disabled', disabled);
 		if (checkbox.checkboxradio('instance')) checkbox.checkboxradio('refresh');
 	}
+	if (row.data('deleting')) {
+		refresh(row.attr('data-enabled') === '1', true);
+		return;
+	}
 	if (row.data('toggling')) {
 		refresh(row.data('requested') === 1, true);
 		return;
@@ -248,6 +258,7 @@ function waf_rules_en(id) {
 		toastr.error(table.attr('data-' + key + '-error'));
 	}
 	row.data('toggling', true).data('requested', enable);
+	row.find('[data-waf-delete]').prop('disabled', true);
 	refresh(enable === 1, true);
 	$.ajax({
 		url: row.attr(enable ? 'data-enable-url' : 'data-disable-url'),
@@ -271,9 +282,44 @@ function waf_rules_en(id) {
 		},
 		complete: function () {
 			row.data('toggling', false);
+			row.find('[data-waf-delete]').prop('disabled', false);
 			refresh(checkbox.is(':checked'), false);
 			refreshWafState(document);
 		}
+	});
+}
+function deleteWafRule(button) {
+	const row = $(button).closest('tr');
+	const table = $('#waf_rules');
+	if (row.data('deleting') || row.data('toggling')) return;
+	function unlock() {
+		if (!row[0].isConnected) return;
+		row.data('deleting', false);
+		row.find('button, input').prop('disabled', false);
+		row.find('input[type="checkbox"]').checkboxradio('refresh');
+	}
+	row.data('deleting', true);
+	row.find('button, input').prop('disabled', true);
+	row.find('input[type="checkbox"]').checkboxradio('refresh');
+	RoxywiUI.confirm({
+		title: table.attr('data-delete-title'),
+		message: table.attr('data-delete-confirm') + ' ' + row.attr('data-rule-name') + ' · ' + table.attr('data-server'),
+		confirmText: table.attr('data-delete-label'), cancelText: table.attr('data-cancel-label')
+	}).then(function (confirmed) {
+		if (!confirmed || !row[0].isConnected) { unlock(); return; }
+		$.ajax({
+			url: row.attr('data-delete-url'), type: 'DELETE', dataType: 'json',
+			contentType: 'application/json; charset=utf-8', suppressGlobalError: true,
+			success: function (data) {
+				toastr.clear();
+				if (data && data.status === 'deleted' && data.id === Number(row.attr('data-rule-id'))) {
+					row.remove();
+					toastr.info(table.attr('data-delete-success'));
+				} else toastr.error(table.attr('data-delete-error'));
+			},
+			error: function (xhr) { toastr.clear(); toastr.error(wafErrorMessage(xhr, table.attr('data-delete-error'))); },
+			complete: function () { unlock(); refreshWafState(document); }
+		});
 	});
 }
 function addNewConfig() {

@@ -11,10 +11,15 @@
     .waf-apply-state[data-state="applied"] [data-waf-apply-label] {border-color: #42a359;}
     .waf-apply-state button {margin-left: 12px;}
     [data-waf-apply-button][aria-disabled="true"] {opacity: .5; pointer-events: none;}
+    .waf-rule-actions {display: flex; justify-content: flex-end; margin: 16px var(--indent) 24px;}
+    .waf-rule-actions .add-button {float: none; margin: 0; border: 0; background-color: var(--right-menu-blue-rolor) !important; color: #fff !important;}
+    .waf-rule-actions .admin-actions-toggle {width: auto !important; height: auto; padding: 5px 10px !important;}
 </style>
 {% if serv %}<div class="left-space">{% include 'ajax/wafApplyState.html' %}</div>{% endif %}
+{% if waf_sync_enabled %}<p class="left-space">{{ lang.waf_sync.hint }}</p>{% endif %}
 {% if manage_rules == '1' %}
 	{% from 'include/input_macros.html' import input, checkbox %}
+	{% from 'include/admin_action_menu.html' import admin_action_menu %}
 	<style>
 		#waf-create-form [hidden] { display: none !important; }
 		#waf-create-form .form-control { width: 100%; box-sizing: border-box; }
@@ -23,7 +28,11 @@
 	<table class="overview" id="waf_rules"
            data-toggle-error="{{ lang.waf_toggle.failed }}" data-conflict-error="{{ lang.waf_toggle.conflict }}"
            data-invalid-error="{{ lang.waf_toggle.invalid }}" data-forbidden-error="{{ lang.waf_toggle.forbidden }}"
-           data-toggle-success="{{ lang.waf_toggle['saved_' + service] }}">
+           data-toggle-success="{{ lang.waf_toggle['saved_' + service] }}"
+           data-delete-title="{{ lang.waf_delete.title }}" data-delete-label="{{ lang.words.delete|title() }}"
+           data-server="{{ serv }}"
+           data-cancel-label="{{ lang.words.cancel|title() }}" data-delete-confirm="{{ lang.waf_delete.confirm }}"
+           data-delete-error="{{ lang.waf_delete.failed }}" data-delete-success="{{ lang.waf_delete['saved_' + service] }}">
 		<tr class="overviewHead">
 			<td class="padding10 first-collumn">
 				{{lang.words.rule_name}}
@@ -35,7 +44,9 @@
 		{% for r in rules %}
 		<tr class="{{ loop.cycle('odd', 'even') }}" id="rule-{{r.id}}" data-enabled="{{ r.en }}"
             data-enable-url="{{ url_for('waf.enable_rule', service=service, server_ip=serv, rule_id=r.id, enable=1) }}"
-            data-disable-url="{{ url_for('waf.enable_rule', service=service, server_ip=serv, rule_id=r.id, enable=0) }}">
+            data-disable-url="{{ url_for('waf.enable_rule', service=service, server_ip=serv, rule_id=r.id, enable=0) }}"
+            data-rule-id="{{ r.id }}" data-rule-name="{{ r.rule_name }}"
+            data-delete-url="{{ url_for('waf.delete_rule', service=service, server_ip=serv, rule_id=r.id) }}">
 			<td class="padding10 first-collumn">{{r.rule_name}}</td>
 			<td class="checkbox">
 				{% set id = 'rule_id-' + r.id|string() %}
@@ -46,13 +57,25 @@
 				{% endif %}
 			</td>
 			<td style="padding-top: 5px;padding-bottom: 10px;">{{r.desc}}</td>
-			<td style="padding: 0 10px 0 10px;">
-				<a href="/waf/{{service}}/{{serv}}/rule/{{r.id}}" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.this4}} {{lang.words.rule}}">{{lang.words.view|title()}}/{{lang.words.edit|title()}}</a>
+			<td class="admin-actions-cell">
+                    {% call admin_action_menu(lang.words.actions|title ~ ': ' ~ r.rule_name) %}
+                    <a href="{{ url_for('waf.waf_rule_edit', service=service, server_ip=serv, rule_id=r.id) }}" class="admin-action-item" role="menuitem">{% if r.wizard %}{{ lang.waf_wizard.title }}{% else %}{{ lang.words.view|title }}/{{ lang.words.edit|title }}{% endif %}</a>
+                    <button type="button" class="admin-action-item admin-action-item-danger" role="menuitem" data-waf-delete>{{ lang.words.delete|title }}</button>
+                    {% endcall %}
 			</td>
 		</tr>
 		{% endfor %}
 	</table>
-	<p><span class="add-button" title="{{lang.words.add|title()}} {{lang.words.w_a}} {{lang.words.new}} WAF {{lang.words.rule}}" onclick="addNewConfig()" style="margin-right: 20px;">+ {{lang.words.add|title()}}</span></p><br><br>
+	<div class="waf-rule-actions">
+        <div class="admin-actions">
+            <button type="button" class="add-button admin-actions-toggle" aria-haspopup="menu" aria-expanded="false">+ {{ lang.words.add|title }}</button>
+            <div class="admin-actions-menu" role="menu" hidden>
+                <a class="admin-action-item" role="menuitem" data-waf-wizard-link href="{{ url_for('waf.waf_config_wizard', service=service, server_ip=serv) }}"
+                   {% if not waf_wizard_available %}title="{{ lang.waf_wizard.enterprise }}"{% endif %}>{{ lang.waf_wizard.title }}{% if not waf_wizard_available %} · Enterprise{% endif %}</a>
+                <button type="button" class="admin-action-item" role="menuitem" data-waf-manual onclick="addNewConfig()">{{ lang.waf_wizard.manual_editor }}</button>
+            </div>
+        </div>
+    </div>
 	<div id="add-new-config" style="display: none"
          data-create-url="{{ url_for('waf.create_rule', service=service, server_ip=serv) }}"
          data-title="{{ lang.waf_create.title }}" data-create-label="{{ lang.words.create|title() }}"

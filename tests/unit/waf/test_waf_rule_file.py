@@ -1,5 +1,8 @@
+import json
 import os
 import stat
+import subprocess
+import sys
 
 import pytest
 
@@ -20,6 +23,127 @@ def rule_files(tmp_path):
 
 def include(path):
     return 'Include "' + str(path).replace('\\', '\\\\').replace('"', '\\"') + '"'
+
+
+@pytest.mark.parametrize('entry', ['modsecurity.conf', 'waf.conf', 'legacy_nginx'])
+def test_delete_removes_active_and_commented_includes_and_keeps_other_rules(rule_files, entry):
+    base, rule = rule_files
+    rule.write_text('# delete me\n')
+    other = rule.with_name('keep.conf')
+    other.write_text('# keep me\n')
+    entrypoint = base if entry == 'modsecurity.conf' else base.with_name('waf.conf')
+    entrypoint.write_text(include(base) + '\n' if entry != 'modsecurity.conf' else 'SecRuleEngine On\n')
+    source = base if entry == 'legacy_nginx' else entrypoint
+    original = source.read_text()
+    kept = original + include(other) + '\r\n'
+    source.write_bytes((original + include(rule) + '\r\n' + include(other) + '\r\n# ' + include(rule) + '\r\n').encode())
+    remote.delete_rule(entrypoint, rule)
+    assert source.read_bytes() == kept.encode()
+    assert not rule.exists()
+    assert other.read_text() == '# keep me\n'
+    remote.delete_rule(entrypoint, rule)
+    assert source.read_bytes() == kept.encode()
+
+
+def test_delete_can_finish_after_unlink_failure(rule_files, monkeypatch):
+    entrypoint, rule = rule_files
+    rule.write_text('# content\n')
+    entrypoint.write_text(include(rule) + '\n')
+    unlink = remote._unlink
+
+    def fail_rule(path):
+        if path == rule:
+            raise PermissionError('synthetic file in use')
+        return unlink(path)
+
+    monkeypatch.setattr(remote, '_unlink', fail_rule)
+    with pytest.raises(PermissionError):
+        remote.delete_rule(entrypoint, rule)
+    assert rule.read_text() == '# content\n'
+    assert entrypoint.read_text() == ''
+    monkeypatch.setattr(remote, '_unlink', unlink)
+    remote.delete_rule(entrypoint, rule)
+    assert not rule.exists()
+
+
+def test_delete_remote_command_is_idempotent(rule_files):
+    entrypoint, rule = rule_files
+    original = entrypoint.read_bytes()
+    rule.write_text('# content\n')
+    entrypoint.write_bytes(original + (include(rule) + '\n').encode())
+    for _ in range(2):
+        result = subprocess.run([sys.executable, remote.__file__, 'delete', str(entrypoint), str(rule)],
+                                capture_output=True, text=True, timeout=10, check=True)
+        assert json.loads(result.stdout) == {'status': 'ok'}
+        assert not rule.exists()
+        assert entrypoint.read_bytes() == original
+
+
+def test_delete_keeps_concurrently_edited_rule(rule_files, monkeypatch):
+    entrypoint, rule = rule_files
+    rule.write_text('# original\n')
+    entrypoint.write_text(include(rule) + '\n')
+    replace = remote._replace_config
+
+    def edit_during_delete(*args):
+        replace(*args)
+        rule.write_text('# external edit\n')
+
+    monkeypatch.setattr(remote, '_replace_config', edit_during_delete)
+    with pytest.raises(remote.RuleConflict):
+        remote.delete_rule(entrypoint, rule)
+    assert rule.read_text() == '# external edit\n'
+
+
+def test_delete_does_not_remove_file_when_include_update_fails(rule_files, monkeypatch):
+    entrypoint, rule = rule_files
+    rule.write_text('# content\n')
+    entrypoint.write_text(include(rule) + '\n')
+    original = entrypoint.read_bytes()
+
+    def fail(*args):
+        raise OSError('synthetic disk failure')
+
+    monkeypatch.setattr(remote.os, 'replace', fail)
+    with pytest.raises(OSError):
+        remote.delete_rule(entrypoint, rule)
+    assert rule.read_text() == '# content\n'
+    assert entrypoint.read_bytes() == original
+
+
+@pytest.mark.parametrize('conflict', ['wildcard', 'relative', 'multiple_sources', 'directory'])
+def test_delete_rejects_ambiguous_files_and_includes(rule_files, conflict):
+    base, rule = rule_files
+    entrypoint = base.with_name('waf.conf')
+    rule.write_text('# content\n')
+    if conflict == 'wildcard':
+        entrypoint.write_text(include(rule.parent / '*.conf') + '\n')
+    elif conflict == 'relative':
+        entrypoint.write_text('Include rules/customer-rule.conf\n')
+    else:
+        entrypoint.write_text(include(base) + '\n' + include(rule) + '\n')
+        base.write_text(include(rule) + '\n')
+    if conflict == 'directory':
+        rule.unlink()
+        rule.mkdir()
+    original = entrypoint.read_bytes(), base.read_bytes()
+    with pytest.raises(remote.RuleConflict):
+        remote.delete_rule(entrypoint, rule)
+    assert (entrypoint.read_bytes(), base.read_bytes()) == original
+    assert rule.exists()
+
+
+@pytest.mark.skipif(os.name != 'posix', reason='Unix symlinks')
+def test_delete_does_not_follow_symlink(rule_files):
+    entrypoint, rule = rule_files
+    other = rule.with_name('keep.conf')
+    other.write_text('# keep\n')
+    rule.symlink_to(other)
+    entrypoint.write_text(include(rule) + '\n')
+    with pytest.raises(remote.RuleConflict):
+        remote.delete_rule(entrypoint, rule)
+    assert other.read_text() == '# keep\n'
+    assert rule.is_symlink()
 
 
 def test_creation_is_idempotent_and_keeps_customer_configuration(rule_files):

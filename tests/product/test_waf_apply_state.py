@@ -1,12 +1,56 @@
 import importlib
 from concurrent.futures import ThreadPoolExecutor
+from html import unescape
 from threading import Event
 
 import pytest
 
 from app.modules.config import candidate, waf_state
-from app.modules.db.db_model import Server, WafConfigState
+from app.modules.db.db_model import Server, WafConfigState, WafRules
 from app.modules.roxywi import auth, waf
+
+
+@pytest.mark.parametrize('locale', ['en', 'ru', 'es-ES', 'fr', 'pt-br', 'zh'])
+@pytest.mark.parametrize('service', ['haproxy', 'nginx'])
+def test_restart_hint_only_describes_pending_changes(product_client, product, waf_applying, app, service, locale):
+    product_client.set_cookie('lang', locale)
+    messages = app.jinja_env.get_template(f'languages/{locale}.html').module
+    hint = messages.waf_mode['hint_' + service]
+    state_url = f'/waf/{service}/{product.server.ip}/state'
+    label = '<span data-waf-apply-label title="'
+    assert 'modsecurity.conf' not in hint
+    assert label + messages.waf_apply['scope'] + '"' in unescape(product_client.get(state_url).text)
+
+    saved = product_client.post(f'/waf/{service}/mode/{product.server.server_id}/DetectionOnly')
+    assert saved.status_code == 200
+    assert label + hint + '"' in unescape(product_client.get(state_url).text)
+    overview = product_client.get(f'/waf/overview/{service}/{product.server.ip}')
+    assert 'class="waf-mode-hint"' not in overview.text
+    assert label + hint + '"' in unescape(overview.text)
+
+    applied = product_client.post(f'/waf/{service}/{product.server.ip}/apply', json={})
+    assert applied.status_code == 200
+    assert label + messages.waf_apply['scope'] + '"' in unescape(product_client.get(state_url).text)
+
+
+@pytest.mark.parametrize('locale', ['en', 'ru', 'es-ES', 'fr', 'pt-br', 'zh'])
+@pytest.mark.parametrize('service,failure,code,detail', [
+    ('nginx', 'valid', 'validation_failed', None),
+    ('nginx', 'action_failed', 'nginx_apply_failed', 'action_failed'),
+    ('haproxy', 'ready', 'haproxy_apply_failed', 'agent_unready'),
+])
+def test_apply_reports_localized_failure_without_claiming_recovery(product_client, product, waf_applying,
+                                                                  app, locale, service, failure, code, detail):
+    product_client.set_cookie('lang', locale)
+    setattr(waf_applying, failure, failure == 'action_failed')
+    response = product_client.post(f'/waf/{service}/{product.server.ip}/apply', json={})
+    messages = app.jinja_env.get_template(f'languages/{locale}.html').module
+    assert response.status_code == 500
+    expected = messages.waf_apply[code]
+    if detail:
+        expected += ' ' + messages.waf_error_details[detail]
+    assert response.json['error'] == expected
+    assert waf_state.status(product.server.server_id, service) == 'pending'
 
 
 @pytest.mark.parametrize('service', ['haproxy', 'nginx'])
@@ -52,13 +96,16 @@ def test_save_and_apply_confirms_previously_pending_mode_and_rules(product_clien
 
 @pytest.mark.parametrize('service,action', [('haproxy', 'save'), ('haproxy', 'restart'),
                                           ('nginx', 'save'), ('nginx', 'reload')])
-def test_rule_save_only_changes_selected_server_with_replicas(product_client, product, waf_applying,
-                                                             waf_switching, monkeypatch, service, action):
+def test_rule_save_synchronizes_replicas_without_repeating_master(product_client, product, waf_applying,
+                                                                waf_switching, monkeypatch, service, action):
     server = product.server
     # Existing installations can also contain a self-referencing master row.
     Server.update(master=server.server_id).where(Server.server_id == server.server_id).execute()
     replica = Server.create(hostname='Replica', ip='192.0.2.33', group_id='1', cred_id=11,
                             haproxy=1, nginx=1, master=server.server_id, description='WAF replica')
+    roots = waf_applying.add_server(replica)
+    rule = waf_switching.rules[service]
+    WafRules.create(serv=replica.ip, service=service, rule_name=rule.rule_name, rule_file=rule.rule_file, en=rule.en)
     targets = []
     ssh = waf.server_mod.ssh_command
 
@@ -67,14 +114,15 @@ def test_rule_save_only_changes_selected_server_with_replicas(product_client, pr
         return ssh(target, *args, **kwargs)
 
     monkeypatch.setattr(waf.server_mod, 'ssh_command', recorded)
-    rule = waf_switching.rules[service]
     response = product_client.post(f'/waf/{service}/{server.ip}/rule/{rule.id}/save',
-                                   json={'action': action, 'config': '# selected server only\n'})
+                                   json={'action': action, 'config': '# synchronized rule\n'})
     assert response.status_code == 200, response.text
-    assert targets == [server.ip]
-    assert (waf_applying.roots[service] / 'rules/test.conf').read_text() == '# selected server only\n'
+    assert set(targets) == {server.ip, replica.ip}
+    assert waf_applying.apply_hosts == [server.ip, replica.ip]
+    assert (waf_applying.roots[service] / 'rules/test.conf').read_text() == '# synchronized rule\n'
+    assert (roots[service] / 'rules/test.conf').read_text() == '# synchronized rule\n'
     assert waf_state.status(server.server_id, service) == ('pending' if action == 'save' else 'applied')
-    assert waf_state.status(replica.server_id, service) == 'unknown'
+    assert waf_state.status(replica.server_id, service) == ('pending' if action == 'save' else 'applied')
 
 
 @pytest.mark.parametrize('service', ['haproxy', 'nginx'])

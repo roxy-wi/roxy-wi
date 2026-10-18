@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% from 'include/input_macros.html' import checkbox, select %}
+{% macro condition_row(condition, suffix='') %}
+<div class="waf-wizard-condition" data-condition>
+    <table class="add-table">
+        {% for name, options in [('field', ['uri', 'ip', 'method', 'header', 'arg']), ('operator', ['equals', 'begins', 'contains'])] %}
+        <tr data-field="{{ name }}">
+            <td class="addName"><label for="wizard-{{ name }}{{ suffix }}">{{ lang.waf_wizard[name + '_label'] }}</label></td>
+            <td class="addOption">
+                <select id="wizard-{{ name }}{{ suffix }}" name="{{ name }}" class="form-control">
+                {% for option in options %}<option value="{{ option }}" {% if condition[name] == option %}selected{% endif %}>{{ lang.waf_wizard[option] }}</option>{% endfor %}
+                </select>
+            </td>
+        </tr>
+        {% endfor %}
+        <tr data-field="key">
+            <td class="addName"><label for="wizard-key{{ suffix }}">{{ lang.waf_wizard.key_label }}</label></td>
+            <td class="addOption">
+                <input id="wizard-key{{ suffix }}" name="key" maxlength="128" pattern="[A-Za-z0-9_.\-]+" class="form-control" value="{{ condition.key }}">
+                <small>{{ lang.waf_wizard.key_hint }}</small>
+            </td>
+        </tr>
+        <tr>
+            <td class="addName"><label for="wizard-value{{ suffix }}">{{ lang.waf_wizard.value_label }}</label></td>
+            <td class="addOption">
+                <input id="wizard-value{{ suffix }}" name="value" maxlength="1024" class="form-control" value="{{ condition.value }}">
+                <small>{{ lang.waf_wizard.value_hint }}</small>
+                <button type="button" class="btn btn-default" data-remove-condition>{{ lang.waf_wizard.remove_condition }}</button>
+            </td>
+        </tr>
+    </table>
+</div>
+{% endmacro %}
+{% block title %}{{ lang.waf_wizard.title }}{% endblock %}
+{% block h2 %}{{ lang.waf_wizard.title }}{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/waf-wizard.css') }}">
+<script src="{{ url_for('static', filename='js/waf.js') }}"></script>
+<script defer src="{{ url_for('static', filename='js/waf-wizard.js') }}"></script>
+<script id="wizard-server-targets" type="application/json">{{ wizard_targets|tojson }}</script>
+<div class="waf-wizard">
+    {% include 'ajax/wafApplyState.html' %}
+    <form id="waf-wizard" action="{{ request.path }}" data-failed="{{ lang.waf_wizard.failed }}" data-existing-rule="{{ 1 if rule else 0 }}"
+          data-save-success="{{ lang.waf_editor.haproxy_saved if service == 'haproxy' else lang.waf_editor.saved }}"
+          data-restart-success="{{ lang.waf_editor.restarted }}" data-reload-success="{{ lang.waf_editor.reloaded }}">
+        <table class="add-table">
+            <caption><h3>{{ lang.waf_wizard.details }}</h3></caption>
+            <tr>
+                <td class="addName"><label for="wizard-server">{{ lang.words.select|title }} {{ lang.words.w_a }} {{ lang.words.server }}:</label></td>
+                <td class="addOption">{{ select('wizard-server', name='server', values=wizard_servers, is_servers='true', selected=serv, required='required') }}</td>
+                <td rowspan="5" class="add-note addName alert-info">
+                    <p>{{ lang.waf_wizard.managed }}</p>
+                    <p data-waf-sync-hint {% if not waf_sync_enabled %}hidden{% endif %}>{{ lang.waf_sync.hint }}</p>
+                    {% if service == 'haproxy' %}<p>{{ lang.waf_editor.haproxy_save_hint }}</p>{% endif %}
+                </td>
+            </tr>
+            {% for key, label, maximum in [('new_waf_rule', lang.words.rule_name, 255), ('new_rule_file', lang.waf_create.filename, 255), ('new_rule_description', lang.words.desc|title, 4096)] %}
+            <tr>
+                <td class="addName"><label for="{{ key }}">{{ label }}<span class="need-field">*</span></label></td>
+                <td class="addOption">
+                    <input id="{{ key }}" name="{{ key }}" class="form-control" required maxlength="{{ maximum }}"
+                           value="{{ (rule.rule_name if key == 'new_waf_rule' else rule.rule_file if key == 'new_rule_file' else rule.desc) if rule else '' }}"
+                           {% if rule %}readonly{% endif %}>
+                    {% if key == 'new_rule_file' %}<small>{{ lang.waf_create.filename_hint }}</small>{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td class="addName"><label for="wizard-id">{{ lang.waf_wizard.rule_id }}</label></td>
+                <td class="addOption">
+                    <input id="wizard-id" name="id" type="number" class="form-control" min="1" max="99999" required value="{{ spec.id if rule else '' }}">
+                    <div class="waf-wizard-checkbox">{{ checkbox('wizard-auto-id', checked='checked' if not rule else '', desc=lang.waf_wizard.auto_id) }}</div>
+                    <small>{{ lang.waf_wizard.id_hint }}</small>
+                    <small>{{ lang.waf_wizard.or_ids_hint }}</small>
+                </td>
+            </tr>
+        </table>
+        <table class="add-table">
+            <caption><h3>{{ lang.waf_wizard.conditions }}</h3></caption>
+            {% for name, options in [('kind', ['rule', 'exclusion']), ('match', ['all', 'any']), ('action', ['deny', 'log'])] %}
+            <tr data-field="{{ name }}">
+                <td class="addName"><label for="wizard-{{ name }}">{{ lang.waf_wizard[name + '_label'] }}</label></td>
+                <td class="addOption">
+                    <select id="wizard-{{ name }}" name="{{ name }}" class="form-control">
+                    {% for option in options %}<option value="{{ option }}" {% if spec[name] == option %}selected{% endif %}>{{ lang.waf_wizard[option] }}</option>{% endfor %}
+                    </select>
+                    {% if name == 'kind' %}
+                    <div class="waf-wizard-checkbox" data-global-scope>{{ checkbox('wizard-all-requests', checked='checked' if spec.kind == 'exclusion' and not spec.conditions else '', desc=lang.waf_wizard.all_requests) }}</div>
+                    {% elif name == 'match' %}
+                    <small>{{ lang.waf_wizard.conditions_hint }}</small>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+        <div id="wizard-condition-list">
+            {% for condition in spec.conditions or [dict(field='uri', operator='equals', key='', value='')] %}
+            {{ condition_row(condition, '' if loop.first else '-' ~ loop.index0) }}
+            {% endfor %}
+        </div>
+        <template id="wizard-condition-template">{{ condition_row(dict(field='uri', operator='equals', key='', value=''), '-__index__') }}</template>
+        <div class="waf-wizard-actions">
+            <button type="button" id="wizard-add-condition" class="btn btn-default">{{ lang.waf_wizard.add_condition }}</button>
+        </div>
+        <table class="add-table" data-field="exclusion">
+            <tr>
+                <td class="addName"><label for="wizard-exclude-id">{{ lang.waf_wizard.exclude_id }}</label></td>
+                <td class="addOption">
+                    <input id="wizard-exclude-id" name="exclude_id" type="number" min="1" max="2147483647" class="form-control" value="{{ spec.exclude_id or '' }}">
+                </td>
+                <td rowspan="2" class="add-note addName alert-info">{{ lang.waf_wizard.exclusion_conditions_hint }}</td>
+            </tr>
+            <tr>
+                <td class="addName"><label for="wizard-exclude-parameter">{{ lang.waf_wizard.exclude_parameter }}</label></td>
+                <td class="addOption">
+                    <input id="wizard-exclude-parameter" name="exclude_parameter" maxlength="128" pattern="[A-Za-z0-9_.\-]+" class="form-control" value="{{ spec.exclude_parameter }}">
+                    <small>{{ lang.waf_wizard.key_hint }}</small>
+                    <small>{{ lang.waf_wizard.parameter_hint }}</small>
+                </td>
+            </tr>
+        </table>
+        <div class="waf-wizard-preview">
+            <div id="wizard-preview" hidden aria-live="polite">
+                <h3>{{ lang.waf_wizard.preview }}</h3><pre data-generated></pre>
+                <details><summary>{{ lang.waf_wizard.previous }}</summary><pre data-previous></pre></details>
+            </div>
+        </div>
+        <p id="wizard-error" class="alert alert-danger" role="alert" hidden></p>
+        <div class="waf-wizard-actions">
+            <a data-waf-rules-link href="{{ url_for('waf.waf_rules', service=service, server_ip=serv) }}" class="ui-button ui-widget ui-corner-all">{{ lang.words.back|title }}</a>
+            <button type="button" id="wizard-preview-button" class="btn btn-default">{{ lang.waf_wizard.preview }}</button>
+            <button type="submit" value="save" class="btn btn-default">{{ lang.words.save|title }}</button>
+            <button type="submit" value="{{ 'restart' if service == 'haproxy' else 'reload' }}" class="btn btn-default">{{ lang.phrases.save_and_restart if service == 'haproxy' else lang.phrases.save_and_reload }}</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

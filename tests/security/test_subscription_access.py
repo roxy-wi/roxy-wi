@@ -84,6 +84,7 @@ def test_browser_socket_identity_is_not_read_from_hidden_html_fields():
     ('feature', 'allowed_plans'),
     (
         (subscription_access.OIDC, {'company', 'cloud', 'support'}),
+        (subscription_access.WAF_WIZARD, {'company', 'cloud', 'support'}),
         (subscription_access.CHANGE_CENTER, {'support'}),
         (subscription_access.GIT_BACKUP, {'support'}),
         (subscription_access.SMON_STATUS_PAGES, {'support'}),

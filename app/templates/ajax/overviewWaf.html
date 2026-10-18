@@ -22,18 +22,24 @@
 	{% if service.5|int() >= 1 %}
 		<td>
 		{% if role <= 2 %}
-			<a id="{{ service.1 }}" class="start-waf" title="{{lang.words.start|title()}} WAF {{lang.words.service}}">
-				<span class="service-start" onclick="confirmAjaxAction('start', '{{service_name}}', '{{service.6}}')"></span>
+			<a id="{{ service.1 }}" class="start-waf" href="#" role="button"
+               title="{{ lang.waf_actions.enable if waf_service == 'nginx' else lang.words.start|title ~ ' WAF ' ~ lang.words.service }}"
+               {% if waf_service == 'nginx' %}data-action-label="{{ lang.waf_actions.enable }}"{% endif %}
+               onclick="confirmAjaxAction('start', '{{service_name}}', '{{service.6}}', this.getAttribute('data-action-label')); return false;">
+				<span class="service-start" aria-hidden="true"></span>
 			</a>
-			<a id="{{ service.1 }}" class="stop-waf" title="{{lang.words.stop|title()}} WAF {{lang.words.service}}">
-				<span class="service-stop" onclick="confirmAjaxAction('stop', '{{service_name}}', '{{service.6}}')"></span>
+			<a id="{{ service.1 }}" class="stop-waf" href="#" role="button"
+               title="{{ lang.waf_actions.disable if waf_service == 'nginx' else lang.words.stop|title ~ ' WAF ' ~ lang.words.service }}"
+               {% if waf_service == 'nginx' %}data-action-label="{{ lang.waf_actions.disable }}"{% endif %}
+               onclick="confirmAjaxAction('stop', '{{service_name}}', '{{service.6}}', this.getAttribute('data-action-label')); return false;">
+				<span class="service-stop" aria-hidden="true"></span>
 			</a>
 			{% if waf_service == 'haproxy' %}
-			<a id="{{ service.1 }}" class="restart-waf" title="{{lang.words.restart|title()}} WAF {{lang.words.service}}">
+			<a id="{{ service.1 }}" class="restart-waf" title="{{ lang.waf_apply.action_haproxy }}">
 				<span class="service-reload" data-waf-apply-button></span>
 			</a>
 			{% else %}
-			<a id="{{ service.1 }}" class="reload-waf" title="{{lang.words.reload|title()}} WAF {{lang.words.service}}">
+			<a id="{{ service.1 }}" class="reload-waf" title="{{ lang.waf_apply.action_nginx }}">
 				<span class="service-reload" data-waf-apply-button></span>
 			</a>
 			{% endif %}
@@ -55,7 +61,7 @@
 		{% else %}
 			{{ lang.waf_mode[service.3] if not mode_error else lang.waf_mode.unavailable }}
 		{% endif %}
-            <p class="waf-mode-hint">{{ lang.waf_mode.read_failed if mode_error else lang.waf_mode['hint_' + waf_service] }}</p>
+            {% if mode_error %}<p class="waf-mode-hint">{{ lang.waf_mode.read_failed }}</p>{% endif %}
             <p class="waf-mode-message" data-waf-mode-message role="status" aria-live="polite"></p>
             {% include 'ajax/wafApplyState.html' %}
 		</td>

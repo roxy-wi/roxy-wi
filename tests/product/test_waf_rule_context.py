@@ -41,7 +41,7 @@ def forbid_waf_io(monkeypatch):
 
 
 @pytest.mark.parametrize('service', ['haproxy', 'nginx'])
-@pytest.mark.parametrize('operation', ['read', 'save'])
+@pytest.mark.parametrize('operation', ['read', 'save', 'delete'])
 @pytest.mark.parametrize('owner', ['other_server', 'other_service', 'missing'])
 def test_waf_rule_must_match_server_and_service(product_client, product, waf_rules, forbid_waf_io,
                                                service, operation, owner):
@@ -49,7 +49,7 @@ def test_waf_rule_must_match_server_and_service(product_client, product, waf_rul
                'other_service': waf_rules['nginx' if service == 'haproxy' else 'haproxy'].id,
                'missing': 99999}[owner]
     url = f'/waf/{service}/{product.server.ip}/rule/{rule_id}'
-    response = (product_client.get(url) if operation == 'read' else
+    response = (product_client.get(url) if operation == 'read' else product_client.delete(url) if operation == 'delete' else
                 product_client.post(url + '/save', json={'action': 'save', 'config': '# candidate',
                                                          'config_file_name': 'test.conf'}))
     assert response.status_code == 404, response.text
@@ -63,7 +63,7 @@ def test_toggle_rejects_foreign_or_missing_rule(product_client, product, waf_rul
     assert WafRules.get_by_id(waf_rules['other'].id).en == 1
 
 
-@pytest.mark.parametrize('operation', ['read', 'save', 'toggle'])
+@pytest.mark.parametrize('operation', ['read', 'save', 'toggle', 'delete'])
 def test_rule_service_permission_is_required(product_client, product, waf_rules, forbid_waf_io, monkeypatch, operation):
     monkeypatch.setattr(auth, 'is_access_permit_to_service', lambda service: service != 'nginx')
     rule_id = waf_rules['nginx'].id
@@ -72,6 +72,8 @@ def test_rule_service_permission_is_required(product_client, product, waf_rules,
         response = product_client.get(url)
     elif operation == 'save':
         response = product_client.post(url + '/save', json={'action': 'save', 'config': '# candidate'})
+    elif operation == 'delete':
+        response = product_client.delete(url)
     else:
         response = product_client.post(f'/waf/{product.server.ip}/rule/{rule_id}/0')
     assert response.status_code == 403, response.text
@@ -290,6 +292,7 @@ def test_failed_save_is_not_success_and_cleans_only_its_files(product_client, pr
 
 def test_failed_selected_server_save_does_not_report_success(product_client, product, waf_rules, monkeypatch):
     product.other.master = product.server.server_id
+    product.other.group_id = product.server.group_id
     product.other.save()
     calls = []
 

@@ -36,6 +36,12 @@ def select_waf_nginx_servers(serv):
 			return en.ip
 
 
+def select_registered_waf_servers(service: str) -> set:
+	model = {'haproxy': Waf, 'nginx': WafNginx}[service]
+	query = Server.select(Server.ip).join(model, on=(model.server_id == Server.server_id))
+	return {row.ip for row in query}
+
+
 def insert_waf_nginx_server(server_ip):
 	try:
 		server_id = Server.get(Server.ip == server_ip).server_id
@@ -254,7 +260,7 @@ def insert_nginx_waf_rules(serv):
 
 
 def select_waf_rules(serv, service):
-	query = WafRules.select(WafRules.id, WafRules.rule_name, WafRules.en, WafRules.desc).where(
+	query = WafRules.select(WafRules.id, WafRules.rule_name, WafRules.en, WafRules.desc, WafRules.wizard).where(
 		(WafRules.serv == serv)
 		& (WafRules.service == service)
 	)
@@ -282,6 +288,12 @@ def get_waf_rule(rule_id: int, server_ip: str, service: str = None) -> WafRules:
 		raise RoxywiResourceNotFound() from exc
 
 
+def delete_waf_rule(rule_id: int, server_ip: str, service: str) -> None:
+	WafRules.delete().where(
+		(WafRules.id == rule_id) & (WafRules.serv == server_ip) & (WafRules.service == service)
+	).execute()
+
+
 def update_enable_waf_rules(rule_id, serv, en):
 	try:
 		WafRules.update(en=en).where((WafRules.id == rule_id) & (WafRules.serv == serv)).execute()
@@ -289,13 +301,14 @@ def update_enable_waf_rules(rule_id, serv, en):
 		out_error(e)
 
 
-def insert_new_waf_rule(rule_name: str, rule_file: str, rule_description: str, service: str, serv: str) -> int:
+def insert_new_waf_rule(rule_name: str, rule_file: str, rule_description: str, service: str, serv: str, *, wizard=False) -> int:
 	return WafRules.insert(
 		serv=serv,
 		rule_name=rule_name,
 		rule_file=rule_file,
 		desc=rule_description,
-		service=service
+		service=service,
+		wizard=wizard
 	).execute()
 
 

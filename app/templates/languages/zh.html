@@ -1,4 +1,67 @@
 {% set lang_short = 'zh' %}
+{% set waf_wizard = {
+    "manual_editor": "手动规则编辑器",
+    "title": "WAF 配置向导",
+    "details": "规则详情",
+    "conditions": "条件和操作",
+    "rule_id": "规则 ID",
+    "id_hint": "在 Master 及其 Slave 上检查 1 到 99999 范围内的 ID。保存时会再次检查自动分配的 ID。",
+    "kind_label": "类型",
+    "rule": "规则",
+    "exclusion": "CRS 规则排除",
+    "field_label": "检查对象",
+    "uri": "URL 路径",
+    "ip": "客户端 IP / 网段",
+    "method": "HTTP 方法",
+    "header": "请求标头",
+    "arg": "请求参数",
+    "operator_label": "匹配方式",
+    "equals": "等于",
+    "begins": "开头为",
+    "contains": "包含",
+    "action_label": "操作",
+    "deny": "阻止（403）",
+    "log": "仅记录日志",
+    "key_label": "标头或参数名称",
+    "key_hint": "名称可使用英文字母、数字、点、连字符和下划线。",
+    "value_label": "值",
+    "value_hint": "请输入字面值。多个 IP 地址或 CIDR 网段请用逗号分隔。",
+    "scope_hint": "请输入 URL 路径；留空则对所有 URL 应用排除。",
+    "exclude_id": "要排除的 CRS 规则 ID",
+    "exclude_parameter": "要排除的请求参数（可选）",
+    "parameter_hint": "留空将在满足这些条件时排除整条规则；否则仅排除此参数。",
+    "preview": "预览配置",
+    "previous": "此前保存的配置",
+    "enterprise": "WAF 配置向导需要有效的 Enterprise 或更高等级订阅。",
+    "managed": "此规则由 Roxy-WI 生成。请通过 WAF 配置向导修改，不要手动编辑文件。",
+    "invalid": "请检查规则字段、ID、匹配值和参数名称。",
+    "id_conflict": "Master 或 Slave 上已有一个或多个相同的规则 ID。请启用自动选择或指定其他 ID。",
+    "target_missing": "并非所有目标服务器上都存在要排除的规则。请检查已安装的规则和目标 ID。",
+    "metadata_missing": "托管规则缺少有效的向导元数据，请恢复生成的文件后再编辑。",
+    "not_managed": "此规则是手动创建的，请使用文本编辑器。",
+    "identity_changed": "名称、文件名和描述用于标识此托管规则，不能在此处更改。",
+    "conflict": "规则文件或其 Include 与现有配置冲突，请刷新规则列表并检查文件。",
+    "failed": "无法完成 WAF 向导操作。表单内容已保留，请检查服务器后重试。",
+    "auto_id": "自动选择空闲 ID",
+    "or_ids_hint": "OR 为每个条件使用一个连续 ID；此处显示第一个 ID。预览会显示所有分配的 ID。",
+    "match_label": "组合条件",
+    "all": "满足全部条件 (AND)",
+    "any": "满足任一条件 (OR)",
+    "add_condition": "添加条件",
+    "remove_condition": "删除条件",
+    "all_requests": "所有请求（无条件）",
+    "conditions_hint": "最多 10 个条件，统一使用 AND 或 OR 运算符。",
+    "exclusion_conditions_hint": "排除规则在 CRS 之前执行。可按 IP、URL 路径、方法或请求头设置条件；此处不支持请求参数条件。",
+    "ids_exhausted": "没有可用的连续规则 ID。请删除不再使用的规则或减少 OR 条件数量。"
+} %}
+{% set waf_sync = {
+    "hint": "规则从 Master 同步到已配置的 Slave。保存后更改处于待应用状态；重启或重载将在所有目标服务器上应用更改。",
+    "failed": "{server} 上的 WAF 同步失败。部分服务器可能已经更改。请检查该服务器并重试；更改仍处于待应用状态。",
+    "conflict": "{server} 上的 WAF 同步与现有规则或 Include 冲突。请检查文件名及其所属规则，然后重试。",
+    "unavailable": "无法同步 WAF：{server} 上未启用所需服务。请先配置 Slave。",
+    "group_mismatch": "{server} 的 WAF 同步不能跨服务器组。请将 Master 及其 Slave 放在同一组中。",
+    "inspection_failed": "无法检查 {server} 上的空闲规则 ID。未保存任何配置。请检查连接和 WAF 文件，然后重试。"
+} %}
 {% set menu_links = dict() %}
 {% set menu_links = {
     "overview": {
@@ -153,11 +216,35 @@
     "conflict": "已存在同名规则或使用该文件的规则，或者其 Include 指令已更改。请检查现有规则和服务器上的文件。",
     "failed": "无法完成 WAF 规则的创建。请检查服务器连接、文件权限和 Roxy-WI 日志，然后使用相同的值重试。"
 } %}
+{% set waf_delete = {
+    "title": "删除 WAF 规则",
+    "confirm": "删除所选服务器及其已配置 Slave 上的此规则及其文件？应用配置后更改才会生效。规则：",
+    "forbidden": "您没有权限删除此服务的 WAF 规则。",
+    "invalid": "请选择有效的 WAF 规则。",
+    "conflict": "无法自动删除此规则。请检查共享文件、符号链接、带通配符的 Include 或多个配置文件中的引用。",
+    "failed": "无法确认删除。请刷新规则列表，检查服务器连接和文件权限；如果规则仍然存在，请重试。",
+    "saved_haproxy": "规则已删除。请重启 WAF 代理以应用更改。",
+    "saved_nginx": "规则已删除。请重新加载 NGINX 以应用更改。"
+} %}
+{% set waf_error_details = {
+    "action_failed": "服务命令返回错误。",
+    "agent_unready": "WAF 代理在重启后的 15 秒内未响应。",
+    "timeout": "远程操作超时。",
+    "permission": "服务器拒绝访问所需的文件或操作。",
+    "missing": "找不到所需的文件或可执行程序。"
+} %}
 {% set waf_apply = {
+    "validation_failed": "已保存的配置未通过验证。服务尚未重新加载。请修正配置后重试。",
+    "haproxy_apply_failed": "无法确认 WAF 代理已使用保存的配置启动。请检查其状态和 WAF 日志。",
+    "nginx_apply_failed": "无法确认 NGINX 已应用保存的配置。重试前请检查其状态和错误日志。",
+    "mount_failed": "无法准备 WAF。请检查配置的路径、服务或容器及其挂载。",
+    "save_failed": "WAF 操作未完成。请检查文件访问权限和目标服务器。",
+    "recovery_failed": "恢复未完成。重试前请检查配置和服务状态。",
     "unknown": "应用状态未确认",
     "pending": "更改等待确认应用",
     "applied": "已确认应用",
-    "apply": "应用已保存的配置",
+    "action_haproxy": "重启 WAF",
+    "action_nginx": "重新加载 NGINX",
     "confirm_haproxy": "重启 WAF 代理并应用已保存的配置，服务器：",
     "confirm_nginx": "重新加载 NGINX 并应用已保存的配置，服务器：",
     "success": "WAF 配置已应用并确认。",
@@ -169,8 +256,8 @@
     "On": "规则已启用（On）",
     "Off": "规则已禁用（Off）",
     "DetectionOnly": "仅检测",
-    "hint_haproxy": "modsecurity.conf 中的模式。请重启 WAF 代理以应用更改。",
-    "hint_nginx": "modsecurity.conf 中的模式。请重新加载 NGINX 以应用更改。",
+    "hint_haproxy": "请重启 WAF 代理以应用更改。",
+    "hint_nginx": "请重新加载 NGINX 以应用更改。",
     "saved_haproxy": "模式已保存。请重启 WAF 代理以应用。",
     "saved_nginx": "模式已保存。请重新加载 NGINX 以应用。",
     "failed": "无法确认 WAF 模式已保存。请刷新状态后重试。",
@@ -1375,6 +1462,11 @@
     "unknown_error_remedy": "请查看此任务的技术详情和工作进程日志，修复原因后刷新状态。"
 } %}
 
+{% set waf_actions = {
+    "enable": "启用 WAF",
+    "disable": "禁用 WAF"
+} %}
+
 {% set waf_diagnostics = {
     "open": "查看 WAF 诊断",
     "attention": "需要检查",
@@ -1413,7 +1505,5 @@
     "config_unavailable_hint": "无法检查配置文件或容器挂载。请检查设置中的服务路径和绑定挂载。",
     "check_unavailable_hint": "检查未能完成。请检查启动参数、所需工具和权限；Docker 中的 HAProxy WAF 还需要主机上安装 nsenter。",
     "process_changed_hint": "检查期间进程发生了变化。请在服务稳定后刷新页面。",
-    "connection_failed_hint": "未能通过 SSH 获取已确认的结果。请检查连接、凭据、免密 sudo 和服务器上的 Python 3，然后刷新。",
-    "scope_haproxy": "状态为上次刷新时的快照。代理响应不代表 HAProxy 已将流量发送到 WAF。请检查 SPOE 配置；保存的模式和待应用的更改会单独显示。",
-    "scope_nginx": "状态为上次刷新时的快照。nginx -T 检查保存的文件，而非已加载的版本或所有虚拟主机的防护状态。应用前请检查上下文、保存的模式和待应用的更改。"
+    "connection_failed_hint": "未能通过 SSH 获取已确认的结果。请检查连接、凭据、免密 sudo 和服务器上的 Python 3，然后刷新。"
 } %}

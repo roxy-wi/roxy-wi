@@ -17,6 +17,7 @@ DESCRIPTION = 'Description & "quoted text"'
 def open_creation(page, product_url, product, service):
     page.goto(f'{product_url}/waf/{service}/{product.server.ip}/rules')
     page.locator('.add-button').click()
+    page.locator('[data-waf-manual]').click()
     dialog = page.locator('#add-new-config')
     expect(dialog).to_be_visible()
     expect(page.locator('#waf-create-error')).to_be_hidden()

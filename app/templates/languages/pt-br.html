@@ -1,4 +1,67 @@
 {% set lang_short = 'pt-br' %}
+{% set waf_wizard = {
+    "manual_editor": "Editor manual de regras",
+    "title": "Assistente de configuração WAF",
+    "details": "Dados da regra",
+    "conditions": "Condições e ação",
+    "rule_id": "ID da regra",
+    "id_hint": "Os IDs de 1 a 99999 são verificados no Master e em seus Slaves. IDs automáticos são verificados novamente ao salvar.",
+    "kind_label": "Tipo",
+    "rule": "Regra",
+    "exclusion": "Exclusão de regra CRS",
+    "field_label": "Inspecionar",
+    "uri": "Caminho da URL",
+    "ip": "IP do cliente / rede",
+    "method": "Método HTTP",
+    "header": "Cabeçalho da requisição",
+    "arg": "Parâmetro da requisição",
+    "operator_label": "Correspondência",
+    "equals": "Igual a",
+    "begins": "Começa com",
+    "contains": "Contém",
+    "action_label": "Ação",
+    "deny": "Bloquear (403)",
+    "log": "Apenas registrar",
+    "key_label": "Nome do cabeçalho ou parâmetro",
+    "key_hint": "Use letras latinas, números, pontos, hífens e sublinhados nos nomes.",
+    "value_label": "Valor",
+    "value_hint": "Digite um valor literal. Separe endereços IP ou redes CIDR por vírgulas.",
+    "scope_hint": "Digite um caminho de URL ou deixe vazio para aplicar a exclusão a todas as URLs.",
+    "exclude_id": "ID da regra CRS a excluir",
+    "exclude_parameter": "Parâmetro da requisição a excluir (opcional)",
+    "parameter_hint": "Deixe vazio para excluir toda a regra quando estas condições forem atendidas. Caso contrário, apenas este parâmetro é excluído.",
+    "preview": "Prévia da configuração",
+    "previous": "Configuração salva anteriormente",
+    "enterprise": "O assistente de configuração WAF requer um plano Enterprise ativo ou superior.",
+    "managed": "Esta regra foi gerada pelo Roxy-WI. Edite-a pelo assistente de configuração WAF; não altere o arquivo manualmente.",
+    "invalid": "Verifique os campos da regra, o ID, o valor de correspondência e o nome do parâmetro.",
+    "id_conflict": "Um ou mais IDs já estão em uso no Master ou em um Slave. Ative a seleção automática ou escolha outro ID.",
+    "target_missing": "A regra a excluir não foi encontrada em todos os servidores de destino. Verifique as regras instaladas e o ID.",
+    "metadata_missing": "A regra gerenciada não contém metadados válidos do assistente. Restaure o arquivo gerado antes de editá-lo.",
+    "not_managed": "Esta regra foi criada manualmente. Use o editor de texto.",
+    "identity_changed": "O nome, o arquivo e a descrição identificam esta regra gerenciada e não podem ser alterados aqui.",
+    "conflict": "O arquivo da regra ou seu Include conflita com uma configuração existente. Atualize a lista de regras e verifique o arquivo.",
+    "failed": "Não foi possível concluir a operação do assistente WAF. Os valores do formulário foram preservados; verifique o servidor e tente novamente.",
+    "auto_id": "Selecionar um ID livre automaticamente",
+    "or_ids_hint": "OR usa um ID consecutivo por condição; o primeiro é exibido. A prévia mostra todos os IDs atribuídos.",
+    "match_label": "Combinar condições",
+    "all": "Todas as condições (AND)",
+    "any": "Qualquer condição (OR)",
+    "add_condition": "Adicionar condição",
+    "remove_condition": "Remover condição",
+    "all_requests": "Todas as requisições (sem condições)",
+    "conditions_hint": "Até 10 condições com um único operador AND ou OR.",
+    "exclusion_conditions_hint": "As exclusões são avaliadas antes do CRS. Use condições de IP, caminho URL, método ou cabeçalho; parâmetros da requisição não estão disponíveis aqui.",
+    "ids_exhausted": "Não há um bloco livre de IDs. Remova regras não utilizadas ou reduza o número de condições OR."
+} %}
+{% set waf_sync = {
+    "hint": "As regras são sincronizadas do Master para seus Slaves configurados. Salvar mantém as alterações pendentes; reiniciar/recarregar aplica as alterações em todos os destinos.",
+    "failed": "A sincronização do WAF falhou em {server}. Alguns servidores podem já ter sido alterados. Verifique esse servidor e repita a operação; as alterações continuam pendentes.",
+    "conflict": "A sincronização do WAF conflita com uma regra ou Include existente em {server}. Verifique o nome do arquivo e a regra à qual pertence e repita a operação.",
+    "unavailable": "Não é possível sincronizar o WAF: o serviço necessário não está habilitado em {server}. Configure o Slave primeiro.",
+    "group_mismatch": "A sincronização do WAF de {server} não pode atravessar grupos de servidores. Coloque o Master e seus Slaves no mesmo grupo.",
+    "inspection_failed": "Não foi possível verificar os IDs disponíveis em {server}. Nenhuma configuração foi salva. Verifique a conexão e os arquivos do WAF e tente novamente."
+} %}
 {% set menu_links = dict() %}
 {% set menu_links = {
     "overview": {
@@ -153,11 +216,35 @@
     "conflict": "Já existe uma regra com esse nome ou arquivo, ou sua diretiva Include foi alterada. Verifique as regras existentes e o arquivo no servidor.",
     "failed": "Não foi possível concluir a criação da regra WAF. Verifique a conexão com o servidor, as permissões dos arquivos e os logs do Roxy-WI; depois, tente novamente com os mesmos valores."
 } %}
+{% set waf_delete = {
+    "title": "Excluir uma regra WAF",
+    "confirm": "Excluir esta regra e seu arquivo no servidor selecionado e nos Slaves configurados? A alteração terá efeito após aplicar a configuração. Regra:",
+    "forbidden": "Você não tem permissão para excluir regras WAF deste serviço.",
+    "invalid": "Selecione uma regra WAF válida.",
+    "conflict": "Não é possível excluir esta regra automaticamente. Verifique arquivos compartilhados, links simbólicos, Include com curingas ou referências em vários arquivos de configuração.",
+    "failed": "Não foi possível confirmar a exclusão. Atualize a lista, verifique a conexão e as permissões dos arquivos e tente novamente se a regra ainda estiver presente.",
+    "saved_haproxy": "Regra excluída. Reinicie o agente WAF para aplicar a alteração.",
+    "saved_nginx": "Regra excluída. Recarregue o NGINX para aplicar a alteração."
+} %}
+{% set waf_error_details = {
+    "action_failed": "O comando do serviço retornou um erro.",
+    "agent_unready": "O agente WAF não respondeu em até 15 segundos após a reinicialização.",
+    "timeout": "O tempo limite da operação remota foi excedido.",
+    "permission": "O servidor negou acesso a um arquivo ou operação necessária.",
+    "missing": "Um arquivo ou executável necessário não foi encontrado."
+} %}
 {% set waf_apply = {
+    "validation_failed": "A configuração salva falhou na validação. O serviço não foi recarregado. Corrija a configuração e tente novamente.",
+    "haproxy_apply_failed": "Não foi possível confirmar a inicialização do agente WAF com a configuração salva. Verifique seu status e os logs do WAF.",
+    "nginx_apply_failed": "Não foi possível confirmar que o NGINX aplicou a configuração salva. Verifique seu status e o log de erros antes de tentar novamente.",
+    "mount_failed": "Não é possível preparar o WAF. Verifique os caminhos configurados, o serviço ou contêiner e suas montagens.",
+    "save_failed": "A operação WAF não foi concluída. Verifique o acesso aos arquivos e o servidor de destino.",
+    "recovery_failed": "A recuperação não foi concluída. Verifique a configuração e o status do serviço antes de tentar novamente.",
     "unknown": "Aplicação não confirmada",
     "pending": "Alterações aguardando aplicação confirmada",
     "applied": "Aplicação confirmada",
-    "apply": "Aplicar configuração salva",
+    "action_haproxy": "Reiniciar WAF",
+    "action_nginx": "Recarregar NGINX",
     "confirm_haproxy": "Reiniciar o agente WAF e aplicar a configuração salva em",
     "confirm_nginx": "Recarregar o NGINX e aplicar a configuração salva em",
     "success": "Configuração WAF aplicada e confirmada.",
@@ -169,8 +256,8 @@
     "On": "Regras ativadas (On)",
     "Off": "Regras desativadas (Off)",
     "DetectionOnly": "Somente detecção",
-    "hint_haproxy": "Modo em modsecurity.conf. Reinicie o agente WAF para aplicar as alterações.",
-    "hint_nginx": "Modo em modsecurity.conf. Recarregue o NGINX para aplicar as alterações.",
+    "hint_haproxy": "Reinicie o agente WAF para aplicar as alterações.",
+    "hint_nginx": "Recarregue o NGINX para aplicar as alterações.",
     "saved_haproxy": "Modo salvo. Reinicie o agente WAF para aplicá-lo.",
     "saved_nginx": "Modo salvo. Recarregue o NGINX para aplicá-lo.",
     "failed": "Não foi possível confirmar o salvamento do modo WAF. Atualize o estado antes de tentar novamente.",
@@ -1377,6 +1464,11 @@
     "unknown_error_remedy": "Consulte os detalhes técnicos e os logs do worker para esta tarefa, corrija a causa e atualize o status."
 } %}
 
+{% set waf_actions = {
+    "enable": "Ativar WAF",
+    "disable": "Desativar WAF"
+} %}
+
 {% set waf_diagnostics = {
     "open": "Ver diagnóstico do WAF",
     "attention": "Requer atenção",
@@ -1415,7 +1507,5 @@
     "config_unavailable_hint": "Não foi possível inspecionar os arquivos configurados ou as montagens do contêiner. Verifique os caminhos do serviço e os bind mounts nas configurações.",
     "check_unavailable_hint": "A verificação não pôde ser concluída. Verifique os argumentos de inicialização, as ferramentas e as permissões; o HAProxy WAF no Docker também requer nsenter no host.",
     "process_changed_hint": "O processo mudou durante a verificação. Atualize a página quando o serviço se estabilizar.",
-    "connection_failed_hint": "Não foi possível obter um resultado confirmado por SSH. Verifique a conexão, as credenciais, sudo sem senha e Python 3 no servidor; depois atualize.",
-    "scope_haproxy": "Estado na última atualização. A resposta do agente não confirma que o HAProxy envia tráfego ao WAF. Verifique a configuração SPOE; o modo salvo e as alterações pendentes são mostrados separadamente.",
-    "scope_nginx": "Estado na última atualização. nginx -T verifica os arquivos salvos, não a versão carregada nem a proteção de todos os hosts virtuais. Verifique os contextos, o modo salvo e as alterações pendentes antes de aplicar."
+    "connection_failed_hint": "Não foi possível obter um resultado confirmado por SSH. Verifique a conexão, as credenciais, sudo sem senha e Python 3 no servidor; depois atualize."
 } %}

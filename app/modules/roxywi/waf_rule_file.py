@@ -6,6 +6,7 @@ The catalog is updated by the caller after this operation succeeds.
 """
 
 import fnmatch
+import glob
 import json
 import os
 from pathlib import Path
@@ -175,16 +176,29 @@ def _references(sources: dict, rule: Path) -> list:
     return references
 
 
-def _append_include(entrypoint: Path, original: bytes, rule: Path) -> None:
+def _append_include(entrypoint: Path, original: bytes, rule: Path, before_rules=False) -> None:
     escaped = str(rule).replace('\\', '\\\\').replace('"', '\\"')
     argument = str(rule) if re.fullmatch(r'[A-Za-z0-9/._-]+', str(rule)) else f'"{escaped}"'
     ending = b'\r\n' if b'\r\n' in original else b'\n'
     separator = b'' if not original or original.endswith(b'\n') else ending
-    content = original + separator + f'Include {argument}'.encode('utf-8') + ending
+    directive = f'Include {argument}'.encode('utf-8') + ending
+    if before_rules:
+        # Generated rules explicitly set phase, transformations and actions.
+        # Put them before every rule/include, including legacy rules in the base
+        # config, so runtime exclusions run before the rules they exclude.
+        lines = original.splitlines(keepends=True)
+        if any(line.lstrip().startswith(b'<') for line in lines):
+            raise RuleConflict('Scoped WAF configuration requires manual include placement')
+        index = next((i for i, line in enumerate(lines)
+                      if re.match(br'\s*(?:#\s*)?(?:Include|SecRule|SecAction)\s', line, re.I)), len(lines))
+        prefix = b''.join(lines[:index])
+        content = prefix + (separator if index == len(lines) else b'') + directive + b''.join(lines[index:])
+    else:
+        content = original + separator + directive
     _replace_config(entrypoint, original, content)
 
 
-def create_rule(entrypoint: Path, rule: Path, request_id: str) -> None:
+def create_rule(entrypoint: Path, rule: Path, request_id: str, before_rules=False) -> None:
     _validate_location(entrypoint, rule)
     if not re.fullmatch(r'[0-9a-f]{64}', request_id):
         raise ValueError('Invalid rule creation request identifier')
@@ -194,6 +208,8 @@ def create_rule(entrypoint: Path, rule: Path, request_id: str) -> None:
         raise RuleConflict('The rule file already exists')
 
     references = _references(sources, rule)
+    if before_rules and any(include['path'] != str(rule) for _, _, include in references):
+        raise RuleConflict('A wildcard Include cannot place a generated rule before CRS')
     includes = sum(not include['disabled'] for _, _, include in references)
     disabled = any(include['disabled'] and include['path'] == str(rule) for _, _, include in references)
     if includes > 1 or (disabled and not includes):
@@ -214,7 +230,49 @@ def create_rule(entrypoint: Path, rule: Path, request_id: str) -> None:
             _unlink(temporary)
 
     if not includes:
-        _append_include(entrypoint, sources[entrypoint], rule)
+        _append_include(entrypoint, sources[entrypoint], rule, before_rules=before_rules)
+
+
+def inspect_rule_ids(entrypoint: Path, rule: Path) -> list:
+    """Include disabled/local rules in ID reservations; follow active includes too.
+
+    This is deliberately conservative: an unreadable/ambiguous configuration
+    cannot establish that a new ID is unused. Never return configuration text.
+    """
+    _validate_location(entrypoint, rule)
+    pending = [entrypoint] + sorted(rule.parent.glob('*.conf'))
+    visited, identifiers = set(), set()
+    size = 0
+    while pending:
+        path = pending.pop()
+        if path == rule or path in visited:
+            continue
+        visited.add(path)
+        if len(visited) > 1024:
+            raise RuleConflict('Too many WAF include files')
+        content = _read_config(path)
+        size += len(content)
+        if size > 32 * 1024 * 1024:
+            raise RuleConflict('WAF configuration is too large to inspect')
+        active = []
+        for line in content.decode('utf-8').splitlines():
+            include = _include(line)
+            if include and not include['disabled']:
+                pattern = include['path']
+                if not os.path.isabs(pattern):
+                    raise RuleConflict('Relative includes require manual configuration')
+                matches = sorted(glob.glob(pattern))
+                if not matches and not any(char in pattern for char in '*?['):
+                    raise RuleConflict('An included WAF configuration is missing')
+                pending.extend(Path(match) for match in matches)
+            if line.strip() and not line.lstrip().startswith('#'):
+                active.append(line)
+        # Comments/metadata and SecRuleRemoveById targets do not declare IDs.
+        # Reserve every literal id action conservatively, including multiline
+        # actions; never guess that an ambiguous ID is available.
+        text = '\n'.join(active)
+        identifiers.update(int(value) for value in re.findall(r'\bid\s*:\s*[\'\"]?(\d+)\b', text, re.I))
+    return sorted(identifiers)
 
 
 def switch_rule(entrypoint: Path, rule: Path, enabled: int) -> None:
@@ -250,13 +308,46 @@ def switch_rule(entrypoint: Path, rule: Path, enabled: int) -> None:
         _replace_config(source, original, content)
 
 
+def delete_rule(entrypoint: Path, rule: Path) -> None:
+    """Remove exact Includes before the file; an interrupted deletion is retryable."""
+    _validate_location(entrypoint, rule)
+    if rule.is_symlink() or (rule.exists() and not rule.is_file()):
+        raise RuleConflict('Cannot delete a linked or non-regular rule file')
+    original_rule = rule.read_bytes() if rule.exists() else None
+    sources = _sources(entrypoint)
+    references = _references(sources, rule)
+    if any(include['path'] != str(rule) for _, _, include in references):
+        raise RuleConflict('A wildcard Include cannot be changed for an individual rule')
+    if len({source for source, _, _ in references}) > 1:
+        raise RuleConflict('The rule is referenced in more than one configuration file')
+    if references:
+        source = references[0][0]
+        removed = {index for _, index, _ in references}
+        lines = sources[source].decode('utf-8').splitlines(keepends=True)
+        content = ''.join(line for index, line in enumerate(lines) if index not in removed).encode('utf-8')
+        _replace_config(source, sources[source], content)
+    # Leave the catalog intact on failure. A retry can finish after a lost SSH
+    # reply, or after Includes were removed but unlink did not complete.
+    if rule.is_symlink() or (rule.exists() and (not rule.is_file() or rule.read_bytes() != original_rule)):
+        raise RuleConflict('The rule file changed during deletion')
+    _unlink(rule)
+
+
 def main() -> None:
     try:
-        if sys.argv[1] == 'read-mode':
+        if sys.argv[1] == 'inspect-ids':
+            result = {'status': 'ok', 'ids': inspect_rule_ids(Path(sys.argv[2]), Path(sys.argv[3]))}
+        elif sys.argv[1] == 'create-before':
+            create_rule(Path(sys.argv[2]), Path(sys.argv[3]), sys.argv[4], before_rules=True)
+            result = {'status': 'ok'}
+        elif sys.argv[1] == 'read-mode':
             result = {'status': 'ok', 'mode': read_mode(Path(sys.argv[2]))}
         elif sys.argv[1] == 'set-mode':
             set_mode(Path(sys.argv[2]), sys.argv[3])
             result = {'status': 'ok', 'mode': sys.argv[3]}
+        elif sys.argv[1] == 'delete':
+            delete_rule(Path(sys.argv[2]), Path(sys.argv[3]))
+            result = {'status': 'ok'}
         elif sys.argv[1] == 'toggle':
             enabled = int(sys.argv[4])
             switch_rule(Path(sys.argv[2]), Path(sys.argv[3]), enabled)

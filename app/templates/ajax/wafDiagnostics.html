@@ -1,12 +1,12 @@
 <details class="waf-diagnostics" data-waf-diagnostics data-process="{{ waf_diagnostics.process }}">
-    <summary title="{{ lang.waf_diagnostics.open }}">
+    {% set status = lang.waf_diagnostics['summary_' + waf_service] if waf_diagnostics.reason == 'healthy' else
+                    lang.waf_diagnostics['process_' + waf_diagnostics.process] if waf_diagnostics.process != 'running' else
+                    lang.waf_diagnostics.attention %}
+    <summary title="{{ status }}" aria-label="{{ lang.waf_diagnostics.open }}: {{ status }}">
         <span class="{{ waf_diagnostics.tone }} server-status" aria-hidden="true"></span>
-        {{ lang.waf_diagnostics['summary_' + waf_service] if waf_diagnostics.reason == 'healthy' else
-           lang.waf_diagnostics['process_' + waf_diagnostics.process] if waf_diagnostics.process != 'running' else
-           lang.waf_diagnostics.attention }}
+        {% if waf_diagnostics.reason != 'healthy' %}{{ status }}{% endif %}
     </summary>
     <dl>
-        <dt>{{ lang.waf_diagnostics.installation }}</dt><dd>{{ lang.waf_diagnostics.registered }}</dd>
         <dt>{{ lang.waf_diagnostics['process_' + waf_service] }}</dt>
         <dd>{{ lang.waf_diagnostics['process_' + waf_diagnostics.process] }}</dd>
         <dt>{{ lang.waf_diagnostics['check_' + waf_service] }}</dt>
@@ -18,5 +18,4 @@
     {% if waf_diagnostics.reason != 'healthy' %}
     <p>{{ lang.waf_diagnostics[waf_diagnostics.reason + '_hint'] }}</p>
     {% endif %}
-    <p>{{ lang.waf_diagnostics['scope_' + waf_service] }}</p>
 </details>
