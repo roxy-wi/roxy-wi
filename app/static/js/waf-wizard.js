@@ -2,7 +2,6 @@ $(function () {
     const form = $('#waf-wizard');
     if (!form.length) return;
     const error = $('#wizard-error');
-    const preview = $('#wizard-preview');
     const list = $('#wizard-condition-list');
     const autoId = $('#wizard-auto-id');
     const server = $('#wizard-server');
@@ -45,7 +44,6 @@ $(function () {
         refreshSelects();
     }
     function changed(event) {
-        preview.prop('hidden', true);
         // Refreshing a selectmenu on a text input's blur can close the menu
         // the user has just opened. Only structural changes need a refresh.
         if (!event || $(event.target).is('select, input[type="checkbox"]')) fields();
@@ -65,7 +63,6 @@ $(function () {
         window.history.replaceState(null, '', target.wizard);
         $('[data-waf-rules-link]').attr('href', target.rules);
         $('[data-waf-sync-hint]').prop('hidden', !target.sync);
-        preview.prop('hidden', true);
         error.prop('hidden', true).text('');
         if (autoId.prop('checked')) $('#wizard-id').val('');
         const panel = $('[data-waf-apply]');
@@ -122,10 +119,7 @@ $(function () {
                 if (!data || data.status !== 'ok') { error.text(form.attr('data-failed')).prop('hidden', false); return; }
                 if (data.rule_ids && data.rule_ids.length) $('#wizard-id').val(data.rule_ids[0]);
                 if (action === 'preview') {
-                    preview.find('[data-generated]').text(data.config);
-                    preview.find('[data-previous]').text(data.previous);
-                    preview.find('details').prop('hidden', !data.previous);
-                    preview.prop('hidden', false);
+                    RoxywiUI.showGeneratedConfig(data.config, data.previous, form.attr('data-previous-label'));
                 } else {
                     serverLocked = true;
                     autoId.prop('checked', false);
@@ -139,7 +133,6 @@ $(function () {
                     if (!filename.val().endsWith('.conf')) filename.val(filename.val() + '.conf');
                     toastr.success(form.attr('data-' + action + '-success'));
                     $(window).off('beforeunload.wafWizard');
-                    preview.prop('hidden', true);
                 }
             },
             error: function (xhr) {

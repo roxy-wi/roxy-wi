@@ -391,20 +391,7 @@ function addProxy(form_name, generate=false) {
 				toastr.error('error: Something went wrong. Check configuration');
 			} else {
 				if (generate) {
-					$('#dialog-confirm-body').text(data.data);
-					let generated_title = translate_div.attr('data-generated_config');
-					$("#dialog-confirm-cert").dialog({
-						resizable: false,
-						height: "auto",
-						width: 650,
-						modal: true,
-						title: generated_title,
-						buttons: {
-							Ok: function () {
-								$(this).dialog("close");
-							}
-						}
-					});
+					RoxywiUI.showGeneratedConfig(data.data);
 				} else {
 					toastr.clear();
 					data.data = data.data.replace(/\n/g, "<br>");

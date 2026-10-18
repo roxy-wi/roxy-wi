@@ -21,7 +21,7 @@ def test_status_details_are_localized_and_keep_mode_and_apply_controls(product_c
     assert messages.keys() == app.jinja_env.get_template('languages/en.html').module.waf_diagnostics.keys()
     response = product_client.get(f'/waf/overview/{service}/{product.server.ip}')
     assert response.status_code == 200
-    assert '<details class="waf-diagnostics"' in response.text
+    assert '<details data-waf-diagnostics' in response.text
     assert messages['summary_' + service] in response.text
     assert 'scope_nginx' not in messages
     if service == 'haproxy':
@@ -67,7 +67,8 @@ def test_details_explain_failure_and_remedy(product_client, product, waf_modes, 
     response = product_client.get(f'/waf/overview/nginx/{product.server.ip}')
     assert response.status_code == 200
     assert app.jinja_env.get_template('languages/en.html').module.waf_diagnostics[hint + '_hint'] in response.text
-    assert tone + ' server-status' in response.text
+    badge = {'serverDown': 'stopped', 'serverWarn': 'unavailable'}[tone]
+    assert 'rw-status-badge rw-status-' + badge in response.text
 
 
 @pytest.mark.parametrize('service', ['haproxy', 'nginx'])
@@ -113,7 +114,7 @@ def test_diagnostics_share_paths_and_runtime_settings_with_apply(product_client,
     monkeypatch.setattr(waf.server_mod, 'ssh_command', ssh)
     with product_client:
         response = product_client.get(f'/waf/overview/{service}/{product.server.ip}')
-        assert response.status_code == 200 and 'serverUp server-status' in response.text
+        assert response.status_code == 200 and 'rw-status-badge rw-status-running' in response.text
         expected = service_common.waf_runtime_settings(service, product.server.server_id)
     spec = captured[0]
     assert {key: spec[key] for key in ('main', 'container', 'service_unit')} == expected

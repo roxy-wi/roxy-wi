@@ -1,0 +1,9 @@
+{% for cluster in clusters %}
+    {% if cluster.haclusterslave.server_id|string == cluster_server_id|string %}
+        <b>{{ lang.words.cluster|title }}</b>:
+        <a href="/ha/cluster/{{ cluster.id }}" title="{{ lang.words.open|title }} {{ lang.words.cluster }}">{{ cluster.name }}</a>
+        {% break %}
+    {% elif loop.last %}
+        {{ lang.phrases.not_in_cluster }}
+    {% endif %}
+{% endfor %}

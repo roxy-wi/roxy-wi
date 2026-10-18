@@ -5,11 +5,6 @@
 <script src="{{ url_for('static', filename='js/install.js') }}"></script>
 <script src="{{ url_for('static', filename='js/waf.js') }}"></script>
 <style>
-    .waf-apply-state {margin: 8px 0; font-size: 12px;}
-    .waf-apply-state [data-waf-apply-label] {border-left: 3px solid #808080; padding-left: 7px;}
-    .waf-apply-state[data-state="pending"] [data-waf-apply-label] {border-color: #e69a18;}
-    .waf-apply-state[data-state="applied"] [data-waf-apply-label] {border-color: #42a359;}
-    .waf-apply-state button {margin-left: 12px;}
     [data-waf-apply-button][aria-disabled="true"] {opacity: .5; pointer-events: none;}
     .waf-rule-actions {display: flex; justify-content: flex-end; margin: 16px var(--indent) 24px;}
     .waf-rule-actions .add-button {float: none; margin: 0; border: 0; background-color: var(--right-menu-blue-rolor) !important; color: #fff !important;}
@@ -182,14 +177,7 @@
 			});
 		</script>
 {% else %}
-	<style>
-	.alert-danger {
-		width: 450px;
-		display: inline-block;
-		height: 25px;
-		padding-top: 0px;
-	}
-	</style>
+	<script src="{{ url_for('static', filename='js/overview.js') }}"></script>
 	<script>
 		$("#secIntervals").css("display", "none");
 		var ip = [];
@@ -211,29 +199,33 @@
 	{% if servers_all|length == 0 %}
 		{% include 'include/getstarted.html' %}
 	{% else %}
-	<table class="overview" id="waf_servers_table">
-		<tr class="overviewHead">
-			<td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-			<td>{{lang.words.actions|title()}}</td>
-			<td>{{ lang.waf_mode.label }}</td>
-			{% if service == 'haproxy' %}
-			<td>{{lang.words.metrics|title()}}</td>
-			{% endif %}
-			<td>{{lang.words.manage|title()}} {{lang.words.rules}}</td>
-			<td>{{lang.words.log|title()}}</td>
-			<td>
-				<a onclick="showOverviewWaf(ip, hostnamea)" title="{{lang.words.refresh|title()}}" style="float: right; margin-right: 25px;">
-					<span class="refresh"></span>
-				</a>
-			</td>
-		</tr>
-		{% for s in servers_all %}
-			<tr class="{{ loop.cycle('odd', 'even') }}" id="{{s[2]}}"></tr>
-		{% endfor %}
-	</table>
+	<div class="service-overview-page">
+        <div class="service-page-toolbar rw-table-toolbar" aria-label="{{ lang.words.servers|title }}">
+            {% with status_filter_disabled=false %}{% include 'include/service_card_filters.html' %}{% endwith %}
+            <button type="button" class="ui-button ui-widget ui-corner-all" data-waf-refresh onclick="showOverviewWaf(ip, hostnamea)">{{ lang.words.refresh|title }}</button>
+        </div>
+        <div class="service-card-grid" id="waf-server-grid">
+        {% for s in servers_all %}
+            {% if (service == 'haproxy' and s.15|int == 1) or (service == 'nginx' and s.14|int == 1) %}
+            <div id="{{ s[2] }}" data-waf-slot data-service-card-slot
+                 data-overview-url="{{ url_for('waf.overview_waf', service=service, server_ip=s[2]) }}">
+                <div data-waf-content>
+                    <article class="service-card rw-card rw-loading-state" data-server-name="{{ s[1]|lower }}" data-service-status="stale">
+                        <b>{{ s[1] }}</b>
+                        <p>{{ s[2] }}</p>
+                        <span>{{ lang.words.status|title }}…</span>
+                    </article>
+                </div>
+                <p class="rw-error-state" data-waf-error role="alert" hidden>{{ lang.errors.cannot_get_info }}
+                    <button type="button" data-waf-retry>{{ lang.config_viewer.retry }}</button>
+                </p>
+            </div>
+            {% endif %}
+        {% endfor %}
+        </div>
+    </div>
 	{% if service == 'haproxy' %}
 	<link href="{{ url_for('static', filename='css/chart.min.css') }}" rel="stylesheet">
-	<script src="/static/js/overview.js"></script>
 	<script src="/static/js/metrics.js"></script>
 	<script src="/static/js/chart.min-4.3.0.js"></script>
 	<div id="table_metrics"></div>
@@ -257,9 +249,6 @@
 	<div id="dialog-confirm" style="display: none;">
 		<p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>Are you sure?</p>
 	</div>
-	{% for s in servers %}
-		{{s.ip}}
-	{% endfor %}
 	<script>
 		{%- if service == 'haproxy' %}
 		function showWafMetrics() {

@@ -1,0 +1,14 @@
+<label class="rw-form-field" for="service-server-search">
+    <span>{{ lang.ux.search }}</span>
+    <input type="search" id="service-server-search" placeholder="{{ lang.ux.search }} {{ lang.words.servers }}">
+</label>
+<label class="rw-form-field" for="service-status-filter">
+    <span>{{ lang.words.status|title }}</span>
+    <select id="service-status-filter" {% if status_filter_disabled|default(true) %}disabled{% endif %}>
+        <option value="all">{{ lang.ux.all }}</option>
+        <option value="running">{{ lang.words.running|title }}</option>
+        <option value="stopped">{{ lang.ux.stopped }}</option>
+        <option value="unavailable">{{ lang.ux.unavailable }}</option>
+        <option value="stale">{{ lang.ux.stale }}</option>
+    </select>
+</label>

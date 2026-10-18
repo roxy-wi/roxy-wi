@@ -24,7 +24,7 @@ function refreshWafState(context) {
 }
 function confirmWafApply(button) {
 	const panel = $(button).closest('[data-waf-apply]').length
-		? $(button).closest('[data-waf-apply]') : $(button).closest('tr').find('[data-waf-apply]');
+		? $(button).closest('[data-waf-apply]') : $(button).closest('[data-waf-card]').find('[data-waf-apply]');
 	if (!panel.length || panel.data('applying') || panel.data('confirming')) return;
 	panel.data('confirming', true);
 	RoxywiUI.confirm({
@@ -52,69 +52,80 @@ function confirmWafApply(button) {
 			complete: function () {
 				panel.data('applying', false);
 				buttons.prop('disabled', false).removeAttr('aria-disabled');
-				refreshWafState(panel);
+				const slot = panel.closest('[data-waf-slot]');
+				if (slot.length) showOverviewWafCallBack(slot.attr('id'));
+				else refreshWafState(panel);
 			}
 		});
 	});
 }
 function showOverviewWaf(serv, hostname) {
-	let service = cur_url[0];
-	if (service === 'haproxy') {
-		$.getScript('/static/js/chart.min-4.3.0.js');
-		showWafMetrics();
-	}
 	let i;
 	for (i = 0; i < serv.length; i++) {
 		showOverviewWafCallBack(serv[i], hostname[i])
 	}
-	$.getScript(overview);
-	$.getScript(waf);
 }
 function showOverviewWafCallBack(serv, hostname) {
-	let service = cur_url[0];
-	const state = $("#" + hostname).find('[data-waf-apply]');
-	if (state.data('applying') || state.data('confirming')) return;
+	const slot = $(document.getElementById(serv));
+	const state = slot.find('[data-waf-apply]');
+	if (!slot.length || slot.data('loading') || state.data('applying') || state.data('confirming') || slot.find('.waf_mode').data('saving-mode') || slot.find('.ajaxwafstatus input').data('saving-metrics')) return;
+	slot.data('loading', true).attr('aria-busy', 'true');
 	$.ajax({
-		url: "/waf/overview/" + service + "/" + serv,
-		beforeSend: function () {
-			$("#" + hostname).html('<img class="loading_small" src="/static/images/loading.gif" />');
-		},
+		url: slot.attr('data-overview-url'),
+		suppressGlobalError: true,
 		success: function (data) {
-			$("#" + hostname).empty();
-			$("#" + hostname).html(data)
-			$("input[type=submit], button").button();
-			$("input[type=checkbox]").checkboxradio();
-			$.getScript(overview);
-			$.getScript(awesome);
+			const content = slot.find('[data-waf-content]');
+			content.find('select').each(function () { if ($(this).selectmenu('instance')) $(this).selectmenu('destroy'); });
+			content.html(data);
+			content.find('select').selectmenu();
+			content.find('input[type=checkbox]').checkboxradio();
+			content.find('button').not('.admin-actions button').button();
+			slot.find('[data-waf-error]').prop('hidden', true);
+			if (window.FontAwesome) FontAwesome.dom.i2svg({node: content[0]});
+		},
+		error: function () {
+			slot.find('[data-waf-error]').prop('hidden', false);
+			slot.find('.service-card').attr('data-service-status', 'stale');
+		},
+		complete: function () {
+			slot.data('loading', false).attr('aria-busy', 'false');
+			filterServiceCards();
 		}
 	});
 }
 function metrics_waf(name) {
-	let enable = 0;
-	if ($('#' + name).is(':checked')) {
-		enable = '1';
+	const checkbox = $(document.getElementById(name));
+	if (checkbox.prop('disabled') || checkbox.data('saving-metrics')) return;
+	const requested = checkbox.prop('checked');
+	const previous = !requested;
+	const fallback = checkbox.closest('.ajaxwafstatus').attr('data-error');
+	function refresh(checked, disabled) {
+		checkbox.prop('checked', checked).prop('disabled', disabled);
+		if (checkbox.checkboxradio('instance')) checkbox.checkboxradio('refresh');
 	}
-	let server_id = name.split('-')[1]
+	function failure(xhr) {
+		refresh(previous, false);
+		toastr.error(wafErrorMessage(xhr, fallback));
+	}
+	checkbox.data('saving-metrics', true);
+	refresh(requested, true);
 	$.ajax({
-		url: "/waf/metric/enable/" + enable + "/" + server_id,
+		url: "/waf/metric/enable/" + Number(requested) + "/" + name.split('-')[1],
 		type: "POST",
+		dataType: 'json', suppressGlobalError: true,
 		contentType: "application/json; charset=utf-8",
 		success: function (data) {
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-			} else {
-				showOverviewWaf(ip, hostnamea);
-				setTimeout(function () {
-					$("#" + name).parent().parent().removeClass("update");
-				}, 2500);
-			}
-		}
+			if (!data || data.status !== 'Ok') { failure({responseJSON: data}); return; }
+			// The page renders charts for the servers with metrics enabled.
+			window.location.reload();
+		},
+		error: failure,
+		complete: function () { checkbox.data('saving-metrics', false); }
 	});
 }
-function installWaf(ip1) {
+function installWaf(ip1, service) {
 	$("#ajax").html('');
 	$("#ajax").html(wait_mess);
-	let service = cur_url[0];
 	$.ajax({
 		url: "/install/waf/" + service + "/" + ip1,
 		type: "POST",
@@ -132,7 +143,7 @@ function installWaf(ip1) {
 }
 function changeWafMode(id) {
 	const select = $('#' + id);
-	const message = select.closest('td').find('[data-waf-mode-message]');
+	const message = select.closest('[data-waf-mode]').find('[data-waf-mode-message]');
 	function refresh(value, disabled) {
 		select.val(value).prop('disabled', disabled);
 		if (select.selectmenu('instance')) select.selectmenu('option', 'disabled', disabled).selectmenu('refresh');
@@ -177,11 +188,17 @@ function changeWafMode(id) {
 		complete: function () {
 			select.data('saving-mode', false);
 			refresh(select.val(), false);
-			refreshWafState(select.closest('tr'));
+			refreshWafState(select.closest('[data-waf-card]'));
 		}
 	});
 }
 $( function() {
+	$(document).off('click.wafRetry', '[data-waf-retry]').on('click.wafRetry', '[data-waf-retry]', function () {
+		showOverviewWafCallBack($(this).closest('[data-waf-slot]').attr('id'));
+	});
+	$(document).off('change.wafMetrics', '.ajaxwafstatus input').on('change.wafMetrics', '.ajaxwafstatus input', function () {
+		metrics_waf(this.id);
+	});
 	$(document).off('click.wafDelete', '[data-waf-delete]').on('click.wafDelete', '[data-waf-delete]', function () {
 		deleteWafRule(this);
 	});

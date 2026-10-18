@@ -41,6 +41,7 @@
 <div class="waf-wizard">
     {% include 'ajax/wafApplyState.html' %}
     <form id="waf-wizard" action="{{ request.path }}" data-failed="{{ lang.waf_wizard.failed }}" data-existing-rule="{{ 1 if rule else 0 }}"
+          data-previous-label="{{ lang.waf_wizard.previous }}"
           data-save-success="{{ lang.waf_editor.haproxy_saved if service == 'haproxy' else lang.waf_editor.saved }}"
           data-restart-success="{{ lang.waf_editor.restarted }}" data-reload-success="{{ lang.waf_editor.reloaded }}">
         <table class="add-table">
@@ -119,16 +120,10 @@
                 </td>
             </tr>
         </table>
-        <div class="waf-wizard-preview">
-            <div id="wizard-preview" hidden aria-live="polite">
-                <h3>{{ lang.waf_wizard.preview }}</h3><pre data-generated></pre>
-                <details><summary>{{ lang.waf_wizard.previous }}</summary><pre data-previous></pre></details>
-            </div>
-        </div>
         <p id="wizard-error" class="alert alert-danger" role="alert" hidden></p>
         <div class="waf-wizard-actions">
             <a data-waf-rules-link href="{{ url_for('waf.waf_rules', service=service, server_ip=serv) }}" class="ui-button ui-widget ui-corner-all">{{ lang.words.back|title }}</a>
-            <button type="button" id="wizard-preview-button" class="btn btn-default">{{ lang.waf_wizard.preview }}</button>
+            <button type="button" id="wizard-preview-button" class="btn btn-default">{{ lang.words.generate|title }} {{ lang.words.config }}</button>
             <button type="submit" value="save" class="btn btn-default">{{ lang.words.save|title }}</button>
             <button type="submit" value="{{ 'restart' if service == 'haproxy' else 'reload' }}" class="btn btn-default">{{ lang.phrases.save_and_restart if service == 'haproxy' else lang.phrases.save_and_reload }}</button>
         </div>

@@ -20,6 +20,21 @@ def selectmenu(page, selector, label):
     page.locator(selector + '-menu').get_by_role('option', name=label, exact=True).click()
 
 
+def test_shared_card_width_also_limits_network_tools(logged_in, product_url):
+    page = logged_in
+    page.set_viewport_size({'width': 2160, 'height': 1000})
+    assert page.goto(product_url + '/nettools').status == 200
+    cards = page.locator('.rw-card')
+    expect(cards).to_have_count(6)
+    for width in (2160, 390):
+        page.set_viewport_size({'width': width, 'height': 1000})
+        if width == 390:
+            page.wait_for_function('getComputedStyle(document.querySelector(".container")).marginLeft === "0px"')
+        for card in cards.all():
+            assert card.bounding_box()['width'] <= 500
+            assert card.evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
+
+
 @pytest.mark.parametrize('locale', ['en', 'ru', 'es-ES', 'fr', 'pt-br', 'zh'])
 def test_overview_logs_match_other_tiles(logged_in, product_url, product, host_metrics, locale):
     journal = product.root / 'journal'

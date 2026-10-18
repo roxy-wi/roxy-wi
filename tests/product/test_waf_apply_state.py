@@ -17,7 +17,7 @@ def test_restart_hint_only_describes_pending_changes(product_client, product, wa
     messages = app.jinja_env.get_template(f'languages/{locale}.html').module
     hint = messages.waf_mode['hint_' + service]
     state_url = f'/waf/{service}/{product.server.ip}/state'
-    label = '<span data-waf-apply-label title="'
+    label = '<span data-waf-apply-label class="rw-change-state-label" title="'
     assert 'modsecurity.conf' not in hint
     assert label + messages.waf_apply['scope'] + '"' in unescape(product_client.get(state_url).text)
 
@@ -25,7 +25,7 @@ def test_restart_hint_only_describes_pending_changes(product_client, product, wa
     assert saved.status_code == 200
     assert label + hint + '"' in unescape(product_client.get(state_url).text)
     overview = product_client.get(f'/waf/overview/{service}/{product.server.ip}')
-    assert 'class="waf-mode-hint"' not in overview.text
+    assert 'data-waf-mode-hint' not in overview.text
     assert label + hint + '"' in unescape(overview.text)
 
     applied = product_client.post(f'/waf/{service}/{product.server.ip}/apply', json={})

@@ -55,20 +55,7 @@
 {% if not serv and servers|length %}
 <div class="service-overview-page">
 <div class="service-page-toolbar rw-table-toolbar" aria-label="{{lang.words.servers|title()}}">
-	<label class="rw-form-field" for="service-server-search">
-		<span>{{lang.ux.search}}</span>
-		<input type="search" id="service-server-search" placeholder="{{lang.ux.search}} {{lang.words.servers}}">
-	</label>
-	<label class="rw-form-field" for="service-status-filter">
-		<span>{{lang.words.status|title()}}</span>
-		<select id="service-status-filter" disabled>
-			<option value="all">{{lang.ux.all}}</option>
-			<option value="running">{{lang.words.running|title()}}</option>
-			<option value="stopped">{{lang.ux.stopped}}</option>
-			<option value="unavailable">{{lang.ux.unavailable}}</option>
-			<option value="stale">{{lang.ux.stale}}</option>
-		</select>
-	</label>
+	{% include 'include/service_card_filters.html' %}
 	<span id="service-poll-summary" class="service-poll-summary" aria-live="polite">
 		<span class="fas fa-sync-alt service-poll-summary-icon" aria-hidden="true"></span>
 		{{lang.ux.status_updated}}: <time class="service-poll-summary-value">—</time>
@@ -141,21 +128,21 @@
 				});
 				$(document).on('keydown', null, 'a', start_button);
 				function start_button(event) {
-					confirmAjaxAction('start', '{{service}}', '{{s.2}}');
+					$('#div-server-{{s.0}} .service-action-command[data-action="start"]:enabled').trigger('click');
 				}
 				$(document).on('keydown', null, 's', stop_button);
 				function stop_button(event) {
-					confirmAjaxAction('stop', '{{service}}', '{{s.2}}');
+					$('#div-server-{{s.0}} .service-action-command[data-action="stop"]:enabled').trigger('click');
 				}
 				$(document).on('keydown', null, 'e', reload_button);
 				function reload_button(event) {
-					confirmAjaxAction('reload', '{{service}}', '{{s.2}}');
+					$('#div-server-{{s.0}} .service-action-command[data-action="reload"]:enabled').trigger('click');
 				}
 				{% for set in restart_settings %}
 					{% if set.server_id == s.0 and set.setting == 'restart' and set.value|int == 0 %}
 					$(document).on('keydown', null, 'r', restart_button);
 					function restart_button(event) {
-						confirmAjaxAction('restart', '{{service}}', '{{s.2}}', '{{s.1}}');
+						$('#div-server-{{s.0}} .service-action-command[data-action="restart"]:enabled').trigger('click');
 					}
 					{% endif %}
 				{% endfor %}
@@ -275,17 +262,7 @@
 					<span id="edit_date_{{s.2}}"></span>
 				</span>
 				<div class="overflow_div">
-					{% for cluster in clusters %}
-						{% if cluster.haclusterslave.server_id|string() == s.0|string() %}
-                            <b>{{lang.words.cluster|title()}}</b>:
-							<a href="/ha/cluster/{{cluster.id}}" title="{{lang.words.open|title()}} {{lang.words.cluster}}">{{cluster.name}}</a>
-							{% break %}
-						{% else %}
-							{% if loop.last %}
-							{{lang.phrases.not_in_cluster}}
-							{% endif %}
-						{% endif %}
-					{% endfor %}
+					{% with cluster_server_id=s.0 %}{% include 'include/service_card_cluster.html' %}{% endwith %}
 					{% for master in master_slave %}
 					{% if master.3 == s.2 %}
 						{{lang.words.slave_for}}: <b>{{ copy_to_clipboard(value=master.0, style='font-weight: bold') }}</b>

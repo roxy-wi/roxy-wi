@@ -1627,10 +1627,6 @@ label {
     margin-left: var(--indent);
 	margin-bottom: 20px;
 }
-.ajaxwafstatus {
-	padding-top: 2px;
-	padding-left: 10px;
-}
 .portlet-header {
 	cursor: move;
     margin-left: 10px;

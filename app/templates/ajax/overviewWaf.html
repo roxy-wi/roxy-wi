@@ -1,120 +1,82 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
-{% set waf_modes = [] %}
-{% do waf_modes.append("On") %}
-{% do waf_modes.append("Off") %}
-{% do waf_modes.append("DetectionOnly") %}
-{% if waf_service == 'haproxy' %}
-{% set service_name = 'waf' %}
-{% else %}
-{% set service_name = 'waf_nginx' %}
-{% endif %}
+{% from 'include/admin_action_menu.html' import admin_action_menu %}
+{% from 'include/input_macros.html' import checkbox %}
+{% set service_name = 'waf' if waf_service == 'haproxy' else 'waf_nginx' %}
 {% for service in service_status %}
-	<td class="padding10 first-collumn-wi">
-	{% if service.5|int() >= 1 %}
+{% set installed = service.5|int >= 1 %}
+{% set tone = waf_diagnostics.tone if installed else 'serverNone' %}
+<article class="service-card rw-card {{ {'serverUp': 'div-server-head-up', 'serverDown': 'div-server-head-down', 'serverWarn': 'div-server-head-unknown'}.get(tone, 'div-server-head-dis') }}" data-waf-card
+         data-server-name="{{ service.0|lower }}" data-service-status="{{ {'serverUp': 'running', 'serverDown': 'stopped', 'serverWarn': 'unavailable'}.get(tone, 'stale') }}">
+    <header class="server-name">
         <input type="hidden" id="server-name-{{ service.6 }}" value="{{ service.0 }}">
-        {{ service.0 }}
-        {% include 'ajax/wafDiagnostics.html' %}
-	{% else %}
-		<span class="serverNone server-status" title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}"></span>
-        <span title="WAF {{lang.words.is}} {{lang.words.not}} {{lang.words.installed}}">{{ service.0 }}</span>
-	{% endif %}
-	</td>
-	{% if service.5|int() >= 1 %}
-		<td>
-		{% if role <= 2 %}
-			<a id="{{ service.1 }}" class="start-waf" href="#" role="button"
-               title="{{ lang.waf_actions.enable if waf_service == 'nginx' else lang.words.start|title ~ ' WAF ' ~ lang.words.service }}"
-               {% if waf_service == 'nginx' %}data-action-label="{{ lang.waf_actions.enable }}"{% endif %}
-               onclick="confirmAjaxAction('start', '{{service_name}}', '{{service.6}}', this.getAttribute('data-action-label')); return false;">
-				<span class="service-start" aria-hidden="true"></span>
-			</a>
-			<a id="{{ service.1 }}" class="stop-waf" href="#" role="button"
-               title="{{ lang.waf_actions.disable if waf_service == 'nginx' else lang.words.stop|title ~ ' WAF ' ~ lang.words.service }}"
-               {% if waf_service == 'nginx' %}data-action-label="{{ lang.waf_actions.disable }}"{% endif %}
-               onclick="confirmAjaxAction('stop', '{{service_name}}', '{{service.6}}', this.getAttribute('data-action-label')); return false;">
-				<span class="service-stop" aria-hidden="true"></span>
-			</a>
-			{% if waf_service == 'haproxy' %}
-			<a id="{{ service.1 }}" class="restart-waf" title="{{ lang.waf_apply.action_haproxy }}">
-				<span class="service-reload" data-waf-apply-button></span>
-			</a>
-			{% else %}
-			<a id="{{ service.1 }}" class="reload-waf" title="{{ lang.waf_apply.action_nginx }}">
-				<span class="service-reload" data-waf-apply-button></span>
-			</a>
-			{% endif %}
-		{% endif %}
-		</td>
-		<td>
-		{% if role <= 2 %}
-			<select class="waf_mode" id="{{ service.6 }}_select" aria-label="{{ lang.waf_mode.label }}"
-                    data-confirmed-mode="{{ service.3 }}" {% if mode_error %}disabled{% endif %}
-                    data-save-success="{{ lang.waf_mode['saved_' + waf_service] }}"
-                    data-failed-error="{{ lang.waf_mode.failed }}" data-invalid-error="{{ lang.waf_mode.invalid }}"
-                    data-forbidden-error="{{ lang.waf_mode.forbidden }}" data-conflict-error="{{ lang.waf_mode.conflict }}">
-                {% if mode_error %}<option value="" selected>{{ lang.waf_mode.unavailable }}</option>{% endif %}
-				{% for waf_mode in waf_modes %}
-                    <option value="{{ waf_mode }}" {% if service.3 == waf_mode %}selected{% endif %}
-                            data-save-url="{{ url_for('waf.change_waf_mode', service=waf_service, server_id=service.6, waf_mode=waf_mode) }}">{{ lang.waf_mode[waf_mode] }}</option>
-				{% endfor %}
-			</select>
-		{% else %}
-			{{ lang.waf_mode[service.3] if not mode_error else lang.waf_mode.unavailable }}
-		{% endif %}
-            {% if mode_error %}<p class="waf-mode-hint">{{ lang.waf_mode.read_failed }}</p>{% endif %}
-            <p class="waf-mode-message" data-waf-mode-message role="status" aria-live="polite"></p>
-            {% include 'ajax/wafApplyState.html' %}
-		</td>
-		{% if waf_service == 'haproxy' %}
-		<td class="ajaxwafstatus">
-		{% if service.4|int() == 1 %}
-			<label for="metrics-{{ service.6 }}"></label><input type="checkbox" id="metrics-{{ service.6 }}" checked />
-		{% else %}
-			<label for="metrics-{{ service.6 }}"></label><input type="checkbox" id="metrics-{{ service.6 }}" />
-		{% endif %}
-		</td>
-		{% endif %}
-		<td>
-		{% if role <= 2 %}
-			<a href="{{ url_for('waf.waf_rules', service=waf_service, server_ip=service.1) }}" class="ui-button ui-widget ui-corner-all">{{lang.words.open|title()}}</a>
-		{% endif %}
-		</td>
-		<td>
-			{% if waf_service == 'haproxy' %}
-			<a href="{{ url_for('logs.logs', service=waf_service) }}/waf?serv={{ service.1 }}" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
-			{% elif waf_service == 'nginx' %}
-			<a href="{{ url_for('logs.logs', service=waf_service) }}/waf?serv={{ service.1 }}&rows=100&grep=ModSecurity&hour=00&minute=00&hour1=24&minute1=00&file=error.log&waf=1" class="ui-button ui-widget ui-corner-all" title="{{lang.words.view|title()}} {{lang.words.log}}">{{lang.words.view|title()}}</a>
-			{% endif %}
-		</td>
-		<td></td>
-	{% else %}
-		{% if role <= 2 %}
-		<td colspan="6">
-			<a title="{{lang.words.install|title()}} WAF"><button onclick="installWaf('{{ service.1 }}')">{{lang.words.install|title()}}</button></a>
-		</td>
-		{% endif %}	
-	{% endif %}
+        <strong>{{ service.0 }}</strong>
+        {% if installed %}
+            {% include 'ajax/wafDiagnostics.html' %}
+            {% if role <= 2 %}
+            {% call admin_action_menu(lang.words.actions|title ~ ': ' ~ service.0) %}
+                {% for action, label in [('start', 'enable'), ('stop', 'disable')] %}
+                {% set action_label = lang.words[label if waf_service == 'nginx' else action]|title %}
+                {% set inactive = (waf_diagnostics.module == ('enabled' if action == 'start' else 'disabled')) if waf_service == 'nginx' else
+                                  (waf_diagnostics.process == 'running' if action == 'start' else waf_diagnostics.process in ('stopped', 'missing')) %}
+                <button type="button" role="menuitem" class="admin-action-item {{ action }}-waf{% if action == 'stop' %} admin-action-item-danger{% endif %}"
+                        title="{{ action_label }}" {% if waf_service == 'nginx' %}data-action-label="{{ action_label }}"{% endif %}
+                        {% if inactive %}disabled{% endif %}
+                        onclick="confirmAjaxAction('{{ action }}', '{{ service_name }}', '{{ service.6 }}', this.getAttribute('data-action-label'))">
+                    <span class="fas fa-{{ 'play' if action == 'start' else 'stop' }}" aria-hidden="true"></span>{{ action_label }}
+                </button>
+                {% endfor %}
+                <button type="button" role="menuitem" class="admin-action-item {{ 'restart' if waf_service == 'haproxy' else 'reload' }}-waf"
+                        title="{{ lang.waf_apply['action_' + waf_service] }}" data-waf-apply-button>
+                    <span class="fas fa-{{ 'redo' if waf_service == 'haproxy' else 'sync' }}" aria-hidden="true"></span>{{ lang.words['restart' if waf_service == 'haproxy' else 'reload']|title }}
+                </button>
+            {% endcall %}
+            {% endif %}
+        {% else %}
+            <span class="rw-status-badge rw-status-stale">{{ lang.phrases.is_not_installed|capitalize }}</span>
+        {% endif %}
+    </header>
+    <div class="server-desc">
+        <strong>IP: {{ service.1 }}</strong>
+        <div class="overflow_div">
+            {% with cluster_server_id=service.6 %}{% include 'include/service_card_cluster.html' %}{% endwith %}
+        </div>
+    </div>
+    {% if installed %}
+    <div class="rw-form-field" data-waf-mode>
+        <label for="{{ service.6 }}_select">{{ lang.waf_mode.label }}</label>
+        {% if role <= 2 %}
+        <select class="waf_mode" id="{{ service.6 }}_select" aria-label="{{ lang.waf_mode.label }}"
+                data-confirmed-mode="{{ service.3 }}" {% if mode_error %}disabled{% endif %}
+                data-save-success="{{ lang.waf_mode['saved_' + waf_service] }}"
+                data-failed-error="{{ lang.waf_mode.failed }}" data-invalid-error="{{ lang.waf_mode.invalid }}"
+                data-forbidden-error="{{ lang.waf_mode.forbidden }}" data-conflict-error="{{ lang.waf_mode.conflict }}">
+            {% if mode_error %}<option value="" selected>{{ lang.waf_mode.unavailable }}</option>{% endif %}
+            {% for waf_mode in ['On', 'Off', 'DetectionOnly'] %}
+            <option value="{{ waf_mode }}" {% if service.3 == waf_mode %}selected{% endif %}
+                    data-save-url="{{ url_for('waf.change_waf_mode', service=waf_service, server_id=service.6, waf_mode=waf_mode) }}">{{ lang.waf_mode[waf_mode] }}</option>
+            {% endfor %}
+        </select>
+        {% else %}
+            <span>{{ lang.waf_mode[service.3] if not mode_error else lang.waf_mode.unavailable }}</span>
+        {% endif %}
+        {% if mode_error %}<p class="rw-form-help" data-waf-mode-hint>{{ lang.waf_mode.read_failed }}</p>{% endif %}
+        <p class="rw-form-help" data-waf-mode-message role="status" aria-live="polite"></p>
+    </div>
+    {% include 'ajax/wafApplyState.html' %}
+    {% if waf_service == 'haproxy' %}
+    <div class="server-act-links ajaxwafstatus" data-error="{{ lang.errors.waf_metrics }}">
+        {{ checkbox('metrics-' ~ service.6, desc=lang.words.metrics|title, value='1',
+                    checked='checked' if service.4|int == 1 else '', disabled='disabled' if role > 2 else '') }}
+    </div>
+    {% endif %}
+    <footer class="server-act-links">
+        {% if role <= 2 %}
+        <a href="{{ url_for('waf.waf_rules', service=waf_service, server_ip=service.1) }}" class="ui-button ui-widget ui-corner-all">{{ lang.words.manage|title }} {{ lang.words.rules }}</a>
+        {% endif %}
+        <a href="{{ url_for('logs.logs', service=waf_service) }}/waf?serv={{ service.1 }}{% if waf_service == 'nginx' %}&rows=100&grep=ModSecurity&hour=00&minute=00&hour1=24&minute1=00&file=error.log&waf=1{% endif %}" class="ui-button ui-widget ui-corner-all">{{ lang.words.logs|title }}</a>
+    </footer>
+    {% else %}
+    {% if role <= 2 %}<button type="button" onclick="installWaf('{{ service.1 }}', '{{ waf_service }}')">{{ lang.words.install|title }} WAF</button>{% endif %}
+    {% endif %}
+</article>
 {% endfor %}
-<script>
-	{% if role <= 2 %}
-		$( "select" ).selectmenu();
-		$( "input[type=checkbox]" ).checkboxradio();
-		$( ".ajaxwafstatus input" ).change(function() {
-			var id = $(this).attr('id');
-			metrics_waf(id);
-		});
-	{% endif %}
-</script>
-<style>
-.waf_mode + .ui-selectmenu-button.ui-button {width: 15em;}
-.waf-mode-hint, .waf-mode-message {max-width: 26em; margin: 6px 0; font-size: 12px;}
-.waf-mode-message:empty {display: none;}
-.waf-diagnostics {margin-top: 6px; max-width: 28em; font-size: 12px;}
-.waf-diagnostics summary {cursor: pointer; width: fit-content;}
-.waf-diagnostics summary:focus-visible {outline: 2px solid currentColor; outline-offset: 3px;}
-.waf-diagnostics .server-status {display: inline-block; margin-right: 4px;}
-.waf-diagnostics dl {display: grid; grid-template-columns: auto 1fr; gap: 4px 12px;}
-.waf-diagnostics dd {margin: 0;}
-.waf-diagnostics p {white-space: normal;}
-.fa-play, .fa-stop, .fa-sync-alt { margin-bottom: -1px; }
-</style>

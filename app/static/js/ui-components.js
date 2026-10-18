@@ -18,6 +18,30 @@
 		return {summary: raw, raw: raw, errors: [], warnings: []};
 	}
 
+	function showGeneratedConfig(config, previous, previousLabel) {
+		let dialog = $('#dialog-confirm-cert');
+		if (!dialog.length) {
+			dialog = $('<div id="dialog-confirm-cert"><pre id="dialog-confirm-body"></pre></div>').appendTo(document.body);
+		}
+		dialog.addClass('rw-generated-config');
+		dialog.find('#dialog-confirm-body').attr('data-generated', '').text(config);
+		dialog.find('details').remove();
+		if (previous) {
+			const details = $('<details></details>').appendTo(dialog);
+			$('<summary></summary>').text(previousLabel).appendTo(details);
+			$('<pre data-previous></pre>').text(previous).appendTo(details);
+		}
+		dialog.dialog({
+			resizable: false,
+			height: 'auto',
+			width: Math.min(650, window.innerWidth - 32),
+			maxHeight: window.innerHeight - 32,
+			modal: true,
+			title: text('generated_config'),
+			buttons: [{text: text('close', 'Close'), click: function () { $(this).dialog('close'); }}]
+		});
+	}
+
 	function ensureNotificationDialog() {
 		let dialog = $('#rw-notification-dialog');
 		if (!dialog.length) {
@@ -198,6 +222,7 @@
 	}
 
 	window.RoxywiUI = {
+		showGeneratedConfig: showGeneratedConfig,
 		parseResponse: parse,
 		error: showError,
 		toastError: showToastError,

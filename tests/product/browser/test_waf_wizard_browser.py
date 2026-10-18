@@ -41,13 +41,20 @@ def test_wizard_preview_save_reopen_and_apply_in_all_languages(logged_in, produc
     open_form(page, product_url, product, service, locale)
     expect(page.locator('h2')).to_contain_text(messages['title'])
     expect(page.locator('[data-waf-apply-button]')).to_have_count(0)
+    words = app.jinja_env.get_template(f'languages/{locale}.html').module.words
+    expect(page.locator('#wizard-preview-button')).to_have_text(words['generate'].title() + ' ' + words['config'])
     page.locator('#wizard-preview-button').click()
-    expect(page.locator('#wizard-preview')).to_be_visible()
+    dialog = page.get_by_role('dialog', name=words['generated'].title() + ' ' + words['config'], exact=True)
+    expect(dialog).to_be_visible()
+    expect(page.locator('.ui-widget-overlay')).to_be_visible()
     expect(page.locator('[data-generated]')).to_contain_text('Roxy-WI MANAGED')
     assert not wizard_host.apply_calls
+    page.keyboard.press('Escape')
+    expect(dialog).to_be_hidden()
     page.locator('#waf-wizard button[value="save"]').click()
     expect(page).to_have_url(re.compile(r'/rule/\d+/wizard$'))
     expect(page.locator('[data-waf-apply]')).to_have_attribute('data-state', 'pending')
+    expect(page.locator('[data-waf-apply-label]')).to_be_visible()
     expect(page.locator('#new_rule_file')).to_have_value('wizard-test.conf')
     page.reload()
     expect(page.locator('#wizard-value')).to_have_value('/admin')
@@ -55,14 +62,27 @@ def test_wizard_preview_save_reopen_and_apply_in_all_languages(logged_in, produc
     page.locator('#wizard-value').fill('/private')
     page.locator('#wizard-preview-button').click()
     expect(page.locator('[data-previous]')).to_contain_text('Roxy-WI MANAGED')
+    dialog.locator('summary').click()
+    expect(page.locator('[data-previous]')).to_be_visible()
+    page.set_viewport_size({'width': 390, 'height': 844})
+    # Reopening recalculates the shared dialog size for a narrow viewport.
+    page.keyboard.press('Escape')
+    page.locator('#wizard-preview-button').click()
+    expect(dialog).to_be_visible()
+    box = dialog.bounding_box()
+    assert box['x'] >= 0 and box['x'] + box['width'] <= 391
+    dialog.get_by_role('button', name=words['close'].title(), exact=True).last.click()
+    expect(dialog).to_be_hidden()
     action = 'restart' if service == 'haproxy' else 'reload'
     page.locator(f'#waf-wizard button[value="{action}"]').click()
     expect(page.locator('[data-waf-apply]')).to_have_attribute('data-state', 'applied')
+    expect(page.locator('[data-waf-apply-label]')).to_be_hidden()
     rule = WafRules.get(WafRules.serv == product.server.ip, WafRules.service == service)
     assert waf_wizard.read_spec((wizard_host.roots[service] / 'rules/wizard-test.conf').read_text())['conditions'][0]['value'] == '/private'
     assert rule.wizard
     page.reload()
     expect(page.locator('#wizard-value')).to_have_value('/private')
+    expect(page.locator('[data-waf-apply-label]')).to_be_hidden()
 
 
 @pytest.mark.parametrize('locale', LOCALES)
@@ -77,6 +97,7 @@ def test_exclusion_fields_and_failed_save_keep_form_values(logged_in, product_ur
     page.locator('#wizard-exclude-parameter').fill('body')
     page.locator('#wizard-preview-button').click()
     expect(page.locator('[data-generated]')).to_contain_text('ctl:ruleRemoveTargetById=942100;ARGS:body')
+    page.keyboard.press('Escape')
     wizard_host.fail_before = True
     page.locator('#waf-wizard button[value="save"]').click()
     expect(page.locator('#wizard-error')).to_have_text(messages['failed'])
@@ -196,6 +217,7 @@ def test_compound_conditions_auto_ids_and_reopen(logged_in, product_url, product
     page.locator('#wizard-preview-button').click()
     expect(page.locator('[data-generated]')).to_contain_text('id:10001,phase:1')
     expect(page.locator('[data-generated]')).to_contain_text('chain' if match == 'all' else 'id:10002,phase:1')
+    page.keyboard.press('Escape')
     # A read-only preview does not reserve IDs; save rechecks availability.
     reserved.write_text('SecAction "id:10000,phase:1,pass"\nSecAction "id:10001,phase:1,pass"\n')
     page.locator('#waf-wizard button[value="save"]').click()
@@ -285,6 +307,7 @@ def test_server_selection_preserves_fields_and_targets_preview_and_save(logged_i
     expect(page.locator('[data-waf-apply]')).to_have_attribute('data-state', 'applied')
     page.locator('#wizard-preview-button').click()
     expect(page.locator('[data-generated]')).to_contain_text('id:10001,phase:1')
+    page.keyboard.press('Escape')
     page.locator('#waf-wizard button[value="save"]').click()
     expect(page).to_have_url(re.compile(rf'/waf/{service}/{re.escape(slave.ip)}/rule/\d+/wizard$'))
     expect(server).to_be_disabled()

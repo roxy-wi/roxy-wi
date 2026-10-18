@@ -11,6 +11,8 @@ LOCALES = ['en', 'ru', 'es-ES', 'fr', 'pt-br', 'zh']
 
 
 def confirm_apply(page, messages, service='nginx'):
+    if page.locator('#waf-server-grid').count():
+        page.locator('[data-waf-card] .admin-actions-toggle').click()
     page.locator('[data-waf-apply-button]').click()
     action = messages['action_' + service]
     dialog = page.get_by_role('dialog', name=action, exact=True)
@@ -39,6 +41,7 @@ def test_pending_changes_survive_navigation_and_failed_apply(logged_in, product_
     page.locator(f'label[for="rule_id-{rule_id}"]').click()
     expect(panel).to_have_attribute('data-state', 'pending')
     expect(panel.locator('[data-waf-apply-label]')).to_have_attribute('title', hint)
+    expect(panel.locator('[data-waf-apply-label]')).to_be_visible()
     page.reload()
     expect(panel).to_have_attribute('data-state', 'pending')
     expect(panel.get_by_role('button', name=messages['action_' + service], exact=True)).to_be_visible()
@@ -58,13 +61,15 @@ def test_pending_changes_survive_navigation_and_failed_apply(logged_in, product_
     confirm_apply(page, messages, service)
     expect(panel).to_have_attribute('data-state', 'applied')
     expect(panel.locator('[data-waf-apply-label]')).to_have_text(messages['applied'])
+    expect(panel.locator('[data-waf-apply-label]')).to_be_hidden()
     expect(panel.locator('[data-waf-apply-label]')).to_have_attribute('title', messages['scope'])
     expect(page.locator('.toast-success')).to_contain_text(messages['success'])
     page.goto(f'{product_url}/waf/{service}')
     expect(panel).to_have_attribute('data-state', 'applied')
+    expect(panel.locator('[data-waf-apply-label]')).to_be_visible()
     expect(panel.locator('button')).to_have_count(0)
     expect(page.locator('[data-waf-apply-button]')).to_have_count(1)
-    expect(page.get_by_title(messages['action_' + service], exact=True)).to_be_visible()
+    expect(page.get_by_title(messages['action_' + service], exact=True)).to_have_count(1)
     # The existing overview action uses the same apply transaction.
     confirm_apply(page, messages, service)
     expect(page.locator('.toast-success')).to_contain_text(messages['success'])
@@ -91,6 +96,7 @@ def test_editor_plain_save_and_save_with_apply_update_state(logged_in, product_u
     panel = page.locator('[data-waf-apply]')
     expect(panel).to_have_attribute('data-state', 'pending')
     expect(page.locator('[data-waf-apply-button]')).to_have_count(0)
+    expect(panel.locator('[data-waf-apply-label]')).to_be_visible()
     page.reload()
     expect(panel).to_have_attribute('data-state', 'pending')
     expect(page.locator('[data-waf-apply-button]')).to_have_count(0)
@@ -98,6 +104,7 @@ def test_editor_plain_save_and_save_with_apply_update_state(logged_in, product_u
     page.locator(f'#saveconfig button[value="{action}"]').click()
     expect(panel).to_have_attribute('data-state', 'applied')
     expect(page.locator('[data-waf-apply-button]')).to_have_count(0)
+    expect(panel.locator('[data-waf-apply-label]')).to_be_hidden()
 
 
 @pytest.mark.parametrize('body', ['null', '{"status":"Ok"}', '{}'])
@@ -113,7 +120,7 @@ def test_apply_ignores_double_click_and_unconfirmed_responses(logged_in, product
     confirm_apply(page, messages)
     expect(page.locator('[data-waf-apply-button]')).to_have_attribute('aria-disabled', 'true')
     page.evaluate('confirmWafApply(document.querySelector("[data-waf-apply-button]"))')
-    page.locator('a[onclick="showOverviewWaf(ip, hostnamea)"]').click()
+    page.locator('[data-waf-refresh]').click()
     expect(panel).to_have_attribute('data-state', 'pending')
     assert len(pending) == 1
     expect(page.get_by_role('dialog')).to_have_count(0)
@@ -127,6 +134,7 @@ def test_cancel_and_failed_status_refresh_do_not_claim_applied(logged_in, produc
     page = logged_in
     messages = app.jinja_env.get_template('languages/en.html').module.waf_apply
     page.goto(f'{product_url}/waf/nginx')
+    page.locator('[data-waf-card] .admin-actions-toggle').click()
     page.locator('[data-waf-apply-button]').click()
     page.evaluate('confirmWafApply(document.querySelector("[data-waf-apply-button]"))')
     expect(page.get_by_role('dialog')).to_have_count(1)
@@ -152,3 +160,25 @@ def test_apply_error_displays_server_message_as_text(logged_in, product_url, waf
     confirm_apply(page, messages, 'haproxy')
     expect(page.locator('.toast-error .toast-message')).to_have_text(message)
     expect(page.locator('.toast-error img')).to_have_count(0)
+
+
+def test_restart_refreshes_process_status_and_available_actions(logged_in, product_url, waf_applying, app):
+    page = logged_in
+    waf_applying.diagnostics['haproxy'].update(process='stopped', check='not_checked')
+    page.goto(product_url + '/waf/haproxy')
+    expect(page.locator('.start-waf')).to_be_enabled()
+    expect(page.locator('.stop-waf')).to_be_disabled()
+
+    def apply_and_start(route):
+        response = route.fetch()
+        assert response.status == 200
+        waf_applying.diagnostics['haproxy'].update(process='running', check='ready')
+        route.fulfill(response=response)
+
+    page.route('**/apply', apply_and_start)
+    messages = app.jinja_env.get_template('languages/en.html').module.waf_apply
+    with page.expect_response(lambda response: '/waf/overview/haproxy/' in response.url):
+        confirm_apply(page, messages, 'haproxy')
+    expect(page.locator('summary.rw-status-running')).to_be_visible()
+    expect(page.locator('.start-waf')).to_be_disabled()
+    expect(page.locator('.stop-waf')).to_be_enabled()

@@ -14,12 +14,7 @@
 .waf-wizard-condition { margin-top: 16px; }
 .waf-wizard-condition [data-remove-condition], .waf-wizard-checkbox { margin-top: 10px; }
 .waf-wizard-checkbox label { white-space: normal; text-align: left; }
-.waf-wizard pre { white-space: pre-wrap; overflow-wrap: anywhere; border: 1px solid var(--rw-border); padding: 12px; max-height: 380px; overflow: auto; }
 .waf-wizard-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 16px 0; }
-.waf-wizard .waf-apply-state { margin: 8px 0; }
-.waf-wizard [data-waf-apply-label] { border-left: 3px solid #808080; padding-left: 7px; }
-.waf-wizard [data-state="pending"] [data-waf-apply-label] { border-color: #e69a18; }
-.waf-wizard [data-state="applied"] [data-waf-apply-label] { border-color: #42a359; }
 @media (max-width: 900px) {
     .waf-wizard .add-table, .waf-wizard tbody, .waf-wizard tr, .waf-wizard caption { display: block; }
     .waf-wizard .addName, .waf-wizard .addOption, .waf-wizard .add-note { display: block !important; width: auto; }

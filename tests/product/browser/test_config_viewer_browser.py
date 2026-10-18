@@ -23,6 +23,30 @@ TEXT = ('# Example configuration\n\nglobal\n    daemon\n\n'
         '    # <script>window.viewerInjection = true</script>\n')
 
 
+@pytest.mark.parametrize('service,section,server_id,name_id,button', [
+    ('haproxy', 'peers', 'peers_serv', 'peers-name', '#peers-generate-button'),
+    ('nginx', 'upstream', 'serv2', 'upstream-name', '[onclick="addProxy(\'add-upstream\', generate=true)"]'),
+], ids=['haproxy', 'nginx'])
+def test_existing_wizards_use_shared_generation_dialog(logged_in, product_url, product, service, section,
+                                                       server_id, name_id, button):
+    page = logged_in
+    generated = '# generated <script>unsafe()</script>\n' + section + ' example\n'
+    page.route(f'**/add/{service}/*/section/{section}?generate=1*',
+               lambda route: route.fulfill(json={'status': 'ok', 'data': generated}))
+    page.goto(f'{product_url}/add/{service}#{section}')
+    page.locator(f'#{server_id}-button').click()
+    page.get_by_role('option', name=product.server.hostname, exact=True).click()
+    page.locator('#' + name_id).fill('example')
+    page.locator(button).click()
+    dialog = page.get_by_role('dialog', name='Generated config', exact=True)
+    expect(dialog).to_be_visible()
+    expect(dialog.locator('[data-generated]')).to_have_text(generated)
+    expect(dialog.locator('script')).to_have_count(0)
+    page.keyboard.press('Escape')
+    expect(dialog).to_be_hidden()
+    expect(page.locator('#' + name_id)).to_have_value('example')
+
+
 @pytest.fixture
 def remote_config(monkeypatch, product):
     ServiceSetting.create(server_id=11, service='haproxy', setting='multiple_config_files', value='1')

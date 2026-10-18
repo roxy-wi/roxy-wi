@@ -521,6 +521,15 @@ function serviceStatusLabel(status) {
 	return labels[status] || labels.unavailable;
 }
 
+function updateServiceActionAvailability(card, status) {
+	['start', 'stop'].forEach(function (action) {
+		const button = card.find('.service-action-command[data-action="' + action + '"]');
+		const disabled = status === (action === 'start' ? 'running' : 'stopped');
+		button.prop('disabled', disabled);
+		if (button.button('instance')) button.button('option', 'disabled', disabled);
+	});
+}
+
 function applyServiceStatus(data) {
 	const id = data.server_id;
 	const card = $('#div-server-' + id);
@@ -528,6 +537,7 @@ function applyServiceStatus(data) {
 	let status = data.status;
 	if (status === 'failed' || data.error) status = 'unavailable';
 	if (status !== 'running' && status !== 'stopped') status = 'unavailable';
+	updateServiceActionAvailability(card, status);
 
 	card.attr('data-service-status', status)
 		.removeClass('div-server-head-up div-server-head-down div-server-head-dis div-server-head-unknown')
@@ -554,9 +564,14 @@ function filterServiceCards() {
 		const card = $(this);
 		const matchesText = !query || (card.attr('data-server-name') || '').indexOf(query) !== -1 || card.text().toLocaleLowerCase().indexOf(query) !== -1;
 		const matchesStatus = status === 'all' || card.attr('data-service-status') === status;
-		card.toggle(matchesText && matchesStatus);
+		const slot = card.closest('[data-service-card-slot]');
+		(slot.length ? slot : card).toggle(matchesText && matchesStatus);
 	});
 }
+
+$(document).off('.serviceCardFilters')
+	.on('input.serviceCardFilters', '#service-server-search', filterServiceCards)
+	.on('change.serviceCardFilters selectmenuchange.serviceCardFilters', '#service-status-filter', filterServiceCards);
 
 function initializeServiceStatusPolling(service, serverIds) {
 	if (!serverIds || !serverIds.length) return;
@@ -584,6 +599,7 @@ function initializeServiceStatusPolling(service, serverIds) {
 
 	function markStale(ids) {
 		(ids || serverIds).forEach(function (id) {
+			updateServiceActionAvailability($('#div-server-' + id), 'stale');
 			$('#div-server-' + id)
 				.attr('data-service-status', 'stale')
 				.removeClass('div-server-head-up div-server-head-down div-server-head-dis div-server-head-unknown')
@@ -671,8 +687,6 @@ function initializeServiceStatusPolling(service, serverIds) {
 		runBatches();
 	}
 
-	$('#service-server-search').on('input', filterServiceCards);
-	statusFilter.on('change selectmenuchange', filterServiceCards);
 	document.addEventListener('visibilitychange', function () {
 		window.clearTimeout(timer);
 		if (!document.hidden) load();
@@ -693,7 +707,9 @@ $(document).on('click', '.service-actions-toggle', function (event) {
 });
 $(document).on('click', '.service-action-command', function () {
 	const button = $(this);
+	if (button.prop('disabled')) return;
 	button.closest('.service-actions-menu').prop('hidden', true);
+	button.closest('.service-actions').find('.service-actions-toggle').attr('aria-expanded', 'false');
 	confirmAjaxAction(button.data('action'), button.data('service'), button.data('server-id'));
 });
 $(document).on('click', '.service-settings-command', function () {

@@ -1,12 +1,12 @@
-<details class="waf-diagnostics" data-waf-diagnostics data-process="{{ waf_diagnostics.process }}">
+<details data-waf-diagnostics data-process="{{ waf_diagnostics.process }}">
     {% set status = lang.waf_diagnostics['summary_' + waf_service] if waf_diagnostics.reason == 'healthy' else
                     lang.waf_diagnostics['process_' + waf_diagnostics.process] if waf_diagnostics.process != 'running' else
                     lang.waf_diagnostics.attention %}
-    <summary title="{{ status }}" aria-label="{{ lang.waf_diagnostics.open }}: {{ status }}">
-        <span class="{{ waf_diagnostics.tone }} server-status" aria-hidden="true"></span>
-        {% if waf_diagnostics.reason != 'healthy' %}{{ status }}{% endif %}
+    {% set badge = {'serverUp': 'running', 'serverDown': 'stopped', 'serverWarn': 'unavailable'}.get(waf_diagnostics.tone, 'stale') %}
+    <summary class="rw-status-badge rw-status-{{ badge }}" title="{{ status }}" aria-label="{{ lang.waf_diagnostics.open }}: {{ status }}">
+        {{ lang.waf_diagnostics.process_running if waf_diagnostics.reason == 'healthy' else status }}
     </summary>
-    <dl>
+    <dl class="rw-notification-details">
         <dt>{{ lang.waf_diagnostics['process_' + waf_service] }}</dt>
         <dd>{{ lang.waf_diagnostics['process_' + waf_diagnostics.process] }}</dd>
         <dt>{{ lang.waf_diagnostics['check_' + waf_service] }}</dt>

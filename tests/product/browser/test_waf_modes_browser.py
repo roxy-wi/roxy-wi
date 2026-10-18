@@ -30,8 +30,8 @@ def test_mode_restores_confirmed_value_on_failure_and_retries(logged_in, product
     select = page.locator(f'[id="{product.server.server_id}_select"]')
     message = page.locator('[data-waf-mode-message]')
     expect(select).to_have_value('On')
-    expect(page.locator('.overviewHead')).to_contain_text(messages['label'])
-    expect(page.locator('.waf-mode-hint')).to_have_count(0)
+    expect(page.locator('[data-waf-mode] > label')).to_have_text(messages['label'])
+    expect(page.locator('[data-waf-mode-hint]')).to_have_count(0)
     waf_modes.fail_before = True
     url = f'/waf/{service}/mode/{product.server.server_id}/Off'
     with page.expect_response(lambda response: response.url.endswith(url)) as failure:
@@ -73,8 +73,9 @@ def test_unreadable_mode_keeps_installed_waf_actions(logged_in, product_url, pro
     page.goto(f'{product_url}/waf/nginx')
     expect(page.locator(f'[id="{product.server.server_id}_select"]')).to_be_disabled()
     expect(page.locator(f'[id="{product.server.server_id}_select-button"]')).to_contain_text(messages['unavailable'])
-    expect(page.locator('.waf-mode-hint')).to_have_text(messages['read_failed'])
+    expect(page.locator('[data-waf-mode-hint]')).to_have_text(messages['read_failed'])
     expect(page.locator(f'a[href="/waf/nginx/{product.server.ip}/rules"]')).to_be_visible()
+    page.locator('[data-waf-card] .admin-actions-toggle').click()
     expect(page.locator('.reload-waf')).to_be_visible()
     expect(page.locator('button[onclick^="installWaf"]')).to_have_count(0)
 
@@ -112,7 +113,7 @@ def test_refreshed_rows_keep_one_mode_handler(logged_in, product_url, product, w
     expect(select).to_have_value('On')
     for _ in range(2):
         with page.expect_response(lambda response: response.url.endswith(f'/waf/overview/nginx/{product.server.ip}')):
-            page.locator('a[onclick="showOverviewWaf(ip, hostnamea)"]').click()
+            page.locator('[data-waf-refresh]').click()
         expect(select).to_have_value('On')
     messages = app.jinja_env.get_template('languages/en.html').module.waf_mode
     with page.expect_response(lambda response: response.url.endswith('/DetectionOnly')):

@@ -13,6 +13,7 @@ import app.modules.service.common as service_common
 import app.modules.db.waf as waf_sql
 import app.modules.db.user as user_sql
 import app.modules.db.server as server_sql
+import app.modules.db.ha_cluster as ha_sql
 from app.modules.db import sql
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
@@ -219,6 +220,7 @@ def waf_overview(serv: str, waf_service: str, claims: dict) -> str:
     return render_template('ajax/overviewWaf.html', service_status=[server_status], role=role,
                            waf_service=waf_service, lang=roxywi_common.get_user_lang_for_flask(), mode_error=mode_error,
                            waf_diagnostics=diagnostics,
+                           clusters=ha_sql.select_ha_cluster_name_and_slaves(),
                            waf_apply_status=waf_apply_status(server.ip, waf_service),
                            waf_apply_ip=server.ip, waf_apply_service=waf_service, waf_apply_button=False)
 
