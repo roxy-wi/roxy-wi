@@ -1481,6 +1481,13 @@
     "tool_missing": "A required tool is missing. Install Python 3 and ensure systemctl or Docker is available on the managed host."
 } %}
 {% set service_diagnostics = {
+    "parallel": "Other active processes",
+    "run": "Run ID",
+    "started": "Started",
+    "history": "Previous runs",
+    "history_hint": "Previous runs are retained for 7 days after stopping or heartbeat expiry. Statuses below belong to those runs.",
+    "history_limited": "Only the 20 most recent previous runs are shown.",
+    "overlap_hint": "Earlier runs of this instance still have unexpired heartbeats. Check for overlapping processes and ensure each independent instance has a unique instance_id.",
     "server_settings": "Server settings",
     "title": "Service diagnostics",
     "open": "View status details",

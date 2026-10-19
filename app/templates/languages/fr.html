@@ -1419,6 +1419,13 @@
     "tool_missing": "Un outil requis est absent. Installez Python 3 et vérifiez la disponibilité de systemctl ou Docker sur l’hôte."
 } %}
 {% set service_diagnostics = {
+    "parallel": "Autres processus actifs",
+    "run": "ID d’exécution",
+    "started": "Démarrage",
+    "history": "Exécutions précédentes",
+    "history_hint": "Les exécutions précédentes sont conservées pendant 7 jours après leur arrêt ou l’expiration du heartbeat. Les états ci-dessous concernent ces exécutions.",
+    "history_limited": "Seules les 20 exécutions précédentes les plus récentes sont affichées.",
+    "overlap_hint": "Des exécutions précédentes de cette instance ont encore des heartbeats valides. Vérifiez les processus simultanés et attribuez un instance_id unique à chaque instance indépendante.",
     "server_settings": "Paramètres du serveur",
     "title": "Diagnostic du service",
     "open": "Voir les causes de l’état",

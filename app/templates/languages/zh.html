@@ -1415,6 +1415,13 @@
     "tool_missing": "缺少必需的工具。请在受管主机上安装 Python 3，并确保 systemctl 或 Docker 可用。"
 } %}
 {% set service_diagnostics = {
+    "parallel": "其他活动进程",
+    "run": "运行 ID",
+    "started": "启动时间",
+    "history": "历史运行",
+    "history_hint": "历史运行记录在停止或心跳过期后保留 7 天。以下状态属于这些历史运行。",
+    "history_limited": "仅显示最近的 20 次历史运行。",
+    "overlap_hint": "此实例的历史运行仍有未过期的心跳。请检查是否有同时运行的进程，并确保每个独立实例使用唯一的 instance_id。",
     "server_settings": "服务器设置",
     "title": "服务诊断",
     "open": "查看状态原因",

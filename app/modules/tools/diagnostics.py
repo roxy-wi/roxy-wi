@@ -2,15 +2,16 @@
 import re
 from urllib.parse import urlsplit, urlunsplit
 
-from app.modules.common.time import as_naive_utc, utc_iso, utc_now
-from app.modules.db.db_model import Server, ServiceAssignment, WorkerState
-from app.modules.db.service_event import ACTIVE_WORKER_STATUSES
+from app.modules.common.time import utc_iso, utc_now
+from app.modules.db.db_model import Server, ServiceAssignment
+from app.modules.db.service_event import worker_instances, worker_status
 from app.modules.tools.common import _DISTRIBUTED_TOOLS, _INTERNAL_TOOLS
 
 
 WORKER_SERVICES = {**_DISTRIBUTED_TOOLS, **_INTERNAL_TOOLS}
 MAX_WORKERS = 100
 MAX_ISSUES = 100
+MAX_HISTORY = 20
 
 
 def redact_error(value: str) -> str:
@@ -52,23 +53,17 @@ def error_reason(message: str) -> str:
     return 'unknown_error'
 
 
-def worker_status(worker, now) -> str:
-    if worker.status in {'stopped', 'draining'}:
-        return worker.status
-    if worker.status in ACTIVE_WORKER_STATUSES and as_naive_utc(worker.expires_at) > now:
-        return worker.status
-    return 'stale'
-
-
 def service_diagnostics(tool: str) -> dict:
     service = WORKER_SERVICES[tool]
     now = utc_now()
-    rows = list(WorkerState.select().where(WorkerState.service == service)
-                .order_by(WorkerState.last_heartbeat.desc(), WorkerState.worker_id).limit(MAX_WORKERS + 1))
-    limited = len(rows) > MAX_WORKERS
-    rows = rows[:MAX_WORKERS]
-    statuses = {row.worker_id: worker_status(row, now) for row in rows}
-    active = [row for row in rows if statuses[row.worker_id] in ACTIVE_WORKER_STATUSES]
+    instances = sorted(worker_instances(service, history_limit=MAX_HISTORY, now=now).values(),
+                       key=lambda item: (item['current'].last_heartbeat, item['current'].worker_id), reverse=True)
+    limited = len(instances) > MAX_WORKERS
+    instances = instances[:MAX_WORKERS]
+    # Resolve current issues first so historical errors cannot hide today's cause.
+    rows = [item['current'] for item in instances]
+    rows.extend(row for item in instances for row in item['parallel'])
+    rows.extend(row for item in instances for row in item['history'])
     assignment_ids = set()
     for row in rows:
         metadata = row.metadata if isinstance(row.metadata, dict) else {}
@@ -81,7 +76,7 @@ def service_diagnostics(tool: str) -> dict:
     server_ids = {row.server_id for row in assignments.values() if row.server_id is not None}
     servers = {row.server_id: row for row in Server.select(Server.server_id, Server.hostname, Server.ip)
                .where(Server.server_id.in_(server_ids))}
-    workers = []
+    runs = {}
     remaining_issues = MAX_ISSUES
     for row in rows:
         metadata = row.metadata if isinstance(row.metadata, dict) else {}
@@ -108,17 +103,26 @@ def service_diagnostics(tool: str) -> dict:
                 remaining_issues -= 1
             else:
                 limited = True
-        status = statuses[row.worker_id]
-        replaced = status == 'stale' and any(
-            (row.instance_id and row.instance_id == other.instance_id)
-            or (row.hostname and row.hostname == other.hostname) for other in active
-        )
-        workers.append({
+        status = worker_status(row, now)
+        runs[id(row)] = {
             'id': row.worker_id, 'hostname': row.hostname, 'instance': row.instance_id,
             'version': row.version, 'status': status, 'reported_status': row.status,
+            'started': utc_iso(row.started_at) if row.started_at else None,
             'heartbeat': utc_iso(row.last_heartbeat), 'expires': utc_iso(row.expires_at),
             'assignments': row.active_assignments, 'capacity': row.capacity,
-            'reason': 'possibly_replaced' if replaced else status,
+            'reason': status,
             'issues': issues,
-        })
+        }
+    workers = []
+    for item in instances:
+        worker = runs[id(item['current'])]
+        worker.update(status=item['status'], overlap_count=item['overlap_count'],
+                      reason='overlap' if item['overlap_count'] else item['status'],
+                      parallel=[runs[id(row)] for row in item['parallel']],
+                      parallel_count=item['parallel_count'],
+                      history=[runs[id(row)] for row in item['history']],
+                      history_count=item['history_count'],
+                      history_limited=item['history_count'] > len(item['history']))
+        workers.append(worker)
+        limited = limited or item['parallel_count'] > len(item['parallel'])
     return {'tool': tool, 'workers': workers, 'limited': limited, 'checked_at': utc_iso(now)}

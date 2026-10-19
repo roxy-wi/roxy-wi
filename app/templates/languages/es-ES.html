@@ -1417,6 +1417,13 @@
     "tool_missing": "Falta una herramienta necesaria. Instale Python 3 y compruebe que systemctl o Docker estén disponibles en el servidor."
 } %}
 {% set service_diagnostics = {
+    "parallel": "Otros procesos activos",
+    "run": "ID de ejecución",
+    "started": "Inicio",
+    "history": "Ejecuciones anteriores",
+    "history_hint": "Las ejecuciones anteriores se conservan durante 7 días tras detenerse o caducar el heartbeat. Los estados siguientes corresponden a esas ejecuciones.",
+    "history_limited": "Solo se muestran las 20 ejecuciones anteriores más recientes.",
+    "overlap_hint": "Las ejecuciones anteriores de esta instancia aún tienen heartbeats vigentes. Compruebe si hay procesos simultáneos y asigne un instance_id único a cada instancia independiente.",
     "server_settings": "Configuración del servidor",
     "title": "Diagnóstico del servicio",
     "open": "Ver los motivos del estado",

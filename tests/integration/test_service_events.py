@@ -172,6 +172,7 @@ def test_worker_heartbeat_is_upserted_and_group_scoped():
 
         next_heartbeat = heartbeat_event(
             worker_id=worker_id,
+            started_at=payload['started_at'],
             event_id=str(uuid4()),
             active_assignments=7,
             status='degraded',
@@ -183,6 +184,7 @@ def test_worker_heartbeat_is_upserted_and_group_scoped():
 
         process_event(heartbeat_event(
             worker_id=worker_id,
+            started_at=payload['started_at'],
             event_id=str(uuid4()),
             heartbeat_at=(now - timedelta(minutes=1)).isoformat(),
             active_assignments=0,

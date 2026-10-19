@@ -42,7 +42,10 @@ def test_diagnostics_real_route_locales_redaction_and_stale(product_client, prod
     data = service_diagnostics('roxy-wi-metrics')
     assert data['workers'][0]['issues'][0]['reason'] == 'refused'
     assert data['workers'][0]['issues'][0]['server_id'] == 11
-    assert data['workers'][1]['reason'] == 'possibly_replaced'
+    assert len(data['workers']) == 1
+    assert data['workers'][0]['history_count'] == 1
+    assert data['workers'][0]['history'][0]['id'] == 'metrics-old'
+    assert data['workers'][0]['history'][0]['status'] == 'stale'
     assert WorkerState.select().count() == 2
 
 

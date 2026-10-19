@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import datetime, timedelta
 from typing import Any, Mapping
 from uuid import uuid4
 
-from peewee import IntegrityError
+from peewee import IntegrityError, SqliteDatabase
 
 from app.modules.common.time import as_naive_utc, utc_now
 from app.modules.db.service_event_storage import (
@@ -22,10 +23,94 @@ from app.modules.db.db_model import (
     ServiceEventDelivery,
     ServiceNotification,
     WorkerState,
+    WorkerRun,
 )
 
 
 ACTIVE_WORKER_STATUSES = frozenset({'starting', 'running', 'degraded'})
+UNGROUPED_WORKER_SERVICES = frozenset({'smon', 'keep_alive'})
+
+
+def worker_instance_key(worker):
+    # Hostnames are not identities: several independently configured instances
+    # can run on the same host. Older producers without instance_id stay separate.
+    if worker.service not in UNGROUPED_WORKER_SERVICES and worker.instance_id:
+        return worker.service, 'instance', worker.instance_id
+    return worker.service, 'worker', worker.worker_id
+
+
+def worker_run_order(worker):
+    # A late shutdown heartbeat from an earlier process cannot replace a newer run.
+    return as_naive_utc(worker.started_at or worker.last_heartbeat), worker.worker_id
+
+
+def _current_run_order(worker, now):
+    # Apache/Gunicorn legitimately run several web processes per instance.
+    # Keep a live process representative even when a newer child has exited.
+    priority = 0
+    if worker.service == 'roxy-wi-web' and as_naive_utc(worker.expires_at) > now:
+        if worker.status in ACTIVE_WORKER_STATUSES:
+            priority = 2
+        elif worker.status == 'draining':
+            priority = 1
+    return priority, worker_run_order(worker)
+
+
+def worker_status(worker, now):
+    if worker.status in {'stopped', 'draining'}:
+        return worker.status
+    if worker.status in ACTIVE_WORKER_STATUSES and as_naive_utc(worker.expires_at) > now:
+        return worker.status
+    return 'stale'
+
+
+def worker_instances(service=None, history_limit=0, now=None):
+    """Group retained runs once for both status summaries and diagnostics."""
+    now = as_naive_utc(now) if now else utc_now()
+    instances = {}
+    # Read both tables in one snapshot so a concurrent restart cannot make a
+    # generation disappear or appear twice while it moves into the archive.
+    with WorkerState._meta.database.atomic():
+        for model in (WorkerState, WorkerRun):
+            query = model.select()
+            if service is not None:
+                query = query.where(model.service == service)
+            for row in query.iterator():
+                key = worker_instance_key(row)
+                item = instances.get(key)
+                if item is None:
+                    item = instances[key] = {'current': row, 'history': [], 'history_count': 0,
+                                             'live_runs': 0, 'live_degraded': 0,
+                                             'parallel': [], 'parallel_count': 0}
+                    previous = False
+                else:
+                    previous = True
+                if (row.status in ACTIVE_WORKER_STATUSES | {'draining'}
+                        and as_naive_utc(row.expires_at) > now):
+                    item['live_runs'] += 1
+                    item['live_degraded'] += int(row.status == 'degraded')
+                if previous:
+                    if _current_run_order(row, now) > _current_run_order(item['current'], now):
+                        row, item['current'] = item['current'], row
+                    parallel = (row.service == 'roxy-wi-web'
+                                and row.status in ACTIVE_WORKER_STATUSES | {'draining'}
+                                and as_naive_utc(row.expires_at) > now)
+                    collection = 'parallel' if parallel else 'history'
+                    item[collection + '_count'] += 1
+                    if history_limit:
+                        item[collection].append(row)
+                        item[collection].sort(key=worker_run_order, reverse=True)
+                        del item[collection][history_limit:]
+    for item in instances.values():
+        row = item['current']
+        current_live = (row.status in ACTIVE_WORKER_STATUSES | {'draining'}
+                        and as_naive_utc(row.expires_at) > now)
+        item['overlap_count'] = item['live_runs'] - int(current_live)
+        item['status'] = 'degraded' if item['overlap_count'] else worker_status(row, now)
+        if row.service == 'roxy-wi-web':
+            item['overlap_count'] = 0
+            item['status'] = 'degraded' if item['live_degraded'] else worker_status(row, now)
+    return instances
 
 
 def notification_payload(data: Mapping[str, Any]) -> str:
@@ -59,6 +144,56 @@ def record_worker_heartbeat(data: Mapping[str, Any]) -> None:
         'updated_at': utc_now(),
     }
     worker_id = data['worker_id']
+    if data['service'] not in UNGROUPED_WORKER_SERVICES:
+        _record_worker_run(worker_id, values)
+        return
+    _upsert_worker_state(worker_id, values)
+
+
+def _record_worker_run(worker_id, values):
+    database = WorkerState._meta.database
+    transaction_args = ('IMMEDIATE',) if isinstance(database, SqliteDatabase) else ()
+    with database.atomic(*transaction_args):
+        query = WorkerState.select().where(WorkerState.worker_id == worker_id)
+        if not isinstance(database, SqliteDatabase):
+            query = query.for_update()
+        current = query.get_or_none()
+        if current is None:
+            try:
+                with database.atomic():
+                    WorkerState.create(worker_id=worker_id, **values)
+                return
+            except IntegrityError:
+                # Another consumer may have registered this producer concurrently.
+                current = query.get()
+        started_at = values['started_at']
+        if current.started_at and started_at and current.started_at != started_at:
+            if started_at < current.started_at:
+                _archive_worker_run(worker_id, values)
+                return
+            _archive_worker_run(worker_id, {
+                field: getattr(current, field) for field in values
+            })
+        elif values['last_heartbeat'] < current.last_heartbeat:
+            return
+        if started_at is None:
+            values['started_at'] = current.started_at
+        WorkerState.update(**values).where(WorkerState.worker_id == worker_id).execute()
+
+
+def _archive_worker_run(worker_id, values):
+    identity = [values['service'], worker_id, values['started_at'].isoformat()]
+    run_id = hashlib.sha256(json.dumps(identity).encode()).hexdigest()
+    # The caller holds the producer's row lock; retries and late final heartbeats
+    # update the same historical generation rather than creating duplicates.
+    archived = WorkerRun.get_or_none(WorkerRun.run_id == run_id)
+    if archived is None:
+        WorkerRun.create(run_id=run_id, worker_id=worker_id, **values)
+    elif values['last_heartbeat'] >= archived.last_heartbeat:
+        WorkerRun.update(**values).where(WorkerRun.run_id == run_id).execute()
+
+
+def _upsert_worker_state(worker_id, values):
     database = WorkerState._meta.database
     with database.atomic():
         updated = WorkerState.update(**values).where(
@@ -289,9 +424,13 @@ def claim_pending_deliveries(limit: int = 100):
 
 def prune_worker_states(retention_days: int = 7) -> int:
     cutoff = utc_now() - timedelta(days=retention_days)
-    return WorkerState.delete().where(
+    deleted = WorkerState.delete().where(
         (WorkerState.expires_at < cutoff)
         | ((WorkerState.status == 'stopped') & (WorkerState.updated_at < cutoff))
+    ).execute()
+    return deleted + WorkerRun.delete().where(
+        (WorkerRun.expires_at < cutoff)
+        | ((WorkerRun.status == 'stopped') & (WorkerRun.updated_at < cutoff))
     ).execute()
 
 
@@ -371,7 +510,8 @@ def mark_delivery_failed(delivery_id: int, error: str, claim_token: str) -> None
 def worker_summary(group_id: int | None = None, now: datetime | None = None) -> dict[str, dict[str, Any]]:
     now = as_naive_utc(now) if now else utc_now()
     summary: dict[str, dict[str, Any]] = {}
-    for worker in WorkerState.select():
+    for instance in worker_instances(now=now).values():
+        worker = instance['current']
         groups = worker.group_ids or []
         # Socket replicas are global gateways. They can serve every group even
         # when no client from the requesting group was connected at the exact
@@ -398,13 +538,14 @@ def worker_summary(group_id: int | None = None, now: datetime | None = None) -> 
         service['assignments'] += worker.active_assignments or 0
         if service['last_heartbeat'] is None or worker.last_heartbeat > service['last_heartbeat']:
             service['last_heartbeat'] = worker.last_heartbeat
-        if worker.status == 'draining':
+        status = instance['status']
+        if status == 'draining':
             service['draining'] += 1
-        elif worker.status == 'stopped':
+        elif status == 'stopped':
             service['stopped'] += 1
-        elif worker.status in ACTIVE_WORKER_STATUSES and worker.expires_at > now:
+        elif status in ACTIVE_WORKER_STATUSES:
             service['active'] += 1
-            if worker.status == 'degraded':
+            if status == 'degraded':
                 service['degraded'] += 1
             if worker.version and worker.version not in service['versions']:
                 service['versions'].append(worker.version)

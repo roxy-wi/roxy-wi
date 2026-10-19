@@ -2,17 +2,16 @@
 {% set t = language.service_diagnostics %}
 <p class="sd-caption">{{ t.snapshot }} <time datetime="{{ diagnostics.checked_at }}">{{ diagnostics.checked_at }}</time></p>
 {% if diagnostics.limited %}<p class="sd-warning">{{ t.limited }}</p>{% endif %}
-{% for worker in diagnostics.workers %}
-<article class="sd-worker" data-worker-status="{{ worker.status }}">
-    <header><strong>{{ worker.hostname or worker.instance or worker.id }}</strong><span class="sd-state">{{ t[worker.status] }}</span></header>
+{% macro run_details(worker) %}
     <dl class="sd-facts">
-        <dt>{{ t.worker }}</dt><dd>{{ worker.id }}</dd>
+        <dt>{{ t.run }}</dt><dd>{{ worker.id }}</dd>
+        <dt>{{ t.started }}</dt><dd>{% if worker.started %}<time datetime="{{ worker.started }}">{{ worker.started }}</time>{% else %}—{% endif %}</dd>
         <dt>{{ t.version }}</dt><dd>{{ worker.version or '—' }}</dd>
         <dt>{{ t.heartbeat }}</dt><dd><time datetime="{{ worker.heartbeat }}">{{ worker.heartbeat }}</time></dd>
         <dt>{{ t.expires }}</dt><dd><time datetime="{{ worker.expires }}">{{ worker.expires }}</time></dd>
         <dt>{{ t.assignments }}</dt><dd>{{ worker.assignments }}{% if worker.capacity %} / {{ worker.capacity }}{% endif %}</dd>
     </dl>
-    <p>{{ t[worker.reason + '_hint'] }}</p>
+    <p{% if worker.reason == 'overlap' %} class="sd-warning"{% endif %}>{{ t[worker.reason + '_hint'] }}</p>
     {% if worker.status in ('stale', 'stopped') and worker.issues %}<p class="sd-warning">{{ t.old_errors }}</p>{% endif %}
     {% for issue in worker.issues %}
     <section class="sd-issue">
@@ -23,7 +22,35 @@
         <details><summary>{{ t.technical }}</summary><pre>{{ issue.error }}</pre></details>
     </section>
     {% endfor %}
-    {% if worker.status == 'degraded' and not worker.issues %}<p>{{ t.no_reason }}</p>{% endif %}
+    {% if worker.reported_status == 'degraded' and not worker.issues %}<p>{{ t.no_reason }}</p>{% endif %}
+{% endmacro %}
+{% macro run_list(runs, class_name) %}
+    {% for run in runs %}
+    <section class="{{ class_name }} sd-issue" data-worker-status="{{ run.status }}">
+        <header><strong>{% if run.started %}<time datetime="{{ run.started }}">{{ run.started }}</time>{% else %}{{ run.id }}{% endif %}</strong><span class="sd-state">{{ t[run.status] }}</span></header>
+        {{ run_details(run) }}
+    </section>
+    {% endfor %}
+{% endmacro %}
+{% for worker in diagnostics.workers %}
+<article class="sd-worker" data-worker-status="{{ worker.status }}">
+    <header><strong>{{ worker.instance or worker.hostname or worker.id }}</strong><span class="sd-state">{{ t[worker.status] }}</span></header>
+    {% if worker.instance and worker.hostname and worker.instance != worker.hostname %}<p class="sd-caption">{{ worker.hostname }}</p>{% endif %}
+    {{ run_details(worker) }}
+    {% if worker.parallel_count %}
+    <details class="sd-processes">
+        <summary>{{ t.parallel }} ({{ worker.parallel_count }})</summary>
+        {{ run_list(worker.parallel, 'sd-parallel-run') }}
+    </details>
+    {% endif %}
+    {% if worker.history_count %}
+    <details class="sd-history">
+        <summary>{{ t.history }} ({{ worker.history_count }})</summary>
+        <p class="sd-caption">{{ t.history_hint }}</p>
+        {% if worker.history_limited %}<p class="sd-warning">{{ t.history_limited }}</p>{% endif %}
+        {{ run_list(worker.history, 'sd-history-run') }}
+    </details>
+    {% endif %}
 </article>
 {% else %}<p>{{ t.no_workers }}</p>{% endfor %}
 <a class="sd-admin-link" href="{{ url_for('admin.admin') }}#tools">{{ t.tools }}</a>

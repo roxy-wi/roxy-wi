@@ -826,6 +826,12 @@ class ServiceEventRetention(BaseModel):
         table_name = 'service_event_retention'
 
 
+class WorkerStartTimeField(DateTimeField):
+    # MySQL DATETIME defaults to seconds, which loses the producer's generation
+    # identity on round-trip. SQLite also accepts this declared type.
+    field_type = 'DATETIME(6)'
+
+
 class WorkerState(BaseModel):
     """Latest heartbeat for a replaceable worker process."""
 
@@ -835,7 +841,7 @@ class WorkerState(BaseModel):
     status = CharField(default='running', index=True, max_length=32)
     hostname = CharField(null=True, max_length=255)
     version = CharField(null=True, max_length=64)
-    started_at = DateTimeField(null=True)
+    started_at = WorkerStartTimeField(null=True)
     last_heartbeat = DateTimeField(index=True)
     expires_at = DateTimeField(index=True)
     active_assignments = IntegerField(default=0)
@@ -847,6 +853,17 @@ class WorkerState(BaseModel):
     class Meta:
         table_name = 'worker_states'
         indexes = ((('service', 'expires_at'), False),)
+
+
+class WorkerRun(WorkerState):
+    """Retained generations of producers that reuse their worker ID."""
+
+    run_id = CharField(primary_key=True, max_length=64)
+    worker_id = CharField(index=True, max_length=128)
+
+    class Meta:
+        table_name = 'worker_runs'
+        indexes = ((('service', 'instance_id'), False),)
 
 
 class ServiceAssignment(BaseModel):
@@ -1380,7 +1397,7 @@ def create_tables():
              RevokedToken, ConfigVersion, ConfigChange, ConfigChangeTarget, ConfigChangeEvent,
              ConfigChangeWebhook, ConfigChangeDelivery, Setting, RoxyTool, Alerts, ServiceEvent,
              ServiceEventDelivery, ServiceNotification, ServiceEventPosition, ServiceEventRetention,
-             WorkerState, ServiceAssignment, ServiceCommand,
+             WorkerState, WorkerRun, ServiceAssignment, ServiceCommand,
              Cred, Backup, BackupSchedule, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
              PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, WafConfigState, GeoipCodes,
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,

@@ -21,18 +21,23 @@ def diagnostic_worker(product, monkeypatch):
     now = utc_now()
     ServiceAssignment.create(assignment_id='metrics:nginx:server-11', target_service='metrics',
                              server_id=11, service='nginx', user_group=1, payload='{}')
-    return WorkerState.create(worker_id='metrics-ui', service='metrics', hostname='worker-ui',
+    return WorkerState.create(worker_id='metrics-ui', service='metrics', hostname='worker-ui', instance_id='metrics-one',
                               status='degraded', last_heartbeat=now, expires_at=now + timedelta(minutes=5),
                               metadata={'assignment_errors': {'metrics:nginx:server-11': 'Connection refused'}})
 
 
-@pytest.mark.parametrize('locale,title', [
-    ('en', 'Service diagnostics'), ('ru', 'Диагностика сервиса'),
-    ('es-ES', 'Diagnóstico del servicio'), ('fr', 'Diagnostic du service'),
-    ('pt-br', 'Diagnóstico do serviço'), ('zh', '服务诊断'),
+@pytest.mark.parametrize('locale,title,history_title', [
+    ('en', 'Service diagnostics', 'Previous runs'), ('ru', 'Диагностика сервиса', 'Предыдущие запуски'),
+    ('es-ES', 'Diagnóstico del servicio', 'Ejecuciones anteriores'),
+    ('fr', 'Diagnostic du service', 'Exécutions précédentes'),
+    ('pt-br', 'Diagnóstico do serviço', 'Execuções anteriores'), ('zh', '服务诊断', '历史运行'),
 ])
-def test_status_opens_localized_diagnostics_and_refreshes(logged_in, product_url, diagnostic_worker, locale, title):
+def test_status_opens_localized_diagnostics_and_refreshes(logged_in, product_url, diagnostic_worker, locale, title, history_title):
     page = logged_in
+    now = utc_now()
+    WorkerState.create(worker_id='previous-ui-run', service='metrics', instance_id='metrics-one',
+                       hostname='worker-ui', status='stopped', started_at=now - timedelta(hours=2),
+                       last_heartbeat=now - timedelta(hours=1), expires_at=now - timedelta(hours=1))
     page.context.add_cookies([{'name': 'lang', 'value': locale, 'url': product_url}])
     page.goto(product_url + '/admin#tools')
     trigger = page.locator('#roxy-wi-metrics .admin-tool-status-cell button')
@@ -43,12 +48,21 @@ def test_status_opens_localized_diagnostics_and_refreshes(logged_in, product_url
     expect(dialog).to_be_visible()
     expect(dialog.locator('.sd-worker')).to_have_attribute('data-worker-status', 'degraded')
     expect(dialog).to_contain_text('Product HAProxy')
-    dialog.locator('summary').click()
+    expect(dialog.locator('.sd-worker')).to_have_count(1)
+    expect(dialog.locator('.sd-history-run')).to_be_hidden()
+    dialog.locator('.sd-worker > .sd-issue summary').click()
     expect(dialog.locator('pre')).to_have_text('Connection refused')
     WorkerState.update(status='running', metadata={}).where(WorkerState.worker_id == diagnostic_worker.worker_id).execute()
     dialog.locator('.sd-refresh').click()
     expect(dialog.locator('.sd-worker')).to_have_attribute('data-worker-status', 'running')
-    expect(dialog.locator('.sd-issue')).to_have_count(0)
+    expect(dialog.locator('.sd-worker > .sd-issue')).to_have_count(0)
+    history_toggle = dialog.locator('.sd-history > summary')
+    expect(history_toggle).to_have_text(history_title + ' (1)')
+    history_toggle.focus()
+    page.keyboard.press('Enter')
+    expect(dialog.locator('.sd-history-run')).to_be_visible()
+    expect(dialog.locator('.sd-history-run')).to_contain_text('previous-ui-run')
+    expect(dialog.locator('.sd-history-run')).to_have_attribute('data-worker-status', 'stopped')
     page.set_viewport_size({'width': 390, 'height': 800})
     assert dialog.evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
     page.keyboard.press('Escape')
@@ -56,29 +70,54 @@ def test_status_opens_localized_diagnostics_and_refreshes(logged_in, product_url
     expect(trigger).to_be_focused()
 
 
-def test_overview_status_and_stale_count_open_diagnostics(logged_in, product_url, diagnostic_worker):
+def test_overview_status_opens_instance_history(logged_in, product_url, diagnostic_worker):
     page = logged_in
     # Only unrelated external requests are stubbed; status and diagnostics use real routes.
     page.route('**/overview/server/**', lambda route: route.fulfill(body=''))
     page.route('**/metrics/*', lambda route: route.fulfill(status=503, json={'error': 'Synthetic host metrics unavailable'}))
     now = utc_now()
-    WorkerState.create(worker_id='metrics-old', service='metrics', hostname='worker-ui', status='running',
+    WorkerState.create(worker_id='metrics-old', service='metrics', hostname='worker-ui', instance_id='metrics-one', status='running',
                        last_heartbeat=now - timedelta(days=2), expires_at=now - timedelta(days=2))
     page.goto(product_url + '/overview')
     trigger = page.locator('.services-overview-name button[data-service-name="Metrics"]')
     trigger.click()
     dialog = page.get_by_role('dialog', name='Service diagnostics: Metrics', exact=True)
-    expect(dialog.locator('.sd-worker')).to_have_count(2)
-    expect(dialog).to_contain_text('This may be a replaced worker')
+    expect(dialog.locator('.sd-worker')).to_have_count(1)
+    expect(dialog.locator('.sd-history-run')).to_be_hidden()
+    dialog.locator('.sd-history > summary').click()
+    expect(dialog.locator('.sd-history-run')).to_be_visible()
+    expect(dialog.locator('.sd-history-run')).to_contain_text('metrics-old')
     page.keyboard.press('Escape')
-    page.locator('.services-overview-meta button[data-service-name="Metrics"]').click()
+    card = page.locator('.services-overview-card').filter(has=trigger)
+    expect(card.locator('.services-overview-meta')).not_to_contain_text('stale')
+    trigger.click()
     expect(dialog).to_be_visible()
     page.route('**/admin/tools/roxy-wi-metrics/diagnostics', lambda route: route.fulfill(status=503, body='unavailable'))
     dialog.locator('.sd-refresh').click()
     expect(dialog).to_contain_text('Could not load diagnostics')
     page.unroute('**/admin/tools/roxy-wi-metrics/diagnostics')
     dialog.locator('.sd-refresh').click()
-    expect(dialog.locator('.sd-worker')).to_have_count(2)
+    expect(dialog.locator('.sd-worker')).to_have_count(1)
+
+
+def test_web_shows_live_processes_separately_from_history(logged_in, product_url, diagnostic_worker):
+    now = utc_now()
+    for index, status in enumerate(('stopped', 'running', 'running')):
+        WorkerState.create(worker_id=f'web-{index}', service='roxy-wi-web', instance_id='web-one',
+                           hostname='web-host', status=status, started_at=now - timedelta(hours=3-index),
+                           last_heartbeat=now, expires_at=now + timedelta(minutes=5))
+    page = logged_in
+    page.goto(product_url + '/admin#tools')
+    page.locator('button[data-service-name="Web"]').click()
+    dialog = page.get_by_role('dialog', name='Service diagnostics: Web', exact=True)
+    expect(dialog.locator('.sd-worker')).to_have_count(1)
+    expect(dialog.locator('.sd-worker')).to_have_attribute('data-worker-status', 'running')
+    dialog.locator('.sd-processes > summary').click()
+    expect(dialog.locator('.sd-parallel-run')).to_be_visible()
+    expect(dialog.locator('.sd-parallel-run')).to_contain_text('web-1')
+    dialog.locator('.sd-history > summary').click()
+    expect(dialog.locator('.sd-history-run')).to_be_visible()
+    expect(dialog.locator('.sd-history-run')).to_contain_text('web-0')
 
 
 @pytest.mark.parametrize('source', ['/admin#tools', '/overview'])

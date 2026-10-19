@@ -11,7 +11,7 @@ button.service-diagnostics-trigger .server-status-small, button.service-diagnost
 #service-diagnostics .sd-worker {padding:14px; margin-bottom:14px; border:1px solid var(--sd-border); border-radius:6px;}
 #service-diagnostics header {display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px;}
 #service-diagnostics .sd-state {font-weight:600;}
-#service-diagnostics .sd-warning, #service-diagnostics [data-worker-status=stale] .sd-state, #service-diagnostics [data-worker-status=degraded] .sd-state {color:#986000;}
+#service-diagnostics .sd-warning, #service-diagnostics [data-worker-status=stale] > header .sd-state, #service-diagnostics [data-worker-status=degraded] > header .sd-state {color:#986000;}
 #service-diagnostics .sd-facts {display:grid; grid-template-columns:minmax(110px, 1fr) minmax(0, 3fr); gap:6px 12px;}
 #service-diagnostics dd {margin:0; overflow-wrap:anywhere;}
 #service-diagnostics .sd-issue {border-top:1px solid var(--sd-border); padding:12px 0; overflow-wrap:anywhere;}
