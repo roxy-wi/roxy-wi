@@ -36,7 +36,7 @@ def test_shared_card_width_also_limits_network_tools(logged_in, product_url):
 
 
 @pytest.mark.parametrize('locale', ['en', 'ru', 'es-ES', 'fr', 'pt-br', 'zh'])
-def test_overview_logs_match_other_tiles(logged_in, product_url, product, host_metrics, locale):
+def test_overview_logs_match_other_tiles(logged_in, product_url, product, host_metrics, app, locale):
     journal = product.root / 'journal'
     journal.mkdir()
     timestamp = datetime.now(timezone.utc).isoformat()
@@ -47,23 +47,82 @@ def test_overview_logs_match_other_tiles(logged_in, product_url, product, host_m
     ), encoding='utf-8')
     page = logged_in
     page.context.add_cookies([{'name': 'lang', 'value': locale, 'url': product_url}])
-    # Server status is unrelated to the tile layout; synthetic hosts have no SSH listener.
+    # Status tiles are unrelated; synthetic hosts have no SSH listener or local workers.
     page.route('**/overview/server/**', lambda route: route.fulfill(body=''))
+    page.route('**/overview/services', lambda route: route.fulfill(body=''))
     assert page.goto(product_url + '/overview').status == 200
     tile = page.locator('#overview-logs')
+    messages = app.jinja_env.get_template(f'languages/{locale}.html').module
+    header = tile.locator('.overviewHead')
+    expand = header.get_by_role('button', name=messages.words['show_more'], exact=True)
+    refresh = header.get_by_role('button', name=messages.log_viewer['refresh'], exact=True)
     expect(tile.locator('.log-row:visible')).to_have_count(3)
+    expect(header.get_by_role('button')).to_have_count(2)
+    expect(expand).to_be_visible()
+    expect(refresh).to_be_visible()
+    expect(tile.get_by_role('searchbox')).to_have_count(0)
+    expect(tile.locator('#overview-log-status')).to_be_hidden()
+    expect(tile.locator('#overview-log-notice, #overview-log-source, .overview-log-range')).to_have_count(0)
+    assert header.evaluate('(node) => getComputedStyle(node).backgroundColor') == page.locator(
+        '#overview-roles .overviewHead').evaluate('(node) => getComputedStyle(node).backgroundColor')
     for width in (1440, 1000):
         page.set_viewport_size({'width': width, 'height': 1000})
         assert abs(tile.bounding_box()['width'] - page.locator('#overview-roles').bounding_box()['width']) <= 1
         assert tile.evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
-    page.locator('#overview-log-expand').click()
+    expand.click()
     expect(tile.locator('.log-row:visible')).to_have_count(6)
+    expect(header.get_by_role('button', name=messages.words['show_less'], exact=True)).to_be_visible()
     tile.locator('.log-row summary').first.click()
     expect(tile.locator('.log-detail').first).to_be_visible()
     page.locator('#overview-log-expand').click()
     expect(tile.locator('.log-row:visible')).to_have_count(3)
+    with (journal / 'rwi-product.log').open('a', encoding='utf-8') as stream:
+        stream.write(json.dumps(dict(timestamp=timestamp, message='Refreshed event', level='INFO')) + '\n')
+    with page.expect_response(lambda response: response.url.endswith('/overview/logs')) as request:
+        refresh.click()
+    assert request.value.status == 200
+    expect(tile.locator('.log-message').first).to_have_text('Refreshed event')
+    expand.click()
+    expect(tile.locator('.log-row:visible')).to_have_count(7)
+    page.locator('#overview-log-expand').click()
+    if locale == 'ru':
+        page.mouse.move(0, 0)
+        tile.screenshot(path='.test-artifacts/overview-logs-desktop.png')
     page.set_viewport_size({'width': 390, 'height': 1000})
     assert tile.evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
+    expect(expand).to_be_visible()
+    expect(refresh).to_be_visible()
+    if locale == 'ru':
+        tile.screenshot(path='.test-artifacts/overview-logs-mobile.png')
+
+
+def test_overview_logs_empty_error_and_refresh_recovery(logged_in, product_url, product, host_metrics):
+    journal = product.root / 'journal'
+    journal.mkdir()
+    source = journal / 'rwi-product.log'
+    source.write_text('', encoding='utf-8')
+    page = logged_in
+    page.route('**/overview/server/**', lambda route: route.fulfill(body=''))
+    page.route('**/overview/services', lambda route: route.fulfill(body=''))
+    assert page.goto(product_url + '/overview').status == 200
+    status = page.locator('#overview-log-status')
+    refresh = page.locator('#overview-log-refresh')
+    expand = page.locator('#overview-log-expand')
+    expect(status).to_have_text('No entries in this range')
+    expect(status).to_be_visible()
+    expect(expand).to_be_hidden()
+    page.route('**/overview/logs', lambda route: route.fulfill(status=503, json={'error': 'Unavailable'}))
+    refresh.click()
+    expect(status).to_have_text('Could not load logs')
+    expect(status).to_be_visible()
+    expect(expand).to_be_hidden()
+    page.unroute('**/overview/logs')
+    source.write_text(json.dumps(dict(timestamp=datetime.now(timezone.utc).isoformat(), message='Recovered')) + '\n',
+                      encoding='utf-8')
+    refresh.click()
+    expect(page.locator('#overview-log-output .log-message')).to_have_text('Recovered')
+    expect(status).to_be_hidden()
+    expect(expand).to_be_hidden()
 
 
 def backup_tab(page, url):

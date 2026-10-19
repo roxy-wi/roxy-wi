@@ -131,6 +131,7 @@ function initializeAppNavigation() {
 	$('#app-navigation button.ui-button').button('destroy');
 	setNavigationCollapsed(document.documentElement.classList.contains('nav-collapsed'));
 	markCurrentNavigationLink();
+	const mobileViewport = window.matchMedia('(max-width: 900px)');
 
 	navigation.querySelectorAll('.nav-group').forEach(function (group) {
 		let key = 'roxywi-nav-group-' + group.dataset.navGroup;
@@ -160,7 +161,7 @@ function initializeAppNavigation() {
 
 	navigation.querySelectorAll('.nav-submenu-toggle').forEach(function (button) {
 		button.addEventListener('click', function () {
-			if (document.documentElement.classList.contains('nav-collapsed')) {
+			if (!mobileViewport.matches && document.documentElement.classList.contains('nav-collapsed')) {
 				setNavigationCollapsed(false);
 			}
 			let service = button.closest('.p_menu');
@@ -180,9 +181,13 @@ function initializeAppNavigation() {
 	let mobileToggle = document.getElementById('app-mobile-nav-toggle');
 	let backdrop = document.getElementById('app-nav-backdrop');
 	function setMobileNavigation(open) {
+		open = mobileViewport.matches && open;
 		document.documentElement.classList.toggle('nav-mobile-open', open);
 		if (mobileToggle) mobileToggle.setAttribute('aria-expanded', String(open));
+		navigation.inert = mobileViewport.matches && !open;
 	}
+	setMobileNavigation(false);
+	mobileViewport.addEventListener('change', function () { setMobileNavigation(false); });
 	if (mobileToggle) {
 		mobileToggle.addEventListener('click', function () {
 			setMobileNavigation(!document.documentElement.classList.contains('nav-mobile-open'));
@@ -191,7 +196,7 @@ function initializeAppNavigation() {
 	if (backdrop) backdrop.addEventListener('click', function () { setMobileNavigation(false); });
 	navigation.querySelectorAll('a').forEach(function (link) {
 		link.addEventListener('click', function () {
-			if (window.matchMedia('(max-width: 900px)').matches) setMobileNavigation(false);
+			if (mobileViewport.matches) setMobileNavigation(false);
 		});
 	});
 	document.addEventListener('keydown', function (event) {
@@ -236,7 +241,9 @@ function initializeAppNavigation() {
 			let typing = target && (target.matches('input, textarea, select') || target.isContentEditable);
 			if (event.key === '/' && !typing && !event.ctrlKey && !event.metaKey && !event.altKey) {
 				event.preventDefault();
-				if (document.documentElement.classList.contains('nav-collapsed')) {
+				if (mobileViewport.matches) {
+					setMobileNavigation(true);
+				} else if (document.documentElement.classList.contains('nav-collapsed')) {
 					setNavigationCollapsed(false);
 				}
 				search.focus();

@@ -362,7 +362,10 @@ def test_overview_widget_renders_all_locales_with_shared_renderer(app):
                 language=language)
             assert 'js/log-viewer.js' in html
             assert 'js/overview-logs.js' in html
-            assert 'overview-log-search' in html
+            assert 'overview-log-search' not in html
+            assert 'overview-log-notice' not in html
+            assert 'overview-log-refresh' in html
+            assert 'overview-log-expand' in html
             assert 'href="/logs/internal?type=2"' in html
 
 

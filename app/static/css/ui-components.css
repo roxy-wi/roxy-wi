@@ -617,19 +617,13 @@ table[data-ux-table] thead th[aria-sort="descending"]::after { color: var(--rw-p
 @media (max-width: 900px) {
 	.top-menu {
 		width: min(290px, 86vw) !important;
+		height: 100dvh;
+		z-index: 1000;
 		transform: translateX(-105%);
 		transition: transform .2s ease;
 		box-shadow: 6px 0 20px rgba(0, 0, 0, .18);
 	}
 	html.nav-mobile-open .top-menu { transform: translateX(0); }
-	html.nav-collapsed .top-menu { width: min(290px, 86vw) !important; }
-	html.nav-collapsed .app-nav-logo,
-	html.nav-collapsed .app-nav-search,
-	html.nav-collapsed .nav-group-toggle,
-	html.nav-collapsed .nav-label,
-	html.nav-collapsed .nav-submenu-toggle,
-	html.nav-collapsed .app-nav-empty { display: flex !important; }
-	html.nav-collapsed .v_menu { display: none; }
 	.container,
 	.footer,
 	html.nav-collapsed .container,
@@ -645,10 +639,12 @@ table[data-ux-table] thead th[aria-sort="descending"]::after { color: var(--rw-p
 		justify-content: center;
 		width: 38px;
 		height: 38px;
+		box-sizing: border-box;
 		border: 1px solid var(--rw-border);
 		border-radius: 7px;
 		background: var(--rw-surface);
 	}
+	html.nav-mobile-open .app-mobile-nav-toggle { left: calc(min(290px, 86vw) - 46px); }
 	.app-nav-backdrop {
 		position: fixed;
 		inset: 0;

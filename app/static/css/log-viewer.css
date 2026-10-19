@@ -18,7 +18,7 @@
 #log-source {width:190px; flex:0 1 190px;}
 :is(#log-viewer, #overview-logs) #serv, #log_files {width:150px; flex:0 1 150px;}
 :is(#log-viewer, #overview-logs) .log-search-control {display:flex; align-items:center; gap:8px; flex:1 1 160px; min-width:120px; height:34px; padding:0 10px; margin:0; border:1px solid var(--log-border); border-radius:4px; color:var(--log-muted); background:var(--log-surface);}
-:is(#log-viewer, #overview-logs) :is(#log-search, #overview-log-search) {width:100%; min-width:0; height:30px; margin:0; padding:0; background:transparent; border:0; border-radius:0; box-shadow:none; color:var(--log-text); font:inherit; font-weight:400;}
+#log-viewer #log-search {width:100%; min-width:0; height:30px; margin:0; padding:0; background:transparent; border:0; border-radius:0; box-shadow:none; color:var(--log-text); font:inherit; font-weight:400;}
 :is(#log-viewer, #overview-logs) .log-icon-control {width:34px; padding:0;}
 #log-filter-active {position:absolute; right:3px; top:-6px; color:var(--log-accent); font-size:20px;}
 :is(#log-viewer, #overview-logs) .log-popover {position:relative; flex-shrink:0;}
@@ -44,7 +44,7 @@
 #log-live[aria-pressed=true] {background:var(--log-accent-bg);}
 :is(#log-viewer, #overview-logs) .log-live-dot {width:6px; height:6px; background:currentColor; border-radius:50%;}
 :is(#log-viewer, #overview-logs) .log-statusbar {display:flex; justify-content:space-between; gap:12px; padding:14px 0 10px; color:var(--log-muted); font-size:12px;}
-:is(#log-notice, #overview-log-notice) {white-space:pre-line; color:var(--log-warn); background:var(--log-warn-bg); padding:8px 12px; margin-bottom:10px; border-radius:4px; font-size:12px;}
+#log-notice {white-space:pre-line; color:var(--log-warn); background:var(--log-warn-bg); padding:8px 12px; margin-bottom:10px; border-radius:4px; font-size:12px;}
 :is(#log-output, #overview-log-output) {max-height:65vh; overflow:auto; border:1px solid var(--log-border); border-radius:6px; background:var(--log-surface); scrollbar-gutter:stable;}
 :is(#log-output, #overview-log-output):empty {display:none;}
 #log-empty {padding:30px; text-align:center; background:var(--log-surface); border:1px solid var(--log-border); border-radius:6px; color:var(--log-muted);}
@@ -89,18 +89,13 @@
     :is(#log-viewer, #overview-logs) .log-fields {grid-template-columns:90px minmax(0,1fr);gap:8px 12px;}
 }
 
-#overview-logs {box-sizing:border-box;}
-#overview-logs #overview-log-title {color:var(--log-text); font-weight:600;}
-#overview-logs .overview-log-range {color:var(--log-muted); font-size:12px;}
-#overview-logs .log-search-control {margin-left:auto; max-width:260px;}
+#overview-logs {box-sizing:border-box; table-layout:fixed;}
 #overview-logs .log-row>summary {grid-template-columns:12px minmax(0,1fr) 65px 112px; gap:6px 8px;}
 #overview-logs .log-message {grid-column:2/-1;}
-#overview-log-expand {margin-top:10px!important;}
 @media(max-width:620px) {
     #overview-logs {min-width:0;}
 }
 @media(max-width:480px) {
-    #overview-logs .log-search-control {max-width:none;}
     #overview-logs .log-row>summary {grid-template-columns:12px minmax(0,1fr) 65px;}
     #overview-logs .log-process {grid-column:2/-1;}
 }

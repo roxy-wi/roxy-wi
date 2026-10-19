@@ -564,6 +564,12 @@ pre {
 	text-decoration: underline;
 	color: var(--right-menu-blue-rolor);
 }
+.overviewHead button.add-button-wi {
+	border: none;
+	background: transparent;
+	font-family: inherit;
+	box-shadow: none;
+}
 .serverDown {
 	background-color: var(--red-color);
 }
@@ -755,97 +761,58 @@ ul{
 	color: var(--color-secondary);
 	text-align: center;
 }
-html.nav-collapsed .top-menu {
-	width: 68px;
-}
-html.nav-collapsed .container,
-html.nav-collapsed .footer {
-	margin-left: 68px;
-}
-html.nav-collapsed .footer {
-	max-width: calc(100% - 88px);
-}
-html.nav-collapsed .app-nav-header {
-	justify-content: center;
-	padding: 0;
-}
-html.nav-collapsed .app-nav-logo,
-html.nav-collapsed .app-nav-search,
-html.nav-collapsed .nav-group-toggle,
-html.nav-collapsed .nav-label,
-html.nav-collapsed .nav-submenu-toggle,
-html.nav-collapsed .v_menu,
-html.nav-collapsed .app-nav-empty {
-	display: none !important;
-}
-html.nav-collapsed .app-nav-collapse {
-	transform: rotate(180deg);
-}
-html.nav-collapsed .app-nav-scroll {
-	padding: 8px 7px;
-}
-html.nav-collapsed .nav-group {
-	margin: 0;
-}
-html.nav-collapsed .nav-group-items {
-	display: block !important;
-}
-html.nav-collapsed .nav-service-row,
-html.nav-collapsed .nav-link {
-	justify-content: center;
-}
-html.nav-collapsed .menu a {
-	padding: 8px;
-}
-html.nav-collapsed .nav-link .nav-icon,
-html.nav-collapsed .nav-link .menu-vendor-logo,
-html.nav-collapsed .nav-link > svg {
-	flex-basis: 22px;
-	width: 22px;
-}
-@media (max-width: 900px) {
-	.top-menu {
+@media (min-width: 901px) {
+	html.nav-collapsed .top-menu {
 		width: 68px;
 	}
-	.container,
-	.footer {
+	html.nav-collapsed .container,
+	html.nav-collapsed .footer {
 		margin-left: 68px;
 	}
-	.footer {
+	html.nav-collapsed .footer {
 		max-width: calc(100% - 88px);
 	}
-	.app-nav-header {
+	html.nav-collapsed .app-nav-header {
 		justify-content: center;
 		padding: 0;
 	}
-	.app-nav-collapse {
+	html.nav-collapsed .app-nav-logo,
+	html.nav-collapsed .app-nav-search,
+	html.nav-collapsed .nav-group-toggle,
+	html.nav-collapsed .nav-label,
+	html.nav-collapsed .nav-submenu-toggle,
+	html.nav-collapsed .v_menu,
+	html.nav-collapsed .app-nav-empty {
 		display: none !important;
 	}
-	.app-nav-logo,
-	.app-nav-search,
-	.nav-group-toggle,
-	.nav-label,
-	.nav-submenu-toggle,
-	.v_menu,
-	.app-nav-empty {
-		display: none !important;
+	html.nav-collapsed .app-nav-collapse {
+		transform: rotate(180deg);
 	}
-	.app-nav-scroll {
+	html.nav-collapsed .app-nav-scroll {
 		padding: 8px 7px;
 	}
-	.nav-group {
+	html.nav-collapsed .nav-group {
 		margin: 0;
 	}
-	.nav-group-items {
+	html.nav-collapsed .nav-group-items {
 		display: block !important;
 	}
-	.nav-service-row,
-	.nav-link {
+	html.nav-collapsed .nav-service-row,
+	html.nav-collapsed .nav-link {
 		justify-content: center;
 	}
-	.menu a {
+	html.nav-collapsed .menu a {
 		padding: 8px;
 	}
+	html.nav-collapsed .nav-link .nav-icon,
+	html.nav-collapsed .nav-link .menu-vendor-logo,
+	html.nav-collapsed .nav-link > svg {
+		flex-basis: 22px;
+		width: 22px;
+	}
+}
+@media (max-width: 900px) {
+	.app-nav-collapse { display: none !important; }
 }
 .form-control {
     background: no-repeat bottom, 50% calc(100% - 1px);
