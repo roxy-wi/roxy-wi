@@ -88,7 +88,17 @@ class LogQuery:
             return None, True
         if not self.start <= timestamp <= self.end:
             return None, False
-        return {'text': line, 'timestamp': timestamp.isoformat()}, False
+        entry = {'text': line, 'timestamp': timestamp.isoformat()}
+        if line.startswith('--'):
+            # Keep the complete audit transaction in Raw; do not render response
+            # bodies as the collapsed message in the shared log viewer.
+            message = re.search(r'(?m)^(?:Message: |ModSecurity: )(.+)$', line)
+            request = re.search(r'(?m)^(?:GET|HEAD|POST|PUT|DELETE|PATCH|OPTIONS|CONNECT|TRACE) \S+ (?:HTTP/)?\d+(?:\.\d+)?', line)
+            if message or request:
+                entry['message'] = ' · '.join(match[0] for match in (request, message) if match)[:1000]
+            else:
+                entry['message'] = line.splitlines()[0]
+        return entry, False
 
 
 def parse_timestamp(line, record, reference, tz):
@@ -108,10 +118,11 @@ def parse_timestamp(line, record, reference, tz):
         if match:
             value = datetime.fromisoformat(match[1].replace('Z', '+00:00').replace(',', '.'))
         else:
-            match = re.search(r'\[(\d\d)/(\w{3})/(\d{4}):(\d\d:\d\d:\d\d) ([+-]\d{4})\]', line[:300])
+            match = re.search(r'\[(\d\d)/(\w{3})/(\d{4}):(\d\d:\d\d:\d\d(?:\.\d{1,6})?) ([+-]\d{4})\]', line[:300])
             if match:
                 date = f'{match[3]}-{MONTHS[match[2]]:02}-{match[1]} {match[4]} {match[5]}'
-                return datetime.strptime(date, '%Y-%m-%d %H:%M:%S %z').astimezone(timezone.utc)
+                pattern = '%Y-%m-%d %H:%M:%S.%f %z' if '.' in match[4] else '%Y-%m-%d %H:%M:%S %z'
+                return datetime.strptime(date, pattern).astimezone(timezone.utc)
             match = re.match(r'(\d{4}/\d\d/\d\d \d\d:\d\d:\d\d)', line)
             if match:
                 value = datetime.strptime(match[1], '%Y/%m/%d %H:%M:%S')

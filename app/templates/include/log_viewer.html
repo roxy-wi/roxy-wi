@@ -21,7 +21,12 @@
             <option value="" disabled {% if not serv %}selected{% endif %}>{{lang.words.server|title()}}</option>
             {% for server in servers %}<option value="{{server.2}}" {% if server.2|string == serv|string %}selected{% endif %}>{{server.1}}</option>{% endfor %}
         </select>
-        {% if not waf %}<select id="log_files" class="log-control" aria-label="{{lang.words.log|title()}}" required disabled><option value="">{{lt.select_file}}</option></select>{% endif %}
+        <select id="log_files" class="log-control" aria-label="{{lang.words.log|title()}}" required {% if waf %}data-static="true"{% else %}disabled{% endif %}>
+            {% if waf %}
+            <option value="{{ 'waf.log' if service == 'haproxy' else 'error.log' }}">{{lt.waf_events}}</option>
+            <option value="audit.log">{{lt.waf_audit}}</option>
+            {% else %}<option value="">{{lt.select_file}}</option>{% endif %}
+        </select>
         {% endif %}
         <label class="log-search-control" for="log-search"><span class="fas fa-search" aria-hidden="true"></span><input id="log-search" type="search" maxlength="256" placeholder="{{lt.find}}" aria-label="{{lt.find}}" value="{{grep or ''}}"></label>
         <details id="log-filters" class="log-popover">

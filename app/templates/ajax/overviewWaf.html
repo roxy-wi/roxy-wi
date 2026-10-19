@@ -73,7 +73,7 @@
         {% if role <= 2 %}
         <a href="{{ url_for('waf.waf_rules', service=waf_service, server_ip=service.1) }}" class="ui-button ui-widget ui-corner-all">{{ lang.words.manage|title }} {{ lang.words.rules }}</a>
         {% endif %}
-        <a href="{{ url_for('logs.logs', service=waf_service) }}/waf?serv={{ service.1 }}{% if waf_service == 'nginx' %}&rows=100&grep=ModSecurity&hour=00&minute=00&hour1=24&minute1=00&file=error.log&waf=1{% endif %}" class="ui-button ui-widget ui-corner-all">{{ lang.words.logs|title }}</a>
+        <a href="{{ url_for('logs.logs', service=waf_service, waf='waf', serv=service.1, file='waf.log' if waf_service == 'haproxy' else 'error.log', grep='ModSecurity' if waf_service == 'nginx' else '') }}" class="ui-button ui-widget ui-corner-all">{{ lang.words.logs|title }}</a>
     </footer>
     {% else %}
     {% if role <= 2 %}<button type="button" onclick="installWaf('{{ service.1 }}', '{{ waf_service }}')">{{ lang.words.install|title }} WAF</button>{% endif %}

@@ -1,0 +1,6 @@
+[Unit]
+Description=Rotate Roxy-WI WAF audit logs
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/logrotate --state /var/lib/roxy-wi/waf-logrotate.status /etc/roxy-wi/waf-logrotate.conf

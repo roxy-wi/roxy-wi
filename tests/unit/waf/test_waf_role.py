@@ -68,3 +68,15 @@ def test_modsecurity_include_directory_matches_copy_destination():
     path = environment.from_string(directory['file']['path']).render(**variables)
     destination = environment.from_string(copy['copy']['dest']).render(**variables)
     assert path == destination.rstrip('/')
+
+
+@pytest.mark.parametrize('role,service,apply_task', [
+    ('waf', 'haproxy', 'Start and enable WAF service'),
+    ('waf_nginx', 'nginx', 'Connect and validate WAF'),
+])
+def test_both_installers_configure_audit_rotation_before_starting_waf(role, service, apply_task):
+    tasks = yaml.safe_load((ROLE_DIR.parent / role / 'tasks/main.yml').read_text(encoding='utf-8'))[0]['block']
+    logs = next(task for task in tasks if task.get('ansible.builtin.include_role', {}).get('name') == 'waf_logs')
+    apply = next(task for task in tasks if task['name'] == apply_task)
+    assert logs['vars']['waf_log_service'] == service
+    assert tasks.index(logs) < tasks.index(apply)

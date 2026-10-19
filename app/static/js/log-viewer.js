@@ -51,7 +51,8 @@
             catch (error) { if (!(error instanceof SyntaxError)) throw error; }
         }
         if (!record || typeof record !== 'object' || Array.isArray(record)) record = null;
-        const message = record && typeof record.message === 'string' ? record.message : entry.text;
+        const message = typeof entry.message === 'string' ? entry.message
+            : record && typeof record.message === 'string' ? record.message : entry.text;
         let level = typeof record?.level === 'string' ? record.level.toUpperCase() : '';
         if (level === 'WARN') level = 'WARNING';
         if (level === 'FATAL') level = 'CRITICAL';
@@ -343,6 +344,11 @@
         function loadFiles(preferred = '') {
             const select = document.getElementById('log_files');
             if (!select) {if (value('serv')) run(false); return;}
+            if (select.dataset.static === 'true') {
+                if (Array.from(select.options).some(option => option.value === preferred)) select.value = preferred;
+                if (value('serv')) run(false);
+                return;
+            }
             const generation = ++fileGeneration;
             if (fileRequest) fileRequest.abort();
             select.replaceChildren(new Option(text.select_file, ''));

@@ -132,3 +132,20 @@ def test_listener_without_ssl_preserves_enabled_options(render_section):
     assert 'ssl crt' not in rendered
     assert 'ssl verify' not in rendered
     assert 'None' not in rendered
+
+
+@pytest.mark.parametrize('domain,expected', [(None, 'localhost'), ('', 'localhost'),
+                                            ('example.com', 'example.com'), ('example.com:8080', 'example.com:8080')])
+@pytest.mark.parametrize('path,expected_path', [('', '/'), ('/health?ready=1', '/health?ready=1')])
+def test_http_checks_always_send_host_and_preserve_the_requested_path(render_section, domain, expected, path, expected_path):
+    rendered = render_section(section_config(health_check={'check': 'httpchk', 'domain': domain, 'path': path}))
+    lines = [line.strip() for line in rendered.splitlines()]
+    assert 'option httpchk' in lines
+    assert f'http-check send meth GET uri {expected_path} ver HTTP/1.1 hdr Host {expected}' in lines
+    assert 'HTTP/1.0' not in rendered
+
+
+def test_non_http_health_checks_are_unchanged(render_section):
+    rendered = render_section(section_config(health_check={'check': 'ssl-hello-chk', 'path': '/'}))
+    assert 'option ssl-hello-chk' in rendered
+    assert 'http-check send' not in rendered

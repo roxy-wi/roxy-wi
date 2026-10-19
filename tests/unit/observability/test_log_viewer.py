@@ -420,7 +420,7 @@ def test_internal_source_selector_only_lists_internal_logs(client, actor, journa
 
 
 @pytest.mark.parametrize('service,waf', [
-    ('haproxy', None), ('nginx', None), ('apache', None), ('keepalived', None), ('haproxy', 'waf'),
+    ('haproxy', None), ('nginx', None), ('apache', None), ('keepalived', None), ('haproxy', 'waf'), ('nginx', 'waf'),
 ])
 def test_service_log_page_keeps_service_fixed(client, actor, monkeypatch, service, waf):
     actor[0].update(role=2, user='', user_services=['1', '2', '3', '4'])
@@ -440,7 +440,8 @@ def test_service_log_page_keeps_service_fixed(client, actor, monkeypatch, servic
     assert b'data-url=' not in page.data
     assert b'id="serv"' in page.data
     assert b'id="log-live"' in page.data
-    assert (b'id="log_files"' in page.data) is (not waf)
+    assert b'id="log_files"' in page.data
+    assert (b'value="audit.log"' in page.data) is bool(waf)
 
 
 def test_remote_file_list_returns_json_and_preserves_spaces(client, actor, monkeypatch):

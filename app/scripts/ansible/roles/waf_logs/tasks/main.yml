@@ -1,0 +1,86 @@
+---
+- name: Require a supported WAF service
+  ansible.builtin.assert:
+    that: waf_log_service in ['haproxy', 'nginx']
+
+- name: Check whether logrotate is already available
+  ansible.builtin.stat:
+    path: /usr/sbin/logrotate
+  register: waf_logrotate_binary
+
+- name: Install WAF audit log rotation
+  ansible.builtin.package:
+    name: logrotate
+    state: present
+  when: not waf_logrotate_binary.stat.exists
+
+- name: Create the private service audit directory
+  ansible.builtin.file:
+    path: /var/log/{{ waf_log_service }}/waf
+    state: directory
+    owner: root
+    group: root
+    mode: '0750'
+
+- name: Create the private audit file without truncating existing records
+  ansible.builtin.file:
+    path: /var/log/{{ waf_log_service }}/waf/audit.log
+    state: touch
+    owner: root
+    group: root
+    mode: '0640'
+    access_time: preserve
+    modification_time: preserve
+
+- name: Check the shared Roxy-WI directories
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop: [/etc/roxy-wi, /var/lib/roxy-wi]
+  register: waf_logrotate_directories
+
+- name: Create missing Roxy-WI directories without changing existing permissions
+  ansible.builtin.file:
+    path: "{{ item.item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop: "{{ waf_logrotate_directories.results }}"
+  when: not item.stat.exists
+
+- name: Separate the service audit log from other WAF installations
+  ansible.builtin.lineinfile:
+    path: "{{ SERVICE_PATH }}/waf/modsecurity.conf"
+    regexp: '^\s*SecAuditLog\s+'
+    line: 'SecAuditLog /var/log/{{ waf_log_service }}/waf/audit.log'
+
+- name: Restrict permissions of newly created audit logs
+  ansible.builtin.lineinfile:
+    path: "{{ SERVICE_PATH }}/waf/modsecurity.conf"
+    regexp: '^\s*SecAuditLogFileMode\s+'
+    line: 'SecAuditLogFileMode 0640'
+
+- name: Install the shared WAF rotation policy and timer
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: '0644'
+  loop:
+    - {src: logrotate.conf, dest: /etc/roxy-wi/waf-logrotate.conf}
+    - {src: roxy-wi-waf-logrotate.service, dest: /etc/systemd/system/roxy-wi-waf-logrotate.service}
+    - {src: roxy-wi-waf-logrotate.timer, dest: /etc/systemd/system/roxy-wi-waf-logrotate.timer}
+  register: waf_logrotate_files
+
+- name: Validate WAF rotation configuration
+  ansible.builtin.command:
+    argv: [logrotate, --debug, /etc/roxy-wi/waf-logrotate.conf]
+  changed_when: false
+
+- name: Check WAF audit log size every hour
+  ansible.builtin.systemd:
+    name: roxy-wi-waf-logrotate.timer
+    daemon_reload: "{{ waf_logrotate_files.changed }}"
+    enabled: true
+    state: started

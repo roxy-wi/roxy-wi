@@ -8,6 +8,7 @@ import base64
 import hashlib
 import json
 import os
+import re
 import stat
 import sys
 from collections import deque
@@ -18,6 +19,31 @@ MAX_LINE = 64 * 1024
 MAX_FILES = 16
 MAX_DIRECTORY_ENTRIES = 4096
 MAX_INITIAL_RECORDS = 10000
+MAX_AUDIT_RECORD = 1024 * 1024
+AUDIT_START = re.compile(rb'(?m)^(--[A-Za-z0-9_-]{1,200}-)A--\r?\n')
+
+
+def audit_record(data, index=0):
+    """Frame one native ModSecurity v2/v3 transaction, retaining partial writes."""
+    start = AUDIT_START.search(data, index)
+    if start is None:
+        end = data.rfind(b'\n', index) + 1
+        if end <= index and len(data) - index > MAX_AUDIT_RECORD:
+            end = len(data)
+        end = max(index, end)
+        return None, end, bool(data[index:end].strip())
+    if start.start() != index:
+        return None, start.start(), bool(data[index:start.start()].strip())
+    end = re.search(rb'(?m)^' + re.escape(start[1]) + rb'Z--\r?\n', data[start.end():])
+    next_start = AUDIT_START.search(data, start.end())
+    stop = start.end() + end.end() if end else None
+    if next_start and (stop is None or next_start.start() < stop):
+        return None, next_start.start(), True
+    if stop is not None:
+        return (data[index:stop] if stop - index <= MAX_AUDIT_RECORD else None), stop, stop - index > MAX_AUDIT_RECORD
+    if len(data) - index > MAX_AUDIT_RECORD:
+        return None, max(start.end(), data.rfind(b'\n') + 1), True
+    return None, index, False
 
 
 def identity(info):
@@ -74,7 +100,9 @@ def candidates(path):
     return files, active, limited
 
 
-def read_log(path, previous=None, limit=100):
+def read_log(path, previous=None, limit=100, record_format='lines'):
+    if record_format not in {'lines', 'modsecurity'}:
+        raise ValueError('Unknown log format')
     if not os.path.isabs(path) or '\0' in path or not 1 <= limit <= 1000:
         raise ValueError('Invalid log request')
     files, active, limited = candidates(path)
@@ -91,7 +119,7 @@ def read_log(path, previous=None, limit=100):
     files.sort(key=lambda pair: (identity(pair[1]) == active_id,
                                old_order.get(identity(pair[1]), MAX_FILES), pair[1].st_mtime_ns))
     positions, chunks = {}, deque(maxlen=MAX_INITIAL_RECORDS)
-    budget = SNAPSHOT_BYTES if previous is None else FOLLOW_BYTES
+    budget = SNAPSHOT_BYTES if previous is None or record_format == 'modsecurity' else FOLLOW_BYTES
     remaining = None if previous is None else limit
     more = False
     for filename, listed in files:
@@ -149,17 +177,27 @@ def read_log(path, previous=None, limit=100):
                 index = len(data) if newline < 0 else newline + 1
                 offset, dropping = base + index, newline < 0
             while index < len(data) and remaining != 0:
-                newline = data.find(b'\n', index)
-                if newline < 0:
-                    if len(data) - index > MAX_LINE:
-                        offset, dropping, limited = base + len(data), True, True
-                    break  # Leave an incomplete ordinary record for the next poll.
-                raw = data[index:newline + 1]
-                index = newline + 1
-                offset = base + index
-                if len(raw) - 1 > MAX_LINE:
-                    limited = True
-                    continue
+                if record_format == 'modsecurity':
+                    raw, next_index, skipped = audit_record(data, index)
+                    limited |= skipped
+                    if next_index == index:
+                        break
+                    index = next_index
+                    offset = base + index
+                    if raw is None:
+                        continue
+                else:
+                    newline = data.find(b'\n', index)
+                    if newline < 0:
+                        if len(data) - index > MAX_LINE:
+                            offset, dropping, limited = base + len(data), True, True
+                        break  # Leave an incomplete ordinary record for the next poll.
+                    raw = data[index:newline + 1]
+                    index = newline + 1
+                    offset = base + index
+                    if len(raw) - 1 > MAX_LINE:
+                        limited = True
+                        continue
                 if len(chunks) == chunks.maxlen:
                     limited = True
                 chunks.append(raw)
@@ -186,7 +224,7 @@ def read_log(path, previous=None, limit=100):
 def main():
     try:
         request = json.loads(sys.stdin.buffer.read(40001))
-        result = read_log(request['path'], request.get('position'), int(request.get('limit', 100)))
+        result = read_log(request['path'], request.get('position'), int(request.get('limit', 100)), request.get('format', 'lines'))
     except (OSError, ValueError, KeyError, TypeError):
         # Never return a path, log contents or a traceback from privileged code.
         print(json.dumps({'error': 'Cannot read the service log'}))

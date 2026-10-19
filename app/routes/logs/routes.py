@@ -88,6 +88,8 @@ def query_service_logs(service):
             params = g.user_params
             result = log_follow.follow(*args, cursor=request.values.get('cursor'),
                                        scope=[params['user_id'], params['group_id'], params['role']])
+        elif args[3] and args[2] == 'audit.log':
+            result = log_follow.snapshot(*args)
         else:
             result = log_snapshot.remote_snapshot(*args)
     except ValueError as exc:

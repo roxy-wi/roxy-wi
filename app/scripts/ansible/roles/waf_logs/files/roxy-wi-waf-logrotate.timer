@@ -1,0 +1,10 @@
+[Unit]
+Description=Check Roxy-WI WAF audit log sizes hourly
+
+[Timer]
+OnCalendar=hourly
+AccuracySec=1min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

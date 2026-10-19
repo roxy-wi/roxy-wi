@@ -112,6 +112,12 @@
         force: false
         mode: '0644'
 
+    - name: Configure NGINX WAF audit logs and rotation
+      ansible.builtin.include_role:
+        name: waf_logs
+      vars:
+        waf_log_service: nginx
+
     - name: Connect and validate WAF
       ansible.builtin.include_tasks: nginx_config.yml
 

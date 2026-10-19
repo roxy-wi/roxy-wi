@@ -300,6 +300,12 @@
         regexp: '^SecAuditLogParts ABIJDEFHZ'
         line: SecAuditLogParts ABIJDEH
 
+    - name: Configure HAProxy WAF audit logs and rotation
+      ansible.builtin.include_role:
+        name: waf_logs
+      vars:
+        waf_log_service: haproxy
+
     - name: Create modsecurity_crs_10_setup
       template:
         src: modsecurity_crs_10_setup.conf.j2

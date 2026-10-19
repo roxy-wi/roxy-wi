@@ -28,6 +28,12 @@ def remote_source(service, server, filename, waf):
         raise ValueError('Unknown service')
     if not re.fullmatch(r'[A-Za-z0-9_.:-]+', server) or '..' in server:
         raise ValueError('Invalid managed server address')
+    if waf and service not in {'haproxy', 'nginx'}:
+        raise ValueError('Unknown WAF service')
+    if waf and filename == 'audit.log':
+        return server, f'/var/log/{service}/waf/audit.log'
+    if waf and not filename:
+        filename = 'waf.log' if service == 'haproxy' else 'error.log'
     if not filename or filename in {'.', '..'} or any(char in filename for char in '/\\\0\r\n'):
         if not (waf and service == 'haproxy'):
             raise ValueError('Select a log file')

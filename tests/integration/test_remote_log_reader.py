@@ -221,5 +221,82 @@ class RemoteLogReaderTests(unittest.TestCase):
         self.assertEqual(len(list(self.root.iterdir())), 2)
 
 
+class AuditLogReaderTests(unittest.TestCase):
+    def setUp(self):
+        self.directory = tempfile.TemporaryDirectory()
+        self.addCleanup(self.directory.cleanup)
+        self.path = Path(self.directory.name) / 'audit.log'
+        self.path.write_bytes(b'')
+
+    def record(self, name='abcd', body=b'body'):
+        prefix = ('---' + name + '---').encode()
+        return prefix + b'A--\n[19/Oct/2026:12:00:00 +0000] id\n' + prefix + b'E--\n' + body + b'\n' + prefix + b'Z--\n'
+
+    def read(self, previous=None, limit=100):
+        return reader.read_log(str(self.path), previous['position'] if previous else None, limit, 'modsecurity')
+
+    def raw(self, result):
+        return base64.b64decode(result['data'])
+
+    def test_records_survive_partial_writes_and_row_limit(self):
+        first = self.read()
+        record = self.record()
+        self.path.write_bytes(record[:-3])
+        partial = self.read(first)
+        self.assertEqual(self.raw(partial), b'')
+        self.assertFalse(partial['more'])
+        self.path.write_bytes(record * 3)
+        second = self.read(partial, limit=1)
+        self.assertEqual(self.raw(second), record)
+        self.assertTrue(second['more'])
+        third = self.read(second, limit=2)
+        self.assertEqual(self.raw(third), record * 2)
+        self.assertEqual(self.raw(self.read(third)), b'')
+
+    def test_incomplete_transaction_is_not_combined_with_next_transaction(self):
+        self.path.write_bytes(self.record('old')[:-15] + b'\n' + self.record('new'))
+        result = self.read()
+        self.assertTrue(result['limited'])
+        self.assertEqual(self.raw(result), self.record('new'))
+
+    def test_bounded_tail_and_oversized_record_do_not_pin_cursor(self):
+        self.path.write_bytes(self.record('old', b'x' * 500) + self.record('new'))
+        with patch.object(reader, 'SNAPSHOT_BYTES', 200):
+            result = self.read()
+        self.assertTrue(result['limited'])
+        self.assertEqual(self.raw(result), self.record('new'))
+        self.path.write_bytes(b'')
+        first = self.read()
+        self.path.write_bytes(self.record('large', b'x' * 500) + self.record('next'))
+        found = b''
+        with patch.object(reader, 'MAX_AUDIT_RECORD', 120), patch.object(reader, 'SNAPSHOT_BYTES', 200):
+            for _ in range(6):
+                first = self.read(first)
+                found += self.raw(first)
+        self.assertEqual(found, self.record('next'))
+        self.assertFalse(first['more'])
+
+    def test_copytruncate_and_rename_preserve_transaction_boundaries(self):
+        self.path.write_bytes(self.record('old'))
+        first = self.read()
+        with self.path.open('ab') as stream:
+            stream.write(self.record('unread'))
+        rotated = self.path.with_suffix('.log.1')
+        shutil.copyfile(self.path, rotated)
+        self.path.write_bytes(self.record('new'))
+        second = self.read(first)
+        self.assertEqual(self.raw(second), self.record('unread') + self.record('new'))
+        self.assertTrue(second['reset'])
+        rotated.unlink()
+        self.path.rename(rotated)
+        self.path.write_bytes(self.record('renamed'))
+        self.assertEqual(self.raw(self.read(second)), self.record('renamed'))
+
+    def test_native_v2_and_crlf_records(self):
+        record = self.record().replace(b'---abcd---', b'--abcd-').replace(b'\n', b'\r\n')
+        self.path.write_bytes(record)
+        self.assertEqual(self.raw(self.read()), record)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)

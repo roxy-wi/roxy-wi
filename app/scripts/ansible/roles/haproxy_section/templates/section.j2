@@ -13,8 +13,9 @@
     maxconn {{ config.maxconn }}
 
     {% if config.health_check not in (none, 'None') -%}
-        {% if config.health_check.check == 'httpchk' and config.health_check.domain -%}
-    option {{ config.health_check.check }} GET {{ config.health_check.path }} "HTTP/1.0\\r\\nHost: {{ config.health_check.domain }}
+        {% if config.health_check.check == 'httpchk' -%}
+    option httpchk
+    http-check send meth GET uri {{ config.health_check.path or '/' }} ver HTTP/1.1 hdr Host {{ config.health_check.domain or 'localhost' }}
         {% else -%}
     option {{ config.health_check.check }}
         {% endif -%}
