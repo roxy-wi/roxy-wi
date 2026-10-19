@@ -12,6 +12,7 @@ from flask import g
 from flask_jwt_extended import create_access_token
 
 from app.modules.config import common as config_common, config as config_mod
+from app.modules.db.db_model import WafRules
 from app.modules.roxywi import auth, common, logger, log_snapshot
 from app.modules.roxywi.class_models import SSLCertUploadRequest
 from app.modules.roxywi.exception import RoxywiResourceNotFound
@@ -153,26 +154,30 @@ def test_waf_rejects_actions_before_writing(client, actor, monkeypatch, json_req
 def test_waf_save_action_contract(client, actor, monkeypatch, tmp_path, json_request, verb):
     actor[0]['role'] = 2
     calls = []
+    monkeypatch.setenv('ROXYWI_LIB_PATH', str(tmp_path / 'lib'))
     monkeypatch.setattr(waf_routes.roxywi_common, 'check_is_server_in_group', lambda *a: None)
+    monkeypatch.setattr(waf_routes.server_sql, 'is_master', lambda _: [])
     monkeypatch.setattr(waf_routes.sql, 'get_setting', lambda name, **k: 'UTC' if name == 'time_zone' else str(tmp_path) + '/')
     monkeypatch.setattr(waf_routes.common, 'resolve_waf_config_path', lambda *a: '/etc/waf/test.conf')
-    monkeypatch.setattr(waf_routes.waf_sql, 'get_waf_rule',
-                        lambda *a: SimpleNamespace(service='haproxy', rule_file='test.conf'))
+    rule = WafRules(id=1, serv='192.0.2.10', service='haproxy', rule_name='Test rule', rule_file='test.conf', en=1)
+    monkeypatch.setattr(waf_routes.waf_sql, 'get_waf_rule', lambda *a: rule)
     def upload(*args, **kwargs):
-        calls.append((args, Path(args[1]).read_text()))
+        calls.append((args, kwargs, Path(args[1]).read_text()))
         return 'saved'
     monkeypatch.setattr(waf_routes.config_mod, 'upload_and_restart', upload)
     data = {'config': 'synthetic', 'config_file_name': 'test.conf', ('action' if json_request else 'save'): verb}
     response = client.post('/waf/haproxy/192.0.2.10/rule/1/save', headers=actor[1], **({'json': data} if json_request else {'data': data}))
     if verb == 'reload':
-        assert response.status_code == 400
+        assert response.status_code == 400, response.get_data(as_text=True)
         assert not calls
         assert not list(tmp_path.glob('waf-save-*'))
         return
-    assert response.status_code == 200
-    assert calls, response.get_data(as_text=True)
+    assert response.status_code == 200, response.get_data(as_text=True)
+    assert len(calls) == 1
+    assert calls[0][0][0] == rule.serv and calls[0][0][3] == 'waf'
     assert calls[0][0][2] == verb
-    assert calls[0][1] == 'synthetic'
+    assert calls[0][1] == {'waf': 'haproxy', 'config_file_name': '/etc/waf/test.conf', 'normalize_config': True}
+    assert calls[0][2] == 'synthetic'
     assert not Path(calls[0][0][1]).exists()
     if json_request:
         assert response.json['data'] == 'saved'

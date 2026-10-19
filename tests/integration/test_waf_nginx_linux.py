@@ -15,6 +15,7 @@ import sys
 import time
 from types import SimpleNamespace
 from urllib.error import HTTPError
+from urllib.parse import urljoin
 from urllib.request import Request, urlopen
 
 import pytest
@@ -359,17 +360,18 @@ def test_wizard_generated_rules_and_scoped_exclusion_filter_real_requests(nginx_
                                       ('/and?body=attack', {}, 403),
                                       ('/other?body=attack', {'X-Exclude': 'yes'}, 403),
                                       ('/and?token=blocked', {}, 403), ('/other?token=blocked', {}, 200)]:
+        request = Request(urljoin(state.url, suffix), headers=headers)
         deadline = time.monotonic() + 10
         while True:
             try:
-                with urlopen(Request(state.url + suffix, headers=headers), timeout=1) as response:
+                with urlopen(request, timeout=1) as response:
                     status = response.status
             except HTTPError as error:
                 status = error.code
                 error.close()
             if status == expected:
                 break
-            assert time.monotonic() < deadline, f'{suffix}: HTTP {status}, expected {expected}'
+            assert time.monotonic() < deadline, f'{request.full_url}: HTTP {status}, expected {expected}'
             time.sleep(0.05)
 
 

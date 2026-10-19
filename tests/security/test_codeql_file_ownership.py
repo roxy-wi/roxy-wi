@@ -7,7 +7,7 @@ from peewee import SqliteDatabase
 
 from app.modules.config import add, common as config_common, config as config_mod
 from app.modules.db import config as config_sql, server as server_sql
-from app.modules.db.db_model import Server, ConfigVersion
+from app.modules.db.db_model import Server, ConfigVersion, WafRules
 from app.modules.roxywi import auth, common
 from app.routes.config import routes
 from app.routes.waf import routes as waf_routes
@@ -223,27 +223,29 @@ def test_map_symlinks_cannot_target_other_groups(maps, directory_link):
 
 @pytest.mark.parametrize('service', ['haproxy', 'nginx'])
 def test_waf_candidates_have_independent_paths(client, editor, tmp_path, monkeypatch, service):
+    monkeypatch.setenv('ROXYWI_LIB_PATH', str(tmp_path / 'lib'))
     monkeypatch.setattr(auth, 'is_admin', lambda level=1, **_: 2 <= level)
     monkeypatch.setattr(waf_routes.roxywi_common, 'check_is_server_in_group', lambda *a: None)
+    monkeypatch.setattr(waf_routes.server_sql, 'is_master', lambda _: [])
     monkeypatch.setattr(waf_routes.sql, 'get_setting', lambda key: str(tmp_path) + '/')
     monkeypatch.setattr(waf_routes.common, 'resolve_waf_config_path', lambda *a: '/etc/waf/rules/test.conf')
-    monkeypatch.setattr(waf_routes.waf_sql, 'get_waf_rule',
-                        lambda *a: SimpleNamespace(service=service, rule_file='test.conf'))
+    rule = WafRules(id=1, serv=SERVER, service=service, rule_name='Test rule', rule_file='test.conf', en=1)
+    monkeypatch.setattr(waf_routes.waf_sql, 'get_waf_rule', lambda *a: rule)
     candidates = []
     contents = []
     def upload(server, cfg, action, config_service, **kwargs):
         assert (server, action, config_service) == (SERVER, 'save', 'waf')
-        assert kwargs == {'waf': service, 'config_file_name': '/etc/waf/rules/test.conf'}
+        assert kwargs == {'waf': service, 'config_file_name': '/etc/waf/rules/test.conf', 'normalize_config': True}
         candidates.append(Path(cfg))
         contents.append(Path(cfg).read_text())
         return 'saved'
     monkeypatch.setattr(config_mod, 'upload_and_restart', upload)
     monkeypatch.setattr(config_mod, 'master_slave_upload_and_restart',
-                        lambda *a, **kw: pytest.fail('WAF saves must target only the selected server'))
+                        lambda *a, **kw: pytest.fail('WAF synchronization must use per-server uploads'))
     for content in ['first', 'second']:
         response = client.post(f'/waf/{service}/{SERVER}/rule/1/save', headers=editor,
                                json={'action': 'save', 'config': content, 'config_file_name': 'test.conf'})
-        assert response.status_code == 200 and response.json['data'] == 'saved'
+        assert response.status_code == 200 and response.json['data'] == 'saved', response.get_data(as_text=True)
     assert len(set(candidates)) == 2
     assert contents == ['first', 'second']
     assert all(path.parent.parent == tmp_path and not path.parent.exists() for path in candidates)
