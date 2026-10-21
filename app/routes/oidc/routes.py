@@ -219,7 +219,7 @@ def oidc_login(slug: str):
         session[f'oidc_return_to:{provider.slug}'] = roxywi_auth.safe_next_url(request.args.get('next'))
         return redirect(authorization_url)
     except RoxywiResourceNotFound as exc:
-        return jsonify({'status': 'failed', 'error': 'oidc_provider_not_found', 'message': str(exc)}), 404
+        return jsonify({'status': 'failed', 'error': 'oidc_provider_not_found', 'message': exc.public_message}), 404
     except OidcLoginError as exc:
         return _error_response(exc)
 
@@ -230,7 +230,7 @@ def oidc_callback(slug: str):
     try:
         provider = oidc_sql.get_provider_by_slug(slug, enabled_only=True)
     except RoxywiResourceNotFound as exc:
-        return jsonify({'status': 'failed', 'error': 'oidc_provider_not_found', 'message': str(exc)}), 404
+        return jsonify({'status': 'failed', 'error': 'oidc_provider_not_found', 'message': exc.public_message}), 404
 
     if request.args.get('error'):
         return jsonify({

@@ -30,7 +30,7 @@ def _additional_services_access_error(*enabled: bool):
     try:
         require_feature(MANAGED_SERVICES)
     except RoxywiPermissionError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 403
     return None
 
 

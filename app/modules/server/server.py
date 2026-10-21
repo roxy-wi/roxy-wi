@@ -18,6 +18,7 @@ import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 from app.modules.db.db_model import LetsEncrypt, LetsEncryptState
 from app.modules.roxywi.exception import RoxywiConflictError
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 def ssh_command(server_ip: str, commands: str, **kwargs):
@@ -379,11 +380,11 @@ def show_system_info(server_ip: str, server_id: int) -> str:
 		try:
 			get_system_info(server_ip)
 		except Exception as e:
-			return f'Cannot get system info: {e}'
+			return f'Cannot get system info: {safe_error_message(e)}'
 		try:
 			system_info = server_sql.select_one_system_info(server_id)
 		except Exception as e:
-			return f'Cannot update server info: {e}'
+			return f'Cannot update server info: {safe_error_message(e)}'
 	else:
 		system_info = server_sql.select_one_system_info(server_id)
 	return render_template('ajax/show_system_info.html', system_info=system_info, server_ip=server_ip, server_id=server_id)
@@ -395,12 +396,12 @@ def update_system_info(server_ip: str, server_id: int) -> str:
 	try:
 		get_system_info(server_ip)
 	except Exception as e:
-		return f'{e}'
+		return 'error: ' + safe_error_message(e)
 	try:
 		system_info = server_sql.select_one_system_info(server_id)
 		return render_template('ajax/show_system_info.html', system_info=system_info, server_ip=server_ip, server_id=server_id)
 	except Exception as e:
-		return f'error: Cannot update server info: {e}'
+		return f'error: Cannot update server info: {safe_error_message(e)}'
 
 
 def show_firewalld_rules(server_ip) -> str:
@@ -536,7 +537,7 @@ def change_server_services(server_id: int, server_name: str, server_services: di
 			roxywi_common.logging('Roxy-WI server', f'Active services have been updated for {server_name}', login=1)
 			return 'ok'
 	except Exception as e:
-		return f'error: {e}'
+		return f'error: {safe_error_message(e)}'
 
 
 def start_ssh_agent() -> dict:

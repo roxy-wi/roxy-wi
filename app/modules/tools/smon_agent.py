@@ -7,15 +7,16 @@ import app.modules.db.server as server_sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 from app.modules.service.installation import run_ansible_thread
+from app.modules.roxywi.exception import RoxywiInputError
 
 
 def generate_agent_inc(server_ip: str, action: str, agent_uuid: uuid) -> object:
     agent_port = sql.get_setting('agent_port')
     master_port = sql.get_setting('master_port')
     master_ip = sql.get_setting('master_ip')
-    if not master_ip: raise Exception('error: Master IP cannot be empty')
-    if master_port == '': raise Exception('error: Master port cannot be empty')
-    if agent_port == '': raise Exception('error: Agent port cannot be empty')
+    if not master_ip: raise RoxywiInputError('error: Master IP cannot be empty')
+    if master_port == '': raise RoxywiInputError('error: Master port cannot be empty')
+    if agent_port == '': raise RoxywiInputError('error: Agent port cannot be empty')
     inv = {"server": {"hosts": {}}}
     server_ips = [server_ip]
     inv['server']['hosts'][server_ip] = {
@@ -33,9 +34,9 @@ def check_agent_limit():
     user_subscription = roxywi_common.return_user_subscription()
     count_agents = smon_sql.count_agents()
     if user_subscription['user_plan'] == 'user' and count_agents >= 1:
-        raise Exception('error: You have reached limit for Home plan')
+        raise RoxywiInputError('error: You have reached limit for Home plan')
     elif user_subscription['user_plan'] == 'company' and count_agents >= 5:
-        raise Exception('error: You have reached limit for Enterprise plan')
+        raise RoxywiInputError('error: You have reached limit for Enterprise plan')
 
 
 def add_agent(data) -> tuple[int, int]:
@@ -55,6 +56,8 @@ def add_agent(data) -> tuple[int, int]:
         )
         roxywi_common.logging(server_ip, 'A new SMON agent has been created', roxywi=1, login=1, keep_history=1, service='SMON')
         return last_id, task_id
+    except RoxywiInputError:
+        raise
     except Exception as e:
         roxywi_common.handle_exceptions(e, 'Roxy-WI server', 'Cannot create Agent', roxywi=1, login=1)
 
@@ -67,6 +70,8 @@ def delete_agent(agent_id: int) -> int:
         return run_ansible_thread(
             inv, server_ips, 'smon_agent', f'SMON agent {agent_id}'
         )
+    except RoxywiInputError:
+        raise
     except Exception as e:
         roxywi_common.handle_exceptions(e, server_ip, 'Cannot uninstall SMON agent', roxywi=1, login=1)
 
@@ -91,6 +96,8 @@ def update_agent(json_data) -> int | None:
             return run_ansible_thread(
                 inv, server_ips, 'smon_agent', f'SMON agent {agent_id}'
             )
+        except RoxywiInputError:
+            raise
         except Exception as e:
             roxywi_common.handle_exceptions(e, server_ip, 'Cannot reconfigure SMON agent', roxywi=1, login=1)
     return None

@@ -13,6 +13,7 @@ from itsdangerous import BadData, URLSafeTimedSerializer
 
 from app.modules.roxy_wi_tools import GetConfigVar
 from app.modules.roxywi.log_store import store_path
+from app.modules.roxywi.exception import RoxywiInputError
 
 MAX_FILES = 128
 MAX_BYTES = 4 * 1024 * 1024
@@ -28,7 +29,7 @@ MONTHS = {name: number for number, name in enumerate(
 def iso_time(value):
     result = datetime.fromisoformat(str(value).replace('Z', '+00:00'))
     if result.tzinfo is None:
-        raise ValueError('Dates must include a timezone')
+        raise RoxywiInputError('Dates must include a timezone')
     return result.astimezone(timezone.utc)
 
 
@@ -37,26 +38,26 @@ class LogQuery:
         now = now or datetime.now(timezone.utc)
         self.limit = int(values.get('limit', 100))
         if not 1 <= self.limit <= MAX_ROWS:
-            raise ValueError('The row limit must be between 1 and 1000')
+            raise RoxywiInputError('The row limit must be between 1 and 1000')
         self.relative = int(values.get('relative', 0))
         if self.relative:
             if not 60 <= self.relative <= 31 * 86400:
-                raise ValueError('Relative range must be between 1 minute and 31 days')
+                raise RoxywiInputError('Relative range must be between 1 minute and 31 days')
             self.end, self.start = now, now - timedelta(seconds=self.relative)
         else:
             self.start, self.end = iso_time(values.get('from')), iso_time(values.get('to'))
         if self.start >= self.end or self.end - self.start > timedelta(days=31):
-            raise ValueError('Choose an increasing time range of at most 31 days')
+            raise RoxywiInputError('Choose an increasing time range of at most 31 days')
         self.include, self.exclude = values.get('search', ''), values.get('exclude', '')
         self.process = values.get('process', '')
         if self.process and self.process not in PROCESS_ROLES:
-            raise ValueError('Unknown application process')
+            raise RoxywiInputError('Unknown application process')
         if len(self.include) > 256 or len(self.exclude) > 256:
-            raise ValueError('Search text must be at most 256 characters')
+            raise RoxywiInputError('Search text must be at most 256 characters')
         try:
             self.tz = pytz.timezone(values.get('timezone', 'UTC'))
         except pytz.UnknownTimeZoneError as exc:
-            raise ValueError('Unknown log timezone') from exc
+            raise RoxywiInputError('Unknown log timezone') from exc
 
     def signature(self, source, scope):
         parts = [source, scope, self.limit, self.include, self.exclude, self.process, str(self.tz), self.relative]
@@ -163,11 +164,11 @@ def source_files(source):
     if source == 'runtime':
         root = store_path()
         if root is None:
-            raise ValueError('The log journal is disabled')
+            raise RoxywiInputError('The log journal is disabled')
         candidates = root.glob('rwi-*.log')
     else:
         if source not in dict(sources()):
-            raise ValueError('Unknown log source')
+            raise RoxywiInputError('Unknown log source')
         root = Path(GetConfigVar().get_config_var('main', 'log_path', '/var/log/roxy-wi'))
         candidates = root.glob(source + '*')
     paths = []
@@ -197,13 +198,13 @@ def read_logs(source, query, cursor=None, scope=None, group_id=None):
     previous = None
     if cursor:
         if len(cursor) > 40000:
-            raise ValueError('Invalid log cursor')
+            raise RoxywiInputError('Invalid log cursor')
         try:
             previous = signer.loads(cursor, max_age=86400)
             if previous['query'] != signature:
-                raise ValueError('The log query changed; reload the view')
+                raise RoxywiInputError('The log query changed; reload the view')
         except (BadData, KeyError, TypeError) as exc:
-            raise ValueError('The log cursor expired; reload the view') from exc
+            raise RoxywiInputError('The log cursor expired; reload the view') from exc
     files, limited = source_files(source)
     positions, entries = {}, []
     unparsed, budget, more, reset = 0, MAX_BYTES, False, False

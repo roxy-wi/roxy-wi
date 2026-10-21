@@ -11,6 +11,7 @@ import app.modules.server.server as server_mod
 from app.modules.server.command import build_remote_command
 import app.modules.config.config as config_mod
 import app.modules.roxywi.common as roxywi_common
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 def stat_page_action(server_ip: str, group_id: int) -> bytes:
@@ -211,7 +212,7 @@ def runtime_command(serv: str, enable: str, backend: str, save: str) -> str:
     try:
         output = server_mod.ssh_command(serv, cmd, show_log="1")
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
     else:
         if enable != "show":
             roxywi_common.logging(serv, f'Has been {enable}ed {backend}', keep_history=1, service='haproxy')

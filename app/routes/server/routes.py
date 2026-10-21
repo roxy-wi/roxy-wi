@@ -20,6 +20,7 @@ from app.views.server.views import ServerView, ServerGroupView, ServerGroupsView
 from app.views.server.cred_views import CredView, CredsView
 from app.views.server.backup_vews import BackupView, S3BackupView, GitBackupView
 from app.modules.roxywi.class_models import DomainName
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 def register_api(view, endpoint, url, pk='listener_id', pk_type='int'):
@@ -61,7 +62,7 @@ def check_ssh(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return server_mod.ssh_command(str(server_ip), "ls -1t")
     except Exception as e:
-        return str(e)
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/check/server/<int:server_id>')

@@ -18,6 +18,7 @@ import app.modules.service.exporter_installation as exp_installation
 from app.views.install.views import InstallView
 from app.modules.roxywi.class_models import DomainName
 from app.modules.db.db_model import InstallationTasks
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 bp.add_url_rule(
@@ -68,7 +69,7 @@ def install_exporter(exporter):
         task_id = exp_installation.install_exporter(server_ip, ver, exporter)
         return jsonify({"status": "accepted", "tasks_ids": [task_id]}), 202
     except Exception as e:
-        return jsonify({'status': 'failed', 'error': f'Cannot install {exporter.title()} exporter: {e}'})
+        return jsonify({'status': 'failed', 'error': f'Cannot install {exporter.title()} exporter: {safe_error_message(e)}'})
 
 
 @bp.route('/exporter/<exporter>/version/<server_ip>')
@@ -87,7 +88,7 @@ def install_waf(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         inv, server_ips = service_mod.generate_waf_inv(server_ip, service)
     except Exception as e:
-        return jsonify({'status': 'failed', 'error': f'Cannot create inventory: {e}'})
+        return jsonify({'status': 'failed', 'error': f'Cannot create inventory: {safe_error_message(e)}'})
     try:
         task_id = service_mod.run_ansible_thread(
             inv,
@@ -101,7 +102,7 @@ def install_waf(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
             },
         )
     except Exception as e:
-        return jsonify({'status': 'failed', 'error': f'Cannot install WAF: {e}'})
+        return jsonify({'status': 'failed', 'error': f'Cannot install WAF: {safe_error_message(e)}'})
 
     return jsonify({'status': 'accepted', 'tasks_ids': [task_id]}), 202
 
@@ -121,7 +122,7 @@ def install_geoip():
         )
         return jsonify({'status': 'accepted', 'tasks_ids': [task_id]}), 202
     except Exception as e:
-        return jsonify({'status': 'failed', 'error': f'Cannot install GeoIP: {e}'})
+        return jsonify({'status': 'failed', 'error': f'Cannot install GeoIP: {safe_error_message(e)}'})
 
 
 @bp.route('/geoip/<service>/<server_ip>')

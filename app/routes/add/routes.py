@@ -21,6 +21,7 @@ from app.views.service.haproxy_section_views import (GlobalSectionView, Defaults
                                                      UserListSectionView, PeersSectionView)
 from app.views.service.nginx_section_views import UpstreamSectionView, ProxyPassSectionView
 from app.views.service.haproxy_lists_views import HaproxyListView
+from app.modules.roxywi.error_handler import safe_error_message
 
 get_config = roxy_wi_tools.GetConfigVar()
 
@@ -149,7 +150,7 @@ def update_option():
     try:
         add_sql.update_options(option, option_id, g.user_params['group_id'])
     except Exception as e:
-        return str(e)
+        return 'error: ' + safe_error_message(e)
     else:
         return 'ok'
 
@@ -160,7 +161,7 @@ def delete_option(option_id):
     try:
         add_sql.delete_option(option_id, g.user_params['group_id'])
     except Exception as e:
-        return str(e)
+        return 'error: ' + safe_error_message(e)
     else:
         return 'ok'
 
@@ -255,7 +256,7 @@ def create_map():
         try:
             return add_mod.create_map(server_ip, map_name, group)
         except Exception as e:
-            return str(e)
+            return 'error: ' + safe_error_message(e)
     elif request.method == 'PUT':
         content = request.form.get('content')
         action = common.checkAjaxInput(request.form.get('map_restart'))

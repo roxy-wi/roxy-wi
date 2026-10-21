@@ -12,6 +12,8 @@ import app.modules.config.common as config_common
 from app.modules.service.haproxy_runtime import execute_runtime_command
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
+from app.modules.roxywi.error_handler import safe_error_message
+from app.modules.roxywi.exception import RoxywiInputError
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 
@@ -20,7 +22,7 @@ def _runtime_command(server: str, port: int, command: str) -> tuple[list[str], s
 	try:
 		response = execute_runtime_command(server, int(port), command)
 	except Exception as exception:
-		return [''], str(exception)
+		return [''], safe_error_message(exception)
 	lines = response.splitlines()
 	return lines or [''], ''
 
@@ -37,10 +39,10 @@ def _runtime_config_path(config_path: str) -> Path:
 	requested_path = Path(config_path)
 	config_filename = secure_filename(requested_path.name)
 	if not config_filename or config_filename != requested_path.name:
-		raise ValueError('Invalid runtime configuration filename')
+		raise RoxywiInputError('Invalid runtime configuration filename')
 	safe_path = (config_directory / config_filename).resolve()
 	if safe_path.parent != config_directory or requested_path.resolve() != safe_path:
-		raise ValueError('Runtime configuration is outside of the HAProxy configuration directory')
+		raise RoxywiInputError('Runtime configuration is outside of the HAProxy configuration directory')
 	return safe_path
 
 
@@ -142,21 +144,21 @@ def _set_server_maxconn(config_path: str, backend: str, server: str, maxconn: in
 
 def _list_file_path(lib_path: str, user_group: int, list_name: str) -> Path:
 	if not isinstance(list_name, str) or '\\' in list_name or '\x00' in list_name:
-		raise ValueError('Invalid list filename')
+		raise RoxywiInputError('Invalid list filename')
 	parts = PurePosixPath(list_name).parts
 	if len(parts) != 2 or parts[0] not in ('white', 'black'):
-		raise ValueError('List file must belong to the white or black list directory')
+		raise RoxywiInputError('List file must belong to the white or black list directory')
 	list_filename = secure_filename(parts[1])
 	if not list_filename or list_filename != parts[1] or not list_filename.endswith('.lst'):
-		raise ValueError('Invalid list filename')
+		raise RoxywiInputError('Invalid list filename')
 
 	base_path = (Path(lib_path) / 'lists' / str(int(user_group))).resolve()
 	list_directory = (base_path / parts[0]).resolve()
 	if list_directory.parent != base_path:
-		raise ValueError('List file is outside of the group directory')
+		raise RoxywiInputError('List file is outside of the group directory')
 	list_path = (list_directory / list_filename).resolve()
 	if list_path.parent != list_directory:
-		raise ValueError('List file is outside of the group directory')
+		raise RoxywiInputError('List file is outside of the group directory')
 	return list_path
 
 
@@ -237,17 +239,15 @@ def get_backends_from_config(server_ip: str, backends='') -> str:
 	try:
 		cfg = configs_dir + roxywi_common.get_files(configs_dir, 'cfg')[0]
 	except Exception as e:
-		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)
+		safe_error_message(e)
 		try:
 			cfg = config_common.generate_config_path('haproxy', server_ip)
 		except Exception as e:
-			roxywi_common.logging('Roxy-WI server', f'error: Cannot generate cfg path: {e}', roxywi=1)
-			return f'error: Cannot generate cfg path: {e}'
+			return f'error: Cannot generate cfg path: {safe_error_message(e)}'
 		try:
 			config_mod.get_config(server_ip, cfg)
 		except Exception as e:
-			roxywi_common.logging('Roxy-WI server', f'error: Cannot download config: {e}', roxywi=1)
-			return f'error: Cannot download config: {e}'
+			return f'error: Cannot download config: {safe_error_message(e)}'
 
 	with open(cfg, 'r') as f:
 		for line in f:
@@ -444,7 +444,7 @@ def change_maxconn_global(serv: str, maxconn: int) -> str:
 	output, stderr = _runtime_command(serv, haproxy_sock_port, f'set maxconn global {maxconn}')
 
 	if stderr != '':
-		return stderr
+		return f'error: {stderr}'
 	elif output[0] == '':
 		cfg = config_common.generate_config_path('haproxy', serv)
 
@@ -472,7 +472,7 @@ def change_maxconn_frontend(serv, maxconn, frontend) -> str:
 	output, stderr = _runtime_command(serv, haproxy_sock_port, f'set maxconn frontend {frontend} {maxconn}')
 
 	if stderr != '':
-		return stderr
+		return f'error: {stderr}'
 	elif output[0] == '':
 		cfg = config_common.generate_config_path('haproxy', serv)
 
@@ -500,7 +500,7 @@ def change_maxconn_backend(serv, backend, backend_server, maxconn) -> str:
 	output, stderr = _runtime_command(serv, haproxy_sock_port, f'set maxconn server {backend}/{backend_server} {maxconn}')
 
 	if stderr != '':
-		return stderr
+		return f'error: {stderr}'
 	elif output[0] == '':
 		cfg = config_common.generate_config_path('haproxy', serv)
 

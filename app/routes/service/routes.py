@@ -28,6 +28,7 @@ from app.views.service.le_profile_views import LetsEncryptDnsProfilesView, LetsE
 from app.modules.roxywi.class_models import DomainName
 from app.modules.roxywi.exception import RoxywiPermissionError
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
+from app.modules.roxywi.error_handler import safe_error_message
 
 bp.add_url_rule('/<service>/<server_id>/<any(start, stop, reload, restart):action>', view_func=ServiceActionView.as_view('service_action_ip'), methods=['POST'])
 bp.add_url_rule('/<service>/<int:server_id>/<any(start, stop, reload, restart):action>', view_func=ServiceActionView.as_view('service_action'), methods=['POST'])
@@ -194,7 +195,7 @@ def services(service, serv):
                 out1 = ('1', out)
                 servers_with_status.append(out1)
             except Exception as e:
-                servers_with_status.append(str(e))
+                servers_with_status.append('error: ' + safe_error_message(e))
         else:
             servers_with_status.append('')
 
@@ -272,7 +273,7 @@ def show_haproxy_bytes(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return roxy_overview.show_haproxy_binout(server_ip)
     except Exception as e:
-        return f'error: {e}'
+        return f'error: {safe_error_message(e)}'
 
 
 @bp.get('/nginx/connections/<server_ip>')
@@ -281,7 +282,7 @@ def show_nginx_connections(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return roxy_overview.show_nginx_connections(server_ip)
     except Exception as e:
-        return f'error: {e}'
+        return f'error: {safe_error_message(e)}'
 
 
 @bp.get('/apache/bytes/<server_ip>')
@@ -290,7 +291,7 @@ def show_apache_bytes(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return roxy_overview.show_apache_bytes(server_ip)
     except Exception as e:
-        return f'error: {e}'
+        return f'error: {safe_error_message(e)}'
 
 
 @bp.get('/keepalived/become-master/<server_ip>')
@@ -392,7 +393,7 @@ def update_tools_enable(service):
         try:
             require_feature(MANAGED_SERVICES)
         except RoxywiPermissionError as exc:
-            return jsonify({'status': 'failed', 'error': str(exc)}), 403
+            return jsonify({'status': 'failed', 'error': exc.public_message}), 403
     service_sql.update_hapwi_server(server_id, alert, metrics, active, service)
     from app.modules.db import service_command as service_command_sql
     service_command_sql.queue_checker_assignment(

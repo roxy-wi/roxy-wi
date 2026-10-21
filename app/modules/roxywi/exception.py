@@ -48,6 +48,14 @@ class RoxywiPermissionError(RoxywiPublicError):
         super().__init__(message)
 
 
+class RoxywiInputError(RoxywiPublicError, ValueError):
+    """Deliberate input validation with a client-safe message.
+
+    Keep ValueError compatibility for existing validators. Never wrap an
+    underlying exception, command output or database error in this type.
+    """
+
+
 class RoxywiConflictError(RoxywiPublicError):
     """ This class represents an exception raised when a conflict error occurs."""
 

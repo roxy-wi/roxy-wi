@@ -15,6 +15,7 @@ from app.modules.roxywi.class_models import (
     BaseResponse, GroupQuery, SettingsRequest
 )
 from app.modules.common.common_classes import SupportClass
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 class SettingsView(MethodView):
@@ -140,7 +141,7 @@ class SettingsView(MethodView):
             try:
                 smon_mod.change_smon_port(int(val))
             except Exception as e:
-                return f'{e}'
+                return 'error: ' + safe_error_message(e)
         if body.param == 'license':
             roxy.update_plan()
         return BaseResponse().model_dump(mode='json'), 201

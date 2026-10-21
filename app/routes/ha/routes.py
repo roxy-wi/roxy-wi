@@ -4,6 +4,7 @@ from playhouse.shortcuts import model_to_dict
 
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 from app.routes.ha import bp
+from app.modules.roxywi.error_handler import safe_error_message
 from app.middleware import get_user_params, check_services
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.server as server_sql
@@ -83,7 +84,7 @@ def show_ha_cluster(service, cluster_id):
                 out1 = ('1', out)
                 servers_with_status.append(out1)
             except Exception as e:
-                servers_with_status.append(str(e))
+                servers_with_status.append('error: ' + safe_error_message(e))
         else:
             servers_with_status.append('')
 

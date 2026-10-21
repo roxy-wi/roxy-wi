@@ -68,7 +68,7 @@ def create_oidc_provider():
     except ValidationError as exc:
         return _validation_error(exc)
     except RoxywiValidationError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 400
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 400
     except IntegrityError:
         return jsonify({'status': 'failed', 'error': 'An OIDC provider with this slug already exists'}), 409
 
@@ -92,9 +92,9 @@ def update_oidc_provider(provider_id: int):
     except ValidationError as exc:
         return _validation_error(exc)
     except RoxywiResourceNotFound as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 404
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 404
     except RoxywiValidationError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 400
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 400
     except IntegrityError:
         return jsonify({'status': 'failed', 'error': 'An OIDC provider with this slug already exists'}), 409
 
@@ -109,7 +109,7 @@ def list_oidc_mappings(provider_id: int):
     try:
         oidc_sql.get_provider(provider_id)
     except RoxywiResourceNotFound as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 404
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 404
     return jsonify([oidc_sql.serialize_mapping(mapping) for mapping in oidc_sql.list_mappings(provider_id)])
 
 
@@ -123,9 +123,9 @@ def create_oidc_mapping(provider_id: int):
     except ValidationError as exc:
         return _validation_error(exc)
     except RoxywiResourceNotFound as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 404
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 404
     except RoxywiValidationError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 400
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 400
     except IntegrityError:
         return jsonify({'status': 'failed', 'error': 'This OIDC group mapping already exists'}), 409
 
@@ -142,9 +142,9 @@ def update_oidc_mapping(mapping_id: int):
     except ValidationError as exc:
         return _validation_error(exc)
     except RoxywiResourceNotFound as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 404
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 404
     except RoxywiValidationError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 400
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 400
     except IntegrityError:
         return jsonify({'status': 'failed', 'error': 'This OIDC group mapping already exists'}), 409
     return jsonify(oidc_sql.serialize_mapping(mapping))
@@ -157,5 +157,5 @@ def delete_oidc_mapping(mapping_id: int):
     try:
         oidc_sql.delete_mapping(mapping_id)
     except RoxywiResourceNotFound as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 404
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 404
     return jsonify({'status': 'Ok'})

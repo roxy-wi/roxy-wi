@@ -7,6 +7,8 @@ import shlex
 import subprocess
 from typing import Iterable, Iterator, Optional, Sequence, Union
 
+from app.modules.roxywi import logger
+
 
 CommandArgument = Union[str, int, os.PathLike]
 _REMOTE_EXECUTABLE = re.compile(r'^[A-Za-z0-9_./+-]+$')
@@ -101,10 +103,11 @@ def run_local(
             stderr_truncated=stderr_truncated,
         )
     except OSError as exception:
+        logger.error('Cannot start local command', error_type=type(exception).__name__)
         return CommandResult(
             args=normalized_args,
             stdout='',
-            stderr=str(exception),
+            stderr='error: Cannot start the local command\n',
             return_code=127,
         )
 

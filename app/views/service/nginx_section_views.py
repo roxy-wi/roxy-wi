@@ -67,7 +67,7 @@ class NginxSectionView(MethodView):
             try:
                 conf = service_mod.generate_section_preview(body.model_dump(mode='json'), service)
             except Exception as e:
-                return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot create NGINX section: {e}')
+                return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create NGINX section')
             return DataStrResponse(data=conf).model_dump(mode='json'), 200
 
         try:

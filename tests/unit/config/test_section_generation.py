@@ -153,8 +153,9 @@ def test_preview_views_use_common_renderer_and_preserve_response_contract(servic
 
     if failure:
         assert status == 500
-        assert 'Template variable is undefined' in response['error']
-        assert 'Apache' not in response['error']
+        service_name = 'HAProxy' if service == 'haproxy' else 'NGINX'
+        assert response['error'] == f'Cannot create {service_name} section: Internal server error'
+        assert 'Template variable is undefined' not in response['error']
     else:
         assert status == 200
         assert response == {'data': 'generated section\n'}

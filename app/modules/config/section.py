@@ -4,6 +4,7 @@ import app.modules.db.sql as sql
 import app.modules.server.server as server_mod
 from app.modules.common.common import return_nice_path
 from app.modules.config.viewer import HAPROXY_SECTIONS, haproxy_sections, source_lines
+from app.modules.roxywi.exception import RoxywiInputError
 
 
 SECTION_NAMES = (
@@ -70,7 +71,7 @@ def get_section_from_config(config: str, section: str, section_line: int = None)
 		and (section_line is None or item['header'] + 1 == section_line)
 	]
 	if len(candidates) != 1:
-		raise ValueError('Section not found or ambiguous; reopen the configuration')
+		raise RoxywiInputError('Section not found or ambiguous; reopen the configuration')
 	selected = candidates[0]
 	return selected['start'], selected['end'] - 1, ''.join(lines[selected['start']:selected['end']])
 
@@ -84,9 +85,9 @@ def rewrite_section(start_line: str, end_line: str, config: str, section: str) -
 	if end == len(lines):
 		end -= 1
 	if start < 0 or end < start or end >= len(lines):
-		raise ValueError('Invalid section line range')
+		raise RoxywiInputError('Invalid section line range')
 	if not isinstance(section, str):
-		raise ValueError('Section content must be text')
+		raise RoxywiInputError('Section content must be text')
 	newline = '\r\n' if lines[start].endswith('\r\n') else '\n'
 	if section and not section.endswith('\n') and (end + 1 < len(lines) or lines[end].endswith('\n')):
 		section += newline

@@ -13,6 +13,7 @@ import app.modules.db.user as user_sql
 from app.middleware import get_user_params
 from app.modules.roxywi.class_models import BaseResponse, ErrorResponse
 from app.views.user.views import UserView, UserGroupView
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 def register_api_with_group(view, endpoint, url_beg, url_end, pk='user_id', pk_type='int', pk_end='group_id', pk_type_end='int'):
@@ -58,7 +59,7 @@ def update_user_its_password():
         roxywi_user.update_user_password(password, g.user_params['user_id'])
         return BaseResponse().model_dump(mode='json')
     except Exception as e:
-        return ErrorResponse(error=str(e)).model_dump(mode='json'), 501
+        return ErrorResponse(error=safe_error_message(e)).model_dump(mode='json'), 501
 
 
 @bp.post('/password/<int:user_id>')
@@ -73,7 +74,7 @@ def update_user_password(user_id):
         roxywi_user.update_user_password(password, user_id)
         return BaseResponse().model_dump(mode='json')
     except Exception as e:
-        return ErrorResponse(error=str(e)).model_dump(mode='json'), 501
+        return ErrorResponse(error=safe_error_message(e)).model_dump(mode='json'), 501
 
 
 @bp.route('/services/<int:user_id>', methods=['GET', 'POST'])

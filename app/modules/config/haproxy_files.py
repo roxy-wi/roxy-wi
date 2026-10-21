@@ -9,13 +9,14 @@ from flask import g, has_request_context
 import app.modules.db.sql as sql
 from app.modules.config.path_tokens import decode_file_path
 from app.modules.config.candidate import candidate_command
+from app.modules.roxywi.exception import RoxywiInputError
 
 
 def absolute_path(value: str) -> str:
     if not isinstance(value, str) or not value.startswith('/') or any(c in value for c in '\\\x00\r\n'):
-        raise ValueError('Configuration paths must be absolute Unix paths')
+        raise RoxywiInputError('Configuration paths must be absolute Unix paths')
     if '..' in value.split('/'):
-        raise ValueError('Parent path components are not allowed')
+        raise RoxywiInputError('Parent path components are not allowed')
     return posixpath.normpath(value)
 
 
@@ -25,10 +26,10 @@ def resolve_path(value: str | None = None) -> str:
     if value in (None, '', 'undefined'):
         return main
     if not isinstance(value, str):
-        raise ValueError('Invalid configuration file path')
+        raise RoxywiInputError('Invalid configuration file path')
     path = absolute_path(decode_file_path(value))
     if path != main and (not path.startswith(root.rstrip('/') + '/') or not path.endswith('.cfg')):
-        raise ValueError('Select a .cfg file inside the HAProxy directory')
+        raise RoxywiInputError('Select a .cfg file inside the HAProxy directory')
     return path
 
 
@@ -63,19 +64,19 @@ def discover_sources(server_ip: str, server_id: int = None, *, dockerized: bool 
                                        error_context='Cannot inspect HAProxy startup settings')
         result = json.loads(output)
         if result.get('state') not in ('ready', 'single', 'error'):
-            raise ValueError('Invalid discovery result')
+            raise RoxywiInputError('Invalid discovery result')
         if (not isinstance(result.get('sources'), list) or not isinstance(result.get('files'), list)
                 or not isinstance(result.get('code'), str) or not isinstance(result.get('verified_running'), bool)):
-            raise ValueError('Incomplete discovery result')
+            raise RoxywiInputError('Incomplete discovery result')
         for source in result['sources']:
             if not isinstance(source, dict) or source.get('kind') not in ('file', 'directory'):
-                raise ValueError('Invalid configuration source')
+                raise RoxywiInputError('Invalid configuration source')
             absolute_path(source.get('path'))
             absolute_path(source.get('runtime_path'))
         for path in result['files']:
             resolve_path(path)
         if result['state'] != 'error' and not result['sources']:
-            raise ValueError('No configuration sources returned')
+            raise RoxywiInputError('No configuration sources returned')
         result['mode'] = mode
     except Exception as exc:
         message = str(exc).lower()

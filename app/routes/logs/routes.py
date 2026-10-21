@@ -11,6 +11,7 @@ from app.modules.roxywi import log_query, log_snapshot, log_follow, logger
 import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
 import app.modules.roxy_wi_tools as roxy_wi_tools
+from app.modules.roxywi.error_handler import safe_error_message
 
 get_config = roxy_wi_tools.GetConfigVar()
 
@@ -67,7 +68,7 @@ def query_internal_logs():
             result = log_query.read_logs(source, query, request.values.get('cursor'),
                                          scope=[params['user_id'], params['group_id'], params['role']], group_id=group)
     except ValueError as exc:
-        return jsonify(error=str(exc)), 400
+        return jsonify(error=safe_error_message(exc)), 400
     except OSError:
         logger.exception('Cannot read internal logs')
         return jsonify(error='Cannot read the log journal; check storage permissions'), 503
@@ -93,7 +94,7 @@ def query_service_logs(service):
         else:
             result = log_snapshot.remote_snapshot(*args)
     except ValueError as exc:
-        return jsonify(error=str(exc)), 400
+        return jsonify(error=safe_error_message(exc)), 400
     except Exception:
         logger.exception('Cannot read remote service logs', server_ip=str(server.ip))
         message = log_follow.READ_ERROR if request.values.get('follow') == '1' else 'Cannot read the remote log; check the file and SSH/sudo permissions'

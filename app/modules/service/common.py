@@ -16,6 +16,7 @@ from app.modules.config.path_tokens import encode_file_path
 from app.modules.config.candidate import check_result, REMOTE_TIMEOUT
 from app.modules.config.haproxy_files import check_command
 from app.modules.roxywi.exception import RoxywiResourceNotFound
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 def get_correct_service_name(service: str, server_id: int) -> str:
@@ -229,7 +230,7 @@ def get_overview_last_edit(server_ip: str, service: str) -> str:
 	try:
 		return server_mod.ssh_command(server_ip, command, connect_timeout=10, banner_timeout=10)
 	except Exception as e:
-		return f'error: Cannot get last date {e} for server {server_ip}'
+		return f'error: Cannot get last date {safe_error_message(e)} for server {server_ip}'
 
 
 def get_stat_page(server_ip: str, service: str, group_id: int) -> str:
@@ -248,15 +249,15 @@ def get_stat_page(server_ip: str, service: str, group_id: int) -> str:
 	except requests.exceptions.ReadTimeout:
 		return 'error: Read timeout occurred'
 	except requests.exceptions.HTTPError as errh:
-		return f'error: Http Error: {errh}'
+		return f'error: Http Error: {safe_error_message(errh)}'
 	except requests.exceptions.ConnectionError as errc:
 		if "Max retries exceeded" in str(errc):
 			raise Exception(f"error: Max retries exceeded")
-		return f'error: Error Connecting: {errc}'
+		return f'error: Error Connecting: {safe_error_message(errc)}'
 	except requests.exceptions.Timeout as errt:
-		return f'error: Timeout Error: {errt}'
+		return f'error: Timeout Error: {safe_error_message(errt)}'
 	except requests.exceptions.RequestException as err:
-		return f'error: Something Else {err}'
+		return f'error: Something Else {safe_error_message(err)}'
 
 	data = response.content
 	if service == 'nginx':

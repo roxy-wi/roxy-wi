@@ -12,6 +12,7 @@ import app.modules.db.group as group_sql
 from app.modules.roxywi import auth, common, log_query, logger
 import app.modules.roxywi.overview as roxy_overview
 from app.modules.roxywi.class_models import DomainName
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 @bp.before_request
@@ -69,7 +70,7 @@ def overview_logs():
         source = 'runtime' if 'runtime' in available else 'roxy-wi.log'
         result = log_query.read_logs(source, query, group_id=group) if source in available else {'entries': []}
     except ValueError as exc:
-        return jsonify(error=str(exc)), 400
+        return jsonify(error=safe_error_message(exc)), 400
     except OSError:
         logger.exception('Cannot read Overview logs')
         return jsonify(error='Cannot read the log journal; check storage permissions'), 503

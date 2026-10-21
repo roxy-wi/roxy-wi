@@ -10,6 +10,8 @@ import app.modules.tools.common as tools_common
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
+from app.modules.roxywi.error_handler import safe_error_message
+from app.modules.roxywi.exception import RoxywiInputError
 
 
 def _smon_agent():
@@ -51,15 +53,19 @@ def agent():
             return jsonify({
                 'status': 'accepted', 'id': last_id, 'tasks_ids': [task_id]
             }), 202
+        except RoxywiInputError as e:
+            return e.public_message
         except Exception as e:
-            return f'{e}'
+            return 'error: ' + safe_error_message(e)
     elif request.method == "PUT":
         json_data = request.get_json()
         _require_agent_access(int(json_data.get('agent_id')))
         try:
             task_id = _smon_agent().update_agent(json_data)
+        except RoxywiInputError as e:
+            return e.public_message
         except Exception as e:
-            return f'{e}'
+            return 'error: ' + safe_error_message(e)
         if task_id is not None:
             return jsonify({'status': 'accepted', 'tasks_ids': [task_id]}), 202
         return 'ok', 201
@@ -69,8 +75,10 @@ def agent():
         try:
             task_id = _smon_agent().delete_agent(agent_id)
             smon_sql.delete_agent(agent_id)
+        except RoxywiInputError as e:
+            return e.public_message
         except Exception as e:
-            return f'{e}'
+            return 'error: ' + safe_error_message(e)
         return jsonify({'status': 'accepted', 'tasks_ids': [task_id]}), 202
 
 
@@ -81,7 +89,7 @@ def agent_get_checks():
     try:
         _smon_agent().send_checks(agent_id)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
     return 'ok'
 
 
@@ -103,8 +111,10 @@ def get_free_agents():
 def get_agent_count():
     try:
         _smon_agent().check_agent_limit()
+    except RoxywiInputError as e:
+        return e.public_message
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
     return 'ok'
 
@@ -117,7 +127,7 @@ def get_agent(agent_id):
     try:
         agent_data = smon_sql.get_agent(agent_id, g.user_params['group_id'])
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
     return render_template('ajax/smon/agent.html', agents=agent_data, lang=roxywi_common.get_user_lang_for_flask())
 
@@ -131,7 +141,7 @@ def get_agent_settings(agent_id):
     try:
         agent_data = smon_sql.get_agent(agent_id, g.user_params['group_id'])
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
     for a in agent_data:
         settings.setdefault('name', a.name)
@@ -155,7 +165,7 @@ def get_agent_version(server_ip):
         req = _smon_agent().send_get_request_to_agent(agent_id, server_ip, 'version')
         return req
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.get('/agent/uptime/<server_ip>')
@@ -170,7 +180,7 @@ def get_agent_uptime(server_ip):
         req = _smon_agent().send_get_request_to_agent(agent_id, server_ip, 'uptime')
         return req
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.get('/agent/status/<server_ip>')
@@ -185,7 +195,7 @@ def get_agent_status(server_ip):
         req = _smon_agent().send_get_request_to_agent(agent_id, server_ip, 'scheduler')
         return req
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.get('/agent/checks/<server_ip>')
@@ -200,7 +210,7 @@ def get_agent_checks(server_ip):
         req = _smon_agent().send_get_request_to_agent(agent_id, server_ip, 'checks')
         return req
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.post('/agent/action/<action>')
@@ -217,5 +227,5 @@ def agent_action(action):
         command = [f'sudo systemctl {action} roxy-wi-smon-agent']
         server_mod.ssh_command(server_ip, command)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
     return 'ok'

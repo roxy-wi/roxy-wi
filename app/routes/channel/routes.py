@@ -6,6 +6,7 @@ from app.middleware import get_user_params
 import app.modules.tools.alerting as alerting
 import app.modules.roxywi.common as roxywi_common
 from app.views.channel.views import ChannelView
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 def register_api_channel(view, endpoint, url_beg, pk='receiver', pk_type='int', pk_end='channel_id', pk_type_end='int'):
@@ -39,7 +40,7 @@ def load_channels():
     try:
         return alerting.load_channels()
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.post('/check')

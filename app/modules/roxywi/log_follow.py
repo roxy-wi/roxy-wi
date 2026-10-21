@@ -13,6 +13,7 @@ from itsdangerous import BadData, URLSafeTimedSerializer
 from app.modules.roxywi.log_snapshot import remote_source
 from app.modules.server import ssh as ssh_mod
 from app.scripts.log_reader import audit_record
+from app.modules.roxywi.exception import RoxywiInputError
 
 MAX_RESPONSE = 6 * 1024 * 1024
 READ_ERROR = 'Cannot follow the remote log; check Python 3, the file and SSH/sudo permissions'
@@ -61,7 +62,7 @@ def filter_result(result, query, audit=False):
         while index < len(data):
             raw, end, skipped = audit_record(data, index)
             if skipped or end == index:
-                raise ValueError('Invalid audit record from remote reader')
+                raise RoxywiInputError('Invalid audit record from remote reader')
             index = end
             if raw is not None:
                 records.append(raw)
@@ -90,20 +91,20 @@ def snapshot(service, server, filename, waf, query):
 
 def follow(service, server, filename, waf, query, cursor=None, scope=None):
     if not query.relative:
-        raise ValueError('Live requires a relative time range')
+        raise RoxywiInputError('Live requires a relative time range')
     host, path = remote_source(service, server, filename, waf)
     signer = URLSafeTimedSerializer(current_app.secret_key, salt='service-log-cursor-v1')
     signature = query.signature([service, server, host, path, waf], scope)
     previous = None
     if cursor:
         if len(cursor) > 16000:
-            raise ValueError('Invalid log cursor')
+            raise RoxywiInputError('Invalid log cursor')
         try:
             previous = signer.loads(cursor, max_age=86400)
             if previous['query'] != signature:
-                raise ValueError('The log query changed; reload the view')
+                raise RoxywiInputError('The log query changed; reload the view')
         except (BadData, KeyError, TypeError) as exc:
-            raise ValueError('The log cursor expired; reload the view') from exc
+            raise RoxywiInputError('The log cursor expired; reload the view') from exc
     audit = waf and filename == 'audit.log'
     options = {'record_format': 'modsecurity'} if audit else {}
     result = remote_read(host, path, previous['position'] if previous else None, query.limit, **options)
@@ -114,10 +115,10 @@ def follow(service, server, filename, waf, query, cursor=None, scope=None):
     try:
         position = result['position']
         if not isinstance(position['files'], dict) or len(position['files']) > 16:
-            raise ValueError('Invalid remote position')
+            raise RoxywiInputError('Invalid remote position')
         filtered = filter_result(result, query, audit=audit)
         if previous and len(filtered['entries']) > query.limit:
-            raise ValueError('Remote reader exceeded its row limit')
+            raise RoxywiInputError('Remote reader exceeded its row limit')
         filtered['entries'] = filtered['entries'][-query.limit:]
         filtered['cursor'] = signer.dumps(dict(query=signature, position=position))
         return filtered

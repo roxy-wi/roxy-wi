@@ -1,21 +1,40 @@
-{% extends "base.html" %}
-{% block title %} {{title}} {% endblock %}
-{% block h2 %} {{title}} {% endblock %}
-{% block content %}
-<div class="container">
-        <style>
-            #oops_div {
-                position: absolute;
-                right: 0;
-                margin-top: 50px;
-                bottom: -15px;
-            }
-        </style>
-        <center>
-            <h4>{{e}}</h4>
-        </center>
-        <div id="oops_div">
-            <img src="{{ url_for('static', filename='images/oops.png')}}" alt="Oops">
-        </div>
-</div>
-{% endblock %}
+<!doctype html>
+<html lang="{{ lang }}">
+{% import 'languages/' + lang + '.html' as language %}
+{% set t = language.http_errors %}
+{% set fallback = 'server' if status_code >= 500 else 'client' %}
+{% set title = t.get(status_code|string + '_title', t[fallback + '_title']) %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex">
+    <title>{{ status_code }} · {{ title }} — Roxy-WI</title>
+    <link rel="icon" href="{{ url_for('static', filename='images/favicon/favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/ui-components.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/error.css') }}">
+    <link id="error-dark-theme" rel="stylesheet" href="{{ url_for('static', filename='css/dark.css') }}" media="not all">
+    <script defer src="{{ url_for('static', filename='js/error.js') }}"></script>
+</head>
+<body class="error-page">
+    <header class="error-brand">
+        <a href="{{ url_for('overview.index') }}" aria-label="Roxy-WI">
+            <img src="{{ url_for('static', filename='images/logo_login.png') }}"
+                 data-dark-src="{{ url_for('static', filename='images/logo_white.png') }}" alt="Roxy-WI" width="176">
+        </a>
+    </header>
+    <main class="rw-card error-card" aria-labelledby="error-title">
+        <p class="error-code">{{ status_code }}</p>
+        <h1 id="error-title">{{ title }}</h1>
+        <p class="error-description">{{ t.get(status_code|string + '_description', t[fallback + '_description']) }}</p>
+        {% if message %}<p class="error-detail">{{ message }}</p>{% endif %}
+        <nav class="error-actions" aria-label="{{ t.actions }}">
+            <a class="rw-button rw-button-primary" href="{{ url_for('overview.index') }}">{{ t.overview }}</a>
+            <a class="rw-button rw-button-secondary" href="{{ url_for('login_page') }}">{{ t.login }}</a>
+        </nav>
+        {% if status_code >= 500 %}<p class="error-help">{{ t.server_help }}</p>{% endif %}
+    </main>
+    <img class="error-illustration" src="{{ url_for('static', filename='images/oops.png') }}"
+         alt="" width="924" height="668">
+</body>
+</html>

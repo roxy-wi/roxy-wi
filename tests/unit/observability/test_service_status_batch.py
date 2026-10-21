@@ -55,7 +55,8 @@ def test_last_edit_ssh_failure_is_a_local_card_result(monkeypatch):
     result = service_common.get_overview_last_edit('192.0.2.15', 'haproxy')
 
     assert result.startswith('error: Cannot get last date')
-    assert 'connection timed out' in result
+    assert 'Internal server error' in result
+    assert 'connection timed out' not in result
     assert observed == {'connect_timeout': 10, 'banner_timeout': 10}
 
 

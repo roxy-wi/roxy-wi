@@ -19,6 +19,7 @@ from app.modules.config.candidate import CandidateApplyError
 from app.modules.config import waf_wizard
 from app.modules.roxywi.exception import RoxywiConflictError, RoxywiPermissionError, RoxywiPublicError, RoxywiValidationError
 from app.modules.roxywi import logger
+from app.modules.roxywi.error_handler import error_response
 from app.modules.subscription.access import MANAGED_SERVICES, WAF_WIZARD, require_feature, is_feature_available
 
 
@@ -49,9 +50,7 @@ def _waf_error_response(error_key: str, exc: Exception, server_ip: str, *, secti
         if detail:
             details = current_app.jinja_env.get_template(f'languages/{language}.html').module.waf_error_details
             message += ' ' + details[detail]
-    if request.is_json or request.accept_mimetypes.best == 'application/json':
-        return jsonify({'status': 'failed', 'error': message}), status
-    return render_template('error.html', title='WAF', e=message, lang=language), status
+    return error_response(message, status, public_message=message, language=language)
 
 
 @bp.before_request
@@ -380,6 +379,6 @@ def enable_metric(enable, server_id):
         queue_metrics_assignment(server_id, 'waf', bool(enable))
         return jsonify({'status': 'Ok'})
     except RoxywiPermissionError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 403
     except Exception as e:
         return roxywi_common.handle_json_exceptions(e, 'Cannot enable WAF metrics', server_id)

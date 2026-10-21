@@ -26,6 +26,7 @@ from app.modules.subscription.access import (
     MANAGED_SERVICE_TOOLS,
     require_feature,
 )
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 def _managed_service_access_error(service: str, action: str):
@@ -34,7 +35,7 @@ def _managed_service_access_error(service: str, action: str):
     try:
         require_feature(MANAGED_SERVICES)
     except RoxywiPermissionError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 403
     return None
 
 bp.add_url_rule(
@@ -121,7 +122,7 @@ def update_tools(service):
     try:
         return tools_common.update_roxy_wi(service)
     except Exception as e:
-        return f'error: {e}'
+        return f'error: {safe_error_message(e)}'
 
 
 @bp.post('/tools/action/<service>/<any(start, stop, restart):action>')

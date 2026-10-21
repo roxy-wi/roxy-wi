@@ -20,6 +20,8 @@ from app.modules.subscription.access import (
     feature_required,
     require_feature,
 )
+from app.modules.roxywi.error_handler import safe_error_message
+from app.modules.roxywi.exception import RoxywiInputError
 
 
 _PUBLIC_SMON_ENDPOINTS = frozenset({
@@ -37,7 +39,7 @@ def managed_services_subscription_required():
     try:
         require_feature(MANAGED_SERVICES)
     except RoxywiPermissionError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 403
     return None
 
 
@@ -161,8 +163,10 @@ def smon_add():
 
         try:
             last_id = smon_mod.create_smon(json_data, user_group)
+        except RoxywiInputError as e:
+            return e.public_message, 200
         except Exception as e:
-            return str(e), 200
+            return 'error: ' + safe_error_message(e), 200
         return str(last_id)
     elif request.method == "PUT":
         check_id = json_data['check_id']
@@ -174,8 +178,10 @@ def smon_add():
         if roxywi_common.check_user_group_for_flask():
             try:
                 status = smon_mod.update_smon(check_id, json_data, g.user_params['group_id'])
+            except RoxywiInputError as e:
+                return e.public_message, 200
             except Exception as e:
-                return f'{e}', 200
+                return 'error: ' + safe_error_message(e), 200
             else:
                 return status, 201
     elif request.method == "DELETE":
@@ -188,8 +194,10 @@ def smon_add():
         if roxywi_common.check_user_group_for_flask():
             try:
                 status = smon_mod.delete_smon(check_id, user_group)
+            except RoxywiInputError as e:
+                return e.public_message, 200
             except Exception as e:
-                return f'{e}', 200
+                return 'error: ' + safe_error_message(e), 200
             else:
                 return status
 
@@ -357,7 +365,7 @@ def get_checks(page_id):
             raise PermissionError('Status page does not belong to the active group')
         checks = smon_sql.select_status_page_checks(page_id)
     except Exception as e:
-        return f'error: Cannot get checks: {e}'
+        return f'error: Cannot get checks: {safe_error_message(e)}'
 
     for check in checks:
         returned_check.append(str(check.check_id))

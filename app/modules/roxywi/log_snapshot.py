@@ -7,6 +7,7 @@ from pathlib import PurePosixPath
 from app.modules.db import sql
 from app.modules.server import ssh as ssh_mod
 from app.modules.roxywi.log_query import MAX_BYTES
+from app.modules.roxywi.exception import RoxywiInputError
 
 
 def filter_snapshot(data, query):
@@ -25,18 +26,18 @@ def filter_snapshot(data, query):
 
 def remote_source(service, server, filename, waf):
     if service not in {'nginx', 'apache', 'haproxy', 'keepalived'}:
-        raise ValueError('Unknown service')
+        raise RoxywiInputError('Unknown service')
     if not re.fullmatch(r'[A-Za-z0-9_.:-]+', server) or '..' in server:
-        raise ValueError('Invalid managed server address')
+        raise RoxywiInputError('Invalid managed server address')
     if waf and service not in {'haproxy', 'nginx'}:
-        raise ValueError('Unknown WAF service')
+        raise RoxywiInputError('Unknown WAF service')
     if waf and filename == 'audit.log':
         return server, f'/var/log/{service}/waf/audit.log'
     if waf and not filename:
         filename = 'waf.log' if service == 'haproxy' else 'error.log'
     if not filename or filename in {'.', '..'} or any(char in filename for char in '/\\\0\r\n'):
         if not (waf and service == 'haproxy'):
-            raise ValueError('Select a log file')
+            raise RoxywiInputError('Select a log file')
     host = server
     if waf and service == 'haproxy':
         path = '/var/log/waf.log'
@@ -44,11 +45,11 @@ def remote_source(service, server, filename, waf):
         path = f'/var/log/{server}/syslog.log'
         host = sql.get_setting('syslog_server')
         if not host:
-            raise ValueError('The syslog server is not configured')
+            raise RoxywiInputError('The syslog server is not configured')
     else:
         path = str(PurePosixPath(sql.get_setting(f'{service}_path_logs')) / filename)
     if not PurePosixPath(path).is_absolute():
-        raise ValueError('The log directory must be an absolute path')
+        raise RoxywiInputError('The log directory must be an absolute path')
     return host, path
 
 
@@ -76,7 +77,7 @@ def package_snapshot(source, query):
     elif source in {'roxy-wi.error.log', 'roxy-wi.access.log'}:
         path = str(PurePosixPath(sql.get_setting('apache_log_path')) / source)
     else:
-        raise ValueError('Unknown log source')
+        raise RoxywiInputError('Unknown log source')
     result = subprocess.run(['sudo', '-n', 'tail', '-c', str(MAX_BYTES), '--', path],
                             capture_output=True, timeout=10, check=False)
     if result.returncode:

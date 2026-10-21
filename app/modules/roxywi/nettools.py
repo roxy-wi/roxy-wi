@@ -8,6 +8,7 @@ from flask import Response, stream_with_context
 import app.modules.server.ssh as mod_ssh
 import app.modules.server.server as server_mod
 from app.modules.server.command import build_remote_command, build_remote_pipeline, run_local, stream_local
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 def _text_lines(lines) -> list[str]:
@@ -150,7 +151,7 @@ def whois_check(domain_name: str) -> str:
     try:
         whois_data = json.loads(str(whois.whois(domain_name)))
     except Exception as e:
-        return f'error: Cannot get whois from {domain_name}: {e}'
+        return f'error: Cannot get whois from {domain_name}: {safe_error_message(e)}'
 
     output = (f'<b>Domain name:</b> {escape(str(whois_data["domain_name"]))}<br />'
               f'<b>Registrar:</b> {escape(str(whois_data["registrar"]))} <br />'

@@ -5,6 +5,8 @@ import app.modules.common.common as common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 from app.modules.subscription.access import SMON_STATUS_PAGES, require_feature
+from app.modules.roxywi.error_handler import safe_error_message
+from app.modules.roxywi.exception import RoxywiInputError
 
 
 def _smon_agent():
@@ -40,7 +42,7 @@ def create_smon(json_data, user_group, show_new=1) -> bool:
         roxywi_common.handle_exceptions(e, 'SMON server', 'Cannot parse check parameters')
 
     if agent_id == '':
-        raise Exception('warning: Select an Agent first')
+        raise RoxywiInputError('warning: Select an Agent first')
     else:
         agent_ip = smon_sql.select_server_ip_by_agent_id(agent_id)
 
@@ -48,13 +50,13 @@ def create_smon(json_data, user_group, show_new=1) -> bool:
         try:
             port = int(port)
         except Exception:
-            raise Exception('SMON error: port must be a number')
+            raise RoxywiInputError('SMON error: port must be a number')
         if port > 65535 or port < 0:
-            raise Exception('SMON error: port must be 0-65535')
+            raise RoxywiInputError('SMON error: port must be 0-65535')
 
     if check_type == 'ping':
         if int(packet_size) < 16:
-            raise Exception('SMON error: a packet size cannot be less than 16')
+            raise RoxywiInputError('SMON error: a packet size cannot be less than 16')
 
     last_id = smon_sql.insert_smon(name, enable, group, desc, telegram, slack, pd, mm, user_group, check_type)
 
@@ -106,26 +108,26 @@ def update_smon(smon_id, json_data, group_id: int) -> str:
     is_edited = False
 
     if agent_id == '':
-        raise Exception('warning: Select an Agent first')
+        raise RoxywiInputError('warning: Select an Agent first')
 
     if check_type == 'tcp':
         try:
             port = int(port)
         except Exception:
-            raise Exception('SMON error: port must number')
+            raise RoxywiInputError('SMON error: port must number')
         if port > 65535 or port < 0:
-            raise Exception('SMON error: port must be 0-65535')
+            raise RoxywiInputError('SMON error: port must be 0-65535')
 
     if check_type == 'ping':
         if int(packet_size) < 16:
-            raise Exception('SMON error: a packet size cannot be less than 16')
+            raise RoxywiInputError('SMON error: a packet size cannot be less than 16')
 
     try:
         agent_id_old = smon_sql.get_agent_id_by_check_id(smon_id)
         agent_ip = smon_sql.get_agent_ip_by_id(agent_id_old)
         _smon_agent().delete_check(agent_id_old, agent_ip, smon_id)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
     try:
         if smon_sql.update_smon(smon_id, name, telegram, slack, pd, mm, group, desc, enabled, group_id):
@@ -266,7 +268,7 @@ def edit_status_page(page_id: int, name: str, slug: str, desc: str, checks: list
         smon_sql.add_status_page_checks(page_id, checks, group_id)
         smon_sql.edit_status_page(page_id, name, slug, desc, group_id)
     except Exception as e:
-        return f'error: Cannot update update status page: {e}'
+        return f'error: Cannot update update status page: {safe_error_message(e)}'
 
     pages = smon_sql.select_status_page_by_id(page_id, group_id)
 

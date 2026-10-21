@@ -7,7 +7,7 @@ appropriate HTTP responses.
 """
 from typing import Any, Dict, Tuple
 
-from flask import jsonify, request, render_template, g, redirect, url_for
+from flask import current_app, jsonify, request, g, redirect, url_for
 from werkzeug.exceptions import HTTPException
 from flask_pydantic.exceptions import ValidationError
 
@@ -19,6 +19,7 @@ from app.modules.roxywi.exception import (
     RoxywiPermissionError,
     RoxywiConflictError,
     RoxywiValidationError,
+    RoxywiInputError,
     RoxywiCheckLimits
 )
 import app.modules.roxywi.common as roxywi_common
@@ -53,13 +54,67 @@ ERROR_MESSAGE_MAPPING = {
 }
 
 
-def _wants_json_response() -> bool:
-    """Return JSON errors for API and XMLHttpRequest clients, HTML for page loads."""
+def safe_error_message(exception: Exception) -> str:
+    """Expose deliberate input errors, never the text of an unexpected failure."""
+    if isinstance(exception, RoxywiInputError):
+        return exception.public_message
+    # Exception messages/tracebacks can contain credentials, SQL and file
+    # contents. Record the failure without copying those into the log journal.
+    logger.error('Request operation failed', error_type=type(exception).__name__)
+    for exception_type, message in ERROR_MESSAGE_MAPPING.items():
+        if isinstance(exception, exception_type):
+            return message
+    return 'Internal server error'
+
+
+def _is_json_request() -> bool:
+    """Keep API, health checks and background requests machine-readable."""
     return (
-        request.path.startswith('/api/')
+        request.path in {'/api', '/health'}
+        or request.path.startswith(('/api/', '/health/'))
         or request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+        or request.headers.get('Sec-Fetch-Mode') in {'cors', 'same-origin', 'no-cors'}
+        or request.is_json
         or request.accept_mimetypes.best == 'application/json'
     )
+
+
+def _wants_html_response() -> bool:
+    accepts = request.accept_mimetypes
+    return not _is_json_request() and accepts['text/html'] > 0 and (
+        accepts.best == 'text/html' or accepts['text/html'] > accepts['application/json']
+    )
+
+
+def _error_page(status_code, message=None, language=None):
+    languages = current_app.jinja_env.get_template('languages/languages.html').module.languages
+    language = language or roxywi_common.get_user_lang_for_flask()
+    if language not in languages:
+        language = 'en'
+    # Error rendering must work even when the database or a context processor
+    # failed. This standalone template needs no user, subscription or menu queries.
+    return current_app.jinja_env.get_template('error.html').render(
+        status_code=status_code, message=message, lang=language,
+    )
+
+
+def error_response(error, status_code, *, http_error=None, public_message=None, language=None):
+    """Render navigation errors; preserve the JSON contract and HTTP headers."""
+    if _wants_html_response():
+        response = current_app.response_class(
+            _error_page(status_code, public_message, language), mimetype='text/html',
+        )
+    else:
+        response = jsonify(ErrorResponse(error=error).model_dump(mode='json'))
+    if http_error is not None:
+        # Retain Allow, Retry-After and WWW-Authenticate from HTTPException.
+        for name, value in http_error.get_response().headers:
+            if name.lower() not in {'content-type', 'content-length'}:
+                response.headers.add(name, value)
+    response.status_code = status_code
+    response.headers['Cache-Control'] = 'no-store'
+    response.vary.update(('Accept', 'X-Requested-With', 'Sec-Fetch-Mode'))
+    return response
 
 
 def log_error(exception: Exception, server_ip: str = "Roxy-WI server", 
@@ -125,7 +180,7 @@ def handle_exception(exception: Exception, server_ip: str = "Roxy-WI server",
     # Determine the exception type and get the appropriate status code and message
     for exception_type, status_code in ERROR_CODE_MAPPING.items():
         if isinstance(exception, exception_type):
-            message = ERROR_MESSAGE_MAPPING.get(exception_type, str(exception))
+            message = ERROR_MESSAGE_MAPPING[exception_type]
             if additional_info:
                 message = f"{additional_info}: {message}"
 
@@ -134,7 +189,7 @@ def handle_exception(exception: Exception, server_ip: str = "Roxy-WI server",
             return error_response, status_code
 
     # If we get here, we don't have a specific handler for this exception type
-    error_response = ErrorResponse(error=str(exception)).model_dump(mode='json')
+    error_response = ErrorResponse(error='Internal server error').model_dump(mode='json')
     return error_response, 500
 
 
@@ -145,22 +200,29 @@ def register_error_handlers(app):
     Args:
         app: The Flask application
     """
-    # Import lazily to avoid the common -> error_handler -> middleware -> common cycle.
-    from app.middleware import get_user_params
+    @app.after_request
+    def render_navigation_error(response):
+        # Some routes and JWT callbacks return JSON directly instead of raising.
+        # Only replace those bodies for an explicit HTML navigation request.
+        if 400 <= response.status_code < 600 and response.is_json and _wants_html_response():
+            response.set_data(_error_page(response.status_code))
+            response.mimetype = 'text/html'
+            response.headers['Cache-Control'] = 'no-store'
+            response.vary.update(('Accept', 'X-Requested-With', 'Sec-Fetch-Mode'))
+        return response
+
+    @app.errorhandler(HTTPException)
+    def handle_http_error(e):
+        if e.code is None:
+            return e
+        messages = {400: 'Bad request', 415: 'Unsupported Media Type', 429: 'Too many requests'}
+        return error_response(messages.get(e.code, str(e)), e.code, http_error=e)
 
     @app.errorhandler(Exception)
     def handle_exception_error(e):
         """Handle all unhandled exceptions."""
-        if isinstance(e, HTTPException):
-            # Pass through HTTP exceptions
-            return e
-
-        # Log the error
-        log_error(e)
-
-        # Return a JSON response
-        error_response, status_code = handle_exception(e)
-        return jsonify(error_response), status_code
+        payload, status_code = handle_exception(e)
+        return error_response(payload['error'], status_code)
 
     # Register handlers for specific HTTP errors
     @app.errorhandler(ValidationError)
@@ -180,73 +242,11 @@ def register_error_handlers(app):
                 errors.append(f'{er["loc"][0]}: {er["msg"]}')
             else:
                 errors.append(er["msg"])
-        return ErrorResponse(error=errors).model_dump(mode='json'), 400
-
-    @app.errorhandler(400)
-    def bad_request(e):
-        """Handle 400 Bad Request errors."""
-        return jsonify(ErrorResponse(error="Bad request").model_dump(mode='json')), 400
+        return error_response(errors, 400)
 
     @app.errorhandler(401)
     def unauthorized(e):
         """Handle 401 Unauthorized errors."""
-        if _wants_json_response():
-            return jsonify(ErrorResponse(error=str(e)).model_dump(mode='json')), 401
+        if _is_json_request():
+            return error_response(str(e), 401, http_error=e)
         return redirect(url_for('login_page', next=request.full_path))
-
-    @app.errorhandler(403)
-    @get_user_params()
-    def forbidden(e):
-        """Handle 403 Forbidden errors."""
-        if _wants_json_response():
-            return jsonify(ErrorResponse(error=str(e)).model_dump(mode='json')), 403
-
-        kwargs = {
-            'user_params': g.user_params,
-            'title': e,
-            'e': e
-        }
-        return render_template('error.html', **kwargs), 403
-
-    @app.errorhandler(404)
-    @get_user_params()
-    def not_found(e):
-        """Handle 404 Not Found errors."""
-        if _wants_json_response():
-            return jsonify(ErrorResponse(error=str(e)).model_dump(mode='json')), 404
-
-        kwargs = {
-            'user_params': g.user_params,
-            'title': e,
-            'e': e
-        }
-        return render_template('error.html', **kwargs), 404
-
-    @app.errorhandler(405)
-    def method_not_allowed(e):
-        """Handle 405 Method Not Allowed errors."""
-        return jsonify(ErrorResponse(error=str(e)).model_dump(mode='json')), 405
-
-    @app.errorhandler(415)
-    def unsupported_media_type(e):
-        """Handle 415 Unsupported Media Type errors."""
-        return jsonify(ErrorResponse(error="Unsupported Media Type").model_dump(mode='json')), 415
-
-    @app.errorhandler(429)
-    def too_many_requests(e):
-        """Handle 429 Too Many Requests errors."""
-        return jsonify(ErrorResponse(error="Too many requests").model_dump(mode='json')), 429
-
-    @app.errorhandler(500)
-    @get_user_params()
-    def internal_server_error(e):
-        """Handle 500 Internal Server Error errors."""
-        if _wants_json_response():
-            return jsonify(ErrorResponse(error=str(e)).model_dump(mode='json')), 500
-
-        kwargs = {
-            'user_params': g.user_params,
-            'title': e,
-            'e': e
-        }
-        return render_template('error.html', **kwargs), 500

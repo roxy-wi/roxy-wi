@@ -27,6 +27,7 @@ import app.modules.config.deployment_policy as deployment_policy
 from app.modules.config import haproxy_files, candidate, waf_state
 from app.modules.config.path_tokens import encode_file_path, decode_file_path
 from app.modules.config.viewer import build_document
+from app.modules.roxywi.error_handler import safe_error_message
 
 time_zone = sql.get_setting('time_zone')
 get_date = roxy_wi_tools.GetDate(time_zone)
@@ -492,7 +493,7 @@ def master_slave_upload_and_restart(server_ip: str, cfg: str, just_save: str, se
 			except Exception as e:
 				if service == 'waf':
 					raise
-				slave_output += f'<br>slave_server:\n error: {e}'
+				slave_output += f'<br>slave_server:\n error: {safe_error_message(e)}'
 	try:
 		output = upload_and_restart(
 			server_ip, cfg, just_save, service, waf=waf, config_file_name=config_file_name, oldcfg=old_cfg,

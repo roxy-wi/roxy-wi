@@ -19,6 +19,7 @@ import app.modules.roxywi.metrics as metric
 import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi.class_models import DomainName, IpRequest
 from app.modules.subscription.access import MANAGED_SERVICES, feature_required
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 @bp.before_request
@@ -54,7 +55,7 @@ def metrics(service):
             else:
                 servers = ''
     except Exception as e:
-        return f'error: on Metrics page: {e}', 500
+        return f'error: on Metrics page: {safe_error_message(e)}', 500
 
     kwargs = {
         'servers': servers,

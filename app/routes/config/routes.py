@@ -30,6 +30,7 @@ from app.modules.roxywi.class_models import DataStrResponse, DomainName
 from app.modules.common.common_classes import SupportClass
 from app.modules.roxywi.exception import RoxywiPermissionError
 from app.modules.config.path_tokens import decode_file_path
+from app.modules.roxywi.error_handler import safe_error_message
 
 bp.add_url_rule('/<service>/<server_id>', view_func=ServiceConfigView.as_view('config_view_ip'), methods=['POST'])
 bp.add_url_rule('/<service>/<server_id>/versions', view_func=ServiceConfigVersionsView.as_view('config_version'), methods=['DELETE'])
@@ -143,7 +144,7 @@ def show_config_files(service):
     try:
         return config_mod.show_config_files(server_ip, service, config_file_name, edit_mode=edit_mode)
     except Exception as e:
-        return f'error: {e}'
+        return f'error: {safe_error_message(e)}'
 
 
 @bp.route('/<service>/find-in-config', methods=['POST'])
@@ -161,7 +162,7 @@ def find_in_config(service):
         return_find = server_mod.ssh_command(server_ip, commands, raw=1)
         return_find = config_mod.show_finding_in_config(return_find, grep=finding_words)
     except Exception as e:
-        return str(e)
+        return 'error: ' + safe_error_message(e)
 
     if 'error: ' in return_find:
         return return_find
@@ -194,7 +195,7 @@ def config(service, serv, edit, config_file_name, new):
         if serv:
             remote_config_path = config_common.resolve_viewer_path(service, remote_config_path)
     except ValueError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 400
+        return jsonify({'status': 'failed', 'error': safe_error_message(exc)}), 400
 
     deployment_mode = deployment_policy.DEFAULT_MODE
     if serv and service in deployment_policy.SERVICES:
@@ -212,7 +213,7 @@ def config(service, serv, edit, config_file_name, new):
         try:
             error = config_mod.get_config(serv, cfg, service=service, config_file_name=config_file_name)
         except Exception as e:
-            return f'error: Cannot download config: {e}'
+            return f'error: Cannot download config: {safe_error_message(e)}'
 
         try:
             roxywi_common.logging(serv, f" {service.title()} config has been opened")
@@ -225,7 +226,7 @@ def config(service, serv, edit, config_file_name, new):
             config_read = config_read.decode('utf-8')
             conf.close()
         except IOError as e:
-            return f'Cannot read imported config file {e}', 200
+            return f'Cannot read imported config file {safe_error_message(e)}', 200
 
         Path(cfg).replace(f'{cfg}.old')
 
@@ -308,7 +309,7 @@ def save_version(service, server_ip: Union[IPvAnyAddress, DomainName], configver
     try:
         configver = config_common.resolve_saved_config_path(service, server_ip, configver)
     except ValueError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 400
+        return jsonify({'status': 'failed', 'error': safe_error_message(exc)}), 400
     service_desc = service_sql.select_service(service)
     save_action = request.json.get('action')
     try:
@@ -316,7 +317,7 @@ def save_version(service, server_ip: Union[IPvAnyAddress, DomainName], configver
             server_ip, service, action=save_action
         )
     except RoxywiPermissionError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 403
     try:
         roxywi_common.logging(
             server_ip, f"Version of config has been uploaded {configver}", login=1, keep_history=1, service=service
@@ -375,7 +376,7 @@ def haproxy_section_show(server_ip: Union[IPvAnyAddress, DomainName], section):
         section_line = request.args.get('section_line')
         section_line = int(section_line) if section_line is not None else None
     except ValueError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 400
+        return jsonify({'status': 'failed', 'error': safe_error_message(exc)}), 400
     cfg = config_common.generate_config_path('haproxy', server_ip)
     try:
         error = config_mod.get_config(server_ip, cfg, config_file_name=file_path)
@@ -383,7 +384,7 @@ def haproxy_section_show(server_ip: Union[IPvAnyAddress, DomainName], section):
         sections = section_mod.get_sections(cfg)
         Path(cfg).replace(f'{cfg}.old')
     except ValueError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 409
+        return jsonify({'status': 'failed', 'error': safe_error_message(exc)}), 409
     finally:
         Path(cfg).unlink(missing_ok=True)
     server_id = server_sql.get_server_by_ip(server_ip).server_id
@@ -426,7 +427,7 @@ def haproxy_section_save(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         file_path = config_common.resolve_viewer_path('haproxy', request.json.get('file_path'))
     except ValueError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 400
+        return jsonify({'status': 'failed', 'error': safe_error_message(exc)}), 400
     save = request.json.get('action')
     start_line = request.json.get('start_line')
     end_line = request.json.get('end_line')
@@ -436,7 +437,7 @@ def haproxy_section_save(server_ip: Union[IPvAnyAddress, DomainName]):
             server_ip, 'haproxy', action=save
         )
     except RoxywiPermissionError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 403
 
     if save == 'delete':
         config_file = ''
@@ -451,7 +452,7 @@ def haproxy_section_save(server_ip: Union[IPvAnyAddress, DomainName]):
         with open(cfg, "w", encoding='utf-8', newline='') as conf:
             conf.write(config_file)
     except IOError as e:
-        return f"error: Cannot read import config file: {e}"
+        return f"error: Cannot read import config file: {safe_error_message(e)}"
 
     stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, save, 'haproxy', oldcfg=oldcfg, config_file_name=file_path)
 

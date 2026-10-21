@@ -23,6 +23,7 @@ from app.modules.roxywi.exception import RoxywiPermissionError, RoxywiResourceNo
 from app.modules.roxywi.class_models import BaseResponse, ErrorResponse, DataResponse, DataStrResponse, \
     ConfigFileNameQuery, ConfigRequest, VersionsForDelete
 from app.modules.common.common_classes import SupportClass
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 class ServiceView(MethodView):
@@ -105,7 +106,7 @@ class ServiceView(MethodView):
                 data = self.return_dict_from_out(output.splitlines())
             except Exception as e:
                 data = ErrorResponse(
-                    error=f'Cannot get HAProxy information: {e}'
+                    error=f'Cannot get HAProxy information: {safe_error_message(e)}'
                 ).model_dump(mode='json')
 
             if 'Process' not in data:
@@ -128,7 +129,7 @@ class ServiceView(MethodView):
                 try:
                     out = server_mod.ssh_command(server.ip, cmd, connect_timeout=10, banner_timeout=10)
                 except Exception as e:
-                    return ErrorResponse(error=str(e)).model_dump(mode='json'), 500
+                    return ErrorResponse(error=safe_error_message(e)).model_dump(mode='json'), 500
                 out = out.replace('\n', '')
                 out1 = out.split('\r')
                 if out1[0] == 'from':
@@ -148,7 +149,7 @@ class ServiceView(MethodView):
                 try:
                     out = server_mod.ssh_command(server.ip, cmd, connect_timeout=10, banner_timeout=10)
                 except Exception as e:
-                    return ErrorResponse(error=str(e)).model_dump(mode='json'), 500
+                    return ErrorResponse(error=safe_error_message(e)).model_dump(mode='json'), 500
                 out = out.replace('\n', '')
                 out1 = out.split('\r')
                 try:
@@ -168,7 +169,7 @@ class ServiceView(MethodView):
             except IndexError:
                 return ErrorResponse(error='NGINX service not found').model_dump(mode='json'), 404
             except Exception as e:
-                data = ErrorResponse(error=str(e)).model_dump(mode='json')
+                data = ErrorResponse(error=safe_error_message(e)).model_dump(mode='json')
             data['auto_start'] = int(server.nginx_active)
             data['checker'] = int(server.nginx_alert)
             data['metrics'] = int(server.nginx_metrics)
@@ -214,7 +215,7 @@ class ServiceView(MethodView):
                     "status": self._service_status('0')
                 }
             except Exception as e:
-                data = ErrorResponse(error=str(e)).model_dump(mode='json')
+                data = ErrorResponse(error=safe_error_message(e)).model_dump(mode='json')
 
             data['auto_start'] = int(server.apache_active)
             data['checker'] = int(server.apache_alert)
@@ -315,7 +316,7 @@ class ServiceActionView(MethodView):
             service_action.common_action(server.ip, action, service)
             return BaseResponse().model_dump(mode='json')
         except Exception as e:
-            return ErrorResponse(error=f'Cannot do {action}: {e}').model_dump(mode='json')
+            return ErrorResponse(error=f'Cannot do {action}: {safe_error_message(e)}').model_dump(mode='json')
 
 
 class ServiceBackendView(MethodView):
@@ -421,7 +422,7 @@ class ServiceConfigView(MethodView):
             try:
                 config_mod.get_config(server_ip, cfg, service=service, config_file_name=query.file_path)
             except Exception as e:
-                return ErrorResponse(error=str(e)).model_dump(mode='json')
+                return ErrorResponse(error=safe_error_message(e)).model_dump(mode='json')
 
         try:
             with open(cfg, 'rb') as file:
@@ -496,7 +497,7 @@ class ServiceConfigView(MethodView):
                 server_ip, service, action=body.action
             )
         except RoxywiPermissionError as e:
-            return ErrorResponse(error=str(e)).model_dump(mode='json'), 403
+            return ErrorResponse(error=e.public_message).model_dump(mode='json'), 403
 
         try:
             cfg = config_mod.return_cfg(service, server_ip, body.file_path)
@@ -516,9 +517,9 @@ class ServiceConfigView(MethodView):
                 stderr = config_mod.master_slave_upload_and_restart(server_ip, cfg, body.action, service, oldcfg=body.config_local_path,
                                                                     config_file_name=body.file_path)
         except RoxywiPermissionError as e:
-            return ErrorResponse(error=str(e)).model_dump(mode='json'), 403
+            return ErrorResponse(error=e.public_message).model_dump(mode='json'), 403
         except Exception as e:
-            return f'error: {e}', 200
+            return f'error: {safe_error_message(e)}', 200
 
         return DataStrResponse(data=stderr).model_dump(mode='json'), 201
 

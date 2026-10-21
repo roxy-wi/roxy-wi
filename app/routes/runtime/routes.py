@@ -13,6 +13,7 @@ import app.modules.db.server as server_sql
 import app.modules.service.haproxy as service_haproxy
 import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi.class_models import DomainName, EscapedString
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 @bp.before_request
@@ -40,7 +41,7 @@ def show_backends(server_ip: Union[int, IPvAnyAddress, DomainName]):
     try:
         return runtime.show_backends(str(server_ip))
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/backend/servers/<server_ip>/<backend>')
@@ -49,7 +50,7 @@ def show_backend_servers(server_ip: Union[IPvAnyAddress, DomainName], backend: E
     try:
         return runtime.show_frontend_backend(str(server_ip), backend)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/backend/server/<server_ip>/<backend>/<backend_server>')
@@ -58,7 +59,7 @@ def show_backend_server(server_ip: Union[IPvAnyAddress, DomainName], backend: Es
     try:
         return runtime.show_server(str(server_ip), backend, backend_server)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/server', methods=['POST', 'PUT', 'DELETE'])
@@ -72,14 +73,14 @@ def change_ip_port():
         try:
             return runtime.change_ip_and_port(server_ip, backend_backend, backend_server, backend_ip, backend_port)
         except Exception as e:
-            return f'{e}'
+            return 'error: ' + safe_error_message(e)
     elif request.method == 'POST':
         check = common.checkAjaxInput(request.form.get('check'))
         port_check = common.checkAjaxInput(request.form.get('port_check'))
         try:
             return runtime.add_server(server_ip, backend_backend, backend_server, backend_ip, backend_port, check, port_check)
         except Exception as e:
-            return f'{e}'
+            return 'error: ' + safe_error_message(e)
     elif request.method == 'DELETE':
         return runtime.delete_server(server_ip, backend_backend, backend_server)
 
@@ -90,7 +91,7 @@ def maxconn_select(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return runtime.get_backends_from_config(str(server_ip), backends='frontend')
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/maxconn/<type_maxconn>/<server_ip>', methods=['POST'])
@@ -103,14 +104,14 @@ def change_maxconn(type_maxconn: str, server_ip: Union[IPvAnyAddress, DomainName
         try:
             return runtime.change_maxconn_global(server_ip, maxconn)
         except Exception as e:
-            return f'{e}'
+            return 'error: ' + safe_error_message(e)
     elif type_maxconn == 'frontend':
         frontend = common.checkAjaxInput(request.form.get('maxconn_frontend'))
 
         try:
             return runtime.change_maxconn_frontend(server_ip, maxconn, frontend)
         except Exception as e:
-            return f'{e}'
+            return 'error: ' + safe_error_message(e)
     elif type_maxconn == 'backend':
         backend = common.checkAjaxInput(request.form.get('maxconn_backend'))
         backend_server = common.checkAjaxInput(request.form.get('maxconn_backend_server'))
@@ -118,7 +119,7 @@ def change_maxconn(type_maxconn: str, server_ip: Union[IPvAnyAddress, DomainName
         try:
             return runtime.change_maxconn_backend(server_ip, backend, backend_server, maxconn)
         except Exception as e:
-            return f'{e}'
+            return 'error: ' + safe_error_message(e)
     else:
         return 'error: Wrong backend'
 
@@ -134,7 +135,7 @@ def action(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return service_haproxy.runtime_command(str(server_ip), enable, backend, save)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.post('/stats/action/<server_ip>')
@@ -144,7 +145,7 @@ def stat_page_action(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return service_haproxy.stat_page_action(str(server_ip), g.user_params['group_id'])
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/tables/<server_ip>')
@@ -153,7 +154,7 @@ def get_all_tables(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return runtime.get_all_stick_table(str(server_ip))
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/table/<server_ip>/<table>')
@@ -162,7 +163,7 @@ def get_table(server_ip: Union[IPvAnyAddress, DomainName], table: EscapedString)
     try:
         return runtime.table_select(str(server_ip), table)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/table/delete/<server_ip>/<table>/<ip_for_delete>', methods=['POST'])
@@ -171,7 +172,7 @@ def delete_ip(server_ip: Union[IPvAnyAddress, DomainName], table: EscapedString,
     try:
         return runtime.delete_ip_from_stick_table(str(server_ip), str(ip_for_delete), table)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/table/clear/<server_ip>/<table>', methods=['POST'])
@@ -180,7 +181,7 @@ def clear_table(server_ip: Union[IPvAnyAddress, DomainName], table: EscapedStrin
     try:
         return runtime.clear_stick_table(str(server_ip), table)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/session/<server_ip>')
@@ -189,7 +190,7 @@ def select_sessions(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return runtime.select_session(str(server_ip))
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/session/<server_ip>/<sess_id>')
@@ -198,7 +199,7 @@ def show_sessions(server_ip: Union[IPvAnyAddress, DomainName], sess_id: EscapedS
     try:
         return runtime.show_session(str(server_ip), sess_id)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/session/delete/<server_ip>/<sess_id>', methods=['POST'])
@@ -207,7 +208,7 @@ def delete_session(server_ip: Union[IPvAnyAddress, DomainName], sess_id: Escaped
     try:
         return runtime.delete_session(str(server_ip), sess_id)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/list/<server_ip>')
@@ -216,7 +217,7 @@ def get_lists(server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         return runtime.list_of_lists(str(server_ip))
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/list/<server_ip>/<int:list_id>/<color>/<list_name>')
@@ -225,7 +226,7 @@ def get_list(server_ip: Union[IPvAnyAddress, DomainName], list_id: int, color: E
     try:
         return runtime.show_lists(str(server_ip), list_id, color, list_name)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/list/delete', methods=['POST'])
@@ -239,7 +240,7 @@ def delete_ip_from_list():
     try:
         return runtime.delete_ip_from_list(serv, ip_id, ip, list_id, list_name)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/list/add', methods=['POST'])
@@ -253,4 +254,4 @@ def add_ip_to_list():
     try:
         return runtime.add_ip_to_list(serv, ip, list_id, list_name)
     except Exception as e:
-        return f'{e}'
+        return 'error: ' + safe_error_message(e)

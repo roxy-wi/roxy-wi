@@ -15,6 +15,7 @@ import app.modules.db.checker as checker_sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
 from app.modules.integrations.socket_notifications import publish_socket_notification
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 class NotificationDeliveryError(RuntimeError):
@@ -313,12 +314,12 @@ def check_email_alert() -> str:
 	try:
 		user = user_sql.get_user_id(g.user_params['user_id'])
 	except Exception as e:
-		return f'error: Cannot get a user email: {e}'
+		return f'error: Cannot get a user email: {safe_error_message(e)}'
 
 	try:
 		send_email(user.email, subject, message)
 	except Exception as e:
-		return f'error: Cannot send a message {e}'
+		return f'error: Cannot send a message {safe_error_message(e)}'
 
 	return 'ok'
 

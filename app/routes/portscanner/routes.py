@@ -14,6 +14,7 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.tools.common as tools_common
 import app.modules.common.common as common
 from app.modules.subscription.access import MANAGED_SERVICES, feature_required
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 _NMAP_HOST_TIMEOUT_SECONDS = 40
@@ -84,7 +85,7 @@ def change_settings_portscanner():
         service_command_sql.queue_portscanner_assignment(server_id, bool(enabled))
         return 'ok'
     except Exception as e:
-        return f'error: Cannot save settings: {e}'
+        return f'error: Cannot save settings: {safe_error_message(e)}'
 
 
 @bp.post('/scan')

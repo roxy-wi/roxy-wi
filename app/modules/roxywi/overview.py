@@ -12,6 +12,7 @@ import app.modules.tools.common as tools_common
 import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
 import app.modules.service.common as service_common
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 def user_owv() -> str:
@@ -65,35 +66,35 @@ def show_overview(serv) -> str:
         try:
             haproxy_process = service_common.server_status(server_mod.subprocess_execute(cmd))
         except Exception as e:
-            return f'error: {e} for server {server.hostname}'
+            return f'error: {safe_error_message(e)} for server {server.hostname}'
 
     if nginx:
         nginx_cmd = f'echo "something" |nc {server.ip} {sql.get_setting("nginx_stats_port")} -w 1'
         try:
             nginx_process = service_common.server_status(server_mod.subprocess_execute(nginx_cmd))
         except Exception as e:
-            return f'error: {e} for server {server.hostname}'
+            return f'error: {safe_error_message(e)} for server {server.hostname}'
 
     if apache:
         apache_cmd = f'echo "something" |nc {server.ip} {sql.get_setting("apache_stats_port")} -w 1'
         try:
             apache_process = service_common.server_status(server_mod.subprocess_execute(apache_cmd))
         except Exception as e:
-            return f'error: {e} for server {server.hostname}'
+            return f'error: {safe_error_message(e)} for server {server.hostname}'
 
     if keepalived:
         command = "ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"
         try:
             keepalived_process = server_mod.ssh_command(server.ip, command)
         except Exception as e:
-            return f'error: {e} for server {server.hostname}'
+            return f'error: {safe_error_message(e)} for server {server.hostname}'
 
     if waf_len >= 1:
         command = "ps ax |grep waf/bin/modsecurity |grep -v grep |wc -l"
         try:
             waf_process = server_mod.ssh_command(server.ip, command)
         except Exception as e:
-            return f'error: {e} for server {server.hostname}'
+            return f'error: {safe_error_message(e)} for server {server.hostname}'
 
     server_status = (
         server.hostname, server.ip, haproxy, haproxy_process, waf_process, waf, keepalived, keepalived_process, nginx,

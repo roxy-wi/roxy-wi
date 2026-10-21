@@ -26,6 +26,7 @@ import app.modules.service.haproxy as service_haproxy
 from app.modules.roxywi.class_models import ErrorResponse, NettoolsRequest, DomainName
 from app.modules.roxywi.exception import RoxywiPermissionError
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
+from app.modules.roxywi.error_handler import safe_error_message
 
 
 @bp.get('/socket-ticket')
@@ -35,7 +36,7 @@ def socket_ticket():
     try:
         require_feature(MANAGED_SERVICES)
     except RoxywiPermissionError as exc:
-        return jsonify({'status': 'failed', 'error': str(exc)}), 403
+        return jsonify({'status': 'failed', 'error': exc.public_message}), 403
     claims = roxywi_common.get_jwt_token_claims()
     expires_in = app.config['SOCKET_TICKET_SECONDS']
     token = create_access_token(
@@ -100,12 +101,12 @@ def show_stats(service: Literal['haproxy', 'apache', 'nginx'], server_ip: Union[
         try:
             return service_common.get_stat_page(server_ip, service, g.user_params['group_id'])
         except Exception as e:
-            return e
+            return 'error: ' + safe_error_message(e)
     else:
         try:
             return service_haproxy.stat_page_action(server_ip, g.user_params['group_id'])
         except Exception as e:
-            return str(e)
+            return 'error: ' + safe_error_message(e)
 
 
 @bp.route('/nettools')
@@ -129,33 +130,33 @@ def nettools_check(check, body: NettoolsRequest):
         try:
             return nettools_mod.ping_from_server(body.server_from, str(body.server_to), body.action)
         except Exception as e:
-            return ErrorResponse(error=f'Cannot ping: {e}').model_dump(mode='json'), 500
+            return ErrorResponse(error=f'Cannot ping: {safe_error_message(e)}').model_dump(mode='json'), 500
     elif check == 'tcp':
         try:
             return nettools_mod.telnet_from_server(body.server_from, str(body.server_to), body.port)
         except Exception as e:
-            return ErrorResponse(error=f'Cannot check port: {e}').model_dump(mode='json'), 500
+            return ErrorResponse(error=f'Cannot check port: {safe_error_message(e)}').model_dump(mode='json'), 500
     elif check == 'dns':
         try:
             return nettools_mod.nslookup_from_server(body.server_from, body.dns_name, body.record_type)
         except Exception as e:
-            return ErrorResponse(error=f'Cannot lookup: {e}').model_dump(mode='json'), 500
+            return ErrorResponse(error=f'Cannot lookup: {safe_error_message(e)}').model_dump(mode='json'), 500
     elif check == 'whois':
         try:
             return jsonify(nettools_mod.whois_check(body.dns_name))
         except Exception as e:
-            return ErrorResponse(error=f'Cannot make whois: {e}').model_dump(mode='json'), 500
+            return ErrorResponse(error=f'Cannot make whois: {safe_error_message(e)}').model_dump(mode='json'), 500
     elif check == 'ipcalc':
         try:
             ip_add = str(body.ip)
             netmask = int(body.netmask)
         except Exception as e:
-            return ErrorResponse(error=f'Cannot calc: {e}').model_dump(mode='json'), 500
+            return ErrorResponse(error=f'Cannot calc: {safe_error_message(e)}').model_dump(mode='json'), 500
 
         try:
             return jsonify(nettools_mod.ip_calc(ip_add, netmask))
         except Exception as e:
-            return ErrorResponse(error=f'Cannot calc: {e}').model_dump(mode='json'), 500
+            return ErrorResponse(error=f'Cannot calc: {safe_error_message(e)}').model_dump(mode='json'), 500
     else:
         return 'error: Wrong check'
 
@@ -238,4 +239,4 @@ def ask_gpt():
         content = result["response"]
         return jsonify({"response": content})
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": safe_error_message(e)}), 500

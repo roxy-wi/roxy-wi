@@ -9,6 +9,7 @@ import posixpath
 from uuid import uuid4
 from werkzeug.utils import secure_filename
 from app.modules.config.path_tokens import decode_file_path
+from app.modules.roxywi.exception import RoxywiInputError
 
 get_config_var = roxy_wi_tools.GetConfigVar()
 time_zone = sql.get_setting('time_zone')
@@ -27,13 +28,13 @@ def resolve_viewer_path(service: str, file_path: str = None) -> str:
 	if file_path in (None, '', 'undefined'):
 		file_path = main
 	if not isinstance(file_path, str):
-		raise ValueError('Invalid configuration file path')
+		raise RoxywiInputError('Invalid configuration file path')
 	file_path = decode_file_path(file_path)
 	if '..' in file_path.split('/') or '\\' in file_path or '\x00' in file_path:
-		raise ValueError('Invalid configuration file path')
+		raise RoxywiInputError('Invalid configuration file path')
 	file_path = posixpath.normpath(file_path)
 	if service == 'keepalived' and file_path != posixpath.normpath(main):
-		raise ValueError('Only the main configuration file is supported for this service')
+		raise RoxywiInputError('Only the main configuration file is supported for this service')
 	common.check_is_conf(file_path)
 	return file_path
 
@@ -67,12 +68,12 @@ def get_config_dir(service: str) -> str:
 def resolve_config_version_path(service: str, version: str) -> str:
 	"""Resolve a saved config path and guarantee it remains inside its service directory."""
 	if not version:
-		raise ValueError('Config version is required')
+		raise RoxywiInputError('Config version is required')
 	config_dir = Path(get_config_dir(service)).resolve()
 	candidate = os.path.realpath(os.path.join(config_dir, version))
 	# Include the separator so sibling directories with the same prefix fail.
 	if not candidate.startswith(os.path.join(str(config_dir), '')):
-		raise ValueError('Config version is outside the allowed directory')
+		raise RoxywiInputError('Config version is outside the allowed directory')
 	return candidate
 
 
@@ -93,11 +94,11 @@ def resolve_config_baseline(service: str, server_ip: str, version: str) -> str:
 		+ extension + r'(?:\.old)?', candidate.name,
 	)
 	if candidate.parent != root:
-		raise ValueError('Config baseline does not belong to the selected server')
+		raise RoxywiInputError('Config baseline does not belong to the selected server')
 	# Historical versions may include the remote filename. Their ownership is
 	# recorded in the database; never infer it from a partial filename match.
 	if not generated and not config_sql.config_version_exists(server_ip, service, str(candidate)):
-		raise ValueError('Config baseline does not belong to the selected server')
+		raise RoxywiInputError('Config baseline does not belong to the selected server')
 	return str(candidate)
 
 
@@ -106,7 +107,7 @@ def resolve_saved_config_path(service: str, server_ip: str, version: str) -> str
 	candidate = resolve_config_version_path(service, version)
 	stored = config_sql.get_config_version(server_ip, service, candidate)
 	if stored is None:
-		raise ValueError('Config version does not belong to the selected server')
+		raise RoxywiInputError('Config version does not belong to the selected server')
 	# Use the owned database record, rather than a browser-supplied path.
 	return resolve_config_version_path(service, str(Path(stored.local_path).resolve()))
 
@@ -127,5 +128,5 @@ def generate_config_path(service: str, server_ip: str) -> str:
 		f"{server_ip}-{get_date.return_date('config')}-{uuid4().hex}.{file_format}"
 	)
 	if not config_filename:
-		raise ValueError('Cannot generate a safe configuration filename')
+		raise RoxywiInputError('Cannot generate a safe configuration filename')
 	return str(Path(config_dir) / config_filename)

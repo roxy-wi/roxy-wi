@@ -13,6 +13,8 @@ import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
+from app.modules.roxywi.error_handler import safe_error_message
+from app.modules.roxywi.exception import RoxywiInputError
 
 get_config = roxy_wi_tools.GetConfigVar()
 
@@ -53,7 +55,7 @@ def get_bwlist(color: str, group: str, list_name: str) -> str:
 		with open(list_path, 'r') as f:
 			return f.read()
 	except IOError as e:
-		return f"error: Cannot read {color} list: {e}"
+		return f"error: Cannot read {color} list: {safe_error_message(e)}"
 
 
 def get_bwlists_for_autocomplete(color: str, group: str) -> str:
@@ -80,7 +82,7 @@ def create_bwlist(server_ip: str, list_name: str, color: str, group: str) -> str
 			pass
 		return 'success: '
 	except IOError as e:
-		return f'error: Cannot create a new {color} list. {e}, '
+		return f'error: Cannot create a new {color} list. {safe_error_message(e)}, '
 
 
 def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip: str, action: str) -> str:
@@ -107,8 +109,7 @@ def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip
 		try:
 			config_mod.upload(serv, f'{path}/{list_name}', list_path)
 		except Exception as e:
-			roxywi_common.logging(serv, f'error: Upload fail: to {serv}: {e}', roxywi=1, login=1)
-			output += f'error: Upload fail: to {serv}: {e} , '
+			output += f'error: Upload fail: to {serv}: {safe_error_message(e)} , '
 
 		output += f'success: Edited {color} list was uploaded to {serv} , '
 		try:
@@ -137,7 +138,7 @@ def delete_bwlist(list_name: str, color: str, group: str, server_ip: str) -> str
 	try:
 		os.remove(list_path)
 	except IOError as e:
-		return f'error: Cannot delete {color} list from Roxy-WI server. {e} , '
+		return f'error: Cannot delete {color} list from Roxy-WI server. {safe_error_message(e)} , '
 
 	if server_ip != 'all':
 		servers.append(server_ip)
@@ -155,7 +156,7 @@ def delete_bwlist(list_name: str, color: str, group: str, server_ip: str) -> str
 		try:
 			server_mod.ssh_command(serv, f"sudo rm {path}/{list_name}")
 		except Exception as e:
-			return f'error: Deleting fail: {e} , '
+			return f'error: Deleting fail: {safe_error_message(e)} , '
 
 		output += f'success: the {color} list has been deleted on {serv} , '
 		roxywi_common.logging(serv, f'has been deleted the {color} list {list_name}', roxywi=1, login=1)
@@ -165,19 +166,19 @@ def delete_bwlist(list_name: str, color: str, group: str, server_ip: str) -> str
 def _map_path(map_name: str, group: str) -> Path:
 	"""Resolve a plain map filename inside the active group's directory."""
 	if not map_name or map_name in ('.', '..') or any(char in map_name for char in ('/', '\\', '\0')):
-		raise ValueError('Map name must be a filename')
+		raise RoxywiInputError('Map name must be a filename')
 	if Path(map_name).name != map_name:
-		raise ValueError('Map name must be a filename')
+		raise RoxywiInputError('Map name must be a filename')
 	maps_root = (Path(get_config.get_config_var('main', 'lib_path')) / 'maps').resolve()
 	group_path = maps_root / str(group)
 	if group_path.parent != maps_root or group_path.resolve() != group_path:
-		raise ValueError('Map directory does not belong to the selected group')
+		raise RoxywiInputError('Map directory does not belong to the selected group')
 	resolved = os.path.realpath(group_path / map_name)
 	if not resolved.startswith(os.path.join(str(group_path), '')):
-		raise ValueError('Map path does not belong to the selected group')
+		raise RoxywiInputError('Map path does not belong to the selected group')
 	candidate = Path(resolved)
 	if candidate.parent != group_path:
-		raise ValueError('Map path does not belong to the selected group')
+		raise RoxywiInputError('Map path does not belong to the selected group')
 	return candidate
 
 
@@ -188,7 +189,7 @@ def edit_map(map_name: str, group: str) -> str:
 		with open(list_path, 'r') as f:
 			read_map = f.read()
 	except IOError as e:
-		return f"error: Cannot read {map_name} list: {e}"
+		return f"error: Cannot read {map_name} list: {safe_error_message(e)}"
 	else:
 		return read_map
 
@@ -222,7 +223,7 @@ def save_map(map_name: str, list_con: str, group: str, server_ip: str, action: s
 		with open(map_path, "w") as file:
 			file.write(list_con)
 	except IOError as e:
-		return f'error: Cannot save {map_name} list. {e}'
+		return f'error: Cannot save {map_name} list. {safe_error_message(e)}'
 
 	path = sql.get_setting('haproxy_dir') + "/maps"
 	servers = []
@@ -245,7 +246,7 @@ def save_map(map_name: str, list_con: str, group: str, server_ip: str, action: s
 		try:
 			config_mod.upload(serv, f'{path}/{map_name}', map_path)
 		except Exception as e:
-			output += f'error: Upload fail to: {serv}: {e} , '
+			output += f'error: Upload fail to: {serv}: {safe_error_message(e)} , '
 
 		try:
 			roxywi_common.logging(serv, f'Has been edited the map {map_name}', roxywi=1, login=1)
@@ -274,7 +275,7 @@ def delete_map(map_name: str, group: str, server_ip: str) -> str:
 	try:
 		os.remove(list_path)
 	except IOError as e:
-		return f'error: Cannot delete {map_name} map from Roxy-WI server. {e} , '
+		return f'error: Cannot delete {map_name} map from Roxy-WI server. {safe_error_message(e)} , '
 
 	if server_ip != 'all':
 		servers.append(server_ip)
@@ -292,7 +293,7 @@ def delete_map(map_name: str, group: str, server_ip: str) -> str:
 		try:
 			server_mod.ssh_command(serv, f"sudo rm {path}/{map_name}")
 		except Exception as e:
-			return f'error: Deleting fail: {e} , '
+			return f'error: Deleting fail: {safe_error_message(e)} , '
 
 		roxywi_common.logging(serv, f'has been deleted the {map_name} map', roxywi=1, login=1)
 		output += f'success: the {map_name} map has been deleted on {serv} , '
@@ -346,7 +347,7 @@ def get_ssl_cert(server_ip: str, cert_id: int) -> str:
 	try:
 		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
-		return f'error: Cannot connect to the server {e}'
+		return f'error: Cannot connect to the server {safe_error_message(e)}'
 
 
 def get_ssl_raw_cert(server_ip: str, cert_id: str) -> str:
@@ -356,7 +357,7 @@ def get_ssl_raw_cert(server_ip: str, cert_id: str) -> str:
 	try:
 		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
-		return f'error: Cannot connect to the server {e}'
+		return f'error: Cannot connect to the server {safe_error_message(e)}'
 
 
 def get_ssl_certs(server_ip: str, cert_type: str = None) -> str:
@@ -373,7 +374,7 @@ def get_ssl_certs(server_ip: str, cert_type: str = None) -> str:
 	try:
 		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
-		return f'error: Cannot connect to the server: {e}'
+		return f'error: Cannot connect to the server: {safe_error_message(e)}'
 
 
 def del_ssl_cert(server_ip: str, cert_id: str) -> str:
@@ -383,7 +384,7 @@ def del_ssl_cert(server_ip: str, cert_id: str) -> str:
 	try:
 		return server_mod.ssh_command(server_ip, command)
 	except Exception as e:
-		return f'error: Cannot delete the certificate {e}'
+		return f'error: Cannot delete the certificate {safe_error_message(e)}'
 
 
 def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str, ssl_type: str = 'pem') -> list[str]:
