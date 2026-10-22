@@ -56,6 +56,9 @@ def execute_operation(operation_id: str, task_id: int) -> str:
         if task.operation_type == 'letsencrypt':
             from app.modules.service.le.le_execution import execute
             return execute(task)
+        if task.operation_type == 'certificate':
+            from app.modules.service.certificate_operations import execute
+            return execute(task)
         if task.operation_type == 'change':
             from app.modules.change.operations import execute
             return execute(task)
@@ -241,9 +244,9 @@ class OperationWorker:
                             updated_at=utc_now(),
                         ).where(
                             (InstallationTasks.id == task_id)
-                            # Change operations recover their reservation and domain
-                            # state under a shared lock after lease expiry.
-                            & (InstallationTasks.operation_type != 'change')
+                            # Recoverable operations resume their persisted phase
+                            # under a shared lock after lease expiry.
+                            & (InstallationTasks.operation_type.not_in(('change', 'certificate')))
                         ).execute()
                     finally:
                         close_database_connection()

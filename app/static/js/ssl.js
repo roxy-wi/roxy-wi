@@ -1,39 +1,14 @@
 function certToastText(value) {
     return $('<div>').text(String(value)).html();
 }
+function sslServerSelector() {
+    return $('#cert-server').length ? '#cert-server' : '#serv5';
+}
+function refreshSslCertificates() {
+    if ($('#runtime-certificates').length) $('#runtime-certificates').trigger('certificates:refresh');
+    else $('#ssl_key_view').trigger('click');
+}
 $( function() {
-    $("#ssl_key_or_crt_upload").click(function () {
-        if (!checkIsServerFiled('#serv6')) return false;
-        if (!checkIsServerFiled('#ssl_key_name', 'Enter the Certificate name')) return false;
-        if (!checkIsServerFiled('#ssl_key_or_crt', 'Paste the contents of the certificate file')) return false;
-        let jsonData = {
-            server_ip: $('#serv6').val(),
-            cert_type: $('#new-cert-file-type').val(),
-            cert: $('#ssl_key_or_crt').val(),
-            name: $('#ssl_key_name').val()
-        }
-        $.ajax({
-            url: "/add/cert/add",
-            data: JSON.stringify(jsonData),
-            contentType: "application/json; charset=utf-8",
-            type: "POST",
-            success: function (data) {
-                if (data.error === 'failed') {
-                    toastr.error(data.error);
-                } else {
-                    for (let i = 0; i < data.length; i++) {
-                        if (data[i]) {
-                            if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
-                                toastr.error(certToastText(data[i]));
-                            } else {
-                                toastr.success(certToastText(data[i]));
-                            }
-                        }
-                    }
-                }
-            }
-        });
-    });
     $('#ssl_key_view').click(function () {
         if (!checkIsServerFiled('#serv5')) return false;
         $.ajax({
@@ -56,9 +31,9 @@ $( function() {
 });
 function view_ssl(id) {
 	let raw_word = translate_div.attr('data-raw');
-	if(!checkIsServerFiled('#serv5')) return false;
+	if(!checkIsServerFiled(sslServerSelector())) return false;
 	$.ajax( {
-		url: "/add/cert/" + $('#serv5').val() + '/' + encodeURIComponent(id),
+		url: "/add/cert/" + $(sslServerSelector()).val() + '/' + encodeURIComponent(id),
 		success: function( data ) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(certToastText(data));
@@ -67,9 +42,10 @@ function view_ssl(id) {
 				$( "#dialog-confirm-cert" ).dialog({
 					resizable: false,
 					height: "auto",
-					width: 670,
+					width: Math.min(700, window.innerWidth - 32),
+                    classes: {'ui-dialog': 'rw-dialog-responsive'},
 					modal: true,
-					title: "Certificate from "+$('#serv5').val()+", name: "+id,
+					title: id,
 					buttons: [{
 						text: cancel_word,
 						click: function () {
@@ -94,7 +70,7 @@ function view_ssl(id) {
 }
 function showRawSSL(id) {
 	$.ajax({
-		url: "/add/cert/get/raw/" + $('#serv5').val() + "/" + encodeURIComponent(id),
+		url: "/add/cert/get/raw/" + $(sslServerSelector()).val() + "/" + encodeURIComponent(id),
 		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
 				toastr.error(certToastText(data));
@@ -103,9 +79,10 @@ function showRawSSL(id) {
 				$("#dialog-confirm-cert").dialog({
 					resizable: false,
 					height: "auto",
-					width: 670,
+					width: Math.min(700, window.innerWidth - 32),
+                    classes: {'ui-dialog': 'rw-dialog-responsive'},
 					modal: true,
-					title: "Certificate from " + $('#serv5').val() + ", name: " + id,
+					title: id,
 					buttons: [{
 						text: cancel_word,
 						click: function () {
@@ -129,9 +106,9 @@ function showRawSSL(id) {
 	});
 }
 function deleteSsl(id) {
-	if (!checkIsServerFiled('#serv5')) return false;
+	if (!checkIsServerFiled(sslServerSelector())) return false;
 	$.ajax({
-		url: "/add/cert/" + $("#serv5").val() + "/" + encodeURIComponent(id),
+		url: "/add/cert/" + $(sslServerSelector()).val() + "/" + encodeURIComponent(id),
 		type: "DELETE",
 		success: function (data) {
 			if (data.indexOf('error: ') != '-1') {
@@ -139,7 +116,7 @@ function deleteSsl(id) {
 			} else {
 				toastr.clear();
 				toastr.success(certToastText('SSL cert ' + id + ' has been deleted'));
-				$("#ssl_key_view").trigger("click");
+				refreshSslCertificates();
 			}
 		}
 	});
@@ -318,6 +295,7 @@ function populateLeDialog(leId) {
         return;
     } else {
         $('#new-le-domain, #new-le-email, #new-le-description').val('');
+        if ($('#cert-server').val()) $('#new-le-server_id').val($('#cert-server').val()).selectmenu('refresh');
         $('#new-le-token, #new-le-access_key_id, #new-le-secret_access_key').attr('placeholder', '');
         updateLeProfileOptions(null);
     }
@@ -328,7 +306,8 @@ function openLeForm(leId) {
         autoOpen: true,
         resizable: false,
         height: "auto",
-        width: 500,
+        width: Math.min(620, window.innerWidth - 32),
+        classes: {'ui-dialog': 'rw-dialog-responsive'},
         modal: true,
         title: (leId ? 'Edit' : $('#translate').attr('data-create')) + " Let's Encrypt",
         show: {
@@ -392,8 +371,9 @@ function showLe(data) {
     const state = data.state || {};
     const busy = ['queued', 'running', 'deleting'].includes(state.status) || state.legacy_pending;
     const date = value => value ? new Date(value).toLocaleString() : '—';
-    const item = (label, action, disabled = busy) => {
-        const button = elem('button', {type: 'button', class: 'admin-action-item', onclick: action}, label);
+    const item = (label, icon, action, disabled = busy) => {
+        const button = elem('button', {type: 'button', class: 'admin-action-item', onclick: action}, [
+            elem('span', {class: 'fas fa-' + icon, 'aria-hidden': 'true'}), document.createTextNode(' ' + label)]);
         button.disabled = disabled;
         return button;
     };
@@ -407,28 +387,28 @@ function showLe(data) {
     }
     let le_tag = elem("tr", {"id":"lets-" + data['id']}, [
 	elem("td", {"class":"padding10 first-collumn"}, data.server_id.hostname || String(data.server_id)),
-	elem("td", {"style": "width: 10%;"}, provides[data['type']] + (data.dns_profile ? ' / ' + data.dns_profile : '')),
-	elem("td", null, list_domains),
-	elem("td", null, data['description'] || ''),
-    elem('td', null, status),
-    elem('td', null, date(state.retry_at || state.next_run_at)),
+	elem("td", {class: 'padding10'}, provides[data['type']] + (data.dns_profile ? ' / ' + data.dns_profile : '')),
+	elem("td", {class: 'padding10'}, list_domains),
+	elem("td", {class: 'padding10'}, data['description'] || ''),
+    elem('td', {class: 'padding10'}, status),
+    elem('td', {class: 'padding10'}, date(state.retry_at || state.next_run_at)),
     elem('td', {class: 'admin-actions-cell'}, [elem('div', {class: 'admin-actions'}, [
         elem('button', {type: 'button', class: 'rw-icon-button admin-actions-toggle',
             'aria-haspopup': 'menu', 'aria-expanded': 'false', 'aria-label': 'Actions'},
             [elem('span', {class: 'fas fa-ellipsis-v', 'aria-hidden': 'true'})]),
         elem('div', {class: 'admin-actions-menu', role: 'menu', hidden: 'hidden'}, [
-            item('Edit', () => openLeDialog(data.id), busy || !!state.deployment_phase),
+            item('Edit', 'edit', () => openLeDialog(data.id), busy || !!state.deployment_phase),
             ...(data.draft ? [
-                item('Check setup (staging)', () => runLeAction(data.id, 'preflight'), busy || !!state.deployment_phase),
-                item('Issue certificate', () => runLeAction(data.id, 'issue'), busy || !state.can_issue || !!state.deployment_phase),
-                item('Setup check results', () => showLeChecks(data.id), false)
+                item('Check setup (staging)', 'check-circle', () => runLeAction(data.id, 'preflight'), busy || !!state.deployment_phase),
+                item('Issue certificate', 'certificate', () => runLeAction(data.id, 'issue'), busy || !state.can_issue || !!state.deployment_phase),
+                item('Setup check results', 'clipboard-check', () => showLeChecks(data.id), false)
             ] : [
-                item('Check renewal', () => runLeAction(data.id, 'renew'), busy || !!state.deployment_phase),
-                item('Test renewal (staging)', () => runLeAction(data.id, 'test'), busy || !!state.deployment_phase)
+                item('Check renewal', 'sync-alt', () => runLeAction(data.id, 'renew'), busy || !!state.deployment_phase),
+                item('Test renewal (staging)', 'flask', () => runLeAction(data.id, 'test'), busy || !!state.deployment_phase)
             ]),
-            item('Retry', () => runLeAction(data.id, 'retry'), busy || !state.can_retry),
-            item('History', () => showLeHistory(data.id), false),
-            item('Delete', () => confirmDeleteLe(data.id), busy || !!state.deployment_phase)
+            item('Retry', 'redo', () => runLeAction(data.id, 'retry'), busy || !state.can_retry),
+            item('History', 'history', () => showLeHistory(data.id), false),
+            item('Delete', 'trash-alt', () => confirmDeleteLe(data.id), busy || !!state.deployment_phase)
         ])
     ])])
     ])
@@ -504,8 +484,8 @@ function showLeDnsProfiles() {
                     elem('button', {type: 'button', class: 'rw-icon-button admin-actions-toggle', 'aria-label': 'Actions',
                         'aria-haspopup': 'menu', 'aria-expanded': 'false'}, [elem('span', {class: 'fas fa-ellipsis-v'})]),
                     elem('div', {class: 'admin-actions-menu', role: 'menu', hidden: 'hidden'}, [
-                        elem('button', {type: 'button', class: 'admin-action-item', onclick: () => editLeDnsProfile(profile)}, 'Edit'),
-                        elem('button', {type: 'button', class: 'admin-action-item', onclick: () => deleteLeDnsProfile(profile)}, 'Delete')
+                        elem('button', {type: 'button', class: 'admin-action-item', onclick: () => editLeDnsProfile(profile)}, [elem('span', {class: 'fas fa-edit', 'aria-hidden': 'true'}), document.createTextNode(' Edit')]),
+                        elem('button', {type: 'button', class: 'admin-action-item', onclick: () => deleteLeDnsProfile(profile)}, [elem('span', {class: 'fas fa-trash-alt', 'aria-hidden': 'true'}), document.createTextNode(' Delete')])
                     ])
                 ])])
             ]));

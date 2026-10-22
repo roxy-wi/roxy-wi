@@ -82,6 +82,29 @@ def test_runtime_client_limits_response_size(monkeypatch):
 
 
 @pytest.mark.security
+def test_runtime_client_sends_certificate_payload_with_terminator(monkeypatch):
+    connection = FakeRuntimeSocket([b'Transaction created'])
+    monkeypatch.setattr(haproxy_runtime.socket, 'create_connection', lambda *args, **kwargs: connection)
+    payload = '-----BEGIN CERTIFICATE-----\nY2VydA==\n-----END CERTIFICATE-----\n'
+    haproxy_runtime.execute_runtime_command('192.0.2.20', 1999, 'set ssl cert /tls/site.pem', payload=payload)
+    assert connection.sent == ('set ssl cert /tls/site.pem <<\n' + payload + '\n').encode()
+
+
+@pytest.mark.security
+@pytest.mark.parametrize('command,payload', [
+    ('show info', 'certificate'),
+    ('set ssl cert /tls/site.pem; shutdown sessions server', 'certificate'),
+    ('set ssl cert /tls/site.pem', 'certificate\n\nshutdown sessions server'),
+    ('set ssl cert /tls/site.pem', 'certificate\r\n\r\nshow info'),
+])
+def test_runtime_certificate_payload_cannot_introduce_another_command(monkeypatch, command, payload):
+    monkeypatch.setattr(haproxy_runtime.socket, 'create_connection',
+                        lambda *args, **kwargs: pytest.fail('Invalid payload opened a socket'))
+    with pytest.raises(ValueError):
+        haproxy_runtime.execute_runtime_command('192.0.2.20', 1999, command, payload=payload)
+
+
+@pytest.mark.security
 def test_unix_socket_runtime_command_quotes_user_input(app, monkeypatch):
     commands = []
     backend = "backend one'; touch /tmp/pwned"

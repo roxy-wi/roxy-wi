@@ -9,7 +9,7 @@ from app.modules.db.db_model import LetsEncrypt, LetsEncryptState, InstallationT
 from app.modules.operations.queue import deserialize_operation_payload
 from app.modules.roxy_wi_tools import GetConfigVar
 from app.modules.service.le import le_store, le_certbot
-from app.scripts import letsencrypt_remote as legacy
+from app.scripts import certificate_remote as legacy
 
 
 def _require_original_host(config):

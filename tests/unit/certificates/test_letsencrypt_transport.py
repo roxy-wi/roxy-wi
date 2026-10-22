@@ -11,15 +11,16 @@ from unittest.mock import MagicMock
 import pytest
 
 from app.modules.service.le import le_certbot as certbot
-from app.scripts import letsencrypt_remote as remote
+from app.modules.service import certificates
+from app.scripts import certificate_remote as remote
 
 
 def test_ssh_transport_loads_remote_helper(monkeypatch):
     settings = {'user': 'root'}
-    monkeypatch.setattr(certbot, 'return_ssh_keys_path', lambda ip: settings)
+    monkeypatch.setattr(certificates, 'return_ssh_keys_path', lambda ip: settings)
     connection = MagicMock()
     connection.__enter__.return_value = connection
-    monkeypatch.setattr(certbot, 'SshConnection', lambda *args, **kwargs: connection)
+    monkeypatch.setattr(certificates, 'SshConnection', lambda *args, **kwargs: connection)
     stdin, stdout, stderr = MagicMock(), MagicMock(), MagicMock()
     stdout.read.return_value = b'{"tested": true}'
     stdout.channel.recv_exit_status.return_value = 0
@@ -29,7 +30,7 @@ def test_ssh_transport_loads_remote_helper(monkeypatch):
     assert certbot.remote(SimpleNamespace(ip='192.0.2.1'), payload) == {'tested': True}
 
     command = connection.ssh.exec_command.call_args.args[0]
-    assert shlex.split(command) == ['python3', '-c', Path(remote.__file__).read_text(encoding='utf-8')]
+    assert shlex.split(command) == ['python3', '-c', certificates.remote_source()]
     stdin.write.assert_called_once_with(json.dumps(payload))
     stdin.channel.shutdown_write.assert_called_once_with()
 

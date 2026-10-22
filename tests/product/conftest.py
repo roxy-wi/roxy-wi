@@ -3,6 +3,7 @@ from dataclasses import replace
 from contextlib import contextmanager
 from datetime import timedelta
 import json
+import os
 from pathlib import Path, PurePosixPath
 import shlex
 import shutil
@@ -19,6 +20,9 @@ from app.modules.roxywi import waf, waf_rule_file
 from app.modules.config import config, candidate
 from app.modules.server.ssh import crypt_password
 from app.modules.common.time import utc_now
+from tests.fixtures.certificate_runtime import Runtime, make_pem
+from app.modules.service import certificates
+from app.scripts import certificate_remote
 
 
 @pytest.fixture
@@ -60,6 +64,48 @@ def product_client(client, product):
     client.environ_base['HTTP_X_CSRF_TOKEN'] = client.get_cookie('csrf_access_token').value
     client.environ_base['HTTP_ACCEPT'] = 'application/json'
     return client
+
+
+@pytest.fixture
+def certificate_host(product, monkeypatch):
+    state = Runtime(product.root, monkeypatch)
+    state.old, state.new = make_pem(1), make_pem(2)
+    state.add(product.server.ip, state.old)
+    state.failed_hosts = set()
+    state.stored_on = []
+    if os.name == 'nt':
+        # Expose POSIX URLs while the synthetic managed hosts use Windows temporary files.
+        encode_path = certificates.encode_file_path
+        monkeypatch.setattr(certificates, 'encode_file_path', lambda path: encode_path('/' + Path(path).as_posix()))
+    monkeypatch.setattr(certificates, 'deployment_settings',
+                        lambda server, name, **kw: dict(state.settings(server.ip), pem_name=name or 'site.pem'))
+
+    def request(server, data):
+        if server.ip in state.failed_hosts and data['operation'] == 'deploy':
+            raise certificates.CertificateError('Target failed', 'remote_failed')
+        try:
+            if data.get('path') and os.name == 'nt':
+                data = dict(data, path=str(Path(data['path'].lstrip('/'))))
+            if data.get('destination'):
+                # Synthetic hosts share runtime paths but have isolated filesystem roots.
+                destination = dict(data['destination'])
+                master_folder = str(state.files[product.server.ip].parent)
+                destination['path'] = destination['path'].replace(master_folder, str(state.files[server.ip].parent), 1)
+                data = dict(data, destination=destination)
+            if data['operation'] == 'store':
+                state.stored_on.append(server.ip)
+                return certificate_remote.store_file(dict(data, cert_dir=str(state.files[server.ip].parent)))
+            if data['operation'] in ('catalog', 'read-file', 'remove-file') and data.get('runtime') is False:
+                data = dict(data, cert_dir=str(state.files[server.ip].parent))
+            return {'catalog': certificate_remote.catalog, 'deploy': certificate_remote.deploy,
+                    'check-new': certificate_remote.creation_preflight,
+                    'read-file': certificate_remote.read_file, 'remove-file': certificate_remote.remove_file,
+                    'rollback': certificate_remote.finish_deployment,
+                    'commit': certificate_remote.finish_deployment}[data['operation']](data)
+        except certificate_remote.CertificateFailure as error:
+            raise certificates.CertificateError('Certificate operation failed', error.code) from None
+    monkeypatch.setattr(certificates, 'remote', request)
+    return state
 
 
 @pytest.fixture

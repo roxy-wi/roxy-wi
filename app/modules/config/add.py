@@ -12,6 +12,7 @@ import app.modules.config.common as config_common
 import app.modules.server.server as server_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
+from app.modules.service import certificates
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.modules.roxywi.error_handler import safe_error_message
 from app.modules.roxywi.exception import RoxywiInputError
@@ -342,7 +343,7 @@ def get_saved_servers(group: str, term: str) -> dict:
 
 def get_ssl_cert(server_ip: str, cert_id: int) -> str:
 	cert_path = sql.get_setting('cert_path')
-	command = f"openssl x509 -in {cert_path}/{cert_id} -text"
+	command = f"sudo openssl x509 -in {cert_path}/{cert_id} -text"
 
 	try:
 		return server_mod.ssh_command(server_ip, command)
@@ -352,7 +353,7 @@ def get_ssl_cert(server_ip: str, cert_id: int) -> str:
 
 def get_ssl_raw_cert(server_ip: str, cert_id: str) -> str:
 	cert_path = sql.get_setting('cert_path')
-	command = f"cat {cert_path}/{cert_id}"
+	command = f"sudo cat {cert_path}/{cert_id}"
 
 	try:
 		return server_mod.ssh_command(server_ip, command)
@@ -389,29 +390,23 @@ def del_ssl_cert(server_ip: str, cert_id: str) -> str:
 
 def upload_ssl_cert(server_ip: str, ssl_name: str, ssl_cont: str, ssl_type: str = 'pem') -> list[str]:
 	cert_path = sql.get_setting('cert_path')
-	tmp_path = sql.get_setting('tmp_config_path')
 	output = []
 	server_ip = str(server_ip)
+	roxywi_common.check_is_server_in_group(server_ip)
 
 	if ssl_name is None:
 		raise Exception('Please enter a desired name')
 	else:
 		name = f"{ssl_name}.{ssl_type}"
-		path_to_file = f"{tmp_path}/{ssl_name}.{ssl_type}"
-
-	try:
-		with open(path_to_file, "w") as ssl_cert:
-			ssl_cert.write(ssl_cont)
-	except IOError as e:
-		raise IOError(f'Cannot save the SSL key file: {e}')
 
 	masters = server_sql.is_master(server_ip)
 	for master in masters:
 		if master[0] is not None:
-			config_mod.upload(master[0], f'{cert_path}/{name}', path_to_file)
+			roxywi_common.check_is_server_in_group(master[0])
+			certificates.store_uploaded_file(master[0], name, ssl_cont)
 			output.append(f'success: the SSL file has been uploaded to {master[0]} into: {cert_path}/{name}')
 	try:
-		config_mod.upload(server_ip, f'{cert_path}/{name}', path_to_file)
+		certificates.store_uploaded_file(server_ip, name, ssl_cont)
 		output.append(f'success: the SSL file has been uploaded to {server_ip} into: {cert_path}/{name}')
 	except Exception as e:
 		roxywi_common.logging('Roxy-WI server', str(e), roxywi=1)

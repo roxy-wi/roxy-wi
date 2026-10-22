@@ -25,6 +25,10 @@ from app.modules.service.haproxy_runtime import execute_runtime_command
 from app.views.service.views import ServiceActionView, ServiceBackendView, ServiceView
 from app.views.service.lets_encrypt_views import LetsEncryptView, LetsEncryptsView
 from app.views.service.le_profile_views import LetsEncryptDnsProfilesView, LetsEncryptDnsProfileView
+from app.views.service.certificate_views import (
+    CertificatesView, CertificatePreviewView, CertificateOperationView,
+    CertificateCreateView, CertificateFileView, CertificateHistoryView,
+)
 from app.modules.roxywi.class_models import DomainName
 from app.modules.roxywi.exception import RoxywiPermissionError
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
@@ -41,6 +45,13 @@ bp.add_url_rule('/letsencrypt/<int:le_id>', view_func=LetsEncryptView.as_view('l
 bp.add_url_rule('/letsencrypts', view_func=LetsEncryptsView.as_view('le_webs'), methods=['GET'])
 bp.add_url_rule('/letsencrypt/dns-profiles', view_func=LetsEncryptDnsProfilesView.as_view('le_profiles'), methods=['GET', 'POST'])
 bp.add_url_rule('/letsencrypt/dns-profiles/<int:profile_id>', view_func=LetsEncryptDnsProfileView.as_view('le_profile'), methods=['PUT', 'DELETE'])
+bp.add_url_rule('/haproxy/certificates/<int:server_id>', view_func=CertificatesView.as_view('certificates'), methods=['GET', 'POST'])
+bp.add_url_rule('/<any(nginx, apache):service>/certificates/<int:server_id>', view_func=CertificatesView.as_view('service_certificates'), methods=['GET'])
+bp.add_url_rule('/haproxy/certificates/<int:server_id>/preview', view_func=CertificatePreviewView.as_view('certificate_preview'), methods=['POST'])
+bp.add_url_rule('/haproxy/certificates/<int:server_id>/new', view_func=CertificateCreateView.as_view('certificate_create'), methods=['POST'])
+bp.add_url_rule('/haproxy/certificates/<int:server_id>/history', view_func=CertificateHistoryView.as_view('certificate_history'), methods=['GET'])
+bp.add_url_rule('/haproxy/certificates/operations/<int:task_id>', view_func=CertificateOperationView.as_view('certificate_operation'), methods=['GET', 'POST'])
+bp.add_url_rule('/<any(haproxy, nginx, apache):service>/certificates/<int:server_id>/file/<file_token>', view_func=CertificateFileView.as_view('certificate_file'), methods=['GET', 'DELETE'])
 
 
 def _service_status_payload(result):
@@ -231,7 +242,7 @@ def last_edit(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
 @check_services
 @get_user_params()
 def ssl_service(service):
-    return render_template('ssl.html', lang=g.user_params['lang'])
+    return render_template('ssl.html', lang=g.user_params['lang'], service=service)
 
 
 @bp.route('/cpu-ram-metrics/<server_ip>/<server_id>/<name>/<service>')

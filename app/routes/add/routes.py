@@ -231,7 +231,7 @@ def get_cert(server_id: int, cert_id: EscapedString):
 def upload_cert(body: SSLCertUploadRequest):
     roxywi_auth.page_for_admin(level=3)
     try:
-        data = add_mod.upload_ssl_cert(body.server_ip, body.name, body.cert.replace("'", ""), body.cert_type)
+        data = add_mod.upload_ssl_cert(body.server_ip, body.name, body.cert, body.cert_type)
         return jsonify(data), 201
     except Exception as e:
         return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot upload SSL certificate')

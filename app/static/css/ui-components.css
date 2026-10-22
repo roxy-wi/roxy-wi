@@ -94,6 +94,12 @@ button.rw-icon-button.service-actions-toggle,
 .rw-table-toolbar input[type="search"] { width: min(240px, 100%); min-width: 0; }
 .rw-table-pager { display: flex; justify-content: flex-end; align-items: center; gap: 9px; margin: 10px 0; }
 .rw-table-pager[hidden] { display: none; }
+#cert-history-dialog td { vertical-align: top; }
+#cert-history-dialog .rw-table-shell { max-height: 50vh; }
+#cert-history-dialog tbody tr + tr { border-top: 1px solid var(--rw-border); }
+#cert-history-dialog .rw-form-field { overflow-wrap: anywhere; }
+#cert-history-dialog .rw-status-badge { justify-self: start; }
+#cert-history-dialog time { display: block; }
 .rw-table-empty[hidden] { display: none; }
 table[data-ux-table] thead th[role="button"] { cursor: pointer; padding-right: 24px; position: relative; }
 table[data-ux-table] thead th[role="button"]::after {
@@ -108,10 +114,11 @@ table[data-ux-table] thead th[role="button"]::after {
 }
 table[data-ux-table] thead th[aria-sort="ascending"]::after { color: var(--rw-primary); content: "▲"; opacity: 1; }
 table[data-ux-table] thead th[aria-sort="descending"]::after { color: var(--rw-primary); content: "▼"; opacity: 1; }
-.rw-form-field { display: grid; gap: 6px; }
+.rw-form-field { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; gap: 6px; }
 .rw-form-field > label { font-weight: 700; }
 .rw-form-field input,
 .rw-form-field select,
+.rw-form-field .ui-selectmenu-button,
 .rw-form-field textarea { box-sizing: border-box; max-width: 100%; min-height: 20px; }
 .rw-form-help { margin: 6px 0; font-size: 12px; }
 .rw-form-help:empty { display: none; }

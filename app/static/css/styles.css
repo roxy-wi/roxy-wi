@@ -224,37 +224,40 @@ pre {
 	transition: margin-left 180ms ease;
 }
 .footer {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
 	min-height: 50px;
 	right: 0;
 	left: 0;
-	max-width: calc(100% - 272px);
-	min-width: 40%;
+	min-width: 0;
 	background-color: var(--background);
 	margin-left: 252px;
 	margin-right: 20px;
 	border-top: none;
 	clear: both;
-	transition: margin-left 180ms ease, max-width 180ms ease;
+	transition: margin-left 180ms ease;
 }
 #version { 
-    float: left;
+	flex-shrink: 0;
 	padding: 10px 20px 20px;
 	font-size: 14.5px;
     font-weight: bold;
 }
 .footer-div {
-    display: block;
-    padding-top: 11px;
-    text-align: right;
-    margin-right: 20px;
-    width: 460px;
-    float: left;
-    margin-left: 71%;
-    margin-top: -50px;
+	min-width: 0;
+	max-width: 100%;
+	margin-left: auto;
+	padding: 11px 0 20px;
+}
+#useful-links {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 10px 20px;
 }
 .footer-link, .footer-copyright {
 	font-size: 0.9em;
-	padding: 12px 5px 20px 15px;
 }
 .footer-copyright {
 	color: #586069 ;
@@ -536,20 +539,23 @@ pre {
 .serverNone {
 	background-color: #ddd; 
 }
-.add-button {
-	background-color: var(--right-menu-blue-rolor);
-	border-radius: 5px;
-	color: #fff;
+.add-button,
+.add-button.ui-button {
+	background-color: var(--right-menu-blue-rolor) !important;
+	border-radius: 5px !important;
+	color: #fff !important;
 	padding: 5px 10px;
 	float: right;
 	margin-right: 1px;
 	cursor: pointer;
 }
-.add-button:hover {
-	background-color: #5094ee;
+.add-button:hover,
+.add-button.ui-button:hover {
+	background-color: #5094ee !important;
 }
-.add-button:active {
-	background-color: #5499f4;
+.add-button:active,
+.add-button.ui-button:active {
+	background-color: #5499f4 !important;
 	box-shadow: 0 1px #666;
 }
 .add-button-wi {
@@ -768,9 +774,6 @@ ul{
 	html.nav-collapsed .container,
 	html.nav-collapsed .footer {
 		margin-left: 68px;
-	}
-	html.nav-collapsed .footer {
-		max-width: calc(100% - 88px);
 	}
 	html.nav-collapsed .app-nav-header {
 		justify-content: center;

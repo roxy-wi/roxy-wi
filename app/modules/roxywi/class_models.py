@@ -316,7 +316,7 @@ class PortScannerRequest(BaseModel):
 class SSLCertUploadRequest(BaseModel):
     server_ip: Union[IPvAnyAddress, DomainName]
     name: str = Field(min_length=1, max_length=128, pattern=r'^[A-Za-z0-9][A-Za-z0-9_.-]*$')
-    cert: EscapedString
+    cert: str = Field(min_length=1, max_length=1024 * 1024)
     cert_type: Literal['key', 'crt', 'pem'] = 'pem'
 
 

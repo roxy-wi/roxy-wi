@@ -13,8 +13,9 @@ def execute_runtime_command(
     *,
     timeout: float = 5,
     response_limit: int = _MAX_RESPONSE_SIZE,
+    payload=None,
 ) -> str:
-    """Send exactly one command to an HAProxy TCP Runtime API endpoint."""
+    """Send one command, optionally with a certificate's bounded PEM payload."""
     port = int(port)
     if not server:
         raise ValueError('HAProxy Runtime API server cannot be empty')
@@ -24,11 +25,20 @@ def execute_runtime_command(
         raise ValueError('HAProxy Runtime API command must be one non-empty line')
     if response_limit < 1:
         raise ValueError('HAProxy Runtime API response limit must be positive')
+    wire = command + '\n'
+    if payload is not None:
+        if not command.startswith('set ssl cert ') or any(value in command for value in (';', '<<')):
+            raise ValueError('A runtime payload is only supported for certificate updates')
+        if (not isinstance(payload, str) or not payload or len(payload.encode('utf-8')) > 1024 * 1024
+                or any(character in payload for character in ('\x00', '\r'))
+                or any(not line.strip() for line in payload.splitlines())):
+            raise ValueError('Invalid certificate runtime payload')
+        wire = command + ' <<\n' + payload.rstrip('\n') + '\n\n'
 
     response = bytearray()
     with socket.create_connection((server, port), timeout=timeout) as connection:
         connection.settimeout(timeout)
-        connection.sendall(f'{command}\n'.encode('utf-8'))
+        connection.sendall(wire.encode('utf-8'))
         connection.shutdown(socket.SHUT_WR)
 
         while True:

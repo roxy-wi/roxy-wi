@@ -16,6 +16,7 @@ from app.modules.operations.queue import serialize_operation_payload, deserializ
 from app.modules.roxywi.class_models import LetsEncryptRequest
 from app.modules.roxywi.exception import RoxywiConflictError, RoxywiValidationError, RoxywiResourceNotFound, RoxywiPublicError
 from app.modules.service.le import le_profiles
+from app.modules.service.certificates import targets_for
 
 
 ACTIVE = ('created', 'published', 'running')
@@ -45,16 +46,6 @@ def config_for(row, state):
     data.update(deserialize_operation_payload(state.credentials) if state.credentials else
                 {'api_key': row.api_key, 'api_token': row.api_token})
     return data
-
-
-def targets_for(server_id, group_id):
-    server = Server.get_or_none((Server.server_id == server_id) & (Server.group_id == str(group_id)))
-    if server is None:
-        raise RoxywiResourceNotFound('Certificate server not found in this group')
-    children = list(Server.select().where(Server.master == server_id))
-    if any(str(child.group_id) != str(group_id) for child in children):
-        raise RoxywiValidationError('HA certificate targets must belong to the same group')
-    return [server, *children]
 
 
 def validate_config(data, group_id, previous=None):

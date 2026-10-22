@@ -1,0 +1,93 @@
+<section id="runtime-certificates" data-service="{{ service }}" data-add-label="{{ lang.words.add|title }}" data-history-label="{{ lang.words.history|title }}" data-strings="{{ lang.certificates|tojson|forceescape }}">
+    <div class="rw-table-toolbar rw-table-search-toolbar">
+        <label for="cert-server">{{ lang.words.server|title }}</label>
+        <select id="cert-server" name="cert-server">
+            <option disabled selected value="">{{ lang.certificates.select_server }}</option>
+            {% for server in g.user_params['servers'] %}
+            <option value="{{ server.0 }}" data-address="{{ server.2 }}">{{ server.1 }}</option>
+            {% endfor %}
+        </select>
+        <input id="cert-search" type="search" placeholder="{{ lang.ux.search }}" aria-label="{{ lang.ux.search }}">
+        <button id="cert-refresh" type="button" class="ui-button ui-widget ui-corner-all"><span class="fas fa-sync-alt" aria-hidden="true"></span> {{ lang.words.refresh|title }}</button>
+    </div>
+    <p id="cert-message" class="rw-form-help rw-table-search-toolbar" role="status"></p>
+    <div class="overview-overflow"><table>
+        <caption><h3>{{ lang.certificates.title }}</h3></caption>
+        <thead><tr class="overviewHead">
+            <th class="padding10 first-collumn">{{ lang.words.cert_name|title }}</th>
+            <th class="padding10">{{ lang.words.domains|title }}</th>
+            <th class="padding10">{{ lang.certificates.expires }}</th>
+            {% if service == 'haproxy' %}<th class="padding10">{{ lang.certificates.in_haproxy }}</th>{% endif %}
+            <th class="padding10">{{ lang.certificates.on_disk }}</th>
+            <th class="admin-actions-cell">{{ lang.words.action|title }}</th>
+        </tr></thead>
+        <tbody id="cert-list"></tbody>
+    </table></div>
+    <div class="rw-table-toolbar rw-table-search-toolbar">
+        <button id="cert-add" type="button" class="add-button" disabled><span class="fas fa-plus" aria-hidden="true"></span> {{ lang.words.add|title }}</button>
+        {% if service == 'haproxy' %}<button id="cert-history" type="button" disabled><span class="fas fa-history" aria-hidden="true"></span> {{ lang.words.history|title }}</button>{% endif %}
+    </div>
+    {% if service == 'haproxy' %}
+    <div id="cert-history-dialog" class="rw-generated-config" hidden>
+        <div class="rw-table-toolbar">
+            <strong id="cert-history-server"></strong>
+            <button id="cert-history-refresh" type="button"><span class="fas fa-sync-alt" aria-hidden="true"></span> {{ lang.words.refresh|title }}</button>
+        </div>
+        <p id="cert-history-message" class="rw-form-help" role="status"></p>
+        <div class="rw-table-shell"><table class="rw-table-responsive" aria-label="{{ lang.words.history|title }}">
+            <thead><tr class="overviewHead">
+                <th class="padding10">{{ lang.words.date|title }}</th>
+                <th class="padding10">{{ lang.words.cert_name|title }}</th>
+                <th class="padding10">{{ lang.words.status|title }}</th>
+                <th class="padding10">{{ lang.certificates.history_targets }}</th>
+            </tr></thead>
+            <tbody id="cert-operations"></tbody>
+        </table></div>
+        <div class="rw-table-toolbar">
+            <span id="cert-history-range" class="rw-form-help" aria-live="polite"></span>
+            <label for="cert-history-size">{{ lang.certificates.history_per_page }}</label>
+            <select id="cert-history-size"><option value="10">10</option><option value="25">25</option><option value="50">50</option></select>
+        </div>
+        <nav class="rw-table-pager" aria-label="{{ lang.words.history|title }}">
+            <button id="cert-history-prev" type="button" class="rw-icon-button" aria-label="{{ lang.certificates.history_previous }}" title="{{ lang.certificates.history_previous }}" disabled><span class="fas fa-chevron-left" aria-hidden="true"></span></button>
+            <span id="cert-history-page" class="rw-page-current" aria-live="polite"></span>
+            <button id="cert-history-next" type="button" class="rw-icon-button" aria-label="{{ lang.certificates.history_next }}" title="{{ lang.certificates.history_next }}" disabled><span class="fas fa-chevron-right" aria-hidden="true"></span></button>
+        </nav>
+    </div>
+    {% endif %}
+    <div id="cert-update-dialog" class="rw-generated-config" hidden>
+        <div class="rw-form-field rw-table-search-toolbar">
+            <pre data-cert-current hidden></pre>
+            <div data-cert-create><div class="rw-form-field">
+                <div class="rw-form-field"><label for="cert-new-name">{{ lang.words.cert_name|title }}</label>
+                    <input id="cert-new-name" type="text" maxlength="128" autocomplete="off" placeholder="example.pem">
+                </div>
+                <div class="rw-form-field"><label for="new-cert-file-type">{{ lang.words.file|title }} {{ lang.words.type }}</label>
+                    <select id="new-cert-file-type"><option value="pem">Pem</option><option value="key">Key</option><option value="crt">Crt (chain)</option></select>
+                </div>
+                {% if service == 'haproxy' %}
+                <div class="rw-form-field"><label for="cert-upload-mode">{{ lang.certificates.upload_mode }}</label>
+                    <select id="cert-upload-mode" aria-describedby="cert-upload-hint">
+                        <option value="disk">{{ lang.certificates.disk_only }}</option>
+                        <option value="runtime">{{ lang.certificates.apply_now }}</option>
+                    </select>
+                </div>
+                <div data-cert-destination hidden><div class="rw-form-field"><label for="cert-destination">{{ lang.certificates.destination }}</label>
+                    <select id="cert-destination"></select>
+                    <p class="rw-form-help">{{ lang.certificates.create_hint }}</p>
+                </div></div>
+                <p id="cert-create-help" class="rw-form-help" role="status"></p>
+                {% endif %}
+            </div></div>
+            <p id="cert-upload-hint" class="rw-form-help"></p>
+            <div class="rw-form-field"><label for="cert-pem-file">{{ lang.words.file|title }}</label>
+                <input id="cert-pem-file" type="file" accept=".pem,.crt,.key,.txt">
+            </div>
+            <div class="rw-form-field"><label for="cert-pem">{{ lang.add_page.desc.paste_cert }}</label>
+                <textarea id="cert-pem" rows="8" cols="60" spellcheck="false" autocomplete="off"></textarea>
+            </div>
+            <pre data-cert-preview role="status"></pre>
+        </div>
+    </div>
+    <div id="cert-details-dialog" class="rw-generated-config" hidden></div>
+</section>

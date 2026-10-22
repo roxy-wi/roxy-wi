@@ -17,7 +17,8 @@ from uuid import uuid4
 import pytest
 
 from app.modules.service.le import le_certbot
-from app.scripts import letsencrypt_remote
+from app.modules.service import certificates as certificate_service
+from app.scripts import certificate_remote
 
 
 pytestmark = pytest.mark.skipif(
@@ -65,7 +66,7 @@ def ssh_target(tmp_path, monkeypatch):
                     return True
             wait_until(reachable)
             settings = dict(user=getpass.getuser(), port=port, password=None, enabled=1, key=str(user_key), passphrase=None)
-            monkeypatch.setattr(le_certbot, 'return_ssh_keys_path', lambda _ip: settings)
+            monkeypatch.setattr(certificate_service, 'return_ssh_keys_path', lambda _ip: settings)
             yield SimpleNamespace(ip='127.0.0.1')
         finally:
             if pidfile.exists():
@@ -81,7 +82,8 @@ def make_pem(directory, serial):
     return certificate.read_text() + key.read_text()
 
 
-def test_ssh_docker_reload_rollback_and_interrupted_finalize(tmp_path, ssh_target):
+@pytest.mark.parametrize('apply_mode', ['reload', 'runtime'])
+def test_ssh_docker_reload_rollback_and_interrupted_finalize(tmp_path, ssh_target, apply_mode):
     certificates = tmp_path / 'certificates'
     certificates.mkdir()
     old, new = make_pem(tmp_path, 1), make_pem(tmp_path, 2)
@@ -96,15 +98,21 @@ def test_ssh_docker_reload_rollback_and_interrupted_finalize(tmp_path, ssh_targe
     name = 'roxywi-le-test-' + uuid4().hex[:12]
     image = os.environ.get('ROXYWI_TEST_HAPROXY_IMAGE', 'haproxy:3.0-alpine')
     data = dict(cert_dir=str(certificates), config_path=str(config), docker=True, container=name,
-                runtime_port=1999, pem_name='example.pem', pem=new, transaction=uuid4().hex)
+                runtime_port=1999, pem_name='example.pem', pem=new, transaction=uuid4().hex, apply_mode=apply_mode)
+    extra = tmp_path / 'conf.d'
+    extra.mkdir()
+    (extra / 'extra.cfg').write_text('backend unused\n  mode http\n')
+    data['validation'] = dict(service='haproxy', target=str(config), main=str(config), candidate='', action='check',
+                              root=str(tmp_path), sources=[str(config), str(extra)], container=name)
     command('docker', 'run', '-d', '--name', name, '--user', '0:0',
-            '-v', f'{certificates}:/tls', '-v', f'{config}:/usr/local/etc/haproxy/haproxy.cfg:ro',
-            '--entrypoint', 'haproxy', image, '-W', '-db', '-f', '/usr/local/etc/haproxy/haproxy.cfg')
+            '-v', f'{certificates}:/tls', '-v', f'{tmp_path}:/usr/local/etc/haproxy:ro',
+            '--entrypoint', 'haproxy', image, '-W', '-db', '-f', '/usr/local/etc/haproxy/haproxy.cfg',
+            '-f', '/usr/local/etc/haproxy/conf.d')
     try:
-        wait_until(lambda: letsencrypt_remote.runtime_pid(data))
+        wait_until(lambda: certificate_remote.runtime_pid(data))
 
         def peer_fingerprint():
-            host, _ = letsencrypt_remote.runtime_endpoint(data)
+            host, _ = certificate_remote.runtime_endpoint(data)
             context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
             context.check_hostname, context.verify_mode = False, ssl.CERT_NONE
             with socket.create_connection((host, 8443), timeout=5) as stream:
@@ -112,8 +120,12 @@ def test_ssh_docker_reload_rollback_and_interrupted_finalize(tmp_path, ssh_targe
                     return hashlib.sha256(connection.getpeercert(binary_form=True)).hexdigest()
 
         original = peer_fingerprint()
+        initial_pid = certificate_remote.runtime_pid(data)
         assert le_certbot.remote(ssh_target, dict(data, operation='preflight'))['checked']
-        assert le_certbot.remote(ssh_target, dict(data, operation='deploy'))['verification'] == 'loaded'
+        assert le_certbot.remote(ssh_target, dict(data, operation='deploy'))['verification'] == (
+            'runtime' if apply_mode == 'runtime' else 'loaded')
+        if apply_mode == 'runtime':
+            assert certificate_remote.runtime_pid(data) == initial_pid
         replacement = peer_fingerprint()
         assert original != replacement
         # Recovery after the worker disappears following successful deployment.
@@ -127,8 +139,15 @@ def test_ssh_docker_reload_rollback_and_interrupted_finalize(tmp_path, ssh_targe
         assert le_certbot.remote(ssh_target, dict(data, operation='commit'))['finished']
         assert peer_fingerprint() == replacement
         # Invalid replacement must leave the last accepted certificate serving.
-        with pytest.raises(le_certbot.CertificateError, match='configuration validation'):
+        with pytest.raises(le_certbot.CertificateError):
             le_certbot.remote(ssh_target, dict(data, operation='deploy', transaction=uuid4().hex, pem='invalid PEM'))
         assert peer_fingerprint() == replacement
+        if apply_mode == 'runtime':
+            (extra / 'extra.cfg').write_text('invalid configuration\n')
+            with pytest.raises(le_certbot.CertificateError):
+                le_certbot.remote(ssh_target, dict(data, operation='deploy', transaction=uuid4().hex,
+                                                pem=make_pem(tmp_path, 3)))
+            assert peer_fingerprint() == replacement
+            assert target.read_text() == new
     finally:
         command('docker', 'rm', '-f', name)
