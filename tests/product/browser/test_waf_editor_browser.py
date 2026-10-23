@@ -89,14 +89,19 @@ def test_waf_editor_preserves_changes_on_failure_and_retries(logged_in, product_
 
 
 @pytest.mark.parametrize('locale', LOCALES)
-def test_waf_read_failure_is_localized_and_has_no_editor(logged_in, product_url, product, waf_editor, app, locale):
+@pytest.mark.parametrize('service', ['haproxy', 'nginx'])
+def test_waf_read_failure_is_localized_and_has_no_editor(logged_in, product_url, product, waf_editor, app, locale, service):
     waf_editor.fail_read = True
     page = logged_in
     page.context.add_cookies([{'name': 'lang', 'value': locale, 'url': product_url}])
-    response = page.goto(f'{product_url}/waf/nginx/{product.server.ip}/rule/{waf_editor.rules["nginx"].id}')
+    response = page.goto(f'{product_url}/waf/{service}/{product.server.ip}/rule/{waf_editor.rules[service].id}')
     assert response.status == 500
     message = app.jinja_env.get_template(f'languages/{locale}.html').module.waf_editor['read_failed']
-    expect(page.locator('h4')).to_contain_text(message)
+    detail = page.get_by_role('main').locator('.error-detail')
+    expect(detail).to_be_visible()
+    expect(detail).to_have_text(message)
+    expect(page.locator('.error-code')).to_have_text('500')
+    expect(page.locator('body')).not_to_contain_text('synthetic connection failure')
     expect(page.locator('#saveconfig')).to_have_count(0)
     assert not list(product.root.glob('waf-read-*'))
 
