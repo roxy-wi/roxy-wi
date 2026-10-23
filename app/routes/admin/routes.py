@@ -144,7 +144,10 @@ def action_tools(service, action):
     if access_error is not None:
         return access_error
 
-    return roxy.action_service(action, service)
+    result = roxy.action_service(action, service)
+    if result.startswith('error:'):
+        return jsonify({'status': 'failed', 'error': result.removeprefix('error: ')}), 500
+    return result
 
 
 @bp.route('/update')

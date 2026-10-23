@@ -1,6 +1,5 @@
 import os
 import re
-import subprocess
 from packaging import version
 
 import requests
@@ -14,6 +13,8 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
 from app.version import get_service_version
 from app.modules.roxy_wi_tools import GetConfigVar
+from app.modules.roxywi import logger
+from app.modules.server.command import run_local
 
 
 def deployment_mode() -> str:
@@ -99,21 +100,27 @@ def action_service(action: str, service: str) -> str:
 			'warning: Container services are managed by Compose or Kubernetes. '
 			'Additional Roxy-WI services are controlled through RabbitMQ.'
 		)
-	is_in_docker = is_docker()
 	actions = {
 		'start': 'enable --now',
 		'stop': 'disable --now',
 		'restart': 'restart',
 	}
-	if not re.match(r'^[a-zA-Z0-9._-]+$', service):
-			return f"Invalid service name: {service}. Only alphanumeric characters, dots, and hyphens are allowed."
+	if action not in actions or not re.fullmatch(r'[a-zA-Z0-9][a-zA-Z0-9._-]*', service):
+		return 'error: Invalid service action'
 	if not roxy_sql.get_user().Status:
 		return 'warning: The service is disabled because you are not subscribed. Read <a href="https://roxy-wi.org/pricing" ' \
 				   'title="Roxy-WI pricing" target="_blank">here</a> about subscriptions'
-	if is_in_docker:
-		subprocess.run(['sudo', 'supervisorctl', action, service], check=False)
+	if is_docker():
+		command = ['sudo', '-n', 'supervisorctl', action, service]
 	else:
-		subprocess.run(['sudo', 'systemctl', *actions[action].split(), service], check=False)
+		command = ['sudo', '-n', 'systemctl', *actions[action].split(), service]
+	result = run_local(command, timeout=60)
+	if not result.succeeded:
+		logger.error('Local service action failed', service=service, action=action,
+					 return_code=result.return_code, timed_out=result.timed_out)
+		if result.timed_out:
+			return f'error: Timed out waiting to {action} {service}. Refresh its status before retrying.'
+		return f'error: Cannot {action} {service}. Check the web process sudo permissions and the service journal.'
 	roxywi_common.logging('Roxy-WI server', f'The service {service} has been {action}ed', roxywi=1, login=1)
 	return 'ok'
 

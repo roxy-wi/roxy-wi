@@ -2,7 +2,6 @@ import json
 import time
 from typing import Union, Literal
 
-import distro
 from flask import render_template, request, jsonify, g, Response, stream_with_context
 from flask_jwt_extended import jwt_required
 from flask_pydantic import validate
@@ -12,14 +11,13 @@ from app.routes.metric import bp
 import app.modules.db.server as server_sql
 import app.modules.db.metric as metric_sql
 import app.modules.db.service as service_sql
+import app.modules.db.service_event as service_event_sql
 from app.middleware import check_services, get_user_params
 import app.modules.common.common as common
-import app.modules.server.server as server_mod
 import app.modules.roxywi.metrics as metric
 import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi.class_models import DomainName, IpRequest
 from app.modules.subscription.access import MANAGED_SERVICES, feature_required
-from app.modules.roxywi.error_handler import safe_error_message
 
 
 @bp.before_request
@@ -35,27 +33,12 @@ def before_request():
 @get_user_params()
 def metrics(service):
     roxywi_common.check_user_group_for_flask()
-    servers = ''
-    services = '0'
-
-    try:
-        if distro.id() == 'ubuntu':
-            cmd = "apt list --installed 2>&1 |grep roxy-wi-metrics"
-        else:
-            cmd = "rpm -q roxy-wi-metrics-* |awk -F\"metrics\" '{print $2}' |awk -F\".noa\" '{print $1}' |sed 's/-//1' |sed 's/-/./'"
-        service_ver, stderr = server_mod.subprocess_execute(cmd)
-
-        if not stderr:
-            if len(service_ver) > 0:
-                if 'is not installed' in service_ver[0]:
-                    servers = ''
-                else:
-                    services = '1'
-                    servers = metric_sql.select_metrics_enabled_with_group(service, g.user_params['group_id'])
-            else:
-                servers = ''
-    except Exception as e:
-        return f'error: on Metrics page: {safe_error_message(e)}', 500
+    group_id = int(g.user_params['group_id'])
+    worker_state = service_event_sql.worker_summary(group_id=group_id).get('metrics', {})
+    # Metrics workers may run on another host. Keep historical charts available
+    # for registered workers even when collection has stopped.
+    services = '1' if worker_state else '0'
+    servers = metric_sql.select_metrics_enabled_with_group(service, group_id) if worker_state else []
 
     kwargs = {
         'servers': servers,
