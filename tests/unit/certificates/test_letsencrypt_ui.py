@@ -28,7 +28,18 @@ function $(selector) {
 }
 $.ajax = options => { requests.push(options); };
 $.getScript = () => {};
-const context = { $, document: {hidden: false}, elem: (tag, attrs, children) => ({tag, attrs:attrs || {}, children}),
+function textContent(node) {
+    if (node == null) return '';
+    if (typeof node === 'string') return node;
+    if (Array.isArray(node)) return node.map(textContent).join('');
+    if (node.nodeType === 3) return node.textContent;
+    return textContent(node.children);
+}
+const label = button => textContent(button).trim();
+const context = { $, document: {
+        hidden: false,
+        createTextNode: text => ({nodeType: 3, textContent: String(text)})
+    }, elem: (tag, attrs, children) => ({tag, attrs:attrs || {}, children}),
     setInterval: () => 1, awesome: 'icons', cancel_word: 'Cancel', delete_word: 'Delete',
     toastr: {error() { throw Error('Unexpected error toast'); }}, runInstallationTaskCheck() {} };
 vm.createContext(context);
@@ -45,7 +56,12 @@ assert.strictEqual(row.children[3].children, data.description); // remains text,
 assert.strictEqual(row.children[4].children[0].children, 'queued');
 const menu = row.children[6].children[0];
 assert.strictEqual(menu.children[0].children[0].attrs.class, 'fas fa-ellipsis-v');
-assert(menu.children[1].children.find(button => button.children === 'Edit').disabled);
+const edit = menu.children[1].children.find(button => label(button) === 'Edit');
+assert(edit.disabled);
+assert.strictEqual(edit.children[0].attrs.class, 'fas fa-edit');
+assert.strictEqual(edit.children[0].attrs['aria-hidden'], 'true');
+assert.strictEqual(edit.children[1].nodeType, 3);
+assert.strictEqual(edit.children[1].textContent, ' Edit');
 context.removeLe(7);
 const deletion = requests.at(-1);
 assert.strictEqual(deletion.method, 'DELETE');
@@ -61,14 +77,14 @@ data.state.status = 'draft';
 data.state.can_issue = false;
 context.showLe(data);
 let draftActions = appended.at(-1).children[6].children[0].children[1].children;
-assert(!draftActions.find(button => button.children === 'Check setup (staging)').disabled);
-assert(draftActions.find(button => button.children === 'Issue certificate').disabled);
-assert(!draftActions.some(button => button.children === 'Check renewal'));
+assert(!draftActions.find(button => label(button) === 'Check setup (staging)').disabled);
+assert(draftActions.find(button => label(button) === 'Issue certificate').disabled);
+assert(!draftActions.some(button => label(button) === 'Check renewal'));
 data.state.status = 'ready';
 data.state.can_issue = true;
 context.showLe(data);
 draftActions = appended.at(-1).children[6].children[0].children[1].children;
-const issue = draftActions.find(button => button.children === 'Issue certificate');
+const issue = draftActions.find(button => label(button) === 'Issue certificate');
 assert(!issue.disabled);
 issue.attrs.onclick();
 assert.strictEqual(JSON.parse(requests.at(-1).data).action, 'issue');
@@ -77,10 +93,10 @@ data.state.deployment_phase = 'rollback';
 data.state.can_retry = true;
 context.showLe(data);
 draftActions = appended.at(-1).children[6].children[0].children[1].children;
-assert(draftActions.find(button => button.children === 'Edit').disabled);
-assert(draftActions.find(button => button.children === 'Delete').disabled);
-assert(draftActions.find(button => button.children === 'Issue certificate').disabled);
-assert(!draftActions.find(button => button.children === 'Retry').disabled);
+assert(draftActions.find(button => label(button) === 'Edit').disabled);
+assert(draftActions.find(button => label(button) === 'Delete').disabled);
+assert(draftActions.find(button => label(button) === 'Issue certificate').disabled);
+assert(!draftActions.find(button => label(button) === 'Retry').disabled);
 '''
     result = subprocess.run([node, '-e', harness, str(source)], capture_output=True, text=True, timeout=30)
     assert result.returncode == 0, result.stderr
