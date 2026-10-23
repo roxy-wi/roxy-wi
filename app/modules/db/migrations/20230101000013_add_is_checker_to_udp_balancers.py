@@ -18,7 +18,7 @@ def up():
                 migrator.add_column('udp_balancers', 'is_checker', IntegerField(constraints=[SQL('DEFAULT 0')])),
             )
     except Exception as e:
-        if (e.args[0] == 'duplicate column name: is_checker' or 'column "is_checker" of relation "udp_balancers" already exists'
+        if (e.args[0] == 'duplicate column name: is_checker' or 'column "is_checker" of relation "udp_balancers" already exists' in str(e)
                 or str(e) == '(1060, "Duplicate column name \'is_checker\'")'):
             print('Column already exists')
         else:
