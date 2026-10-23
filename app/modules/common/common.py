@@ -111,7 +111,12 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	so the regular expression patterns used should follow the standard IP and DNS validation rules.
 	"""
 	ip_regex = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
-	dns_regex = "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
+	# Labels are case-insensitive and may not start or end with a hyphen. The top-level
+	# domain may be any length (".internal", ".network") or an IDN in punycode ("xn--p1ai").
+	dns_regex = (
+		"^(?:[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?\\.)+"
+		"(?:[A-Za-z]{2,63}|xn--[A-Za-z0-9-]{1,59})$"
+	)
 	try:
 		server_from_request = server_from_request.strip()
 	except Exception:
