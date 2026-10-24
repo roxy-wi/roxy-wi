@@ -8,6 +8,7 @@ from typing import Any
 from uuid import uuid4
 
 from flask import render_template, g
+from markupsafe import escape
 
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
@@ -613,11 +614,13 @@ def show_finding_in_config(stdout: str, **kwargs) -> str:
 	word_to_find = kwargs.get('grep')
 
 	if word_to_find:
-		word_to_find = common.sanitize_input_word(word_to_find)
+		# Escape instead of sanitizing: grep -F matched the literal text, so
+		# stripping spaces/punctuation would mangle the config lines we show.
+		word_to_find = str(escape(word_to_find))
 
 	for line in stdout:
+		line = str(escape(line))
 		if word_to_find:
-			line = common.sanitize_input_word(line)
 			line = common.highlight_word(line, word_to_find)
 		line_class = _classify_line(line)
 		output += common.wrap_line(line, line_class)
