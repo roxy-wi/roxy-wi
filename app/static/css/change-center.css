@@ -3,6 +3,8 @@
 }
 
 .change-center-intro {
+    background-color: var(--rw-surface-muted);
+    margin-top: 16px;
     margin-bottom: 20px;
     margin-left: 0;
 }
@@ -29,40 +31,41 @@
 .change-center-stats {
     display: grid;
     flex: 1;
-    gap: 10px;
-    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    gap: 8px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .change-stat {
-    background: var(--color-gray-light-alpha);
-    border-radius: 5px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 12px 16px;
+    gap: 4px;
+    padding: 9px 12px;
 }
 
-.change-stat span { color: var(--rw-text-muted, #66717d); font-size: .9em; }
-.change-stat strong { font-size: 1.35em; }
+.change-stat span { color: var(--rw-text-muted); font-size: 12px; }
+.change-stat strong { font-size: 18px; font-weight: 600; }
 .change-center-toolbar-actions { align-items: center; display: flex; gap: 8px; justify-content: flex-end; }
 .change-center-toolbar-actions .ui-button { margin: 0; width: auto !important; }
 
 .change-list-toolbar {
     align-items: end;
-    background: var(--rw-surface-muted, #f4f5f6);
-    border-radius: 6px;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px 16px;
     margin-bottom: 14px;
-    padding: 12px var(--indent);
+    padding: 16px;
 }
 
 .change-list-toolbar label {
     display: grid;
-    font-size: .86em;
-    font-weight: 600;
     gap: 4px;
+    min-width: 0;
+}
+
+.change-list-toolbar label > span:first-child {
+    color: var(--rw-text-muted);
+    font-size: 12px;
+    font-weight: 500;
 }
 
 .change-list-toolbar input,
@@ -72,11 +75,15 @@
     width: 190px;
 }
 
-.change-list-toolbar label:first-child input { width: 220px; }
 #change-center #change-list-search {
     box-sizing: border-box !important;
     height: 34px !important;
     padding: 4px 8px !important;
+    margin: 0;
+    border: 1px solid var(--rw-border);
+    border-radius: 5px;
+    background: var(--rw-surface);
+    color: inherit;
 }
 .change-list-toolbar button { margin-bottom: 4px; }
 #change-center #change-list-clear {
@@ -85,7 +92,8 @@
     white-space: nowrap;
     width: auto !important;
 }
-.change-list-count { color: var(--rw-text-muted, #66717d); margin: 0 0 8px auto; white-space: nowrap; }
+.change-list-count { color: var(--rw-text-muted); margin: 16px 0; }
+.change-list-count:empty { display: none; }
 
 .change-list-state {
     align-items: center;
@@ -102,11 +110,25 @@
 .change-scheduled-at { color: var(--rw-text-muted, #66717d); display: block; margin-top: 5px; white-space: nowrap; }
 #change-center > .rw-table-empty { display: none !important; }
 
+#change-center .change-list-table { padding: 0; }
+.change-list-table:has(table[hidden]) { display: none; }
+#change-center-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 0;
+    width: 100%;
+    font-size: 12px;
+}
 #change-center-table th,
 #change-center-table td {
-    padding: 10px 10px 10px var(--indent);
+    border: 0;
+    border-bottom: 1px solid var(--rw-border);
+    padding: 9px 12px;
+    text-align: left;
 }
-
+#change-center-table th { color: var(--rw-text-muted); font-weight: 500; }
+#change-center-table tbody tr:last-child td { border-bottom: 0; }
+#change-center-table tbody tr:hover { background: var(--rw-surface-muted); }
 #change-center-table td {
     vertical-align: middle;
 }
@@ -262,8 +284,9 @@ button.ui-button.change-confirm-button:hover {
 
 #change-details-dialog pre,
 .change-diff {
-    background: #f7f7f7;
-    border: 1px solid #ddd;
+    background: var(--rw-surface);
+    border: 1px solid var(--rw-border);
+    border-radius: var(--rw-radius);
     max-height: 260px;
     overflow: auto;
     padding: 10px;
@@ -271,7 +294,8 @@ button.ui-button.change-confirm-button:hover {
 }
 
 .change-rollout {
-    border: 1px solid #ddd;
+    border: 1px solid var(--rw-border);
+    border-radius: var(--rw-radius);
     max-height: 300px;
     overflow: auto;
 }
@@ -306,14 +330,14 @@ button.ui-button.change-confirm-button:hover {
 
 .change-rollout th,
 .change-rollout td {
-    border-bottom: 1px solid #e3e3e3;
+    border-bottom: 1px solid var(--rw-border);
     padding: 8px 10px;
     text-align: left;
     vertical-align: top;
 }
 
 .change-rollout th {
-    background: #f1f1f1;
+    background: var(--rw-surface-muted);
     position: sticky;
     top: 0;
 }
@@ -448,12 +472,12 @@ button.ui-button.change-confirm-button:hover {
 
 @media (max-width: 900px) {
     .change-center-toolbar { flex-direction: column; }
-    .change-center-stats { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
+    .change-center-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .change-center-toolbar-actions { justify-content: flex-end; }
     .change-list-toolbar label,
     .change-list-toolbar input,
-    .change-list-toolbar select,
-    .change-list-toolbar label:first-child input { flex: 1 1 180px; width: 100%; }
+    .change-list-toolbar select { flex: 1 1 180px; width: 100%; }
+    .change-list-toolbar .ui-selectmenu-button { box-sizing: border-box; max-width: 100%; }
     .change-list-count { margin-left: 0; width: 100%; }
     .change-actions-menu { left: auto; right: 0; }
 }

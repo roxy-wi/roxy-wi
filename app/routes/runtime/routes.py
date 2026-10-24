@@ -1,6 +1,6 @@
 from typing import Union
 
-from flask import render_template, request, g
+from flask import render_template, request, g, jsonify
 from flask_jwt_extended import jwt_required
 from flask_pydantic import validate
 from pydantic import IPvAnyAddress
@@ -11,6 +11,7 @@ import app.modules.common.common as common
 import app.modules.config.runtime as runtime
 import app.modules.db.server as server_sql
 import app.modules.service.haproxy as service_haproxy
+from app.modules.service.haproxy_stats_actions import is_stats_server_command
 import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi.class_models import DomainName, EscapedString
 from app.modules.roxywi.error_handler import safe_error_message
@@ -85,65 +86,19 @@ def change_ip_port():
         return runtime.delete_server(server_ip, backend_backend, backend_server)
 
 
-@bp.route('/maxconn/<server_ip>')
-@validate()
-def maxconn_select(server_ip: Union[IPvAnyAddress, DomainName]):
-    try:
-        return runtime.get_backends_from_config(str(server_ip), backends='frontend')
-    except Exception as e:
-        return 'error: ' + safe_error_message(e)
-
-
-@bp.route('/maxconn/<type_maxconn>/<server_ip>', methods=['POST'])
-@validate()
-def change_maxconn(type_maxconn: str, server_ip: Union[IPvAnyAddress, DomainName]):
-    server_ip = str(server_ip)
-    maxconn = common.checkAjaxInput(request.form.get('maxconn'))
-
-    if type_maxconn == 'global':
-        try:
-            return runtime.change_maxconn_global(server_ip, maxconn)
-        except Exception as e:
-            return 'error: ' + safe_error_message(e)
-    elif type_maxconn == 'frontend':
-        frontend = common.checkAjaxInput(request.form.get('maxconn_frontend'))
-
-        try:
-            return runtime.change_maxconn_frontend(server_ip, maxconn, frontend)
-        except Exception as e:
-            return 'error: ' + safe_error_message(e)
-    elif type_maxconn == 'backend':
-        backend = common.checkAjaxInput(request.form.get('maxconn_backend'))
-        backend_server = common.checkAjaxInput(request.form.get('maxconn_backend_server'))
-
-        try:
-            return runtime.change_maxconn_backend(server_ip, backend, backend_server, maxconn)
-        except Exception as e:
-            return 'error: ' + safe_error_message(e)
-    else:
-        return 'error: Wrong backend'
-
-
 @bp.route('/action/<server_ip>', methods=['POST'])
 @get_user_params()
 @validate()
 def action(server_ip: Union[IPvAnyAddress, DomainName]):
+    if is_stats_server_command(request.form.get('servaction', ''), request.form.get('servbackend', '')):
+        return jsonify({'status': 'error', 'code': 'stats_actions_moved'}), 409
+
     enable = common.checkAjaxInput(request.form.get('servaction'))
     backend = common.checkAjaxInput(request.form.get('servbackend'))
     save = request.form.get('save')
 
     try:
         return service_haproxy.runtime_command(str(server_ip), enable, backend, save)
-    except Exception as e:
-        return 'error: ' + safe_error_message(e)
-
-
-@bp.post('/stats/action/<server_ip>')
-@get_user_params()
-@validate()
-def stat_page_action(server_ip: Union[IPvAnyAddress, DomainName]):
-    try:
-        return service_haproxy.stat_page_action(str(server_ip), g.user_params['group_id'])
     except Exception as e:
         return 'error: ' + safe_error_message(e)
 

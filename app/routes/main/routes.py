@@ -7,6 +7,7 @@ from flask_jwt_extended import create_access_token, jwt_required
 from flask_pydantic import validate
 from pydantic import IPvAnyAddress
 import requests
+from werkzeug.exceptions import HTTPException
 
 from app import app, jwt
 from app.routes.main import bp
@@ -15,14 +16,14 @@ import app.modules.db.user as user_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
 import app.modules.db.history as history_sql
-from app.middleware import check_services, get_user_params
+from app.middleware import check_services, get_user_params, page_for_admin
 import app.modules.common.common as common
 import app.modules.roxywi.roxy as roxy
 import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.nettools as nettools_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
-import app.modules.service.haproxy as service_haproxy
+from app.modules.service import haproxy_stats, haproxy_stats_actions, haproxy_stats_maxconn
 from app.modules.roxywi.class_models import ErrorResponse, NettoolsRequest, DomainName
 from app.modules.roxywi.exception import RoxywiPermissionError
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
@@ -87,7 +88,8 @@ def stats(service, serv):
         'service_desc': service_sql.select_service(service),
         'lang': g.user_params['lang']
     }
-    return render_template('statsview.html', **kwargs)
+    template = 'haproxy_stats.html' if service == 'haproxy' else 'statsview.html'
+    return render_template(template, **kwargs)
 
 
 @bp.route('/stats/view/<service>/<server_ip>')
@@ -96,17 +98,94 @@ def stats(service, serv):
 @get_user_params()
 @validate()
 def show_stats(service: Literal['haproxy', 'apache', 'nginx'], server_ip: Union[IPvAnyAddress, DomainName]):
-    roxywi_common.require_server_access(server_ip)
+    server = roxywi_common.require_server_access(server_ip)
     if service in ('nginx', 'apache'):
         try:
             return service_common.get_stat_page(server_ip, service, g.user_params['group_id'])
         except Exception as e:
             return 'error: ' + safe_error_message(e)
     else:
+        if not server.haproxy:
+            abort(404)
         try:
-            return service_haproxy.stat_page_action(server_ip, g.user_params['group_id'])
+            data = haproxy_stats.collect_stats(
+                str(server.ip), sql.get_setting('haproxy_sock_port', group_id=server.group_id)
+            )
+            response = jsonify(data)
+        except haproxy_stats.StatsError as e:
+            safe_error_message(e)
+            response = jsonify({'status': 'error', 'code': e.code})
+            response.status_code = e.status
         except Exception as e:
-            return 'error: ' + safe_error_message(e)
+            safe_error_message(e)
+            response = jsonify({'status': 'error', 'code': 'operation_failed'})
+            response.status_code = 500
+        response.headers['Cache-Control'] = 'no-store'
+        return response
+
+
+@bp.post('/stats/server/<any(haproxy):service>/<server_ip>')
+@jwt_required()
+@check_services
+@get_user_params()
+@page_for_admin(level=3)
+@validate()
+def stats_server_action(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
+    server = roxywi_common.require_server_access(server_ip)
+    if not server.haproxy:
+        abort(404)
+    try:
+        command = haproxy_stats_actions.change_server(
+            str(server.ip), sql.get_setting('haproxy_sock_port', group_id=server.group_id),
+            request.get_json(silent=True),
+        )
+        roxywi_common.logging(server.ip, f'HAProxy Stats: {command}', keep_history=1, service='haproxy')
+        response = jsonify({'status': 'ok'})
+    except haproxy_stats.StatsError as exc:
+        safe_error_message(exc)
+        response = jsonify({'status': 'error', 'code': exc.code})
+        response.status_code = exc.status
+    except Exception as exc:
+        safe_error_message(exc)
+        response = jsonify({'status': 'error', 'code': 'action_unknown'})
+        response.status_code = 500
+    response.headers['Cache-Control'] = 'no-store'
+    return response
+
+
+@bp.route('/stats/maxconn/<any(haproxy):service>/<server_ip>', methods=['GET', 'POST'])
+@jwt_required()
+@check_services
+@get_user_params()
+@page_for_admin(level=3)
+@validate()
+def stats_maxconn(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
+    server = roxywi_common.require_server_access(server_ip)
+    if not server.haproxy:
+        abort(404)
+    try:
+        if request.method == 'GET':
+            data = {'status': 'ok', 'targets': [
+                {'ip': node.ip, 'hostname': node.hostname} for node in haproxy_stats_maxconn.targets(server)
+            ]}
+        else:
+            data = {'status': 'ok', 'nodes': haproxy_stats_maxconn.change(server, request.get_json(silent=True))}
+        response = jsonify(data)
+    except haproxy_stats.StatsError as exc:
+        safe_error_message(exc)
+        data = {'status': 'error', 'code': exc.code}
+        if isinstance(exc, haproxy_stats_maxconn.MaxconnError):
+            data['nodes'] = exc.nodes
+        response = jsonify(data)
+        response.status_code = exc.status
+    except HTTPException:
+        raise
+    except Exception as exc:
+        safe_error_message(exc)
+        response = jsonify({'status': 'error', 'code': 'maxconn_unknown'})
+        response.status_code = 500
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
 @bp.route('/nettools')

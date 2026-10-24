@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ lang.menu_links.stats.h2 }} HAProxy{% endblock %}
+{% block h2 %}{{ lang.menu_links.stats.h2 }} HAProxy{% endblock %}
+{% block content %}
+{% import 'languages/en.html' as english %}
+{% from 'include/input_macros.html' import select %}
+{% set labels = lang.haproxy_stats|default(english.haproxy_stats) %}
+{% set field_help = lang.haproxy_stats_fields|default(english.haproxy_stats_fields) %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/haproxy-stats.css', v='9.3.0-4') }}">
+{% if g.user_params['servers']|length == 0 %}
+    {% include 'include/getstarted.html' %}
+{% else %}
+<section id="haproxy-stats" class="haproxy-stats-page" aria-label="HAProxy Stats"
+         data-labels='{{ labels|tojson }}' data-field-help='{{ field_help|tojson }}' data-group="{{ g.user_params['group_id'] }}"
+         data-user="{{ g.user_params['user_id']|default('') }}" data-can-manage="{{ 'true' if g.user_params['role'] <= 3 else 'false' }}">
+    <div class="hs-toolbar rw-table-toolbar service-page-toolbar">
+        <label class="rw-form-field" for="hs-server">
+            <span>{{ lang.words.server|title() }}</span>
+            {{ select('hs-server', values=g.user_params['servers'], is_servers='true', selected=serv) }}
+        </label>
+        <button type="button" class="ui-button ui-widget ui-corner-all" id="hs-refresh">{{ labels.refresh }}</button>
+        <label class="rw-form-field" for="hs-interval">
+            <span>{{ labels.auto_refresh }}</span>
+            <select id="hs-interval">
+                <option value="0">{{ labels.paused }}</option>
+                <option value="5">5 {{ labels.seconds }}</option>
+                <option value="10">10 {{ labels.seconds }}</option>
+                <option value="30" selected>30 {{ labels.seconds }}</option>
+            </select>
+        </label>
+        {% if g.user_params['role'] > 3 %}<span class="hs-read-only">{{ labels.read_only }}</span>{% endif %}
+    </div>
+    <div id="hs-content" class="haproxy-stats">
+    <div id="hs-status" class="hs-status" role="status" aria-live="polite">{{ labels.select_server }}</div>
+    <div id="hs-error" class="hs-error" role="alert" hidden></div>
+    <div id="hs-action-result" class="hs-action-result" role="status" aria-live="polite" hidden></div>
+    <div id="hs-summary" class="hs-summary" hidden></div>
+    <div class="hs-filters">
+        <label class="hs-search-label">{{ labels.search }}
+            <input id="hs-search" type="search" placeholder="{{ labels.search_hint }}" autocomplete="off">
+        </label>
+        <label>{{ labels.state }}
+            <select id="hs-state">
+                <option value="all">{{ labels.all }}</option>
+                <option value="up">UP / OPEN</option>
+                <option value="down">DOWN / STOP</option>
+                <option value="maint">MAINT</option>
+                <option value="drain">DRAIN / NOLB</option>
+                <option value="no_check">{{ labels.no_check }}</option>
+                <option value="unknown">{{ labels.unknown }}</option>
+            </select>
+        </label>
+        <label>{{ labels.type }}
+            <select id="hs-kind">
+                <option value="all">{{ labels.all }}</option>
+                <option value="frontend">Frontend</option>
+                <option value="backend">Backend</option>
+                <option value="server">{{ labels.servers }}</option>
+                <option value="listener">Listener</option>
+            </select>
+        </label>
+        <label class="hs-check"><input id="hs-backup" type="checkbox">{{ labels.backup_only }}</label>
+        <label class="hs-check"><input id="hs-problems" type="checkbox">{{ labels.problems_only }}</label>
+        <details class="hs-columns"><summary>{{ labels.columns }}</summary><div id="hs-column-options"></div></details>
+    </div>
+    <p id="hs-count" class="hs-count"></p>
+    <div id="hs-groups"></div>
+    <p id="hs-empty" class="hs-empty" hidden>{{ labels.empty }}</p>
+    </div>
+</section>
+<script src="{{ url_for('static', filename='js/haproxy-stats.js', v='9.3.0-4') }}"></script>
+{% endif %}
+{% endblock %}

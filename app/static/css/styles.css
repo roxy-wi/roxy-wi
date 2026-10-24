@@ -1507,50 +1507,6 @@ label {
 	margin-bottom: -10px;
 	padding: 0;
 }
-#stats_filter {
-	margin-left: 5px;
-	margin-right: 5px;
-	margin-top: -4px;
-	float: right;
-	padding-top: 7px;
-	display: none;
-}
-#stats_filter_text {
-	float: left;
-	font-size: 20px;
-	margin-top: -2px;
-	padding: 0 10px 5px 5px;
-}
-.stats_active, .stats_drain, .stats_maintain, .stats_down, .stats_not_checked, .stats_backup, .stats_frontends, .stats_backends {
-	color: #000 !important;
-	border-color: rgb(221, 221, 221) !important;
-	opacity: .8;
-}
-.stats_active:hover, .stats_drain:hover, .stats_maintain:hover, .stats_down:hover, .stats_not_checked:hover, .stats_backup:hover, .stats_frontends:hover, .stats_backends:hover {
-	color: #000 !important;
-	opacity: 1;
-}
-.stats_active {
-	background-color: #c0ffc0 !important;
-}
-.stats_drain {
-	background-color: #20a0FF !important;
-}
-.stats_maintain {
-	background-color: #c07820 !important;
-}
-.stats_down {
-	background-color: #ff9090 !important;
-}
-.stats_not_checked {
-	background-color: #e0e0e0 !important;
-}
-.stats_backup {
-	background-color: #b0d0ff !important;
-}
-.stats_frontends {
-	background-color: rgb(93, 156, 235) !important;
-}
 .switcher_table_metric {
 	margin-left: 99%;
 	color: var(--green-color);

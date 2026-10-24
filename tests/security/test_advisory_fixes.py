@@ -44,13 +44,13 @@ def actor(app, monkeypatch):
 @pytest.mark.parametrize('service', ['haproxy', 'nginx', 'apache'])
 @pytest.mark.parametrize('target', ['192.0.2.20', '192.0.2.99'])
 def test_stats_rejects_unmanaged_or_other_group_before_http(client, actor, monkeypatch, service, target):
-    monkeypatch.setattr(haproxy.requests, 'post', lambda *a, **k: pytest.fail('HTTP credentials escaped'))
+    monkeypatch.setattr(service_common.requests, 'post', lambda *a, **k: pytest.fail('HTTP credentials escaped'))
     monkeypatch.setattr(service_common.requests, 'get', lambda *a, **k: pytest.fail('HTTP credentials escaped'))
     response = client.get(f'/stats/view/{service}/{target}', headers=actor[1])
     assert response.status_code == 403
 
 
-@pytest.mark.parametrize('service', ['haproxy', 'nginx', 'apache'])
+@pytest.mark.parametrize('service', ['nginx', 'apache'])
 @pytest.mark.parametrize('role,target', [(4, '192.0.2.10'), (1, '192.0.2.20')])
 def test_stats_registered_targets_do_not_follow_redirects(app, actor, monkeypatch, service, role, target):
     calls = []
@@ -61,14 +61,11 @@ def test_stats_registered_targets_do_not_follow_redirects(app, actor, monkeypatc
     def http(url, **kwargs):
         calls.append((url, kwargs))
         return SimpleNamespace(content=b'stats', status_code=302, headers={'Location': 'http://192.0.2.99/'})
-    monkeypatch.setattr(haproxy.requests, 'post', http)
+    monkeypatch.setattr(service_common.requests, 'post', http)
     monkeypatch.setattr(service_common.requests, 'get', http)
     with app.test_request_context('/'):
         g.user_params = actor[0]
-        if service == 'haproxy':
-            haproxy.stat_page_action(target, 1)
-        else:
-            service_common.get_stat_page(target, service, 1)
+        service_common.get_stat_page(target, service, 1)
     assert calls[0][0].startswith(f'http://{target}:')
     assert calls[0][1]['allow_redirects'] is False
     assert calls[0][1]['auth'] == ('test', 'test')

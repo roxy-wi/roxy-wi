@@ -73,7 +73,6 @@ def test_local_command_failure_does_not_escape_through_stderr(monkeypatch, safe_
     ('show_backends', 'show_backends', ('192.0.2.10',)),
     ('show_backend_servers', 'show_frontend_backend', ('192.0.2.10', 'api')),
     ('show_backend_server', 'show_server', ('192.0.2.10', 'api', 'one')),
-    ('maxconn_select', 'get_backends_from_config', ('192.0.2.10',)),
     ('get_all_tables', 'get_all_stick_table', ('192.0.2.10',)),
     ('get_table', 'table_select', ('192.0.2.10', 'table')),
     ('delete_ip', 'delete_ip_from_stick_table', ('192.0.2.10', 'table', '192.0.2.20')),
@@ -98,22 +97,6 @@ def test_runtime_route_failure_and_success_contract(app, monkeypatch, safe_logs,
         response = app.make_response(function(*args))
     assert response.status_code == 200
     assert response.get_data(as_text=True) == 'runtime result'
-
-
-@pytest.mark.parametrize('operation', ('global', 'frontend', 'backend'))
-def test_runtime_transport_error_cannot_escape_as_stderr(app, monkeypatch, safe_logs, operation):
-    monkeypatch.setattr(runtime, 'execute_runtime_command', fail)
-    monkeypatch.setattr(runtime.sql, 'get_setting', lambda *_args: 1999)
-    monkeypatch.setattr(runtime.server_sql, 'is_master', lambda *_args: [])
-    monkeypatch.setattr(runtime.roxywi_common, 'logging', lambda *_args, **_kwargs: None)
-    monkeypatch.setattr(runtime.config_mod, 'get_config', lambda *_args: pytest.fail('Must not save after runtime failure'))
-    with app.test_request_context('/runtimeapi/maxconn', method='POST', data={
-        'maxconn': '100', 'maxconn_frontend': 'public', 'maxconn_backend': 'api',
-        'maxconn_backend_server': 'one',
-    }):
-        response = app.make_response(inspect.unwrap(runtime_routes.change_maxconn)(operation, '192.0.2.10'))
-    assert response.get_data(as_text=True) == 'error: Internal server error'
-    assert safe_logs
 
 
 def test_list_read_failure_is_redacted_before_json_serialization(app, monkeypatch, safe_logs):

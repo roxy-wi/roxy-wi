@@ -24,17 +24,14 @@
 				{% endif %}
 			</div>
 			<div class="change-center-stats" aria-label="{{lang.change_center.statistics}}">
-				<div class="change-stat"><span>{{lang.change_center.deployments}}</span><strong id="change-stat-deployments">—</strong></div>
-				<div class="change-stat"><span>{{lang.change_center.success_rate}}</span><strong id="change-stat-success-rate">—</strong></div>
-				<div class="change-stat"><span>{{lang.change_center.average_duration}}</span><strong id="change-stat-duration">—</strong></div>
-				<div class="change-stat"><span>{{lang.change_center.drifted_nodes}}</span><strong id="change-stat-drift">—</strong></div>
+				<div class="change-stat rw-card"><span>{{lang.change_center.deployments}}</span><strong id="change-stat-deployments">—</strong></div>
+				<div class="change-stat rw-card"><span>{{lang.change_center.success_rate}}</span><strong id="change-stat-success-rate">—</strong></div>
+				<div class="change-stat rw-card"><span>{{lang.change_center.average_duration}}</span><strong id="change-stat-duration">—</strong></div>
+				<div class="change-stat rw-card"><span>{{lang.change_center.drifted_nodes}}</span><strong id="change-stat-drift">—</strong></div>
 			</div>
 		</div>
-		<div class="change-list-toolbar" role="search" aria-label="{{lang.change_center.filters}}">
-			<label>
-				<span>{{lang.ux.search}}</span>
-				<input type="search" id="change-list-search" placeholder="{{lang.change_center.search_placeholder}}" autocomplete="off">
-			</label>
+		<div class="change-list-toolbar rw-panel" role="search" aria-label="{{lang.change_center.filters}}">
+			<input type="search" id="change-list-search" aria-label="{{lang.ux.search}}" placeholder="{{lang.change_center.search_placeholder}}" autocomplete="off">
 			<label>
 				<span>{{lang.words.service|title()}}</span>
 				<select id="change-list-service"><option value="">{{lang.ux.all}}</option></select>
@@ -50,8 +47,8 @@
 			<button type="button" id="change-list-clear" class="ui-button ui-widget ui-corner-all">
 				<span class="fas fa-times" aria-hidden="true"></span> {{lang.change_center.clear_filters}}
 			</button>
-			<span id="change-list-count" class="change-list-count" aria-live="polite"></span>
 		</div>
+		<p id="change-list-count" class="change-list-count" aria-live="polite"></p>
 		<div id="change-center-list-state" class="change-list-state" role="status" aria-live="polite">
 			<span class="fas fa-circle-notch fa-spin" aria-hidden="true"></span>
 			<span class="change-list-state-message">{{lang.change_center.loading}}</span>
@@ -59,9 +56,10 @@
 				<span class="fas fa-redo" aria-hidden="true"></span> {{lang.ux.retry_action}}
 			</button>
 		</div>
-		<table class="overview hover order-column display compact" id="change-center-table" data-ux-table data-page-size="20" aria-busy="true" hidden>
+		<div class="rw-table-shell rw-panel change-list-table">
+		<table id="change-center-table" data-ux-table data-page-size="20" aria-busy="true" hidden>
 			<thead>
-			<tr class="overviewHead">
+			<tr>
 				<th>ID</th>
 				<th>{{lang.words.name|title()}}</th>
 				<th>{{lang.words.service|title()}}</th>
@@ -75,6 +73,7 @@
 			</thead>
 			<tbody></tbody>
 		</table>
+		</div>
 		<div id="change-center-empty" class="alert alert-warning" style="display:none;">{{lang.change_center.empty}}</div>
 		<div id="change-center-no-results" class="rw-empty-state" style="display:none;">{{lang.change_center.no_matching_changes}}</div>
 	</div>

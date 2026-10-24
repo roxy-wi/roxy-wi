@@ -1,10 +1,8 @@
 import os
 import shlex
 import tempfile
-import requests
 
-from flask import request, g
-from requests.exceptions import ConnectionError, Timeout
+from flask import g
 
 import app.modules.db.sql as sql
 import app.modules.server.server as server_mod
@@ -12,44 +10,6 @@ from app.modules.server.command import build_remote_command
 import app.modules.config.config as config_mod
 import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi.error_handler import safe_error_message
-
-
-def stat_page_action(server_ip: str, group_id: int) -> bytes:
-    server_ip = str(roxywi_common.require_server_access(server_ip).ip)
-    server_ip = f'[{server_ip}]' if ':' in server_ip else server_ip
-    haproxy_user = sql.get_setting('haproxy_stats_user', group_id=group_id)
-    haproxy_pass = sql.get_setting('haproxy_stats_password', group_id=group_id)
-    haproxy_pass = haproxy_pass.replace("'", "")
-    stats_port = sql.get_setting('haproxy_stats_port', group_id=group_id)
-    stats_page = sql.get_setting('haproxy_stats_page', group_id=group_id)
-    url = f'http://{server_ip}:{stats_port}/{stats_page}'
-
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 5.1; rv:20.0) Gecko/20100101 Firefox/20.0',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate'
-    }
-
-    try:
-        if request.method == 'POST':
-            postdata = {
-                'action': request.form.get('action'),
-                's': request.form.get('s'),
-                'b': request.form.get('b')
-            }
-            data = requests.post(url, headers=headers, data=postdata, auth=(haproxy_user, haproxy_pass), timeout=5, allow_redirects=False)
-        else:
-            data = requests.get(url, headers=headers, auth=(haproxy_user, haproxy_pass), timeout=5, allow_redirects=False)
-    except ConnectionError as e:
-        if "Max retries exceeded" in str(e):
-            raise Exception(f"error: Max retries exceeded with url: {url}")
-        raise Exception(f"error: Cannot connect to {url} {e}")
-    except Timeout as e:
-        raise Exception(f"error: Timeout for {url}: {e}")
-    except Exception as e:
-        raise Exception(f"error: Cannot connect to {url}: {e}")
-    return data.content
 
 
 def _haproxy_line_tokens(line: str) -> list[str]:

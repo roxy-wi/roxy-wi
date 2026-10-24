@@ -234,6 +234,8 @@ def get_overview_last_edit(server_ip: str, service: str) -> str:
 
 
 def get_stat_page(server_ip: str, service: str, group_id: int) -> str:
+	if service not in ('nginx', 'apache'):
+		raise ValueError('HTTP Stats are supported only for Nginx and Apache')
 	server_ip = str(roxywi_common.require_server_access(server_ip).ip)
 	server_ip = f'[{server_ip}]' if ':' in server_ip else server_ip
 	stats_user = sql.get_setting(f'{service}_stats_user', group_id=group_id)

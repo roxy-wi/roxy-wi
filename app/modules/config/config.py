@@ -170,7 +170,7 @@ def validate_candidate_config(server_ip: str, cfg: str, service: str, config_fil
 
 def _generate_command(
 	service: str, server_id: int, just_save: str, config_path: str, tmp_file: str, cfg: str, server_ip: str,
-	waf_service: str = None, apply_only: bool = False
+	waf_service: str = None, apply_only: bool = False, expected_sha256: str = ''
 ) -> str:
 	"""
 	:param service: The name of the service.
@@ -204,7 +204,7 @@ def _generate_command(
 		commands = candidate.candidate_command(
 			'haproxy', config_path, tmp_file, just_save, **haproxy_files.configuration_context(server_ip, server_id),
 			container=container_name if is_dockerized == '1' else '',
-			action_command=action_command
+			action_command=action_command, expected_sha256=expected_sha256
 		)
 		return commands
 	reload_or_restart_command = ''
@@ -395,9 +395,10 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 		)
 
 	try:
-		commands = _generate_command(service, server_id, just_save, config_path, tmp_file, cfg, server_ip, **(
-			{'waf_service': kwargs.get('waf')} if service == 'waf' else {}
-		))
+		command_options = {'waf_service': kwargs.get('waf')} if service == 'waf' else {}
+		if service == 'haproxy' and kwargs.get('expected_sha256'):
+			command_options['expected_sha256'] = kwargs['expected_sha256']
+		commands = _generate_command(service, server_id, just_save, config_path, tmp_file, cfg, server_ip, **command_options)
 	except Exception as e:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot generate command for service {service}')
 

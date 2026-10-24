@@ -4,7 +4,7 @@ haproxy_exporter_user_manage: true
 haproxy_exporter_group: "{{ haproxy_exporter_user }}"
 haproxy_exporter_group_manage: true
 
-haproxy_exporter_version: "0.10.0"
+haproxy_exporter_version: "0.15.0"
 haproxy_exporter_platform_suffix: "linux-amd64"
 
 haproxy_exporter_options: []

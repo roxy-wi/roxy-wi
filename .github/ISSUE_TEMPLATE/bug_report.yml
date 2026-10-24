@@ -10,7 +10,7 @@ body:
     id: version
     attributes:
       label: Roxy-WI version or commit
-      placeholder: 9.1.0 or a commit SHA
+      placeholder: 9.3.0 or a commit SHA
     validations:
       required: true
   - type: dropdown

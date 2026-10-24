@@ -103,7 +103,7 @@ or read the full [quick-start guide](https://roxy-wi.org/description/operations#
 ### Install the Helm chart
 
 The chart is published at `oci://ghcr.io/roxy-wi/roxy-wi-charts`.
-Version `9.1.0` uses the published `ghcr.io/roxy-wi/roxy-wi:9.1.0` application image
+Version `9.3.0` uses the `ghcr.io/roxy-wi/roxy-wi:9.3.0` application image
 by default. Prepare `roxy-wi-values.yaml` using the
 [Helm deployment guide](https://roxy-wi.org/description/operations#kubernetes),
 including application secrets, RabbitMQ, persistent storage, database settings
@@ -111,7 +111,7 @@ and HTTPS ingress, then install:
 
 ```sh
 helm upgrade --install roxy-wi oci://ghcr.io/roxy-wi/roxy-wi-charts \
-  --version 9.1.0 --namespace roxy-wi --create-namespace \
+  --version 9.3.0 --namespace roxy-wi --create-namespace \
   --values roxy-wi-values.yaml --wait --wait-for-jobs --timeout 10m
 ```
 

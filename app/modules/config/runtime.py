@@ -130,13 +130,13 @@ def _set_server_maxconn(config_path: str, backend: str, server: str, maxconn: in
 		match = server_pattern.match(line)
 		if not match:
 			continue
-		options = match.group(2)
+		options, separator, comment = match.group(2).partition(' #')
 		if re.search(r'\bmaxconn\s+\d+', options):
 			options = re.sub(r'\bmaxconn\s+\d+', f'maxconn {maxconn}', options, count=1)
 		else:
 			options = f'{options.rstrip()} maxconn {maxconn}'
 		newline = '\n' if lines[index].endswith('\n') else ''
-		lines[index] = f'{match.group(1)}{options}{newline}'
+		lines[index] = f'{match.group(1)}{options}{separator}{comment}{newline}'
 		_write_config_lines(config_path, lines)
 		return
 	raise RuntimeError(f'Cannot find server {backend}/{server} in configuration')
@@ -228,33 +228,6 @@ def show_backends(server_ip, **kwargs):
 
 	if kwargs.get('ret'):
 		return ret
-
-	return lines
-
-
-def get_backends_from_config(server_ip: str, backends='') -> str:
-	configs_dir = get_config_var.get_config_var('configs', 'haproxy_save_configs_dir')
-	lines = ''
-
-	try:
-		cfg = configs_dir + roxywi_common.get_files(configs_dir, 'cfg')[0]
-	except Exception as e:
-		safe_error_message(e)
-		try:
-			cfg = config_common.generate_config_path('haproxy', server_ip)
-		except Exception as e:
-			return f'error: Cannot generate cfg path: {safe_error_message(e)}'
-		try:
-			config_mod.get_config(server_ip, cfg)
-		except Exception as e:
-			return f'error: Cannot download config: {safe_error_message(e)}'
-
-	with open(cfg, 'r') as f:
-		for line in f:
-			if backends == 'frontend':
-				if (line.startswith('listen') or line.startswith('frontend')) and 'stats' not in line:
-					line = line.strip()
-					lines += line.split(' ')[1] + '<br>'
 
 	return lines
 
@@ -426,90 +399,6 @@ def delete_server(server_ip: str, backend: str, server: str) -> str:
 	config_mod.master_slave_upload_and_restart(server_ip, cfg, 'save', 'haproxy')
 
 	return lines
-
-
-def change_maxconn_global(serv: str, maxconn: int) -> str:
-	if maxconn is None:
-		return 'error: Maxconn must be integer and not 0'
-
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	masters = server_sql.is_master(serv)
-
-	for master in masters:
-		if master[0] is not None:
-			_runtime_command(master[0], haproxy_sock_port, f'set maxconn global {maxconn}')
-		roxywi_common.logging(master[0], f'Maxconn has been changed. Globally to {maxconn}', keep_history=1, service='haproxy')
-
-	roxywi_common.logging(serv, f'Maxconn has been changed. Globally to {maxconn}', keep_history=1, service='haproxy')
-	output, stderr = _runtime_command(serv, haproxy_sock_port, f'set maxconn global {maxconn}')
-
-	if stderr != '':
-		return f'error: {stderr}'
-	elif output[0] == '':
-		cfg = config_common.generate_config_path('haproxy', serv)
-
-		config_mod.get_config(serv, cfg)
-		_set_section_maxconn(cfg, 'global', '', maxconn)
-		config_mod.master_slave_upload_and_restart(serv, cfg, 'save', 'haproxy')
-		return f'success: Maxconn globally has been set to {maxconn} '
-	else:
-		return f'error: {output[0]}'
-
-
-def change_maxconn_frontend(serv, maxconn, frontend) -> str:
-	if maxconn is None:
-		return 'error: Maxconn must be integer and not 0'
-
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	masters = server_sql.is_master(serv)
-
-	for master in masters:
-		if master[0] is not None:
-			_runtime_command(master[0], haproxy_sock_port, f'set maxconn frontend {frontend} {maxconn}')
-		roxywi_common.logging(master[0], f'Maxconn has been changed. On: {frontend} to {maxconn}', keep_history=1, service='haproxy')
-
-	roxywi_common.logging(serv, f'Maxconn has been changed. On: {frontend} to {maxconn}', keep_history=1, service='haproxy')
-	output, stderr = _runtime_command(serv, haproxy_sock_port, f'set maxconn frontend {frontend} {maxconn}')
-
-	if stderr != '':
-		return f'error: {stderr}'
-	elif output[0] == '':
-		cfg = config_common.generate_config_path('haproxy', serv)
-
-		config_mod.get_config(serv, cfg)
-		_set_section_maxconn(cfg, 'frontend', frontend, maxconn)
-		config_mod.master_slave_upload_and_restart(serv, cfg, 'save', 'haproxy')
-		return f'success: Maxconn for {frontend} has been set to {maxconn} '
-	else:
-		return f'error: {output[0]}'
-
-
-def change_maxconn_backend(serv, backend, backend_server, maxconn) -> str:
-	if maxconn is None:
-		return 'error: Maxconn must be integer and not 0'
-
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-
-	masters = server_sql.is_master(serv)
-	for master in masters:
-		if master[0] is not None:
-			_runtime_command(master[0], haproxy_sock_port, f'set maxconn server {backend}/{backend_server} {maxconn}')
-		roxywi_common.logging(master[0], f'Maxconn has been changed. On: {backend}/{backend_server} to {maxconn}', keep_history=1, service='haproxy')
-
-	roxywi_common.logging(serv, f'Maxconn has been changed. On: {backend} to {maxconn}', keep_history=1, service='haproxy')
-	output, stderr = _runtime_command(serv, haproxy_sock_port, f'set maxconn server {backend}/{backend_server} {maxconn}')
-
-	if stderr != '':
-		return f'error: {stderr}'
-	elif output[0] == '':
-		cfg = config_common.generate_config_path('haproxy', serv)
-
-		config_mod.get_config(serv, cfg)
-		_set_server_maxconn(cfg, backend, backend_server, maxconn)
-		config_mod.master_slave_upload_and_restart(serv, cfg, 'save', 'haproxy')
-		return f'success: Maxconn for {backend}/{backend_server} has been set to {maxconn} '
-	else:
-		return f'error: {output[0]}'
 
 
 def table_select(serv: str, table: str):

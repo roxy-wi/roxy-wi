@@ -112,7 +112,8 @@ def test_new_file_version_diff_uses_empty_baseline(settings, monkeypatch, tmp_pa
     assert Path(str(candidate) + '.old').read_text() == ''
 
 
-def test_candidate_validation_and_save_keep_file_identity(settings, monkeypatch, tmp_path):
+@pytest.mark.parametrize('expected_sha256', ['', 'a' * 64])
+def test_candidate_validation_and_save_keep_file_identity(settings, monkeypatch, tmp_path, expected_sha256):
     monkeypatch.setattr(config.server_sql, 'get_server_by_ip', lambda ip: SimpleNamespace(server_id=11))
     monkeypatch.setattr(config.server_sql, 'return_firewall', lambda ip: False)
     monkeypatch.setattr(config.service_sql, 'select_service_setting', lambda *a: '0')
@@ -127,12 +128,13 @@ def test_candidate_validation_and_save_keep_file_identity(settings, monkeypatch,
     candidate.write_text('backend web\n', encoding='utf-8')
     config.validate_candidate_config('192.0.2.11', str(candidate), 'haproxy', encode_file_path(target))
     config.upload_and_restart('192.0.2.11', str(candidate), 'save', 'haproxy',
-                              config_file_name=target, record_version=False)
+                              config_file_name=target, record_version=False, expected_sha256=expected_sha256)
     for command, action in zip(commands, ('test', 'save')):
         spec = json.loads(command[-1])
         assert spec['target'] == target
         assert spec['action'] == action
         assert spec['sources'] == ['/etc/haproxy/haproxy.cfg', '/etc/haproxy/conf.d']
+        assert spec.get('expected_sha256', '') == (expected_sha256 if action == 'save' else '')
     assert commands[0] != commands[1]
 
 

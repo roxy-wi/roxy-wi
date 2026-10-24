@@ -1,4 +1,16 @@
 body #service-diagnostics { --sd-border: #444; }
+body .haproxy-stats .hs-state-up { color: #7bd69b; }
+body .haproxy-stats {
+    --hs-frontend:#252e40; --hs-frontend-accent:#839cc6;
+    --hs-backend:#2c2f35; --hs-backend-accent:#909baa;
+    --hs-server:#25362b; --hs-server-accent:#83ad90;
+    --hs-backup:#25353e; --hs-backup-accent:#7fa9bd;
+    --hs-listener:#322b3c; --hs-listener-accent:#a390bd;
+}
+body .haproxy-stats .hs-state-down { color: #ff8d8d; }
+body .haproxy-stats .hs-state-maint,
+body .haproxy-stats .hs-state-drain,
+body .haproxy-stats .hs-state-nolb { color: #e3b25e; }
 body #service-diagnostics .sd-warning, body #service-diagnostics [data-worker-status=stale] .sd-state, body #service-diagnostics [data-worker-status=degraded] .sd-state {
     color: #e3b25e;
 }

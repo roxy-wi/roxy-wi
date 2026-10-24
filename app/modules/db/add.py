@@ -1,5 +1,6 @@
 from typing import Union, Literal
 import hashlib
+from copy import deepcopy
 
 from app.modules.db.db_model import SavedServer, Option, HaproxySection, NginxSection
 from app.modules.db.common import out_error
@@ -209,6 +210,33 @@ def get_section(
 		raise RoxywiResourceNotFound
 	except Exception as e:
 		out_error(e)
+
+
+def update_haproxy_section_maxconn(server_id, section_type, section_name, maxconn, *, server_name=None, config_path=None):
+	"""Patch an existing form's limit without replacing unrelated or concurrent edits."""
+	identity = _section_identity(HaproxySection, server_id, section_type, section_name, 'haproxy', config_path)
+	for _attempt in range(3):
+		section = HaproxySection.get_or_none(identity)
+		if section is None:
+			# Hand-written sections have no form data; do not create an incomplete form.
+			return
+		updated = deepcopy(section.config)
+		if server_name is None:
+			updated['maxconn'] = maxconn
+		else:
+			matches = [server for server in updated.get('backend_servers') or [] if server['server'] == server_name]
+			if not matches:
+				return
+			if len(matches) != 1:
+				raise ValueError('Ambiguous backend server in section settings')
+			matches[0]['maxconn'] = maxconn
+		if updated == section.config:
+			return
+		if HaproxySection.update(config=updated).where(
+			identity & (HaproxySection.id == section.id) & (HaproxySection.config == section.config)
+		).execute():
+			return
+	raise RuntimeError('Section settings changed concurrently')
 
 
 def delete_section(server_id: int, section_type: str, section_name: str, service: Literal['haproxy', 'nginx'] = 'haproxy', config_path: str = None) -> None:

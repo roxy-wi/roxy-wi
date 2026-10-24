@@ -1,4 +1,4 @@
-SERVICE_VERSION = '9.2.0'
+SERVICE_VERSION = '9.3.0'
 
 
 def get_service_version() -> str:

@@ -2,149 +2,25 @@
 {% block title %}{{lang.menu_links.stats.h2}} {{service_desc.service}}{% endblock %}
 {% block h2 %}{{lang.menu_links.stats.h2}} {{service_desc.service}}{% endblock %}
 {% block content %}
-{% from 'include/input_macros.html' import input, checkbox, select %}
+{% from 'include/input_macros.html' import select %}
 <br />
 {% if g.user_params['servers']|length == 0 %}
 	{% include 'include/getstarted.html' %}
 {% else %}
-<form action="" method="post" class="left-space">
+<div class="left-space">
 	<input type="hidden" id="service" value="{{service}}" />
 	{{ select('serv', values=g.user_params['servers'], is_servers='true', selected=serv) }}
 	<a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang.words.show|title()}} {{lang.words.stats}}" onclick="showStats()">{{lang.words.open|title()}}</a>
-	{% if service != 'nginx' and service != 'apache' %}
-	<div id="stats_filter">
-		<div id="stats_filter_text">{{lang.words.filter|title()}}:</div>
-		{{ checkbox('stats_active', title=lang.words.show|title()+' ' + lang.words.actives + ' ' + lang.words.servers, desc=lang.words.actives|title(), checked='checked') }}
-		{{ checkbox('stats_drain', title=lang.words.show|title()+' ' + lang.words.drains + ' ' + lang.words.servers, desc=lang.words.drains|title(), checked='checked') }}
-		{{ checkbox('stats_maintain', title=lang.words.show|title()+' ' + lang.words.maintain + ' ' + lang.words.servers, desc=lang.words.maintain|title(), checked='checked') }}
-		{{ checkbox('stats_down', title=lang.words.show|title()+' DOWN ' + lang.words.servers, desc='DOWN', checked='checked') }}
-		{{ checkbox('stats_not_checked', title=lang.phrases.show_not_checked, desc=lang.phrases.not_checked, checked='checked') }}
-		{{ checkbox('stats_backup', title=lang.words.show|title()+' ' + lang.words.backup + ' ' + lang.words.servers, desc=lang.words.backup|title(), checked='checked') }}
-		{{ checkbox('stats_frontends', title=lang.words.show|title()+' ' + lang.words.frontends, desc=lang.words.frontends|title(), checked='checked') }}
-		{{ checkbox('stats_backends', title=lang.words.show|title()+' ' + lang.words.backends , desc=lang.words.backends|title(), checked='checked') }}
-	</div>
-	{% elif service == 'nginx' %}
-	<br /><br />
-	{% endif %}
-</form>
+</div>
 
-<div id="ajax" style="margin-left: 15px; margin-right: 5px;"></div>
+<div id="service-stats-content" style="margin: 15px;"></div>
 <script>
-	if (cur_url != '') {
+	if ($('#serv').val()) {
 		showStats();		
 	}	
-	async function wait() {
-		$('form').append('<input type="hidden" name="serv" value='+$("#serv").val()+'>');
-		$( "input[type=submit], button" ).button();
-		$('#notice').hide();
-		$('.active_going_down').hide();
-		$('li').css('margin-top', '0');
-		$('li').css('width', '207px	');
-		$('li').css('padding', '0px');
-		$('li').css('margin', '0px');
-		$('.menu li ul li').css('width', '227px');
-		$('.menu li ul li').css('margin-left', '-20px');		
-		$('th').css('background-color', '#f5faf4');
-		$('table.tbl th.pxname').css('background-color', '#5d9ceb');
-		$('.v_menu').css('left', '200px');		
-		$('table.tbl th.pxname').css('width', '100%');
-		$('a.px:link').css('color', '#fff');
-		$('td').css('font-size', '11');
-		$('td').css('border-color', '#ddd');
-		$('td').css('padding', '3px');
-		$('th').css('padding-top', '4px');
-		$('th').css('padding-bottom', '4px');
-		$('h2').css('font-style', 'inherit');
-		$('h2').css('color', '#000');
-		$('h2').css('font-size', '1.5em');
-		if ($('#service').val() != 'apache') {
-			$('h1').css('display', 'none');
-			$('th').css('border-color', '#ddd');
-			$('h1').next().css('display', 'none');
-			$('h1').next().next().css('display', 'none');
-			$('h1').next().next().next().css('display', 'none');
-			$('h1').next().next().next().next().css('display', 'none');
-		}
-		$('body').css('font-family', '-apple-system,BlinkMacSystemFont,Segoe UI,Helvetica,Arial,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol');
-		$( "select" ).selectmenu();
-		$('#stats_filter').show();
-		var backends = $('.backend').parents('p');
-		var backends_form = $('.backend').parents('form');
-		var frontends = $('.frontend').parents('p');
-		var filter_array = {'#stats_active': '.active_up', '#stats_maintain': '.maintain', '#stats_drain': '.active_draining',
-			'#stats_down': '.active_down', '#stats_not_checked': '.active_no_check', '#stats_backup': '.backup_up',
-			'#stats_backends': backends, '#stats_backends': backends_form,'#stats_frontends': frontends};
-		trigger_filter(filter_array);
-		$('#stats_active').click(function() {
-			var stats_active = {'#stats_active': '.active_up'};
-			trigger_filter(stats_active);
-		});
-		$('#stats_maintain').click(function() {
-			var stats_maintain = {'#stats_maintain': '.maintain'};
-			trigger_filter(stats_maintain);
-		});
-		$('#stats_drain').click(function() {
-			var stats_drain = {'#stats_drain': '.active_draining'};
-			trigger_filter(stats_drain);
-		});
-		$('#stats_down').click(function() {
-			var stats_down = {'#stats_down': '.active_down'};
-			trigger_filter(stats_down);
-		});
-		$('#stats_not_checked').click(function() {
-			var stats_not_checked = {'#stats_not_checked': '.active_no_check'};
-			trigger_filter(stats_not_checked);
-		});
-		$('#stats_backup').click(function() {
-			var stats_backup = {'#stats_backup': '.backup_up'};
-			trigger_filter(stats_backup);
-		});
-		$('#stats_backends').click(function() {
-			var stats_backends = {'#stats_backends': backends};
-			trigger_filter(stats_backends);
-			var stats_backends = {'#stats_backends': backends_form};
-			trigger_filter(stats_backends);
-		});
-		$('#stats_frontends').click(function() {
-			var stats_frontends = {'#stats_frontends': frontends};
-			trigger_filter(stats_frontends);
-		});
-		function trigger_filter(filter_array) {
-			for (var filter_id in filter_array) {
-				if ($(filter_id).prop('checked')) {
-					if (filter_id == '#stats_backends' || filter_id == '#stats_frontends' || filter_id == '#stats_listens') {
-						$(filter_array[filter_id]).css('display', 'block');
-						$(filter_array[filter_id]).css('addClass', 'tbl');
-					} else {
-						$(filter_array[filter_id]).css('display', 'table-row');
-					}
-				} else {
-					$(filter_array[filter_id]).css('display', 'none');
-				}
-			}
-		}
-		{% if role == 4 %}
-			$('input[type=checkbox]').remove()
-		{% endif %}
-		await sleep(2000);
-	  
-	  $("form").submit(function() {
-		$.ajax({
-			type: "post",
-			url: "/runtimeapi/stats/action/" + $('#serv').val(),
-			dataType: "text",
-			data: $(this).serialize(),
-			success: function( data ) {
-				showStats();
-				}
-			});
-		return false;
-		});		
-	}
 	$('#serv').on('selectmenuchange',function() {
 		showStats();		
 	});
 </script>
-<link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet">
 {% endif %}
 {% endblock %}

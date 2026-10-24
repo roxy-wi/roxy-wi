@@ -371,9 +371,8 @@ function showStats() {
 				toastr.error(data);
 			} else {
 				toastr.clear();
-				$("#ajax").html(data);
+				$("#service-stats-content").html(data);
 				window.history.pushState("Stats", "Stats", "/stats/" + $("#service").val() + "/" + $("#serv").val());
-				wait();
 			}
 		}
 	});
@@ -595,7 +594,7 @@ $( function() {
 		$("#show").css("cursor", "not-allowed");
 	}
 	$( "#tabs" ).tabs();
-	$( "select" ).not('#log-viewer-form select').selectmenu();
+	$( "select" ).not('#log-viewer-form select, .haproxy-stats select').selectmenu();
 
     $( "[title]" ).tooltip({
 		"content": function(){
@@ -603,8 +602,8 @@ $( function() {
 		},
 		show: {"delay": 1000}
 	});
-	$( "input[type=submit], button" ).not('#log-viewer-form button, #overview-logs button, .config-viewer button').button();
-	$( "input[type=checkbox]" ).not('#log-viewer-form input, .config-viewer input').checkboxradio();
+	$( "input[type=submit], button" ).not('#log-viewer-form button, #overview-logs button, .config-viewer button, #haproxy-stats button').button();
+	$( "input[type=checkbox]" ).not('#log-viewer-form input, .config-viewer input, #haproxy-stats input').checkboxradio();
 	$( ".controlgroup" ).controlgroup();
 	initializeAppNavigation();
 
@@ -1300,7 +1299,7 @@ function openUserSettings(user_id) {
 				$("#ajax").html(data);
 			} else {
 				$('#show-user-settings-group').html(data);
-				$("select").not('#log-viewer-form select').selectmenu();
+				$("select").not('#log-viewer-form select, .haproxy-stats select').selectmenu();
 			}
 		}
 	});

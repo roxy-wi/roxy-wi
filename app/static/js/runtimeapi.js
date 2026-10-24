@@ -14,92 +14,21 @@ function showRuntime() {
 		type: "POST",
 		success: function (data) {
 			$("#ajaxruntime").html(data);
+		},
+		error: function (xhr) {
+			if (xhr.responseJSON && xhr.responseJSON.code === 'stats_actions_moved') {
+				const note = $(document.getElementById('runtime-stats-actions').content.cloneNode(true));
+				note.find('a').attr('href', '/stats/haproxy/' + encodeURIComponent($('#serv').val()));
+				$('#ajaxruntime').empty().append(note);
+			} else {
+				RoxywiUI.error(xhr.responseJSON || xhr.responseText);
+			}
 		}
 	} );
 }
 $( function() {
 	$('#runtimeapiform').submit(function () {
 		showRuntime();
-		return false;
-	});
-	$("#maxconn_select").on('selectmenuchange', function () {
-		let server_ip = $('#maxconn_select').val();
-		$.ajax({
-			url: "/runtimeapi/maxconn/" + $('#maxconn_select').val(),
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error: ') != '-1') {
-					toastr.error(data);
-				} else {
-					generate_select(data, '#maxconnfront');
-				}
-			}
-		});
-	});
-	$('#maxconnbackend').on('selectmenuchange', function () {
-		let server_ip = $('#maxconn_backend_select').val();
-		let backend = $('#maxconnbackend').val();
-		get_backend_servers(server_ip, backend, '#maxconn_backend_server', 0);
-	});
-	$("#maxconn_backend_select").on('selectmenuchange', function () {
-		let server_ip = $('#maxconn_backend_select').val();
-		get_backends(server_ip, '#maxconnbackend', 0);
-	});
-	$('#maxconnglobalform').submit(function () {
-		$.ajax({
-			url: "/runtimeapi/maxconn/global/" + $('#maxconn_global_select').val(),
-			data: {
-				maxconn: $('#maxconnintglobal').val(),
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error: ') != '-1') {
-					toastr.error(data);
-				} else {
-					toastr.success(data);
-				}
-			}
-		});
-		return false;
-	});
-	$('#maxconnform').submit(function () {
-		$.ajax({
-			url: "/runtimeapi/maxconn/frontend/" + $('#maxconn_select').val(),
-			data: {
-				maxconn_frontend: $('#maxconnfront').val(),
-				maxconn: $('#maxconnint').val(),
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error: ') != '-1') {
-					toastr.error(data);
-				} else {
-					toastr.success(data);
-				}
-			}
-		});
-		return false;
-	});
-	$('#maxconnbackform').submit(function () {
-		$.ajax({
-			url: "/runtimeapi/maxconn/backend/" + $('#maxconn_backend_select').val(),
-			data: {
-				maxconn_backend: $('#maxconnbackend').val(),
-				maxconn_backend_server: $('#maxconn_backend_server').val(),
-				maxconn: $('#maxconn_backend_int').val(),
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error: ') != '-1') {
-					toastr.error(data);
-				} else {
-					toastr.success(data);
-				}
-			}
-		});
 		return false;
 	});
 	$("#ip_select").on('selectmenuchange', function () {
