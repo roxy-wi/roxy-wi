@@ -5,15 +5,11 @@
 {% from 'include/input_macros.html' import input, checkbox, select %}
 <link href="{{ url_for('static', filename='css/table-6.3.9.css') }}" rel="stylesheet" type="text/css">
 <script type="text/javascript" charset="utf8" src="/static/js/dataTables.min.js"></script>
-<script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='js/runtimeapi.js', v='9.3.0-4') }}"></script>
-<template id="runtime-stats-actions"><p class="add-note alert-info">{{ lang.haproxy_stats.stats_actions_moved }}
-    <a href="{{ url_for('main.stats', service='haproxy') }}">HAProxy Stats</a>
-</p></template>
+<script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='js/runtimeapi.js', v='9.3.0-6') }}"></script>
 <div id="tabs">
 	<ul>
 		<li><a href="#runtimeapi" title="Runtime API - Roxy-WI">Runtime API</a></li>
 		{% if g.user_params['role'] <= 3 %}
-			<li><a href="#servers" title="Runtime API: {{lang.words.servers|title()}} - Roxy-WI">{{lang.words.servers|title()}}</a></li>
 			<li><a href="#table" title="Runtime API: Stick Table - Roxy-WI">Stick Table</a></li>
 			<li><a href="#lists" title="Runtime API: {{lang.words.change|title()}} {{lang.words.dynamically}}} whitelist {{lang.words.and}} blacklist - Roxy-WI">{{lang.words.lists|title()}}</a></li>
 			<li><a href="#sessions" title="Runtime API: {{lang.words.sessions|title()}}} - Roxy-WI">{{lang.words.sessions|title()}}</a></li>
@@ -81,107 +77,6 @@
 		</div>
 	</div>
 	{% if g.user_params['role'] <= 3 %}
-	<div id="servers">
-		<table class="overview">
-			<catption><h3>{{lang.words.add|title()}} {{lang.words.backend}} {{lang.words.servers}}</h3></catption>
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-				<td class="padding10 first-collumn">{{lang.words.select|title()}} {{lang.words.backend|title()}}</td>
-				<td class="padding10 first-collumn">{{lang.words.new|title()}} {{lang.words.server}} IP</td>
-				<td>{{lang.words.new|title()}} {{lang.words.port}}</td>
-				<td>{{lang.words.check|title()}}</td>
-				<td>{{lang.words.new|title()}} {{lang.words.check}} {{lang.words.port}}</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td class="padding10 first-collumn" style="width: 25%;">
-					<form action="" method="post" id="runtimeapiServerIp">
-						{{ select('ip_select_server', values=g.user_params['servers'], is_servers='true') }}
-				</td>
-				<td class="padding10 first-collumn">
-					<select required name="ipBackendServer" id="ipBackendServer"></select>
-				</td>
-				<td class="padding10 first-collumn">
-					{{ input('backend_ip_server', title=lang.words.set|title()+' '+lang.words.new + ' ' + lang.words.server + ' IP', required='required', size='16') }}
-				</td>
-				<td>
-					{{ input('backend_port_server', title=lang.words.set|title()+' '+lang.words.new + ' ' + lang.words.server + ' ' + lang.words.port, type="number", required='required', style='width:60px') }}
-				</td>
-				<td>
-					{{ checkbox('backend_server_check', value='1', checked='checked') }}
-				</td>
-				<td>
-					{{ input('backend_port_server_check', title=lang.words.set|title()+' '+lang.words.new + ' ' + lang.words.server + ''  + lang.words.check + ' ' + lang.words.port, type="number", required='required', style='width:60px') }}
-				</td>
-				<td>
-					<button type="submit" name="add" value="Add" id="enter_server">{{lang.words.add|title()}}</button>
-				</td>
-					</form>
-			</tr>
-		</table>
-		<table class="overview">
-			<catption><h3>{{lang.words.change|title()}} IP {{lang.words.and}} {{lang.words.port}} {{lang.words.backend}} {{lang.words.servers}}</h3></catption>
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-				<td class="padding10 first-collumn">{{lang.words.select|title()}} {{lang.words.backend|title()}}</td>
-				<td class="padding10 first-collumn">{{lang.words.select|title()}} {{lang.words.server}}</td>
-				<td>{{lang.words.new|title()}} IP</td>
-				<td>{{lang.words.new|title()}} {{lang.words.port}}</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td class="padding10 first-collumn" style="width: 25%;">
-					<form action="" method="post" id="runtimeapiip">
-						{{ select('ip_select', values=g.user_params['servers'], is_servers='true') }}
-				</td>
-				<td class="padding10 first-collumn">
-					<select required name="ipbackend" id="ipbackend"></select>
-				</td>
-				<td class="padding10 first-collumn">
-					<select required name="backend_server" id="backend_server"></select>
-				</td>
-				<td>
-					{{ input('backend_ip', title=lang.words.set|title()+' '+lang.words.new + ' ' + lang.words.server + ' IP', required='required', size='16') }}
-				</td>
-				<td>
-					{{ input('backend_port', title=lang.words.set|title()+' '+lang.words.new + ' ' + lang.words.server + ' ' + lang.words.port, type="number", required='required', style='width:60px') }}
-				</td>
-				<td>
-					<button type="submit" name="Enter" value="Change" id="change">{{lang.words.change|title()}}</button>
-				</td>
-					</form>
-			</tr>
-		</table>
-		<table class="overview">
-			<catption><h3>{{lang.words.delete|title()}} {{lang.words.backend}} {{lang.words.servers}}</h3></catption>
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-				<td class="padding10 first-collumn">{{lang.words.select|title()}} {{lang.words.backend|title()}}</td>
-				<td class="padding10 first-collumn">{{lang.words.select|title()}} {{lang.words.server}}</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td class="padding10 first-collumn" style="width: 25%;">
-					<form action="" method="post" id="runtimeapiip_delete">
-						{{ select('ip_select_delete', values=g.user_params['servers'], is_servers='true') }}
-				</td>
-				<td class="padding10 first-collumn">
-					<select required name="ipbackend_delete" id="ipbackend_delete"></select>
-				</td>
-				<td class="padding10 first-collumn">
-					<select required name="backend_server_delete" id="backend_server_delete"></select>
-				</td>
-				<td>
-					<button type="submit" name="Enter" value="delete" id="delete">{{lang.words.delete|title()}}</button>
-				</td>
-					</form>
-			</tr>
-		</table>
-		<div id="ajaxip"></div>
-		<div class="add-note addName alert-info" style="width: inherit; margin-right: 15px;">
-			{{lang.phrases.read_how_it_works}} <a href="https://roxy-wi.org/description/runtimeapi#ip" title="Change IP and Port" target="_blank">{{lang.words.here}}</a>
-		</div>	
-	</div>
 	<div id="table">
 		<table class="overview">
 			<tr class="overviewHead">

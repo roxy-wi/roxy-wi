@@ -3,7 +3,7 @@
 import re
 
 from app.modules.service.haproxy_runtime import execute_runtime_command
-from app.modules.service.haproxy_stats import StatsError, collect_stats
+from app.modules.service.stats.haproxy_stats import StatsError, collect_stats
 
 
 def change_server(server: str, port: int, body: dict) -> str:
@@ -40,16 +40,9 @@ def change_server(server: str, port: int, body: dict) -> str:
     except (OSError, RuntimeError) as exc:
         # A lost reply does not prove the command failed. Never retry a write here.
         raise StatsError('action_unknown', 502) from exc
-    if response.strip().startswith('Permission denied'):
+    response = response.strip()
+    if response.startswith('Permission denied'):
         raise StatsError('action_permissions', 403)
-    if response.strip():
+    if response:
         raise StatsError('command_rejected', 409)
     return command
-
-
-def is_stats_server_command(action: str, arguments: str) -> bool:
-    """Moved commands no longer execute through the legacy console."""
-    return bool(re.search(
-        r'(?:^|[;\n])\s*(?:(?:enable|disable)\s+server\b|set\s+(?:weight\b|maxconn\b|server\s+\S+\s+(?:state|weight|maxconn)\b))',
-        f'{action} {arguments}',
-    ))

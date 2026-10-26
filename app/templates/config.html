@@ -31,7 +31,7 @@
 {% include 'include/config_viewer_assets.html' %}
 <script src="/static/js/add.js"></script>
 <script src="/static/js/add_nginx.js"></script>
-<script src="/static/js/edit_config.js"></script>
+<script src="{{ url_for('static', filename='js/edit_config.js', v='9.3.0-servers') }}"></script>
 <link rel="stylesheet" href="/static/css/haproxy-map.css">
 <script src="/static/js/vendor/cytoscape.min.js"></script>
 <script src="/static/js/haproxy-map.js"></script>

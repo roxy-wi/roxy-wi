@@ -103,7 +103,7 @@
         if (action === 'weight' || action === 'maxconn') {
             const isMaxconn = action === 'maxconn';
             const label = make('label', 'rw-form-field', isMaxconn ? 'Maxconn' : labels.weight);
-            input = make('input');
+            input = make('input', 'form-control');
             input.type = 'number';
             input.min = isMaxconn && row.kind !== 'server' ? '1' : '0';
             input.max = isMaxconn ? (row.kind === 'global' ? snapshot.info.Hard_maxconn ?? 2147483647 : 2147483647) : '256';
@@ -135,7 +135,7 @@
         $(dialog).dialog({
             modal: true, width: Math.min(520, window.innerWidth - 32),
             title: action === 'maxconn' ? labels.change_maxconn : action === 'weight' ? labels.change_weight : labels.confirm_state + ' ' + action[0].toUpperCase() + action.slice(1),
-            classes: {'ui-dialog': 'rw-dialog-responsive'},
+            classes: {'ui-dialog': 'rw-dialog-responsive hs-stats-dialog'},
             buttons: [{text: labels.apply, click: submit}, {text: labels.cancel, click: () => $(dialog).dialog('close')}],
             close: () => {
                 if (actionDialog === dialog) actionDialog = null;
@@ -231,6 +231,147 @@
         }
     }
 
+    const confirmServerEdit = (target, action, context) => new Promise(resolve => {
+        const dialog = make('div', 'hs-action-dialog');
+        const form = make('form');
+        const fields = make('div', 'hs-server-fields');
+        form.append(make('p', 'hs-action-target', target.server + ' / ' + target.row.proxy +
+            (action === 'add' ? '' : '/' + target.row.name)));
+        const controls = {};
+        const field = (key, label, type, value) => {
+            const wrapper = make('label', type === 'checkbox' ? 'hs-server-check' : 'rw-form-field', label);
+            const input = make('input', type === 'checkbox' ? '' : 'form-control');
+            input.type = type;
+            input.name = key;
+            input.required = type !== 'checkbox';
+            if (type === 'checkbox') input.checked = value;
+            else input.value = value;
+            if (type === 'number') { input.min = '1'; input.max = '65535'; input.step = '1'; }
+            if (type === 'checkbox') wrapper.prepend(input);
+            else wrapper.append(input);
+            fields.append(wrapper);
+            controls[key] = input;
+            return input;
+        };
+        if (action !== 'delete') {
+            if (action === 'add') {
+                const name = field('name', labels.name, 'text', '');
+                name.maxLength = 255;
+                name.pattern = '[A-Za-z0-9_.:\\-]+';
+            }
+            field('address', labels.server_ip_address, 'text', context.value.address);
+            field('port', labels.server_port, 'number', context.value.port);
+            if (action === 'add') {
+                field('check', labels.server_health_check, 'checkbox', context.value.check);
+                field('check_port', labels.server_check_port, 'number', context.value.check_port);
+                controls.address.addEventListener('input', () => {
+                    if (!controls.name.dataset.edited) controls.name.value = controls.address.value;
+                });
+                controls.name.addEventListener('input', () => { controls.name.dataset.edited = 'true'; });
+                controls.port.addEventListener('input', () => {
+                    if (!controls.check_port.dataset.edited) controls.check_port.value = controls.port.value;
+                });
+                controls.check_port.addEventListener('input', () => { controls.check_port.dataset.edited = 'true'; });
+            }
+            form.append(fields);
+        } else form.append(make('p', '', labels.server_delete_hint));
+        form.append(make('p', 'hs-action-note', labels[action === 'delete' ? 'server_reload_hint' : 'server_runtime_hint']));
+        const list = make('ul', 'hs-action-targets');
+        context.targets.forEach(node => list.append(make('li', '', node.hostname + ' — ' + node.ip)));
+        form.append(list);
+        dialog.append(form);
+        document.body.append(dialog);
+        let result = null;
+        const submit = () => {
+            if (!form.reportValidity()) return;
+            const value = action === 'delete' ? null : {address: controls.address.value.trim(), port: Number(controls.port.value)};
+            if (action === 'add') Object.assign(value, {name: controls.name.value.trim(),
+                check: controls.check.checked, check_port: Number(controls.check_port.value)});
+            result = {value};
+            $(dialog).dialog('close');
+        };
+        form.addEventListener('submit', event => { event.preventDefault(); submit(); });
+        actionDialog = dialog;
+        $(dialog).dialog({
+            modal: true, width: Math.min(540, window.innerWidth - 32), title: labels['server_' + action],
+            classes: {'ui-dialog': 'rw-dialog-responsive hs-stats-dialog'},
+            buttons: [{text: labels[action === 'delete' ? 'server_save_reload' : 'server_save_runtime'], click: submit},
+                {text: labels.cancel, click: () => $(dialog).dialog('close')}],
+            close: () => {
+                if (actionDialog === dialog) actionDialog = null;
+                $(dialog).dialog('destroy').remove();
+                resolve(result);
+            }
+        });
+    });
+
+    async function manageServer(entry, action) {
+        if (!canManage || busy || actionPending || !snapshot || root.dataset.stale === 'true') return;
+        const target = {server: get('server').value, selection, row: entry.data};
+        const body = {action, row_key: target.row.key, pid: snapshot.info.Pid, uptime: snapshot.info.Uptime_sec};
+        const url = '/stats/servers/haproxy/' + encodeURIComponent(target.server);
+        actionPending = target;
+        clearTimeout(timer);
+        hideTooltip();
+        updateActions();
+        let sent = false;
+        const active = () => selection === target.selection && !stopped;
+        const request = async (url, options = {}) => {
+            const abort = new AbortController();
+            const timeout = setTimeout(() => abort.abort(), options.method ? 180000 : 60000);
+            try {
+                const response = await fetch(url, {...options, cache: 'no-store', signal: abort.signal,
+                    headers: {'Accept': 'application/json', 'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': csrf_token}});
+                const data = await response.json();
+                if (!response.ok || data.status !== 'ok') {
+                    const error = new Error(data.code || (response.status === 403 ? 'permission_denied' : 'server_incomplete'));
+                    error.nodes = data.nodes;
+                    throw error;
+                }
+                return data;
+            } finally { clearTimeout(timeout); }
+        };
+        const showNodes = nodes => {
+            if (!Array.isArray(nodes)) return;
+            const list = make('ul', 'hs-action-targets');
+            nodes.forEach(node => list.append(make('li', '', node.server + ': ' + labels.configuration + ' — ' +
+                (labels['node_' + node.config] || labels.node_unknown) + '; Runtime — ' +
+                (labels['node_' + node.runtime] || labels.node_unknown) + '; ' + labels.server_section_settings + ' — ' +
+                (labels['node_' + node.settings] || labels.node_unknown))));
+            get('action-result').append(list);
+        };
+        try {
+            const context = await request(url + '?' + new URLSearchParams(body));
+            if (!active()) return;
+            const answer = await confirmServerEdit(target, action, context);
+            if (!answer || !active()) return;
+            const result = get('action-result');
+            result.hidden = false;
+            result.dataset.error = 'false';
+            text(result, labels.applying);
+            sent = true;
+            const data = await request(url, {method: 'POST', body: JSON.stringify({...body, ...answer,
+                revision: context.revision, targets: context.targets.map(node => node.ip)})});
+            if (!active()) return;
+            text(result, labels.server_saved);
+            showNodes(data.nodes);
+        } catch (error) {
+            if (!active()) return;
+            const result = get('action-result');
+            result.hidden = false;
+            result.dataset.error = 'true';
+            text(result, labels[error.message] || (sent ? labels.server_incomplete : labels.operation_failed));
+            showNodes(error.nodes);
+        } finally {
+            if (actionPending === target) {
+                actionPending = null;
+                updateActions();
+                if (sent && !stopped) await refresh(); else schedule();
+            }
+        }
+    }
+
     const serverActions = entry => {
         const isGlobal = entry.data.kind === 'global';
         const container = make('div', 'admin-actions');
@@ -247,7 +388,9 @@
         menu.setAttribute('role', 'menu');
         menu.hidden = true;
         const actions = entry.data.kind === 'server' ? [['ready', 'play'], ['drain', 'pause'], ['maint', 'wrench'], ['weight', 'balance-scale']] : [];
-        actions.push(['maxconn', 'sliders-h']);
+        if (entry.data.kind === 'backend') actions.push(['add', 'plus']);
+        else actions.push(['maxconn', 'sliders-h']);
+        if (entry.data.kind === 'server') actions.push(['edit', 'pen'], ['delete', 'trash']);
         actions.forEach(([action, symbol]) => {
             const button = make('button', 'admin-action-item');
             if (isGlobal) button.id = 'hs-global-maxconn';
@@ -256,12 +399,14 @@
             button.setAttribute('role', 'menuitem');
             const icon = make('span', 'fas fa-' + symbol);
             icon.setAttribute('aria-hidden', 'true');
-            button.append(icon, document.createTextNode(action === 'maxconn' ? labels.change_maxconn : action === 'weight' ? labels.change_weight : action[0].toUpperCase() + action.slice(1)));
+            const isEdit = ['add', 'edit', 'delete'].includes(action);
+            button.append(icon, document.createTextNode(isEdit ? labels['server_' + action] : action === 'maxconn' ? labels.change_maxconn : action === 'weight' ? labels.change_weight : action[0].toUpperCase() + action.slice(1)));
             button.addEventListener('click', () => {
                 // Close through the shared toggle before disabling the clicked item.
                 // jQuery skips delegated click handlers for disabled buttons.
                 if (!menu.hidden) toggle.click();
-                changeServer(isGlobal ? {data: {key: null, kind: 'global', metrics: {slim: snapshot?.info.Maxconn}}} : entry, action);
+                if (isEdit) manageServer(entry, action);
+                else changeServer(isGlobal ? {data: {key: null, kind: 'global', metrics: {slim: snapshot?.info.Maxconn}}} : entry, action);
             });
             menu.append(button);
         });
@@ -526,7 +671,7 @@
             if (!group.rows.has(row.key)) group.rows.set(row.key, newRow(group));
             const entry = group.rows.get(row.key);
             entry.data = row;
-            if (canManage && ['server', 'frontend'].includes(row.kind) && !entry.actions) {
+            if (canManage && ['server', 'frontend', 'backend'].includes(row.kind) && !entry.actions) {
                 entry.actions = serverActions(entry);
                 entry.actionCell.append(entry.actions);
                 renderActionIcons(entry.actions);

@@ -6,7 +6,8 @@ from types import SimpleNamespace
 import pytest
 
 from app.modules.db.db_model import Server, Setting
-from app.modules.service import haproxy_stats, haproxy_stats_maxconn as maxconn
+from app.modules.service.stats import haproxy_stats_config as stats_config
+from app.modules.service.stats import haproxy_stats, haproxy_stats_maxconn as maxconn
 from tests.fixtures.haproxy_stats import INFO, ROWS, stats_csv
 
 CONFIG = ('global\n    maxconn 2000\ndefaults\n    mode http\n'
@@ -26,7 +27,7 @@ def maxconn_host(product, monkeypatch):
     Setting.update(value='1999').where(Setting.param == 'haproxy_sock_port', Setting.group_id == 1).execute()
     folder = product.root / 'configs'
     folder.mkdir()
-    monkeypatch.setattr(maxconn.config_common, 'get_config_dir', lambda _service: str(folder))
+    monkeypatch.setattr(stats_config.config_common, 'get_config_dir', lambda _service: str(folder))
     def read(ip, port, command):
         assert int(port) == 1999
         return stats_csv(state.rows[ip]) if command == 'show stat' else state.info[ip]
@@ -49,8 +50,9 @@ def maxconn_host(product, monkeypatch):
         return ''
     def download(ip, filename, *args, **kwargs):
         Path(filename).write_bytes(state.configs[ip].encode('utf-8'))
-    def validate(ip, filename, service):
+    def validate(ip, filename, service, *, config_file_name):
         assert service == 'haproxy'
+        assert config_file_name == '/etc/haproxy/haproxy.cfg'
         state.validations.append(ip)
         if ip == state.fail_validation:
             raise RuntimeError('private-validation-detail')
@@ -66,7 +68,7 @@ def maxconn_host(product, monkeypatch):
         return 'Haproxy'
     monkeypatch.setattr(haproxy_stats, 'execute_runtime_command', read)
     monkeypatch.setattr(maxconn, 'execute_runtime_command', write)
-    monkeypatch.setattr(maxconn.config, 'get_config', download)
-    monkeypatch.setattr(maxconn.config, 'validate_candidate_config', validate)
-    monkeypatch.setattr(maxconn.config, 'upload_and_restart', save)
+    monkeypatch.setattr(stats_config.config, 'get_config', download)
+    monkeypatch.setattr(stats_config.config, 'validate_candidate_config', validate)
+    monkeypatch.setattr(stats_config.config, 'upload_and_restart', save)
     return state

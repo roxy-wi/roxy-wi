@@ -4,7 +4,7 @@ import pytest
 import requests
 
 from app.modules.db.db_model import Setting, UserGroups, User
-from app.modules.service import haproxy_stats
+from app.modules.service.stats import haproxy_stats
 from tests.fixtures.haproxy_stats import INFO, stats_csv
 
 

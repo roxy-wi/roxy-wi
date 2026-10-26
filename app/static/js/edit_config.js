@@ -146,6 +146,9 @@ function openSection(section, context = {}) {
 					if (data.config.backend_servers.length > 0) {
 						for (let bind of data.config.backend_servers) {
 							$(section_id + ' input[name="servers"]').get(i).value = bind.server;
+							$(section_id + ' input[name="servers"]').eq(i).data('stats-server-options', {
+								name: bind.name ?? null, check_enabled: bind.check_enabled ?? null
+							});
 							$(section_id + ' input[name="server_port"]').get(i).value = bind.port;
 							$(section_id + ' input[name="port_check"]').get(i).value = bind.port_check;
 							$(section_id + ' input[name="server_maxconn"]').get(i).value = bind.maxconn;
@@ -645,6 +648,7 @@ function getFormData($form, form_name) {
 			backup = true;
 		}
 		let test_var = {server, port, port_check, maxconn, send_proxy, backup};
+		Object.assign(test_var, $(this).children("input[name='servers']").data('stats-server-options') || {});
 		indexed_array['backend_servers'].push(test_var);
 	});
 	if (section_type === 'defaults') {

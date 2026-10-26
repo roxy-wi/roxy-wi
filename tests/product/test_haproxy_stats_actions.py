@@ -5,7 +5,7 @@ import pytest
 
 from app.modules.common.common import checkAjaxInput
 from app.modules.db.db_model import ActionHistory, Setting, User, UserGroups
-from app.modules.service import haproxy_stats, haproxy_stats_actions
+from app.modules.service.stats import haproxy_stats, haproxy_stats_actions
 from tests.fixtures.haproxy_stats import INFO, ROWS, stats_csv
 
 
@@ -144,17 +144,19 @@ def test_uncertain_write_is_never_retried(product_client, product, action_host, 
     ('set', 'weight web/one 50%'), ('enable', 'server web/one'), ('disable', 'server web/one'),
     ('set', 'maxconn global 200'), ('set', 'maxconn frontend public 500'),
     ('set', 'maxconn server web/one 100'), ('set', 'server web/one maxconn 100'),
+    ('add', 'server web/new 192.0.2.10:80'), ('del', 'server web/one'),
+    ('set', 'server web/one addr 192.0.2.11 port 80'),
 ])
-def test_moved_console_actions_no_longer_execute(product_client, product, monkeypatch, action, arguments):
-    monkeypatch.setattr('app.modules.service.haproxy.runtime_command',
-                        lambda *args: pytest.fail('Moved command reached the legacy console'))
+def test_console_keeps_commands_when_their_form_moves_to_stats(product_client, product, monkeypatch, action, arguments):
+    commands = []
+    monkeypatch.setattr('app.modules.service.haproxy.runtime_command', lambda *args: commands.append(args) or 'ok')
     response = product_client.post(f'/runtimeapi/action/{product.server.ip}',
                                    data={'servaction': action, 'servbackend': arguments})
-    assert response.status_code == 409
-    assert response.json['code'] == 'stats_actions_moved'
+    assert response.status_code == 200
+    assert commands[0][1:3] == (action, checkAjaxInput(arguments))
 
 
-@pytest.mark.parametrize('action,arguments', [('show', 'info'), ('set', 'server web/one addr 192.0.2.4'),
+@pytest.mark.parametrize('action,arguments', [('show', 'info'), ('set', 'server web/one check-port 8080'),
                                             ('disable', 'frontend public')])
 def test_other_console_commands_remain(product_client, product, monkeypatch, action, arguments):
     commands = []

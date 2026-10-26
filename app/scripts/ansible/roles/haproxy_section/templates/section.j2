@@ -133,7 +133,7 @@
 
     {%- if config.backend_servers not in (none, 'None') and config.servers_template in (none, 'None') -%}
     {%- for backend in config.backend_servers -%}
-    server {{ backend.server }} {{ backend.server }}:{{ backend.port }} port {{ backend.port_check }} {{ check_option }} {{ ssl_check_option }} maxconn {{ backend.maxconn }}{% if backend.send_proxy %} send-proxy{% endif %}{% if backend.backup %} backup {% endif %}
+    server {{ backend.name|default(none) or backend.server }} {% if ':' in backend.server|string %}[{{ backend.server }}]{% else %}{{ backend.server }}{% endif %}:{{ backend.port }} port {{ backend.port_check }} {% if backend.check_enabled|default(none) is sameas false %}no-check{% elif backend.check_enabled|default(none) is sameas true and not check_option %}check{% else %}{{ check_option }}{% endif %} {{ ssl_check_option }} maxconn {{ backend.maxconn }}{% if backend.send_proxy %} send-proxy{% endif %}{% if backend.backup %} backup {% endif %}
 
     {% endfor -%}
     {%- endif -%}

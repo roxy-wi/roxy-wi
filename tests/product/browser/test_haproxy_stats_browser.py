@@ -7,7 +7,7 @@ import pytest
 from playwright.sync_api import expect
 
 from app.modules.db.db_model import Server, Setting, UserGroups
-from app.modules.service import haproxy_stats, haproxy_stats_actions
+from app.modules.service.stats import haproxy_stats, haproxy_stats_actions
 from tests.fixtures.haproxy_stats import INFO, ROWS, FIELDS_28, stats_csv
 from tests.fixtures.haproxy_maxconn import maxconn_host  # noqa: F401
 
@@ -378,7 +378,7 @@ def test_row_state_action_confirms_and_refreshes(logged_in, product_url, runtime
     open_stats(page, product_url)
     expect(page.locator('.hs-row[data-kind=frontend] .admin-actions-toggle')).to_have_count(1)
     expect(page.locator('.hs-row[data-kind=frontend] [data-action=ready]')).to_have_count(0)
-    expect(page.locator('.hs-row[data-kind=backend] .admin-actions-toggle')).to_have_count(0)
+    expect(page.locator('.hs-row[data-kind=backend] [data-action=add]')).to_have_count(1)
     row = open_server_action(page, action)
     dialog = page.get_by_role('dialog')
     expect(dialog).to_contain_text('web/one')
@@ -516,9 +516,10 @@ def test_menu_uses_shared_styles_and_fits_mobile_in_both_themes(logged_in, produ
             page.keyboard.press('Escape')
 
 
-def test_runtime_console_links_moved_commands_to_stats(logged_in, product_url, product, monkeypatch):
+def test_runtime_console_still_executes_commands_after_forms_move_to_stats(logged_in, product_url, product, monkeypatch):
+    commands = []
     monkeypatch.setattr('app.modules.service.haproxy.runtime_command',
-                        lambda *args: pytest.fail('Moved command reached transport'))
+                        lambda *args: commands.append(args) or 'Runtime command completed')
     page = logged_in
     page.goto(product_url + '/runtimeapi')
     expect(page.get_by_text('Server state, weight and Maxconn are now managed', exact=False)).to_have_count(0)
@@ -526,8 +527,8 @@ def test_runtime_console_links_moved_commands_to_stats(logged_in, product_url, p
     page.locator('#servaction').select_option('set', force=True)
     page.locator('#servbackend').fill('server web/one state drain')
     page.locator('#runtimeapiform').evaluate('form => $(form).trigger("submit")')
-    expect(page.locator('#ajaxruntime')).to_contain_text('now managed from the row menu')
-    expect(page.locator('#ajaxruntime a')).to_have_attribute('href', f'/stats/haproxy/{product.server.ip}')
+    expect(page.locator('#ajaxruntime')).to_contain_text('Runtime command completed')
+    assert commands[0][:3] == (product.server.ip, 'set', "'server web/one state drain'")
 
 
 @pytest.mark.parametrize('scope,initial,value', [('server', '100', '150'), ('frontend', '2000', '1800'), ('global', '2000', '1900')])
@@ -602,7 +603,8 @@ def test_maxconn_ui_locales_and_mobile(logged_in, product_url, maxconn_host, tmp
 
 def test_runtime_maxconn_tab_and_handlers_removed(logged_in, product_url, product, monkeypatch):
     page = logged_in
-    monkeypatch.setattr('app.modules.service.haproxy.runtime_command', lambda *args: pytest.fail('Legacy Maxconn executed'))
+    commands = []
+    monkeypatch.setattr('app.modules.service.haproxy.runtime_command', lambda *args: commands.append(args) or 'Maxconn applied')
     page.goto(product_url + '/runtimeapi')
     expect(page.locator('a[href="#maxconn"]')).to_have_count(0)
     expect(page.locator('#maxconn')).to_have_count(0)
@@ -610,8 +612,8 @@ def test_runtime_maxconn_tab_and_handlers_removed(logged_in, product_url, produc
     page.locator('#servaction').select_option('set', force=True)
     page.locator('#servbackend').fill('maxconn global 1000')
     page.locator('#runtimeapiform').evaluate('form => $(form).trigger("submit")')
-    expect(page.locator('#ajaxruntime')).to_contain_text('Maxconn')
-    expect(page.locator('#ajaxruntime a')).to_have_attribute('href', f'/stats/haproxy/{product.server.ip}')
+    expect(page.locator('#ajaxruntime')).to_contain_text('Maxconn applied')
+    assert commands[0][:3] == (product.server.ip, 'set', "'maxconn global 1000'")
 
 
 def test_global_maxconn_edit_section_shows_value_saved_from_stats(logged_in, product_url, product, maxconn_host):

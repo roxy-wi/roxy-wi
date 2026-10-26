@@ -16,13 +16,7 @@ function showRuntime() {
 			$("#ajaxruntime").html(data);
 		},
 		error: function (xhr) {
-			if (xhr.responseJSON && xhr.responseJSON.code === 'stats_actions_moved') {
-				const note = $(document.getElementById('runtime-stats-actions').content.cloneNode(true));
-				note.find('a').attr('href', '/stats/haproxy/' + encodeURIComponent($('#serv').val()));
-				$('#ajaxruntime').empty().append(note);
-			} else {
-				RoxywiUI.error(xhr.responseJSON || xhr.responseText);
-			}
+			RoxywiUI.error(xhr.responseJSON || xhr.responseText);
 		}
 	} );
 }
@@ -30,131 +24,6 @@ $( function() {
 	$('#runtimeapiform').submit(function () {
 		showRuntime();
 		return false;
-	});
-	$("#ip_select").on('selectmenuchange', function () {
-		let server_ip = $('#ip_select').val();
-		get_backends(server_ip, '#ipbackend', 1);
-	});
-	$("#ipbackend").on('selectmenuchange', function () {
-		let server_ip = $('#ip_select').val();
-		let backend = $('#ipbackend').val();
-		get_backend_servers(server_ip, backend, '#backend_server', 1);
-	});
-	$("#ip_select_server").on('selectmenuchange', function () {
-		let server_ip = $('#ip_select_server').val();
-		get_backends(server_ip, '#ipBackendServer', 0);
-	});
-	$("#ip_select_delete").on('selectmenuchange', function () {
-		let server_ip = $('#ip_select_delete').val();
-		get_backends(server_ip, '#ipbackend_delete', 0);
-	});
-	$("#ipbackend_delete").on('selectmenuchange', function () {
-		let server_ip = $('#ip_select_delete').val();
-		let backend = $('#ipbackend_delete').val();
-		get_backend_servers(server_ip, backend, '#backend_server_delete', 0);
-	});
-	$('#backend_port_server').on('input', function () {
-		let iNum = parseInt($('#backend_port_server').val());
-		$('#backend_port_server_check').val(iNum);
-	});
-	$("#backend_server").on('selectmenuchange', function () {
-		$('#backend_ip').val();
-		$('#backend_port').val();
-		$.ajax({
-			url: "/runtimeapi/backend/server/" + $('#ip_select').val() + "/" + $('#ipbackend').val() + "/" + $('#backend_server').val(),
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error: ') != '-1') {
-					toastr.error(data);
-				} else {
-					let server = data.split(':')[0]
-					let port = data.split(':')[1]
-					port = port.replace(/\s+/g, '');
-					server = server.replace(/\s+/g, '');
-					$('#backend_port').val(port);
-					$('#backend_ip').val(server);
-				}
-			}
-		});
-	});
-	$('#runtimeapiip').submit(function () {
-		$.ajax({
-			url: "/runtimeapi/server",
-			data: {
-				serv: $('#ip_select').val(),
-				backend_backend: $('#ipbackend').val(),
-				backend_server: $('#backend_server').val(),
-				backend_ip: $('#backend_ip').val(),
-				backend_port: $('#backend_port').val(),
-			},
-			type: "PUT",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error: ') != '-1' || data.indexOf('Invalid ') != '-1') {
-					toastr.error(data);
-				} else {
-					toastr.success(data);
-				}
-			}
-		});
-		return false;
-	});
-	$('#runtimeapiServerIp').submit(function () {
-		let check = 0;
-		if($('#backend_server_check').prop('checked')) {
-			check = 1;
-		}
-		$.ajax({
-			url: "/runtimeapi/server",
-			data: {
-				serv: $('#ip_select_server').val(),
-				backend_backend: $('#ipBackendServer').val(),
-				backend_server: $('#backend_ip_server').val(),
-				backend_ip: $('#backend_ip_server').val(),
-				backend_port: $('#backend_port_server').val(),
-				check: check,
-				port_check: $('#backend_port_server_check').val(),
-			},
-			type: "POST",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error: ') != '-1' || data.indexOf('Invalid ') != '-1') {
-					toastr.error(data);
-				} else {
-					toastr.success(data);
-				}
-			}
-		});
-		return false;
-	});
-	$('#runtimeapiip_delete').submit(function () {
-		$.ajax({
-			url: "/runtimeapi/server",
-			data: {
-				serv: $('#ip_select_delete').val(),
-				backend_backend: $('#ipbackend_delete').val(),
-				backend_server: $('#backend_server_delete').val(),
-			},
-			type: "DELETE",
-			success: function (data) {
-				data = data.replace(/\s+/g, ' ');
-				if (data.indexOf('error: ') != '-1' || data.indexOf('Invalid ') != '-1') {
-					toastr.error(data);
-				} else {
-					toastr.success(data);
-				}
-			}
-		});
-		return false;
-	});
-	$('#backend_server_check').click(function() {
-		if ($('#backend_server_check').prop('checked')) {
-			$('#backend_ip_server_check').prop('required', true);
-			$('#backend_port_server_check').prop('required', true);
-		} else {
-			$('#backend_ip_server_check').prop('required', false);
-			$('#backend_port_server_check').prop('required', false);
-		}
 	});
 	$("#table_serv_select").on('selectmenuchange', function () {
 		$.ajax({
@@ -384,42 +253,6 @@ function deleteSession(id, sess_id) {
 			}
 		}
 	});
-}
-function get_backends(server_ip, backends_select_tag, ip_and_port=0) {
-	$.ajax({
-		url: "/runtimeapi/backends/" + server_ip,
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
-			} else {
-				generate_select(data, backends_select_tag);
-				if (ip_and_port == 1) {
-					$('#backend_server').find('option').remove();
-					$('#backend_server').selectmenu("refresh");
-					$('#backend_port').val('');
-					$('#backend_ip').val('');
-				}
-			}
-		}
-	});
-}
-function get_backend_servers(server_ip, backend, servers_select_tag, ip_and_port=0) {
-	$.ajax({
-		url: "/runtimeapi/backend/servers/" + server_ip + "/" + backend,
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
-			} else {
-				generate_select(data, servers_select_tag);
-				if (ip_and_port == 1) {
-					$('#backend_port').val('');
-					$('#backend_ip').val('');
-				}
-			}
-		}
-	} );
 }
 function generate_select(values, select_tag, custom_value=0, separator='<br>') {
 	let value = values.split(separator)

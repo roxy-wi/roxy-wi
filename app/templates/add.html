@@ -21,7 +21,7 @@
 {% else %}
 <script src="/static/js/add.js"></script>
 <script src="/static/js/add_common.js"></script>
-<script src="/static/js/edit_config.js"></script>
+<script src="{{ url_for('static', filename='js/edit_config.js', v='9.3.0-servers') }}"></script>
 <script id="haproxy-file-messages" type="application/json">{{lang.config_files|tojson}}</script>
 {% set file_servers = [] %}
 {% for server in g.user_params['servers'] %}{% set _ = file_servers.append([server.0, server.1, server.2]) %}{% endfor %}

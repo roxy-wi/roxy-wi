@@ -1,6 +1,6 @@
 import pytest
 
-from app.modules.service import haproxy_stats as stats
+from app.modules.service.stats import haproxy_stats as stats
 from tests.fixtures.haproxy_stats import INFO, FIELDS, ROWS, stats_csv
 
 

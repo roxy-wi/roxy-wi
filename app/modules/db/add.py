@@ -224,9 +224,7 @@ def update_haproxy_section_maxconn(server_id, section_type, section_name, maxcon
 		if server_name is None:
 			updated['maxconn'] = maxconn
 		else:
-			matches = [server for server in updated.get('backend_servers') or [] if server['server'] == server_name]
-			if not matches:
-				return
+			matches = [server for server in updated.get('backend_servers') or [] if (server.get('name') or server['server']) == server_name]
 			if len(matches) != 1:
 				raise ValueError('Ambiguous backend server in section settings')
 			matches[0]['maxconn'] = maxconn
@@ -237,6 +235,16 @@ def update_haproxy_section_maxconn(server_id, section_type, section_name, maxcon
 		).execute():
 			return
 	raise RuntimeError('Section settings changed concurrently')
+
+
+def update_haproxy_server_settings(section, updated):
+	"""Save the prepared server edit only while the form still matches its snapshot."""
+	if section is None or updated == section.config:
+		return
+	if not HaproxySection.update(config=updated).where(
+		(HaproxySection.id == section.id) & (HaproxySection.config == section.config)
+	).execute():
+		raise RuntimeError('Section settings changed concurrently')
 
 
 def delete_section(server_id: int, section_type: str, section_name: str, service: Literal['haproxy', 'nginx'] = 'haproxy', config_path: str = None) -> None:

@@ -6,7 +6,7 @@
 {% from 'include/input_macros.html' import select %}
 {% set labels = lang.haproxy_stats|default(english.haproxy_stats) %}
 {% set field_help = lang.haproxy_stats_fields|default(english.haproxy_stats_fields) %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/haproxy-stats.css', v='9.3.0-4') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/haproxy-stats.css', v='9.3.0-6') }}">
 {% if g.user_params['servers']|length == 0 %}
     {% include 'include/getstarted.html' %}
 {% else %}
@@ -68,6 +68,6 @@
     <p id="hs-empty" class="hs-empty" hidden>{{ labels.empty }}</p>
     </div>
 </section>
-<script src="{{ url_for('static', filename='js/haproxy-stats.js', v='9.3.0-4') }}"></script>
+<script src="{{ url_for('static', filename='js/haproxy-stats.js', v='9.3.0-6') }}"></script>
 {% endif %}
 {% endblock %}

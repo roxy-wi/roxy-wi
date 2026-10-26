@@ -5,7 +5,7 @@ from typing import Optional, Annotated, Union, Literal, Any, Dict, List
 from shlex import quote
 from pydantic_core import CoreSchema, core_schema
 from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, GetCoreSchemaHandler, AnyUrl, \
-    root_validator, EmailStr, model_validator, DirectoryPath, Field, field_validator
+    root_validator, EmailStr, model_validator, DirectoryPath, Field, field_validator, ConfigDict, RootModel
 
 DomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
 WildcardDomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9\*](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
@@ -411,6 +411,96 @@ class LetsEncryptDeleteRequest(BaseModel):
     description: Optional[EscapedString] = None
 
 
+class HaproxyStatsMaxconnChange(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+
+    value: int = Field(ge=1, le=2147483647)
+    pid: int = Field(gt=0)
+    uptime: int = Field(ge=0)
+    targets: List[str]
+
+
+class HaproxyStatsGlobalMaxconn(HaproxyStatsMaxconnChange):
+    scope: Literal['global']
+    row_key: None
+
+
+class HaproxyStatsFrontendMaxconn(HaproxyStatsMaxconnChange):
+    scope: Literal['frontend']
+    row_key: str = Field(min_length=1, max_length=2048)
+
+
+class HaproxyStatsServerMaxconn(HaproxyStatsMaxconnChange):
+    scope: Literal['server']
+    row_key: str = Field(min_length=1, max_length=2048)
+    value: int = Field(ge=0, le=2147483647)
+
+
+class HaproxyStatsMaxconnRequest(RootModel[Annotated[
+    Union[HaproxyStatsGlobalMaxconn, HaproxyStatsFrontendMaxconn, HaproxyStatsServerMaxconn],
+    Field(discriminator='scope')
+]]):
+    pass
+
+
+class HaproxyStatsServerQuery(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
+    action: Literal['add', 'edit', 'delete']
+    row_key: str = Field(min_length=1, max_length=2048)
+    pid: int = Field(gt=0)
+    uptime: int = Field(ge=0)
+
+
+class HaproxyStatsServerValue(BaseModel):
+    model_config = ConfigDict(extra='forbid', strict=True)
+
+    address: IPvAnyAddress
+    port: int = Field(ge=1, le=65535)
+
+    @field_validator('address', mode='before')
+    @classmethod
+    def literal_ip_address(cls, value):
+        # IPvAnyAddress also accepts integers and IPv6 scopes; the CLI takes a plain IP string.
+        if not isinstance(value, str) or '%' in value:
+            raise ValueError('A plain IPv4 or IPv6 address string is required')
+        return value
+
+
+class HaproxyStatsServerAddValue(HaproxyStatsServerValue):
+    name: str = Field(pattern=r'^[A-Za-z0-9_.:-]+$', max_length=255)
+    check: bool
+    check_port: int = Field(ge=1, le=65535)
+
+
+class HaproxyStatsServerChange(HaproxyStatsServerQuery):
+    model_config = ConfigDict(extra='forbid', strict=True)
+
+    revision: str = Field(pattern=r'^[a-f0-9]{64}$')
+    targets: List[str]
+
+
+class HaproxyStatsServerAdd(HaproxyStatsServerChange):
+    action: Literal['add']
+    value: HaproxyStatsServerAddValue
+
+
+class HaproxyStatsServerEdit(HaproxyStatsServerChange):
+    action: Literal['edit']
+    value: HaproxyStatsServerValue
+
+
+class HaproxyStatsServerDelete(HaproxyStatsServerChange):
+    action: Literal['delete']
+    value: None
+
+
+class HaproxyStatsServerRequest(RootModel[Annotated[
+    Union[HaproxyStatsServerAdd, HaproxyStatsServerEdit, HaproxyStatsServerDelete], Field(discriminator='action')
+]]):
+    pass
+
+
 class HaproxyBinds(BaseModel):
     ip: Optional[str] = None
     port: Annotated[int, Gt(1), Le(65535)]
@@ -431,9 +521,11 @@ class HaproxyAcls(BaseModel):
 
 
 class HaproxyBackendServer(BaseModel):
+    name: Optional[Annotated[str, Field(pattern=r'^[A-Za-z0-9_.:-]+$', max_length=255)]] = None
     server: Union[IPvAnyAddress, DomainName]
-    port: Annotated[int, Gt(1), Le(65535)]
-    port_check: Annotated[int, Gt(1), Le(65535)]
+    check_enabled: Optional[bool] = None
+    port: Annotated[int, Gt(0), Le(65535)]
+    port_check: Annotated[int, Gt(0), Le(65535)]
     maxconn: Optional[int] = 2000
     send_proxy: Optional[bool] = 0
     backup: Optional[bool] = 0

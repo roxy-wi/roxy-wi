@@ -6,7 +6,8 @@ import pytest
 
 from app.modules.db import add as add_sql
 from app.modules.db.db_model import ActionHistory, HaproxySection, Setting, UserGroups
-from app.modules.service.haproxy_stats import parse_stats
+from app.modules.service.stats import haproxy_stats_maxconn as maxconn
+from app.modules.service.stats.haproxy_stats import parse_stats
 from tests.fixtures.haproxy_stats import stats_csv
 from tests.fixtures.haproxy_maxconn import maxconn_host  # noqa: F401
 
@@ -35,7 +36,7 @@ def test_maxconn_updates_runtime_config_and_history_on_all_nodes(product_client,
     assert maxconn_host.writes == [(ip, command) for ip in body()['targets']]
     assert maxconn_host.validations == body()['targets']
     assert all(fragment in text for text in maxconn_host.configs.values())
-    assert [entry[2]['record_version'] for entry in maxconn_host.saves] == [True, False]
+    assert [entry[2].get('record_version', True) for entry in maxconn_host.saves] == [True, True]
     assert Path(maxconn_host.saves[0][1]).is_file(), 'Saved version must remain readable'
     assert ActionHistory.select().where(ActionHistory.action == f'HAProxy Stats: {command}; configuration saved').count() == 2
 
@@ -55,6 +56,30 @@ def test_preview_resolves_authorized_topology_without_writes(product_client, pro
 def test_invalid_payload_never_writes(product_client, product, maxconn_host, override):
     assert post(product_client, product, {**body(), **override}).status_code == 400
     assert not maxconn_host.writes and not maxconn_host.saves
+
+
+@pytest.mark.parametrize('payload,code', [
+    (None, 'invalid_action'),
+    ([], 'invalid_action'),
+    ({}, 'invalid_action'),
+    ({**body(), 'value': True}, 'invalid_maxconn'),
+    ({**body(), 'value': 'private-invalid-limit'}, 'invalid_maxconn'),
+    ({**body(), 'value': -1, 'pid': '100'}, 'invalid_maxconn'),
+    ({**body(), 'value': -1, 'unexpected': True}, 'invalid_action'),
+    ({k: v for k, v in body(value=-1).items() if k != 'targets'}, 'invalid_action'),
+    (body('global', 0), 'invalid_maxconn'),
+    (body('frontend', 0), 'invalid_maxconn'),
+    ({**body('global'), 'row_key': 'unexpected'}, 'invalid_action'),
+    ({**body(), 'pid': True}, 'invalid_action'),
+])
+def test_pydantic_rejects_invalid_requests_before_service_with_existing_errors(
+    product_client, product, monkeypatch, payload, code,
+):
+    monkeypatch.setattr(maxconn, 'change', lambda *args: pytest.fail('Invalid request reached service'))
+    response = post(product_client, product, payload)
+    assert response.status_code == 400
+    assert response.json == {'status': 'error', 'code': code}
+    assert response.headers['Cache-Control'] == 'no-store'
 
 
 @pytest.mark.parametrize('scope', ['global', 'frontend'])
@@ -166,7 +191,8 @@ def saved_section(server_id, kind='global', name='global', path='/etc/haproxy/ha
 def test_maxconn_syncs_edit_section_on_each_saved_node_without_touching_other_data(product_client, product, maxconn_host, scope, kind, name):
     if kind == 'listen':
         old_kind = 'frontend' if scope == 'frontend' else 'backend'
-        maxconn_host.configs[product.server.ip] = maxconn_host.configs[product.server.ip].replace(old_kind + ' ' + name, 'listen ' + name)
+        for ip in maxconn_host.configs:
+            maxconn_host.configs[ip] = maxconn_host.configs[ip].replace(old_kind + ' ' + name, 'listen ' + name)
     records = [saved_section(node, kind, name) for node in (product.server.server_id, maxconn_host.linked.server_id)]
     extra = saved_section(product.server.server_id, kind, name, '/etc/haproxy/extra.cfg')
     other = saved_section(product.other.server_id, kind, name)
@@ -233,3 +259,27 @@ def test_section_sync_preserves_concurrent_edit_and_is_idempotent(product_client
     add_sql.update_haproxy_section_maxconn(product.server.server_id, 'global', 'global', 3999)
     saved = HaproxySection.get_by_id(record.id).config
     assert saved == {**record.config, 'option': 'concurrent option', 'maxconn': 3999}
+
+
+@pytest.mark.parametrize('scope', ['global', 'frontend', 'server'])
+def test_maxconn_preserves_replica_configuration_and_records_its_own_version(product_client, product, maxconn_host, scope):
+    replica = maxconn_host.linked.ip
+    maxconn_host.configs[replica] = maxconn_host.configs[replica].replace('bind :80', 'bind :8088') + '# replica-only\n'
+    assert post(product_client, product, body(scope, 150)).status_code == 200
+    assert 'bind :8088' in maxconn_host.configs[replica]
+    assert '# replica-only' in maxconn_host.configs[replica]
+    assert 'bind :8088' not in maxconn_host.configs[product.server.ip]
+    assert maxconn_host.saves[0][1] != maxconn_host.saves[1][1]
+    for ip, filename, kwargs in maxconn_host.saves:
+        assert Path(filename).read_text(encoding='utf-8') == maxconn_host.configs[ip]
+        assert kwargs.get('record_version', True)
+
+
+def test_missing_server_in_saved_form_is_reported_as_sync_failure(product_client, product, maxconn_host):
+    record = saved_section(product.server.server_id, 'backend', 'web')
+    HaproxySection.update(config={**record.config, 'backend_servers': []}).where(HaproxySection.id == record.id).execute()
+    response = post(product_client, product, body('server', 150))
+    assert response.status_code == 502
+    assert response.json['code'] == 'maxconn_section_sync_failed'
+    assert response.json['nodes'][0]['config'] == 'saved'
+    assert response.json['nodes'][1]['runtime'] == 'pending'

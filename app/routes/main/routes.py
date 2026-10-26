@@ -5,7 +5,7 @@ from typing import Union, Literal
 from flask import render_template, g, abort, jsonify, send_from_directory, request
 from flask_jwt_extended import create_access_token, jwt_required
 from flask_pydantic import validate
-from pydantic import IPvAnyAddress
+from pydantic import IPvAnyAddress, ValidationError
 import requests
 from werkzeug.exceptions import HTTPException
 
@@ -23,8 +23,13 @@ import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.nettools as nettools_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
-from app.modules.service import haproxy_stats, haproxy_stats_actions, haproxy_stats_maxconn
-from app.modules.roxywi.class_models import ErrorResponse, NettoolsRequest, DomainName
+from app.modules.service.stats import (
+    haproxy_stats, haproxy_stats_actions, haproxy_stats_config, haproxy_stats_maxconn, haproxy_stats_servers,
+)
+from app.modules.roxywi.class_models import (
+    ErrorResponse, NettoolsRequest, DomainName, HaproxyStatsMaxconnRequest,
+    HaproxyStatsServerQuery, HaproxyStatsServerRequest,
+)
 from app.modules.roxywi.exception import RoxywiPermissionError
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
 from app.modules.roxywi.error_handler import safe_error_message
@@ -166,11 +171,20 @@ def stats_maxconn(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
     try:
         if request.method == 'GET':
             data = {'status': 'ok', 'targets': [
-                {'ip': node.ip, 'hostname': node.hostname} for node in haproxy_stats_maxconn.targets(server)
+                {'ip': node.ip, 'hostname': node.hostname} for node in haproxy_stats_config.targets(server)
             ]}
         else:
-            data = {'status': 'ok', 'nodes': haproxy_stats_maxconn.change(server, request.get_json(silent=True))}
+            body = HaproxyStatsMaxconnRequest.model_validate(request.get_json(silent=True))
+            data = {'status': 'ok', 'nodes': haproxy_stats_maxconn.change(server, body.model_dump(mode='json'))}
         response = jsonify(data)
+    except ValidationError as exc:
+        errors = exc.errors(include_input=False, include_context=False)
+        # Preserve the existing error codes and precedence for malformed requests.
+        malformed = any(error['type'] in ('missing', 'extra_forbidden') for error in errors)
+        invalid_value = any(error['loc'][-1:] == ('value',) for error in errors)
+        code = 'invalid_maxconn' if invalid_value and not malformed else 'invalid_action'
+        response = jsonify({'status': 'error', 'code': code})
+        response.status_code = 400
     except haproxy_stats.StatsError as exc:
         safe_error_message(exc)
         data = {'status': 'error', 'code': exc.code}
@@ -183,6 +197,52 @@ def stats_maxconn(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
     except Exception as exc:
         safe_error_message(exc)
         response = jsonify({'status': 'error', 'code': 'maxconn_unknown'})
+        response.status_code = 500
+    response.headers['Cache-Control'] = 'no-store'
+    return response
+
+
+@bp.route('/stats/servers/<any(haproxy):service>/<server_ip>', methods=['GET', 'POST'])
+@jwt_required()
+@check_services
+@get_user_params()
+@page_for_admin(level=3)
+@validate()
+def stats_manage_servers(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
+    server = roxywi_common.require_server_access(server_ip)
+    if not server.haproxy:
+        abort(404)
+    try:
+        if request.method == 'GET':
+            query = HaproxyStatsServerQuery.model_validate(request.args.to_dict())
+            data = {'status': 'ok', **haproxy_stats_servers.describe(server, query.model_dump())}
+        else:
+            body = HaproxyStatsServerRequest.model_validate(request.get_json(silent=True))
+            data = {'status': 'ok', 'nodes': haproxy_stats_servers.change(server, body.model_dump(mode='json'))}
+        response = jsonify(data)
+    except ValidationError as exc:
+        # Keep the localized Stats error contract without returning rejected input values.
+        error = exc.errors(include_input=False, include_context=False)[0]
+        location = error['loc']
+        code = 'invalid_action'
+        if 'value' in location and error['type'] not in ('missing', 'extra_forbidden'):
+            code = {'address': 'server_invalid_address', 'port': 'server_invalid_port',
+                    'name': 'server_invalid_fields', 'check': 'server_invalid_fields',
+                    'check_port': 'server_invalid_fields'}.get(location[-1], code)
+        response = jsonify({'status': 'error', 'code': code})
+        response.status_code = 400
+    except haproxy_stats.StatsError as exc:
+        safe_error_message(exc)
+        data = {'status': 'error', 'code': exc.code}
+        if isinstance(exc, haproxy_stats_servers.ServerEditError):
+            data['nodes'] = exc.nodes
+        response = jsonify(data)
+        response.status_code = exc.status
+    except HTTPException:
+        raise
+    except Exception as exc:
+        safe_error_message(exc)
+        response = jsonify({'status': 'error', 'code': 'server_incomplete'})
         response.status_code = 500
     response.headers['Cache-Control'] = 'no-store'
     return response

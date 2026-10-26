@@ -1,6 +1,6 @@
 from typing import Union
 
-from flask import render_template, request, g, jsonify
+from flask import render_template, request, g
 from flask_jwt_extended import jwt_required
 from flask_pydantic import validate
 from pydantic import IPvAnyAddress
@@ -11,7 +11,6 @@ import app.modules.common.common as common
 import app.modules.config.runtime as runtime
 import app.modules.db.server as server_sql
 import app.modules.service.haproxy as service_haproxy
-from app.modules.service.haproxy_stats_actions import is_stats_server_command
 import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi.class_models import DomainName, EscapedString
 from app.modules.roxywi.error_handler import safe_error_message
@@ -45,54 +44,10 @@ def show_backends(server_ip: Union[int, IPvAnyAddress, DomainName]):
         return 'error: ' + safe_error_message(e)
 
 
-@bp.route('/backend/servers/<server_ip>/<backend>')
-@validate()
-def show_backend_servers(server_ip: Union[IPvAnyAddress, DomainName], backend: EscapedString):
-    try:
-        return runtime.show_frontend_backend(str(server_ip), backend)
-    except Exception as e:
-        return 'error: ' + safe_error_message(e)
-
-
-@bp.route('/backend/server/<server_ip>/<backend>/<backend_server>')
-@validate()
-def show_backend_server(server_ip: Union[IPvAnyAddress, DomainName], backend: EscapedString, backend_server: EscapedString):
-    try:
-        return runtime.show_server(str(server_ip), backend, backend_server)
-    except Exception as e:
-        return 'error: ' + safe_error_message(e)
-
-
-@bp.route('/server', methods=['POST', 'PUT', 'DELETE'])
-def change_ip_port():
-    server_ip = common.is_ip_or_dns(request.form.get('serv'))
-    backend_backend = common.checkAjaxInput(request.form.get('backend_backend'))
-    backend_server = common.checkAjaxInput(request.form.get('backend_server'))
-    backend_ip = common.checkAjaxInput(request.form.get('backend_ip'))
-    backend_port = common.checkAjaxInput(request.form.get('backend_port'))
-    if request.method == 'PUT':
-        try:
-            return runtime.change_ip_and_port(server_ip, backend_backend, backend_server, backend_ip, backend_port)
-        except Exception as e:
-            return 'error: ' + safe_error_message(e)
-    elif request.method == 'POST':
-        check = common.checkAjaxInput(request.form.get('check'))
-        port_check = common.checkAjaxInput(request.form.get('port_check'))
-        try:
-            return runtime.add_server(server_ip, backend_backend, backend_server, backend_ip, backend_port, check, port_check)
-        except Exception as e:
-            return 'error: ' + safe_error_message(e)
-    elif request.method == 'DELETE':
-        return runtime.delete_server(server_ip, backend_backend, backend_server)
-
-
 @bp.route('/action/<server_ip>', methods=['POST'])
 @get_user_params()
 @validate()
 def action(server_ip: Union[IPvAnyAddress, DomainName]):
-    if is_stats_server_command(request.form.get('servaction', ''), request.form.get('servbackend', '')):
-        return jsonify({'status': 'error', 'code': 'stats_actions_moved'}), 409
-
     enable = common.checkAjaxInput(request.form.get('servaction'))
     backend = common.checkAjaxInput(request.form.get('servbackend'))
     save = request.form.get('save')

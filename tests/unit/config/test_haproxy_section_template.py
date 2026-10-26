@@ -149,3 +149,20 @@ def test_non_http_health_checks_are_unchanged(render_section):
     rendered = render_section(section_config(health_check={'check': 'ssl-hello-chk', 'path': '/'}))
     assert 'option ssl-hello-chk' in rendered
     assert 'http-check send' not in rendered
+
+
+@pytest.mark.parametrize('check_enabled', [None, False, True])
+@pytest.mark.parametrize('section_checks', [False, True])
+def test_stats_server_identity_ipv6_and_health_check_survive_section_generation(render_section, check_enabled, section_checks):
+    config = section_config('backend',
+        backend_servers=[{'name': 'app-1', 'server': '2001:db8::10', 'port': 1,
+                          'port_check': 9000, 'maxconn': 42, 'check_enabled': check_enabled,
+                          'send_proxy': True, 'backup': True}],
+        servers_check={'check_enabled': section_checks, 'inter': 3000, 'rise': 3, 'fall': 4})
+    rendered = render_section(config)
+    line = next(line.strip() for line in rendered.splitlines() if line.strip().startswith('server '))
+    assert line.startswith('server app-1 [2001:db8::10]:1 port 9000 ')
+    assert 'maxconn 42 send-proxy backup' in line
+    assert ('no-check' in line) is (check_enabled is False)
+    assert ('check inter 3000 rise 3 fall 4' in line) is (section_checks and check_enabled is not False)
+    assert ('check' in line.split()) is (check_enabled is not False and (section_checks or check_enabled is True))

@@ -64,6 +64,12 @@
 .hs-detail-grid dd {margin:0; overflow-wrap:anywhere; text-align:right; min-width:0;}
 .haproxy-stats .hs-metric-help {min-height:24px; padding:0; border:0; border-radius:2px; background:transparent; text-align:left; color:inherit; cursor:help; white-space:normal; overflow-wrap:anywhere; text-decoration:underline dotted; text-underline-offset:3px;}
 .haproxy-stats .hs-tooltip {position:fixed; z-index:10010; box-sizing:border-box; width:320px; max-width:calc(100vw - 24px); padding:12px 14px; border:1px solid var(--rw-border); border-radius:6px; background:var(--rw-surface); color:inherit; box-shadow:0 4px 18px #0003; font-size:13px; line-height:1.5; overflow-wrap:anywhere;}
+.hs-server-fields {display:grid; gap:12px;}
+.hs-server-fields input {box-sizing:border-box; max-width:100%;}
+.hs-server-check {display:flex; align-items:center; gap:8px;}
+.hs-action-dialog input.form-control {width:100%; min-height:30px;}
+.ui-dialog.hs-stats-dialog {z-index:1003 !important; bottom:auto !important;}
+body:has(.haproxy-stats-page) .ui-widget-overlay {z-index:1002 !important;}
 .hs-empty {padding:40px 12px; text-align:center; border:1px dashed var(--rw-border); border-radius:8px; color:var(--rw-text-muted);}
 @media(max-width:760px) {
     .hs-read-only {margin-left:0;}

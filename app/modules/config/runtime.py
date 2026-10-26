@@ -1,14 +1,15 @@
 import json
 from pathlib import Path, PurePosixPath
 import re
+import shlex
 
 from flask import render_template, jsonify
 from werkzeug.utils import secure_filename
 
 import app.modules.db.sql as sql
-import app.modules.db.server as server_sql
-import app.modules.config.config as config_mod
 import app.modules.config.common as config_common
+from app.modules.config.viewer import haproxy_sections
+from app.modules.service.haproxy import _haproxy_line_tokens
 from app.modules.service.haproxy_runtime import execute_runtime_command
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
@@ -27,10 +28,7 @@ def _runtime_command(server: str, port: int, command: str) -> tuple[list[str], s
 	return lines or [''], ''
 
 
-_SECTION_NAMES = {
-	'global', 'listen', 'frontend', 'backend', 'cache', 'defaults', 'peers',
-	'resolvers', 'userlist', 'http-errors', 'log-forward',
-}
+SERVER_LINE = re.compile(r'^(\s*server\s+)(\S+)(\s+)(\S+)([^\r\n]*)(\r?\n)?$')
 
 
 def _runtime_config_path(config_path: str) -> Path:
@@ -46,69 +44,151 @@ def _runtime_config_path(config_path: str) -> Path:
 	return safe_path
 
 
-def _read_config_lines(config_path: str) -> list[str]:
+def read_config_lines(config_path: str) -> list[str]:
 	safe_path = _runtime_config_path(config_path)
-	return safe_path.read_text(encoding='utf-8', errors='replace').splitlines(keepends=True)
+	return safe_path.read_bytes().decode('utf-8').splitlines(keepends=True)
 
 
 def _write_config_lines(config_path: str, lines: list[str]) -> None:
 	safe_path = _runtime_config_path(config_path)
-	safe_path.write_text(''.join(lines), encoding='utf-8')
+	safe_path.write_bytes(''.join(lines).encode('utf-8'))
 
 
-def _find_section(lines: list[str], section_types, section_name: str = '') -> tuple[int, int]:
+def find_section(lines: list[str], section_types, section_name: str = '', *, required=True) -> tuple[int, int] | None:
 	if isinstance(section_types, str):
 		section_types = (section_types,)
-	for start, line in enumerate(lines):
-		parts = line.strip().split()
-		if not parts or parts[0] not in section_types:
-			continue
-		if section_name and (len(parts) < 2 or parts[1] != section_name):
-			continue
-		for end in range(start + 1, len(lines)):
-			candidate = lines[end].strip().split()
-			if candidate and candidate[0] in _SECTION_NAMES:
-				return start, end
-		return start, len(lines)
+	matches = [section for section in haproxy_sections(''.join(lines))
+		if section['kind'] in section_types and (not section_name or section['name'] == section_name)]
+	if len(matches) > 1:
+		raise RuntimeError(f'Ambiguous configuration section: {section_name}')
+	if matches:
+		return matches[0]['header'], matches[0]['end']
+	if not required:
+		return None
 	raise RuntimeError(f'Cannot find configuration section: {section_name or "/".join(section_types)}')
 
 
-def _replace_server_address(config_path: str, backend: str, server: str, address: str, port: int) -> None:
-	lines = _read_config_lines(config_path)
-	start, end = _find_section(lines, ('backend', 'listen'), backend)
-	server_pattern = re.compile(rf'^(\s*server\s+{re.escape(server)}\s+)\S+(.*)$')
-	for index in range(start + 1, end):
-		match = server_pattern.match(lines[index].rstrip('\r\n'))
-		if match:
-			newline = '\n' if lines[index].endswith('\n') else ''
-			lines[index] = f'{match.group(1)}{address}:{port}{match.group(2)}{newline}'
-			_write_config_lines(config_path, lines)
-			return
-	raise RuntimeError(f'Cannot find server {backend}/{server} in configuration')
+def server_line(lines, section, server) -> tuple[int, re.Match]:
+	start, end = section[:2]
+	matches = [(index, SERVER_LINE.fullmatch(lines[index])) for index in range(start + 1, end)
+		if _haproxy_line_tokens(lines[index])[:2] == ['server', server]]
+	if len(matches) != 1 or matches[0][1] is None:
+		raise RuntimeError(f'Cannot identify server {server} in configuration')
+	return matches[0]
 
 
-def _insert_server(config_path: str, backend: str, server_line: str) -> None:
-	lines = _read_config_lines(config_path)
-	_start, end = _find_section(lines, ('backend', 'listen'), backend)
-	lines.insert(end, f'    {server_line.rstrip()}\n')
+def server_endpoint(address: str, port: int) -> str:
+	return f'[{address}]:{port}' if ':' in address else f'{address}:{port}'
+
+
+def replace_server_address(config_path: str, backend: str, server: str, address: str, port: int) -> None:
+	lines = read_config_lines(config_path)
+	index, match = server_line(lines, find_section(lines, ('backend', 'listen'), backend), server)
+	lines[index] = ''.join([match[1], match[2], match[3], server_endpoint(address, port), match[5], match[6] or ''])
 	_write_config_lines(config_path, lines)
 
 
-def _delete_server(config_path: str, backend: str, server: str) -> None:
-	lines = _read_config_lines(config_path)
-	start, end = _find_section(lines, ('backend', 'listen'), backend)
-	server_pattern = re.compile(rf'^\s*server\s+{re.escape(server)}(?:\s|$)')
-	for index in range(start + 1, end):
-		if server_pattern.match(lines[index]):
-			del lines[index]
-			_write_config_lines(config_path, lines)
-			return
-	raise RuntimeError(f'Cannot find server {backend}/{server} in configuration')
+def _insert_section_line(lines, section, line) -> None:
+	start, end = section
+	identity = ' '.join(_haproxy_line_tokens(lines[start])[:2])
+	marker = f'# END Roxy-WI MANAGED {identity} do not edit it directly'
+	markers = [index for index in range(start + 1, end) if lines[index].strip() == marker]
+	if len(markers) > 1:
+		raise RuntimeError('Ambiguous managed section marker')
+	if markers:
+		end = markers[0]
+	if end and not lines[end - 1].endswith(('\n', '\r')):
+		lines[end - 1] += '\n'
+	lines.insert(end, f'    {line}\n')
 
 
-def _set_section_maxconn(config_path: str, section_type: str, section_name: str, maxconn: int) -> None:
-	lines = _read_config_lines(config_path)
-	start, end = _find_section(lines, section_type, section_name)
+def insert_server(config_path: str, backend: str, server_line: str) -> None:
+	lines = read_config_lines(config_path)
+	section = find_section(lines, ('backend', 'listen'), backend)
+	name = _haproxy_line_tokens(server_line)[1]
+	for line in lines[section[0] + 1:section[1]]:
+		tokens = _haproxy_line_tokens(line)
+		if tokens and (tokens[0] == 'server-template' or tokens[:2] == ['server', name]):
+			raise RuntimeError('Server already exists or uses a server template')
+	_insert_section_line(lines, section, server_line)
+	_write_config_lines(config_path, lines)
+
+
+def server_default_options(sources, backend: str) -> str:
+	"""Resolve default-server options in configuration load order for dynamic adds."""
+	defaults, current = {}, ''
+	for lines in sources:
+		for section in haproxy_sections(''.join(lines)):
+			kind = section['kind']
+			if kind not in ('defaults', 'backend', 'listen'):
+				continue
+			tokens = _haproxy_line_tokens(lines[section['header']])
+			parent = tokens[tokens.index('from') + 1] if 'from' in tokens else None
+			if parent is not None and parent not in defaults:
+				raise RuntimeError('Cannot resolve inherited default-server options')
+			options = defaults[parent] if parent is not None else '' if kind == 'defaults' else current
+			for line in lines[section['header'] + 1:section['end']]:
+				values = _haproxy_line_tokens(line)
+				if values[:1] == ['default-server']:
+					# CLI words use backslash escaping, not configuration-file quotes.
+					options += ' ' + ' '.join(re.sub(r'([\\ \t])', r'\\\1', value) for value in values[1:])
+			if kind == 'defaults':
+				current = options
+				defaults[section['name']] = options
+			elif section['name'] == backend:
+				return options.strip()
+	raise RuntimeError('Cannot resolve backend default-server options')
+
+
+def delete_server(config_path: str, backend: str, server: str) -> None:
+	lines = read_config_lines(config_path)
+	index, _match = server_line(lines, find_section(lines, ('backend', 'listen'), backend), server)
+	del lines[index]
+	_write_config_lines(config_path, lines)
+
+
+def _server_command(server_ip: str, sock_port: int, command: str, success_pattern: str = '') -> str:
+	# These commands are composed from validated identifiers and configuration options.
+	if any(char in command for char in ';\r\n\x00'):
+		raise RoxywiInputError('Invalid runtime server command')
+	response = execute_runtime_command(server_ip, int(sock_port), command).strip()
+	if response and (not success_pattern or not re.fullmatch(success_pattern, response)):
+		raise RuntimeError('HAProxy rejected the server command')
+	return response
+
+
+def change_ip_and_port(serv, backend_backend, backend_server, backend_ip, backend_port, *, sock_port) -> str:
+	"""Apply to one node; the caller coordinates validation, persistence and replicas."""
+	return _server_command(serv, sock_port,
+		f'set server {backend_backend}/{backend_server} addr {backend_ip} port {backend_port}',
+		r"(?:(?:IP changed from '[^'\r\n]+' to '[^'\r\n]+'|no need to change the addr)(?:, )?)?"
+		r"(?:port changed from '[^'\r\n]+' to '[^'\r\n]+'|no need to change the port)?(?: by 'stats socket command')?\.?",
+	)
+
+
+def add_server(
+	server_ip: str, backend: str, server: str, backend_ip: str, backend_port: int, check: int, port_check: int,
+	*, sock_port: int, options: str = ''
+) -> str:
+	"""Register, enable checks and enable traffic, stopping at the first failed command."""
+	target = f'{backend}/{server}'
+	options = options or f'{"check" if check else ""} port {port_check}'
+	response = _server_command(server_ip, sock_port,
+		f'add server {target} {server_endpoint(backend_ip, backend_port)} {options}',
+		r'(?:\[NOTICE\][^\r\n]* : )?New server registered\.',
+	)
+	if check:
+		_server_command(server_ip, sock_port, f'enable health {target}')
+	# A default-server 'disabled' must remain disabled after a later reload too.
+	states = [token for token in shlex.split(options) if token in ('enabled', 'disabled')]
+	if not states or states[-1] == 'enabled':
+		_server_command(server_ip, sock_port, f'set server {target} state ready')
+	return response
+
+
+def set_section_maxconn(config_path: str, section_type: str, section_name: str, maxconn: int) -> None:
+	lines = read_config_lines(config_path)
+	start, end = find_section(lines, section_type, section_name)
 	maxconn_pattern = re.compile(r'^(\s*maxconn\s+)\d+(.*)$')
 	for index in range(start + 1, end):
 		match = maxconn_pattern.match(lines[index].rstrip('\r\n'))
@@ -117,13 +197,13 @@ def _set_section_maxconn(config_path: str, section_type: str, section_name: str,
 			lines[index] = f'{match.group(1)}{maxconn}{match.group(2)}{newline}'
 			_write_config_lines(config_path, lines)
 			return
-	lines.insert(end, f'    maxconn {maxconn}\n')
+	_insert_section_line(lines, (start, end), f'maxconn {maxconn}')
 	_write_config_lines(config_path, lines)
 
 
-def _set_server_maxconn(config_path: str, backend: str, server: str, maxconn: int) -> None:
-	lines = _read_config_lines(config_path)
-	start, end = _find_section(lines, ('backend', 'listen'), backend)
+def set_server_maxconn(config_path: str, backend: str, server: str, maxconn: int) -> None:
+	lines = read_config_lines(config_path)
+	start, end = find_section(lines, ('backend', 'listen'), backend)
 	server_pattern = re.compile(rf'^(\s*server\s+{re.escape(server)}\s+\S+)(.*)$')
 	for index in range(start + 1, end):
 		line = lines[index].rstrip('\r\n')
@@ -160,31 +240,6 @@ def _list_file_path(lib_path: str, user_group: int, list_name: str) -> Path:
 	if list_path.parent != list_directory:
 		raise RoxywiInputError('List file is outside of the group directory')
 	return list_path
-
-
-def show_frontend_backend(serv: str, backend: str) -> str:
-	haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
-	output, _stderr = _runtime_command(serv, haproxy_sock_port, 'show servers state')
-	lines = ''
-	for line in output:
-		if backend not in line:
-			continue
-		fields = line.split()
-		if len(fields) > 3:
-			lines += fields[3] + '<br>'
-	return lines
-
-
-def show_server(serv: str, backend: str, backend_server: str) -> str:
-	haproxy_sock_port = int(sql.get_setting('haproxy_sock_port'))
-	output, _stderr = _runtime_command(serv, haproxy_sock_port, 'show servers state')
-	for line in output:
-		if backend not in line or backend_server not in line:
-			continue
-		fields = line.split()
-		if len(fields) > 18:
-			return f'{fields[4]}:{fields[18]}'
-	return ''
 
 
 def get_all_stick_table(serv: str):
@@ -228,175 +283,6 @@ def show_backends(server_ip, **kwargs):
 
 	if kwargs.get('ret'):
 		return ret
-
-	return lines
-
-
-def change_ip_and_port(serv, backend_backend, backend_server, backend_ip, backend_port) -> str:
-	if backend_ip is None:
-		return 'error: Backend IP must be IP and not 0'
-
-	if backend_port is None:
-		return 'error: The backend port must be integer and not 0'
-
-	lines = ''
-	sock_port = sql.get_setting('haproxy_sock_port')
-	masters = server_sql.is_master(serv)
-
-	for master in masters:
-		if master[0] is not None:
-			command = (f'set server {backend_backend}/{backend_server} addr {backend_ip} port {backend_port} '
-					   f'check-port {backend_port}')
-			output, stderr = _runtime_command(master[0], sock_port, command)
-			lines += output[0]
-			roxywi_common.logging(
-				master[0], f'IP address and port have been changed. On: {backend_backend}/{backend_server} to {backend_ip}:{backend_port}',
-				keep_history=1, service='haproxy'
-			)
-
-	command = f'set server {backend_backend}/{backend_server} addr {backend_ip} port {backend_port} check-port {backend_port}'
-	roxywi_common.logging(
-		serv,
-		f'IP address and port have been changed. On: {backend_backend}/{backend_server} to {backend_ip}:{backend_port}',
-		keep_history=1, service='haproxy'
-	)
-	output, stderr = _runtime_command(serv, sock_port, command)
-
-	if stderr != '':
-		return f'error: {stderr}'
-
-	lines += output[0]
-	cfg = config_common.generate_config_path('haproxy', serv)
-
-	config_mod.get_config(serv, cfg)
-	_replace_server_address(cfg, backend_backend, backend_server, backend_ip, backend_port)
-	config_mod.master_slave_upload_and_restart(serv, cfg, 'save', 'haproxy')
-
-	return lines
-
-
-def add_server_via_runtime(
-		server_ip: str, backend: str, server: str, backend_ip: str, backend_port: int, check: int, port_check: int
-) -> tuple:
-	lines = ''
-	stderr = ''
-	check_cmd = ''
-	sock_port = sql.get_setting('haproxy_sock_port')
-
-	if check:
-		check_cmd = 'check'
-
-	commands = [f'add server {backend}/{server} {backend_ip}:{backend_port} {check_cmd}'.rstrip()]
-
-	if check:
-		commands.append(f'enable health {backend}/{server}')
-		commands.append(f'set server {backend}/{server} check-addr {backend_ip} check-port {port_check}')
-
-	commands.append(f'set server {backend}/{server} state ready')
-
-	for command in commands:
-		output, stderr = _runtime_command(server_ip, sock_port, command)
-		lines += output[0]
-	return lines, stderr
-
-
-def delete_server_via_runtime(server_ip: str, backend: str, server: str) -> tuple:
-	lines = ''
-	stderr = ''
-	sock_port = sql.get_setting('haproxy_sock_port')
-
-	commands = [
-		f'set server {backend}/{server} state maint',
-		f'del server {backend}/{server}',
-	]
-
-	for command in commands:
-		output, stderr = _runtime_command(server_ip, sock_port, command)
-		lines += output[0]
-	return lines, stderr
-
-
-def add_server(
-		server_ip: str, backend: str, server: str, backend_ip: str, backend_port: int, check: int, port_check: int
-) -> str:
-	lines = ''
-	stderr = ''
-	check_cfg = ''
-	check = int(check)
-	masters = server_sql.is_master(server_ip)
-
-	for master in masters:
-		if master[0] is not None:
-			line, error = add_server_via_runtime(master[0], backend, server, backend_ip, backend_port, check, port_check)
-			lines += f'{master[0]}: {line}<br />'
-			stderr += error
-			roxywi_common.logging(
-				master[0], f'A new backend server has been add: {backend}/{server}', keep_history=1, service='haproxy'
-			)
-
-	line, error = add_server_via_runtime(server_ip, backend, server, backend_ip, backend_port, check, port_check)
-	lines += f'{server_ip}: {line}<br />'
-	stderr += error
-	roxywi_common.logging(
-		server_ip, f'A new backend server has been add: {backend}/{server}', keep_history=1, service='haproxy'
-	)
-
-	if 'Already exists a server' in lines:
-		return f'error: {lines}'
-
-	if stderr != '':
-		return f'error: {stderr}'
-
-	if check:
-		check_cfg = f'check port {port_check}'
-
-	cfg = config_common.generate_config_path('haproxy', server_ip)
-	try:
-		config_mod.get_config(server_ip, cfg)
-	except Exception as e:
-		raise Exception(f'error: Cannot config section: {e}')
-	new_server_cfg = f'server {server} {backend_ip}:{backend_port} {check_cfg}'
-	_insert_server(cfg, backend, new_server_cfg)
-	try:
-		config_mod.master_slave_upload_and_restart(server_ip, cfg, 'save', 'haproxy')
-	except Exception as e:
-		raise Exception(f'error: Cannot save a new config: {e}')
-
-	return lines
-
-
-def delete_server(server_ip: str, backend: str, server: str) -> str:
-	lines = ''
-	stderr = ''
-	masters = server_sql.is_master(server_ip)
-
-	for master in masters:
-		if master[0] is not None:
-			line, error = delete_server_via_runtime(master[0], backend, server)
-			lines += f'{master[0]}: {line}<br />'
-			stderr += error
-			roxywi_common.logging(
-				master[0], f'Server has been deleted: {backend}/{server}', keep_history=1, service='haproxy'
-			)
-
-	line, error = delete_server_via_runtime(server_ip, backend, server)
-	lines += f'{server_ip}: {line}<br />'
-	stderr += error
-	roxywi_common.logging(
-		server_ip, f'Server has been deleted: {backend}/{server}', keep_history=1, service='haproxy'
-	)
-
-	if stderr != '':
-		return f'error: {stderr}'
-
-	if 'No such server' in lines:
-		return f'error: {lines}'
-
-	cfg = config_common.generate_config_path('haproxy', server_ip)
-
-	config_mod.get_config(server_ip, cfg)
-	_delete_server(cfg, backend, server)
-	config_mod.master_slave_upload_and_restart(server_ip, cfg, 'save', 'haproxy')
 
 	return lines
 
