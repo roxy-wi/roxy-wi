@@ -384,36 +384,13 @@ def add_ip_to_list(serv, ip, list_id, list_name) -> str:
 	return 'ok'
 
 
-def select_session(server_ip: str) -> str:
-	lang = roxywi_common.get_user_lang_for_flask()
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	output, _stderr = _runtime_command(server_ip, haproxy_sock_port, 'show sess')
-
-	return render_template('ajax/sessions_table.html', sessions=output, lang=lang)
+def select_session(server_ip: str, *, sock_port: int) -> str:
+	return execute_runtime_command(server_ip, sock_port, 'show sess')
 
 
-def show_session(server_ip, sess_id) -> str:
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	output, stderr = _runtime_command(server_ip, haproxy_sock_port, f'show sess {sess_id}')
-	lines = ''
-
-	if stderr:
-		return f'error: {stderr}'
-	else:
-		for o in output:
-			lines += f'{o}<br />'
-		return lines
+def show_session(server_ip: str, sess_id: str, *, sock_port: int) -> str:
+	return execute_runtime_command(server_ip, sock_port, f'show sess {sess_id}')
 
 
-def delete_session(server_ip, sess_id) -> str:
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	output, stderr = _runtime_command(server_ip, haproxy_sock_port, f'shutdown session {sess_id}')
-	try:
-		if output[0] != '':
-			return 'error: ' + output[0]
-	except Exception:
-		pass
-	if stderr:
-		return f'error: {stderr}'
-
-	return 'ok'
+def delete_session(server_ip: str, sess_id: str, *, sock_port: int) -> str:
+	return execute_runtime_command(server_ip, sock_port, f'shutdown session {sess_id}')

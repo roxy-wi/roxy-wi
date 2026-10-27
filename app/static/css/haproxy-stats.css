@@ -71,6 +71,31 @@
 .ui-dialog.hs-stats-dialog {z-index:1003 !important; bottom:auto !important;}
 body:has(.haproxy-stats-page) .ui-widget-overlay {z-index:1002 !important;}
 .hs-empty {padding:40px 12px; text-align:center; border:1px dashed var(--rw-border); border-radius:8px; color:var(--rw-text-muted);}
+.hs-tabs {display:flex; gap:16px; margin:0 0 16px; border-bottom:1px solid var(--rw-border);}
+.haproxy-stats .hs-tabs button {border:0; border-bottom:2px solid transparent; border-radius:0; background:transparent; padding:8px 4px; color:var(--rw-text-muted);}
+.haproxy-stats .hs-tabs button[aria-selected=true] {border-bottom-color:var(--rw-primary); color:var(--rw-primary);}
+.haproxy-stats .hs-session-link {padding:0; min-height:24px; border:0; background:transparent; color:var(--rw-primary); text-align:inherit;}
+.hs-session-layout {display:grid; grid-template-columns:minmax(0,1fr); gap:16px; align-items:start;}
+.hs-session-layout:has(.hs-session-detail:not([hidden])) {grid-template-columns:minmax(0,1fr) 290px;}
+.hs-session-list {min-width:0;}
+.hs-session-table td, .hs-session-table th {text-align:left;}
+.hs-session-table tr[aria-selected=true] {background:var(--rw-surface-muted);}
+.hs-session-protocol, .hs-session-server {display:block; color:var(--rw-text-muted); margin-top:3px;}
+.hs-session-pages {display:flex; align-items:center; justify-content:flex-end; gap:12px;}
+.hs-session-detail {padding:14px; border:1px solid var(--rw-border); border-radius:8px; background:var(--rw-surface); min-width:0;}
+.hs-session-detail-heading {display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;}
+.hs-session-detail-heading h3 {margin:0; padding:0; background:none; font-size:15px; font-weight:600;}
+.hs-session-detail dl {margin:0 0 16px;}
+.hs-session-detail dl>div {border-bottom:1px solid var(--rw-border); padding:7px 0;}
+.hs-session-detail dt {color:var(--rw-text-muted); font-size:12px;}
+.hs-session-detail dd {margin:3px 0 0; overflow-wrap:anywhere;}
+.hs-session-detail pre {white-space:pre-wrap; overflow-wrap:anywhere; font-size:12px; max-height:420px; overflow-y:auto;}
+.hs-session-detail summary {cursor:pointer; margin:12px 0;}
+.hs-session-note {color:var(--rw-text-muted); font-size:12px; overflow-wrap:anywhere;}
+.haproxy-stats .hs-session-terminate {color:var(--rw-danger);}
+@media(max-width:1100px) {
+    .hs-session-layout:has(.hs-session-detail:not([hidden])) {grid-template-columns:minmax(0,1fr);}
+}
 @media(max-width:760px) {
     .hs-read-only {margin-left:0;}
     .hs-summary {grid-template-columns:repeat(2,minmax(0,1fr));}

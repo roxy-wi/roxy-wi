@@ -82,13 +82,19 @@
     let selection = 0;
     let actionPending = null;
     let actionDialog = null;
+    let sessionSnapshot = null;
+    let sessionsView = null;
+    let activeView = new URL(location.href).searchParams.get('view') === 'sessions' ? 'sessions' : 'overview';
+    const currentSnapshot = () => activeView === 'sessions' ? sessionSnapshot : snapshot;
 
     const updateActions = () => {
-        const disabled = busy || !!actionPending || root.dataset.stale === 'true';
+        const disabled = busy || !!actionPending || !!sessionsView?.pending || root.dataset.stale === 'true';
         groups.forEach(group => group.rows.forEach(entry => {
             if (entry.actions) entry.actions.querySelectorAll('button').forEach(button => { button.disabled = disabled; });
+            entry.cells.get('sessions').disabled = disabled || !['frontend', 'backend', 'server'].includes(entry.data.kind);
         }));
-        get('refresh').disabled = !get('server').value || busy || !!actionPending;
+        get('refresh').disabled = !get('server').value || busy || !!actionPending || !!sessionsView?.pending;
+        if (sessionsView) sessionsView.updateActions(disabled);
         if (get('global-actions')) get('global-actions').querySelectorAll('button').forEach(button => {
             button.disabled = disabled || !snapshot;
         });
@@ -372,13 +378,11 @@
         }
     }
 
-    const serverActions = entry => {
-        const isGlobal = entry.data.kind === 'global';
+    const actionMenu = (target, items) => {
         const container = make('div', 'admin-actions');
-        if (isGlobal) container.id = 'hs-global-actions';
         const toggle = make('button', 'rw-icon-button admin-actions-toggle');
         toggle.type = 'button';
-        toggle.setAttribute('aria-label', labels.actions + ': ' + (isGlobal ? labels.global_maxconn : entry.data.proxy + '/' + entry.data.name));
+        toggle.setAttribute('aria-label', labels.actions + ': ' + target);
         toggle.setAttribute('aria-haspopup', 'menu');
         toggle.setAttribute('aria-expanded', 'false');
         const icon = make('span', 'fas fa-ellipsis-v');
@@ -387,30 +391,47 @@
         const menu = make('div', 'admin-actions-menu');
         menu.setAttribute('role', 'menu');
         menu.hidden = true;
-        const actions = entry.data.kind === 'server' ? [['ready', 'play'], ['drain', 'pause'], ['maint', 'wrench'], ['weight', 'balance-scale']] : [];
-        if (entry.data.kind === 'backend') actions.push(['add', 'plus']);
-        else actions.push(['maxconn', 'sliders-h']);
-        if (entry.data.kind === 'server') actions.push(['edit', 'pen'], ['delete', 'trash']);
-        actions.forEach(([action, symbol]) => {
+        items.forEach(item => {
             const button = make('button', 'admin-action-item');
-            if (isGlobal) button.id = 'hs-global-maxconn';
             button.type = 'button';
-            button.dataset.action = action;
+            button.dataset.action = item.action;
             button.setAttribute('role', 'menuitem');
-            const icon = make('span', 'fas fa-' + symbol);
+            const icon = make('span', 'fas fa-' + item.icon);
             icon.setAttribute('aria-hidden', 'true');
-            const isEdit = ['add', 'edit', 'delete'].includes(action);
-            button.append(icon, document.createTextNode(isEdit ? labels['server_' + action] : action === 'maxconn' ? labels.change_maxconn : action === 'weight' ? labels.change_weight : action[0].toUpperCase() + action.slice(1)));
+            button.append(icon, document.createTextNode(item.label));
             button.addEventListener('click', () => {
                 // Close through the shared toggle before disabling the clicked item.
                 // jQuery skips delegated click handlers for disabled buttons.
                 if (!menu.hidden) toggle.click();
-                if (isEdit) manageServer(entry, action);
-                else changeServer(isGlobal ? {data: {key: null, kind: 'global', metrics: {slim: snapshot?.info.Maxconn}}} : entry, action);
+                item.run();
             });
             menu.append(button);
         });
         container.append(toggle, menu);
+        return container;
+    };
+
+    const serverActions = entry => {
+        const isGlobal = entry.data.kind === 'global';
+        const actions = entry.data.kind === 'server' ? [['ready', 'play'], ['drain', 'pause'], ['maint', 'wrench'], ['weight', 'balance-scale']] : [];
+        if (entry.data.kind === 'backend') actions.push(['add', 'plus']);
+        else actions.push(['maxconn', 'sliders-h']);
+        if (entry.data.kind === 'server') actions.push(['edit', 'pen'], ['delete', 'trash']);
+        const container = actionMenu(isGlobal ? labels.global_maxconn : entry.data.proxy + '/' + entry.data.name,
+            actions.map(([action, icon]) => {
+                const isEdit = ['add', 'edit', 'delete'].includes(action);
+                return {action, icon,
+                    label: isEdit ? labels['server_' + action] : action === 'maxconn' ? labels.change_maxconn :
+                        action === 'weight' ? labels.change_weight : action[0].toUpperCase() + action.slice(1),
+                    run: () => {
+                        if (isEdit) manageServer(entry, action);
+                        else changeServer(isGlobal ? {data: {key: null, kind: 'global', metrics: {slim: snapshot?.info.Maxconn}}} : entry, action);
+                    }};
+            }));
+        if (isGlobal) {
+            container.id = 'hs-global-actions';
+            container.querySelector('[data-action=maxconn]').id = 'hs-global-maxconn';
+        }
         return container;
     };
 
@@ -569,7 +590,15 @@
         columns.forEach(column => {
             const cell = make('td');
             cell.dataset.column = column.id;
-            const value = make('span');
+            const value = make(column.id === 'sessions' ? 'button' : 'span', column.id === 'sessions' ? 'hs-session-link hs-session-count-link' : '');
+            if (column.id === 'sessions') {
+                value.type = 'button';
+                value.addEventListener('click', () => {
+                    if (!['frontend', 'backend', 'server'].includes(entry.data.kind)) return;
+                    sessionsView.setScope(entry.data);
+                    selectView('sessions');
+                });
+            }
             cell.append(value);
             main.append(cell);
             cells.set(column.id, value);
@@ -681,6 +710,7 @@
             text(entry.name, row.name);
             text(entry.kind, [row.kind, row.mode, row.backup ? 'backup' : null].filter(Boolean).join(' · '));
             entry.button.setAttribute('aria-label', labels.details + ': ' + row.proxy + '/' + row.name);
+            entry.cells.get('sessions').setAttribute('aria-label', labels.session_view + ': ' + row.proxy + '/' + row.name);
             columns.forEach(column => text(entry.cells.get(column.id), column.value(row)));
             entry.cells.get('status').className = 'hs-badge hs-state-' + row.state;
         });
@@ -695,18 +725,24 @@
         updateActions();
     };
 
+    sessionsView = window.HaproxyStatsSessions({get, make, labels, canManage, renderActionIcons, makeMenu: actionMenu,
+        getSnapshot: () => sessionSnapshot, getServer: () => get('server').value,
+        isBusy: () => busy || !!actionPending || root.dataset.stale === 'true',
+        onBusyChange: () => { updateActions(); schedule(); }, onRefresh: refresh});
+
     const status = (prefix = '') => {
-        const time = snapshot ? new Date(snapshot.collected_at).toLocaleTimeString() : '';
+        const current = currentSnapshot();
+        const time = current ? new Date(current.collected_at).toLocaleTimeString() : '';
         text(get('status'), [prefix, time ? labels.updated + ': ' + time : '',
             get('interval').value === '0' ? labels.paused : ''].filter(Boolean).join(' · '));
     };
     const schedule = () => {
         clearTimeout(timer);
         const interval = Number(get('interval').value);
-        if (!stopped && interval && get('server').value && !document.hidden && !busy && !actionPending) timer = setTimeout(refresh, interval * 1000);
+        if (!stopped && interval && get('server').value && !document.hidden && !busy && !actionPending && !sessionsView.pending) timer = setTimeout(refresh, interval * 1000);
     };
     async function refresh() {
-        if (busy || stopped || actionPending || !get('server').value) return;
+        if (busy || stopped || actionPending || sessionsView.pending || !get('server').value) return;
         clearTimeout(timer);
         const server = get('server').value;
         const token = ++generation;
@@ -719,7 +755,7 @@
         const timeout = setTimeout(() => { timedOut = true; requestController.abort(); }, 20000);
         status(labels.loading);
         try {
-            const response = await fetch('/stats/view/haproxy/' + encodeURIComponent(server), {
+            const response = await fetch('/stats/' + (activeView === 'sessions' ? 'sessions' : 'view') + '/haproxy/' + encodeURIComponent(server), {
                 signal: requestController.signal, cache: 'no-store',
                 headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}
             });
@@ -730,19 +766,26 @@
                 throw new Error(response.status === 401 ? 'auth_required' : response.status === 403 ? 'permission_denied' : data.code || 'operation_failed');
             }
             if (token !== generation) return;
-            const restarted = snapshot && (snapshot.info.Pid !== data.info.Pid || snapshot.info.Uptime_sec > data.info.Uptime_sec);
-            snapshot = data;
-            render(data);
+            const current = currentSnapshot();
+            const restarted = current && (current.info.Pid !== data.info.Pid || current.info.Uptime_sec > data.info.Uptime_sec);
+            if (activeView === 'sessions') {
+                if (restarted) sessionsView.reset();
+                sessionSnapshot = data;
+                sessionsView.render();
+            } else {
+                snapshot = data;
+                render(data);
+            }
             get('error').hidden = true;
             root.dataset.stale = 'false';
             status(restarted ? labels.restarted : '');
         } catch (error) {
             if (token !== generation) return;
             get('error').hidden = false;
-            text(get('error'), (snapshot ? labels.stale + ' ' : '') +
+            text(get('error'), (currentSnapshot() ? labels.stale + ' ' : '') +
                 (timedOut ? labels.runtime_timeout : labels[error.message] || labels.operation_failed));
-            root.dataset.stale = snapshot ? 'true' : 'false';
-            status(snapshot ? labels.stale : labels.unavailable);
+            root.dataset.stale = currentSnapshot() ? 'true' : 'false';
+            status(currentSnapshot() ? labels.stale : labels.unavailable);
         } finally {
             clearTimeout(timeout);
             if (token === generation) {
@@ -754,6 +797,37 @@
             }
         }
     }
+    const showView = () => {
+        ['overview', 'sessions'].forEach(view => {
+            get(view).hidden = view !== activeView;
+            get('tab-' + view).setAttribute('aria-selected', String(view === activeView));
+        });
+    };
+    const selectView = view => {
+        if (view === activeView) return;
+        sessionsView.deactivate();
+        selection++;
+        actionPending = null;
+        if (actionDialog) $(actionDialog).dialog('close');
+        generation++;
+        if (controller) controller.abort();
+        controller = null;
+        busy = false;
+        clearTimeout(timer);
+        activeView = view;
+        get('error').hidden = true;
+        get('action-result').hidden = true;
+        root.dataset.stale = 'false';
+        hideTooltip();
+        showView();
+        const url = new URL(location.href);
+        if (view === 'sessions') url.searchParams.set('view', 'sessions'); else url.searchParams.delete('view');
+        history.replaceState(null, '', url);
+        status();
+        updateActions();
+        refresh();
+    };
+    ['overview', 'sessions'].forEach(view => get('tab-' + view).addEventListener('click', () => selectView(view)));
     get('refresh').addEventListener('click', refresh);
     get('interval').addEventListener('change', () => { if (!busy) status(); schedule(); });
     get('server').addEventListener('change', () => {
@@ -768,6 +842,8 @@
         busy = false;
         clearTimeout(timer);
         snapshot = null;
+        sessionSnapshot = null;
+        sessionsView.reset();
         groups.clear();
         get('groups').replaceChildren();
         get('summary').hidden = true;
@@ -776,7 +852,7 @@
         filterRows();
         get('refresh').disabled = !get('server').value;
         if (get('server').value) {
-            history.replaceState(null, '', '/stats/haproxy/' + encodeURIComponent(get('server').value));
+            history.replaceState(null, '', '/stats/haproxy/' + encodeURIComponent(get('server').value) + (activeView === 'sessions' ? '?view=sessions' : ''));
             refresh();
         } else {
             history.replaceState(null, '', '/stats/haproxy/');
@@ -793,6 +869,7 @@
         actionPending = null;
         if (actionDialog) $(actionDialog).dialog('close');
         stopped = true;
+        sessionsView.deactivate();
         generation++;
         clearTimeout(timer);
         if (controller) controller.abort();
@@ -805,5 +882,6 @@
     ['server', 'interval'].forEach(id => {
         $(get(id)).on('selectmenuchange', () => get(id).dispatchEvent(new Event('change')));
     });
+    showView();
     if (get('server').value) refresh();
 }());

@@ -6,7 +6,7 @@
 {% from 'include/input_macros.html' import select %}
 {% set labels = lang.haproxy_stats|default(english.haproxy_stats) %}
 {% set field_help = lang.haproxy_stats_fields|default(english.haproxy_stats_fields) %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/haproxy-stats.css', v='9.3.0-6') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/haproxy-stats.css', v='9.3.0-7') }}">
 {% if g.user_params['servers']|length == 0 %}
     {% include 'include/getstarted.html' %}
 {% else %}
@@ -34,6 +34,11 @@
     <div id="hs-status" class="hs-status" role="status" aria-live="polite">{{ labels.select_server }}</div>
     <div id="hs-error" class="hs-error" role="alert" hidden></div>
     <div id="hs-action-result" class="hs-action-result" role="status" aria-live="polite" hidden></div>
+    <div class="hs-tabs" role="tablist" aria-label="HAProxy Stats">
+        <button type="button" id="hs-tab-overview" role="tab" aria-selected="true" aria-controls="hs-overview">{{ labels.overview }}</button>
+        <button type="button" id="hs-tab-sessions" role="tab" aria-selected="false" aria-controls="hs-sessions">{{ labels.sessions_tab }}</button>
+    </div>
+    <section id="hs-overview" role="tabpanel" aria-labelledby="hs-tab-overview">
     <div id="hs-summary" class="hs-summary" hidden></div>
     <div class="hs-filters">
         <label class="hs-search-label">{{ labels.search }}
@@ -66,8 +71,42 @@
     <p id="hs-count" class="hs-count"></p>
     <div id="hs-groups"></div>
     <p id="hs-empty" class="hs-empty" hidden>{{ labels.empty }}</p>
+    </section>
+    <section id="hs-sessions" role="tabpanel" aria-labelledby="hs-tab-sessions" hidden>
+        <div class="hs-filters">
+            <label class="hs-search-label" for="hs-session-search">{{ labels.search }}
+                <input id="hs-session-search" type="search" placeholder="{{ labels.session_search_hint }}" autocomplete="off">
+            </label>
+            <button type="button" id="hs-session-scope" hidden></button>
+        </div>
+        <p id="hs-session-count" class="hs-count" aria-live="polite"></p>
+        <div class="hs-session-layout">
+            <div class="hs-session-list">
+                <div class="hs-group hs-table-scroll">
+                    <table class="hs-session-table">
+                        <thead><tr>
+                            <th scope="col">{{ labels.session_client }}</th>
+                            <th scope="col">Frontend</th>
+                            <th scope="col">Backend / {{ lang.words.server }}</th>
+                            <th scope="col">{{ labels.session_age }}</th>
+                            <th scope="col">{{ labels.actions }}</th>
+                        </tr></thead>
+                        <tbody id="hs-session-rows"></tbody>
+                    </table>
+                </div>
+                <p id="hs-session-empty" class="hs-empty" hidden>{{ labels.sessions_empty }}</p>
+                <div id="hs-session-pages" class="hs-session-pages" hidden>
+                    <button type="button" id="hs-session-prev" aria-label="{{ labels.previous }}">‹</button>
+                    <span id="hs-session-page"></span>
+                    <button type="button" id="hs-session-next" aria-label="{{ labels.next }}">›</button>
+                </div>
+            </div>
+            <aside id="hs-session-detail" class="hs-session-detail" hidden aria-label="{{ labels.details }}"></aside>
+        </div>
+    </section>
     </div>
 </section>
-<script src="{{ url_for('static', filename='js/haproxy-stats.js', v='9.3.0-6') }}"></script>
+<script src="{{ url_for('static', filename='js/haproxy-stats-sessions.js', v='9.3.0-7') }}"></script>
+<script src="{{ url_for('static', filename='js/haproxy-stats.js', v='9.3.0-7') }}"></script>
 {% endif %}
 {% endblock %}

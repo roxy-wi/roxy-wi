@@ -5,14 +5,13 @@
 {% from 'include/input_macros.html' import input, checkbox, select %}
 <link href="{{ url_for('static', filename='css/table-6.3.9.css') }}" rel="stylesheet" type="text/css">
 <script type="text/javascript" charset="utf8" src="/static/js/dataTables.min.js"></script>
-<script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='js/runtimeapi.js', v='9.3.0-6') }}"></script>
+<script type="text/javascript" charset="utf8" src="{{ url_for('static', filename='js/runtimeapi.js', v='9.3.0-7') }}"></script>
 <div id="tabs">
 	<ul>
 		<li><a href="#runtimeapi" title="Runtime API - Roxy-WI">Runtime API</a></li>
 		{% if g.user_params['role'] <= 3 %}
 			<li><a href="#table" title="Runtime API: Stick Table - Roxy-WI">Stick Table</a></li>
 			<li><a href="#lists" title="Runtime API: {{lang.words.change|title()}} {{lang.words.dynamically}}} whitelist {{lang.words.and}} blacklist - Roxy-WI">{{lang.words.lists|title()}}</a></li>
-			<li><a href="#sessions" title="Runtime API: {{lang.words.sessions|title()}}} - Roxy-WI">{{lang.words.sessions|title()}}</a></li>
 		{% endif %}
 	</ul>
 	<div id="runtimeapi">
@@ -131,29 +130,7 @@
 			{{lang.phrases.read_how_it_works}} <a href="https://roxy-wi.org/description/runtimeapi#lists" title="{{lang.words.manage|title()}} {{lang.words.lists}}" target="_blank">{{lang.words.here}}</a>
 		</div>
 	</div>
-	<div id="sessions">
-		<table class="overview">
-			<tr class="overviewHead">
-				<td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
-				<td></td>
-			</tr>
-			<tr>
-				<td class="padding10 first-collumn" style="width: 25%;">
-					<form action="" method="post" id="runtimeapisessions">
-						{{ select('sessions_serv_select', values=g.user_params['servers'], is_servers='true') }}
-				</td>
-				<td>
-					<button type="submit" name="Enter" value="Enter">{{lang.words.w_get|title()}} {{lang.words.sessions}}</button>
-				</td>
-				</form>
-			</tr>
-		</table>
-		<div id="ajaxsessions"></div>
-	</div>
 	{% endif %}
-</div>
-<div id="get-session-info" title="View session" style="display: none;">
-	<pre id="get-session-info-body"></pre>
 </div>
 <script>
 $( function() {

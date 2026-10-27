@@ -94,33 +94,6 @@ def clear_table(server_ip: Union[IPvAnyAddress, DomainName], table: EscapedStrin
         return 'error: ' + safe_error_message(e)
 
 
-@bp.route('/session/<server_ip>')
-@validate()
-def select_sessions(server_ip: Union[IPvAnyAddress, DomainName]):
-    try:
-        return runtime.select_session(str(server_ip))
-    except Exception as e:
-        return 'error: ' + safe_error_message(e)
-
-
-@bp.route('/session/<server_ip>/<sess_id>')
-@validate()
-def show_sessions(server_ip: Union[IPvAnyAddress, DomainName], sess_id: EscapedString):
-    try:
-        return runtime.show_session(str(server_ip), sess_id)
-    except Exception as e:
-        return 'error: ' + safe_error_message(e)
-
-
-@bp.route('/session/delete/<server_ip>/<sess_id>', methods=['POST'])
-@validate()
-def delete_session(server_ip: Union[IPvAnyAddress, DomainName], sess_id: EscapedString):
-    try:
-        return runtime.delete_session(str(server_ip), sess_id)
-    except Exception as e:
-        return 'error: ' + safe_error_message(e)
-
-
 @bp.route('/list/<server_ip>')
 @validate()
 def get_lists(server_ip: Union[IPvAnyAddress, DomainName]):

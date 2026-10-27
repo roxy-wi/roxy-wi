@@ -46,10 +46,6 @@ $( function() {
 		getList();
 		return false;
 	});
-	$('#runtimeapisessions').submit(function () {
-		getSessions();
-		return false;
-	});
 	$("#list_serv_select").on('selectmenuchange', function () {
 		$.ajax({
 			url: "/runtimeapi/list/" + $('#list_serv_select').val(),
@@ -195,64 +191,6 @@ function addNewIp() {
 			}
 		});
 	}
-}
-function getSessions() {
-	$.ajax({
-		url: "/runtimeapi/session/" + $('#sessions_serv_select').val(),
-		success: function (data) {
-			if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
-			} else {
-				$("#ajaxsessions").html(data);
-				$("input[type=submit], button").button();
-				$.getScript(overview);
-				$.getScript(awesome);
-			}
-		}
-	});
-}
-function getSessionInfo(sess_id) {
-	$.ajax({
-		url: "/runtimeapi/session/" + $('#sessions_serv_select').val() + "/" + sess_id,
-		success: function (data) {
-			if (data.indexOf('danger') != '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#get-session-info-body").html(data);
-				$("#get-session-info").dialog({
-					resizable: false,
-					height: "auto",
-					width: 790,
-					modal: true,
-					title: "View session",
-					buttons: {
-						Close: function () {
-							$(this).dialog("close");
-							$("#get-session-info-body").html('');
-						}
-					}
-				});
-			}
-		}
-	});
-}
-function deleteSession(id, sess_id) {
-	toastr.clear();
-	$(id).parent().parent().css("background-color", "#f2dede !important");
-	$.ajax({
-		url: "/runtimeapi/session/delete/" +$('#sessions_serv_select').val() + "/" + sess_id,
-		type: "POST",
-		success: function (data) {
-			if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
-			} else {
-				$(id).parent().parent().remove();
-				toastr.success('The sessions has been deleted');
-				getSessions();
-			}
-		}
-	});
 }
 function generate_select(values, select_tag, custom_value=0, separator='<br>') {
 	let value = values.split(separator)

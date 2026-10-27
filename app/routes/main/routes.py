@@ -25,10 +25,11 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
 from app.modules.service.stats import (
     haproxy_stats, haproxy_stats_actions, haproxy_stats_config, haproxy_stats_maxconn, haproxy_stats_servers,
+    haproxy_stats_sessions,
 )
 from app.modules.roxywi.class_models import (
     ErrorResponse, NettoolsRequest, DomainName, HaproxyStatsMaxconnRequest,
-    HaproxyStatsServerQuery, HaproxyStatsServerRequest,
+    HaproxyStatsServerQuery, HaproxyStatsServerRequest, HaproxyStatsSessionQuery, HaproxyStatsSessionDelete,
 )
 from app.modules.roxywi.exception import RoxywiPermissionError
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
@@ -243,6 +244,49 @@ def stats_manage_servers(service: str, server_ip: Union[IPvAnyAddress, DomainNam
     except Exception as exc:
         safe_error_message(exc)
         response = jsonify({'status': 'error', 'code': 'server_incomplete'})
+        response.status_code = 500
+    response.headers['Cache-Control'] = 'no-store'
+    return response
+
+
+@bp.get('/stats/sessions/<any(haproxy):service>/<server_ip>', defaults={'details': False})
+@bp.route('/stats/session/<any(haproxy):service>/<server_ip>', methods=['GET', 'POST'], defaults={'details': True})
+@jwt_required()
+@check_services
+@get_user_params()
+@validate()
+def stats_sessions(service: str, server_ip: Union[IPvAnyAddress, DomainName], details: bool):
+    server = roxywi_common.require_server_access(server_ip)
+    if not server.haproxy:
+        abort(404)
+    writing = request.method == 'POST'
+    if writing and not roxywi_auth.is_admin(level=3):
+        abort(403)
+    try:
+        port = sql.get_setting('haproxy_sock_port', group_id=server.group_id)
+        if writing:
+            body = HaproxyStatsSessionDelete.model_validate(request.get_json(silent=True))
+            command = haproxy_stats_sessions.terminate(str(server.ip), port, body.model_dump())
+            roxywi_common.logging(server.ip, f'HAProxy Stats: {command}', keep_history=1, service='haproxy')
+            data = {'status': 'ok'}
+        elif details:
+            query = HaproxyStatsSessionQuery.model_validate(request.args.to_dict())
+            data = haproxy_stats_sessions.describe(str(server.ip), port, query.model_dump())
+        else:
+            data = haproxy_stats_sessions.collect_sessions(str(server.ip), port)
+        response = jsonify(data)
+    except ValidationError:
+        response = jsonify({'status': 'error', 'code': 'invalid_action'})
+        response.status_code = 400
+    except haproxy_stats.StatsError as exc:
+        safe_error_message(exc)
+        response = jsonify({'status': 'error', 'code': exc.code})
+        response.status_code = exc.status
+    except HTTPException:
+        raise
+    except Exception as exc:
+        safe_error_message(exc)
+        response = jsonify({'status': 'error', 'code': 'action_unknown' if writing else 'operation_failed'})
         response.status_code = 500
     response.headers['Cache-Control'] = 'no-store'
     return response

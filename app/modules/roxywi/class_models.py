@@ -411,6 +411,21 @@ class LetsEncryptDeleteRequest(BaseModel):
     description: Optional[EscapedString] = None
 
 
+class HaproxyStatsSessionQuery(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
+    session_id: str = Field(pattern=r'^0x[0-9a-fA-F]{1,16}$')
+    row_key: str = Field(pattern=r'^[a-f0-9]{64}$')
+    pid: int = Field(gt=0)
+    uptime: int = Field(ge=0)
+
+
+class HaproxyStatsSessionDelete(HaproxyStatsSessionQuery):
+    model_config = ConfigDict(extra='forbid', strict=True)
+
+    revision: str = Field(pattern=r'^[a-f0-9]{64}$')
+
+
 class HaproxyStatsMaxconnChange(BaseModel):
     model_config = ConfigDict(extra='forbid', strict=True)
 
