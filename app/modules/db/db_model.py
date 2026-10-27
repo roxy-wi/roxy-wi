@@ -1389,6 +1389,54 @@ class InstallationTasks(BaseModel):
         table_name = 'installation_tasks'
 
 
+class PacemakerCluster(BaseModel):
+    id = AutoField()
+    name = CharField()
+    group_id = IntegerField(index=True)
+    description = TextField(default='')
+    servers = TextField(default='[]')
+    lock_token = CharField(null=True)
+    lock_until = DateTimeField(null=True)
+    active_task_id = IntegerField(null=True)
+    corosync_settings = TextField(default='{}')
+    monitor_enabled = BooleanField(default=False)
+    health = CharField(default='unknown')
+    checked_at = DateTimeField(null=True)
+
+    class Meta:
+        table_name = 'pacemaker_clusters'
+        indexes = ((('group_id', 'name'), True),)
+
+
+class PacemakerChange(BaseModel):
+    id = AutoField()
+    cluster = ForeignKeyField(PacemakerCluster, on_delete='CASCADE')
+    user_id = IntegerField()
+    created_at = DateTimeField(default=datetime.now)
+    base_digest = CharField(max_length=64)
+    candidate = TextField()
+    previous = TextField()
+    status = CharField(default='draft')
+    result = TextField(default='')
+    kind = CharField(default='cib')
+    details = TextField(default='')
+
+    class Meta:
+        table_name = 'pacemaker_changes'
+
+
+class PacemakerEvent(BaseModel):
+    id = AutoField()
+    cluster = ForeignKeyField(PacemakerCluster, on_delete='CASCADE')
+    user_id = IntegerField()
+    created_at = DateTimeField(default=datetime.now)
+    action = CharField()
+    status = CharField()
+
+    class Meta:
+        table_name = 'pacemaker_events'
+
+
 def create_tables():
     conn = connect()
     with conn:
@@ -1403,5 +1451,6 @@ def create_tables():
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
              KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
-             HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, NginxSection, InstallationTasks]
+             HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, NginxSection, InstallationTasks,
+             PacemakerCluster, PacemakerChange, PacemakerEvent]
         )

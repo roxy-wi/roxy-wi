@@ -136,6 +136,28 @@
 					</li>
 					{% endif %}
 
+                    {% if '5' in g.user_params['user_services'] %}
+                    <li class="p_menu nav-service" data-nav-search="corosync pacemaker quorum fencing">
+                        <div class="nav-service-row">
+                            <a href="{{ url_for('pacemaker.index') }}" id="menu-pacemaker" class="nav-link nav-service-link">
+                                <span class="fas fa-network-wired nav-icon" aria-hidden="true"></span><span class="nav-label">Corosync / Pacemaker</span>
+                            </a>
+                            <button type="button" class="nav-submenu-toggle" aria-expanded="false" aria-label="Corosync / Pacemaker {{ lang.menu_links.navigation.submenu }}"><span class="fas fa-chevron-right nav-chevron" aria-hidden="true"></span></button>
+                        </div>
+                        <ul class="v_menu">
+                            <li><a href="{{ url_for('pacemaker.index') }}" class="head-submenu">{{ lang.menu_links.hapservers.link }}</a></li>
+                            <li><a href="{{ url_for('pacemaker.page', view='resources') }}" class="head-submenu">Resources</a></li>
+                            {% if g.user_params['role']|int <= 3 %}
+                            <li><a href="{{ url_for('pacemaker.page', view='configuration') }}" class="head-submenu">{{ lang.menu_links.config.link }}</a></li>
+                            <li><a href="{{ url_for('pacemaker.page', view='quorum') }}" class="head-submenu">Quorum / witness</a></li>
+                            <li><a href="{{ url_for('pacemaker.page', view='logs') }}" class="head-submenu">{{ lang.menu_links.logs.link }}</a></li>
+                            <li><a href="{{ url_for('pacemaker.page', view='monitoring') }}" class="head-submenu">{{ lang.words.monitoring|title() }}</a></li>
+                            {% endif %}
+                            <li><a href="{{ url_for('pacemaker.page', view='history') }}" class="head-submenu">{{ lang.menu_links.versions.link }}</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+
 					{% if '3' in g.user_params['user_services'] and g.user_params['role'] <= 2 %}
 					<li class="p_menu nav-service" data-nav-search="keepalived">
 						<div class="nav-service-row">
@@ -200,6 +222,7 @@
 						<ul class="v_menu">
 							<li><a href="{{ url_for('install.install_monitoring') }}#service" title="{{ lang.words.servers|title() }}: {{ lang.words.proxy|title() }} {{ lang.words.services }} {{ lang.words.installation }}" class="service installproxy head-submenu">{{ lang.words.proxy|title() }} {{ lang.words.services }}</a></li>
 							<li><a href="{{ url_for('install.install_monitoring') }}#monitoring" title="{{ lang.words.servers|title() }}: {{ lang.words.monitoring|title() }} {{ lang.words.services }} {{ lang.words.installation }}" class="monitoring installmon head-submenu">{{ lang.words.monitoring|title() }}</a></li>
+                            {% if '5' in g.user_params['user_services'] %}<li><a href="{{ url_for('install.install_monitoring') }}#pacemaker-installation" class="installpcmk head-submenu">Corosync / Pacemaker</a></li>{% endif %}
 							<li><a href="{{ url_for('install.install_monitoring') }}#geolite2" title="{{ lang.words.installation|title() }} GeoLite2" class="geolite2 installgeo head-submenu">GeoLite2</a></li>
 						</ul>
 					</li>

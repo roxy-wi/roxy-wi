@@ -122,6 +122,17 @@ before running an upgrade.
 
 ## Documentation
 
+### Corosync and Pacemaker
+
+Use **Services → Corosync / Pacemaker** to register or provision Linux HA
+clusters, manage resources and fencing, review CIB changes, configure quorum
+witnesses and maintain cluster membership. See the
+[Corosync and Pacemaker guide](docs/corosync-pacemaker.md) for permissions,
+Operations requirements and recovery boundaries. The
+[HA support matrix](docs/ha-support.md) distinguishes tested platforms, apt/dnf
+installation profiles, Docker workflows and SYN-flood settings. All repository
+guides are indexed in [docs](docs/README.md).
+
 ### HAProxy configuration files
 
 Enable **Use multiple configuration files** in the settings of the HAProxy service

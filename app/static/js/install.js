@@ -3,9 +3,19 @@ let nice_names = {
 	'nginx': 'NGINX',
 	'apache': 'Apache',
 	'node': 'Node',
-	'keepalived': 'Keepalived'
+	'keepalived': 'Keepalived',
+    'ha_cluster': 'Corosync / Pacemaker'
 };
 $( function() {
+    $('.installpcmk').on('click', function () {
+        const tab = $('#admin-tabs a[href="#pacemaker-installation"]').parent();
+        if (tab.length) $('#tabs').tabs('option', 'active', tab.index());
+    });
+    $('#tabs').on('tabsactivate', function (_event, ui) {
+        if (ui.newPanel.attr('id') === 'pacemaker-installation') {
+            activateNavigationLink(document.querySelector('#app-navigation .installpcmk'));
+        }
+    });
 	$('#install').click(function () {
 		installService('haproxy')
 	});
@@ -52,6 +62,26 @@ $( function() {
 	$('#keepalived_exp_install').click(function () {
 		installExporter('keepalived');
 	});
+    $('#ha_cluster_exp_install').click(function () {installExporter('ha_cluster');});
+    $('#ha_cluster_exp_addserv').on('selectmenuchange', function () {
+        $('#ha_cluster_exp_listen').val($(this).val());
+        $('#ha_cluster_exp_status').prop('hidden',true);
+        showExporterVersion('ha_cluster');
+    });
+    $('#ha_cluster_exp_check').on('click',function () {
+        const server=$('#ha_cluster_exp_addserv').val();
+        if (!server) {toastr.error('Select a registered cluster node');return;}
+        $.getJSON('/install/exporter/ha_cluster/status/'+encodeURIComponent(server)).done(function (result) {
+            const data=result.data; let text='HA Cluster Exporter has not been installed';
+            if (data.installed) {
+                const target=['0.0.0.0','::'].includes(data.listen_address)?server:data.listen_address;
+                const host=target.includes(':')?'['+target+']':target;
+                text=`${data.version}\nService: ${data.active?'running':'stopped'} · Metrics: ${data.metrics_available?'available':'unavailable'} · Samples: ${data.samples}\nPacemaker: ${data.pacemaker_available?'metrics available':'no metrics'} · Corosync: ${data.corosync_available?'metrics available':'no metrics'}\nEndpoint: http://${host}:${data.port}/metrics\n\nPrometheus scrape configuration:\nscrape_configs:\n  - job_name: ha_cluster\n    static_configs:\n      - targets: ['${host}:${data.port}']\n\nMetric families:\n${data.metrics.join('\n')}`;
+                $('#ha_cluster_exp_listen').val(data.listen_address);$('#ha_cluster_exp_port').val(data.port);
+            }
+            $('#ha_cluster_exp_status').text(text).prop('hidden',false);
+        }).fail(function (response) {toastr.error(response.responseJSON?.error||'Cannot read exporter metrics');});
+    });
 	$('#node_exp_install').click(function () {
 		installExporter('node');
 	});
@@ -195,8 +225,14 @@ function installExporter(exporter) {
 		"exporter_v": $('#' + exporter + 'expver').val(),
 		"ext_prom": ext_prom,
 	}
+    if (exporter==='ha_cluster') {
+        if (!jsonData.server_ip) {toastr.error('Select a registered cluster node');return;}
+        jsonData.listen_address=$('#ha_cluster_exp_listen').val();
+        jsonData.port=Number($('#ha_cluster_exp_port').val());
+    }
 	$.ajax({
 		url: "/install/exporter/" + exporter,
+        error: function (response) {toastr.error(response.responseJSON?.error||'Exporter installation request failed');},
 		500: function () {
 			showErrorStatus(nice_exporter_name, $(exporter_id + ' option:selected').text());
 		},
@@ -226,7 +262,9 @@ function showExporterVersion(exporter) {
 			} else if (data == 'no' || data.indexOf('command') != '-1' || data.indexOf('_exporter:') != '-1' || data == '') {
 				$('#cur_' + exporter + '_exp_ver').text(nice_names[exporter] + ' exporter has not been installed');
 			} else {
-				$('#cur_' + exporter + '_exp_ver').text(data);
+                const version = exporter === 'ha_cluster' ? data.match(/\bversion\s+([^\s,]+)/) : null;
+                $('#cur_' + exporter + '_exp_ver').text(version ? version[1] : data);
+                if (exporter === 'ha_cluster') $('#cur_' + exporter + '_exp_ver').attr('title', data);
 			}
 		}
 	});

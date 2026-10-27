@@ -27,6 +27,9 @@ def common_action(server_ip: str, action: str, service: str) -> None:
         'waf_nginx': action_nginx_waf
     }
 
+    if service in ('waf_haproxy','waf_nginx'):
+        from app.modules.pacemaker.autostart import assert_unmanaged
+        assert_unmanaged(server_sql.get_server_by_ip(server_ip).server_id,service.removeprefix('waf_'))
     action_functions[service](server_ip, action, service)
 
 
@@ -39,6 +42,8 @@ def service_action(server_ip: str, action: str, service: str) -> None:
     """
     service_common.is_protected(server_ip, action)
     server_id = server_sql.get_server_by_ip(server_ip).server_id
+    from app.modules.pacemaker.autostart import assert_unmanaged
+    assert_unmanaged(server_id, service)
 
     if service_common.is_not_allowed_to_restart(server_id, service, action):
         raise Exception('This server is not allowed to be restarted')

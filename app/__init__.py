@@ -125,6 +125,7 @@ def _initialize_runtime() -> None:
     from app.routes.server import bp as server_bp
     from app.routes.admin import bp as admin_bp
     from app.routes.ha import bp as ha_bp
+    from app.routes.pacemaker import bp as pacemaker_bp
     from app.routes.udp import bp as udp_bp
 
     app.register_blueprint(add_bp, url_prefix='/add')
@@ -137,6 +138,7 @@ def _initialize_runtime() -> None:
     app.register_blueprint(server_bp, url_prefix='/server')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(ha_bp, url_prefix='/ha')
+    app.register_blueprint(pacemaker_bp, url_prefix='/pacemaker')
     app.register_blueprint(udp_bp)
 
     from app import login

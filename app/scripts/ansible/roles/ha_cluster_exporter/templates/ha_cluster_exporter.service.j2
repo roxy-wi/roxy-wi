@@ -1,0 +1,22 @@
+{{ ansible_managed | comment }}
+[Unit]
+Description=Prometheus Corosync/Pacemaker HA Cluster Exporter
+After=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/
+ExecStart=/usr/local/bin/ha_cluster_exporter --web.listen-address={{ ('['+ha_cluster_exporter_listen_address+']') if ':' in ha_cluster_exporter_listen_address else ha_cluster_exporter_listen_address }}:{{ ha_cluster_exporter_port }} --crm-mon-path={{ ha_exporter_tools['crm_mon'] }} --cibadmin-path={{ ha_exporter_tools['cibadmin'] }} --corosync-cfgtoolpath-path={{ ha_exporter_tools['corosync-cfgtool'] }} --corosync-quorumtool-path={{ ha_exporter_tools['corosync-quorumtool'] }}
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ReadWritePaths=-/var/lib/pacemaker -/run
+
+[Install]
+WantedBy=multi-user.target

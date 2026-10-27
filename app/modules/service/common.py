@@ -80,6 +80,8 @@ def get_exp_version(server_ip: str, service_name: str) -> str:
 		command = "node_exporter --version 2>&1 |head -1|awk '{print $3}'"
 	elif service_name == 'apache':
 		command = "/opt/prometheus/exporters/apache_exporter --version 2>&1 |head -1|awk '{print $3}'"
+	elif service_name == 'ha_cluster':
+		command = "/usr/local/bin/ha_cluster_exporter --version 2>&1 |head -n 1"
 	elif service_name == 'keepalived':
 		command = "keepalived_exporter --version 2>&1 |head -1|awk '{print $2}'"
 
