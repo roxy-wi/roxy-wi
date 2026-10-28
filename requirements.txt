@@ -12,7 +12,7 @@ paramiko-ng>=2.5.0
 pytz>=2017.3
 tzlocal>=5.2,<6
 requests==2.34.2
-Authlib==1.7.2
+Authlib==1.9.1
 pyTelegramBotAPI>=3.6.3 
 future>=0.13.1
 jinja2>=2.10.1
