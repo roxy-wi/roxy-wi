@@ -1,9 +1,9 @@
 from typing import Union, Literal
 
-from flask import render_template, request, g, jsonify
+from flask import render_template, request, g, jsonify, abort
 from flask_jwt_extended import jwt_required
 from flask_pydantic import validate
-from pydantic import IPvAnyAddress
+from pydantic import IPvAnyAddress, ValidationError
 
 from app.routes.install import bp
 from app.middleware import get_user_params
@@ -17,7 +17,7 @@ import app.modules.service.installation as service_mod
 import app.modules.service.exporter_installation as exp_installation
 from app.views.install.views import InstallView
 from app.modules.roxywi.class_models import DomainName
-from app.modules.db.db_model import InstallationTasks
+from app.modules.db.db_model import InstallationTasks, PacemakerCluster
 from app.modules.roxywi.error_handler import safe_error_message
 
 
@@ -52,7 +52,22 @@ def install_monitoring():
         'geoip_country_codes': sql.select_geoip_country_codes(),
         'lang': g.user_params['lang']
     }
+    from app.modules.pacemaker import exporter as ha_exporter
+    import json
+    member_ids={member['server_id'] for cluster in PacemakerCluster.select().where(PacemakerCluster.group_id==g.user_params['group_id']) for member in json.loads(cluster.servers)}
+    kwargs['ha_cluster_exporter_servers']=[server for server in g.user_params.get('servers',[]) if server[0] in member_ids]
+    kwargs['ha_cluster_exporter_versions']={ha_exporter.VERSION:ha_exporter.VERSION}
     return render_template('install.html', **kwargs)
+
+
+@bp.get('/pacemaker')
+def pacemaker_setup():
+    if not roxywi_auth.is_access_permit_to_service('cluster'):
+        abort(403)
+    mode = request.args.get('setup', 'new')
+    if mode not in ('new', 'adopt', 'witness'):
+        abort(400)
+    return render_template('pacemaker.html', lang=g.user_params['lang'], view='setup', setup_mode=mode)
 
 
 @bp.post('/exporter/<exporter>')
@@ -62,20 +77,47 @@ def install_exporter(exporter):
     ver = common.checkAjaxInput(json_data['exporter_v'])
     roxywi_common.check_is_server_in_group(server_ip)
 
-    if exporter not in ('haproxy', 'nginx', 'apache', 'keepalived', 'node'):
+    if exporter not in ('haproxy', 'nginx', 'apache', 'keepalived', 'node', 'ha_cluster'):
         return jsonify({'status': 'failed', 'error': 'Wrong exporter'})
 
     try:
-        task_id = exp_installation.install_exporter(server_ip, ver, exporter)
+        if exporter=='ha_cluster':
+            from app.modules.pacemaker import exporter as ha_exporter
+            if int(g.user_params['role'])>3 or not roxywi_auth.is_access_permit_to_service('cluster'): abort(403)
+            ha_exporter.member_server(server_ip,g.user_params['group_id'])
+            options={'listen_address':json_data.get('listen_address',server_ip),'port':json_data.get('port',9664)}
+            ha_exporter.inventory(server_ip,ver,options)
+            task_id=exp_installation.install_exporter(server_ip,ver,exporter,options)
+        else:
+            task_id = exp_installation.install_exporter(server_ip, ver, exporter)
         return jsonify({"status": "accepted", "tasks_ids": [task_id]}), 202
+    except ValidationError:
+        return jsonify(status='failed',error='Check exporter version, listen IP and port'),400
     except Exception as e:
+        from werkzeug.exceptions import HTTPException
+        if isinstance(e,HTTPException):raise
         return jsonify({'status': 'failed', 'error': f'Cannot install {exporter.title()} exporter: {safe_error_message(e)}'})
 
 
 @bp.route('/exporter/<exporter>/version/<server_ip>')
 @validate()
 def get_exporter_version(exporter: str, server_ip: Union[IPvAnyAddress, DomainName]):
+    if exporter=='ha_cluster':
+        from app.modules.pacemaker.exporter import member_server
+        if int(g.user_params['role'])>3 or not roxywi_auth.is_access_permit_to_service('cluster'):abort(403)
+        member_server(str(server_ip),g.user_params['group_id'])
     return service_common.get_exp_version(str(server_ip), exporter)
+
+
+@bp.get('/exporter/ha_cluster/status/<server_ip>')
+@validate()
+def ha_cluster_exporter_status(server_ip: Union[IPvAnyAddress, DomainName]):
+    if int(g.user_params['role'])>3 or not roxywi_auth.is_access_permit_to_service('cluster'):abort(403)
+    from app.modules.pacemaker.exporter import status
+    try:
+        return jsonify(data=status(str(server_ip),g.user_params['group_id']))
+    except Exception as exc:
+        return jsonify(error=safe_error_message(exc)),400
 
 
 @bp.post('/waf/<service>/<server_ip>')

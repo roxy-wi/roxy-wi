@@ -1,0 +1,295 @@
+{% extends 'base.html' %}
+{% block title %}Corosync / Pacemaker{% endblock %}
+{% block h2 %}Corosync / Pacemaker{% endblock %}
+{% block content %}
+{% from 'include/input_macros.html' import input, checkbox, select %}
+{% if view != 'setup' %}{% with ha_provider='pacemaker' %}{% include 'include/ha_provider.html' %}{% endwith %}{% endif %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/table-6.3.9.css') }}">
+{% macro field(id, label, name='', value='', required='', type='text', placeholder='') -%}
+<div class="rw-form-field"><label for="{{ id }}">{{ label }}</label>{{ input(id, name=name, value=value, required=required, type=type, placeholder=placeholder) }}</div>
+{%- endmacro %}
+<main class="service-overview-page" id="pacemaker-app" data-view="{{ view }}" data-setup-mode="{{ setup_mode|default('new') }}" data-operator="{{ 'true' if g.user_params['role']|int <= 3 else 'false' }}">
+    <div class="rw-table-toolbar service-page-toolbar">
+        <div class="rw-form-field"><label for="pcmk-cluster">Cluster</label>{{ select('pcmk-cluster', values={}) }}</div>
+        <button type="button" id="pcmk-refresh" class="rw-button rw-button-secondary">{{ lang.words.refresh|default('Refresh')|title }}</button>
+
+    </div>
+    <p id="pcmk-message" class="rw-form-help" role="status" aria-live="polite"></p>
+    {% if g.user_params['role']|int <= 3 %}
+    <section data-pcmk-view="setup" {% if view != 'setup' %}hidden{% endif %}>
+        <h3>Corosync / Pacemaker installation</h3>
+        <div class="rw-table-toolbar">
+        <button type="button" id="pcmk-register" class="rw-button rw-button-secondary">Register cluster</button>
+        <button type="button" id="pcmk-adopt-open" class="rw-button rw-button-secondary">Adopt existing cluster</button>
+        <button type="button" id="pcmk-witness-open" class="rw-button rw-button-secondary">Quorum / witness</button>
+        </div>
+    {% if g.user_params['role']|int <= 3 %}
+    <section id="pcmk-witness-panel" class="rw-panel" {% if setup_mode|default("new") != "witness" %}hidden{% endif %}>
+        <h3>Standalone quorum witness</h3>
+        <p>Install corosync-qnetd only on a separate supported Linux host. Choose native packages or Docker on a Debian/Ubuntu or EL 8/9 host. It runs outside the cluster and hosts no Pacemaker resources. An independent Roxy-WI host can serve this role using its registered SSH credentials. Keep fencing enabled; a witness does not replace it.</p>
+        <div class="rw-form-field"><label for="pcmk-witness-server">Witness server</label>{{ select('pcmk-witness-server', values={}) }}</div>
+        <div class="rw-table-toolbar">
+            <button type="button" id="pcmk-witness-self" class="rw-button rw-button-secondary">Select Roxy-WI host</button>
+            <button type="button" id="pcmk-witness-platform" class="rw-button rw-button-secondary">Check platform</button>
+            <button type="button" id="pcmk-witness-status" class="rw-button rw-button-secondary">Read status</button>
+            {{ checkbox('pcmk-witness-docker', desc='Use Docker', title='Run qnetd in a managed container with persistent certificates. Docker Engine is installed from enabled host repositories if missing.') }}
+            <button type="button" id="pcmk-witness-install" class="rw-button rw-button-primary">Install witness only</button>
+        </div>
+        <p class="rw-form-help">Docker uses a locally built Debian image, persistent certificate storage and host networking on TCP 5403. It needs Docker Engine or its packages in enabled host repositories. For an existing native witness, review the guided conversion below.</p>
+        <p id="pcmk-witness-result" class="rw-form-help" role="status" aria-live="polite"></p>
+        <details class="change-advanced-settings" id="pcmk-migration-panel">
+            <summary>Convert an existing native witness to Docker</summary>
+            <p class="rw-form-help">Preserve the current CA, certificates, host address and TCP port. The plan checks every connected cluster. The native service stays running while the image and certificate copy are checked. Conversion briefly reconnects qdevice clients; a host timer restores native qnetd if verification or the controller fails.</p>
+            <div class="rw-table-toolbar">
+                <button type="button" id="pcmk-migration-plan" class="rw-button rw-button-secondary">Review migration</button>
+                <button type="button" id="pcmk-migration-start" class="rw-button rw-button-primary" disabled>Convert to Docker</button>
+                <button type="button" id="pcmk-migration-recover" class="rw-button rw-button-secondary" disabled>Recover native witness</button>
+                <button type="button" id="pcmk-witness-logs" class="rw-button rw-button-secondary">Read witness logs</button>
+            </div>
+            <div class="rw-table-shell"><table class="overview"><thead><tr class="overviewHead"><th class="padding10">Check</th><th class="padding10">Result</th></tr></thead><tbody id="pcmk-migration-review"></tbody></table></div>
+            <p id="pcmk-migration-status" class="rw-form-help" role="status" aria-live="polite"></p>
+            <pre id="pcmk-witness-log-output" class="rw-notification-raw" hidden></pre>
+        </details>
+        <details class="change-advanced-settings" id="pcmk-lifecycle-panel">
+            <summary>Docker witness: native conversion and image update</summary>
+            <p class="rw-form-help">Keep the current CA and client certificates. Preparation checks a private database copy while the witness keeps running. The switch briefly reconnects clients; an independent 180-second host timer restores the original container if verification fails.</p>
+            <div class="rw-table-toolbar">
+                <label for="pcmk-lifecycle-operation">Operation</label><select id="pcmk-lifecycle-operation"><option value="native">Convert Docker to native service</option><option value="image-upgrade">Rebuild and update managed Docker image</option></select>
+                <button type="button" id="pcmk-lifecycle-plan" class="rw-button rw-button-secondary">Review operation</button>
+                <button type="button" id="pcmk-lifecycle-start" class="rw-button rw-button-primary" disabled>Apply reviewed operation</button>
+                <button type="button" id="pcmk-lifecycle-recover" class="rw-button rw-button-secondary" disabled>Recover original witness</button>
+            </div>
+            <div class="rw-table-shell"><table class="overview"><thead><tr class="overviewHead"><th class="padding10">Check</th><th class="padding10">Result</th></tr></thead><tbody id="pcmk-lifecycle-review"></tbody></table></div>
+            <p id="pcmk-lifecycle-status" class="rw-form-help" role="status" aria-live="polite"></p>
+        </details>
+        <details class="change-advanced-settings" id="pcmk-trust-panel">
+            <summary>Move witness to another host or rotate its CA</summary>
+            <p class="rw-form-help">First install an independent target witness using this page. The move preserves its CA; rotation creates a new CA on the current host. Client keys are generated locally on every node. All attached clusters are included and their custom Corosync transport is preserved.</p>
+            <div class="rw-form-field"><label for="pcmk-trust-target">Installed target witness</label>{{ select('pcmk-trust-target',values={}) }}</div>
+            <div class="rw-table-toolbar">{{ checkbox('pcmk-trust-rotate',desc='Rotate CA on current host',title='Generate a new CA on the current witness instead of moving to another host') }}</div>
+            <div class="rw-table-toolbar">
+                <button type="button" id="pcmk-trust-plan" class="rw-button rw-button-secondary">Review witness trust change</button>
+                <button type="button" id="pcmk-trust-start" class="rw-button rw-button-primary" disabled>Apply reviewed trust change</button>
+                <button type="button" id="pcmk-trust-recover" class="rw-button rw-button-secondary" disabled>Recover original trust</button>
+            </div>
+            <div class="rw-table-shell"><table class="overview"><thead><tr class="overviewHead"><th class="padding10">Check</th><th class="padding10">Result</th></tr></thead><tbody id="pcmk-trust-review"></tbody></table></div>
+            <p id="pcmk-trust-status" class="rw-form-help" role="status" aria-live="polite"></p>
+        </details>
+        <p>Preparing a witness does not attach or change any cluster. For a managed cluster, select it under Corosync membership and review the generated change. Adopted custom transport settings require an explicit migration. Use a failure domain independent of both cluster nodes. Allow their access to the witness on TCP 5403.</p>
+    </section>
+    <section id="pcmk-discovery" class="rw-panel" {% if setup_mode|default("new") != "adopt" %}hidden{% endif %}>
+        <h3>Adopt an existing cluster</h3>
+        <p>Select one running node. Roxy-WI reads its cluster name, membership, resources and quorum, then verifies every mapped node before saving registration. Packages, services, CIB, Corosync, fencing and witness configuration remain untouched.</p>
+        <div class="rw-table-toolbar">
+            <label for="pcmk-discovery-server">Existing cluster node</label>{{ select('pcmk-discovery-server', values={}) }}
+            <button type="button" id="pcmk-discover" class="rw-button rw-button-secondary">Discover cluster</button>
+        </div>
+        <p id="pcmk-discovery-result" class="rw-form-help" role="status"></p>
+        <p>All members must have enabled server entries and working SSH credentials in the active group. Adopted clusters retain their existing Corosync transport and witness settings; managed membership changes require an explicit migration.</p>
+    </section>
+    {% endif %}
+    <section id="pcmk-registration" class="rw-panel" hidden>
+        <h3 id="pcmk-registration-title">Register a new or existing cluster</h3>
+        <p>Use servers already registered in this Roxy-WI group. Registration leaves the running cluster untouched.</p>
+        <div id="pcmk-registration-quorum" hidden><p class="alert alert-warning">Two-node cluster: an independent quorum witness is strongly recommended. Provisioning uses Corosync two-node mode until a witness is connected. Configure fencing before relying on automatic recovery. Prepare a standalone qnetd server, then attach it through a reviewed quorum change.</p></div>
+        <form id="pcmk-register-form">
+            <div class="change-advanced-grid">
+                {{ field('pcmk-name', 'Name', required='required') }}
+                {{ field('pcmk-description', 'Description') }}
+            </div>
+            <div class="rw-table-shell"><table class="overview dataTable"><thead><tr class="overviewHead"><th>Server</th><th>Cluster node name</th><th>Corosync address</th><th>Node ID</th><th></th></tr></thead><tbody id="pcmk-members"></tbody></table></div>
+            <button type="button" id="pcmk-add-member" class="rw-button rw-button-secondary">Add member</button>
+            <button type="submit" id="pcmk-registration-save" class="rw-button rw-button-primary">Save registration</button>
+            <button type="button" id="pcmk-registration-cancel" class="rw-button rw-button-secondary">Cancel</button>
+        </form>
+    </section>
+        <section id="pcmk-bootstrap-panel" class="rw-panel" {% if setup_mode|default("new") != "new" %}hidden{% endif %}>
+            <h3>Install registered cluster</h3>
+            <p>Select the registered empty nodes, check their platforms and choose installation options. Existing cluster configuration is never overwritten.</p>
+            <div class="rw-table-toolbar">
+        <button type="button" id="pcmk-platform-check" class="rw-button rw-button-secondary">Check target platforms</button>
+        {{ checkbox('pcmk-bootstrap-syn', desc='SYN-flood protection', title='Enable persistent host TCP SYN cookies and queue tuning during new cluster installation') }}
+        {{ checkbox('pcmk-bootstrap-fence-pve', desc='Install Proxmox fencing agent', title='Install fence_pve and verify its metadata. Requires an enabled package repository (EPEL on EL). Configure and test the fencing device separately.') }}
+        <button type="button" id="pcmk-bootstrap" class="rw-button rw-button-secondary">Install cluster on empty nodes</button>
+            </div>
+            <p id="pcmk-platform-result" class="rw-form-help" role="status"></p>
+            <p class="rw-form-help">The optional Proxmox agent requires available native packages (EPEL on EL). Installation repairs the known fence_pve library-path defect when present and keeps a backup. Configure the fencing device and test it before relying on recovery.</p>
+        </section>
+    </section>
+    {% endif %}
+    <section id="pcmk-dashboard" hidden>
+<section data-pcmk-view="overview quorum" {% if view not in ['overview', 'quorum'] %}hidden{% endif %}>
+        <div class="rw-panel rw-table-toolbar"><strong class="rw-status-badge" id="pcmk-quorum">—</strong><span id="pcmk-dc"></span></div>
+        <div id="pcmk-quorum-note" role="status" hidden><p id="pcmk-quorum-description" class="alert alert-warning"></p></div>
+
+</section>
+<section data-pcmk-view="overview" {% if view not in ['overview'] %}hidden{% endif %}>
+        <h3>Nodes</h3>
+        <div class="rw-table-shell rw-panel"><table id="pcmk-node-table" class="overview dataTable" data-ux-table><thead><tr class="overviewHead"><th>Name</th><th>Online</th><th>Standby</th><th>Maintenance</th><th>Unclean</th><th data-sortable="false">Actions</th></tr></thead><tbody id="pcmk-nodes"></tbody></table></div>
+
+</section>
+<section data-pcmk-view="overview resources" {% if view not in ['overview', 'resources'] %}hidden{% endif %}>
+        <h3 id="pcmk-resource-heading">Resources</h3>
+        <div class="rw-table-shell rw-panel"><table id="pcmk-resource-table" class="overview dataTable" data-ux-table><thead><tr class="overviewHead"><th>ID</th><th>Agent</th><th>Role</th><th>Nodes</th><th>Failed / blocked</th><th data-sortable="false">Actions</th></tr></thead><tbody id="pcmk-resources"></tbody></table></div>
+
+</section>
+        {% if g.user_params['role']|int <= 3 %}
+        <p id="pcmk-adopted-note" class="rw-form-help" hidden>Adopted cluster: existing Corosync transport and witness settings are preserved. Manage resources, constraints and properties through reviewed CIB changes. Use the planned transport migration below to enable managed membership changes.</p>
+<section data-pcmk-view="quorum" {% if view != 'quorum' %}hidden{% endif %}>
+        <details class="change-advanced-settings" id="pcmk-transport-panel">
+            <summary>Planned migration to managed Corosync transport</summary>
+            <p class="rw-form-help">Convert an adopted or custom configuration to the reviewed knet configuration. This replaces custom transport options and briefly stops cluster communication. Authentication keys, the existing TLS witness and Pacemaker resources are retained. First quiesce all nodes: Pacemaker must stop every managed application. Resources stay in standby until you explicitly resume them.</p>
+            <div class="rw-table-toolbar">
+                <label for="pcmk-transport-token">Token timeout (ms)</label><input id="pcmk-transport-token" type="number" min="1000" max="30000" value="1500">
+                <button type="button" id="pcmk-transport-plan" class="rw-button rw-button-secondary">Review transport migration</button>
+                <button type="button" id="pcmk-transport-quiesce" class="rw-button rw-button-secondary">Quiesce applications</button>
+                <button type="button" id="pcmk-transport-start" class="rw-button rw-button-primary" disabled>Apply reviewed transport</button>
+                <button type="button" id="pcmk-transport-recover" class="rw-button rw-button-secondary">Recover original transport</button>
+                <button type="button" id="pcmk-transport-resume" class="rw-button rw-button-secondary">Resume previous nodes</button>
+            </div>
+            <p id="pcmk-transport-status" class="rw-form-help" role="status" aria-live="polite"></p>
+            <div class="change-advanced-grid" id="pcmk-transport-configs" hidden><div class="rw-form-field"><label for="pcmk-transport-before">Current Corosync configuration</label><div class="config-editor-card"><div class="config-editor-shell"><textarea class="config" cols="120" id="pcmk-transport-before" rows="12" readonly></textarea></div></div></div><div class="rw-form-field"><label for="pcmk-transport-after">Proposed managed configuration</label><div class="config-editor-card"><div class="config-editor-shell"><textarea class="config" cols="120" id="pcmk-transport-after" rows="12" readonly></textarea></div></div></div></div>
+            <p class="rw-form-help">A 240-second host timer restores the original Corosync file after an interrupted switch and leaves Pacemaker stopped. GUI recovery verifies every member has quorum before restarting Pacemaker. Application standby remains in place for review.</p>
+        </details>
+</section>
+<section data-pcmk-view="monitoring" {% if view not in ['monitoring'] %}hidden{% endif %}>
+        <div id="pcmk-monitoring-panel" class="rw-table-toolbar">
+            {{ checkbox('pcmk-monitor', desc='Monitor cluster and notify on health changes') }}
+            <button type="button" id="pcmk-maintenance-on" class="rw-button rw-button-secondary">Enable maintenance</button>
+            <button type="button" id="pcmk-maintenance-off" class="rw-button rw-button-secondary">Disable maintenance</button>
+        </div>
+        <details class="change-advanced-settings"><summary>Auto Start for cluster daemons</summary>
+            <p>Choose the host systemd recovery policy for Corosync, Pacemaker and an installed qdevice client. Failure recovery waits 10 seconds and is limited to three starts in five minutes. Explicit systemd stop stays stopped; maintenance and standby resource settings remain under Pacemaker control. This does not independently restart application resources.</p>
+            <div class="rw-table-toolbar"><label for="pcmk-autostart-policy">Restart policy</label><select id="pcmk-autostart-policy"><option value="default">Package defaults</option><option value="on-failure">Auto Start on failure</option><option value="no">No automatic restart</option></select>
+                <button type="button" id="pcmk-autostart-read" class="rw-button rw-button-secondary">Read effective policy</button>
+                <button type="button" id="pcmk-autostart-save" class="rw-button rw-button-primary">Apply restart policy</button>
+            </div>
+            <p>Conflicting proxy Auto Start flags for applications owned by Pacemaker are disabled when applying this policy. Use Pacemaker resource controls for those applications.</p>
+            <div class="rw-table-shell"><table class="overview"><thead><tr class="overviewHead"><th class="padding10">Node</th><th class="padding10">Unit</th><th class="padding10">State</th><th class="padding10">Restart</th><th class="padding10">Delay</th><th class="padding10">Managed override</th></tr></thead><tbody id="pcmk-autostart-nodes"></tbody></table></div>
+            <p id="pcmk-autostart-result" class="rw-form-help" role="status" aria-live="polite"></p>
+        </details>
+</section>
+<section data-pcmk-view="resources" {% if view not in ['resources'] %}hidden{% endif %}>
+        <details id="pcmk-agent-manager" class="change-advanced-settings">
+            <summary>Agents and repository packages</summary>
+            <p>Agents are adapters Pacemaker can use to start, stop and check a service, or isolate a failed node. The discovered count includes available systemd units and installed OCF/fencing adapters; these are not all running resources. Discover agents installed on each node. Install or update native agent packages from the hosts' enabled repositories, then rescan. Package installation does not create resources or change their configuration.</p>
+            <div class="rw-table-toolbar">
+                <button type="button" id="pcmk-agents-scan" class="rw-button rw-button-secondary">Discover installed agents</button>
+                <button type="button" id="pcmk-packages-read" class="rw-button rw-button-secondary">Read repository packages</button>
+                <button type="button" id="pcmk-packages-refresh" class="rw-button rw-button-secondary">Refresh repositories</button>
+            </div>
+            <p id="pcmk-agent-inventory-status" class="rw-form-help" role="status"></p>
+            <div class="rw-table-shell"><table class="overview"><thead><tr class="overviewHead"><th class="padding10">Node</th><th class="padding10">Installed agents</th><th class="padding10">Status</th></tr></thead><tbody id="pcmk-agent-nodes"></tbody></table></div>
+            <div class="change-advanced-grid">
+                <div class="rw-form-field"><label for="pcmk-package-filter">Filter agent packages</label><input class="form-control" id="pcmk-package-filter" type="search" placeholder="resource-agents or fence-agents-pve"></div>
+                <div class="rw-form-field"><label for="pcmk-agent-package">Repository package</label>{{ select('pcmk-agent-package', values={}) }}</div>
+            </div>
+            <pre class="rw-notification-raw" id="pcmk-package-plan"></pre>
+            <button type="button" id="pcmk-package-install" class="rw-button rw-button-primary" disabled>Install / update on cluster nodes</button>
+            <p class="rw-form-help">The reviewed versions are checked again before installation. Native dependencies may be updated. Repositories must already be enabled on each host.</p>
+        </details>
+        <details id="pcmk-resource-builder" class="change-advanced-settings"><summary>Add a resource or fencing device</summary>
+            <form id="pcmk-resource-form">
+                <div class="change-advanced-grid">
+                    {{ field('pcmk-resource-id', 'Resource ID', name='id', required='required') }}
+                    <div class="rw-form-field"><label for="pcmk-agent-filter">Filter installed agents</label><input class="form-control" id="pcmk-agent-filter" type="search" placeholder="IPaddr2, haproxy, fence_pve…"></div>
+                    <div class="rw-form-field">
+                        <label for="pcmk-resource-agent">Agent installed on every node</label><select id="pcmk-resource-agent" name="agent" required><option value="">Discover agents to select one</option></select>
+                        <button type="button" id="pcmk-resource-agents-refresh" class="rw-button rw-button-secondary">Discover agents</button>
+                        <p class="rw-form-help" id="pcmk-agent-help">Choose a discovered agent. Parameters and recommended operation timings are read from the hosts.</p>
+                    </div>
+                    {{ field('pcmk-resource-monitor_interval', 'Monitor interval', name='monitor_interval', value='30s', required='required') }}
+                    {{ field('pcmk-resource-start_timeout', 'Start timeout', name='start_timeout') }}
+                    {{ field('pcmk-resource-stop_timeout', 'Stop timeout', name='stop_timeout') }}
+                    {{ field('pcmk-resource-monitor_timeout', 'Monitor timeout', name='monitor_timeout') }}
+                    <div class="rw-form-field"><label for="pcmk-wrapper">Container</label><select id="pcmk-wrapper" name="wrapper"><option value="none">Standalone</option><option value="group">Group</option><option value="clone">Clone</option><option value="promotable">Promotable clone</option></select></div>
+                    {{ field('pcmk-resource-wrapper_id', 'Group / clone ID', name='wrapper_id') }}
+                </div>
+                <section class="rw-panel">
+                    <h4>Agent parameters</h4>
+                    <div id="pcmk-agent-parameters" class="change-advanced-grid"></div>
+                    <details id="pcmk-agent-optional" class="change-advanced-settings" hidden><summary>Optional agent parameters</summary><div id="pcmk-agent-optional-fields" class="change-advanced-grid"></div></details>
+                </section>
+                <details class="change-advanced-settings"><summary>Advanced parameter overrides (JSON)</summary><div class="rw-form-field"><label for="pcmk-parameters">Additional parameters</label><textarea cols="120" id="pcmk-parameters" name="parameters" rows="4">{}</textarea><p class="rw-form-help">Optional additional Pacemaker parameters. Leave defaults to the agent; do not copy paths containing an example resource name.</p></div></details>
+                <div class="rw-table-toolbar"><button type="submit" id="pcmk-resource-create" class="rw-button rw-button-primary" disabled>Create draft</button></div>
+            </form>
+            <p class="rw-form-help">Agent packages are managed above. Existing Roxy-WI Installation workflows install proxy services. Workloads such as containers still need their runtime and application configuration on the selected hosts.</p>
+        </details>
+        <details class="change-advanced-settings"><summary>Add a constraint</summary>
+            <button type="button" id="pcmk-choices-refresh" class="rw-button rw-button-secondary">Load current resources and nodes</button>
+            <form id="pcmk-constraint-form" class="change-advanced-grid">
+                {{ field('pcmk-constraint-id', 'Constraint ID', name='id', value='', required='required', placeholder='') }}
+                <div class="rw-form-field"><label for="pcmk-type">Type</label><select id="pcmk-type" name="type"><option value="location">Location</option><option value="order">Order</option><option value="colocation">Colocation</option></select></div>
+                <div class="rw-form-field"><label for="pcmk-constraint-resource">Resource / first resource</label><select id="pcmk-constraint-resource" name="resource" required></select></div>
+                <div class="rw-form-field"><label for="pcmk-constraint-other">Node / second resource</label><select id="pcmk-constraint-other" name="other" required></select></div>
+                {{ field('pcmk-constraint-score', 'Score (location / colocation)', name='score', value='INFINITY', required='required', placeholder='') }}
+                <div class="rw-table-toolbar"><button type="submit" class="rw-button rw-button-primary">Create draft</button></div>
+            </form>
+        </details>
+        <details class="change-advanced-settings"><summary>Cluster properties</summary>
+            <form id="pcmk-property-form" class="change-advanced-grid">
+                {{ field('pcmk-property-name', 'Property', name='name', value='', required='required', placeholder='no-quorum-policy') }}
+                {{ field('pcmk-property-value', 'Value', name='value', value='', required='required', placeholder='') }}
+                <div class="rw-table-toolbar"><button type="submit" class="rw-button rw-button-primary">Create draft</button></div>
+            </form>
+        </details>
+        <details class="change-advanced-settings"><summary>Remove a resource, group, clone or constraint</summary>
+            <button type="button" id="pcmk-delete-refresh" class="rw-button rw-button-secondary">Load current resources and constraints</button>
+            <form id="pcmk-delete-form" class="change-advanced-grid">
+                <div class="rw-form-field"><label for="pcmk-delete-id">Resource, wrapper or constraint</label><select id="pcmk-delete-id" name="id" required></select></div>
+                <div class="rw-table-toolbar"><button type="submit" class="rw-button rw-button-primary">Create removal draft</button></div>
+            </form>
+        </details>
+
+</section>
+        <details id="pcmk-editor-panel" class="change-advanced-settings" data-pcmk-view="configuration" {% if view == 'configuration' %}open{% else %}hidden{% endif %}><summary>Configuration editor and review</summary>
+            <p>Edit the complete CIB configuration, including agent operations, fencing, resource sets, rules and advanced properties. Drafts never change the live cluster.</p>
+            <button type="button" id="pcmk-load-config" class="rw-button rw-button-secondary">Load current CIB</button>
+            <div class="rw-form-field"><label for="pcmk-xml" id="pcmk-editor-label">Candidate CIB XML</label><div class="config-editor-card"><div class="config-editor-shell"><textarea cols="120" class="config" id="pcmk-xml" rows="20" spellcheck="false"></textarea></div></div></div>
+            <button type="button" id="pcmk-save-draft" class="rw-button rw-button-secondary">Save draft</button>
+            <p id="pcmk-change-label"></p>
+            <details class="change-advanced-settings"><summary>Previous configuration</summary><pre class="rw-notification-raw" id="pcmk-previous"></pre></details>
+            <details class="change-advanced-settings"><summary>Proposed configuration</summary><pre class="rw-notification-raw" id="pcmk-proposed"></pre></details>
+            <button type="button" id="pcmk-validate" class="rw-button rw-button-secondary" disabled>Validate and simulate</button>
+            <button type="button" id="pcmk-apply" class="rw-button rw-button-primary" disabled>Apply reviewed change</button>
+            <pre class="rw-notification-raw" id="pcmk-simulation" aria-live="polite"></pre>
+        </details>
+<section data-pcmk-view="quorum" {% if view not in ['quorum'] %}hidden{% endif %}>
+        <details id="pcmk-quorum-panel" class="change-advanced-settings" open><summary>Corosync and quorum diagnostics</summary>
+            <button type="button" id="pcmk-corosync" class="rw-button rw-button-secondary">Read all nodes</button>
+            <pre class="rw-notification-raw" id="pcmk-corosync-output"></pre>
+        </details>
+        <details class="change-advanced-settings"><summary>Corosync membership, transport timeout and quorum witness</summary>
+            <p>Keep existing node names, IDs and addresses. New nodes must be empty supported Linux hosts. Put a removed node in standby and wait until its resources have moved. Every current node must be online with quorum.</p>
+            <button type="button" id="pcmk-membership-load" class="rw-button rw-button-secondary">Load current membership</button>
+            <form id="pcmk-membership-form">
+                <div class="rw-table-shell"><table class="overview dataTable"><thead><tr class="overviewHead"><th>Server</th><th>Cluster node name</th><th>Corosync address</th><th>Node ID</th><th></th></tr></thead><tbody id="pcmk-membership-members"></tbody></table></div>
+                <button type="button" id="pcmk-membership-add" class="rw-button rw-button-secondary">Add member</button>
+                <details class="change-advanced-settings"><summary>Current membership JSON (reference)</summary><textarea id="pcmk-membership-json" rows="8" readonly aria-label="Current membership JSON"></textarea></details>
+                <div class="change-advanced-grid">
+                <div class="rw-form-field"><label for="pcmk-token">Token timeout (milliseconds)</label><input class="form-control" id="pcmk-token" type="number" min="1000" max="30000" value="1000" required></div>
+                <div class="rw-form-field"><label for="pcmk-witness">Quorum witness server</label><select id="pcmk-witness"><option value="">No net qdevice</option></select></div>
+                </div>
+                <button type="submit" id="pcmk-membership-save" class="rw-button rw-button-primary">Create Corosync draft</button>
+            </form>
+            <p>The witness uses mutually authenticated TLS and must run on a separate supported Linux host. Changing an existing witness requires an explicit certificate migration.</p>
+            <p>Online membership changes rebuild the managed Corosync configuration. Import clusters with custom transport settings for diagnostics and CIB management; review the full generated Corosync file before applying membership changes.</p>
+        </details>
+
+</section>
+        <details id="pcmk-logs-panel" class="change-advanced-settings" data-pcmk-view="logs" {% if view == 'logs' %}open{% else %}hidden{% endif %}><summary>Node logs</summary>
+            <div class="rw-table-toolbar"><label for="pcmk-log-node">Node</label>{{ select('pcmk-log-node', values={}) }}
+            <button type="button" id="pcmk-logs" class="rw-button rw-button-secondary">Read journal</button></div>
+            <pre class="rw-notification-raw" id="pcmk-log-output"></pre>
+        </details>
+        {% endif %}
+        <details id="pcmk-history-panel" class="change-advanced-settings" data-pcmk-view="history" {% if view == 'history' %}open{% else %}hidden{% endif %}><summary>Change history</summary>
+            <div class="rw-table-shell"><table id="pcmk-history-table" class="overview dataTable" data-ux-table data-page-size="10"><thead><tr class="overviewHead"><th>ID</th><th>Date</th><th>Status</th><th data-sortable="false">Actions</th></tr></thead><tbody id="pcmk-history"></tbody></table></div>
+            <p id="pcmk-task-status" role="status"></p>
+            <details class="change-advanced-settings"><summary>Event log</summary><pre class="rw-notification-raw" id="pcmk-events"></pre></details>
+        </details>
+    </section>
+</main>
+<script src="{{ url_for('static', filename='js/pacemaker-discovery.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/pacemaker.js') }}" defer></script>
+{% endblock %}

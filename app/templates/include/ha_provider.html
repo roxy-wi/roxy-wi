@@ -1,0 +1,11 @@
+<div class="service-overview-page">
+    <div class="rw-table-toolbar service-page-toolbar">
+        <label for="ha-provider">HA technology</label>
+        <select id="ha-provider" aria-label="HA technology">
+            <option value="keepalived" data-url="{{ url_for('ha.ha_cluster', service='cluster') }}" {% if ha_provider == 'keepalived' %}selected{% endif %} {% if g.user_params['role']|int > 3 %}disabled{% endif %}>Keepalived / VRRP</option>
+            <option value="pacemaker" data-url="{{ url_for('pacemaker.index') }}" {% if ha_provider == 'pacemaker' %}selected{% endif %}>Corosync / Pacemaker</option>
+        </select>
+        <span class="rw-form-help">{% if ha_provider == 'keepalived' %}Virtual IP failover with Keepalived.{% else %}Quorum, fencing and resource orchestration with Pacemaker.{% endif %}</span>
+    </div>
+</div>
+<script src="{{ url_for('static', filename='js/ha-provider.js') }}" defer></script>

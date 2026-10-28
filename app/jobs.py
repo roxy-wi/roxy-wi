@@ -187,6 +187,15 @@ def run_operation_outbox():
     return _run_database_job(run)
 
 
+@scheduler.task('interval', id='pacemaker_monitor', seconds=30, max_instances=1,
+                coalesce=True, misfire_grace_time=60)
+def run_pacemaker_monitor():
+    def run():
+        from app.modules.pacemaker.monitor import dispatch
+        return dispatch()
+    return _run_database_job(run)
+
+
 @scheduler.task('interval', id='backup_schedules', seconds=15, max_instances=1,
                 coalesce=True, misfire_grace_time=60)
 def run_backup_schedules():

@@ -3,7 +3,7 @@ import uuid
 import pytest
 from cryptography.fernet import Fernet
 
-from app.modules.db.db_model import Cred, OidcProvider, LetsEncryptDnsProfile
+from app.modules.db.db_model import Cred, OidcProvider, LetsEncryptDnsProfile, PacemakerCluster, PacemakerChange
 from rotate_credential_secret import _fernet_from_environment, rotate_credentials
 
 
@@ -26,11 +26,15 @@ def test_credential_rotation_reencrypts_secret_fields_atomically(monkeypatch):
     )
     profile = LetsEncryptDnsProfile.create(name=f'rotation-{uuid.uuid4().hex}', group_id=1,
         provider='cloudflare', credentials='fernet:' + old_fernet.encrypt(b'{"api_token":"dns-secret"}').decode('ascii'))
+    cluster = PacemakerCluster.create(name=f'rotation-{uuid.uuid4().hex}', group_id=1)
+    change = PacemakerChange.create(cluster=cluster, user_id=1, base_digest='0' * 64,
+        **{field: old_fernet.encrypt(b'<cib secret="fencing-secret"/>').decode('ascii')
+           for field in ('candidate', 'previous', 'result', 'details')})
     monkeypatch.setenv('ROXYWI_OLD_SECRET_PHRASE', old_key.decode('ascii'))
     monkeypatch.setenv('ROXYWI_SECRET_PHRASE', new_key.decode('ascii'))
 
     try:
-        assert rotate_credentials() >= 3
+        assert rotate_credentials() >= 4
 
         credential = Cred.get_by_id(credential.id)
         provider = OidcProvider.get_by_id(provider.id)
@@ -38,11 +42,15 @@ def test_credential_rotation_reencrypts_secret_fields_atomically(monkeypatch):
         assert Fernet(new_key).decrypt(provider.client_secret_encrypted.encode('ascii')) == b'oidc-client-secret'
         rotated_profile = LetsEncryptDnsProfile.get_by_id(profile.id)
         assert Fernet(new_key).decrypt(rotated_profile.credentials.removeprefix('fernet:').encode()) == b'{"api_token":"dns-secret"}'
+        rotated_change = PacemakerChange.get_by_id(change.id)
+        for field in ('candidate', 'previous', 'result', 'details'):
+            assert Fernet(new_key).decrypt(getattr(rotated_change, field).encode()) == b'<cib secret="fencing-secret"/>'
         assert rotate_credentials() == 0  # A repeated rotation is safe.
     finally:
         Cred.delete().where(Cred.id == credential.id).execute()
         OidcProvider.delete().where(OidcProvider.id == provider.id).execute()
         LetsEncryptDnsProfile.delete().where(LetsEncryptDnsProfile.id == profile.id).execute()
+        cluster.delete_instance(recursive=True)
 
 
 @pytest.mark.security

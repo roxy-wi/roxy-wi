@@ -8,6 +8,7 @@
 <link href="{{ url_for('static', filename='css/servers.css') }}" rel="stylesheet"/>
 <link href="{{ url_for('static', filename='css/smon.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/ha.css') }}" rel="stylesheet">
+{% with ha_provider='keepalived' %}{% include 'include/ha_provider.html' %}{% endwith %}
 {% if user_subscription.user_status == 0 or user_subscription.user_plan == 'user' %}
 	{% include 'include/no_sub.html' %}
 {% elif not is_needed_tool %}

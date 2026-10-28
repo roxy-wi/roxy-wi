@@ -62,7 +62,7 @@ ANSIBLE_COLLECTION_SEARCH_PATHS = tuple(dict.fromkeys((
 _ANSIBLE_ROLE_NAMES = (
 	'apache', 'apache_exporter', 'backup', 'git_backup', 'haproxy',
 	'haproxy_exporter', 'haproxy_geoip', 'haproxy_section', 'keepalived',
-	'keepalived_exporter', 'letsencrypt', 'letsencrypt_standalone', 'nginx',
+	'keepalived_exporter', 'ha_cluster_exporter', 'letsencrypt', 'letsencrypt_standalone', 'nginx',
 	'nginx_exporter', 'nginx_geoip', 'nginx_section', 'node_exporter',
 	's3_backup', 'smon_agent', 'udp', 'waf_haproxy', 'waf_nginx',
 )
@@ -495,6 +495,7 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 	failure_events = []
 	output_lines = []
 	ansible_runtime_environment = {}
+	pinned_hosts = None
 
 	playbook = _ansible_playbook(ansible_role)
 	try:
@@ -504,7 +505,8 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 			raise RuntimeError(f'Cannot start SSH agent: {error}') from error
 
 		ansible_runtime_environment = _prepare_ansible_runtime_dirs()
-		_install_ansible_collections()
+		if ansible_role != 'ha_cluster_exporter':
+			_install_ansible_collections()
 		_install_ansible_roles(ansible_role)
 
 		for server_ip in server_ips:
@@ -525,6 +527,12 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 			if 'DOCKER' in inv['server']['hosts'][server_ip]:
 				tags = 'docker' if inv['server']['hosts'][server_ip]['DOCKER'] else 'system'
 
+		if ansible_role == 'ha_cluster_exporter':
+			from app.modules.pacemaker.exporter import pin_ansible_hosts
+			os.makedirs(ANSIBLE_INVENTORY_DIR,mode=0o700,exist_ok=True)
+			pinned_hosts=pin_ansible_hosts(server_ips,ANSIBLE_INVENTORY_DIR)
+			for server_ip in server_ips:
+				inv['server']['hosts'][server_ip]['ansible_ssh_common_args']=shlex.join(['-o','StrictHostKeyChecking=yes','-o','UserKnownHostsFile='+pinned_hosts])
 		inventory = _create_secure_inventory(inv)
 		envvars = {
 			'ANSIBLE_DISPLAY_OK_HOSTS': 'no',
@@ -559,6 +567,9 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 	finally:
 		_remove_inventory(inventory)
 		if agent_pid is not None:
+			if pinned_hosts:
+				try: os.remove(pinned_hosts)
+				except OSError: pass
 			try:
 				server_mod.stop_ssh_agent(agent_pid)
 			except Exception as error:

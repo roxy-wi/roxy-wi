@@ -149,6 +149,11 @@ class InstallView(MethodView):
         if not body.services:
             body.services = {service: HAClusterService(enabled=1, docker=body.docker)}
         try:
+            if body.auto_start:
+                from app.modules.pacemaker.autostart import assert_unmanaged
+                for node in body.servers:
+                    for name,options in body.services.items():
+                        if options.enabled:assert_unmanaged(node.id,name)
             task_id = service_mod.install_service(service, body)
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, f'Cannot install {service.title()}')
@@ -211,6 +216,9 @@ class InstallView(MethodView):
             return access_error
 
         try:
+            if body.auto_start:
+                from app.modules.pacemaker.autostart import assert_unmanaged
+                assert_unmanaged(int(server_id),service)
             service_sql.update_hapwi_server(server_id, body.checker, body.metrics, body.auto_start, service)
             service_command_sql.queue_checker_assignment(server_id, service, bool(body.checker))
             if service in {'haproxy', 'nginx', 'apache'}:

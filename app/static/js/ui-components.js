@@ -115,6 +115,13 @@
 		options = options || {};
 		return new Promise(function (resolve) {
 			const dialog = $('<div></div>').text(options.message || text('are_you_sure', 'Are you sure?')).appendTo(document.body);
+			let confirmation;
+			if (options.requiredText) {
+				const field = $('<div class="rw-form-field"></div>').appendTo(dialog);
+				const inputId = 'rw-confirm-text';
+				$('<label></label>').attr('for', inputId).text(options.inputLabel || 'Type ' + options.requiredText + ' to confirm').appendTo(field);
+				confirmation = $('<input class="form-control" autocomplete="off">').attr('id', inputId).appendTo(field);
+			}
 			let resolved = false;
 			dialog.dialog({
 				modal: true,
@@ -123,13 +130,22 @@
 				classes: {'ui-dialog': 'rw-dialog-responsive'},
 				buttons: [{
 					text: options.confirmText || text('apply', 'Apply'),
-					click: function () { resolved = true; $(this).dialog('close'); resolve(true); }
+					disabled: !!confirmation,
+					click: function () {
+						if (confirmation && confirmation.val() !== options.requiredText) return;
+						resolved = true; $(this).dialog('close'); resolve(true);
+					}
 				}, {
 					text: options.cancelText || text('cancel', 'Cancel'),
 					click: function () { resolved = true; $(this).dialog('close'); resolve(false); }
 				}],
 				close: function () { if (!resolved) resolve(false); dialog.remove(); }
 			});
+			if (confirmation) {
+				confirmation.on('input', function () {
+					dialog.dialog('widget').find('.ui-dialog-buttonpane button').first().button('option', 'disabled', confirmation.val() !== options.requiredText);
+				}).trigger('focus');
+			}
 		});
 	}
 

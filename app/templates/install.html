@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}{{lang.words.admin_area|title()}}{% endblock %}
-{% block h2 %}{{lang.words.admin_area|title()}}{% endblock %}
+{% block title %}{{lang.words.installation|title()}}{% endblock %}
+{% block h2 %}{{lang.words.installation|title()}}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import select, checkbox %}
 <script src="{{ url_for('static', filename='js/install.js') }}"></script>
@@ -10,7 +10,40 @@
         <li><a href="#service" title="{{lang.words.proxy|title()}} {{lang.words.service}} - Roxy-WI">{{lang.words.proxy|title()}} {{lang.words.service}}</a></li>
         <li><a href="#monitoring" title="{{lang.words.monitoring|title()}} - Roxy-WI">{{lang.words.monitoring|title()}}</a></li>
         <li><a href="#geolite2" title="GeoLite2 - Roxy-WI">GeoLite2</a></li>
+        {% if '5' in g.user_params['user_services'] %}<li><a href="#pacemaker-installation">Corosync / Pacemaker</a></li>{% endif %}
     </ul>
+
+    {% if '5' in g.user_params['user_services'] %}
+    <div id="pacemaker-installation">
+        <div class="rw-panel">
+        <div class="rw-table-shell">
+        <table class="overview" id="pacemaker-installation-table">
+            <caption><h3>{{lang.words.install|title()}} Corosync / Pacemaker</h3></caption>
+            <thead><tr class="overviewHead"><th class="padding10 first-collumn">Workflow</th><th class="padding10 first-collumn">Description</th><th class="padding10">Actions</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td class="padding10 first-collumn">New cluster</td>
+                    <td class="padding10 first-collumn">Select registered Linux servers, check their platforms and install the cluster. SYN-flood protection is optional.</td>
+                    <td class="padding10"><a class="ui-button ui-widget ui-corner-all" href="{{ url_for('install.pacemaker_setup', setup='new') }}">{{lang.words.install|title()}} cluster</a></td>
+                </tr>
+                <tr>
+                    <td class="padding10 first-collumn">Existing cluster</td>
+                    <td class="padding10 first-collumn">Discover and map existing nodes. Adoption preserves running services, resources, fencing and quorum.</td>
+                    <td class="padding10"><a class="ui-button ui-widget ui-corner-all" href="{{ url_for('install.pacemaker_setup', setup='adopt') }}">Adopt existing cluster</a></td>
+                </tr>
+                <tr>
+                    <td class="padding10 first-collumn">Quorum witness only</td>
+                    <td class="padding10 first-collumn">Install corosync-qnetd using native packages or Docker on an independent server. Attach it through a reviewed quorum change.</td>
+                    <td class="padding10"><a class="ui-button ui-widget ui-corner-all" href="{{ url_for('install.pacemaker_setup', setup='witness') }}">{{lang.words.install|title()}} witness only</a></td>
+                </tr>
+            </tbody>
+        </table>
+        </div>
+        <p class="rw-form-help">Installation profiles: Debian 11+, Ubuntu 20.04+, EL 8/9.</p>
+        <p class="rw-form-help">Check the target platform before installation. See the administration guide for qualification and prerequisites.</p>
+        </div>
+    </div>
+    {% endif %}
 
     <div id="service">
 		{% if not is_needed_tool %}
@@ -261,6 +294,32 @@
                 </td>
             </tr>
         </table>
+        {% if '5' in g.user_params['user_services'] %}
+        <table id="ha-cluster-exporter-table">
+            <caption><i class="fas fa-project-diagram caption-icon2"></i><h3>Corosync / Pacemaker Exporter</h3></caption>
+            <tr class="overviewHead">
+                <td class="padding10 first-collumn">{{lang.words.current2|title()}} {{lang.words.installation}}</td>
+                <td class="padding10 first-collumn">{{lang.words.available|title()}} {{lang.words.versions}}</td>
+                <td class="padding10 first-collumn">{{lang.words.server|title()}}</td>
+                <td class="padding10">{{lang.words.actions|title()}}</td>
+            </tr>
+            <tr>
+                <td id="cur_ha_cluster_exp_ver" class="padding10 first-collumn"></td>
+                <td class="padding10 first-collumn">{{ select('ha_clusterexpver', values=ha_cluster_exporter_versions, selected='1.4.3') }}</td>
+                <td class="padding10 first-collumn"><select id="ha_cluster_exp_addserv" required><option disabled selected value="">------</option>{% for server in ha_cluster_exporter_servers %}<option value="{{ server.2 }}">{{ server.1 }}</option>{% endfor %}</select></td>
+                <td class="padding10"><button type="button" id="ha_cluster_exp_install" class="ui-button ui-widget ui-corner-all">{{lang.words.install|title()}}</button></td>
+            </tr>
+        </table>
+        <div class="rw-panel">
+            <div class="change-advanced-grid">
+                <div class="rw-form-field"><label for="ha_cluster_exp_listen">Exporter listen IP</label><input id="ha_cluster_exp_listen" class="form-control" placeholder="Select a node to use its management IP" required></div>
+                <div class="rw-form-field"><label for="ha_cluster_exp_port">Exporter TCP port</label><input id="ha_cluster_exp_port" class="form-control" type="number" min="1024" max="65535" value="9664" required></div>
+            </div>
+            <p class="rw-form-help">HA Cluster Exporter supplies Prometheus metrics for both Pacemaker and Corosync. Install it on each cluster node. The release checksum is verified; cluster configuration and firewall rules are preserved. Allow your monitoring server to access the selected listener.</p>
+            <button type="button" id="ha_cluster_exp_check" class="rw-button rw-button-secondary">Check metrics and show Prometheus target</button>
+            <pre id="ha_cluster_exp_status" class="rw-notification-raw" hidden></pre>
+        </div>
+        {% endif %}
         <table style="margin-top: 20px" id="node-table">
             <caption><i class="fas fa-server caption-icon2"></i><h3>Node Exporter</h3></caption>
             <tr class="overviewHead">

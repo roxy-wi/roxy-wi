@@ -1,5 +1,6 @@
 import os
 import base64
+import tempfile
 from cryptography.fernet import Fernet
 
 from flask import render_template
@@ -291,12 +292,19 @@ def _return_correct_ssh_file(cred: CredRequest, ssh_id: int = None) -> str:
 	except Exception as e:
 		raise e
 
-	with open(key_file, 'wb') as key:
-		key.write(private_key.encode())
-
+	# Discovery can connect to several nodes sharing one credential. Publish a
+	# complete private cache file atomically so another reader never sees a
+	# truncated key or a newly created file with the process's default permissions.
+	staged = None
 	try:
-		os.chmod(key_file, 0o600)
-	except IOError as e:
-		raise Exception(e)
+		with tempfile.NamedTemporaryFile(mode='wb', dir=os.path.dirname(key_file), prefix='.ssh-key-', delete=False) as key:
+			staged = key.name
+			key.write(private_key.encode())
+			key.flush()
+			os.fsync(key.fileno())
+		os.replace(staged, key_file)
+	finally:
+		if staged and os.path.exists(staged):
+			os.unlink(staged)
 
 	return key_file

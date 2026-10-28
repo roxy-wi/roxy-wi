@@ -16,6 +16,7 @@ SUPPORTED_WORKER_SERVICES = frozenset({
     'checker', 'metrics', 'keep_alive', 'portscanner', 'smon', 'socket', 'automation'
 })
 SERVICE_IDS = {
+    'pacemaker': 5,
     'haproxy': 1,
     'nginx': 2,
     'keepalived': 3,

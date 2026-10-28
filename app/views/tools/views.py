@@ -227,6 +227,9 @@ class CheckerView(MethodView):
 
         try:
             kwargs = body.model_dump(mode='json', exclude={'metrics', 'auto_start', 'checker'})
+            if body.auto_start:
+                from app.modules.pacemaker.autostart import assert_unmanaged
+                assert_unmanaged(server_id, service)
             with Server._meta.database.atomic():
                 checker_sql.update_checker_setting_for_server(service_id, server_id, **kwargs)
                 service_sql.update_hapwi_server(server_id, body.checker, body.metrics, body.auto_start, service)

@@ -5,7 +5,7 @@ from itertools import chain
 
 from cryptography.fernet import Fernet, InvalidToken
 
-from app.modules.db.db_model import Cred, InstallationTasks, LetsEncryptState, LetsEncryptDnsProfile, OidcProvider
+from app.modules.db.db_model import Cred, InstallationTasks, LetsEncryptState, LetsEncryptDnsProfile, OidcProvider, PacemakerChange
 
 
 SECRET_FIELDS = ('password', 'passphrase', 'private_key')
@@ -119,6 +119,26 @@ def rotate_credentials() -> int:
                 updates[field] = 'fernet:' + new_fernet.encrypt(plaintext).decode('ascii')
             if updates:
                 type(state).update(**updates).where(type(state).id == state.id).execute()
+                rotated_credentials += 1
+
+        for change in PacemakerChange.select():
+            updates = {}
+            for field in ('candidate', 'previous', 'result', 'details'):
+                value = getattr(change, field)
+                if not value:
+                    continue
+                token = value.encode('ascii')
+                try:
+                    plaintext = old_fernet.decrypt(token)
+                except InvalidToken as error:
+                    try:
+                        new_fernet.decrypt(token)
+                    except InvalidToken:
+                        raise RuntimeError(f'Pacemaker change {change.id} contains an invalid encrypted field') from error
+                    continue
+                updates[field] = new_fernet.encrypt(plaintext).decode('ascii')
+            if updates:
+                PacemakerChange.update(**updates).where(PacemakerChange.id == change.id).execute()
                 rotated_credentials += 1
 
     return rotated_credentials

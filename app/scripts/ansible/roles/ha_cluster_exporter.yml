@@ -1,0 +1,5 @@
+---
+- hosts: all
+  become: true
+  roles:
+    - role: ha_cluster_exporter

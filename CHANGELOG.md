@@ -2,6 +2,53 @@
 
 These notes cover **Roxy-WI 9.1 and later**.
 
+## Unreleased
+
+- Reject full Corosync membership replacement during validation and before apply.
+  Require the selected witness address, active TLS and a vote on every resulting
+  member before marking a membership/witness change applied.
+
+- Keep unexpected Pacemaker exception details out of API errors while retaining
+  deliberate input guidance. Restrict HA technology navigation to the same HTTP(S)
+  origin and add security regressions for both boundaries.
+
+- Add reviewed Docker-to-native witness conversion, fixed-recipe image refresh,
+  cross-host witness/CA migration with local client keys and GUI recovery, plus
+  planned custom Corosync-to-managed transport maintenance and explicit resume.
+- Integrate ClusterLabs HA Cluster Exporter into Installation/Monitoring, with
+  fixed checksums, actual metrics and Prometheus target output. Add native daemon
+  Auto Start policy controls and prevent independent proxy recovery from fighting
+  Pacemaker-owned applications.
+
+- Add reviewed native-to-Docker witness conversion with a preserved NSS/CA database, host recovery timer and web recovery/log controls; replace membership JSON entry with discovered node tables.
+
+- Standalone quorum witness installer supports a managed Docker variant with persistent TLS identity and container-aware cluster certificate setup.
+
+- Add Corosync/Pacemaker under Services with group-scoped cluster registration,
+  detected apt/dnf provisioning, resource/fencing and constraint forms, lossless CIB
+  editing, validation/simulation and versioned patch commits.
+- Add node/resource controls, encrypted configuration history, reviewed CIB
+  restoration, coordinated membership changes, TLS net qdevice setup, journals
+  and opt-in health notifications through the existing Operations infrastructure.
+- Include cluster snapshots in credential-key rotation. Keep uncertain remote
+  writes visible and prevent automatic replay of interrupted cluster operations.
+
+- Add HA technology selection between Keepalived/VRRP and Corosync/Pacemaker,
+  verified adoption, a standalone qnetd installation path and two-node quorum
+  warnings. Preserve imported transport settings and existing witness certificates.
+- Add explicit optional TCP SYN protection for new cluster nodes, platform checks,
+  container workload agent choices and correct bundle action targets. Document
+  implemented profiles separately from live-tested platforms and Docker support.
+
+- Use separate service pages and standard Installation tables; invalidate CIB review
+  after editor changes. Initialize fresh RPM qnetd certificate databases, prepare
+  the Corosync state directory before validation, and offer native Proxmox fence
+  agent installation with a narrow, backed-up repair for its known EPEL path defect.
+
+- Discover installed agents and host network facts; generate parameter/timeouts
+  from native metadata, offer cluster resource/node choices, and install/update
+  repository agent packages through reviewed, version-pinned Operations jobs.
+
 ## 9.1.0
 
 ### Deployment and operations

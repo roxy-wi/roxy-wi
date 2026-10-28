@@ -1,0 +1,135 @@
+---
+- name: Validate the reviewed exporter release and target
+  ansible.builtin.assert:
+    that:
+      - ha_cluster_exporter_version == '1.4.3'
+      - ansible_service_mgr == 'systemd'
+      - ansible_system == 'Linux'
+      - ansible_architecture in ['x86_64', 'amd64', 'aarch64', 'arm64', 'ppc64le', 's390x']
+      - ha_cluster_exporter_port | int >= 1024
+      - ha_cluster_exporter_port | int <= 65535
+      - ha_cluster_exporter_listen_address in (ansible_all_ipv4_addresses + ansible_all_ipv6_addresses + ['127.0.0.1', '::1', '0.0.0.0', '::'])
+    fail_msg: Select a supported systemd node, reviewed release and an IP assigned to that host.
+
+- name: Locate the installed cluster tools without changing cluster state
+  ansible.builtin.command:
+    argv:
+      - python3
+      - -c
+      - "import json,shutil; tools=['crm_mon','cibadmin','corosync-cfgtool','corosync-quorumtool']; paths={name:shutil.which(name) for name in tools}; assert all(paths.values()), 'Install the cluster CLI tools first'; print(json.dumps(paths))"
+  register: ha_exporter_tool_output
+  changed_when: false
+
+- name: Select architecture and cluster tool paths
+  ansible.builtin.set_fact:
+    ha_exporter_arch: "{{ {'x86_64':'amd64','amd64':'amd64','aarch64':'arm64','arm64':'arm64','ppc64le':'ppc64le','s390x':'s390x'}[ansible_architecture] }}"
+    ha_exporter_tools: "{{ ha_exporter_tool_output.stdout | from_json }}"
+    ha_exporter_probe_host: "{{ '127.0.0.1' if ha_cluster_exporter_listen_address == '0.0.0.0' else '::1' if ha_cluster_exporter_listen_address == '::' else ha_cluster_exporter_listen_address }}"
+
+- name: Read managed installation marker
+  ansible.builtin.stat:
+    path: /etc/roxy-wi/ha-cluster-exporter.json
+  register: ha_exporter_marker
+
+- name: Inspect pre-existing binary
+  ansible.builtin.stat:
+    path: /usr/local/bin/ha_cluster_exporter
+  register: ha_exporter_binary
+
+- name: Refuse an unmanaged binary
+  ansible.builtin.assert:
+    that: ha_exporter_marker.stat.exists or not ha_exporter_binary.stat.exists
+    fail_msg: An unmanaged HA Cluster Exporter already exists; it will not be overwritten.
+
+- name: Create exporter cache and configuration directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /var/cache/roxy-wi
+    - /etc/roxy-wi
+    - /usr/local/bin
+
+- name: Download the exact upstream release with its reviewed SHA-256
+  ansible.builtin.get_url:
+    url: "https://github.com/ClusterLabs/ha_cluster_exporter/releases/download/{{ ha_cluster_exporter_version }}/ha_cluster_exporter-{{ ha_exporter_arch }}.gz"
+    dest: "/var/cache/roxy-wi/ha_cluster_exporter-{{ ha_cluster_exporter_version }}-{{ ha_exporter_arch }}.gz"
+    checksum: "sha256:{{ ha_cluster_exporter_checksums[ha_exporter_arch] }}"
+    owner: root
+    group: root
+    mode: '0644'
+    timeout: 60
+
+- name: Publish the verified executable atomically
+  ansible.builtin.command:
+    argv:
+      - python3
+      - -c
+      - |
+        import gzip,hashlib,os,pathlib,subprocess,sys,tempfile
+        source=pathlib.Path(sys.argv[1]);target=pathlib.Path('/usr/local/bin/ha_cluster_exporter')
+        with gzip.open(source,'rb') as stream: data=stream.read(128*1024*1024+1)
+        assert data.startswith(b'\x7fELF') and len(data)<=128*1024*1024, 'Invalid exporter executable'
+        if target.exists() and target.read_bytes()==data:
+            print('unchanged');raise SystemExit(0)
+        staged=None
+        try:
+            with tempfile.NamedTemporaryFile(dir=target.parent,prefix='.ha-exporter-',delete=False) as stream:
+                staged=pathlib.Path(stream.name);stream.write(data);stream.flush();os.fsync(stream.fileno())
+            staged.chmod(0o755)
+            result=subprocess.run([str(staged),'--version'],capture_output=True,text=True,check=True,timeout=15)
+            assert 'version 1.4.3 ' in result.stdout+result.stderr, 'Unexpected exporter version'
+            os.replace(staged,target);print('changed')
+        finally:
+            if staged is not None: staged.unlink(missing_ok=True)
+      - "/var/cache/roxy-wi/ha_cluster_exporter-{{ ha_cluster_exporter_version }}-{{ ha_exporter_arch }}.gz"
+  register: ha_exporter_publish
+  changed_when: "'changed' == ha_exporter_publish.stdout"
+  notify: Restart HA Cluster Exporter
+
+- name: Restore executable SELinux context where available
+  ansible.builtin.command:
+    argv: [restorecon, /usr/local/bin/ha_cluster_exporter]
+  when: ansible_selinux.status | default('disabled') == 'enabled'
+  changed_when: false
+
+- name: Install the managed exporter service
+  ansible.builtin.template:
+    src: ha_cluster_exporter.service.j2
+    dest: /etc/systemd/system/ha_cluster_exporter.service
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart HA Cluster Exporter
+
+- name: Record non-secret managed listener settings
+  ansible.builtin.copy:
+    content: "{{ {'listen_address':ha_cluster_exporter_listen_address,'port':ha_cluster_exporter_port|int,'version':ha_cluster_exporter_version} | to_nice_json }}"
+    dest: /etc/roxy-wi/ha-cluster-exporter.json
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Apply service changes before readiness check
+  ansible.builtin.meta: flush_handlers
+
+- name: Enable and start exporter
+  ansible.builtin.systemd:
+    name: ha_cluster_exporter
+    daemon_reload: true
+    enabled: true
+    state: started
+
+- name: Check actual Prometheus metrics
+  ansible.builtin.uri:
+    url: "http://{{ ('['+ha_exporter_probe_host+']') if ':' in ha_exporter_probe_host else ha_exporter_probe_host }}:{{ ha_cluster_exporter_port }}/metrics"
+    use_proxy: false
+    return_content: true
+    timeout: 20
+  register: ha_exporter_ready
+  retries: 5
+  delay: 2
+  until: ha_exporter_ready.status | default(0) == 200 and 'ha_cluster_' in (ha_exporter_ready.content | default(''))

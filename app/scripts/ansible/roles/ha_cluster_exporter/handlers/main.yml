@@ -1,0 +1,6 @@
+---
+- name: Restart HA Cluster Exporter
+  ansible.builtin.systemd:
+    name: ha_cluster_exporter
+    daemon_reload: true
+    state: restarted
