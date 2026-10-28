@@ -58,42 +58,6 @@ def action(server_ip: Union[IPvAnyAddress, DomainName]):
         return 'error: ' + safe_error_message(e)
 
 
-@bp.route('/tables/<server_ip>')
-@validate()
-def get_all_tables(server_ip: Union[IPvAnyAddress, DomainName]):
-    try:
-        return runtime.get_all_stick_table(str(server_ip))
-    except Exception as e:
-        return 'error: ' + safe_error_message(e)
-
-
-@bp.route('/table/<server_ip>/<table>')
-@validate()
-def get_table(server_ip: Union[IPvAnyAddress, DomainName], table: EscapedString):
-    try:
-        return runtime.table_select(str(server_ip), table)
-    except Exception as e:
-        return 'error: ' + safe_error_message(e)
-
-
-@bp.route('/table/delete/<server_ip>/<table>/<ip_for_delete>', methods=['POST'])
-@validate()
-def delete_ip(server_ip: Union[IPvAnyAddress, DomainName], table: EscapedString, ip_for_delete: Union[IPvAnyAddress, DomainName]):
-    try:
-        return runtime.delete_ip_from_stick_table(str(server_ip), str(ip_for_delete), table)
-    except Exception as e:
-        return 'error: ' + safe_error_message(e)
-
-
-@bp.route('/table/clear/<server_ip>/<table>', methods=['POST'])
-@validate()
-def clear_table(server_ip: Union[IPvAnyAddress, DomainName], table: EscapedString):
-    try:
-        return runtime.clear_stick_table(str(server_ip), table)
-    except Exception as e:
-        return 'error: ' + safe_error_message(e)
-
-
 @bp.route('/list/<server_ip>')
 @validate()
 def get_lists(server_ip: Union[IPvAnyAddress, DomainName]):

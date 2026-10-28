@@ -5,14 +5,10 @@ window.HaproxyStatsSessions = function (options) {
     const rows = new Map();
     const pageSize = 50;
     let page = 0, scope = null, selected = null;
-    let serial = 0, controller = null, dialog = null, pending = false;
+    let serial = 0, pending = false;
+    const transport = window.HaproxyStatsRuntime(options);
+    const {request, result} = transport;
     const display = value => value == null || /^<none>$/i.test(value) ? '—' : value;
-    const result = (message, error = false) => {
-        const element = get('action-result');
-        element.hidden = false;
-        element.dataset.error = String(error);
-        element.textContent = message;
-    };
     const closeDetail = () => {
         selected = null;
         get('session-detail').hidden = true;
@@ -129,36 +125,6 @@ window.HaproxyStatsSessions = function (options) {
         panel.hidden = false;
         render();
     };
-    const request = async (url, body) => {
-        const abort = new AbortController();
-        controller = abort;
-        const timeout = setTimeout(() => abort.abort(), 20000);
-        try {
-            const response = await fetch(url, {method: body ? 'POST' : 'GET', cache: 'no-store', signal: abort.signal,
-                headers: {'Accept': 'application/json', 'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest', ...(body ? {'X-CSRF-TOKEN': csrf_token} : {})},
-                ...(body ? {body: JSON.stringify(body)} : {})});
-            const data = await response.json();
-            if (!response.ok || data.status !== 'ok') throw new Error(response.status === 401 ? 'auth_required' :
-                data.code || (response.status === 403 ? 'permission_denied' : 'operation_failed'));
-            return data;
-        } finally { clearTimeout(timeout); if (controller === abort) controller = null; }
-    };
-    const confirm = data => new Promise(resolve => {
-        const element = make('div', 'hs-action-dialog');
-        element.append(make('p', 'hs-action-target', data.server + ' / ' + display(data.row.fields.src)),
-            make('p', '', display(data.row.fields.be) + ' / ' + display(data.row.fields.srv)),
-            make('p', 'hs-action-note', labels.session_terminate_hint));
-        document.body.append(element);
-        let confirmed = false;
-        dialog = element;
-        $(element).dialog({modal: true, width: Math.min(520, window.innerWidth - 32),
-            title: labels.session_terminate, classes: {'ui-dialog': 'rw-dialog-responsive hs-stats-dialog'},
-            buttons: [{text: labels.cancel, click: () => $(element).dialog('close')},
-                {text: labels.session_terminate, click: () => { confirmed = true; $(element).dialog('close'); }}],
-            close: () => { if (dialog === element) dialog = null; $(element).dialog('destroy').remove(); resolve(confirmed); }
-        });
-    });
     async function open(row, writing) {
         const snapshot = options.getSnapshot();
         if (!snapshot || pending || options.isBusy() || (writing && !canManage)) return;
@@ -175,7 +141,10 @@ window.HaproxyStatsSessions = function (options) {
             renderDetail(data);
             if (!writing) return;
             if (!data.revision) throw new Error('session_read_only');
-            if (!await confirm(data) || token !== serial) return;
+            if (!await transport.confirm(labels.session_terminate, [
+                data.server + ' / ' + display(data.row.fields.src),
+                display(data.row.fields.be) + ' / ' + display(data.row.fields.srv),
+                labels.session_terminate_hint]) || token !== serial) return;
             result(labels.applying);
             sent = true;
             await request(url, {...body, revision: data.revision});
@@ -197,9 +166,7 @@ window.HaproxyStatsSessions = function (options) {
     }
     const deactivate = () => {
         serial++;
-        if (controller) controller.abort();
-        controller = null;
-        if (dialog) $(dialog).dialog('close');
+        transport.deactivate();
         pending = false;
     };
     get('session-search').addEventListener('input', () => { page = 0; render(); });

@@ -80,6 +80,10 @@ body:has(.haproxy-stats-page) .ui-widget-overlay {z-index:1002 !important;}
 .hs-session-list {min-width:0;}
 .hs-session-table td, .hs-session-table th {text-align:left;}
 .hs-session-table tr[aria-selected=true] {background:var(--rw-surface-muted);}
+.hs-stick-row[aria-selected=true] {background:var(--rw-surface-muted);}
+.haproxy-stats .hs-table-key {min-width:130px; max-width:320px; white-space:normal; overflow-wrap:anywhere;}
+#hs-table-select {min-width:180px;}
+#hs-table-clear {color:var(--rw-danger);}
 .hs-session-protocol, .hs-session-server {display:block; color:var(--rw-text-muted); margin-top:3px;}
 .hs-session-pages {display:flex; align-items:center; justify-content:flex-end; gap:12px;}
 .hs-session-detail {padding:14px; border:1px solid var(--rw-border); border-radius:8px; background:var(--rw-surface); min-width:0;}

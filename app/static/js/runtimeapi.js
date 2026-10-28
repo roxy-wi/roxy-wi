@@ -25,23 +25,6 @@ $( function() {
 		showRuntime();
 		return false;
 	});
-	$("#table_serv_select").on('selectmenuchange', function () {
-		$.ajax({
-			url: "/runtimeapi/tables/" + $('#table_serv_select').val(),
-			success: function (data) {
-				data = data.replace(/\s+/g, '');
-				if (data.indexOf('error: ') != '-1') {
-					toastr.error(data);
-				} else {
-					generate_select(data, '#table_select', 'All', ',');
-				}
-			}
-		});
-	});
-	$('#runtimeapitable').submit(function () {
-		getTable();
-		return false;
-	});
 	$('#runtimeapilist').submit(function () {
 		getList();
 		return false;
@@ -79,48 +62,6 @@ $( function() {
 		});
 	});
 });
-function deleteTableEntry(id, table, ip) {
-	$(id).parent().parent().css("background-color", "#f2dede");
-	$.ajax( {
-		url: "/runtimeapi/table/delete/" + $('#table_serv_select').val() + "/" + table + "/" + ip,
-		type: "POST",
-    	success: function( data ) {
-    	    if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
-    		} else {
-    		    $(id).parent().parent().remove()
-    		}
-    	}
-    } );
-}
-function clearTable(table) {
-	$.ajax( {
-		url: "/runtimeapi/table/clear/" + $('#table_serv_select').val() + "/" + table,
-		type: "POST",
-		success: function( data ) {
-			if (data.indexOf('error: ') != '-1') {
-				toastr.error(data);
-			} else {
-				getTable();
-			}
-		}
-	} );
-}
-function getTable() {
-	$.ajax({
-		url: "/runtimeapi/table/" + $('#table_serv_select').val() + "/" + $('#table_select').val(),
-		success: function (data) {
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				$("#ajaxtable").html(data);
-				$("input[type=submit], button").button();
-				$.getScript(overview);
-				$.getScript(awesome);
-			}
-		}
-	});
-}
 function getList() {
 	let color = $('#list_select  option:selected').text().split('/')[0];
 	let list_name = $('#list_select  option:selected').text().split('/')[1];
@@ -191,21 +132,4 @@ function addNewIp() {
 			}
 		});
 	}
-}
-function generate_select(values, select_tag, custom_value=0, separator='<br>') {
-	let value = values.split(separator)
-	$(select_tag).find('option').remove();
-	$(select_tag).append($("<option></option>").attr("value", "disabled").text("------"));
-	if (custom_value) {
-		$(select_tag).append($("<option></option>").attr("value", custom_value).text(custom_value));
-	}
-	for (let i = 0; i < values.split(separator).length; i++) {
-		if (value[i] != ' ' && value[i] != '' ) {
-			value[i] = value[i].replace(/\s+/g, '');
-			$(select_tag).append($("<option></option>")
-				.attr("value", value[i])
-				.text(value[i]));
-		}
-	}
-	$(select_tag).selectmenu("refresh");
 }

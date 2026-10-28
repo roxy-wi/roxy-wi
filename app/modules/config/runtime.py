@@ -242,23 +242,17 @@ def _list_file_path(lib_path: str, user_group: int, list_name: str) -> Path:
 	return list_path
 
 
-def get_all_stick_table(serv: str):
-	hap_sock_p = sql.get_setting('haproxy_sock_port')
-	output, _stderr = _runtime_command(serv, hap_sock_p, 'show table')
-	return ''.join(line.split()[2] for line in output if len(line.split()) > 2)
+def escape_runtime_argument(value: str) -> str:
+	"""Escape a single CLI argument, including command separators."""
+	return ''.join('\\' + char if char in '\\; \t' else char for char in value)
 
 
-def get_stick_table(serv: str, table: str):
-	hap_sock_p = sql.get_setting('haproxy_sock_port')
-	output, _stderr = _runtime_command(serv, hap_sock_p, f'show table {table}')
-	header = next((line.split('#', 1)[1] for line in output if '#' in line), '')
-	tables_head = []
-	for item in header.split(','):
-		if ':' in item:
-			tables_head.append(item.split(':', 1)[1])
-	output = [line for line in output if '#' not in line]
+def get_all_stick_table(serv: str, *, sock_port: int) -> str:
+	return execute_runtime_command(serv, int(sock_port), 'show table')
 
-	return tables_head, output
+
+def get_stick_table(serv: str, table: str, *, sock_port: int) -> str:
+	return execute_runtime_command(serv, int(sock_port), f'show table {escape_runtime_argument(table)}')
 
 
 def show_backends(server_ip, **kwargs):
@@ -287,42 +281,12 @@ def show_backends(server_ip, **kwargs):
 	return lines
 
 
-def table_select(serv: str, table: str):
-	lang = roxywi_common.get_user_lang_for_flask()
-
-	if table == 'All':
-		tables = get_all_stick_table(serv)
-		table = []
-		for t in tables.split(','):
-			if t != '':
-				table_id = []
-				tables_head1, table1 = get_stick_table(serv, t)
-				table_id.append(tables_head1)
-				table_id.append(table1)
-				table.append(table_id)
-
-		return render_template('ajax/stick_tables.html', table=table, lang=lang)
-	else:
-		tables_head, table = get_stick_table(serv, table)
-		return render_template('ajax/stick_table.html', tables_head=tables_head, table=table, lang=lang)
-
-
-def delete_ip_from_stick_table(serv, ip, table) -> str:
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-
-	_output, stderr = _runtime_command(serv, haproxy_sock_port, f'clear table {table} key {ip}')
-	if stderr != '':
-		return f'error: {stderr}'
-	return 'ok'
-
-
-def clear_stick_table(serv, table) -> str:
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-
-	_output, stderr = _runtime_command(serv, haproxy_sock_port, f'clear table {table}')
-	if stderr != '':
-		return f'error: {stderr}'
-	return 'ok'
+def clear_stick_table(serv: str, table: str, *, sock_port: int, key: str | None = None) -> str:
+	"""Clear a table or one entry and preserve HAProxy's reply for the caller."""
+	command = f'clear table {escape_runtime_argument(table)}'
+	if key is not None:
+		command += f' key {escape_runtime_argument(key)}'
+	return execute_runtime_command(serv, int(sock_port), command)
 
 
 def list_of_lists(serv) -> dict:

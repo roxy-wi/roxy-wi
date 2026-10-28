@@ -19,8 +19,6 @@ def test_scheduler_api_is_disabled_and_scheduler_is_not_started_in_web_process(a
 @pytest.mark.security
 @pytest.mark.parametrize('rule_path', [
     '/service/<service>/<server_id>/<any(start, stop, reload, restart):action>',
-    '/runtimeapi/table/delete/<server_ip>/<table>/<ip_for_delete>',
-    '/runtimeapi/table/clear/<server_ip>/<table>',
     '/waf/<server_ip>/rule/<int:rule_id>/<int:enable>',
     '/waf/<any(haproxy, nginx):service>/<server_ip>/rule/<int:rule_id>/<int:enable>',
     '/waf/<any(haproxy, nginx):service>/mode/<int:server_id>/<any(On, Off, DetectionOnly):waf_mode>',

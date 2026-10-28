@@ -82,19 +82,23 @@
     let selection = 0;
     let actionPending = null;
     let actionDialog = null;
-    let sessionSnapshot = null;
-    let sessionsView = null;
-    let activeView = new URL(location.href).searchParams.get('view') === 'sessions' ? 'sessions' : 'overview';
-    const currentSnapshot = () => activeView === 'sessions' ? sessionSnapshot : snapshot;
+    const snapshots = {sessions: null, tables: null};
+    const views = {};
+    const viewNames = ['overview', 'sessions', 'tables'];
+    const requestedView = new URL(location.href).searchParams.get('view');
+    let activeView = viewNames.includes(requestedView) ? requestedView : 'overview';
+    let selectedTable = '';
+    const currentSnapshot = () => activeView === 'overview' ? snapshot : snapshots[activeView];
+    const runtimePending = () => Object.values(views).some(view => view.pending);
 
     const updateActions = () => {
-        const disabled = busy || !!actionPending || !!sessionsView?.pending || root.dataset.stale === 'true';
+        const disabled = busy || !!actionPending || runtimePending() || root.dataset.stale === 'true';
         groups.forEach(group => group.rows.forEach(entry => {
             if (entry.actions) entry.actions.querySelectorAll('button').forEach(button => { button.disabled = disabled; });
             entry.cells.get('sessions').disabled = disabled || !['frontend', 'backend', 'server'].includes(entry.data.kind);
         }));
-        get('refresh').disabled = !get('server').value || busy || !!actionPending || !!sessionsView?.pending;
-        if (sessionsView) sessionsView.updateActions(disabled);
+        get('refresh').disabled = !get('server').value || busy || !!actionPending || runtimePending();
+        Object.values(views).forEach(view => view.updateActions(disabled));
         if (get('global-actions')) get('global-actions').querySelectorAll('button').forEach(button => {
             button.disabled = disabled || !snapshot;
         });
@@ -595,7 +599,7 @@
                 value.type = 'button';
                 value.addEventListener('click', () => {
                     if (!['frontend', 'backend', 'server'].includes(entry.data.kind)) return;
-                    sessionsView.setScope(entry.data);
+                    views.sessions.setScope(entry.data);
                     selectView('sessions');
                 });
             }
@@ -725,10 +729,20 @@
         updateActions();
     };
 
-    sessionsView = window.HaproxyStatsSessions({get, make, labels, canManage, renderActionIcons, makeMenu: actionMenu,
-        getSnapshot: () => sessionSnapshot, getServer: () => get('server').value,
+    const viewOptions = {get, make, labels, canManage, renderActionIcons, makeMenu: actionMenu,
+        getServer: () => get('server').value,
         isBusy: () => busy || !!actionPending || root.dataset.stale === 'true',
-        onBusyChange: () => { updateActions(); schedule(); }, onRefresh: refresh});
+        onBusyChange: () => { updateActions(); schedule(); }, onRefresh: refresh};
+    views.sessions = window.HaproxyStatsSessions({...viewOptions, getSnapshot: () => snapshots.sessions});
+    views.tables = window.HaproxyStatsTables({...viewOptions, getSnapshot: () => snapshots.tables,
+        onTableChange: () => {
+            selectedTable = get('table-select').value;
+            generation++;
+            if (controller) controller.abort();
+            busy = false;
+            get('action-result').hidden = true;
+            refresh();
+        }});
 
     const status = (prefix = '') => {
         const current = currentSnapshot();
@@ -739,10 +753,10 @@
     const schedule = () => {
         clearTimeout(timer);
         const interval = Number(get('interval').value);
-        if (!stopped && interval && get('server').value && !document.hidden && !busy && !actionPending && !sessionsView.pending) timer = setTimeout(refresh, interval * 1000);
+        if (!stopped && interval && get('server').value && !document.hidden && !busy && !actionPending && !runtimePending()) timer = setTimeout(refresh, interval * 1000);
     };
     async function refresh() {
-        if (busy || stopped || actionPending || sessionsView.pending || !get('server').value) return;
+        if (busy || stopped || actionPending || runtimePending() || !get('server').value) return;
         clearTimeout(timer);
         const server = get('server').value;
         const token = ++generation;
@@ -755,7 +769,9 @@
         const timeout = setTimeout(() => { timedOut = true; requestController.abort(); }, 20000);
         status(labels.loading);
         try {
-            const response = await fetch('/stats/' + (activeView === 'sessions' ? 'sessions' : 'view') + '/haproxy/' + encodeURIComponent(server), {
+            const endpoint = activeView === 'overview' ? 'view' : activeView;
+            const query = activeView === 'tables' && selectedTable ? '?' + new URLSearchParams({table: selectedTable}) : '';
+            const response = await fetch('/stats/' + endpoint + '/haproxy/' + encodeURIComponent(server) + query, {
                 signal: requestController.signal, cache: 'no-store',
                 headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}
             });
@@ -768,10 +784,11 @@
             if (token !== generation) return;
             const current = currentSnapshot();
             const restarted = current && (current.info.Pid !== data.info.Pid || current.info.Uptime_sec > data.info.Uptime_sec);
-            if (activeView === 'sessions') {
-                if (restarted) sessionsView.reset();
-                sessionSnapshot = data;
-                sessionsView.render();
+            if (activeView !== 'overview') {
+                if (restarted) views[activeView].reset();
+                snapshots[activeView] = data;
+                if (activeView === 'tables') selectedTable = data.table?.name || '';
+                views[activeView].render();
             } else {
                 snapshot = data;
                 render(data);
@@ -781,6 +798,8 @@
             status(restarted ? labels.restarted : '');
         } catch (error) {
             if (token !== generation) return;
+            // Reload the catalogue on the next refresh if a reload removed the table.
+            if (activeView === 'tables' && error.message === 'table_gone') selectedTable = '';
             get('error').hidden = false;
             text(get('error'), (currentSnapshot() ? labels.stale + ' ' : '') +
                 (timedOut ? labels.runtime_timeout : labels[error.message] || labels.operation_failed));
@@ -798,14 +817,14 @@
         }
     }
     const showView = () => {
-        ['overview', 'sessions'].forEach(view => {
+        viewNames.forEach(view => {
             get(view).hidden = view !== activeView;
             get('tab-' + view).setAttribute('aria-selected', String(view === activeView));
         });
     };
     const selectView = view => {
         if (view === activeView) return;
-        sessionsView.deactivate();
+        Object.values(views).forEach(view => view.deactivate());
         selection++;
         actionPending = null;
         if (actionDialog) $(actionDialog).dialog('close');
@@ -821,13 +840,13 @@
         hideTooltip();
         showView();
         const url = new URL(location.href);
-        if (view === 'sessions') url.searchParams.set('view', 'sessions'); else url.searchParams.delete('view');
+        if (view !== 'overview') url.searchParams.set('view', view); else url.searchParams.delete('view');
         history.replaceState(null, '', url);
         status();
         updateActions();
         refresh();
     };
-    ['overview', 'sessions'].forEach(view => get('tab-' + view).addEventListener('click', () => selectView(view)));
+    viewNames.forEach(view => get('tab-' + view).addEventListener('click', () => selectView(view)));
     get('refresh').addEventListener('click', refresh);
     get('interval').addEventListener('change', () => { if (!busy) status(); schedule(); });
     get('server').addEventListener('change', () => {
@@ -842,8 +861,8 @@
         busy = false;
         clearTimeout(timer);
         snapshot = null;
-        sessionSnapshot = null;
-        sessionsView.reset();
+        selectedTable = '';
+        Object.keys(views).forEach(name => { snapshots[name] = null; views[name].reset(); });
         groups.clear();
         get('groups').replaceChildren();
         get('summary').hidden = true;
@@ -852,7 +871,7 @@
         filterRows();
         get('refresh').disabled = !get('server').value;
         if (get('server').value) {
-            history.replaceState(null, '', '/stats/haproxy/' + encodeURIComponent(get('server').value) + (activeView === 'sessions' ? '?view=sessions' : ''));
+            history.replaceState(null, '', '/stats/haproxy/' + encodeURIComponent(get('server').value) + (activeView !== 'overview' ? '?view=' + activeView : ''));
             refresh();
         } else {
             history.replaceState(null, '', '/stats/haproxy/');
@@ -869,7 +888,7 @@
         actionPending = null;
         if (actionDialog) $(actionDialog).dialog('close');
         stopped = true;
-        sessionsView.deactivate();
+        Object.values(views).forEach(view => view.deactivate());
         generation++;
         clearTimeout(timer);
         if (controller) controller.abort();

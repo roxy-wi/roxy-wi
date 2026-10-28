@@ -71,10 +71,6 @@ def test_local_command_failure_does_not_escape_through_stderr(monkeypatch, safe_
 
 @pytest.mark.parametrize(('route', 'operation', 'args'), (
     ('show_backends', 'show_backends', ('192.0.2.10',)),
-    ('get_all_tables', 'get_all_stick_table', ('192.0.2.10',)),
-    ('get_table', 'table_select', ('192.0.2.10', 'table')),
-    ('delete_ip', 'delete_ip_from_stick_table', ('192.0.2.10', 'table', '192.0.2.20')),
-    ('clear_table', 'clear_stick_table', ('192.0.2.10', 'table')),
     ('get_lists', 'list_of_lists', ('192.0.2.10',)),
     ('get_list', 'show_lists', ('192.0.2.10', 1, 'white', 'allow.lst')),
 ))

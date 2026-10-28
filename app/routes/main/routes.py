@@ -25,11 +25,12 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
 from app.modules.service.stats import (
     haproxy_stats, haproxy_stats_actions, haproxy_stats_config, haproxy_stats_maxconn, haproxy_stats_servers,
-    haproxy_stats_sessions,
+    haproxy_stats_sessions, haproxy_stats_tables,
 )
 from app.modules.roxywi.class_models import (
     ErrorResponse, NettoolsRequest, DomainName, HaproxyStatsMaxconnRequest,
     HaproxyStatsServerQuery, HaproxyStatsServerRequest, HaproxyStatsSessionQuery, HaproxyStatsSessionDelete,
+    HaproxyStatsTableQuery, HaproxyStatsTableChange,
 )
 from app.modules.roxywi.exception import RoxywiPermissionError
 from app.modules.subscription.access import MANAGED_SERVICES, require_feature
@@ -249,13 +250,16 @@ def stats_manage_servers(service: str, server_ip: Union[IPvAnyAddress, DomainNam
     return response
 
 
-@bp.get('/stats/sessions/<any(haproxy):service>/<server_ip>', defaults={'details': False})
-@bp.route('/stats/session/<any(haproxy):service>/<server_ip>', methods=['GET', 'POST'], defaults={'details': True})
+@bp.get('/stats/sessions/<any(haproxy):service>/<server_ip>', defaults={'resource': 'sessions', 'details': False})
+@bp.route('/stats/session/<any(haproxy):service>/<server_ip>', methods=['GET', 'POST'],
+          defaults={'resource': 'sessions', 'details': True})
+@bp.route('/stats/tables/<any(haproxy):service>/<server_ip>', methods=['GET', 'POST'],
+          defaults={'resource': 'tables', 'details': False})
 @jwt_required()
 @check_services
 @get_user_params()
 @validate()
-def stats_sessions(service: str, server_ip: Union[IPvAnyAddress, DomainName], details: bool):
+def stats_runtime_data(service: str, server_ip: Union[IPvAnyAddress, DomainName], resource: str, details: bool):
     server = roxywi_common.require_server_access(server_ip)
     if not server.haproxy:
         abort(404)
@@ -264,7 +268,17 @@ def stats_sessions(service: str, server_ip: Union[IPvAnyAddress, DomainName], de
         abort(403)
     try:
         port = sql.get_setting('haproxy_sock_port', group_id=server.group_id)
-        if writing:
+        if resource == 'tables':
+            if writing:
+                body = HaproxyStatsTableChange.model_validate(request.get_json(silent=True))
+                data = haproxy_stats_tables.change(str(server.ip), port, body.model_dump())
+                # Keys can contain personal data; record the operation and table only.
+                message = f'HAProxy Stats: {body.action} stick table {body.table}'
+                roxywi_common.logging(server.ip, message, keep_history=1, service='haproxy')
+            else:
+                query = HaproxyStatsTableQuery.model_validate(request.args.to_dict())
+                data = haproxy_stats_tables.collect_tables(str(server.ip), port, query.table)
+        elif writing:
             body = HaproxyStatsSessionDelete.model_validate(request.get_json(silent=True))
             command = haproxy_stats_sessions.terminate(str(server.ip), port, body.model_dump())
             roxywi_common.logging(server.ip, f'HAProxy Stats: {command}', keep_history=1, service='haproxy')

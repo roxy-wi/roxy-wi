@@ -411,6 +411,29 @@ class LetsEncryptDeleteRequest(BaseModel):
     description: Optional[EscapedString] = None
 
 
+class HaproxyStatsTableQuery(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+
+    table: str | None = Field(default=None, min_length=1, max_length=256, pattern=r'^[A-Za-z0-9_.:/-]+$')
+
+
+class HaproxyStatsTableChange(HaproxyStatsTableQuery):
+    model_config = ConfigDict(extra='forbid', strict=True)
+
+    table: str = Field(min_length=1, max_length=256, pattern=r'^[A-Za-z0-9_.:/-]+$')
+    action: Literal['delete', 'clear']
+    revision: str = Field(pattern=r'^[a-f0-9]{64}$')
+    row_key: str | None = Field(default=None, pattern=r'^[a-f0-9]{64}$')
+    pid: int = Field(gt=0)
+    uptime: int = Field(ge=0)
+
+    @model_validator(mode='after')
+    def entry_required_for_delete(self):
+        if (self.action == 'delete') != (self.row_key is not None):
+            raise ValueError('Only deletion of an entry requires a row key')
+        return self
+
+
 class HaproxyStatsSessionQuery(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
