@@ -2,14 +2,15 @@
   <img src="app/static/images/logo_menu.png" alt="Roxy-WI" width="210">
 </p>
 
-# Manage your proxies. Control every change.
+# Manage your proxies and HA clusters. Control every change.
 
 > This documentation applies to **Roxy-WI 9.1 and later**.
 
-**Roxy-WI is a self-hosted web interface for HAProxy, NGINX, Apache and Keepalived.**
+**Roxy-WI is a self-hosted web interface for HAProxy, NGINX, Apache, Keepalived
+and Corosync/Pacemaker.**
 Connect existing servers, review configuration changes, coordinate deployments
 and follow service health from one place. Built for operators and teams managing
-proxies across multiple servers and environments.
+proxies and HA clusters across multiple servers and environments.
 
 **[Try the live demo](https://demo.roxy-wi.org) · [Get started](#get-started) · [Documentation](https://roxy-wi.org/description) · [Plans & support](https://roxy-wi.org/pricing)**
 
@@ -28,7 +29,9 @@ proxies across multiple servers and environments.
 | --- | --- |
 | Review changes before touching production | Compare configuration differences, validate candidates, require approval and keep an audit trail with **Change Center**. |
 | Coordinate a deployment across HA nodes | Choose canaries and batches, check each target, pause between stages and recover or roll back failed changes. |
+| Choose and operate your HA technology | Use Keepalived/VRRP or [Corosync/Pacemaker](#corosync-and-pacemaker) with resource management, quorum witnesses and fencing. |
 | Bring existing infrastructure into one interface | Connect servers over SSH; manage HAProxy, NGINX, Apache and Keepalived configurations and service actions. |
+| Adopt an existing Linux HA cluster | Discover Corosync/Pacemaker nodes, verify their identities and configuration, and register the cluster while preserving its running configuration. |
 | Give the right people access | Organize servers into groups, assign roles and service permissions, and integrate OIDC or LDAP authentication. |
 | Keep service health visible | Inspect backends and logs; add monitoring, traffic metrics and notifications as your needs grow. |
 | Manage certificates and configuration history | Issue Let's Encrypt certificates, retain configuration versions and configure backup destinations. |
@@ -124,14 +127,47 @@ before running an upgrade.
 
 ### Corosync and Pacemaker
 
-Use **Services → Corosync / Pacemaker** to register or provision Linux HA
-clusters, manage resources and fencing, review CIB changes, configure quorum
-witnesses and maintain cluster membership. See the
+Choose **Keepalived** or **Corosync / Pacemaker** in **HA Cluster**. Use the
+**Services → Corosync / Pacemaker** submenu for cluster status, resources,
+configuration, quorum, logs, monitoring and history. **Installation → Corosync /
+Pacemaker** provides new-cluster, adoption and standalone-witness workflows.
+
+- Provision supported Linux nodes or adopt a running cluster after reviewing
+  discovered membership and configuration.
+- Discover installed resource agents, configure resources and fencing devices,
+  and define ordering and colocation constraints through web forms.
+- Review CIB drafts, validate and simulate changes, apply digest-checked patches,
+  and keep encrypted configuration history. Control nodes and resources from the UI.
+- Configure an independent TLS quorum witness, installed natively or in Docker,
+  and use reviewed membership, witness migration and recovery workflows.
+- Install the HA Cluster Exporter, inspect metrics and diagnostics, and manage
+  daemon Auto Start policies with safeguards for Pacemaker-owned proxy services.
+
+Corosync provides cluster membership and quorum; Pacemaker coordinates resources
+and recovery. Configure and test fencing to isolate an unreachable member before
+recovering exclusive resources. Application data replication is configured separately.
+
+Corosync/Pacemaker support was merged in [#440](https://github.com/roxy-wi/roxy-wi/pull/440).
+Until it is included in a published release, use a source checkout containing that merge.
+
+See the
 [Corosync and Pacemaker guide](docs/corosync-pacemaker.md) for permissions,
 Operations requirements and recovery boundaries. The
 [HA support matrix](docs/ha-support.md) distinguishes tested platforms, apt/dnf
 installation profiles, Docker workflows and SYN-flood settings. All repository
 guides are indexed in [docs](docs/README.md).
+
+<details>
+<summary>See the Corosync/Pacemaker workspace</summary>
+
+[![Corosync/Pacemaker cluster health, quorum, nodes and resources](docs/screenshots/corosync-pacemaker/overview.png)](docs/screenshots/corosync-pacemaker/overview.png)
+
+*Running lab interface with example addresses and names. See the
+[screenshot notes](docs/screenshots/corosync-pacemaker/README.md) and
+[verification record](docs/corosync-pacemaker-verification.md) for capture details,
+tested Debian/Rocky versions and qualification limits.*
+
+</details>
 
 ### HAProxy configuration files
 
