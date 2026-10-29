@@ -1,4 +1,5 @@
 from datetime import datetime
+from uuid import uuid4
 from peewee import (
     AutoField,
     BigIntegerField,
@@ -1195,6 +1196,7 @@ class RoxyTool(BaseModel):
 
 class HaCluster(BaseModel):
     id = AutoField()
+    readiness_key = CharField(max_length=32, default=lambda: uuid4().hex)
     name = CharField()
     syn_flood = IntegerField(constraints=[SQL('DEFAULT "0"')])
     group_id = IntegerField()
@@ -1392,6 +1394,7 @@ class InstallationTasks(BaseModel):
 
 class PacemakerCluster(BaseModel):
     id = AutoField()
+    readiness_key = CharField(max_length=32, default=lambda: uuid4().hex)
     name = CharField()
     group_id = IntegerField(index=True)
     description = TextField(default='')
@@ -1429,6 +1432,35 @@ class CertificateSource(BaseModel):
 
     class Meta:
         table_name = 'certificate_sources'
+
+
+class OperationalAssessment(BaseModel):
+    id = AutoField()
+    group_id = IntegerField(index=True)
+    user_id = IntegerField()
+    kind = CharField()
+    subject = CharField()
+    created_at = DateTimeField(default=utc_now)
+    task_id = IntegerField(null=True)
+    result = LargeTextField(default='')
+
+    class Meta:
+        table_name = 'operational_assessments'
+
+
+class HaReadinessProfile(BaseModel):
+    id = AutoField()
+    group_id = IntegerField()
+    provider = CharField()
+    cluster_id = IntegerField()
+    registration_key = CharField(max_length=32, default='')
+    revision = IntegerField(default=1)
+    domains = TextField(default='{}')
+    attestations = TextField(default='[]')
+
+    class Meta:
+        table_name = 'ha_readiness_profiles'
+        indexes = ((('group_id', 'provider', 'cluster_id', 'registration_key'), True),)
 
 
 class PacemakerChange(BaseModel):
@@ -1475,5 +1507,6 @@ def create_tables():
              KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
              HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, NginxSection, InstallationTasks,
-             PacemakerCluster, PacemakerChange, PacemakerEvent, CertificateSource]
+             PacemakerCluster, PacemakerChange, PacemakerEvent, CertificateSource,
+             OperationalAssessment, HaReadinessProfile]
         )
