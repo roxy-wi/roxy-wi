@@ -336,12 +336,11 @@ def show_map(serv: str, group_id: int) -> dict:
     server = server_sql.get_server_by_ip(serv)
     is_dockerized = service_sql.select_service_setting(server.server_id, 'nginx', 'dockerized') == '1'
     if is_dockerized:
-        container_name = sql.get_setting('nginx_container_name', group_id=group_id)
+        from app.modules.service import container_settings
+        container_name = container_settings.name(server.server_id, 'nginx')
         if not container_name:
             raise RuntimeError('NGINX container name is not configured')
-        command = build_remote_command(
-            'docker', ['exec', container_name, 'nginx', '-T'], sudo=True, merge_stderr=True
-        )
+        command = container_settings.command(server.server_id, 'nginx', ['exec', container_name, 'nginx', '-T']) + ' 2>&1'
     else:
         command = build_remote_command('nginx', ['-T'], sudo=True, merge_stderr=True)
 

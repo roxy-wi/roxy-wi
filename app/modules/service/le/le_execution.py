@@ -9,6 +9,7 @@ from uuid import uuid4
 from app.modules.common.time import utc_now
 from app.modules.db.db_model import LetsEncrypt, LetsEncryptState, InstallationTasks, Server
 from app.modules.operations.queue import deserialize_operation_payload
+from app.modules.service import certificate_deployment
 from app.modules.service.le import le_store, le_certbot, le_profiles
 from app.modules.service.le.le_lock import file_lock
 from app.modules.roxywi.exception import RoxywiPublicError
@@ -36,32 +37,58 @@ def delete_material(state, data, group_id):
         shutil.rmtree(target)
 
 
-def finish_deployment(state, group_id, phase):
+def deployment_journal(state):
     deployment = json.loads(state.deployment)
-    deployment['phase'] = phase
-    state.deployment = json.dumps(deployment)
-    state.save()
+    # Read the pre-unification journal in place. Existing remote transaction IDs
+    # and completed commit/rollback receipts must survive an application upgrade.
+    for target in deployment.get('targets', {}).values():
+        target.setdefault('started', True)
+        if target.get('commit'):
+            target.setdefault('finished', 'commit')
+            target.setdefault('status', 'applied')
+        elif target.get('rollback'):
+            target.setdefault('finished', 'rollback')
+            target.setdefault('status', 'rolled_back')
+    return deployment
+
+
+def resolve_target(group_id, key, target):
+    server = Server.get_or_none((Server.server_id == int(key)) & (Server.group_id == str(group_id)))
+    if server is None or server.ip != target['address']:
+        raise le_certbot.CertificateError('Recovery target ownership or address changed; administrator action required')
+    return server
+
+
+def persist_deployment(state, deployment, fingerprint=None):
     progress = json.loads(state.targets)
-    failed = []
     for key, target in deployment['targets'].items():
-        if target.get(phase):
+        if not target.get('started'):
             continue
-        try:
-            server = Server.get_by_id(int(key))
-            if str(server.group_id) != str(group_id) or server.ip != target['address']:
-                raise le_certbot.CertificateError('Recovery target ownership or address changed; administrator action required')
-            le_certbot.remote(server, dict(target['settings'], operation=phase, transaction=deployment['id']))
-            target[phase] = True
-            if phase == 'rollback':
-                progress[key] = {'status': 'rolled_back', 'address': server.ip}
-        except Exception:
-            failed.append(key)
-            if phase == 'rollback':
-                progress[key] = {'status': 'rollback_failed', 'address': target['address']}
-        state.deployment, state.targets = json.dumps(deployment), json.dumps(progress)
-        state.save()
-    if failed:
-        raise le_certbot.CertificateError('Certificate ' + phase + ' incomplete on servers ' + ', '.join(failed))
+        status = target.get('status')
+        if status is None:
+            continue  # An unfinished journal written by an older release.
+        if status == 'applied':
+            item = dict(progress.get(key, {}), status='deployed', address=target['address'])
+            if fingerprint:
+                item['fingerprint'] = fingerprint
+            if target.get('verification'):
+                item['verification'] = target['verification']
+        else:
+            status = ('rollback_failed' if deployment['phase'] == 'rollback' and status == 'failed'
+                      else 'deploying' if status == 'applying' else status)
+            item = dict(status=status, address=target['address'])
+        progress[key] = item
+    state.deployment, state.targets = json.dumps(deployment), json.dumps(progress)
+    state.save()
+
+
+def finish_deployment(state, group_id, phase):
+    deployment = deployment_journal(state)
+    deployment['phase'] = phase
+    persist_deployment(state, deployment)
+    certificate_deployment.finish(deployment['targets'], phase, deployment['id'],
+        resolve=lambda key, target: resolve_target(group_id, key, target), remote=le_certbot.remote,
+        persist=lambda: persist_deployment(state, deployment))
     state.deployment = '{}'
     state.save()
 
@@ -125,35 +152,22 @@ def execute(task):
                     bundle = le_certbot.obtain(data, runtime, targets[0], test=operation == 'test')
                 if operation not in ('test', 'preflight'):
                     expires, fingerprint = le_certbot.inspect_bundle(bundle, data['domains'])
-                    deployment = json.loads(state.deployment) or {'id': str(uuid4()), 'phase': 'apply', 'targets': {}}
+                    deployment = deployment_journal(state) or {'id': str(uuid4()), 'phase': 'apply', 'targets': {}}
                     progress = json.loads(state.targets)
                     for server in targets:
                         key = str(server.server_id)
-                        # A completed target is safe to skip after another target fails.
-                        deployed = {'fingerprint': fingerprint, 'status': 'deployed', 'address': server.ip}
-                        if all(progress.get(key, {}).get(field) == value for field, value in deployed.items()):
-                            continue
                         target = deployment['targets'].setdefault(key, {
-                            'address': server.ip, 'settings': le_certbot.deployment_settings(server, state.pem_name)})
+                            'address': server.ip, 'settings': le_certbot.deployment_settings(server, state.pem_name),
+                            'started': False})
                         if target['address'] != server.ip:
                             raise le_certbot.CertificateError('Deployment target address changed; recovery is required')
-                        state.deployment = json.dumps(deployment)
-                        progress[key] = {'status': 'deploying'}
-                        state.targets = json.dumps(progress)
-                        state.save()
-                        try:
-                            result = le_certbot.deploy(server, bundle, state.pem_name,
-                                                      settings=target['settings'], transaction=deployment['id'])
-                        except Exception:
-                            progress[key] = {'status': 'failed'}
-                            state.targets = json.dumps(progress)
-                            state.save()
-                            raise
-                        progress[key] = deployed
-                        if result and result.get('verification'):
-                            progress[key]['verification'] = result['verification']
-                        state.targets = json.dumps(progress)
-                        state.save()
+                        deployed = {'fingerprint': fingerprint, 'status': 'deployed', 'address': server.ip}
+                        target['status'] = ('applied' if all(progress.get(key, {}).get(field) == value
+                                                          for field, value in deployed.items()) else 'pending')
+                    persist_deployment(state, deployment, fingerprint)
+                    certificate_deployment.apply(deployment['targets'], bundle, state.pem_name, deployment['id'],
+                        resolve=lambda key, target: resolve_target(task.group_id, key, target), deploy=le_certbot.deploy,
+                        persist=lambda: persist_deployment(state, deployment, fingerprint))
                     state.not_after, state.fingerprint = expires, fingerprint
                     state.applied_revision = runtime.revision
                 state.status = 'ready' if operation == 'preflight' else ('active' if state.applied_revision else 'pending')

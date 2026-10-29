@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
+from shlex import quote
 
-from flask import render_template
+from flask import render_template, g
 
 import app.modules.db.sql as sql
 import app.modules.db.add as add_sql
@@ -87,30 +88,51 @@ def create_bwlist(server_ip: str, list_name: str, color: str, group: str) -> str
 
 
 def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip: str, action: str) -> str:
+	from app.modules.config.runtime import _list_file_path
+	from app.modules.service import action as service_action, certificate_operations
+	from app.modules.server.command import build_remote_command
+	from app.modules.config.deployment_policy import require_direct_deployment
+	from app.modules.roxywi.exception import RoxywiPermissionError
+	if action not in ('save', 'reload', 'restart', 'None', None):
+		raise RoxywiInputError('Unsupported list action')
 	lib_path = get_config.get_config_var('main', 'lib_path')
-	list_path = f"{lib_path}/lists/{group}/{color}/{list_name}"
-	path = sql.get_setting('haproxy_dir') + "/" + color
+	list_path = str(_list_file_path(lib_path, int(group), f'{color}/{list_name}'))
+	path = sql.get_setting('haproxy_dir', group_id=group).rstrip('/') + "/" + color
 	servers = [server_ip]
 	output = ''
-
-	try:
-		with open(list_path, "w") as file:
-			file.write(list_con)
-	except IOError as e:
-		raise Exception(f'Cannot save {color} list: {e}')
 
 	masters = server_sql.is_master(server_ip)
 	for master in masters:
 		if master[0] is not None:
 			servers.append(master[0])
+	servers = list(dict.fromkeys(servers))
+	commands = {}
+	roxywi_common.require_active_group_access(group)
+	role = int(g.user_params['role'])
+	for serv in servers:
+		server = server_sql.get_server_by_ip(serv)
+		certificate_operations.authorize(server.server_id, int(group), g.user_params['user_id'])
+		if role > 3 or (server.protected and role > 2):
+			raise RoxywiPermissionError('Proxy list update permission is required')
+		if not server.enabled or server.type_ip or not server.haproxy:
+			raise RoxywiInputError('Select an enabled physical HAProxy server')
+		require_direct_deployment(int(group), 'haproxy')
+		if action in ('reload', 'restart'):
+			commands[serv] = service_action.get_action_command('haproxy', action, server.server_id)
+	try:
+		with open(list_path, 'w') as file:
+			file.write(list_con)
+	except IOError as e:
+		raise Exception(f'Cannot save {color} list: {e}')
 
 	for serv in servers:
-		server_mod.ssh_command(serv, f"sudo mkdir {path}")
-		server_mod.ssh_command(serv, f"sudo chown $(whoami) {path}")
+		server_mod.ssh_command(serv, build_remote_command('mkdir', ['-p', '--', path], sudo=True), rc=1, timeout=15)
+		server_mod.ssh_command(serv, 'sudo chown -- "$(id -un)" ' + quote(path), rc=1, timeout=15)
 		try:
 			config_mod.upload(serv, f'{path}/{list_name}', list_path)
 		except Exception as e:
 			output += f'error: Upload fail: to {serv}: {safe_error_message(e)} , '
+			continue
 
 		output += f'success: Edited {color} list was uploaded to {serv} , '
 		try:
@@ -118,13 +140,8 @@ def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip
 		except Exception:
 			pass
 
-		server_id = server_sql.get_server_by_ip(serv).server_id
-		haproxy_service_name = service_common.get_correct_service_name('haproxy', server_id)
-
-		if action == 'restart':
-			server_mod.ssh_command(serv, f"sudo systemctl restart {haproxy_service_name}")
-		elif action == 'reload':
-			server_mod.ssh_command(serv, f"sudo systemctl reload {haproxy_service_name}")
+		if serv in commands:
+			server_mod.ssh_command(serv, commands[serv], rc=1, timeout=60, error_context='Cannot apply HAProxy list')
 
 	return output
 

@@ -188,7 +188,8 @@ def discover():
 @api
 def witness_install():
     body = WitnessInstall.model_validate(request.get_json())
-    task = operations.enqueue_witness(body.server_id, g.user_params['group_id'], g.user_params['user_id'], docker=body.docker)
+    task = operations.enqueue_witness(body.server_id, g.user_params['group_id'], g.user_params['user_id'], docker=body.docker,
+        **({'container_engine':body.container_engine} if body.container_engine is not None else {}))
     return jsonify(task_id=task.id, status=task.status), 202
 
 
@@ -199,7 +200,7 @@ def witness_logs(server_id):
     from app.modules.pacemaker.qdevice import witness_server
     from app.modules.pacemaker.remote import Remote
     from app.modules.pacemaker.witness_docker import RUNTIME
-    source=RUNTIME+"\nstate=container_state()\nargs=['docker','logs','--tail','100',CONTAINER] if state else ['journalctl','--unit=corosync-qnetd','--no-pager','-n','100']\nresult=subprocess.run(args,capture_output=True,text=True,timeout=30,check=True)\nprint(result.stdout+result.stderr)\n"
+    source=RUNTIME+"\nstate=container_state()\nargs=[ENGINE,'logs','--tail','100',CONTAINER] if state else ['journalctl','--unit=corosync-qnetd','--no-pager','-n','100']\nresult=subprocess.run(args,capture_output=True,text=True,timeout=30,check=True)\nprint(result.stdout+result.stderr)\n"
     server=witness_server(server_id,g.user_params['group_id'])
     return jsonify(data=Remote(server).run(['python3','-c',source]))
 
@@ -209,7 +210,7 @@ def witness_logs(server_id):
 def witness_migration_plan(server_id):
     operator()
     from app.modules.pacemaker.witness_migration import plan
-    return jsonify(data=plan(server_id,g.user_params['group_id']))
+    return jsonify(data=plan(server_id,g.user_params['group_id'],container_engine=request.args.get('container_engine','docker')))
 
 
 @bp.post('/api/witness/<int:server_id>/migration')
@@ -217,12 +218,12 @@ def witness_migration_plan(server_id):
 def witness_migrate(server_id):
     from app.modules.pacemaker.witness_migration import plan
     body=WitnessMigration.model_validate(request.get_json())
-    current_plan=plan(server_id,g.user_params['group_id'])
+    current_plan=plan(server_id,g.user_params['group_id'],container_engine=body.container_engine)
     if body.confirm!=current_plan['server']: raise RoxywiInputError('Type the witness server name to confirm migration')
     if not current_plan.get('eligible') or body.plan_digest!=current_plan['plan_digest']:
         raise RoxywiConflictError('Migration plan changed; review again')
     task=operations.enqueue_witness(server_id,g.user_params['group_id'],g.user_params['user_id'],
-        action='witness-migrate',data={'plan_digest':body.plan_digest})
+        action='witness-migrate',data={'plan_digest':body.plan_digest,'container_engine':body.container_engine})
     return jsonify(task_id=task.id,status=task.status),202
 
 

@@ -17,6 +17,7 @@ from playhouse.shortcuts import ReconnectMixin
 from playhouse.sqlite_ext import SqliteExtDatabase
 
 from app.modules.db.settings import DatabaseSettings
+from app.modules.db.fields import LargeTextField
 from app.modules.common.time import utc_now
 
 database_settings = DatabaseSettings.load()
@@ -1380,7 +1381,7 @@ class InstallationTasks(BaseModel):
     server_ids = JSONField(null=True)
     operation_id = CharField(null=True, unique=True, index=True, max_length=64)
     operation_type = CharField(null=True, index=True, max_length=64)
-    operation_payload = TextField(null=True)
+    operation_payload = LargeTextField(null=True)
     attempts = IntegerField(default=0, constraints=[SQL('DEFAULT 0')])
     updated_at = DateTimeField(default=datetime.now)
     published_at = DateTimeField(null=True)
@@ -1406,6 +1407,28 @@ class PacemakerCluster(BaseModel):
     class Meta:
         table_name = 'pacemaker_clusters'
         indexes = ((('group_id', 'name'), True),)
+
+
+class CertificateSource(BaseModel):
+    id = AutoField()
+    group_id = IntegerField(index=True)
+    user_id = IntegerField()
+    name = CharField()
+    provider = CharField()
+    configuration = LargeTextField()
+    revision = IntegerField(default=1)
+    enabled = BooleanField(default=False)
+    status = CharField(default='draft')
+    active_task_id = IntegerField(null=True)
+    deployment_task_id = IntegerField(null=True)
+    fingerprint = CharField(default='')
+    deployed_targets = TextField(default='[]')
+    next_check = DateTimeField(null=True, index=True)
+    last_check = DateTimeField(null=True)
+    last_error = TextField(null=True)
+
+    class Meta:
+        table_name = 'certificate_sources'
 
 
 class PacemakerChange(BaseModel):
@@ -1452,5 +1475,5 @@ def create_tables():
              KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup,
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
              HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, NginxSection, InstallationTasks,
-             PacemakerCluster, PacemakerChange, PacemakerEvent]
+             PacemakerCluster, PacemakerChange, PacemakerEvent, CertificateSource]
         )

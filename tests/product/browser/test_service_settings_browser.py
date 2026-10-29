@@ -68,6 +68,19 @@ def test_shared_service_settings_layout_and_save(
     bounds = dialog.locator('..').bounding_box()
     assert bounds['x'] >= 0 and bounds['x'] + bounds['width'] <= 391
     assert dialog.evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
+    # Wide service cards can scroll the page horizontally. A modal must stay
+    # inside the viewport while open, including when the viewport is resized.
+    for width in (320, 700, 390):
+        page.set_viewport_size({'width': width, 'height': 844})
+        page.evaluate('window.scrollTo(document.documentElement.scrollWidth, document.documentElement.scrollHeight)')
+        bounds = dialog.locator('..').bounding_box()
+        assert bounds['x'] >= 0 and bounds['x'] + bounds['width'] <= width + 1
+        assert bounds['y'] >= 0 and bounds['y'] + bounds['height'] <= 845
+        assert dialog.evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
+        for name in ('container_owner', 'container_name', 'container_unit'):
+            control = dialog.locator(f'[name="{name}"]').bounding_box()
+            assert control['x'] >= bounds['x']
+            assert control['x'] + control['width'] <= bounds['x'] + bounds['width'] + 1
     assert pending_last_edit
     for route in pending_last_edit:
         route.fulfill(body=last_config_edit)

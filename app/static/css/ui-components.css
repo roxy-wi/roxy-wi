@@ -452,7 +452,8 @@ table[data-ux-table] thead th[aria-sort="descending"]::after { color: var(--rw-p
 }
 .change-advanced-grid label { display: grid; gap: 5px; }
 .change-advanced-grid input,
-.change-advanced-grid select { box-sizing: border-box; width: 100%; }
+.change-advanced-grid select,
+.change-advanced-grid textarea { box-sizing: border-box; width: 100%; }
 .change-advanced-check { display: block; margin: 14px 0; }
 .change-notification-destinations {
 	display: grid;
@@ -662,7 +663,7 @@ table[data-ux-table] thead th[aria-sort="descending"]::after { color: var(--rw-p
 	html.nav-mobile-open .app-nav-backdrop { display: block; }
 	html.nav-mobile-open { overflow: hidden; }
 	.ui-dialog { max-width: calc(100vw - 16px) !important; }
-	.ui-dialog.rw-dialog-responsive { inset: 8px !important; width: auto !important; max-height: calc(100vh - 16px); }
+	.ui-dialog.rw-dialog-responsive { position: fixed; inset: 8px !important; width: auto !important; max-height: calc(100vh - 16px); }
 	.ui-dialog.rw-dialog-responsive .ui-dialog-content { max-height: calc(100vh - 125px) !important; }
 }
 

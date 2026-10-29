@@ -100,14 +100,25 @@ class ServiceView(MethodView):
             sock_port = int(sql.get_setting('haproxy_sock_port'))
             cmd = f'echo "show info" |nc {server.ip} {sock_port} -w 1'
             try:
-                output = server_mod.ssh_command(
-                    server.ip, cmd, timeout=5, connect_timeout=10, banner_timeout=10
-                )
+                if service_sql.select_service_setting(server_id, service, 'dockerized') == '1':
+                    from app.modules.service.managed_runtime import execute_runtime_command
+                    output = execute_runtime_command(server.ip, sock_port, 'show info')
+                else:
+                    output = server_mod.ssh_command(
+                        server.ip, cmd, timeout=5, connect_timeout=10, banner_timeout=10
+                    )
                 data = self.return_dict_from_out(output.splitlines())
             except Exception as e:
                 data = ErrorResponse(
                     error=f'Cannot get HAProxy information: {safe_error_message(e)}'
                 ).model_dump(mode='json')
+                if service_sql.select_service_setting(server_id, service, 'dockerized') == '1':
+                    from app.modules.service import container_settings
+                    try:
+                        if not container_settings.is_running(server, service):
+                            data = {'Version': 'unknown', 'Uptime': 'stopped', 'Process': '0'}
+                    except Exception:
+                        pass  # Preserve the runtime error if stopped state cannot be verified.
 
             if 'Process' not in data:
                 if 'error' not in data:
@@ -123,26 +134,12 @@ class ServiceView(MethodView):
         elif service == 'nginx':
             is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
             if is_dockerized == '1':
-                container_name = sql.get_setting(f'{service}_container_name')
-                cmd = (f"sudo docker exec -it {container_name} /usr/sbin/nginx -v 2>&1|awk '{{print $3}}' && "
-                       f"docker ps -a -f name={container_name} --format '{{{{.Status}}}}' && ps ax |grep nginx:|grep -v grep |wc -l")
+                from app.modules.service import container_settings
                 try:
-                    out = server_mod.ssh_command(server.ip, cmd, connect_timeout=10, banner_timeout=10)
+                    observed=container_settings.service_status(server,service)
+                    out1=[observed['Version'],observed['Uptime'],observed['Process']]
                 except Exception as e:
-                    return ErrorResponse(error=safe_error_message(e)).model_dump(mode='json'), 500
-                out = out.replace('\n', '')
-                out1 = out.split('\r')
-                if out1[0] == 'from':
-                    out1[0] = ''
-                    try:
-                        out1[1] = out1[1].split(')')[1]
-                    except Exception:
-                        out1 = ['', '', '0']
-                else:
-                    try:
-                        out1[0] = out1[0].split('/')[1]
-                    except Exception:
-                        out1 = ['', '', '0']
+                    return ErrorResponse(error=safe_error_message(e)).model_dump(mode='json'),500
             else:
                 cmd = ("/usr/sbin/nginx -v 2>&1|awk '{print $3}' && systemctl status nginx |grep -e 'Active'"
                        "|awk '{print $2, $9$10$11$12$13}' && ps ax |grep nginx:|grep -v grep |wc -l")
@@ -184,11 +181,9 @@ class ServiceView(MethodView):
                     f'http://{server.ip}:{int(apache_stats_port)}/'
                     f'{str(apache_stats_page).lstrip("/")}?auto'
                 )
-                response = requests.get(
-                    stats_url,
-                    auth=(apache_stats_user, apache_stats_password),
-                    timeout=5,
-                )
+                from app.modules.service.managed_runtime import statistics_response
+                response = statistics_response(server.ip, 'apache', apache_stats_port,
+                    str(apache_stats_page).lstrip('/') + '?auto', apache_stats_user, apache_stats_password)
                 response.raise_for_status()
 
                 stats = {}
@@ -207,33 +202,40 @@ class ServiceView(MethodView):
                     "Process": process_count,
                     "status": self._service_status(process_count),
                 }
-            except (requests.RequestException, ValueError):
-                data = {
-                    "Version": '',
-                    "Uptime": '',
-                    "Process": 0,
-                    "status": self._service_status('0')
-                }
             except Exception as e:
                 data = ErrorResponse(error=safe_error_message(e)).model_dump(mode='json')
+                if service_sql.select_service_setting(server_id, service, 'dockerized') == '1':
+                    from app.modules.service import container_settings
+                    try:
+                        if not container_settings.is_running(server, service):
+                            data = {'Version': 'unknown', 'Uptime': 'stopped', 'Process': '0', 'status': 'stopped'}
+                    except Exception:
+                        pass
+                elif isinstance(e, (requests.RequestException, ValueError)):
+                    data = {'Version': '', 'Uptime': '', 'Process': 0, 'status': 'stopped'}
 
             data['auto_start'] = int(server.apache_active)
             data['checker'] = int(server.apache_alert)
             data['metrics'] = int(server.apache_metrics)
             data['docker'] = int(service_sql.select_service_setting(server_id, service, 'dockerized'))
         elif service == 'keepalived':
-            cmd = ("sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}' && sudo systemctl status keepalived |grep -e 'Active'"
-                   "|awk '{print $2, $9$10$11$12$13}' && ps ax |grep 'keepalived '|grep -v udp|grep -v grep |wc -l")
-            try:
-                out = server_mod.ssh_command(server.ip, cmd, connect_timeout=10, banner_timeout=10)
-                out1 = out.split()
-                if out1[0].split('\r')[0] == '/usr/sbin/keepalived:':
+            if service_sql.select_service_setting(server_id, service, 'dockerized') == '1':
+                from app.modules.service import container_settings
+                data = container_settings.service_status(server, service)
+                data['status'] = self._service_status(data['Process'])
+            else:
+                cmd = ("sudo /usr/sbin/keepalived -v 2>&1|head -1|awk '{print $2}' && sudo systemctl status keepalived |grep -e 'Active'"
+                       "|awk '{print $2, $9$10$11$12$13}' && ps ax |grep 'keepalived '|grep -v udp|grep -v grep |wc -l")
+                try:
+                    out = server_mod.ssh_command(server.ip, cmd, connect_timeout=10, banner_timeout=10)
+                    out1 = out.split()
+                    if out1[0].split('\r')[0] == '/usr/sbin/keepalived:':
+                        return ErrorResponse(error='Keepalived service not found').model_dump(mode='json'), 404
+                    data = {"Version": out1[0].split('\r')[0], "Uptime": out1[2], "Process": out1[3], 'status': self._service_status(out1[3])}
+                except IndexError:
                     return ErrorResponse(error='Keepalived service not found').model_dump(mode='json'), 404
-                data = {"Version": out1[0].split('\r')[0], "Uptime": out1[2], "Process": out1[3], 'status': self._service_status(out1[3])}
-            except IndexError:
-                return ErrorResponse(error='Keepalived service not found').model_dump(mode='json'), 404
-            except Exception as e:
-                return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get version')
+                except Exception as e:
+                    return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get version')
         data['service'] = service
         data['server_id'] = server_id
         data['id'] = f'{server_id}-{service}'

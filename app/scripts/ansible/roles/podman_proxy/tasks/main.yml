@@ -1,0 +1,51 @@
+---
+- name: Require a supported Linux platform
+  ansible.builtin.assert:
+    that:
+      - ansible_service_mgr == 'systemd'
+      - ansible_python_version is version('3.9', '>=')
+      - (ansible_os_family == 'Debian' and ansible_distribution_major_version | int >= 11) or (ansible_os_family == 'RedHat' and ansible_distribution_major_version in ['8', '9'])
+      - service in ['haproxy', 'nginx', 'apache']
+    fail_msg: Podman proxy provisioning requires Python 3.9+ as python3, systemd and a supported Debian/Ubuntu or EL 8/9 host
+
+- name: Install the distribution Podman package
+  ansible.builtin.package:
+    name: [podman, openssl]
+    state: present
+
+- name: Prepare an isolated installation helper
+  ansible.builtin.tempfile:
+    state: directory
+    prefix: roxywi-podman-
+  register: podman_helper
+
+- name: Run the fixed proxy recipe
+  block:
+    - name: Copy the reviewed installation helper
+      ansible.builtin.copy:
+        src: proxy.py
+        dest: "{{ podman_helper.path }}/proxy.py"
+        mode: '0700'
+    - name: Provision and verify the proxy without changing SELinux enforcement
+      ansible.builtin.command:
+        argv: [python3, "{{ podman_helper.path }}/proxy.py"]
+        stdin: "{{ {'service': service, 'name': CONT_NAME, 'image': IMAGE, 'directory': service_dir, 'config': CONFIG_PATH, 'certificates': CERT_DIR, 'log_directory': LOG_DIR, 'user': ansible_user, 'stats_port': STAT_PORT, 'stats_user': STATS_USER, 'stats_password': STATS_PASS, 'stats_page': STAT_PAGE | default('stats'), 'runtime_port': SOCK_PORT | default(1999), 'syn_flood': SYN_FLOOD | bool} | to_json }}"
+      no_log: true
+      register: podman_result
+      failed_when: false
+    - name: Report the safe installation result
+      ansible.builtin.assert:
+        that: podman_result.rc == 0
+        quiet: true
+        fail_msg: "{{ (podman_result.stdout | from_json).error | default('Podman proxy provisioning failed; inspect its systemd journal') }}"
+  always:
+    - name: Remove the temporary helper
+      ansible.builtin.file:
+        path: "{{ podman_helper.path }}"
+        state: absent
+
+- name: Configure the existing HAProxy host log pipeline
+  ansible.builtin.include_role:
+    name: haproxy
+    tasks_from: logs
+  when: service == 'haproxy'

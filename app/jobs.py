@@ -232,6 +232,15 @@ def run_letsencrypt_notifications():
     return _run_database_job(run)
 
 
+@scheduler.task('interval', id='certificate_sources', minutes=1, max_instances=1,
+                coalesce=True, misfire_grace_time=60)
+def run_certificate_sources():
+    def run():
+        from app.modules.service.certificate_sources import dispatch_due
+        return dispatch_due()
+    return _run_database_job(run)
+
+
 @scheduler.task('interval', id='backup_history_retention', hours=1, max_instances=1,
                 coalesce=True, misfire_grace_time=300)
 def run_backup_history_retention():

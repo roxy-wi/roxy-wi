@@ -80,15 +80,16 @@ nodelist/CMAP, `/etc/corosync/corosync.conf` and matching node identities; it is
 a guarantee for every historic Pacemaker release. See the
 [administration guide](corosync-pacemaker.md) for adoption and transport limitations.
 
-## What Docker support means
+## Container component support
 
 | Component | Supported workflow |
 | --- | --- |
 | Roxy-WI controller in Docker | Existing image and Compose roles: Web, Scheduler, Operations and Service Events; remote nodes are managed over SSH |
-| HAProxy/NGINX in existing Keepalived HA | Existing Docker options in the Keepalived HA wizard |
+| Managed HAProxy/NGINX/Apache, including Keepalived HA | Native/Docker/Podman runtime choices; Podman provisioning and explicit rootless adoption are described in the [managed component guide](managed-containers.md); new Podman VM qualification pending |
 | A containerized Pacemaker workload | `ocf:heartbeat:docker` or `ocf:heartbeat:podman` in the resource form; advanced bundles through the complete CIB editor |
 | Corosync/Pacemaker daemons inside a generic Docker container | Automatic provisioning is refused; run the cluster daemons on the systemd hosts |
-| Standalone qnetd in Docker on an independent registered host | Installation → Install witness only → Use Docker; managed image build, persistent CA, TLS signing and native cluster qdevice clients; see the [Docker witness guide](corosync-pacemaker-witness-docker.md) |
+| Standalone qnetd in Docker on an independent registered host | Installation → Install witness only → Runtime: Docker; managed image build, persistent CA, TLS signing and native cluster qdevice clients; see the [Docker witness guide](corosync-pacemaker-witness-docker.md) |
+| Standalone qnetd in Podman on an independent registered host | Runtime: Podman; managed image/NSS identity, systemd supervisor, reviewed native conversion, update/trust/recovery; new Podman VM qualification pending |
 | qnetd inside the Roxy-WI application container | Not installed by this module; choose a separate host service through its registered SSH credentials |
 
 For a container workload, install the runtime and matching OCF agent on every

@@ -131,7 +131,8 @@ def test_successful_installation_activates_service_before_completing_task(monkey
 
 
 @pytest.mark.security
-def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_path, monkeypatch):
+@pytest.mark.parametrize('role', ['haproxy', 'podman_proxy', 'ha_cluster_exporter'])
+def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_path, monkeypatch, role):
     private_data_dir = tmp_path / 'ansible'
     inventory_dir = private_data_dir / 'inventory'
     observed = {}
@@ -140,6 +141,7 @@ def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_
     monkeypatch.setattr(installation, 'ANSIBLE_PRIVATE_DATA_DIR', str(private_data_dir))
     monkeypatch.setattr(installation, 'ANSIBLE_INVENTORY_DIR', str(inventory_dir))
     monkeypatch.setattr(installation, '_install_ansible_collections', lambda: None)
+    monkeypatch.setattr(installation, '_install_ansible_roles', lambda _role: None)
     monkeypatch.setattr(installation.sql, 'get_setting', lambda setting: None)
     monkeypatch.setattr(
         installation,
@@ -162,6 +164,13 @@ def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_
         'stop_ssh_agent',
         lambda agent: stopped_agents.append(agent),
     )
+    from app.modules.pacemaker import exporter
+    pinned = inventory_dir / 'job-hosts.pub'
+    def pin_hosts(addresses, directory):
+        assert addresses == ['192.0.2.10'] and directory == str(inventory_dir)
+        pinned.write_text('192.0.2.10 ssh-ed25519 PUBLICKEYONLY\n')
+        return str(pinned)
+    monkeypatch.setattr(exporter, 'pin_ansible_hosts', pin_hosts)
 
     class FailingRunner:
         @staticmethod
@@ -172,13 +181,21 @@ def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_
             observed['mode'] = stat.S_IMODE(inventory_path.stat().st_mode)
             observed['local_temp'] = kwargs['envvars']['ANSIBLE_LOCAL_TEMP']
             observed['control_path'] = kwargs['envvars']['ANSIBLE_SSH_CONTROL_PATH_DIR']
+            assert kwargs['envvars']['ANSIBLE_HOST_KEY_CHECKING'] == 'yes'
+            assert kwargs['tags'] == ('' if role == 'podman_proxy' else 'system')
+            if role in ('podman_proxy', 'ha_cluster_exporter'):
+                host = observed['data']['server']['hosts']['192.0.2.10']
+                common_args = host['ansible_ssh_common_args']['__ansible_unsafe']
+                assert 'StrictHostKeyChecking=yes' in common_args
+                assert 'UserKnownHostsFile=' + str(pinned) in common_args
+                assert pinned.is_file()
             raise RuntimeError('runner failed')
 
     monkeypatch.setattr(installation, '_ansible_runner', lambda: FailingRunner)
     inventory = {'server': {'hosts': {'192.0.2.10': {'DOCKER': False}}}}
 
     with pytest.raises(RuntimeError, match='runner failed'):
-        installation.run_ansible(inventory, ['192.0.2.10'], 'haproxy')
+        installation.run_ansible(inventory, ['192.0.2.10'], role)
 
     assert observed['data']['server']['hosts']['192.0.2.10']['ansible_password'] == {'__ansible_unsafe': 'temporary-secret'}
     if os.name == 'posix':
@@ -188,6 +205,7 @@ def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_
     assert observed['local_temp'] == str(private_data_dir / 'tmp')
     assert observed['control_path'] == str(private_data_dir / 'cp')
     assert not observed['path'].exists()
+    assert not pinned.exists()
     assert list(inventory_dir.iterdir()) == []
     assert stopped_agents == [{'pid': 100, 'socket': '/tmp/test-agent.sock'}]
 

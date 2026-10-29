@@ -61,7 +61,7 @@ def get_config(server_ip, cfg, service='haproxy', **kwargs):
 		config_path = haproxy_files.resolve_path(kwargs.get('config_file_name'))
 	elif service == 'keepalived':
 		config_path = sql.get_setting(f'{service}_config_path')
-	elif service in ('nginx', 'apache'):
+	elif service in ('nginx', 'apache', 'keepalived'):
 		config_path = _replace_config_path_to_correct(kwargs.get('config_file_name'))
 	if not kwargs.get('waf'):
 		common.check_is_conf(config_path)
@@ -119,7 +119,8 @@ def validate_candidate_config(server_ip: str, cfg: str, service: str, config_fil
 		# dos2unix is optional; the actual service validator is authoritative.
 		pass
 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
-	container_name = sql.get_setting(f'{service}_container_name')
+	from app.modules.service import container_settings
+	container_name = container_settings.name(server_id, service) if is_dockerized == '1' else ''
 	if service == 'haproxy':
 		command = candidate.candidate_command(
 			'haproxy', config_path, tmp_file, 'test', **haproxy_files.configuration_context(server_ip, server_id),
@@ -130,11 +131,18 @@ def validate_candidate_config(server_ip: str, cfg: str, service: str, config_fil
 			error_context='HAProxy configuration validation failed')
 		candidate.check_result(output)
 		return 'HAProxy configuration is valid'
+	if service in ('nginx', 'apache', 'keepalived'):
+		command = candidate.candidate_command(service, config_path, tmp_file, 'test',
+			**service_common.proxy_runtime_settings(service, server_id))
+		upload(server_ip, tmp_file, cfg)
+		candidate.check_result(server_mod.ssh_command(server_ip, command, rc=1, timeout=candidate.REMOTE_TIMEOUT,
+			error_context='Proxy configuration validation failed'))
+		return service.title() + ' configuration is valid'
 	if is_dockerized == '1':
 		checks = {
-			'nginx': f'sudo docker exec {quote(container_name)} nginx -t',
-			'apache': f'sudo docker exec {quote(container_name)} apachectl -t',
-			'keepalived': f'sudo docker exec {quote(container_name)} keepalived -t -f {quote(config_path)}',
+			'nginx': container_settings.command(server_id, service, ['exec', container_name, 'nginx', '-t']),
+			'apache': container_settings.command(server_id, service, ['exec', container_name, 'apachectl', '-t', '-f', sql.get_setting('apache_config_path')]),
+			'keepalived': container_settings.command(server_id, service, ['exec', container_name, 'keepalived', '-t', '-f', config_path]),
 		}
 	else:
 		checks = {
@@ -195,8 +203,9 @@ def _generate_command(
 		action = service_action.get_action_command(action_service, just_save, server_id) if just_save in ('reload', 'restart') else ''
 		return candidate.candidate_command(f'{waf_service}_waf', config_path, tmp_file, just_save,
 			**service_common.waf_runtime_settings(waf_service, server_id), action_command=action, apply_only=apply_only)
-	container_name = sql.get_setting(f'{service}_container_name')
+	from app.modules.service import container_settings
 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
+	container_name = container_settings.name(server_id, service) if is_dockerized == '1' else ''
 	if service == 'haproxy':
 		if service_common.is_not_allowed_to_restart(server_id, service, just_save):
 			raise Exception('error: This server is not allowed to be restarted')
@@ -207,14 +216,19 @@ def _generate_command(
 			action_command=action_command, expected_sha256=expected_sha256
 		)
 		return commands
+	if service in ('nginx', 'apache', 'keepalived'):
+		if service_common.is_not_allowed_to_restart(server_id, service, just_save):
+			raise ValueError('This server is not allowed to be restarted')
+		action = service_action.get_action_command(service, just_save, server_id) if just_save in ('reload', 'restart') else ''
+		return candidate.candidate_command(service, config_path, tmp_file, just_save,
+			**service_common.proxy_runtime_settings(service, server_id), action_command=action, expected_sha256=expected_sha256)
 	reload_or_restart_command = ''
 	if just_save in ('reload', 'restart'):
 		reload_or_restart_command = f' && {service_action.get_action_command(service, just_save, server_id)}'
 	move_config = f" sudo mv -f {quote(tmp_file)} {quote(config_path)}"
-	command_for_docker = f'sudo docker exec -it {quote(container_name)}'
 	command = {
-		'nginx': {'0': 'sudo nginx -t ', '1': f'{command_for_docker} nginx -t '},
-		'apache': {'0': 'sudo apachectl -t ', '1': f'{command_for_docker} apachectl -t '},
+		'nginx': {'0': 'sudo nginx -t ', '1': container_settings.command(server_id, service, ['exec', container_settings.name(server_id, service), 'nginx', '-t']) if is_dockerized == '1' else ''},
+		'apache': {'0': 'sudo apachectl -t ', '1': container_settings.command(server_id, service, ['exec', container_settings.name(server_id, service), 'apachectl', '-t', '-f', sql.get_setting('apache_config_path')]) if is_dockerized == '1' else ''},
 		'keepalived': {'0': f'keepalived -t -f {quote(tmp_file)} ', '1': ' '},
 	}
 
@@ -231,7 +245,7 @@ def _generate_command(
 		if service_common.is_not_allowed_to_restart(server_id, service, just_save):
 			raise Exception('error: This server is not allowed to be restarted')
 
-	if service in ('nginx', 'apache'):
+	if service in ('nginx', 'apache', 'keepalived'):
 		commands = f'{move_config} && {check_config} {reload_or_restart_command}'
 	else:
 		commands = f'{check_config} && {move_config} {reload_or_restart_command}'
@@ -408,7 +422,7 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 				operations.enter_context(waf_state.operation_lock(server_ip, kwargs['waf']))
 				operations.enter_context(waf_state.track_changes(server_id, kwargs['waf'], applying=just_save in ('reload', 'restart')))
 			upload(server_ip, tmp_file, cfg)
-			uses_candidate = service in ('haproxy', 'waf')
+			uses_candidate = service in ('haproxy', 'nginx', 'apache', 'keepalived', 'waf')
 			error = server_mod.ssh_command(server_ip, commands, rc=1, **(
 				{'timeout': candidate.REMOTE_TIMEOUT, 'error_context': 'Configuration transaction did not complete'} if uses_candidate else {}
 			))

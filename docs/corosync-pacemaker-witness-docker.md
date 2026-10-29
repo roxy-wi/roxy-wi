@@ -1,8 +1,10 @@
 # Standalone quorum witness in Docker
 
 Use **Installation → Corosync / Pacemaker → Install witness only**, choose an
-independent registered host, select **Use Docker** and confirm installation.
-Leave the checkbox clear for the native package/systemd variant. The server entry
+independent registered host, select **Runtime: Docker** and confirm installation.
+Choose **Native** for the package/systemd variant. **Podman** is also available;
+its new lifecycle and pending qualification are described in the
+[managed component guide](managed-containers.md). The server entry
 and its existing SSH credentials refer to the Docker **host**, not a container.
 The deployment choice is stored in the durable Operations task.
 

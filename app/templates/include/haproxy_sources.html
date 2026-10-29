@@ -9,7 +9,7 @@
     {% if discovery.state != 'error' %}<p>{{lang.config_files.running_verified if discovery.verified_running else lang.config_files.stopped}}</p>{% endif %}
     {% if discovery.state == 'single' %}
     <p class="haproxy-sources-hint">{{lang.config_files.source_hint}}</p>
-    <p>{{lang.config_files.setup_docker if discovery.mode == 'docker' else lang.config_files.setup_systemd}}</p>
+    <p>{% if discovery.mode == 'podman' %}Update the selected container's Quadlet or startup arguments, reload its systemd manager and restart it through its lifecycle unit. Keep the existing mounts and other startup options.{% else %}{{lang.config_files.setup_docker if discovery.mode == 'docker' else lang.config_files.setup_systemd}}{% endif %}</p>
     <pre>{{discovery.example}}</pre>
     <p>{{lang.config_files.setup_keep_options}}</p>
     {% endif %}

@@ -422,9 +422,14 @@ function loadHaproxySources(target, dockerized = null) {
 	const server = target.attr('data-server-id');
 	const failure = target.attr('data-failed');
 	target.empty().text(target.attr('data-loading')).attr('aria-busy', 'true');
+	const data = dockerized === null ? {} : {dockerized: dockerized ? '1' : '0'};
+	const settings = target.closest('.ui-dialog-content');
+	if (settings.find('[name="container_engine"]').length) {
+		for (const key of ['engine','owner','unit','name']) data['container_' + key] = settings.find('[name="container_' + key + '"]').val() || (key === 'owner' ? 'root' : '');
+	}
 	$.ajax({
 		url: '/service/settings/haproxy/' + encodeURIComponent(server) + '/sources',
-		data: dockerized === null ? {} : {dockerized: dockerized ? '1' : '0'},
+		data,
 		success: function (html) {
 			if (target.data('revision') !== revision) return;
 			if (target.hasClass('haproxy-sources-panel')) target.replaceWith(html);

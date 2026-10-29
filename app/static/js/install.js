@@ -169,9 +169,8 @@ function installService(service) {
 	if ($('#' + service + '_syn_flood').is(':checked')) {
 		syn_flood = '1';
 	}
-	if ($('#' + service + '_docker').is(':checked')) {
-		docker = '1';
-	}
+	const engine = $('#' + service + '_container_engine').val() || 'native';
+	docker = engine === 'native' ? 0 : 1;
 	if ($(select_id).val() === '------' || $(select_id).val() === null) {
 		let select_server = translate_div.attr('data-select_server');
 		toastr.warning(select_server);
@@ -193,6 +192,7 @@ function installService(service) {
 	jsonData['servers'].push(server);
 	jsonData['services'][service]['enabled'] = 1;
 	jsonData['services'][service]['docker'] = docker;
+	jsonData['services'][service]['container_engine'] = engine;
 	$.ajax({
 		url: "/install/" + service + "/" + $(select_id).val(),
 		500: function () {
@@ -270,7 +270,7 @@ function showExporterVersion(exporter) {
 	});
 }
 function showServiceVersion(service) {
-	let install_div = $('#' + service + '_install');
+	let install_div = service === 'haproxy' ? $('#install') : $('#' + service + '_install');
 	let ver_div = $('#cur_' + service + '_ver');
 	$.ajax({
 		url: "/service/" + service + "/" + $('#' + service + 'addserv option:selected').val() + "/status",

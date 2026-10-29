@@ -257,6 +257,13 @@ def test_metrics_failure_restores_toggle_and_allows_retry(logged_in, product_url
     page.goto(product_url + '/waf/haproxy')
     checkbox = page.locator('.ajaxwafstatus input')
     expect(checkbox).to_be_enabled()
+    # Exercise the fast-response startup order: the WAF card already exists
+    # when overview's ready handlers bind, rather than arriving afterwards.
+    page.add_script_tag(url=product_url + '/static/js/overview.js')
+    page.evaluate('new Promise(resolve => $(resolve))')
+    service_updates = []
+    page.on('request', lambda request: service_updates.append(request.url)
+            if '/tools/update' in request.url else None)
     requests = []
     page.route('**/waf/metric/enable/**', lambda route: requests.append(route))
     page.locator('.ajaxwafstatus label').click()
@@ -279,3 +286,4 @@ def test_metrics_failure_restores_toggle_and_allows_retry(logged_in, product_url
     assert len(requests) == 2
     requests[1].fulfill(status=503, body='unavailable')
     expect(checkbox).to_be_enabled()
+    assert service_updates == [], 'WAF metrics must not change proxy service settings'

@@ -110,6 +110,9 @@ def test_service_status_does_not_publish_exception_in_result_data(app, monkeypat
     server = SimpleNamespace(ip='192.0.2.10', **{
         f'{service}_active': 1, f'{service}_alert': 1, f'{service}_metrics': 1,
     })
+    from app.modules.service import managed_runtime
+    server.server_id = 1
+    monkeypatch.setattr(managed_runtime, 'managed_server', lambda _: server)
     monkeypatch.setattr(service_views.SupportClass, 'return_server_ip_or_id', lambda *_args: 1)
     monkeypatch.setattr(service_views.server_sql, 'get_server_with_group', lambda *_args: server)
     monkeypatch.setattr(service_views.sql, 'get_setting', lambda *_args: 1999)

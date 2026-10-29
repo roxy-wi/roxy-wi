@@ -13,7 +13,7 @@ from app.modules.db.db_model import InstallationTasks, Server
 from app.modules.operations.queue import serialize_operation_payload, deserialize_operation_payload
 from app.modules.roxy_wi_tools import GetConfigVar
 from app.modules.roxywi.exception import RoxywiResourceNotFound
-from app.modules.service import certificates
+from app.modules.service import certificates, certificate_deployment
 
 
 def operation_lock(operation_id):
@@ -55,6 +55,7 @@ def public_task(task):
             'started_at': utc_iso(started_at),
             'finished_at': utc_iso(task.finish_date) if task.status in ('completed', 'failed') else None,
             'targets': [{'server_id': int(key), 'address': value['address'], 'status': value['status'],
+                         'verification':value.get('verification'),
                          'error_code': value.get('error_code')}
                         for key, value in payload['targets'].items()],
             'retryable': task.status == 'failed' and payload['phase'] in ('rollback', 'commit')}
@@ -81,14 +82,16 @@ def history(server_id, group_id, page=1, per_page=10):
             'page': page, 'per_page': per_page, 'pages': pages, 'total': total}
 
 
-def enqueue(server_id, group_id, user_id, name, pem, revision, operation_id, *, destination=None, directory=None):
+def enqueue(server_id, group_id, user_id, name, pem, revision, operation_id, *, destination=None, directory=None, cluster_id=None,
+            source_id=None, source_task_id=None):
     operation_id = str(UUID(str(operation_id)))
     if not name.endswith('.pem') or any(char in name for char in '/\\\r\n\x00;') or name in ('.', '..'):
         raise certificates.CertificateError('Invalid certificate name', 'invalid_path')
     bundle, metadata = certificates.inspect_pem(pem)
     normalized = bundle['fullchain'] + bundle['key']
     digest = hashlib.sha256(normalized.encode('ascii')).hexdigest()
-    targets = certificates.targets_for(server_id, group_id)
+    targets = (certificates.targets_for(server_id, group_id, cluster_id=cluster_id) if cluster_id is not None
+               else certificates.targets_for(server_id, group_id))
     for server in targets:
         authorize(server.server_id, group_id, user_id, write=True)
     with operation_lock(operation_id):
@@ -98,11 +101,19 @@ def enqueue(server_id, group_id, user_id, name, pem, revision, operation_id, *, 
                 raise certificates.CertificateError('Operation conflict', 'concurrent_change')
             payload = deserialize_operation_payload(existing.operation_payload)
             if ((payload['digest'], payload['name'], payload['server_id'], payload['revision']) != (digest, name, server_id, revision)
-                    or payload.get('destination') != destination or payload.get('directory') != directory):
+                    or payload.get('destination') != destination or payload.get('directory') != directory
+                    or payload.get('cluster_id') != cluster_id
+                    or (payload.get('source_id'), payload.get('source_task_id')) != (source_id, source_task_id)):
                 raise certificates.CertificateError('Operation conflict', 'concurrent_change')
             return public_task(existing)
         payload = dict(server_id=server_id, name=name, bundle=bundle, digest=digest, revision=revision,
                        phase='apply', targets={}, metadata=metadata, destination=destination, directory=directory)
+        if source_id is not None:
+            if source_task_id is None:
+                raise certificates.CertificateError('A source deployment requires its parent operation', 'concurrent_change')
+            payload.update(source_id=source_id, source_task_id=source_task_id)
+        if cluster_id is not None:
+            payload['cluster_id'] = cluster_id
         for server in targets:
             settings = certificates.deployment_settings(server, name, verify_startup=False)
             settings['apply_mode'] = 'runtime'
@@ -112,7 +123,8 @@ def enqueue(server_id, group_id, user_id, name, pem, revision, operation_id, *, 
                 settings['update_directory'] = directory
             if server.server_id == server_id:
                 settings['expected_revision'] = revision
-            payload['targets'][str(server.server_id)] = dict(address=server.ip, status='pending', settings=settings)
+            payload['targets'][str(server.server_id)] = dict(address=server.ip, status='pending', settings=settings,
+                identity=dict(ip=server.ip,port=server.port,cred_id=server.cred_id))
         task = InstallationTasks.create(service_name='HAProxy certificates', operation_type='certificate',
             operation_id=operation_id, operation_payload=serialize_operation_payload(payload),
             server_ids=[server.server_id for server in targets], group_id=group_id, user_id=user_id,
@@ -125,10 +137,12 @@ def save(task, payload, **updates):
                              **updates).where(InstallationTasks.id == task.id).execute()
 
 
-def retry(task, user_id):
+def retry(task, user_id, *, source_id=None):
     with operation_lock(task.operation_id):
         task = InstallationTasks.get_by_id(task.id)
         payload = deserialize_operation_payload(task.operation_payload)
+        if payload.get('source_id') is not None and payload['source_id'] != source_id:
+            raise certificates.CertificateError('Recover this deployment through its certificate source', 'concurrent_change')
         for key in payload['targets']:
             authorize(int(key), task.group_id_id, user_id, write=True)
         if task.status != 'failed' or payload['phase'] not in ('commit', 'rollback'):
@@ -137,46 +151,78 @@ def retry(task, user_id):
         return public_task(InstallationTasks.get_by_id(task.id))
 
 
-def finish(task, payload):
+def finish(task, payload, *, renew=None):
     phase = payload['phase']
     failures = []
-    for key, target in payload['targets'].items():
-        if not target.get('started') or target.get('finished') == phase:
-            continue
-        try:
-            server = Server.get_or_none((Server.server_id == int(key)) & (Server.group_id == str(task.group_id_id)))
-            if server is None or server.ip != target['address']:
-                raise certificates.CertificateError('Recovery target changed', 'recovery_failed')
-            certificates.remote(server, dict(target['settings'], operation=phase, transaction=task.operation_id))
-            target.update(finished=phase, status='rolled_back' if phase == 'rollback' else 'applied')
-            target.pop('error_code', None)
-        except Exception as error:
-            target.update(status='failed', error_code=getattr(error, 'code', 'recovery_failed'))
-            failures.append(key)
-        save(task, payload)
-    if failures:
-        raise certificates.CertificateError('Certificate recovery is incomplete', 'recovery_failed')
+    if not any(target.get('started') and target.get('finished')!=phase for target in payload['targets'].values()):return
+    plans={}
+    if payload.get('cluster_id'):
+        from app.modules.service.certificate_cluster import plan
+        from app.modules.pacemaker import service as clusters
+        plans=plan(clusters.get_cluster(payload['cluster_id'],task.group_id_id),
+            {int(key):dict(value['settings']) for key,value in payload['targets'].items()})
+        if payload.get('cluster_cib') and any(proof['cib']!=payload['cluster_cib'] for proof in plans.values()):
+            raise certificates.CertificateError('Cluster changed before certificate recovery','concurrent_change')
+    prepared={}
+    def resolve(key,target):
+        server=Server.get_or_none((Server.server_id==int(key)) & (Server.group_id==str(task.group_id_id)))
+        if server is None or server.ip!=target['address'] or (target.get('identity') and target['identity']!=dict(ip=server.ip,port=server.port,cred_id=server.cred_id)):
+            raise certificates.CertificateError('Recovery target changed','recovery_failed')
+        settings=dict(target['settings'])
+        if plans:
+            current=certificates.cluster_deployment_settings(server,payload['name'],plans[int(key)])
+            if any(current.get(field)!=settings.get(field) for field in ('cert_dir','config_path','docker','container','container_runtime','root','service_unit')):
+                raise certificates.CertificateError('Recovery runtime binding changed','recovery_failed')
+            settings.update(validation=current['validation'],cluster_proof=plans[int(key)])
+        prepared[server.server_id]=settings
+        return server
+    def finalize(server,data):
+        return certificates.remote(server,dict(prepared[server.server_id],operation=phase,transaction=task.operation_id,
+            expected_digest=payload['digest'],expected_certificate=payload.get('bundle',{}).get('fullchain','')))
+    certificate_deployment.finish(payload['targets'],phase,task.operation_id,resolve=resolve,remote=finalize,
+        persist=lambda:save(task,payload),renew=renew)
 
 
-def execute(task):
+def execute(task, *, renew=None, source_task_id=None):
     with operation_lock(task.operation_id):
         task = InstallationTasks.get_by_id(task.id)
         if task.status in ('completed', 'failed'):
             return task.status
         payload = deserialize_operation_payload(task.operation_payload)
+        if payload.get('source_id') is not None:
+            from app.modules.service.certificate_sources import owns_child
+            if renew is None or not owns_child(task, source_task_id):
+                # Even a delayed direct dispatch cannot advance an owned child.
+                # Recovery must reacquire the source's cluster lease first.
+                return 'owned'
         try:
             if payload['phase'] == 'apply':
-                current_targets = certificates.targets_for(payload['server_id'], task.group_id_id)
+                current_targets = (certificates.targets_for(payload['server_id'], task.group_id_id, cluster_id=payload['cluster_id'])
+                                   if payload.get('cluster_id') is not None else
+                                   certificates.targets_for(payload['server_id'], task.group_id_id))
                 if {str(server.server_id) for server in current_targets} != set(payload['targets']):
                     raise certificates.CertificateError('Targets changed', 'concurrent_change')
                 # Discover startup sources in the worker, without tying up the HTTP
                 # request, and refresh them before a recovered operation resumes.
+                plans={}
+                if payload.get('cluster_id'):
+                    from app.modules.service.certificate_cluster import plan
+                    from app.modules.pacemaker import service as clusters
+                    plans=plan(clusters.get_cluster(payload['cluster_id'],task.group_id_id),
+                        {int(key):dict(target['settings']) for key,target in payload['targets'].items()})
+                    fingerprint=next(iter(plans.values()))['cib']
+                    if payload.get('cluster_cib') and payload['cluster_cib']!=fingerprint:
+                        raise certificates.CertificateError('Cluster configuration changed','concurrent_change')
+                    payload['cluster_cib']=fingerprint
                 for key, target in payload['targets'].items():
+                    if renew:
+                        renew()
                     server = authorize(int(key), task.group_id_id, task.user_id_id, write=True)
-                    if server.ip != target['address']:
+                    if server.ip != target['address'] or (target.get('identity') and target['identity']!=dict(ip=server.ip,port=server.port,cred_id=server.cred_id)):
                         raise certificates.CertificateError('Target changed', 'concurrent_change')
-                    settings = certificates.deployment_settings(server, payload['name'])
-                    identity = ('cert_dir', 'config_path', 'docker', 'container', 'runtime_port')
+                    settings = (certificates.cluster_deployment_settings(server,payload['name'],plans[int(key)]) if plans else
+                                certificates.deployment_settings(server,payload['name']))
+                    identity = ('cert_dir', 'config_path', 'docker', 'container', 'runtime_port', 'container_runtime','root','service_unit')
                     if any(settings.get(field) != target['settings'].get(field) for field in identity):
                         raise certificates.CertificateError('Service settings changed', 'concurrent_change')
                     settings['apply_mode'] = 'runtime'
@@ -186,30 +232,39 @@ def execute(task):
                         settings['update_directory'] = payload['directory']
                     if server.server_id == payload['server_id']:
                         settings['expected_revision'] = payload['revision']
+                    if plans:
+                        proof=plans[int(key)];settings['cluster_proof']=proof
+                        if proof['mode']=='passive':
+                            settings,observed=certificates.passive_inspection(server,payload['name'],proof,directory=payload.get('directory'),destination=payload.get('destination'))
+                            settings.update(passive_binding=observed['binding'],expected_revision=observed['revision'])
                     target['settings'] = settings
                 save(task, payload)
                 if payload.get('destination'):
                     # Fail before touching the Master if a Slave cannot accept this destination/name.
                     for key, target in payload['targets'].items():
+                        if target['settings'].get('cluster_proof',{}).get('mode')=='passive':continue
                         try:
+                            if renew:
+                                renew()
                             certificates.remote(Server.get_by_id(int(key)), dict(target['settings'],
                                 operation='check-new', transaction=task.operation_id))
                         except Exception as error:
                             target['error_code'] = getattr(error, 'code', 'operation_failed')
                             raise
-                for key, target in payload['targets'].items():
-                    if target['status'] == 'applied':
-                        continue
-                    server = Server.get_by_id(int(key))
-                    target.update(status='applying', started=True)
-                    save(task, payload)
-                    certificates.deploy(server, payload['bundle'], payload['name'], settings=target['settings'],
-                                        transaction=task.operation_id)
-                    target['status'] = 'applied'
-                    save(task, payload)
+                def resolve(key,target):
+                    server=authorize(int(key),task.group_id_id,task.user_id_id,write=True)
+                    if server.ip!=target['address'] or (target.get('identity') and target['identity']!=dict(ip=server.ip,port=server.port,cred_id=server.cred_id)):
+                        raise certificates.CertificateError('Target changed','concurrent_change')
+                    return server
+                certificate_deployment.apply(payload['targets'],payload['bundle'],payload['name'],task.operation_id,
+                    resolve=resolve,deploy=certificates.deploy,persist=lambda:save(task,payload),renew=renew)
+                if plans:
+                    current=plan(clusters.get_cluster(payload['cluster_id'],task.group_id_id),
+                        {int(key):dict(target['settings']) for key,target in payload['targets'].items()})
+                    if current!=plans:raise certificates.CertificateError('Resource placement changed during certificate deployment','concurrent_change')
                 payload['phase'] = 'commit'
                 save(task, payload)
-            finish(task, payload)
+            finish(task, payload, renew=renew)
             success = payload['phase'] == 'commit'
             completed = dict(payload, phase='done', error_code=None if success else payload.get('failure_code'))
             completed.pop('bundle', None)
@@ -226,7 +281,7 @@ def execute(task):
                 payload['phase'] = 'rollback'
                 save(task, payload)
                 try:
-                    finish(task, payload)
+                    finish(task, payload, renew=renew)
                     payload['phase'] = 'done'
                     payload.pop('bundle', None)
                 except Exception:

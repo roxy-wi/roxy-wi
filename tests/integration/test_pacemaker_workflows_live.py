@@ -70,6 +70,7 @@ class Lab:
             if ident not in self.member_ids:
                 pytest.fail('Exporter target is not a checked lab member')
         witnesses = set(config.get('rotate_witnesses', []))
+        witnesses.update(config.get('podman_witnesses', []))
         if config.get('docker_witness'):
             witnesses.add(config['docker_witness'])
         if config.get('witness_move'):
@@ -198,6 +199,42 @@ def test_docker_image_refresh_and_native_round_trip(lab):
     after = lab.witness(witness)
     assert after['active'] and after['mode'] == 'docker' and after['ca_fingerprint'] == before['ca_fingerprint']
     assert after['image_id'] == refreshed_image
+
+
+def test_podman_witness_migration_refresh_and_reviewed_return(lab):
+    witnesses = lab.settings.get('podman_witnesses', [])
+    if not witnesses:
+        pytest.skip('No disposable attached witness selected for Podman qualification')
+    for witness in witnesses:
+        before = lab.witness(witness)
+        assert before['active'] and before['mode'] in ('native', 'docker')
+        root = f'/pacemaker/api/witness/{witness}'
+        def lifecycle(operation):
+            plan = lab.checked_plan(lab.call(root + '/lifecycle/' + operation)['data'])
+            lab.wait('/pacemaker/api/witness', lab.call(root + '/lifecycle/' + operation, {
+                'plan_digest': plan['plan_digest'], 'confirm': plan['server'],
+            }))
+        def migrate(engine):
+            plan = lab.checked_plan(lab.call(root + '/migration?container_engine=' + engine)['data'])
+            lab.wait('/pacemaker/api/witness', lab.call(root + '/migration', {
+                'container_engine': engine, 'plan_digest': plan['plan_digest'], 'confirm': plan['server'],
+            }))
+        if before['mode'] == 'docker':
+            lifecycle('native')
+        migrate('podman')
+        state = lab.witness(witness)
+        assert state['active'] and state['mode'] == 'podman' and state['ca_fingerprint'] == before['ca_fingerprint']
+        lifecycle('image-upgrade')
+        assert lab.witness(witness)['ca_fingerprint'] == before['ca_fingerprint']
+        # Each migration/lifecycle worker verifies TLS and a nonzero witness
+        # vote on every attached member before committing its rollback guard.
+        for ident in lab.clusters:
+            lab.healthy(ident)
+        lifecycle('native')
+        if before['mode'] == 'docker':
+            migrate('docker')
+        after = lab.witness(witness)
+        assert after['active'] and after['mode'] == before['mode'] and after['ca_fingerprint'] == before['ca_fingerprint']
 
 
 def test_ca_rotation_on_native_and_docker_witnesses(lab):

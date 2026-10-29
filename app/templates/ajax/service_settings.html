@@ -1,6 +1,6 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/input_macros.html' import checkbox %}
-{% set options = [('dockerized', lang.config_files.dockerized), ('restart', lang.config_files.disable_restart)] %}
+{% set options = [('dockerized', 'Run in a container'), ('restart', lang.config_files.disable_restart)] %}
 {% if service == 'haproxy' %}
     {% set options = options + [('multiple_config_files', lang.config_files.multiple)] %}
 {% endif %}
@@ -12,6 +12,18 @@
     </tr>
     {% endfor %}
 </table>
+<fieldset {{'disabled' if g.user_params['role']|int > 2 else ''}}><legend>Container identity (server administrator)</legend>
+<div class="change-advanced-grid" data-container-settings>
+    <div class="rw-form-field"><label for="{{service}}-container-engine">Container engine</label><select name="container_engine" id="{{service}}-container-engine"><option value="docker" {{'selected' if settings.get('container_engine') == 'docker' else ''}}>Docker</option><option value="podman" {{'selected' if settings.get('container_engine') == 'podman' else ''}}>Podman</option></select></div>
+    <div class="rw-form-field"><label for="{{service}}-container-owner">Linux container owner</label><input name="container_owner" id="{{service}}-container-owner" class="form-control" value="{{settings.get('container_owner','root')}}" pattern="[a-z_][a-z0-9_-]{0,31}\$?" maxlength="32"></div>
+    <div class="rw-form-field"><label for="{{service}}-container-name">Container name (empty uses group default)</label><input name="container_name" id="{{service}}-container-name" class="form-control" value="{{settings.get('container_name','')}}" maxlength="128"></div>
+    <div class="rw-form-field"><label for="{{service}}-container-unit">Podman Quadlet service (optional)</label><input name="container_unit" id="{{service}}-container-unit" class="form-control" value="{{settings.get('container_unit','')}}" placeholder="roxywi-haproxy.service" maxlength="136"></div>
+</div>
+<div class="rw-table-toolbar"><button type="button" class="rw-button rw-button-secondary" data-container-discover>Discover containers</button></div>
+<div class="rw-form-field" data-container-discovered hidden><label for="{{service}}-container-choice">Discovered container</label><select id="{{service}}-container-choice" data-container-choice></select></div>
+<p class="rw-form-help" data-container-result role="status"></p>
+</fieldset>
+<p class="rw-form-help">Select the engine and its Linux owner explicitly for an existing container. Rootless accounts need a working user runtime; lifecycle units must be Quadlets defining this exact container. Saving these settings adopts the identity without moving data or recreating the container.</p>
 {% if service == 'haproxy' %}
 <div id="haproxy-sources-settings" data-server-id="{{server_id}}" data-loading="{{lang.config_files.loading}}" data-failed="{{lang.config_files.connection_failed}}" data-retry="{{lang.config_files.retry}}" hidden></div>
 {% endif %}

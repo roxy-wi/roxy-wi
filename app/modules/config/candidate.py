@@ -4,6 +4,8 @@ Only validators know how each service loads a candidate. File replacement,
 recovery, command execution and the result contract belong to this module.
 """
 import getopt
+import io
+import tarfile
 import hashlib
 import json
 import os
@@ -17,6 +19,21 @@ import sys
 import tempfile
 import time
 from uuid import uuid4
+
+
+try:
+    import roxywi_container_runtime as container_runtime
+except ModuleNotFoundError:
+    if __package__:
+        from app.modules.connectors import containers as container_runtime
+    else:
+        # Direct CLI execution must not import the Flask application. Remote
+        # framed execution supplies roxywi_container_runtime above instead.
+        import importlib.util
+        runtime_path = Path(__file__).resolve().parents[1] / 'connectors' / 'containers.py'
+        runtime_spec = importlib.util.spec_from_file_location('roxywi_container_runtime', runtime_path)
+        container_runtime = importlib.util.module_from_spec(runtime_spec)
+        runtime_spec.loader.exec_module(container_runtime)
 
 
 ERROR_CODES = {'validation_failed', 'apply_failed', 'recovery_failed', 'mount_failed', 'save_failed'}
@@ -105,10 +122,14 @@ def check_result(output: str) -> None:
     raise RuntimeError('Unconfirmed configuration transaction result')
 
 
+def remote_source():
+    return globals()['container_runtime'].embedded() + Path(__file__).read_text(encoding='utf-8')
+
+
 def candidate_command(service: str, target: str, candidate: str, action: str, *, main: str,
                       root: str = '', sources=(), container: str = '', action_command: str = '', service_unit: str = '',
-                      apply_only: bool = False, expected_sha256: str = '') -> str:
-    if service not in ('haproxy', 'nginx', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart', 'status'):
+                      apply_only: bool = False, expected_sha256: str = '', container_runtime=None, lock_root='') -> str:
+    if service not in ('haproxy', 'nginx', 'apache', 'keepalived', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart', 'status'):
         raise ValueError('Unsupported configuration transaction')
     if action == 'status' and (not service.endswith('_waf') or candidate or action_command or apply_only):
         raise ValueError('Unsupported WAF status operation')
@@ -116,38 +137,43 @@ def candidate_command(service: str, target: str, candidate: str, action: str, *,
         raise ValueError('HAProxy WAF supports save and restart only')
     if apply_only and (not service.endswith('_waf') or action not in ('reload', 'restart') or candidate):
         raise ValueError('Unsupported WAF apply operation')
-    if service == 'nginx' or service.endswith('_waf'):
-        if service != 'nginx':
+    if service in ('nginx', 'apache', 'keepalived') or service.endswith('_waf'):
+        if service not in ('nginx', 'apache', 'keepalived'):
             root = str(PurePosixPath(target).parent if apply_only or action == 'status' else PurePosixPath(target).parent.parent)
         elif not PurePosixPath(root).is_absolute():
             raise ValueError('NGINX WAF directory must be absolute')
-        lock_id = hashlib.sha256(root.encode('utf-8')).hexdigest()
+        if lock_root and not PurePosixPath(lock_root).is_absolute():
+            raise ValueError('Configuration lock directory must be absolute')
+        lock_id = hashlib.sha256((lock_root or root).encode('utf-8')).hexdigest()
         lock = f'/var/lock/roxywi-waf-{lock_id}.lock'
     else:
         lock = '/var/lock/roxywi-haproxy-config.lock'
     spec = dict(service=service, target=target, candidate=candidate, action=action, main=main,
                 root=root, sources=list(sources), container=container, action_command=action_command, service_unit=service_unit)
+    if container_runtime is not None:
+        spec['container_runtime'] = globals()['container_runtime'].validate(container_runtime)
     if apply_only:
         spec['apply_only'] = True
     if expected_sha256:
         spec['expected_sha256'] = expected_sha256
-    script = Path(__file__).read_text(encoding='utf-8')
+    script = remote_source()
     return shlex.join(['sudo', '-n', 'flock', '-w', '30', lock, 'python3', '-c', script, json.dumps(spec)])
 
 
-def _run(arguments: list, *, timeout=30, separate_errors=False) -> subprocess.CompletedProcess:
+def _run(arguments: list, *, timeout=30, separate_errors=False, input_data=None) -> subprocess.CompletedProcess:
     # Native diagnostics can contain configuration secrets; only metadata crosses SSH.
-    return subprocess.run(arguments, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE if separate_errors else subprocess.STDOUT, timeout=timeout, check=False)
+    return subprocess.run(arguments, stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE if separate_errors else subprocess.STDOUT, timeout=timeout, check=False,
+                          **({'input':input_data} if input_data is not None else {'stdin':subprocess.DEVNULL}))
 
 
-def service_process(container, unit):
+def service_process(container, unit, *, runtime=None):
     """Return the service manager's state and its main PID, never a grep count."""
     name = container or unit
     if not name or name.startswith('-'):
         raise _ConfigurationError('A service or container name is required')
     if container:
-        result = _run(['docker', 'inspect', '--format', '{{json .State}}', container], timeout=5)
+        result = _run(container_runtime.argv(runtime, ['inspect', '--format', '{{json .State}}', container]), timeout=5)
         if result.returncode:
             return 'unknown', 0
         state = json.loads(result.stdout)
@@ -260,11 +286,15 @@ class _Validator:
     def __init__(self, spec, target, main):
         self.spec, self.target, self.main = spec, target, main
         self.container = spec.get('container', '')
+        self.runtime = container_runtime.validate(spec.get('container_runtime'))
         self.mounts = []
+
+    def runtime_argv(self, arguments):
+        return container_runtime.argv(self.runtime, arguments)
 
     def inspect(self):
         if self.container:
-            result = _run(['docker', 'inspect', '--format', '{{json .Mounts}}', self.container], timeout=10)
+            result = _run(self.runtime_argv(['inspect', '--format', '{{json .Mounts}}', self.container]), timeout=10)
             if result.returncode:
                 raise _ConfigurationError('Cannot inspect container mounts')
             self.mounts = json.loads(result.stdout)
@@ -288,10 +318,32 @@ class _WafValidator(_Validator):
             self.runtime_main = _container_path(self.main, self.mounts, bind_only=True)
 
 
+class _KeepalivedValidator(_WafValidator):
+    def inspect(self):
+        super().inspect()
+        self.command = (self.runtime_argv(['exec', self.container]) if self.container else []) + ['keepalived', '-t', '-f', self.runtime_main]
+
+    def validate(self, staged=None):
+        return _run(self.command).returncode == 0
+
+
+class _ApacheValidator(_WafValidator):
+    def inspect(self):
+        _Validator.inspect(self)
+        self.runtime_main = str(self.main)
+        if self.container:
+            _container_path(self.target, self.mounts, directory=True, bind_only=True, aliases=True)
+            self.runtime_main = _container_path(self.main, self.mounts, bind_only=True, aliases=True)
+        self.command = (self.runtime_argv(['exec', self.container]) if self.container else []) + ['apachectl', '-t', '-f', self.runtime_main]
+
+    def validate(self, staged=None):
+        return _run(self.command).returncode == 0
+
+
 class _NginxValidator(_WafValidator):
     def inspect(self):
         super().inspect()
-        self.command = (['docker', 'exec', self.container] if self.container else []) + ['nginx', '-t', '-c', self.runtime_main]
+        self.command = (self.runtime_argv(['exec', self.container]) if self.container else []) + ['nginx', '-t', '-c', self.runtime_main]
 
     def validate(self, staged=None):
         return _run(self.command).returncode == 0
@@ -350,7 +402,7 @@ class _HaproxyWafValidator(_WafValidator):
                 self.listener_port(pid)  # Reject mismatched startup paths before replacing the rule.
 
     def process_id(self):
-        return service_process(self.container, self.unit)[1]
+        return service_process(self.container, self.unit, **({'runtime':self.runtime} if self.spec.get('container_runtime') else {}))[1]
 
     def listener_port(self, pid):
         try:
@@ -446,16 +498,28 @@ class _HaproxyValidator(_Validator):
         if staged is not None and self.container and not self.copied:
             # /tmp may be a read-only bind mount. Use a unique path at the container root.
             self.copied = True
-            if _run(['docker', 'cp', str(staged), self.container + ':' + self.container_candidate]).returncode:
+            if self.runtime['owner'] == 'root':
+                copied = _run(self.runtime_argv(['cp', str(staged), self.container + ':' + self.container_candidate]))
+            else:
+                # The rootless CLI cannot read a root-owned staging directory.
+                # Send only this file over stdin; never relax host permissions.
+                stream = io.BytesIO()
+                with tarfile.open(fileobj=stream, mode='w') as archive:
+                    metadata = tarfile.TarInfo(self.container_candidate.lstrip('/'))
+                    content = staged.read_bytes()
+                    metadata.size, metadata.mode = len(content), 0o600
+                    archive.addfile(metadata, io.BytesIO(content))
+                copied = _run(self.runtime_argv(['cp', '-', self.container + ':/']), input_data=stream.getvalue())
+            if copied.returncode:
                 raise _ConfigurationError('Cannot stage the container candidate')
-            uid = _run(['docker', 'exec', self.container, 'id', '-u'], timeout=10)
-            gid = _run(['docker', 'exec', self.container, 'id', '-g'], timeout=10)
+            uid = _run(self.runtime_argv(['exec', self.container, 'id', '-u']), timeout=10)
+            gid = _run(self.runtime_argv(['exec', self.container, 'id', '-g']), timeout=10)
             if uid.returncode or gid.returncode:
                 raise _ConfigurationError('Cannot determine the container user')
             owner = uid.stdout.decode().strip() + ':' + gid.stdout.decode().strip()
             if not re.fullmatch(r'[0-9]+:[0-9]+', owner):
                 raise _ConfigurationError('Invalid container user identity')
-            if _run(['docker', 'exec', '-u', '0', self.container, 'chown', owner, self.container_candidate], timeout=10).returncode:
+            if _run(self.runtime_argv(['exec', '-u', '0', self.container, 'chown', owner, self.container_candidate]), timeout=10).returncode:
                 raise _ConfigurationError('Cannot set container candidate ownership')
         arguments = []
         for path in files:
@@ -466,11 +530,11 @@ class _HaproxyValidator(_Validator):
             else:
                 value = str(path)
             arguments.extend(['-f', value])
-        command = (['docker', 'exec', self.container] if self.container else []) + ['haproxy', '-c', *arguments]
+        command = (self.runtime_argv(['exec', self.container]) if self.container else []) + ['haproxy', '-c', *arguments]
         return _run(command).returncode == 0
 
     def close(self):
-        if self.copied and _run(['docker', 'exec', '-u', '0', self.container, 'rm', '-f', self.container_candidate], timeout=10).returncode:
+        if self.copied and _run(self.runtime_argv(['exec', '-u', '0', self.container, 'rm', '-f', self.container_candidate]), timeout=10).returncode:
             raise _ConfigurationError('Cannot remove the container candidate')
 
 
@@ -485,11 +549,13 @@ def _target(spec):
         target, main = target.resolve(), main.resolve()
         if target != main and (root not in target.parents or target.suffix != '.cfg'):
             raise _ConfigurationError('Selected configuration resolves outside the HAProxy directory')
-    elif spec['service'] == 'nginx':
+    elif spec['service'] in ('nginx', 'apache', 'keepalived'):
         target = target.resolve()
-        if target != main.resolve() or not main.is_file():
-            raise _ConfigurationError('Only the configured NGINX main file can be replaced')
-        _regular(target)
+        root = Path(spec['root']).resolve()
+        if (not Path(spec['root']).is_absolute() or not main.is_file()
+                or (target != main.resolve() and (root not in target.parents or target.suffix != '.conf'))):
+            raise _ConfigurationError('Select the configured main file or a .conf file inside the proxy directory')
+        if target.exists(): _regular(target)
     else:
         if spec.get('apply_only') or spec['action'] == 'status':
             if target.name != 'modsecurity.conf' or target.parent.name != 'waf' or target.parent.is_symlink():
@@ -524,7 +590,7 @@ def diagnose_waf(spec):
                 result['process'] = 'missing' if loaded.stdout.strip() == b'not-found' else 'unknown'
                 result['error'] = phase
                 return result
-        result['process'], pid = service_process(container, unit)
+        result['process'], pid = service_process(container, unit, **({'runtime':spec['container_runtime']} if spec.get('container_runtime') else {}))
         if result['process'] == 'unknown':
             result['error'] = phase
             return result
@@ -541,7 +607,7 @@ def diagnose_waf(spec):
         elif not container or pid:
             result['check'], result['module'] = validator.module_state()
         # A restart during the check invalidates the readiness observation.
-        if service_process(container, unit) != (result['process'], pid):
+        if service_process(container, unit, **({'runtime':spec['container_runtime']} if spec.get('container_runtime') else {})) != (result['process'], pid):
             result.update(process='unknown', check='not_checked', error='process_changed')
     except Exception:
         # Return a bounded diagnostic, never configuration output or a command
@@ -561,7 +627,7 @@ def execute(spec: dict) -> dict:
     phase = 'prepare'
     try:
         service, action = spec['service'], spec['action']
-        if service not in ('haproxy', 'nginx', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart'):
+        if service not in ('haproxy', 'nginx', 'apache', 'keepalived', 'nginx_waf', 'haproxy_waf') or action not in ('test', 'check', 'save', 'reload', 'restart'):
             raise _ConfigurationError('Unsupported configuration transaction')
         if service == 'haproxy_waf' and action not in ('save', 'restart'):
             raise _ConfigurationError('HAProxy WAF supports save and restart only')
@@ -587,7 +653,7 @@ def execute(spec: dict) -> dict:
             if (not isinstance(expected, str) or not re.fullmatch(r'[0-9a-f]{64}', expected)
                     or original is None or hashlib.sha256(original).hexdigest() != expected):
                 raise _ConfigurationError('Configuration changed before the transaction; prepare a new candidate')
-        validator_type = {'haproxy': _HaproxyValidator, 'nginx': _NginxValidator,
+        validator_type = {'haproxy': _HaproxyValidator, 'nginx': _NginxValidator, 'apache': _ApacheValidator, 'keepalived': _KeepalivedValidator,
                           'nginx_waf': _NginxValidator, 'haproxy_waf': _HaproxyWafValidator}[service]
         validator = validator_type(spec, target, main)
         phase = 'mount'

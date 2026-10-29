@@ -130,6 +130,7 @@ $(function () {
             const targets = $('<div>', {class: 'rw-form-field'});
             for (const target of operation.targets) {
                 const targetLine = $('<div>').append($('<strong>').text(target.address), document.createTextNode(' '), badge(target.status));
+                if (target.verification) targetLine.append($('<p>', {class: 'rw-form-help'}).text(text[target.verification === 'disk-staged' ? 'passive_staged' : 'runtime_verified']));
                 if (target.error_code) targetLine.append($('<p>', {class: 'rw-form-help'}).text(translate(target.error_code)));
                 targets.append(targetLine);
             }
@@ -291,7 +292,7 @@ $(function () {
         if (runtime && (!validPem || validPem !== pem)) return;
         let name = $('#cert-new-name').val().trim();
         if (name.endsWith('.' + type)) name = name.slice(0, -(type.length + 1));
-        let url = '/add/cert/add', body = {server_ip: dialogAddress, name, cert: pem, cert_type: type};
+        let url = base + dialogServer + '/upload', body = {server_ip: dialogAddress, name, cert: pem, cert_type: type};
         if (runtime) {
             body = {pem: validPem, operation_id: operationId};
             if (current) Object.assign(body, {name: current.name, revision: current.revision, directory: current.directory});

@@ -10,7 +10,7 @@ import pika
 from cryptography.fernet import Fernet, InvalidToken
 
 from app.modules.common.time import utc_now
-from app.modules.db.db_model import InstallationTasks
+from app.modules.db.db_model import CertificateSource, InstallationTasks
 from app.modules.integrations.rabbitmq_settings import RabbitConnectionSettings
 from app.modules.server.ssh import _get_fernet_key
 
@@ -37,6 +37,45 @@ def deserialize_operation_payload(payload: str) -> dict:
     # Compatibility for tasks created by an early development build before
     # encrypted operation payloads were introduced.
     return json.loads(payload)
+
+
+def source_owned_operation(task) -> bool:
+    """Source deployments are private children, never independent queue jobs."""
+    if task.operation_type != 'certificate':
+        return False
+    try:
+        if deserialize_operation_payload(task.operation_payload).get('source_id') is not None:
+            return True
+    except (ValueError, TypeError, AttributeError):
+        # An unreadable payload cannot execute a deployment either. Leave the
+        # ordinary executor to report its bounded failure without blocking jobs.
+        pass
+    return CertificateSource.select().where(CertificateSource.deployment_task_id == task.id).exists()
+
+
+def renew_operation_lease(operation_id: str, task_id: int) -> int:
+    """Renew a live source and its current child together in one transaction."""
+    database = InstallationTasks._meta.database
+    from peewee import SqliteDatabase
+    with database.atomic(*(('IMMEDIATE',) if isinstance(database, SqliteDatabase) else ())):
+        now = utc_now()
+        task = InstallationTasks.get_or_none((InstallationTasks.id == task_id) &
+            (InstallationTasks.operation_id == operation_id) & (InstallationTasks.status == 'running'))
+        if task is None:
+            return 0
+        updated = InstallationTasks.update(updated_at=now).where(
+            (InstallationTasks.id == task.id) & (InstallationTasks.status == 'running')).execute()
+        if updated and task.operation_type == 'certificate-source':
+            row = CertificateSource.get_or_none((CertificateSource.active_task_id == task.id) &
+                (CertificateSource.group_id == task.group_id_id))
+            child = InstallationTasks.get_or_none((InstallationTasks.id == row.deployment_task_id) &
+                (InstallationTasks.group_id == task.group_id_id) & (InstallationTasks.status == 'running')) if row and row.deployment_task_id else None
+            if child and source_owned_operation(child):
+                payload = deserialize_operation_payload(child.operation_payload)
+                if payload.get('source_id') == row.id and payload.get('source_task_id', task.id) == task.id:
+                    InstallationTasks.update(updated_at=now).where(
+                        (InstallationTasks.id == child.id) & (InstallationTasks.status == 'running')).execute()
+        return updated
 
 
 @dataclass(frozen=True)
@@ -182,6 +221,8 @@ def publish_pending_operations(
         .where(
             (InstallationTasks.operation_id.is_null(False))
             & (InstallationTasks.status == 'created')
+            & (InstallationTasks.id.not_in(CertificateSource.select(CertificateSource.deployment_task_id)
+                .where(CertificateSource.deployment_task_id.is_null(False))))
         )
         .order_by(InstallationTasks.start_date)
         .limit(limit)
@@ -197,6 +238,8 @@ def publish_pending_operations(
         declare_operation_topology(channel, settings)
         channel.confirm_delivery()
         for task in tasks:
+            if source_owned_operation(task):
+                continue
             message = json.dumps({
                 'operation_id': task.operation_id,
                 'task_id': task.id,
@@ -246,17 +289,22 @@ def recover_stale_operations() -> int:
     """Return jobs abandoned by a terminated worker to the durable outbox."""
     lease_seconds = max(60, int(os.environ.get('ROXYWI_OPERATIONS_LEASE_SECONDS', '300')))
     stale_before = utc_now() - timedelta(seconds=lease_seconds)
-    return (
-        InstallationTasks.update(
-            status='created',
-            error='Operations worker lease expired; task queued again',
-            published_at=None,
-            updated_at=utc_now(),
-        )
-        .where(
-            (InstallationTasks.operation_id.is_null(False))
-            & (InstallationTasks.status == 'running')
-            & (InstallationTasks.updated_at < stale_before)
-        )
-        .execute()
-    )
+    stale = (InstallationTasks.operation_id.is_null(False) & (InstallationTasks.status == 'running') &
+        (InstallationTasks.updated_at < stale_before))
+    updates = dict(status='created', error='Operations worker lease expired; task queued again',
+        published_at=None, updated_at=utc_now())
+    recovered = InstallationTasks.update(**updates).where(stale &
+        ((InstallationTasks.operation_type != 'certificate') | InstallationTasks.operation_type.is_null(True))).execute()
+    # Only certificate payloads need ownership inspection; keep other recovery
+    # types as a single SQL update and bound the certificate working set.
+    last_id = 0
+    while True:
+        batch = list(InstallationTasks.select().where(stale & (InstallationTasks.operation_type == 'certificate') &
+            (InstallationTasks.id > last_id)).order_by(InstallationTasks.id).limit(100))
+        if not batch:
+            break
+        for task in batch:
+            if not source_owned_operation(task):
+                recovered += InstallationTasks.update(**updates).where(stale & (InstallationTasks.id == task.id)).execute()
+        last_id = batch[-1].id
+    return recovered

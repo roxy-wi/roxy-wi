@@ -62,3 +62,30 @@ def test_autostart_api_is_operator_only_and_requires_cluster_confirmation(cluste
     authenticated[0]['role']=4
     assert client.get(url,headers=authenticated[1]).status_code==403
     assert client.post(url,headers=authenticated[1],json={'policy':'on-failure','confirm':cluster.name}).status_code==403
+
+
+@pytest.mark.parametrize('agent',['docker','podman'])
+def test_cluster_owned_container_blocks_independent_proxy_restart(cluster,monkeypatch,agent):
+    from app.modules.db.db_model import ServiceSetting
+    member=service.members(cluster)[0][0]
+    ServiceSetting.insert(server_id=member.server_id,service='haproxy',setting='container_engine',value=agent).on_conflict('replace').execute()
+    ServiceSetting.insert(server_id=member.server_id,service='haproxy',setting='container_name',value='cluster-web').on_conflict('replace').execute()
+    xml=f'<cib><configuration><resources><primitive id="web" class="ocf" provider="heartbeat" type="{agent}"><instance_attributes id="web-params"><nvpair id="web-name" name="name" value="cluster-web"/></instance_attributes></primitive></resources></configuration></cib>'
+    monkeypatch.setattr(service,'connection',lambda _:(None,xml))
+    try:
+        with pytest.raises(RoxywiValidationError,match='managed by Pacemaker'):
+            autostart.assert_unmanaged(member.server_id,'haproxy')
+        autostart.assert_unmanaged(member.server_id,'nginx')
+    finally:
+        ServiceSetting.delete().where(ServiceSetting.server_id==member.server_id).execute()
+
+
+def test_cluster_ownership_resolves_container_templates_and_attribute_references(cluster,monkeypatch):
+    from app.modules.db.db_model import ServiceSetting
+    member=service.members(cluster)[0][0]
+    ServiceSetting.insert(server_id=member.server_id,service='haproxy',setting='container_name',value='cluster-web').on_conflict('replace').execute()
+    xml='''<cib><configuration><resources><template id="web-template" class="ocf" provider="heartbeat" type="podman"><instance_attributes id="shared"><nvpair id="shared-name" name="name" value="cluster-web"/></instance_attributes></template><primitive id="web" template="web-template"><instance_attributes id-ref="shared"/></primitive></resources></configuration></cib>'''
+    try:
+        assert 'haproxy' in autostart.owned_services(xml,member.server_id)
+    finally:
+        ServiceSetting.delete().where(ServiceSetting.server_id==member.server_id).execute()

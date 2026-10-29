@@ -4,6 +4,7 @@ import pytest
 from flask import g
 
 from app.views.service.views import ServiceView
+from app.modules.service import managed_runtime
 
 
 HAPROXY_INFO = """Version: 3.1.7-c3f4089
@@ -97,6 +98,9 @@ def test_apache_status_uses_http_client_without_exposing_credentials_to_shell(ap
         apache_metrics=1,
     )
 
+    monkeypatch.setattr(managed_runtime, 'managed_server', lambda _: server)
+    server.server_id = 65
+
     class Response:
         text = (
             'ServerVersion: Apache/2.4.62 (Unix)\n'
@@ -143,6 +147,7 @@ def test_apache_status_uses_http_client_without_exposing_credentials_to_shell(ap
         {
             'auth': ('status-user', 'secret; touch /tmp/pwned'),
             'timeout': 5,
+            'allow_redirects': False,
         },
     )]
     assert data['Version'] == '2.4.62'

@@ -17,10 +17,12 @@ def run(args):
     subprocess.run(args, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=120)
 lock = open('/run/lock/roxywi-qnetd.lock', 'a')
 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+if data['action'] == 'init' and data.get('container_engine') in ('docker','podman'):
+    select_engine(data['container_engine'])
 state = container_state()
 if data.get('docker') is False and state:
-    raise SystemExit('A Docker witness already exists; explicit migration is required for native installation')
-if data['action'] == 'init' and (data.get('docker') or state):
+    raise SystemExit('A container witness already exists; explicit migration is required for native installation')
+if data['action'] == 'init' and (data.get('docker') or data.get('container_engine') in ('docker','podman') or state):
     if any(subprocess.run(['systemctl', 'is-active', '--quiet', unit], capture_output=True).returncode == 0
            for unit in ('corosync', 'pacemaker')):
         raise SystemExit('A witness must run outside the cluster')
@@ -34,7 +36,7 @@ if state:
         with tempfile.NamedTemporaryFile(dir=DATA, prefix='.request-', suffix='.crq') as request:
             request.write(base64.b64decode(data['request'], validate=True)); request.flush()
             os.chown(request.name, 65532, 65532)
-            command(['docker', 'exec', CONTAINER, 'corosync-qnetd-certutil', '-s', '-c',
+            command([ENGINE, 'exec', CONTAINER, 'corosync-qnetd-certutil', '-s', '-c',
                      '/etc/corosync/qnetd/' + pathlib.Path(request.name).name, '-n', data['name']], timeout=120)
         print(base64.b64encode((DATA / 'nssdb' / ('cluster-' + data['name'] + '.crt')).read_bytes()).decode())
     else:
@@ -105,9 +107,9 @@ def witness_status(server_id, group_id):
     return json.loads(Remote(server).run(['python3', '-c', WITNESS_STATUS]))
 
 
-def install_witness(server_id, group_id, *, docker=False):
+def install_witness(server_id, group_id, *, docker=False, container_engine=None):
     server = witness_server(server_id, group_id)
-    Remote(server).run(['python3', '-c', WITNESS], data=json.dumps({'action': 'init', 'docker': docker}), timeout=1200)
+    Remote(server).run(['python3', '-c', WITNESS], data=json.dumps({'action': 'init', 'docker': docker or container_engine in ('docker','podman'), **({'container_engine': container_engine} if container_engine is not None else {})}), timeout=1200)
     result = witness_status(server_id, group_id)
     if not result['active'] or not result['ca_fingerprint']:
         raise RoxywiInputError('The witness did not become ready; inspect its journal')

@@ -888,9 +888,13 @@ def test_service_state_check_supports_systemd_and_docker(
     monkeypatch.setattr(
         change_service.service_sql,
         'select_service_setting',
-        lambda *_args: dockerized,
+        lambda _server, _service, setting: dockerized if setting == 'dockerized' else '0',
     )
-    monkeypatch.setattr(change_service.sql, 'get_setting', lambda *_args: 'haproxy-main')
+    def container_default(setting, *, group_id):
+        assert setting == 'haproxy_container_name'
+        assert int(group_id) == int(managed_server.group_id)
+        return 'haproxy-main'
+    monkeypatch.setattr(change_service.sql, 'get_setting', container_default)
     monkeypatch.setattr(
         change_service.service_common,
         'get_correct_service_name',
@@ -1532,35 +1536,32 @@ def test_upload_without_version_history_does_not_require_request_context(
     assert result == 'Haproxy'
 
 
-def test_nginx_candidate_validation_restores_original_file(managed_server, tmp_path, monkeypatch):
-    candidate = tmp_path / 'nginx.conf'
-    candidate.write_text('events {}\n', encoding='utf-8')
-    commands = []
-    monkeypatch.setattr(config_module, 'upload', lambda *_args: None)
-    monkeypatch.setattr(config_module.subprocess, 'run', lambda *_args, **_kwargs: None)
-    monkeypatch.setattr(
-        config_module.service_sql,
-        'select_service_setting',
-        lambda *_args: '0',
-    )
-    monkeypatch.setattr(
-        config_module.server_mod,
-        'ssh_command',
-        lambda _ip, command, **_kwargs: commands.append(command) or '',
-    )
-
-    result = config_module.validate_candidate_config(
-        managed_server.ip,
-        str(candidate),
-        'nginx',
-        config_file_name='/etc/nginx/nginx.conf',
-    )
-
-    assert result == 'Nginx configuration is valid'
-    assert 'sudo cp -p /etc/nginx/nginx.conf' in commands[0]
-    assert 'sudo nginx -t' in commands[0]
-    assert commands[0].count('/etc/nginx/nginx.conf') == 3
-    assert 'exit $validation_rc' in commands[0]
+@pytest.mark.parametrize('valid', [True, False])
+def test_nginx_candidate_validation_restores_original_file(managed_server, tmp_path, monkeypatch, valid):
+    import json
+    import shlex
+    import shutil
+    from app.modules.config import candidate as transactions
+    root=tmp_path/'proxy';root.mkdir()
+    main=root/'nginx.conf';main.write_bytes(b'events {}\n')
+    incoming=tmp_path/'incoming.conf';incoming.write_bytes(b'new configuration\n' if valid else b'invalid configuration\n')
+    original=main.read_bytes();observed=[]
+    monkeypatch.setattr(config_module, 'upload', lambda _ip,path,source:shutil.copyfile(source,path))
+    monkeypatch.setattr(config_module.service_sql, 'select_service_setting', lambda *_:'0')
+    monkeypatch.setattr(config_module.service_common,'proxy_runtime_settings',lambda *_:dict(main=str(main),root=str(root),container=''))
+    def check(args,**kwargs):
+        observed.append(main.read_bytes())
+        return SimpleNamespace(returncode=0 if main.read_bytes()!=b'invalid configuration\n' else 1,stdout=b'')
+    monkeypatch.setattr(transactions,'_run',check)
+    monkeypatch.setattr(config_module.server_mod,'ssh_command',lambda _ip,command,**kw:json.dumps(transactions.execute(json.loads(shlex.split(command)[-1]))))
+    if valid:
+        result=config_module.validate_candidate_config(managed_server.ip,str(incoming),'nginx',config_file_name=str(main))
+        assert result=='Nginx configuration is valid'
+    else:
+        with pytest.raises(transactions.CandidateApplyError):
+            config_module.validate_candidate_config(managed_server.ip,str(incoming),'nginx',config_file_name=str(main))
+    assert main.read_bytes()==original
+    assert incoming.read_bytes() in observed
 
 
 def test_change_center_page_is_available_to_authenticated_editor(app, client, monkeypatch):

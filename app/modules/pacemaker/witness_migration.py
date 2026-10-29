@@ -41,8 +41,8 @@ def recover(token):
         existing = container_state()
         if existing:
             if existing['Config']['Labels'].get('org.roxy-wi.migration') != token:
-                raise ValueError('Recovery refuses an unrelated Docker container')
-            command(['docker', 'rm', '-f', CONTAINER])
+                raise ValueError('Recovery refuses an unrelated container')
+            command([ENGINE, 'rm', '-f', CONTAINER])
         if DATA.exists():
             destination = folder(token) / 'docker-stopped'
             if destination.exists(): raise ValueError('Recovery data already exists; inspect the migration journal')
@@ -62,6 +62,26 @@ def recover(token):
 '''
 RECOVER_CODE = SOURCE + RUNTIME + RECOVERY
 HELPERS = r'''
+import ssl
+def certificate_identity(value):
+    certificates=re.findall(r'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----',value,re.S)
+    if len(certificates)!=1:raise ValueError('Expected exactly one exported witness CA certificate')
+    return hashlib.sha256(ssl.PEM_cert_to_DER_cert(certificates[0])).hexdigest()
+
+def preserve_ca_trust(directory, image, source):
+    # NSS trust metadata can be interpreted differently across distributions.
+    # Reapply only the reviewed native trust on this exact exported CA, in the
+    # destination copy; never trust another issuer or alter the original DB.
+    prefix=[ENGINE,'run','--rm','--network','none','--read-only','--user','65532:65532',
+            '--cap-drop','ALL','--security-opt','no-new-privileges','--entrypoint','certutil',
+            '--volume',str(directory)+':/etc/corosync/qnetd:rw,Z',image]
+    exported=command([*prefix,'-L','-d','/etc/corosync/qnetd/nssdb','-n','QNet CA','-a'],timeout=60)
+    if certificate_identity(exported)!=source['ca_identity']:
+        raise ValueError('The destination NSS CA differs from the reviewed native CA')
+    trust=','.join(flags.replace('u','') for flags in source['ca_trust'])
+    command([*prefix,'-M','-d','/etc/corosync/qnetd/nssdb','-n','QNet CA','-t',trust,
+             '-f','/etc/corosync/qnetd/nssdb/pwdfile.txt'],timeout=60)
+
 def tree_digest(root):
     digest = hashlib.sha256(); total = 0
     files = sorted(root.rglob('*'))
@@ -81,8 +101,8 @@ def source_info(token=None):
     ensure_no_pending(token)
     if pathlib.Path('/etc/pve').exists(): raise ValueError('Proxmox hosts cannot be migration targets')
     platform_profile()
-    if container_state(): raise ValueError('The selected host already has a Docker witness')
-    if DATA.exists(): raise ValueError('Orphaned Docker witness data requires recovery first')
+    if container_state(): raise ValueError('The selected host already has a container witness')
+    if DATA.exists(): raise ValueError('Orphaned container witness data requires recovery first')
     if subprocess.run(['systemctl', 'is-active', '--quiet', 'corosync-qnetd'], capture_output=True).returncode:
         raise ValueError('Select a running native witness')
     for unit in ('corosync', 'pacemaker'):
@@ -100,13 +120,21 @@ def source_info(token=None):
         raise ValueError('Custom qnetd address-family settings are not supported by the managed container')
     cert = NATIVE / 'nssdb/qnetd-cacert.crt'
     if not cert.is_file(): raise ValueError('The native witness has no initialized CA')
+    exported=command(['certutil','-L','-d',str(NATIVE/'nssdb'),'-n','QNet CA','-a'])
+    if certificate_identity(exported)!=certificate_identity(cert.read_text()):
+        raise ValueError('The exported native CA does not match its NSS identity')
+    trust=re.search(r'^QNet CA\s+([A-Za-z]*),([A-Za-z]*),([A-Za-z]*)\s*$',
+                    command(['certutil','-L','-d',str(NATIVE/'nssdb')]),re.M)
+    if not trust or not {'C','T'}<=set(trust[1]):
+        raise ValueError('The native witness CA must already be trusted for server and client authentication')
     connections = command(['corosync-qnetd-tool', '-l'])
     clusters = sorted(set(re.findall(r'^Cluster "(.*)":', connections, re.MULTILINE)))
     if any(not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,62}', name) for name in clusters):
         raise ValueError('A connected cluster name cannot be managed by this workflow')
     if connections.strip() and not clusters: raise ValueError('Cannot identify connected qnetd clusters')
     return {'mode': 'native', 'ca_fingerprint': hashlib.sha256(cert.read_bytes()).hexdigest(),
-            'database_digest': tree_digest(NATIVE), 'enabled': enabled, 'arguments': args[1:], 'clusters': clusters}
+            'database_digest': tree_digest(NATIVE), 'enabled': enabled, 'arguments': args[1:], 'clusters': clusters,
+            'ca_identity':certificate_identity(exported), 'ca_trust':list(trust.groups())}
 
 def pending():
     root = ROOT / 'migrations'
@@ -125,16 +153,14 @@ def copy_state(source, destination):
         metadata = path.stat()
         os.chown(destination / relative, metadata.st_uid, metadata.st_gid)
 
-def prepare(token, expected):
+def prepare(token, expected, container_engine="docker"):
     if pending(): raise ValueError('An unfinished migration must be recovered first')
     source = source_info()
     if source != expected: raise ValueError('The native witness changed; review a new migration plan')
-    if not shutil.which('docker'):
-        install_packages('witness-docker')
-        command(['systemctl','enable','--now','docker'],timeout=60)
-    if not shutil.which('docker'): raise ValueError('Docker Engine was installed but its CLI is unavailable')
+    select_engine(container_engine)
+    ensure_engine()
     image = build_image()
-    if source_info() != expected: raise ValueError('The native witness changed while preparing Docker')
+    if source_info() != expected: raise ValueError('The native witness changed while preparing the selected engine')
     directory = folder(token); directory.mkdir(parents=True, mode=0o700)
     snapshot = directory / 'backup'
     copy_state(NATIVE, snapshot)
@@ -144,9 +170,10 @@ def prepare(token, expected):
     save(token, source)
     probe = directory / 'probe'; shutil.copytree(snapshot, probe)
     for path in [probe, *probe.rglob('*')]: os.chown(path, 65532, 65532)
+    preserve_ca_trust(probe,image,source)
     # Validate the existing NSS database/private key in an isolated container before stopping qnetd.
     for args in (['-L', '-n', 'QNetd Cert'], ['-K', '-f', '/etc/corosync/qnetd/nssdb/pwdfile.txt']):
-        command(['docker','run','--rm','--network','none','--read-only','--user','65532:65532',
+        command([ENGINE,'run','--rm','--network','none','--read-only','--user','65532:65532',
                  '--cap-drop','ALL','--security-opt','no-new-privileges','--entrypoint','certutil',
                  '--volume',str(probe)+':/etc/corosync/qnetd:rw,Z',image,'-d','/etc/corosync/qnetd/nssdb',*args],timeout=60)
     recovery = directory / 'recover.py'
@@ -167,6 +194,7 @@ def switch(token):
         if tree_digest(NATIVE) != state['database_digest']: raise ValueError('Witness database changed at switchover')
         shutil.copytree(folder(token)/'backup', DATA)
         for path in [DATA,*DATA.rglob('*')]: os.chown(path,65532,65532)
+        preserve_ca_trust(DATA,state['image_id'],state)
         launch_docker(state['image_id'],migration=token)
         for _ in range(45):
             container = container_state()
@@ -183,10 +211,10 @@ def switch(token):
 def commit(token):
     state=load(token)
     if state['phase'] != 'verifying': raise ValueError('Migration is not awaiting verification')
-    if not docker_status(container_state())['active']: raise ValueError('Docker witness stopped before commit')
+    if not docker_status(container_state())['active']: raise ValueError('container witness stopped before commit')
     if hashlib.sha256(CERT.read_bytes()).hexdigest() != state['ca_fingerprint']: raise ValueError('Witness CA changed')
     command(['systemctl','disable','corosync-qnetd'])
-    atomic(ROOT/'mode.json',{'mode':'docker','migration':token,'ca_fingerprint':state['ca_fingerprint']})
+    atomic(ROOT/'mode.json',{'mode':ENGINE,'migration':token,'ca_fingerprint':state['ca_fingerprint']})
     state['phase']='committed'; save(token,state)
     subprocess.run(['systemctl','stop',timer_name(token)+'.timer'],capture_output=True,timeout=15)
     return state
@@ -202,7 +230,7 @@ try:
     if action=='plan':
         unfinished=pending()
         result={'pending':unfinished} if unfinished else {'source':source_info(),'pending':[]}
-    elif action=='prepare': result=prepare(data['token'],data['source'])
+    elif action=='prepare': result=prepare(data['token'],data['source'],data.get('container_engine','docker'))
     elif action=='switch': result=switch(data['token'])
     elif action=='commit': result=commit(data['token'])
     elif action=='recover': result=recover(data['token'])
@@ -263,7 +291,8 @@ def wait_verify(clusters, witness_ip, timeout=75):
             time.sleep(2)
 
 
-def plan(server_id, group_id):
+def plan(server_id, group_id, container_engine="docker"):
+    if container_engine not in ('docker', 'podman'): raise RoxywiValidationError('Select Docker or Podman')
     from app.modules.pacemaker.qdevice import witness_server
     server = witness_server(server_id, group_id)
     host = call(server, 'plan')
@@ -272,17 +301,17 @@ def plan(server_id, group_id):
         return {'pending': host['pending'], 'server': server.hostname, 'eligible': False}
     clusters = attachments(server, group_id, host['source']['clusters'])
     verify(clusters, server.ip)
-    data = {'source': host['source'], 'server_id': server_id,
+    data = {'source': host['source'], 'server_id': server_id, 'container_engine': container_engine,
             'identity': {'ip': server.ip, 'port': server.port, 'cred_id': server.cred_id},
             'clusters': [{'id': c.id, 'name': c.name, 'members': c.servers} for c in clusters]}
     return dict(data, pending=[], server=server.hostname, eligible=True,
                 plan_digest=hashlib.sha256(json.dumps(data, sort_keys=True).encode()).hexdigest())
 
 
-def migrate(server_id, group_id, digest, user_id=0):
+def migrate(server_id, group_id, digest, user_id=0, *, container_engine="docker"):
     from app.modules.pacemaker.qdevice import witness_server
     server = witness_server(server_id, group_id)
-    current = plan(server_id, group_id)
+    current = plan(server_id, group_id, container_engine=container_engine)
     if not current.get('eligible') or current['plan_digest'] != digest:
         raise RoxywiConflictError('Witness migration plan changed; review it again')
     clusters = attachments(server, group_id, current['source']['clusters'])
@@ -299,7 +328,7 @@ def migrate(server_id, group_id, digest, user_id=0):
                 active=InstallationTasks.get_or_none(InstallationTasks.id==c.active_task_id)
                 if active and active.status not in ('completed','failed'): raise RoxywiConflictError('An attached cluster operation is pending')
         try:
-            call(server, 'prepare', token=token, source=current['source'])
+            call(server, 'prepare', token=token, source=current['source'], container_engine=container_engine)
             # Preparation can include a slow image build; check node health again before stopping qnetd.
             verify(clusters, server.ip)
             for c, lock in locks: service.renew_lock(c, lock)

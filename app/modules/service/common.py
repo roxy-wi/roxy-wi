@@ -154,22 +154,30 @@ def check_service_config(server_ip: str, server_id: int, service: str) -> None:
 
 	"""
 	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
-	container_name = sql.get_setting(f'{service}_container_name')
+	from app.modules.service import container_settings
+	container_name = container_settings.name(server_id, service) if is_dockerized == '1' else ''
 	if service == 'haproxy':
 		output = server_mod.ssh_command(server_ip, check_command(server_ip, server_id, container_name if is_dockerized == '1' else None), rc=1,
 			timeout=REMOTE_TIMEOUT, error_context='HAProxy configuration validation failed')
 		check_result(output)
 		return
-	command_for_docker = f'sudo docker exec -it {container_name}'
+	if service in ('nginx', 'apache', 'keepalived'):
+		from app.modules.config import candidate
+		settings = proxy_runtime_settings(service, server_id)
+		command = candidate.candidate_command(service, settings['main'], '', 'check', **settings)
+		check_result(server_mod.ssh_command(server_ip, command, rc=1, timeout=REMOTE_TIMEOUT,
+			error_context='Proxy configuration validation failed'))
+		return
+	from app.modules.service import container_settings
 	config_path = ''
 
 	if service == 'keepalived':
 		config_path = sql.get_setting(f'{service}_config_path')
 
 	command = {
-		'nginx': {'0': 'sudo nginx -q -t ', '1': f'{command_for_docker} nginx -t '},
-		'apache': {'0': 'sudo apachectl -t ', '1': f'{command_for_docker} apachectl -t '},
-		'keepalived': {'0': f'keepalived -t -f {config_path} ', '1': ' '}
+		'nginx': {'0': 'sudo nginx -q -t ', '1': container_settings.command(server_id, service, ['exec', container_settings.name(server_id, service), 'nginx', '-t']) if is_dockerized == '1' else ''},
+		'apache': {'0': 'sudo apachectl -t ', '1': container_settings.command(server_id, service, ['exec', container_settings.name(server_id, service), 'apachectl', '-t', '-f', sql.get_setting('apache_config_path')]) if is_dockerized == '1' else ''},
+		'keepalived': {'0': f'keepalived -t -f {config_path} ', '1': container_settings.command(server_id, service, ['exec', container_name, 'keepalived', '-t', '-f', config_path]) if is_dockerized == '1' else ''}
 	}
 
 	try:
@@ -247,7 +255,8 @@ def get_stat_page(server_ip: str, service: str, group_id: int) -> str:
 	stats_page = sql.get_setting(f'{service}_stats_page', group_id=group_id)
 
 	try:
-		response = requests.get(f'http://{server_ip}:{stats_port}/{stats_page}', auth=(stats_user, stats_pass), timeout=5, allow_redirects=False)
+		from app.modules.service.managed_runtime import statistics_response
+		response = statistics_response(server_ip, service, stats_port, stats_page, stats_user, stats_pass)
 	except requests.exceptions.ConnectTimeout:
 		return 'error: Connection timeout occurred!'
 	except requests.exceptions.ReadTimeout:
@@ -283,6 +292,21 @@ def waf_runtime_settings(service: str, server_id: int) -> dict:
 	if service not in ('haproxy', 'nginx'):
 		raise ValueError('Unsupported WAF service')
 	action_service = 'nginx' if service == 'nginx' else 'waf'
-	container = sql.get_setting(f'{action_service}_container_name') if service_sql.select_service_setting(server_id, action_service, 'dockerized') == '1' else ''
+	from app.modules.service import container_settings
+	container = container_settings.name(server_id, action_service) if service_sql.select_service_setting(server_id, action_service, 'dockerized') == '1' else ''
 	return dict(main=sql.get_setting('nginx_config_path') if service == 'nginx' else common.get_waf_entrypoint(service),
-		container=container, service_unit=get_correct_service_name(action_service, server_id) if not container else '')
+		container=container, service_unit=get_correct_service_name(action_service, server_id) if not container else '',
+		**container_settings.context(server_id, action_service))
+
+
+def proxy_runtime_settings(service: str, server_id: int) -> dict:
+	if service not in ('nginx', 'apache', 'keepalived'):
+		raise ValueError('Unsupported proxy configuration')
+	from app.modules.service import container_settings
+	from pathlib import PurePosixPath
+	container = container_settings.name(server_id, service) if service_sql.select_service_setting(server_id, service, 'dockerized') == '1' else ''
+	main = sql.get_setting(service + '_config_path')
+	root = str(PurePosixPath(main).parent) if service == 'keepalived' else sql.get_setting(service + '_dir')
+	return dict(main=main, root=root,
+		container=container, lock_root=common.get_waf_directory('nginx') if service == 'nginx' else '',
+		**container_settings.context(server_id, service))

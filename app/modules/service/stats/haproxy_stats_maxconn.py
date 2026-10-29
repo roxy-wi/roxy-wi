@@ -5,7 +5,7 @@ import re
 
 from app.modules.config import haproxy_files, runtime
 from app.modules.db import add as add_sql, sql
-from app.modules.service.haproxy_runtime import execute_runtime_command
+from app.modules.service.managed_runtime import execute_runtime_command
 from app.modules.service.stats.haproxy_stats import StatsError, collect_stats
 from app.modules.service.stats import haproxy_stats_config as stats_config
 
