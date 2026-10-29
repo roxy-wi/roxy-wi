@@ -43,6 +43,9 @@ def _success_callback(action: dict | None):
 
 
 def execute_operation(operation_id: str, task_id: int) -> str:
+    audit_context = None
+    raised = False
+    task = None
     try:
         task = InstallationTasks.get_or_none(
             (InstallationTasks.id == task_id)
@@ -54,6 +57,9 @@ def execute_operation(operation_id: str, task_id: int) -> str:
             return task.status
         if source_owned_operation(task):
             return 'owned'
+
+        from app.modules.audit.domain import operation_started
+        audit_context = operation_started(task)
         if task.operation_type == 'backup':
             from app.modules.service.backup_execution import execute_backup
             return execute_backup(task)
@@ -96,7 +102,17 @@ def execute_operation(operation_id: str, task_id: int) -> str:
             steps=payload.get('steps'),
         )
         return InstallationTasks.get_by_id(task.id).status
+    except Exception:
+        raised = True
+        raise
     finally:
+        if audit_context is not None:
+            try:
+                from app.modules.audit.domain import operation_finished
+                current = InstallationTasks.get_by_id(task.id)
+                operation_finished(current, audit_context, raised)
+            except Exception:
+                logger.error('Operation audit result could not be recorded', task_id=task.id)
         close_database_connection()
 
 

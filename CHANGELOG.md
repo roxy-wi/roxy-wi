@@ -32,6 +32,10 @@ These notes cover **Roxy-WI 9.1 and later**.
   readiness checks and explicit upgrades. Debian/EL live VM qualification is
   pending; managed-component Podman installation is a separate feature.
 
+- Add group-scoped external audit export through the existing Scheduler, with
+  TLS-first syslog, optional plain TCP/UDP and authenticated HTTPS receivers,
+  encrypted revisioned credentials, durable retry state and explicit delivery semantics.
+
 - Reject full Corosync membership replacement during validation and before apply.
   Require the selected witness address, active TLS and a vote on every resulting
   member before marking a membership/witness change applied.

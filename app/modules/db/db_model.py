@@ -1513,6 +1513,80 @@ class PacemakerEvent(BaseModel):
         table_name = 'pacemaker_events'
 
 
+class AuditEvent(BaseModel):
+    event_id = CharField(primary_key=True, max_length=36)
+    group_id = IntegerField(null=True, index=True)
+    event_type = CharField(max_length=128, index=True)
+    outcome = CharField(max_length=32)
+    payload = TextField()
+    created_at = DateTimeField(default=utc_now, index=True)
+
+    class Meta:
+        table_name = 'audit_events'
+
+
+class AuditDestination(BaseModel):
+    id = AutoField()
+    group_id = IntegerField(index=True)
+    scope_group = ForeignKeyField(Groups, field=Groups.group_id, column_name='scope_group_id',
+                                  null=True, on_delete='RESTRICT', lazy_load=False)
+    name = CharField(max_length=128)
+    enabled = BooleanField(default=True)
+    revision = IntegerField(default=1)
+    events = TextField(default='["*"]')
+    created_by = IntegerField()
+    created_at = DateTimeField(default=utc_now)
+
+    class Meta:
+        table_name = 'audit_destinations'
+        indexes = ((('group_id', 'name'), True),)
+        constraints = [SQL('CHECK ((group_id = 0 AND scope_group_id IS NULL) OR '
+                           '(group_id <> 0 AND scope_group_id IS NOT NULL AND group_id = scope_group_id))')]
+
+
+class AuditDestinationRevision(BaseModel):
+    id = AutoField()
+    destination_id = IntegerField(index=True)
+    revision = IntegerField()
+    settings = TextField()
+    credentials_encrypted = TextField()
+    profile_id = IntegerField(null=True)
+    profile_revision = IntegerField(null=True)
+    created_at = DateTimeField(default=utc_now)
+
+    class Meta:
+        table_name = 'audit_destination_revisions'
+        indexes = ((('destination_id', 'revision'), True),)
+
+
+class AuditDelivery(BaseModel):
+    id = AutoField()
+    event_id = CharField(max_length=36, index=True)
+    destination_revision_id = IntegerField(index=True)
+    status = CharField(default='pending', index=True)
+    attempts = IntegerField(default=0)
+    retry_at = DateTimeField(default=utc_now, index=True)
+    claim_token = CharField(null=True, max_length=36)
+    claim_expires_at = DateTimeField(null=True)
+    last_error = CharField(null=True, max_length=256)
+    handed_off_at = DateTimeField(null=True)
+
+    class Meta:
+        table_name = 'audit_deliveries'
+        indexes = ((('event_id', 'destination_revision_id'), True),)
+
+
+class AuditState(BaseModel):
+    id = IntegerField(primary_key=True, default=1)
+    records = IntegerField(default=0)
+    last_attempt_at = DateTimeField(null=True)
+    last_handoff_at = DateTimeField(null=True)
+    last_error = CharField(null=True, max_length=256)
+
+    class Meta:
+        table_name = 'audit_state'
+
+
 def create_tables():
     conn = connect()
     with conn:
@@ -1529,5 +1603,6 @@ def create_tables():
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
              HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, NginxSection, InstallationTasks,
              PacemakerCluster, PacemakerChange, PacemakerEvent, CertificateSource,
-             OperationalAssessment, HaReadinessProfile, HaMaintenancePlan]
+             OperationalAssessment, HaReadinessProfile, HaMaintenancePlan, AuditEvent,
+             AuditDestination, AuditDestinationRevision, AuditDelivery, AuditState]
         )
