@@ -8,6 +8,7 @@ adding a Markdown file here does not publish it to roxy-wi.org.
 - [Request-path diagnostics and probe boundaries](proxy-diagnostics.md)
 - [Reviewed HA node maintenance and recovery](ha-maintenance.md)
 - [Shared Keepalived/Pacemaker readiness and evidence](ha-readiness.md)
+- [Local authenticator MFA, policy, API login and account recovery](local-authentication.md)
 - [Managed Docker/Podman components, adoption and witness lifecycle](managed-containers.md)
 - [External certificate providers and CertWarden](certificate-sources.md)
 - [Roxy-WI controller deployment with Podman Quadlet](podman-controller.md)

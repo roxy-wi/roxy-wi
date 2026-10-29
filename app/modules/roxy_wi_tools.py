@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from functools import lru_cache
 
 from pytz import timezone
 import configparser
@@ -86,6 +87,19 @@ class GetDate:
         return now_utc.strftime(self.fmt)
 
 
+@lru_cache(maxsize=1)
+def _legacy_password_verifier():
+    # libpass defaults to4096 characters. Preserve passwords already accepted by
+    # the web request body limit, using its documented pre-import setting only.
+    # An explicit operator-provided Passlib bound remains authoritative. This
+    # must precede the first Passlib import; an already-loaded provider retains
+    # its original limit rather than having private globals changed here.
+    bound = GetConfigVar().get_config_var('main', 'max_content_length', str(16 * 1024 * 1024))
+    os.environ.setdefault('PASSLIB_MAX_PASSWORD_SIZE', str(bound))
+    from passlib.hash import hex_md5
+    return hex_md5
+
+
 class Tools:
     @staticmethod
     def get_hash(need_hashed):
@@ -96,16 +110,18 @@ class Tools:
     @staticmethod
     def check_password(password, password_hash):
         """Return (matches, needs_rehash), accepting legacy MD5 hashes once."""
-        if not password_hash:
+        if not isinstance(password, str) or not isinstance(password_hash, str) or not password_hash:
             return False, False
 
-        import hashlib
-        import hmac
-        import re
-
         if re.fullmatch(r"[0-9a-fA-F]{32}", password_hash):
-            legacy_hash = hashlib.md5(password.encode("utf-8")).hexdigest()
-            return hmac.compare_digest(legacy_hash, password_hash.lower()), True
+            # Verify existing legacy rows only; never create a new legacy hash.
+            # Successful password login still upgrades via the identity/password CAS.
+            try:
+                return _legacy_password_verifier().verify(password, password_hash), True
+            except (ValueError, TypeError):
+                # Includes an unavailable/disabled backend and an explicit size
+                # bound. Deny without bypassing system cryptographic policy.
+                return False, True
 
         try:
             return check_password_hash(password_hash, password), False

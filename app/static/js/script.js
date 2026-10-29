@@ -636,6 +636,10 @@ $( function() {
 				}
 			},
 			success: function (data) {
+				if (data.status === 'mfa_required' || data.status === 'enrollment_required') {
+					window.roxywiLocalLogin(data);
+					return;
+				}
 				if (data.status === 'failed') {
 					if (data.error.indexOf('disabled') != '-1') {
 						$('.alert').show();
