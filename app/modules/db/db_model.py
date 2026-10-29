@@ -1450,6 +1450,79 @@ class OperationalAssessment(BaseModel):
         table_name = 'operational_assessments'
 
 
+class ManagedAclFeed(BaseModel):
+    id = AutoField()
+    group_id = IntegerField(index=True)
+    user_id = IntegerField()
+    name = CharField()
+    provider = CharField(default='https-ip-list')
+    configuration = LargeTextField()
+    revision = IntegerField(default=1)
+    approved_revision = IntegerField(null=True)
+    approved_by = IntegerField(null=True)
+    approved_at = DateTimeField(null=True)
+    enabled = BooleanField(default=False)
+    next_check = DateTimeField(null=True, index=True)
+    last_check = DateTimeField(null=True)
+    last_error = TextField(null=True)
+    active_task_id = IntegerField(null=True)
+    deployed_version_id = IntegerField(null=True)
+
+    class Meta:
+        table_name = 'managed_acl_feeds'
+
+
+class ManagedAclVersion(BaseModel):
+    id = AutoField()
+    feed_id = IntegerField(index=True)
+    group_id = IntegerField(index=True)
+    user_id = IntegerField()
+    feed_revision = IntegerField()
+    content = LargeTextField()
+    fingerprint = CharField(max_length=64)
+    entries = IntegerField()
+    change_id = IntegerField(null=True)
+    status = CharField(default='downloaded')
+    details = LargeTextField(default='')
+    created_at = DateTimeField(default=utc_now)
+
+    class Meta:
+        table_name = 'managed_acl_versions'
+
+
+class ServedTlsMonitor(BaseModel):
+    id = AutoField()
+    group_id = IntegerField(index=True)
+    user_id = IntegerField()
+    name = CharField()
+    configuration = LargeTextField()
+    revision = IntegerField(default=1)
+    enabled = BooleanField(default=False)
+    next_check = DateTimeField(null=True, index=True)
+    last_check = DateTimeField(null=True)
+    last_expected_fingerprint = CharField(default='')
+    active_task_id = IntegerField(null=True)
+    last_assessment_id = IntegerField(null=True)
+
+    class Meta:
+        table_name = 'served_tls_monitors'
+
+
+class PublishedServiceConfirmation(BaseModel):
+    id = AutoField()
+    group_id = IntegerField(index=True)
+    user_id = IntegerField()
+    assessment_id = IntegerField(index=True)
+    frontend_id = CharField()
+    domain = CharField()
+    fingerprint = CharField(max_length=64)
+    note = CharField(max_length=1000)
+    created_at = DateTimeField(default=utc_now)
+
+    class Meta:
+        table_name = 'published_service_confirmations'
+
+
 class HaMaintenancePlan(BaseModel):
     id = AutoField()
     group_id = IntegerField(index=True)
@@ -1529,5 +1602,6 @@ def create_tables():
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
              HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, NginxSection, InstallationTasks,
              PacemakerCluster, PacemakerChange, PacemakerEvent, CertificateSource,
-             OperationalAssessment, HaReadinessProfile, HaMaintenancePlan]
+             OperationalAssessment, HaReadinessProfile, HaMaintenancePlan, PublishedServiceConfirmation, ServedTlsMonitor,
+             ManagedAclFeed, ManagedAclVersion]
         )

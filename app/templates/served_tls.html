@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Served TLS{% endblock %}
+{% block h2 %}Served TLS{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/table-6.3.9.css') }}">
+<main class="service-overview-page" id="served-tls" data-api="{{ url_for('insights.tls_collection') }}" data-map="{{ url_for('insights.service_map_view') }}" data-write="{{ '1' if g.user_params['role']|int <=3 else '0' }}">
+    <p>Compare the certificates actually presented for a domain across selected proxy nodes and discovered public VIPs. Checks validate SNI, trust, validity and fingerprints. Certificate delivery and served-TLS verification remain separate results.</p>
+    <p id="tls-message" class="rw-form-help" role="status" aria-live="polite"></p>
+    <section class="rw-panel"><div class="rw-table-toolbar"><button class="rw-button rw-button-secondary" id="tls-refresh" type="button">Refresh monitors</button>{% if g.user_params['role']|int <=3 %}<button class="rw-button rw-button-primary" id="tls-new" type="button">New TLS monitor</button>{% endif %}<a href="{{ url_for('insights.service_map_page') }}">Discover proxy targets</a></div>
+        <div class="rw-table-shell"><table class="overview dataTable"><thead><tr class="overviewHead"><th>Monitor / domain</th><th>Observed result</th><th>Checks</th><th>Actions</th></tr></thead><tbody id="tls-rows"></tbody></table></div>
+    </section>
+    {% if g.user_params['role']|int <=3 %}<form id="tls-form" class="rw-panel" hidden><h3 id="tls-form-title">New TLS monitor</h3>
+        <div class="change-advanced-grid">
+            <div class="rw-form-field"><label for="tls-name">Name</label><input id="tls-name" class="form-control" required maxlength="128"></div>
+            <div class="rw-form-field"><label for="tls-domain">Discovered / confirmed domain</label><select id="tls-domain" required></select></div>
+            <div class="rw-form-field"><label for="tls-port">Discovered TLS port</label><select id="tls-port" required></select></div>
+            <div class="rw-form-field"><label for="tls-source">Expected certificate source</label><select id="tls-source"><option value="">Compare peers without a provider expectation</option></select></div>
+            <div class="rw-form-field"><label for="tls-warning">Expiry warning (days)</label><input id="tls-warning" class="form-control" type="number" min="1" max="365" value="30" required></div>
+            <div class="rw-form-field"><label for="tls-interval">Repeat interval (minutes)</label><input id="tls-interval" class="form-control" type="number" min="5" max="10080" value="60" required></div>
+        </div>
+        <fieldset><legend>Discovered TLS frontends (up to 32)</legend><div id="tls-targets"></div></fieldset>
+        <p class="rw-form-help">Refresh publication discovery to add nodes or review changed routing. A passive/stopped listener is reported as incomplete; the check never starts a cluster-owned resource.</p>
+        <div class="rw-form-field"><label for="tls-ca">Optional public CA bundle (PEM, no private key)</label><textarea id="tls-ca" class="form-control" maxlength="131072"></textarea></div>
+        <p><label><input id="tls-enabled" type="checkbox"> Run periodically and after a selected certificate source deploys a new fingerprint</label></p>
+        <div class="rw-table-toolbar"><button class="rw-button rw-button-primary" type="submit">Save TLS monitor</button><button id="tls-cancel" class="rw-button rw-button-secondary" type="button">Cancel</button></div>
+    </form>{% endif %}
+    <section class="rw-panel" id="tls-report" hidden><h3 id="tls-summary"></h3><p id="tls-scope"></p><div class="rw-table-shell"><table class="overview dataTable"><thead><tr class="overviewHead"><th>Node / origin</th><th>Address</th><th>Trust / TLS</th><th>Certificate / validity</th></tr></thead><tbody id="tls-endpoints"></tbody></table></div></section>
+    <details class="rw-panel"><summary>Selected monitor history</summary><div id="tls-history"></div></details>
+</main><script src="{{ url_for('static',filename='js/served-tls.js') }}" defer></script>
+{% endblock %}

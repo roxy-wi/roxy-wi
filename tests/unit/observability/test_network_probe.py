@@ -20,19 +20,25 @@ from app.modules.service import network_probe as probe,published_endpoints as en
 
 
 @contextmanager
-def endpoint(tmp_path,*,tls=False):
+def endpoint(tmp_path,*,tls=False,bind='127.0.0.1',feed=None,feed_status=200):
     requests=[]
     class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            requests.append(dict(path=self.path,headers=dict(self.headers)))
+            self.send_response(feed_status);self.send_header('Content-Type','text/plain')
+            if feed_status==302:self.send_header('Location','https://must-not-follow.invalid/')
+            self.end_headers()
+            if feed:self.wfile.write(feed)
         def do_HEAD(self):
             requests.append(dict(path=self.path,headers=dict(self.headers)))
             self.send_response(302);self.send_header('Location','https://must-not-follow.invalid/')
             self.send_header('Set-Cookie','secret-session=NeverCollectThis');self.end_headers()
         def log_message(self,*args):pass
-    server=ThreadingHTTPServer(('127.0.0.1',0),Handler)
+    server=ThreadingHTTPServer((bind,0),Handler)
     ca=None
     if tls:
         now=datetime.now(timezone.utc);key=ec.generate_private_key(ec.SECP256R1());leaf_key=ec.generate_private_key(ec.SECP256R1())
-        root_name=x509.Name([x509.NameAttribute(NameOID.COMMON_NAME,'Disposable diagnostic CA')])
+        root_name=x509.Name([x509.NameAttribute(NameOID.COMMON_NAME,'Diagnostic CA '+tmp_path.name[-32:])])
         ca=(x509.CertificateBuilder().subject_name(root_name).issuer_name(root_name).public_key(key.public_key()).serial_number(1)
             .not_valid_before(now-timedelta(days=1)).not_valid_after(now+timedelta(days=1))
             .add_extension(x509.BasicConstraints(ca=True,path_length=None),critical=True).sign(key,hashes.SHA256()))
