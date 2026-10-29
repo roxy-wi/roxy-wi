@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}{{ lang.connection_profiles.title }}{% endblock %}
+{% block h2 %}{{ lang.connection_profiles.title }}{% endblock %}
+{% block content %}
+{% set t = lang.connection_profiles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/connection_profiles.css') }}">
+<script id="connection-profile-translations" type="application/json">{{ t|tojson }}</script>
+<div class="connection-profiles-page">
+<p>{{ t.intro }}</p>
+<div id="connection-profile-status" role="status" aria-live="polite"></div>
+<button type="button" id="connection-profile-new" class="add-button">{{ t.new }}</button>
+<table class="overview" id="connection-profile-table">
+    <thead><tr><th>{{ t.name }}</th><th>{{ t.transport }}</th><th>{{ t.scope }}</th><th>{{ t.enabled }}</th><th>{{ lang.words.actions|title }}</th></tr></thead>
+    <tbody></tbody>
+</table>
+<form id="connection-profile-form" hidden data-group-id="{{ g.user_params.group_id }}" data-role="{{ g.user_params.role }}">
+    <h3 id="connection-profile-form-title">{{ t.new }}</h3>
+    <input type="hidden" name="id"><input type="hidden" name="revision">
+    <div class="connection-profile-fields">
+        <label>{{ t.name }}<input class="form-control" name="name" required maxlength="128" autocomplete="off"></label>
+        <label>{{ t.scope }}<select id="connection-profile-group_id" name="group_id"><option value="{{ g.user_params.group_id }}">{{ t.current_group }}</option>{% if g.user_params.role == 1 %}<option value="0">{{ t.shared }}</option>{% endif %}</select></label>
+        <label>{{ t.transport }}<select id="connection-profile-transport" name="transport"><option value="tcp_tls">TCP + TLS</option><option value="tcp">TCP</option><option value="udp">UDP</option><option value="https">HTTPS</option></select></label>
+        <label>{{ t.host }}<input class="form-control" name="host" maxlength="253" autocomplete="off"></label>
+        <label>{{ t.port }}<input class="form-control" name="port" type="number" min="1" max="65535" value="6514" required></label>
+        <label>{{ t.url }}<input class="form-control" name="url" type="url" maxlength="2048" placeholder="https://" autocomplete="off"></label>
+        <label>{{ t.timeout }}<input class="form-control" name="timeout" type="number" min="1" max="10" value="5" required></label>
+        <label>{{ t.framing }}<select id="connection-profile-framing" name="framing"><option value="octet_counting">Octet counting</option><option value="newline">Newline</option></select></label>
+        <label>{{ t.auth }}<select id="connection-profile-auth" name="auth"><option value="none">{{ t.none }}</option><option value="basic">Basic</option><option value="bearer">Bearer</option><option value="api_key">API key</option></select></label>
+        <label>{{ t.username }}<input class="form-control" name="username" maxlength="256" autocomplete="off"></label>
+        <label>{{ t.header }}<input class="form-control" name="header_name" maxlength="128" value="X-API-Key" autocomplete="off"></label>
+        <label class="connection-profile-inline"><input name="enabled" type="checkbox" checked>{{ t.enabled }}</label>
+    </div>
+    <fieldset><legend>{{ t.credentials }}</legend>
+        <p>{{ t.keep_secret }}</p>
+        {% for key, label in [('password', t.password), ('token', t.token), ('ca_pem', t.ca), ('client_cert_pem', t.client_certificate), ('client_key_pem', t.client_key)] %}
+        <div class="connection-profile-secret">
+            <label for="connection-profile-{{ key }}">{{ label }}</label>
+            {% if key in ('password', 'token') %}<input class="form-control" type="password" id="connection-profile-{{ key }}" name="{{ key }}" autocomplete="new-password" maxlength="65536">
+            {% else %}<textarea class="form-control" id="connection-profile-{{ key }}" name="{{ key }}" rows="3" maxlength="65536" spellcheck="false" autocomplete="off"></textarea>{% endif %}
+            <label class="connection-profile-inline"><input type="checkbox" name="clear_{{ key }}">{{ t.clear_secret }}</label>
+            <span data-configured="{{ key }}"></span>
+        </div>
+        {% endfor %}
+    </fieldset>
+    <button type="submit">{{ t.save }}</button><button type="button" id="connection-profile-cancel">{{ t.cancel }}</button>
+</form>
+</div>
+<script src="{{ url_for('static', filename='js/admin/connection_profiles.js') }}"></script>
+{% endblock %}
