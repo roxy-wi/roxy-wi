@@ -19,6 +19,10 @@ These notes cover **Roxy-WI 9.1 and later**.
   per-member witness TLS/votes, configuration hashes, static fencing coverage,
   declared failure domains and configuration-bound external test attestations.
   Distinguish observations/configuration from functional failover verification.
+- Add local WebAuthn passkeys with required user verification, multiple named
+  credentials, passwordless and second-factor login, policy, single-use recovery
+  codes and audited console recovery. Configure the RP ID and exact HTTPS origins
+  explicitly; local security is independent of OIDC and the subscription.
 
 - Add a shared Docker/Podman connector for managed component installation,
   explicit rootful/rootless adoption, namespace-aware statistics/Runtime API,

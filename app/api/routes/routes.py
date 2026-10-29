@@ -223,5 +223,9 @@ def do_login(body: LoginRequest):
         user_params = roxywi_auth.check_user_password(login, password)
     except Exception as e:
         return roxywi_common.handle_json_exceptions(e, ''), 401
+    from app.modules.authentication import security
+    challenge = security.before_password_login(user_params, {}, channel='api')
+    if challenge:
+        return jsonify(challenge), 202
     access_token = roxywi_auth.create_jwt_token(user_params)
     return jsonify(access_token=access_token)

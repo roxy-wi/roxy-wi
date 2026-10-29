@@ -143,6 +143,8 @@ def rotate_credentials() -> int:
                 PacemakerChange.update(**updates).where(PacemakerChange.id == change.id).execute()
                 rotated_credentials += 1
 
+        from app.modules.authentication.security import rotate_encrypted_state
+        rotated_credentials += rotate_encrypted_state(old_fernet, new_fernet)
     return rotated_credentials
 
 
