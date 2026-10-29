@@ -1,9 +1,10 @@
+import importlib.util
 import json
 import re
 import secrets
 from datetime import datetime
 
-from peewee import IntegrityError, fn
+from peewee import IntegrityError, SqliteDatabase, fn
 
 from app.modules.db import oidc as oidc_sql
 from app.modules.db.db_model import OidcIdentity, User, UserGroups
@@ -107,6 +108,37 @@ def _unique_username(value: str) -> str:
     return candidate
 
 
+def _current(query):
+    # Locking reads see the latest committed row under MySQL REPEATABLE READ.
+    database = User._meta.database
+    if database.in_transaction() and not isinstance(database, SqliteDatabase):
+        query = query.for_update()
+    return query
+
+
+def _locked_user(user_id):
+    return _current(User.select().where(User.user_id == user_id)).first()
+
+
+def _mapping_changed():
+    return OidcLoginError('oidc_identity_changed',
+                          'Local account mapping changed; sign in again', 403)
+
+
+def _security_provider():
+    # OIDC also works in installations without the optional local MFA package.
+    try:
+        available = importlib.util.find_spec('app.modules.authentication.security')
+    except ModuleNotFoundError as error:
+        if error.name != 'app.modules.authentication':
+            raise
+        return None
+    if available is None:
+        return None
+    from app.modules.authentication import security
+    return security
+
+
 def _find_user_by_email(email: str):
     if not email:
         return None
@@ -165,8 +197,16 @@ def _resolve_user(provider, claims: dict):
         (OidcIdentity.issuer == issuer) & (OidcIdentity.subject == subject)
     )
     if identity:
-        user = User.get_or_none(User.user_id == identity.user_id)
-        if not user or not user.enabled:
+        # The first identity read identifies the parent to lock, not a principal.
+        # Recheck the exact mapping after that lock before updating any child row.
+        user = _locked_user(identity.user_id)
+        identity = _current(OidcIdentity.select().where(
+            (OidcIdentity.id == identity.id) & (OidcIdentity.issuer == issuer) &
+            (OidcIdentity.subject == subject) & (OidcIdentity.user_id == identity.user_id)
+        )).first()
+        if user is None or identity is None:
+            raise _mapping_changed()
+        if not user.enabled:
             raise OidcLoginError('oidc_user_disabled', 'Linked local user is disabled', 403)
         identity.email = email
         identity.username = username
@@ -177,6 +217,10 @@ def _resolve_user(provider, claims: dict):
 
     email_user = _find_user_by_email(email)
     user = email_user if provider.auto_link_by_email else None
+    if user:
+        user = _locked_user(user.user_id)
+        if user is None or not user.email or user.email.casefold() != email.casefold():
+            raise _mapping_changed()
     if user and not user.enabled:
         raise OidcLoginError('oidc_user_disabled', 'Local user with this email is disabled', 403)
 
@@ -210,11 +254,9 @@ def _resolve_user(provider, claims: dict):
             last_login_at=datetime.now(),
         )
     except IntegrityError:
-        identity = OidcIdentity.get(
-            (OidcIdentity.issuer == issuer) & (OidcIdentity.subject == subject)
-        )
-        user = User.get_by_id(identity.user_id)
-        created = False
+        # Another login linked this subject. Do not switch parents while holding
+        # the candidate account lock; retry from a fresh verified mapping.
+        raise _mapping_changed() from None
 
     return user, created
 
@@ -222,7 +264,7 @@ def _resolve_user(provider, claims: dict):
 def _active_memberships(user_id: int) -> list[int]:
     return [
         int(membership.user_group_id)
-        for membership in UserGroups.select().where(UserGroups.user_id == user_id)
+        for membership in _current(UserGroups.select().where(UserGroups.user_id == user_id))
     ]
 
 
@@ -283,12 +325,20 @@ def complete_oidc_login(provider, claims: dict):
     """Resolve an OIDC identity and return local JWT parameters."""
     require_feature(OIDC)
     database = User._meta.database
-    with database.atomic():
+    security = _security_provider()
+    with security.atomic() if security else database.atomic():
         user, created = _resolve_user(provider, claims)
+        if security:
+            user, expected = security.capture_account(user.user_id)
         _sync_group_memberships(provider, user, claims, created)
-        user = User.get_by_id(user.user_id)
-        return {
+        user = _locked_user(user.user_id)
+        if user is None or not user.enabled:
+            raise _mapping_changed()
+        result = {
             'group': str(user.group_id),
             'user': user.user_id,
             'name': user.username,
         }
+        if security:
+            result.update(security.login_proof(user, 'oidc', expected=expected))
+        return result
