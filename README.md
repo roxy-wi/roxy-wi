@@ -102,6 +102,7 @@ or read the full [quick-start guide](https://roxy-wi.org/description/operations#
 | Linux packages | [Installation](https://roxy-wi.org/installation) and [update guide](https://roxy-wi.org/update-guide) |
 | Local evaluation | [Compose quick start](https://roxy-wi.org/description/operations#quickstart) with SQLite and local HTTPS |
 | Compose for your infrastructure | [Deployment guide](https://roxy-wi.org/description/operations#compose), including MariaDB, HTTPS and persistent storage |
+| Podman on a Linux host | [Native Quadlet controller deployment](docs/podman-controller.md), with system or rootless user units, GPG-encrypted Podman secrets, SQLite and local HTTPS; awaiting Debian/EL VM qualification |
 | Kubernetes | [Published Helm chart](https://github.com/roxy-wi/roxy-wi/pkgs/container/roxy-wi-charts), [deployment guide](https://roxy-wi.org/description/operations#kubernetes) and [chart source](helm/roxy-wi) |
 
 ### Install the Helm chart

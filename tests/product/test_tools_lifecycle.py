@@ -70,3 +70,12 @@ def test_unknown_tool_cannot_execute_local_command(product_client, local_tools):
     response = product_client.post('/admin/tools/action/sshd/stop')
     assert response.status_code == 404
     assert local_tools.commands == []
+
+
+def test_quadlet_controller_cannot_execute_host_service_actions(product_client, local_tools, monkeypatch):
+    monkeypatch.setattr(roxy, 'deployment_mode', lambda: 'quadlet')
+    response = product_client.post('/admin/tools/action/rabbitmq-server/stop')
+    assert response.status_code == 200
+    assert response.text.startswith('warning:') and 'Podman Quadlet' in response.text
+    assert local_tools.commands == []
+    assert local_tools.logged == []

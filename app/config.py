@@ -73,8 +73,8 @@ class Configuration(object):
     SECRET_KEY = _load_secret_key()
     TESTING = _as_bool(_config_value('main', 'testing', '0'))
     DEPLOYMENT_MODE = str(_config_value('main', 'deployment_mode', 'package')).lower()
-    if DEPLOYMENT_MODE not in {'package', 'compose', 'kubernetes'}:
-        raise RuntimeError('ROXYWI_DEPLOYMENT_MODE must be package, compose or kubernetes')
+    if DEPLOYMENT_MODE not in {'package', 'compose', 'quadlet', 'kubernetes'}:
+        raise RuntimeError('ROXYWI_DEPLOYMENT_MODE must be package, compose, quadlet or kubernetes')
     CACHE_TYPE = str(_config_value(
         'cache',
         'type',
