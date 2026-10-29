@@ -381,6 +381,8 @@ function showLe(data) {
         elem('div', null, 'Expires: ' + date(state.not_after)),
         elem('div', null, 'PEM: ' + (state.pem_name || ''))];
     if (state.last_error) status.push(elem('div', {class: 'text-danger'}, state.last_error));
+    const verification = state.served_tls ? window.certificateVerification(state.served_tls) : null;
+    if (verification) status.push(verification);
     for (const [server, target] of Object.entries(state.targets || {})) {
         status.push(elem('div', null, 'Server #' + server + ': ' + target.status +
             (target.verification === 'stored_unreferenced' ? ' (stored, not used in configuration)' : '')));
@@ -429,6 +431,8 @@ function showLeHistory(id) {
         for (const task of data.state.history || []) {
             dialog.append(elem('p', null, '#' + task.id + ' · ' + task.status + ' · ' +
                 (task.started_at || '') + (task.error ? '\n' + task.error : '')));
+            const verification = task.served_tls ? window.certificateVerification(task.served_tls) : null;
+            if (verification) dialog.append(verification);
         }
         dialog.dialog({title: "Let's Encrypt history", width: 650, modal: true});
     });

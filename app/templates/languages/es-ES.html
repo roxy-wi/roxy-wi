@@ -2103,3 +2103,29 @@
         "I": "Limpieza"
     }
 } %}
+
+{% set certificate_verification = {
+    "title": "Verificación del despliegue",
+    "verified": "Se sirve el certificado esperado",
+    "mismatch": "El certificado no coincide",
+    "incomplete": "Verificación incompleta",
+    "expected": "Esperado",
+    "actual": "Servido",
+    "observed": "Observado",
+    "target-unavailable": "Destino no disponible",
+    "listener-unavailable": "Listener no disponible",
+    "no-discovered-listener": "No se encontró un listener para estos nombres",
+    "passive-staged": "Nodo pasivo: archivo preparado sin listener activo",
+    "configuration-changed": "La configuración cambió durante la verificación",
+    "running-configuration-unverified": "Configuración activa no verificada",
+    "probe-limit": "Límite de sondas alcanzado",
+    "target-limit": "Límite de destinos alcanzado",
+    "unsupported-certificate-name": "Nombre de certificado no compatible",
+    "expected-certificate-unavailable": "Certificado esperado no disponible",
+    "no-certificate-names": "No hay nombres de certificado utilizables",
+    "unreachable": "Listener inaccesible",
+    "handshake-incomplete": "Negociación TLS incompleta",
+    "scope": "Comprobación puntual tras el despliegue. La entrega del certificado y la verificación del listener tienen resultados separados. La supervisión continua corresponde a RMON.",
+    "verification-unavailable": "Verificación no disponible",
+    "certificate-name-limit": "Límite de nombres de certificado alcanzado"
+} %}

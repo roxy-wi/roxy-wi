@@ -117,6 +117,8 @@ $(function () {
             const certificate = $('<div>', {class: 'rw-form-field'}).append($('<strong>').text(operation.name),
                 $('<span>', {class: 'rw-form-help'}).text(translate(operation.action)));
             const status = $('<div>', {class: 'rw-form-field'}).append(badge(operation.status));
+            const verification = operation.served_tls ? window.certificateVerification(operation.served_tls) : null;
+            if (verification) status.append(verification);
             if (operation.finished_at) status.append($('<time>', {class: 'rw-form-help', datetime: operation.finished_at,
                 title: text.history_finished}).text(new Date(operation.finished_at).toLocaleString(document.documentElement.lang)));
             if (operation.error_code) status.append($('<p>', {class: 'rw-form-help'}).text(translate(operation.error_code)));

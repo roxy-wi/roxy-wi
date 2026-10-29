@@ -1,5 +1,6 @@
 """Serialized, recoverable Operations execution for certificate lifecycles."""
 
+import ast
 import json
 import shutil
 from datetime import timedelta
@@ -8,7 +9,7 @@ from uuid import uuid4
 
 from app.modules.common.time import utc_now
 from app.modules.db.db_model import LetsEncrypt, LetsEncryptState, InstallationTasks, Server
-from app.modules.operations.queue import deserialize_operation_payload
+from app.modules.operations.queue import deserialize_operation_payload, serialize_operation_payload
 from app.modules.service import certificate_deployment
 from app.modules.service.le import le_store, le_certbot, le_profiles
 from app.modules.service.le.le_lock import file_lock
@@ -82,13 +83,26 @@ def persist_deployment(state, deployment, fingerprint=None):
     state.save()
 
 
-def finish_deployment(state, group_id, phase):
+def finish_deployment(state, group_id, phase, task=None):
     deployment = deployment_journal(state)
     deployment['phase'] = phase
     persist_deployment(state, deployment)
     certificate_deployment.finish(deployment['targets'], phase, deployment['id'],
         resolve=lambda key, target: resolve_target(group_id, key, target), remote=le_certbot.remote,
         persist=lambda: persist_deployment(state, deployment))
+    if phase == 'commit' and task is not None:
+        from app.modules.service.served_tls import verify
+        payload = deserialize_operation_payload(task.operation_payload)
+        try:
+            domains = ast.literal_eval(LetsEncrypt.get_by_id(state.le_id).domains)
+        except (ValueError, SyntaxError):
+            domains = []
+        payload['served_tls'] = verify(deployment['targets'], dict(
+            fingerprint=state.fingerprint, domains=domains),
+            group_id, task.user_id_id,
+            heartbeat=lambda: InstallationTasks.update(updated_at=utc_now()).where(InstallationTasks.id == task.id).execute())
+        InstallationTasks.update(operation_payload=serialize_operation_payload(payload)).where(
+            InstallationTasks.id == task.id).execute()
     state.deployment = '{}'
     state.save()
 
@@ -158,6 +172,7 @@ def execute(task):
                         key = str(server.server_id)
                         target = deployment['targets'].setdefault(key, {
                             'address': server.ip, 'settings': le_certbot.deployment_settings(server, state.pem_name),
+                            'registration_key': server.registration_key,
                             'started': False})
                         if target['address'] != server.ip:
                             raise le_certbot.CertificateError('Deployment target address changed; recovery is required')
@@ -183,7 +198,7 @@ def execute(task):
                     state.deployment = json.dumps(deployment)
                     state.save()
             if operation not in ('delete', 'test', 'preflight'):
-                finish_deployment(state, task.group_id, 'commit')
+                finish_deployment(state, task.group_id, 'commit', task)
                 state.status = 'active'
             with le_store.transaction():
                 state.pending_config = None

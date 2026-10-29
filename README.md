@@ -39,7 +39,7 @@ proxies and HA clusters across multiple servers and environments.
 | Keep service health visible | Inspect backends and logs; add monitoring, traffic metrics and notifications as your needs grow. |
 | Diagnose a published request | [Inspect DNS, VIP/listener, TCP, TLS/SNI and candidate backends](docs/proxy-diagnostics.md) with bounded, configuration-derived probes and saved evidence. |
 | Map published services | [Link domains, listeners, proxies and backend candidates](docs/published-services.md), distinguish discovered and confirmed relationships, and inspect potential node impact. |
-| Manage certificates and configuration history | Issue Let's Encrypt certificates or synchronize CertWarden certificates through [provider connectors](docs/certificate-sources.md), including Pacemaker member targets; retain configuration versions and configure backup destinations. |
+| Manage certificates and configuration history | Issue Let's Encrypt certificates or synchronize CertWarden certificates through [provider connectors](docs/certificate-sources.md), including Pacemaker member targets; verify the [certificate served after deployment](docs/certificate-deployment-verification.md), retain configuration versions and configure backup destinations. |
 
 Some capabilities require a subscription. Change Center requires **Premium**;
 see [feature availability](https://roxy-wi.org/pricing) before planning an evaluation.

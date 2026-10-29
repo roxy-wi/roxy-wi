@@ -705,3 +705,40 @@ def test_imported_renewal_uses_ari_window_and_retry_after(tmp_path, monkeypatch)
     assert len(calls) == 4
     assert le_legacy_renewal.due(bundle, tmp_path, now=now + timedelta(days=90))
     assert len(calls) == 4  # Never query ARI for expired certificates.
+
+
+def test_issuance_and_renewal_save_one_time_listener_evidence_after_all_commits(monkeypatch, bundle):
+    from app.modules.service import served_tls, certificates
+    completed = []
+    fake_issuer(monkeypatch, bundle)
+    def finish(server, data):
+        assert data['operation'] == 'commit'
+        completed.append(server.server_id)
+        return {'finished': True}
+    monkeypatch.setattr(certbot, 'remote', finish)
+    found = served_tls.inventory.parse('haproxy', 'frontend public\n bind *:443 ssl crt /site.pem\n')
+    found.update(binding=None, running_sources_verified=True)
+    monkeypatch.setattr(served_tls.inventory, 'discover', lambda *_: found)
+    monkeypatch.setattr(served_tls.assessments, 'authorize', lambda ident, *_args, **_kw: Server.get_by_id(ident))
+    monkeypatch.setattr(served_tls.assessments, 'identity', lambda server, _: {'ip':server.ip})
+    fingerprint = certificates.certificate_metadata(bundle['fullchain'])['fingerprint']
+    probes = []
+    def observe(server, operation, data, **kwargs):
+        assert completed[-2:] == [1, 2]
+        assert operation == 'probe' and data['domain'] == 'example.com' and not data['http']
+        probes.append(server.server_id)
+        return dict(tcp='connected', tls='untrusted', fingerprint=fingerprint)
+    monkeypatch.setattr(served_tls.assessments, 'rpc', observe)
+    le_id, task_id = store.create(DATA, '1', 7)
+    assert run_task(task_id) == 'completed'
+    task = InstallationTasks.get_by_id(task_id)
+    report = deserialize_operation_payload(task.operation_payload)['served_tls']
+    assert report['state'] == 'verified' and report['expected_fingerprint'] == fingerprint
+    assert probes == [1, 2] and task.operation_payload.startswith('fernet:')
+    public = store.public_config(LetsEncrypt.get_by_id(le_id))
+    assert public['state']['served_tls'] == report and public['state']['history'][0]['served_tls'] == report
+    assert run_task(task_id) == 'completed' and probes == [1, 2]
+    state = LetsEncryptState.get()
+    assert store.dispatch_due(state.next_run_at) == 1
+    assert run_task(LetsEncryptState.get().last_task_id) == 'completed'
+    assert probes == [1, 2, 1, 2]

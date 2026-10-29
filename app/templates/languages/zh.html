@@ -2101,3 +2101,29 @@
         "I": "空闲清理"
     }
 } %}
+
+{% set certificate_verification = {
+    "title": "部署验证",
+    "verified": "已提供预期证书",
+    "mismatch": "证书不匹配",
+    "incomplete": "验证不完整",
+    "expected": "预期证书",
+    "actual": "实际证书",
+    "observed": "检查时间",
+    "target-unavailable": "目标不可用",
+    "listener-unavailable": "监听器不可用",
+    "no-discovered-listener": "未发现与这些证书名称对应的监听器",
+    "passive-staged": "被动节点：已暂存文件，但没有活动监听器",
+    "configuration-changed": "验证期间配置发生变化",
+    "running-configuration-unverified": "未验证运行配置",
+    "probe-limit": "已达到探测数量上限",
+    "target-limit": "已达到目标数量上限",
+    "unsupported-certificate-name": "不支持的证书名称",
+    "expected-certificate-unavailable": "预期证书不可用",
+    "no-certificate-names": "没有可用的证书名称",
+    "unreachable": "无法连接监听器",
+    "handshake-incomplete": "TLS 握手未完成",
+    "scope": "这是部署完成后的一次性验证。证书交付与监听器验证具有独立结果。持续监控由 RMON 负责。",
+    "verification-unavailable": "验证不可用",
+    "certificate-name-limit": "已达到证书名称数量上限"
+} %}

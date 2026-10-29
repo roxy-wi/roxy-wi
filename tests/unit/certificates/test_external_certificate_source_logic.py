@@ -267,7 +267,9 @@ def test_cluster_lease_is_renewed_during_commit_and_rollback(binding, monkeypatc
     original = clusters.renew_lock
     monkeypatch.setattr(clusters, 'renew_lock', lambda *args: (renewed.append(args[0].id), original(*args))[1])
     _, _, result = run(sources.save(binding.body, 1, 1))
-    assert result == 'completed' and len(renewed) == 6
+    # The post-commit listener check may renew the same lease again.
+    assert result == 'completed' and len(renewed) >= 6
+    assert set(renewed) == {binding.cluster.id}
 
 
 def test_failed_finalization_recovers_under_cluster_lease(binding, monkeypatch):

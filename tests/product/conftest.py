@@ -105,6 +105,25 @@ def certificate_host(product, monkeypatch):
         except certificate_remote.CertificateFailure as error:
             raise certificates.CertificateError('Certificate operation failed', error.code) from None
     monkeypatch.setattr(certificates, 'remote', request)
+    # The socket/runtime substitute also supplies the listener observations for
+    # post-deployment verification. Authentication and operation commits stay real.
+    from app.modules.service import served_tls
+    state.served_calls = []
+    state.served_overrides = {}
+    def discover_listener(server, service):
+        found = served_tls.inventory.parse(service, 'frontend public\n bind *:443 ssl crt /site.pem\n')
+        return dict(found, binding=None, running_sources_verified=True)
+    def probe_listener(server, operation, data, **kwargs):
+        assert operation == 'probe' and data['tls'] and not data['http']
+        state.served_calls.append((server.server_id, data))
+        if server.server_id in state.served_overrides:
+            return state.served_overrides[server.server_id]
+        pem = state.active[str(state.files[server.ip])]
+        metadata = certificates.certificate_metadata(pem)
+        return dict(ip=data['ip'], port=data['port'], tcp='connected', tls='untrusted',
+                    fingerprint=metadata['fingerprint'])
+    monkeypatch.setattr(served_tls.inventory, 'discover', discover_listener)
+    monkeypatch.setattr(served_tls.assessments, 'rpc', probe_listener)
     return state
 
 

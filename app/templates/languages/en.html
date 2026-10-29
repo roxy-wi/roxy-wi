@@ -2167,3 +2167,29 @@
         "I": "Idle cleanup"
     }
 } %}
+
+{% set certificate_verification = {
+    "title": "Deployment verification",
+    "verified": "Expected certificate served",
+    "mismatch": "Certificate mismatch",
+    "incomplete": "Verification incomplete",
+    "expected": "Expected",
+    "actual": "Served",
+    "observed": "Observed",
+    "target-unavailable": "Unavailable target",
+    "listener-unavailable": "Listener unavailable",
+    "no-discovered-listener": "No discovered listener for these certificate names",
+    "passive-staged": "Passive node: staged without a live listener",
+    "configuration-changed": "Configuration changed during verification",
+    "running-configuration-unverified": "Running configuration not verified",
+    "probe-limit": "Probe limit reached",
+    "target-limit": "Target limit reached",
+    "unsupported-certificate-name": "Certificate name unsupported",
+    "expected-certificate-unavailable": "Expected certificate unavailable",
+    "no-certificate-names": "No usable certificate names",
+    "unreachable": "Listener unreachable",
+    "handshake-incomplete": "TLS handshake incomplete",
+    "scope": "One-time evidence after deployment. Certificate delivery and listener verification have separate results. Ongoing monitoring belongs in RMON.",
+    "verification-unavailable": "Verification unavailable",
+    "certificate-name-limit": "Certificate-name limit reached"
+} %}

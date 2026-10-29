@@ -333,11 +333,19 @@ def public_config(row, recurse=False):
     data['state']['can_issue'] = state.draft and preflight_current(state, {'profile_revision': profile_revision})
     data['state']['deployment_phase'] = json.loads(state.deployment).get('phase')
     data['state']['can_retry'] = state.status == 'failed' and bool(state.pending_config)
+    owner = Server.get_or_none(Server.server_id == row.server_id_id)
+    group_id = owner.group_id if owner else None
+    latest = InstallationTasks.get_or_none((InstallationTasks.id == state.last_task_id) &
+        (InstallationTasks.group_id == group_id) & (InstallationTasks.operation_type == 'letsencrypt'))
+    data['state']['served_tls'] = (deserialize_operation_payload(latest.operation_payload).get('served_tls')
+                                   if latest else None)
     data['state']['history'] = [
         {'id': task.id, 'status': task.status, 'error': task.error,
+         'served_tls': deserialize_operation_payload(task.operation_payload).get('served_tls'),
          'started_at': task.start_date.isoformat() + 'Z' if task.start_date else None}
         for task in InstallationTasks.select().where(
             (InstallationTasks.operation_type == 'letsencrypt') &
+            (InstallationTasks.group_id == group_id) &
             InstallationTasks.service_name.startswith(f"Let's Encrypt #{row.id}:"))
         .order_by(InstallationTasks.id.desc()).limit(10)
     ]
