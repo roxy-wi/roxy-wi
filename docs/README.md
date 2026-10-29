@@ -5,6 +5,7 @@ and support matrix whenever a workflow, endpoint, deployment requirement or
 compatibility boundary changes. Website documentation is maintained separately;
 adding a Markdown file here does not publish it to roxy-wi.org.
 
+- [Published-service map, confirmation and node impact](published-services.md)
 - [Request-path diagnostics and probe boundaries](proxy-diagnostics.md)
 - [Reviewed HA node maintenance and recovery](ha-maintenance.md)
 - [Shared Keepalived/Pacemaker readiness and evidence](ha-readiness.md)
