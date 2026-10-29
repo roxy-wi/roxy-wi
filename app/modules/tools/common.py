@@ -78,6 +78,9 @@ def _management_metadata(tool_name: str, status: str, worker_state: dict) -> dic
         # The currently serving Web process cannot reliably start itself after
         # it has been stopped. Keep it observable, but manage httpd externally.
         can_lifecycle = tool_name != 'roxy-wi-web'
+    elif deployment_mode == 'quadlet':
+        management = 'Podman Quadlet'
+        can_lifecycle = False
     elif deployment_mode == 'compose':
         management = 'Docker Compose'
         can_lifecycle = False

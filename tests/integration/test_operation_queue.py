@@ -204,7 +204,7 @@ def test_installation_is_queued_in_every_deployment_mode(app, monkeypatch):
         'get_server_by_ip',
         lambda _server_ip: type('Server', (), {'server_id': 42})(),
     )
-    for deployment_mode in ('package', 'compose', 'kubernetes'):
+    for deployment_mode in ('package', 'compose', 'quadlet', 'kubernetes'):
         monkeypatch.setenv('ROXYWI_DEPLOYMENT_MODE', deployment_mode)
         task_id = installation.run_ansible_thread(
             {'server': {'hosts': {'192.0.2.1': {}}}},

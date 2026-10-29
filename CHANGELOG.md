@@ -10,6 +10,11 @@ These notes cover **Roxy-WI 9.1 and later**.
   Add Podman standalone witness installation and reviewed native conversion,
   image refresh, trust migration and recovery. New Podman VM qualification is
   pending; the controller deployment is a separate feature.
+- Add a separate Podman Quadlet deployment profile for the Roxy-WI controller,
+  using native GPG-encrypted Podman secrets instead of plaintext secret files,
+  with system/rootless units, persistent SQLite and secrets, local HTTPS,
+  readiness checks and explicit upgrades. Debian/EL live VM qualification is
+  pending; managed-component Podman installation is a separate feature.
 
 - Reject full Corosync membership replacement during validation and before apply.
   Require the selected witness address, active TLS and a vote on every resulting

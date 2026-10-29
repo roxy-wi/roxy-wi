@@ -97,7 +97,7 @@ def update_user_status() -> None:
 def action_service(action: str, service: str) -> str:
 	if deployment_mode() != 'package':
 		return (
-			'warning: Container services are managed by Compose or Kubernetes. '
+			'warning: Container services are managed by Compose, Podman Quadlet or Kubernetes. '
 			'Additional Roxy-WI services are controlled through RabbitMQ.'
 		)
 	actions = {
