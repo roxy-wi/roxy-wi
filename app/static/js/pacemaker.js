@@ -7,6 +7,7 @@ jQuery(() => {
     const requestedCluster = new URLSearchParams(window.location.search).get('cluster');
     const byId = id => document.getElementById(`pcmk-${id}`);
     let clusters = [], servers = [], selected = null, digest = null, changeId = null, changeKind = 'cib', polling = false, discovery = null;
+    let refreshing = false, clusterRequest = 0, serversLoaded = false;
     const message = (text, error = false) => {
         byId('message').textContent = text;
         byId('message').className = error ? 'rw-error-state' : 'rw-form-help';
@@ -133,88 +134,132 @@ jQuery(() => {
         byId('simulation').textContent = '';
     }
     async function loadClusters(selectId) {
-        clusters = (await api('')).data;
-        byId('cluster').replaceChildren();
-        clusters.forEach(cluster => option(byId('cluster'), cluster.id, cluster.name));
-        if (selectId || requestedCluster) byId('cluster').value = selectId || requestedCluster;
-        refreshSelect(byId('cluster'));
-        selected = clusters.find(item => String(item.id) === byId('cluster').value) || null;
-        resetDraft();
-        byId('dashboard').hidden = !selected;
-        if (operator) {
-            witnessServers(); agentUI.reset();
-            byId('membership-members').querySelectorAll('select').forEach(select => jQuery(select).selectmenu('destroy'));
-            byId('membership-members').replaceChildren(); byId('membership-json').value='';
-            byId('autostart-nodes').replaceChildren();byId('autostart-result').textContent='';
-            byId('autostart-policy').value=selected?.corosync_settings.autostart_policy || 'default';refreshSelect(byId('autostart-policy'));
-        }
-        if (!selected) { message('Register an existing cluster or select empty supported Linux servers to create one.'); return; }
-        if (operator) {
-            byId('adopted-note').hidden = !selected.corosync_settings.adopted;
-            setDisabled('bootstrap', !!selected.corosync_settings.adopted);
-            const imported = selected.corosync_settings.membership_managed === false;
-            setDisabled('membership-save', imported); setDisabled('membership-load', imported); setDisabled('membership-add', imported);
-            byId('membership-json').disabled = imported; byId('token').disabled = imported;
-            jQuery(byId('witness')).selectmenu('option', 'disabled', imported);
-            if (imported) {
-                byId('membership-json').value = JSON.stringify(selected.members, null, 2);
-                byId('token').value = selected.corosync_settings.token || 1000;
-                byId('witness').replaceChildren(new Option(selected.corosync_settings.qdevice_host ? `Preserved witness: ${selected.corosync_settings.qdevice_host}` : 'Preserved external configuration', ''));
-                refreshSelect(byId('witness'));
+        const request = ++clusterRequest;
+        setDisabled('cluster', true);
+        setDisabled('refresh', true);
+        message('Loading clusters…');
+        try {
+            if (operator && !serversLoaded) {
+                const result = await api('/servers');
+                if (request !== clusterRequest) return;
+                servers = result.data;
+                serversLoaded = true;
+                byId('discovery-server').replaceChildren(new Option('Select an existing cluster node', ''));
+                servers.forEach(server => option(byId('discovery-server'), server.id, `${server.name} (${server.ip})`));
+                refreshSelect(byId('discovery-server'));
+                addMember(); addMember();
             }
-            byId('bootstrap-syn').checked = !!selected.corosync_settings.syn_flood; jQuery(byId('bootstrap-syn')).checkboxradio('refresh');
-            byId('bootstrap-fence-pve').checked = !!selected.corosync_settings.fence_pve; jQuery(byId('bootstrap-fence-pve')).checkboxradio('refresh');
-            byId('monitor').checked = selected.monitor_enabled; jQuery(byId('monitor')).checkboxradio('refresh');
-            byId('log-node').replaceChildren();
-            selected.members.forEach(member => option(byId('log-node'), member.server_id, member.name));
-            refreshSelect(byId('log-node'));
+            const result = await api('');
+            if (request !== clusterRequest) return;
+            clusters = result.data;
+            byId('cluster').replaceChildren();
+            if (!clusters.length) option(byId('cluster'), '', 'No clusters registered');
+            clusters.forEach(cluster => option(byId('cluster'), cluster.id, cluster.name));
+            if (selectId || requestedCluster) byId('cluster').value = selectId || requestedCluster;
+            refreshSelect(byId('cluster'));
+            selected = clusters.find(item => String(item.id) === byId('cluster').value) || null;
+            resetDraft();
+            byId('dashboard').hidden = !selected;
+            byId('empty').hidden = !!selected || view === 'setup';
+            byId('updated').textContent = '—';
+            message('');
+            if (operator) {
+                witnessServers(); agentUI.reset();
+                byId('membership-members').querySelectorAll('select').forEach(select => jQuery(select).selectmenu('destroy'));
+                byId('membership-members').replaceChildren(); byId('membership-json').value='';
+                byId('autostart-nodes').replaceChildren();byId('autostart-result').textContent='';
+                byId('autostart-policy').value=selected?.corosync_settings.autostart_policy || 'default';refreshSelect(byId('autostart-policy'));
+            }
+            if (!selected) return;
+            if (operator) {
+                byId('adopted-note').hidden = !selected.corosync_settings.adopted;
+                setDisabled('bootstrap', !!selected.corosync_settings.adopted);
+                const imported = selected.corosync_settings.membership_managed === false;
+                setDisabled('membership-save', imported); setDisabled('membership-load', imported); setDisabled('membership-add', imported);
+                byId('membership-json').disabled = imported; byId('token').disabled = imported;
+                jQuery(byId('witness')).selectmenu('option', 'disabled', imported);
+                if (imported) {
+                    byId('membership-json').value = JSON.stringify(selected.members, null, 2);
+                    byId('token').value = selected.corosync_settings.token || 1000;
+                    byId('witness').replaceChildren(new Option(selected.corosync_settings.qdevice_host ? `Preserved witness: ${selected.corosync_settings.qdevice_host}` : 'Preserved external configuration', ''));
+                    refreshSelect(byId('witness'));
+                }
+                byId('bootstrap-syn').checked = !!selected.corosync_settings.syn_flood; jQuery(byId('bootstrap-syn')).checkboxradio('refresh');
+                byId('bootstrap-fence-pve').checked = !!selected.corosync_settings.fence_pve; jQuery(byId('bootstrap-fence-pve')).checkboxradio('refresh');
+                byId('monitor').checked = selected.monitor_enabled; jQuery(byId('monitor')).checkboxradio('refresh');
+                byId('log-node').replaceChildren();
+                selected.members.forEach(member => option(byId('log-node'), member.server_id, member.name));
+                refreshSelect(byId('log-node'));
+            }
+            updateNavigation();
+            // An empty registration has no running daemons yet. Installation and
+            // discovery must remain usable even when the selected cluster is down.
+            try { await refresh(); } catch (error) { message(error.message, true); }
+            navigateSection();
+        } finally {
+            if (request === clusterRequest) {
+                setDisabled('cluster', polling || !clusters.length);
+                setDisabled('refresh', false);
+            }
         }
-        updateNavigation();
-        // An empty registration has no running daemons yet. Installation and
-        // discovery must remain usable even when the selected cluster is down.
-        try { await refresh(); } catch (error) { message(error.message, true); }
-        navigateSection();
     }
     async function operate(action, target = '', node = '') {
         if (!await confirmAction(`${action}: ${target || selected.name}${node ? ` → ${node}` : ''}?`)) return;
         await waitTask(await api(path('/actions'), 'POST', {action, target, node})); await refresh();
     }
     async function refresh() {
-        await history();
-        const clusterId = selected.id;
-        const data = (await api(path('/status'))).data;
-        if (selected.id !== clusterId) return;
-        quorumNotice(data);
-        byId('quorum').textContent = data.quorate ? 'Quorum available' : 'NO QUORUM';
-        byId('quorum').className = `rw-status-badge rw-status-${data.quorate ? 'running' : 'stopped'}`;
-        byId('dc').textContent = `Coordinator: ${data.dc || 'unavailable'} · Failed actions: ${data.failures} · Read from: ${data.source}`;
-        byId('nodes').replaceChildren();
-        data.nodes.forEach(node => {
-            const row = rowIn('nodes');
-            cell(row, node.name);
-            ['online', 'standby', 'maintenance', 'unclean'].forEach(key => {
-                const active = isTrue(node[key]);
-                const healthy = key === 'online' ? active : !active;
-                badge(cell(row, ''), active ? 'Yes' : 'No', healthy ? 'running' : (key === 'unclean' || key === 'online' ? 'stopped' : 'unavailable'));
+        if (!selected || refreshing) return;
+        refreshing = true;
+        setDisabled('refresh', true);
+        setDisabled('cluster', true);
+        byId('dashboard').setAttribute('aria-busy', 'true');
+        if (!polling) message('Refreshing cluster status…');
+        try {
+            await history();
+            const clusterId = selected.id;
+            const data = (await api(path('/status'))).data;
+            if (selected.id !== clusterId) return;
+            quorumNotice(data);
+            byId('quorum').textContent = data.quorate ? 'Quorum available' : 'NO QUORUM';
+            byId('quorum').className = `rw-status-badge rw-status-${data.quorate ? 'running' : 'stopped'}`;
+            byId('dc').textContent = `Coordinator: ${data.dc || 'unavailable'} · Failed actions: ${data.failures} · Read from: ${data.source}`;
+            byId('nodes').replaceChildren();
+            data.nodes.forEach(node => {
+                const row = rowIn('nodes');
+                cell(row, node.name);
+                ['online', 'standby', 'maintenance', 'unclean'].forEach(key => {
+                    const active = isTrue(node[key]);
+                    const healthy = key === 'online' ? active : !active;
+                    badge(cell(row, ''), active ? 'Yes' : 'No', healthy ? 'running' : (key === 'unclean' || key === 'online' ? 'stopped' : 'unavailable'));
+                });
+                const actions = cell(row, '');
+                if (operator) {
+                    actionMenu(actions, node.name, [['Standby', () => operate('standby', node.name)], ['Online', () => operate('online', node.name)]]);
+                }
             });
-            const actions = cell(row, '');
-            if (operator) {
-                actionMenu(actions, node.name, [['Standby', () => operate('standby', node.name)], ['Online', () => operate('online', node.name)]]);
-            }
-        });
-        byId('resources').replaceChildren();
-        data.resources.forEach(resource => {
-            const row = rowIn('resources');
-            [resource.id, resource.resource_agent, resource.role, resource.nodes.join(', ')].forEach(value => cell(row, value));
-            const failed = isTrue(resource.failed), blocked = isTrue(resource.blocked);
-            badge(cell(row, ''), failed && blocked ? 'Failed / blocked' : failed ? 'Failed' : blocked ? 'Blocked' : 'Healthy', failed || blocked ? 'stopped' : 'running');
-            const actions = cell(row, '');
-            if (operator) {
-                const items = ['enable', 'disable', 'restart', 'cleanup', 'clear'].map(action => [action.charAt(0).toUpperCase() + action.slice(1), () => operate(action, resource.target_id || resource.id)]);
-                selected.members.filter(member => !resource.nodes.includes(member.name)).forEach(member => items.push([`Move to ${member.name}`, () => operate('move', resource.target_id || resource.id, member.name)]));
-                actionMenu(actions, resource.id, items);
-            }
-        });
+            byId('resources').replaceChildren();
+            data.resources.forEach(resource => {
+                const row = rowIn('resources');
+                [resource.id, resource.resource_agent, resource.role, resource.nodes.join(', ')].forEach(value => cell(row, value));
+                const failed = isTrue(resource.failed), blocked = isTrue(resource.blocked);
+                badge(cell(row, ''), failed && blocked ? 'Failed / blocked' : failed ? 'Failed' : blocked ? 'Blocked' : 'Healthy', failed || blocked ? 'stopped' : 'running');
+                const actions = cell(row, '');
+                if (operator) {
+                    const items = ['enable', 'disable', 'restart', 'cleanup', 'clear'].map(action => [action.charAt(0).toUpperCase() + action.slice(1), () => operate(action, resource.target_id || resource.id)]);
+                    selected.members.filter(member => !resource.nodes.includes(member.name)).forEach(member => items.push([`Move to ${member.name}`, () => operate('move', resource.target_id || resource.id, member.name)]));
+                    actionMenu(actions, resource.id, items);
+                }
+            });
+            const now = new Date();
+            byId('updated').dateTime = now.toISOString();
+            byId('updated').textContent = now.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+            if (!polling) message('');
+        } finally {
+            refreshing = false;
+            byId('dashboard').setAttribute('aria-busy', 'false');
+            setDisabled('refresh', false);
+            setDisabled('cluster', polling || !clusters.length);
+        }
     }
     async function history() {
         const data = await api(path('/history'));
@@ -339,10 +384,11 @@ jQuery(() => {
     }
     const agentUI = operator ? RoxywiPacemakerDiscovery({byId, api, guard, selected: () => selected, waitTask, refreshSelect, setDisabled, message}) : null;
     jQuery(byId('cluster')).on('selectmenuchange change', guard(() => loadClusters(byId('cluster').value)));
-    byId('refresh').addEventListener('click', guard(refresh));
+    byId('refresh').addEventListener('click', guard(() => selected ? refresh() : loadClusters()));
     window.addEventListener('hashchange', navigateSection);
     if (operator) {
         function setupMode(mode) {
+            root.querySelectorAll('[data-setup]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.setup === mode)));
             byId('bootstrap-panel').hidden = mode !== 'new';
             byId('witness-panel').hidden = mode !== 'witness';
             byId('discovery').hidden = mode !== 'adopt';
@@ -612,12 +658,10 @@ jQuery(() => {
             discovery = null; byId('discovery').hidden = true;
             byId('name').value = ''; byId('description').value = '';
             clearMembers(); addMember(); addMember(); registrationMode(false);
-            byId('registration').scrollIntoView({behavior: 'smooth', block: 'start'});
         }
         function openDiscovery() {
             setupMode('adopt');
             discovery = null; byId('discovery').hidden = false; byId('registration').hidden = true;
-            byId('discovery').scrollIntoView({behavior: 'smooth', block: 'start'});
             setDisabled('bootstrap', true);
         }
         byId('register').addEventListener('click', newRegistration);
@@ -746,10 +790,7 @@ jQuery(() => {
         }));
     }
     guard(async () => {
-        if (operator) { byId('name').pattern = '[A-Za-z][A-Za-z0-9_-]{0,62}'; byId('name').maxLength = 63; byId('description').maxLength = 2000; servers = (await api('/servers')).data;
-            byId('discovery-server').replaceChildren(new Option('Select an existing cluster node', ''));
-            servers.forEach(server => option(byId('discovery-server'), server.id, `${server.name} (${server.ip})`));
-            refreshSelect(byId('discovery-server')); addMember(); addMember(); }
+        if (operator) { byId('name').pattern = '[A-Za-z][A-Za-z0-9_-]{0,62}'; byId('name').maxLength = 63; byId('description').maxLength = 2000; }
         await loadClusters();
         if (operator && view === 'setup') {
             const mode = root.dataset.setupMode || 'new';

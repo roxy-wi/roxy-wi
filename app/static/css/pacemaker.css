@@ -1,0 +1,77 @@
+/* Keep the shared Roxy-WI controls; scope layout rules to the cluster workspace. */
+#pacemaker-app [hidden] { display: none !important; }
+#pacemaker-app { min-width: 0; }
+#pacemaker-app .pcmk-toolbar { gap: 12px 20px; margin-bottom: 0; padding-bottom: 0; }
+#pacemaker-app .ha-provider-field { grid-template-columns: auto minmax(0, 220px); }
+#pacemaker-app .pcmk-cluster-field { grid-template-columns: auto minmax(0, 260px); }
+#pacemaker-app .pcmk-toolbar select,
+#pacemaker-app .pcmk-toolbar .ui-selectmenu-button { width: 100% !important; min-width: 0; box-sizing: border-box; }
+#pacemaker-app .pcmk-updated { color: var(--rw-text-muted); font-size: 12px; margin-left: auto; white-space: nowrap; }
+#pacemaker-app .pcmk-updated time { display: inline-block; min-width: 58px; font-variant-numeric: tabular-nums; }
+#pacemaker-app .pcmk-feedback { min-height: 32px; padding: 6px 0; box-sizing: border-box; }
+#pacemaker-app .pcmk-feedback p { margin: 0; line-height: 20px; overflow-wrap: anywhere; }
+#pacemaker-app .pcmk-feedback .rw-error-state { padding: 8px 12px; text-align: left; }
+#pacemaker-app h3 { padding: 0; margin: 0 0 12px; border: 0; background: transparent; color: inherit; font-size: 16px; }
+#pacemaker-app h4 { margin: 0 0 12px; font-size: 14px; }
+#pacemaker-app p { line-height: 1.6; }
+#pacemaker-app .rw-form-help { color: var(--rw-text-muted); }
+#pacemaker-app .alert { margin-left: 0; }
+#pacemaker-app .alert-warning { color: inherit; }
+#pacemaker-app #pcmk-empty { padding: 32px 20px; background: var(--rw-surface); }
+#pacemaker-app #pcmk-empty .rw-table-toolbar { justify-content: center; margin-bottom: 0; }
+#pacemaker-app a.rw-button { padding: 7px 12px; }
+#pacemaker-app .pcmk-setup-modes { margin: 0 0 16px; }
+#pacemaker-app .pcmk-setup-modes [aria-pressed="true"] { border-color: var(--rw-primary) !important; color: var(--rw-primary) !important; box-shadow: inset 0 -2px var(--rw-primary); }
+#pacemaker-app .rw-panel { margin-bottom: 16px; }
+#pacemaker-app .pcmk-summary { margin-top: 0; }
+#pcmk-dc { color: var(--rw-text-muted); }
+#pacemaker-app .rw-panel > :last-child { margin-bottom: 0; }
+#pacemaker-app .change-advanced-settings { margin: 0 0 16px; padding: 16px; border-radius: var(--rw-radius); background: var(--rw-surface); }
+#pacemaker-app .change-advanced-settings > summary { line-height: 22px; }
+#pacemaker-app .change-advanced-settings[open] > summary { margin-bottom: 16px; }
+#pacemaker-app .change-advanced-settings .change-advanced-settings { background: var(--rw-surface-muted); }
+#pacemaker-app .change-advanced-grid { margin: 16px 0; align-items: start; }
+#pacemaker-app .change-advanced-grid > .rw-table-toolbar { grid-column: 1 / -1; margin: 0; }
+#pacemaker-app .rw-form-field > label { margin: 0; }
+#pacemaker-app .rw-form-field input,
+#pacemaker-app .rw-form-field select,
+#pacemaker-app .rw-form-field textarea,
+#pacemaker-app .rw-form-field .ui-selectmenu-button { width: 100% !important; min-width: 0; box-sizing: border-box; }
+#pacemaker-app textarea { width: 100%; max-width: 100%; box-sizing: border-box; resize: vertical; }
+#pacemaker-app .rw-table-toolbar > select,
+#pacemaker-app .rw-table-toolbar > .ui-selectmenu-button { width: min(320px, 100%) !important; box-sizing: border-box; }
+#pacemaker-app :is(.rw-panel, .change-advanced-settings) > .rw-form-field { margin: 16px 0; }
+#pacemaker-app .rw-button { max-width: 100%; white-space: normal; min-height: 30px; font: inherit; font-weight: 600; }
+#pacemaker-app .pcmk-toolbar .rw-button { min-height: 0; white-space: nowrap; }
+#pacemaker-app .ui-selectmenu-text { overflow: hidden; text-overflow: ellipsis; }
+#pacemaker-app .rw-table-shell { box-sizing: border-box; margin-bottom: 16px; }
+#pacemaker-app .rw-table-shell.rw-panel { padding: 0; }
+#pacemaker-app table.overview { width: 100% !important; margin: 0; border: 0; border-collapse: collapse; table-layout: fixed; }
+#pacemaker-app table.overview th,
+#pacemaker-app table.overview td { box-sizing: border-box; padding: 10px 12px; vertical-align: middle; overflow-wrap: anywhere; }
+#pacemaker-app table.overview th { color: var(--rw-text-muted); background: var(--rw-surface-muted); text-align: left; }
+#pacemaker-app table:has(#pcmk-nodes, #pcmk-resources, #pcmk-history, #pcmk-members, #pcmk-membership-members) :is(th, td):last-child { width: 96px; }
+#pacemaker-app .rw-table-shell:has(#pcmk-members, #pcmk-membership-members) table { min-width: 760px; }
+#pacemaker-app table:has(#pcmk-members, #pcmk-membership-members) :is(th, td):nth-child(4) { width: 90px; }
+#pacemaker-app :is(#pcmk-members, #pcmk-membership-members) td { vertical-align: top; }
+#pacemaker-app :is(#pcmk-members, #pcmk-membership-members) input,
+#pacemaker-app :is(#pcmk-members, #pcmk-membership-members) .ui-selectmenu-button { width: 100% !important; min-width: 0; box-sizing: border-box; }
+#pacemaker-app :is(#pcmk-members, #pcmk-membership-members) .rw-form-help { min-height: 3.2em; }
+#pacemaker-app #pcmk-dashboard > section { margin-bottom: 16px; }
+#pacemaker-app #pcmk-dashboard > section > :last-child { margin-bottom: 0; }
+#pacemaker-app .rw-notification-raw:empty { display: none; }
+#pacemaker-app .config-editor-shell textarea { min-height: 240px; }
+
+@media (max-width: 900px) {
+    #pacemaker-app .pcmk-updated { width: 100%; margin-left: 0; }
+}
+@media (max-width: 720px) {
+    .pcmk-page-title { display: block; padding-top: 28px; margin-right: 15px; font-size: 26px; line-height: 1.3; overflow-wrap: anywhere; }
+    #pacemaker-app .ha-provider-field,
+    #pacemaker-app .pcmk-cluster-field { grid-template-columns: minmax(0, 1fr); width: 100%; }
+    #pacemaker-app .change-advanced-grid { grid-template-columns: minmax(0, 1fr); }
+    #pacemaker-app .rw-table-responsive td { min-width: 0; }
+    #pacemaker-app .rw-table-responsive td > * { min-width: 0; max-width: 100%; }
+    #pacemaker-app .rw-panel,
+    #pacemaker-app .change-advanced-settings { padding: 12px; }
+}

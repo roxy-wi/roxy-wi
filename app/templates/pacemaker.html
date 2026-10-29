@@ -1,27 +1,38 @@
 {% extends 'base.html' %}
 {% block title %}Corosync / Pacemaker{% endblock %}
-{% block h2 %}Corosync / Pacemaker{% endblock %}
+{% block h2 %}<span class="pcmk-page-title">Corosync / Pacemaker</span>{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
-{% if view != 'setup' %}{% with ha_provider='pacemaker' %}{% include 'include/ha_provider.html' %}{% endwith %}{% endif %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/table-6.3.9.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pacemaker.css', v='9.3.0-1') }}">
 {% macro field(id, label, name='', value='', required='', type='text', placeholder='') -%}
 <div class="rw-form-field"><label for="{{ id }}">{{ label }}</label>{{ input(id, name=name, value=value, required=required, type=type, placeholder=placeholder) }}</div>
 {%- endmacro %}
 <main class="service-overview-page" id="pacemaker-app" data-view="{{ view }}" data-setup-mode="{{ setup_mode|default('new') }}" data-operator="{{ 'true' if g.user_params['role']|int <= 3 else 'false' }}">
-    <div class="rw-table-toolbar service-page-toolbar">
-        <div class="rw-form-field"><label for="pcmk-cluster">Cluster</label>{{ select('pcmk-cluster', values={}) }}</div>
-        <button type="button" id="pcmk-refresh" class="rw-button rw-button-secondary">{{ lang.words.refresh|default('Refresh')|title }}</button>
-
+    <div class="rw-table-toolbar service-page-toolbar pcmk-toolbar" aria-label="Cluster selection">
+        {% if view != 'setup' %}{% with ha_provider='pacemaker', ha_provider_inline=true %}{% include 'include/ha_provider.html' %}{% endwith %}{% endif %}
+        <div class="rw-form-field pcmk-cluster-field"><label for="pcmk-cluster">Cluster</label><select id="pcmk-cluster" disabled><option value="">Loading clusters…</option></select></div>
+        <button type="button" id="pcmk-refresh" class="rw-button rw-button-secondary" disabled>{{ lang.words.refresh|default('Refresh')|title }}</button>
+        <span class="pcmk-updated">{{ lang.ux.status_updated }}: <time id="pcmk-updated">—</time></span>
     </div>
-    <p id="pcmk-message" class="rw-form-help" role="status" aria-live="polite"></p>
+    <div class="pcmk-feedback"><p id="pcmk-message" class="rw-form-help" role="status" aria-live="polite">Loading clusters…</p></div>
+    <section id="pcmk-empty" class="rw-empty-state" hidden>
+        <h3>No clusters registered</h3>
+        <p>Register a new cluster or connect an existing Corosync / Pacemaker cluster to see its nodes, resources and quorum.</p>
+        {% if g.user_params['role']|int <= 3 %}
+        <div class="rw-table-toolbar">
+            <a class="rw-button rw-button-primary" href="{{ url_for('install.pacemaker_setup', setup='new') }}">Set up a cluster</a>
+            <a class="rw-button rw-button-secondary" href="{{ url_for('install.pacemaker_setup', setup='adopt') }}">Connect an existing cluster</a>
+        </div>
+        {% endif %}
+    </section>
     {% if g.user_params['role']|int <= 3 %}
     <section data-pcmk-view="setup" {% if view != 'setup' %}hidden{% endif %}>
         <h3>Corosync / Pacemaker installation</h3>
-        <div class="rw-table-toolbar">
-        <button type="button" id="pcmk-register" class="rw-button rw-button-secondary">Register cluster</button>
-        <button type="button" id="pcmk-adopt-open" class="rw-button rw-button-secondary">Adopt existing cluster</button>
-        <button type="button" id="pcmk-witness-open" class="rw-button rw-button-secondary">Quorum / witness</button>
+        <div class="rw-table-toolbar pcmk-setup-modes" role="group" aria-label="Installation workflow">
+        <button type="button" id="pcmk-register" class="rw-button rw-button-secondary" data-setup="new" aria-pressed="{{ 'true' if setup_mode == 'new' else 'false' }}">New cluster</button>
+        <button type="button" id="pcmk-adopt-open" class="rw-button rw-button-secondary" data-setup="adopt" aria-pressed="{{ 'true' if setup_mode == 'adopt' else 'false' }}">Connect existing cluster</button>
+        <button type="button" id="pcmk-witness-open" class="rw-button rw-button-secondary" data-setup="witness" aria-pressed="{{ 'true' if setup_mode == 'witness' else 'false' }}">Quorum witness</button>
         </div>
     {% if g.user_params['role']|int <= 3 %}
     <section id="pcmk-witness-panel" class="rw-panel" {% if setup_mode|default("new") != "witness" %}hidden{% endif %}>
@@ -88,7 +99,7 @@
         <p>All members must have enabled server entries and working SSH credentials in the active group. Adopted clusters retain their existing Corosync transport and witness settings; managed membership changes require an explicit migration.</p>
     </section>
     {% endif %}
-    <section id="pcmk-registration" class="rw-panel" hidden>
+    <section id="pcmk-registration" class="rw-panel" {% if view != 'setup' or setup_mode != 'new' or request.args.get('cluster') %}hidden{% endif %}>
         <h3 id="pcmk-registration-title">Register a new or existing cluster</h3>
         <p>Use servers already registered in this Roxy-WI group. Registration leaves the running cluster untouched.</p>
         <div id="pcmk-registration-quorum" hidden><p class="alert alert-warning">Two-node cluster: an independent quorum witness is strongly recommended. Provisioning uses Corosync two-node mode until a witness is connected. Configure fencing before relying on automatic recovery. Prepare a standalone qnetd server, then attach it through a reviewed quorum change.</p></div>
@@ -98,12 +109,14 @@
                 {{ field('pcmk-description', 'Description') }}
             </div>
             <div class="rw-table-shell"><table class="overview dataTable"><thead><tr class="overviewHead"><th>Server</th><th>Cluster node name</th><th>Corosync address</th><th>Node ID</th><th></th></tr></thead><tbody id="pcmk-members"></tbody></table></div>
-            <button type="button" id="pcmk-add-member" class="rw-button rw-button-secondary">Add member</button>
-            <button type="submit" id="pcmk-registration-save" class="rw-button rw-button-primary">Save registration</button>
-            <button type="button" id="pcmk-registration-cancel" class="rw-button rw-button-secondary">Cancel</button>
+            <div class="rw-table-toolbar">
+                <button type="button" id="pcmk-add-member" class="rw-button rw-button-secondary">Add member</button>
+                <button type="submit" id="pcmk-registration-save" class="rw-button rw-button-primary">Save registration</button>
+                <button type="button" id="pcmk-registration-cancel" class="rw-button rw-button-secondary">Cancel</button>
+            </div>
         </form>
     </section>
-        <section id="pcmk-bootstrap-panel" class="rw-panel" {% if setup_mode|default("new") != "new" %}hidden{% endif %}>
+        <section id="pcmk-bootstrap-panel" class="rw-panel" {% if setup_mode != 'new' or not request.args.get('cluster') %}hidden{% endif %}>
             <h3>Install registered cluster</h3>
             <p>Select the registered empty nodes, check their platforms and choose installation options. Existing cluster configuration is never overwritten.</p>
             <div class="rw-table-toolbar">
@@ -119,7 +132,7 @@
     {% endif %}
     <section id="pcmk-dashboard" hidden>
 <section data-pcmk-view="overview quorum" {% if view not in ['overview', 'quorum'] %}hidden{% endif %}>
-        <div class="rw-panel rw-table-toolbar"><strong class="rw-status-badge" id="pcmk-quorum">—</strong><span id="pcmk-dc"></span></div>
+        <div class="rw-panel rw-table-toolbar pcmk-summary"><strong class="rw-status-badge" id="pcmk-quorum">—</strong><span id="pcmk-dc"></span></div>
         <div id="pcmk-quorum-note" role="status" hidden><p id="pcmk-quorum-description" class="alert alert-warning"></p></div>
 
 </section>
@@ -291,5 +304,5 @@
     </section>
 </main>
 <script src="{{ url_for('static', filename='js/pacemaker-discovery.js') }}" defer></script>
-<script src="{{ url_for('static', filename='js/pacemaker.js') }}" defer></script>
+<script src="{{ url_for('static', filename='js/pacemaker.js', v='9.3.0-1') }}" defer></script>
 {% endblock %}

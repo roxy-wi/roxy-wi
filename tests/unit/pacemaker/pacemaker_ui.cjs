@@ -48,8 +48,9 @@ const context = vm.createContext({assert, byId, jQuery, URL,
     window: {location: {origin: 'http://roxy.test'}, history: {replaceState: () => {}}},
     document: {createElement: tag => new Element(tag)},
     guard: fn => fn, api: async () => ({data: response}), history: async () => {},
-    path: suffix => suffix, operator: true, view: 'configuration', selected: {id: 1, members: [{name: 'node-1'}]}});
+    path: suffix => suffix, message: () => {}, operator: true, view: 'configuration', selected: {id: 1, members: [{name: 'node-1'}]}});
 vm.runInContext(`let digest, changeId, changeKind;
+    let refreshing = false, polling = false, clusters = [{id: 1}];
     ${section('    function button(', '    function path(')}
     ${section('    async function refresh()', '    async function history()')}
     ${section('    async function showChange(', '    let memberSequence')}
