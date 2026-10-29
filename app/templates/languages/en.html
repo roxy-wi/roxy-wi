@@ -2013,3 +2013,17 @@
     "ssl_failed_handshake": "SSL/TLS handshakes that failed.",
     "unknown_field": "Additional field from this HAProxy version. Its meaning is not yet described in this catalog."
 } %}
+
+{% set update_overview = {
+    "external_update": "Update on deployment host",
+    "external_help": "Update the image or package where this service is deployed. This page does not replace containers.",
+    "unknown_version": "The installed version could not be verified.",
+    "unknown_state": "State unknown",
+    "not_reported": "No current report",
+    "not_detected": "Not detected on inventory host",
+    "stale": "No recent heartbeat",
+    "worker": "Version reported by active workers",
+    "inventory": "Version from the deployment inventory",
+    "package": "Installed local package version",
+    "container_note": "Container updates are managed on the deployment host. Versions come from active worker reports or deployment inventory. A missing report does not mean the service is uninstalled."
+} %}

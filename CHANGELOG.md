@@ -15,6 +15,9 @@ These notes cover **Roxy-WI 9.1 and later**.
   with system/rootless units, persistent SQLite and secrets, local HTTPS,
   readiness checks and explicit upgrades. Debian/EL live VM qualification is
   pending; managed-component Podman installation is a separate feature.
+- Use active worker versions and an optional read-only deployment inventory in
+  Admin Update instead of container bootstrap values. Include stopped services,
+  compare complete versions, and keep package actions off container deployments.
 
 - Reject full Corosync membership replacement during validation and before apply.
   Require the selected witness address, active TLS and a vote on every resulting
