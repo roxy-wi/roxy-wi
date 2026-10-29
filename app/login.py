@@ -63,7 +63,7 @@ def check_login():
             logger.warning('Authentication user is disabled', user_id=claims['user_id'])
             abort(401)
 
-        if int(claims['group']) != int(user.group_id):
+        if claims.get('credential_type') != 'pat' and int(claims['group']) != int(user.group_id):
             logger.warning(
                 'Authentication active group mismatch',
                 user_id=claims['user_id'],

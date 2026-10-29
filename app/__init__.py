@@ -57,6 +57,13 @@ def close_request_database_connection(_exception=None):
 def is_token_revoked(_jwt_header, jwt_payload):
     return token_sql.is_token_revoked(jwt_payload['jti'])
 
+
+@jwt.token_verification_loader
+def verify_credential(_jwt_header, jwt_payload):
+    from app.modules.common.credential_verification import verify
+    return verify(jwt_payload)
+
+
 def initialize_database() -> None:
     """Create bootstrap data and apply migrations from a single process."""
     database = BaseModel._meta.database

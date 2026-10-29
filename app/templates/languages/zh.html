@@ -1947,3 +1947,46 @@
     "ssl_failed_handshake": "失败的 SSL/TLS 握手次数。",
     "unknown_field": "此 HAProxy 版本的附加字段，本说明目录尚未收录其含义。"
 } %}
+
+{% set personal_tokens = {
+    "title": "个人 API 令牌",
+    "intro": "为每个脚本创建独立凭据。令牌仅可访问 API，不能登录网页。",
+    "name": "名称",
+    "group": "组",
+    "scopes": "权限",
+    "expires": "到期时间（UTC）",
+    "used": "最后使用（UTC）",
+    "state": "状态",
+    "create": "创建令牌",
+    "days": "有效天数（1–365）",
+    "fixed_group": "固定组",
+    "least_privilege": "仅选择所需权限；现有角色和服务权限仍然有效。",
+    "password": "当前密码",
+    "otp": "一次性验证码（如已启用）",
+    "use_passkey": "使用通行密钥验证",
+    "once": "令牌仅显示一次",
+    "copy_now": "请立即复制到集成的安全存储中。关闭或刷新后将无法再次查看。",
+    "value": "个人令牌",
+    "hide": "隐藏令牌",
+    "failed": "请求失败。",
+    "never": "从未",
+    "revoked": "已撤销",
+    "expired": "已到期",
+    "active": "有效",
+    "revoke": "撤销",
+    "confirm_revoke": "立即撤销？已排队的操作将继续。",
+    "created": "令牌已创建，请立即复制。",
+    "reauthenticated": "身份已验证。",
+    "scope_labels": {
+        "inventory.read": "读取服务器清单",
+        "services.read": "读取服务状态",
+        "config.read": "读取远程配置",
+        "changes.read": "读取变更和配置差异",
+        "changes.write": "创建和验证草稿",
+        "changes.approve": "批准变更",
+        "changes.deploy": "部署和控制发布",
+        "services.control": "启动、停止和重载服务"
+    },
+    "hidden": "令牌已隐藏。",
+    "unavailable": "不可用"
+} %}

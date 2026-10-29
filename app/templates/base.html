@@ -76,6 +76,7 @@
 		</div>
 		<div id="show-user-settings" style="display: none;">
 			<table class="overview" id="show-user-settings-table" title="{{lang.words.user3|title()}} {{lang.words.settings}}">
+                <tr><td colspan="2"><a href="{{ url_for('user.api_access_page') }}">{{ lang.personal_tokens.title }}</a></td></tr>
 				<tr>
 					<td class="padding20" style="width: 70%">{{lang.words.alerts|title()}}</td>
 					<td>
