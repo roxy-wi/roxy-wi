@@ -183,6 +183,7 @@ class HAClusterServersRequest(BaseModel):
 class HAClusterService(BaseModel):
     enabled: Optional[bool] = 0
     docker: Optional[bool] = 0
+    container_engine: Optional[Literal['native', 'docker', 'podman']] = None
 
 
 class HAClusterVIP(BaseModel):
@@ -255,6 +256,7 @@ class ServiceInstall(BaseModel):
     auto_start: Optional[bool] = 0
     syn_flood: Optional[bool] = 0
     docker: Optional[bool] = 0
+    container_engine: Optional[Literal['native', 'docker', 'podman']] = None
 
 
 class Checker(BaseModel):

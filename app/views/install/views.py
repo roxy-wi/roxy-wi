@@ -147,7 +147,7 @@ class InstallView(MethodView):
         if not body.servers:
             body.servers = [ServerInstall(id=server_id)]
         if not body.services:
-            body.services = {service: HAClusterService(enabled=1, docker=body.docker)}
+            body.services = {service: HAClusterService(enabled=1, docker=body.docker, container_engine=body.container_engine)}
         try:
             if body.auto_start:
                 from app.modules.pacemaker.autostart import assert_unmanaged

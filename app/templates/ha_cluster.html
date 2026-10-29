@@ -2,7 +2,8 @@
 {% block title %}{{ lang.ha_page.has }} {% endblock %}
 {% block h2 %}{{ lang.ha_page.has }} {% endblock %}
 {% block content %}
-{% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
+{% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard, select %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/pacemaker.css',v='9.3.0-2') }}">
 <script src="/static/js/ha.js"></script>
 <script src="/static/js/overview.js"></script>
 <link href="{{ url_for('static', filename='css/servers.css') }}" rel="stylesheet"/>
@@ -82,7 +83,7 @@
     </table>
     <div class="checks"></div>
 </div>
-<div id="create-ha-cluster-step-2" style="display: none;">
+<div id="create-ha-cluster-step-2" class="rw-operations-workspace" style="display: none;">
     <table class="overview" id="create-ha-cluster-step-2-overview"
            title="{{lang.words.create|title()}} {{lang.ha_page.ha}} {{lang.words.cluster}}"
            data-edit="{{lang.words.edit|title()}} {{lang.ha_page.ha}} {{lang.words.cluster}}">
@@ -120,10 +121,10 @@
         </tr>
         <tr>
             <td class="padding20 help_cursor" style="display: none" id="haproxy_docker_td_header">
-                <span title="{{lang.ha_page.try_install}} HAProxy {{lang.ha_page.as_docker}}">Docker</span>
+                <label for="haproxy_cluster_engine" title="{{lang.ha_page.try_install}} HAProxy {{lang.ha_page.as_docker}}">Runtime</label>
             </td>
             <td class="help_cursor" style="display: none" id="haproxy_docker_td">
-                {{ checkbox('hap_docker', title=lang.ha_page.try_install+' HAProxy '+lang.ha_page.as_docker) }}
+                <div class="rw-form-field">{{ select('haproxy_cluster_engine', values={'native':'Native','docker':'Docker','podman':'Podman'}, selected='native') }}</div>
             </td>
         </tr>
         <tr>
@@ -132,16 +133,17 @@
         </tr>
         <tr>
             <td class="padding20 help_cursor" style="display: none" id="nginx_docker_td_header">
-                <span title="{{lang.ha_page.try_install}} NGINX {{lang.ha_page.as_docker}}">Docker</span>
+                <label for="nginx_cluster_engine" title="{{lang.ha_page.try_install}} NGINX {{lang.ha_page.as_docker}}">Runtime</label>
             </td>
             <td class="help_cursor" style="display: none" id="nginx_docker_td">
-                {{ checkbox('nginx_docker', title=lang.ha_page.try_install+' NGINX '+lang.ha_page.as_docker) }}
+                <div class="rw-form-field">{{ select('nginx_cluster_engine', values={'native':'Native','docker':'Docker','podman':'Podman'}, selected='native') }}</div>
             </td>
         </tr>
         <tr>
             <td class="padding20 help_cursor"><span title="{{lang.ha_page.try_install}} Apache">Apache</span></td>
             <td class="help_cursor">{{ checkbox('apache', title=lang.ha_page.try_install+' Apache') }}</td>
         </tr>
+        <tr><td class="padding20"><label for="apache_cluster_engine">Apache runtime</label></td><td><div class="rw-form-field">{{ select('apache_cluster_engine', values={'native':'Native','docker':'Docker','podman':'Podman'}, selected='native') }}</div></td></tr>
     </table>
     <div class="alert alert-warning">
         {{lang.ha_page.save_apply|safe}}

@@ -176,7 +176,7 @@ def execute(task):
                     if server.ip != target['address']:
                         raise certificates.CertificateError('Target changed', 'concurrent_change')
                     settings = certificates.deployment_settings(server, payload['name'])
-                    identity = ('cert_dir', 'config_path', 'docker', 'container', 'runtime_port')
+                    identity = ('cert_dir', 'config_path', 'docker', 'container', 'runtime_port', 'container_runtime')
                     if any(settings.get(field) != target['settings'].get(field) for field in identity):
                         raise certificates.CertificateError('Service settings changed', 'concurrent_change')
                     settings['apply_mode'] = 'runtime'

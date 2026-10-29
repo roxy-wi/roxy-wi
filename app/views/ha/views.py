@@ -177,14 +177,16 @@ class HAView(MethodView):
                 server_settings = {'id': server_id, 'eth': slave[32], 'master': slave[31]}
                 settings['servers'].append(server_settings)
 
+            from app.modules.service import container_settings
+            binding_id = next((node['id'] for node in settings['servers'] if node['master']),
+                              settings['servers'][0]['id'] if settings['servers'] else None)
             for c_s in cluster_services:
-                is_dockerized = int(service_sql.select_service_setting(server_id, c_s.service_id, 'dockerized'))
-                if int(c_s.service_id) == 1:
-                    settings['services']['haproxy'] = {'enabled': 1, 'docker': is_dockerized}
-                if int(c_s.service_id) == 2:
-                    settings['services']['nginx'] = {'enabled': 1, 'docker': is_dockerized}
-                if int(c_s.service_id) == 4:
-                    settings['services']['apache'] = {'enabled': 1, 'docker': is_dockerized}
+                slug = {1: 'haproxy', 2: 'nginx', 4: 'apache'}.get(int(c_s.service_id))
+                if not slug:
+                    continue
+                is_container = bool(binding_id and service_sql.select_service_setting(binding_id, slug, 'dockerized') == '1')
+                engine = container_settings.runtime(binding_id, slug)['engine'] if is_container else 'native'
+                settings['services'][slug] = {'enabled': 1, 'docker': int(is_container), 'container_engine': engine}
 
             return jsonify(settings)
 

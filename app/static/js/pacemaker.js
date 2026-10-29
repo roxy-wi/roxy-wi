@@ -410,8 +410,8 @@ jQuery(() => {
         }
         async function readWitness(id) {
             const data = (await api(`/witness/${id}`)).data;
-            if (data.mode === 'docker' || data.ca_fingerprint) { byId('witness-docker').checked = data.mode === 'docker'; jQuery(byId('witness-docker')).checkboxradio('refresh'); }
-            byId('witness-result').textContent = `${data.mode === 'docker' ? 'Docker' : 'Native'} · ${data.active ? 'qnetd running' : 'qnetd not running'} · Version: ${data.version || 'not installed'} · CA fingerprint: ${data.ca_fingerprint || 'not initialized'}`;
+            if (data.ca_fingerprint) { byId('witness-engine').value = data.mode; refreshSelect(byId('witness-engine')); }
+            byId('witness-result').textContent = `${({docker:'Docker',podman:'Podman',native:'Native'})[data.mode] || data.mode} · ${data.active ? 'qnetd running' : 'qnetd not running'} · Version: ${data.version || 'not installed'} · CA fingerprint: ${data.ca_fingerprint || 'not initialized'}`;
         }
         let migrationPlan = null;
         function resetMigration() {
@@ -421,10 +421,12 @@ jQuery(() => {
             setDisabled('migration-start', true); setDisabled('migration-recover', true);
         }
         jQuery(byId('witness-server')).on('selectmenuchange change', resetMigration);
+        jQuery(byId('witness-engine')).on('selectmenuchange change', resetMigration);
         async function reviewMigration() {
             const id = witnessId(); resetMigration();
             byId('migration-status').textContent = 'Reading native witness and checking all attached nodes…';
-            const data = (await api(`/witness/${id}/migration`)).data;
+            const engine = byId('witness-engine').value === 'podman' ? 'podman' : 'docker';
+            const data = (await api(`/witness/${id}/migration?container_engine=${engine}`)).data;
             if (id !== witnessId()) return;
             migrationPlan = data;
             const row = (name, value) => {
@@ -436,12 +438,12 @@ jQuery(() => {
                 byId('migration-status').textContent = 'Recover the native witness before starting another conversion.';
                 setDisabled('migration-recover', false); return;
             }
-            row('Conversion', 'Native qnetd → Docker on the same host and TCP 5403');
+            row('Conversion', `Native qnetd → ${data.container_engine} on the same host and TCP 5403`);
             row('CA fingerprint to preserve', data.source.ca_fingerprint);
             row('Attached clusters', data.clusters.map(cluster => cluster.name).join(', ') || 'No attached registered clusters');
             row('Node checks', 'All attached members online, quorate, connected with TLS and a witness vote');
             row('Recovery', 'Private host backup and independent 180-second rollback timer');
-            byId('migration-status').textContent = 'Review these checks. Preparation may install Docker Engine from enabled host repositories and build the fixed image. No cluster configuration or client certificates will be replaced.';
+            byId('migration-status').textContent = 'Review these checks. Preparation may install the selected container engine from enabled host repositories and build the fixed image. No cluster configuration or client certificates will be replaced.';
             setDisabled('migration-start', !data.eligible);
         }
         byId('migration-plan').addEventListener('click', guard(reviewMigration));
@@ -449,11 +451,11 @@ jQuery(() => {
             const id = witnessId(), plan = migrationPlan;
             if (!plan || plan.server_id && plan.server_id !== id) throw new Error('Review the selected witness first');
             const recover = action === 'recover', token = plan.pending[0]?.token;
-            if (!await confirmAction(recover ? `Restore the native witness on ${plan.server}?` : `Convert ${plan.server} to Docker while preserving its current CA? The witness connection briefly restarts.`, plan.server)) return;
-            ['migration-plan', 'migration-start', 'migration-recover', 'witness-install', 'witness-server'].forEach(item => setDisabled(item, true));
+            if (!await confirmAction(recover ? `Restore the native witness on ${plan.server}?` : `Convert ${plan.server} to ${plan.container_engine} while preserving its current CA? The witness connection briefly restarts.`, plan.server)) return;
+            ['migration-plan', 'migration-start', 'migration-recover', 'witness-install', 'witness-server', 'witness-engine'].forEach(item => setDisabled(item, true));
             try {
                 const result = await api(`/witness/${id}/migration${recover ? '/recover' : ''}`, 'POST', recover
-                    ? {token, confirm: plan.server} : {plan_digest: plan.plan_digest, confirm: plan.server});
+                    ? {token, confirm: plan.server} : {plan_digest: plan.plan_digest, confirm: plan.server, container_engine: plan.container_engine});
                 for (let attempt = 0; attempt < 650; attempt++) {
                     const state = (await api(`/witness/tasks/${result.task_id}`)).data;
                     byId('migration-status').textContent = `Witness ${recover ? 'recovery' : 'conversion'} #${state.id}: ${state.status}`;
@@ -467,7 +469,7 @@ jQuery(() => {
                 }
                 throw new Error('The operation is still pending. Read migration status before retrying.');
             } finally {
-                ['migration-plan', 'witness-install', 'witness-server'].forEach(item => setDisabled(item, false));
+                ['migration-plan', 'witness-install', 'witness-server', 'witness-engine'].forEach(item => setDisabled(item, false));
             }
         }
         byId('migration-start').addEventListener('click', guard(() => migrationTask('convert')));
@@ -484,7 +486,7 @@ jQuery(() => {
             lifecyclePlan={...data,operation};
             const row=(name,value)=>{const item=byId('lifecycle-review').insertRow();[name,value].forEach(text=>{const cell=item.insertCell();cell.className='padding10';cell.textContent=text;});};
             if(data.pending.length){data.pending.forEach(item=>row('Unfinished operation',`${item.operation}: ${item.token} (${item.phase})`));setDisabled('lifecycle-recover',false);return;}
-            row('Operation',operation==='native'?'Docker → native qnetd':'Refresh the fixed Roxy-WI image recipe with current distribution packages');
+            row('Operation',operation==='native'?'Container → native qnetd':'Refresh the fixed Roxy-WI image recipe with current distribution packages');
             row('Current version / image',`${data.source.version} / ${data.source.image_id}`);
             row('CA to preserve',data.source.ca_fingerprint);
             row('Attached clusters',data.clusters.map(item=>item.name).join(', ')||'No attached registered clusters');
@@ -569,17 +571,17 @@ jQuery(() => {
         byId('witness-platform').addEventListener('click', guard(async () => {
             const id = witnessId(), server = servers.find(item => item.id === id);
             const profile = (await api(`/platform/${id}`)).data;
-            byId('witness-result').textContent = byId('witness-docker').checked && profile.supported
-                ? `${server.name}: ${profile.id} ${profile.version} · Docker host profile; engine/packages and image build access are checked during installation.`
+            byId('witness-result').textContent = byId('witness-engine').value !== 'native' && profile.supported
+                ? `${server.name}: ${profile.id} ${profile.version} · ${byId('witness-engine').value} host profile; engine/packages and image build access are checked during installation.`
                 : platformText(server, profile);
         }));
         byId('witness-status').addEventListener('click', guard(() => readWitness(witnessId())));
         byId('witness-install').addEventListener('click', guard(async () => {
-            const id = witnessId(), server = servers.find(server => server.id === id), docker = byId('witness-docker').checked;
-            if (!await confirmAction(`Install and enable corosync-qnetd ${docker ? 'in Docker' : 'using native packages'} on ${server.name}? Existing witness certificates will be preserved. This does not attach or change any cluster.`)) return;
-            setDisabled('witness-install', true); setDisabled('witness-server', true); jQuery(byId('witness-docker')).checkboxradio('option', 'disabled', true);
+            const id = witnessId(), server = servers.find(server => server.id === id), container_engine = byId('witness-engine').value;
+            if (!await confirmAction(`Install and enable corosync-qnetd ${container_engine === 'native' ? 'using native packages' : 'in ' + container_engine} on ${server.name}? Existing witness certificates will be preserved. This does not attach or change any cluster.`)) return;
+            setDisabled('witness-install', true); setDisabled('witness-server', true); setDisabled('witness-engine', true);
             try {
-                const task = await api('/witness/install', 'POST', {server_id: id, docker});
+                const task = await api('/witness/install', 'POST', {server_id: id, container_engine});
                 for (let attempt = 0; attempt < 630; attempt++) {
                     const state = (await api(`/witness/tasks/${task.task_id}`)).data;
                     byId('witness-result').textContent = `Witness installation #${state.id}: ${state.status}`;
@@ -588,7 +590,7 @@ jQuery(() => {
                     await new Promise(resolve => setTimeout(resolve, 2000));
                 }
                 throw new Error('Witness installation is still pending. Check Operations and read witness status before retrying.');
-            } finally { setDisabled('witness-install', false); setDisabled('witness-server', false); jQuery(byId('witness-docker')).checkboxradio('option', 'disabled', false); }
+            } finally { setDisabled('witness-install', false); setDisabled('witness-server', false); setDisabled('witness-engine', false); }
         }));
         async function readAutostart() {
             const id=selected?.id;const result=(await api(path('/autostart'))).data;

@@ -255,7 +255,7 @@ def waf_modes(waf_creation, product, monkeypatch):
 
     def command(server, command, **kwargs):
         tokens = shlex.split(command)
-        if len(tokens) > 8 and tokens[8] == Path(candidate.__file__).read_text(encoding='utf-8'):
+        if len(tokens) > 8 and tokens[8] == candidate.remote_source():
             spec = json.loads(tokens[-1])
             assert spec['action'] == 'status' and not spec['candidate'] and not spec['action_command']
             assert server == product.server.ip
@@ -312,7 +312,7 @@ def waf_applying(waf_modes, product, monkeypatch):
             if tokens[-1] in state.uploads:
                 state.uploads[tokens[-1]].unlink(missing_ok=True)
             return ''
-        if len(tokens) < 9 or tokens[8] != Path(candidate.__file__).read_text(encoding='utf-8'):
+        if len(tokens) < 9 or tokens[8] != candidate.remote_source():
             return original_ssh(server, command, **kwargs)
         if json.loads(tokens[-1])['action'] == 'status':
             return original_ssh(server, command, **kwargs)

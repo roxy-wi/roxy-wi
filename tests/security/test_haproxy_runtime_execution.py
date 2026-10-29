@@ -1,6 +1,7 @@
 from pathlib import Path
 import shlex
 import socket
+from types import SimpleNamespace
 
 import pytest
 from flask import g
@@ -107,6 +108,9 @@ def test_runtime_certificate_payload_cannot_introduce_another_command(monkeypatc
 @pytest.mark.security
 def test_unix_socket_runtime_command_quotes_user_input(app, monkeypatch):
     commands = []
+    monkeypatch.setattr(haproxy_service.server_sql, 'get_server_by_ip', lambda _: SimpleNamespace(server_id=1))
+    from app.modules.db import service as service_sql
+    monkeypatch.setattr(service_sql, 'select_service_setting', lambda *args: '0')
     backend = "backend one'; touch /tmp/pwned"
     settings = {
         'server_state_file': '/var/lib/roxy wi/server.state',

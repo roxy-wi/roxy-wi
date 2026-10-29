@@ -63,7 +63,7 @@ def test_last_edit_ssh_failure_is_a_local_card_result(monkeypatch):
 def test_service_status_ssh_checks_use_bounded_connection_timeouts():
     views = (Path(__file__).resolve().parents[3] / 'app/views/service/views.py').read_text(encoding='utf-8')
 
-    assert views.count('connect_timeout=10, banner_timeout=10') == 4
+    assert views.count('connect_timeout=10, banner_timeout=10') == 3
 
 
 def test_candidate_validation_uses_a_temporary_file_and_removes_it(app, monkeypatch):

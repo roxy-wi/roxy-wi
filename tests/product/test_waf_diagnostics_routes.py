@@ -103,7 +103,10 @@ def test_diagnostics_share_paths_and_runtime_settings_with_apply(product_client,
                 'waf_container_name': 'custom-waf'}
     original = config.sql.get_setting
     monkeypatch.setattr(config.sql, 'get_setting', lambda name, *a, **kw: settings[name] if name in settings else original(name, *a, **kw))
-    monkeypatch.setattr(config.service_sql, 'select_service_setting', lambda *a: dockerized)
+    original_setting = config.service_sql.select_service_setting
+    monkeypatch.setattr(config.service_sql, 'select_service_setting',
+                        lambda server_id, service, key: dockerized if key == 'dockerized'
+                        else original_setting(server_id, service, key))
     captured = []
     original_ssh = waf.server_mod.ssh_command
     def ssh(ip, command, **kwargs):

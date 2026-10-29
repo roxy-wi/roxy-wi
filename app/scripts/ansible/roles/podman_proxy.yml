@@ -1,0 +1,10 @@
+---
+- name: Install a managed Podman proxy
+  hosts: all
+  become: true
+  gather_facts: true
+  roles:
+    - role: podman_proxy
+      environment:
+        http_proxy: "{{ PROXY }}"
+        https_proxy: "{{ PROXY }}"

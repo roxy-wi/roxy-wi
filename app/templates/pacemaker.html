@@ -4,7 +4,7 @@
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/table-6.3.9.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pacemaker.css', v='9.3.0-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pacemaker.css', v='9.3.0-2') }}">
 {% macro field(id, label, name='', value='', required='', type='text', placeholder='') -%}
 <div class="rw-form-field"><label for="{{ id }}">{{ label }}</label>{{ input(id, name=name, value=value, required=required, type=type, placeholder=placeholder) }}</div>
 {%- endmacro %}
@@ -37,23 +37,23 @@
     {% if g.user_params['role']|int <= 3 %}
     <section id="pcmk-witness-panel" class="rw-panel" {% if setup_mode|default("new") != "witness" %}hidden{% endif %}>
         <h3>Standalone quorum witness</h3>
-        <p>Install corosync-qnetd only on a separate supported Linux host. Choose native packages or Docker on a Debian/Ubuntu or EL 8/9 host. It runs outside the cluster and hosts no Pacemaker resources. An independent Roxy-WI host can serve this role using its registered SSH credentials. Keep fencing enabled; a witness does not replace it.</p>
+        <p>Install corosync-qnetd only on a separate supported Linux host. Choose native packages, Docker or Podman on a Debian/Ubuntu or EL 8/9 host. It runs outside the cluster and hosts no Pacemaker resources. An independent Roxy-WI host can serve this role using its registered SSH credentials. Keep fencing enabled; a witness does not replace it.</p>
         <div class="rw-form-field"><label for="pcmk-witness-server">Witness server</label>{{ select('pcmk-witness-server', values={}) }}</div>
         <div class="rw-table-toolbar">
             <button type="button" id="pcmk-witness-self" class="rw-button rw-button-secondary">Select Roxy-WI host</button>
             <button type="button" id="pcmk-witness-platform" class="rw-button rw-button-secondary">Check platform</button>
             <button type="button" id="pcmk-witness-status" class="rw-button rw-button-secondary">Read status</button>
-            {{ checkbox('pcmk-witness-docker', desc='Use Docker', title='Run qnetd in a managed container with persistent certificates. Docker Engine is installed from enabled host repositories if missing.') }}
+            <label for="pcmk-witness-engine">Runtime</label>{{ select('pcmk-witness-engine', values={'native':'Native','docker':'Docker','podman':'Podman'}, selected='native') }}
             <button type="button" id="pcmk-witness-install" class="rw-button rw-button-primary">Install witness only</button>
         </div>
-        <p class="rw-form-help">Docker uses a locally built Debian image, persistent certificate storage and host networking on TCP 5403. It needs Docker Engine or its packages in enabled host repositories. For an existing native witness, review the guided conversion below.</p>
+        <p class="rw-form-help">Docker and Podman use a locally built Debian image, persistent certificate storage and host networking on TCP 5403. The selected engine must be available in enabled host repositories. Podman uses a managed systemd supervisor for boot persistence and reviewed migrations. For an existing native witness, review the guided conversion below.</p>
         <p id="pcmk-witness-result" class="rw-form-help" role="status" aria-live="polite"></p>
         <details class="change-advanced-settings" id="pcmk-migration-panel">
-            <summary>Convert an existing native witness to Docker</summary>
+            <summary>Convert an existing native witness to a container</summary>
             <p class="rw-form-help">Preserve the current CA, certificates, host address and TCP port. The plan checks every connected cluster. The native service stays running while the image and certificate copy are checked. Conversion briefly reconnects qdevice clients; a host timer restores native qnetd if verification or the controller fails.</p>
             <div class="rw-table-toolbar">
                 <button type="button" id="pcmk-migration-plan" class="rw-button rw-button-secondary">Review migration</button>
-                <button type="button" id="pcmk-migration-start" class="rw-button rw-button-primary" disabled>Convert to Docker</button>
+                <button type="button" id="pcmk-migration-start" class="rw-button rw-button-primary" disabled>Convert to selected engine</button>
                 <button type="button" id="pcmk-migration-recover" class="rw-button rw-button-secondary" disabled>Recover native witness</button>
                 <button type="button" id="pcmk-witness-logs" class="rw-button rw-button-secondary">Read witness logs</button>
             </div>
@@ -62,10 +62,10 @@
             <pre id="pcmk-witness-log-output" class="rw-notification-raw" hidden></pre>
         </details>
         <details class="change-advanced-settings" id="pcmk-lifecycle-panel">
-            <summary>Docker witness: native conversion and image update</summary>
+            <summary>Container witness: native conversion and image update</summary>
             <p class="rw-form-help">Keep the current CA and client certificates. Preparation checks a private database copy while the witness keeps running. The switch briefly reconnects clients; an independent 180-second host timer restores the original container if verification fails.</p>
             <div class="rw-table-toolbar">
-                <label for="pcmk-lifecycle-operation">Operation</label><select id="pcmk-lifecycle-operation"><option value="native">Convert Docker to native service</option><option value="image-upgrade">Rebuild and update managed Docker image</option></select>
+                <label for="pcmk-lifecycle-operation">Operation</label><select id="pcmk-lifecycle-operation"><option value="native">Convert container to native service</option><option value="image-upgrade">Rebuild and update managed container image</option></select>
                 <button type="button" id="pcmk-lifecycle-plan" class="rw-button rw-button-secondary">Review operation</button>
                 <button type="button" id="pcmk-lifecycle-start" class="rw-button rw-button-primary" disabled>Apply reviewed operation</button>
                 <button type="button" id="pcmk-lifecycle-recover" class="rw-button rw-button-secondary" disabled>Recover original witness</button>
@@ -304,5 +304,5 @@
     </section>
 </main>
 <script src="{{ url_for('static', filename='js/pacemaker-discovery.js') }}" defer></script>
-<script src="{{ url_for('static', filename='js/pacemaker.js', v='9.3.0-1') }}" defer></script>
+<script src="{{ url_for('static', filename='js/pacemaker.js', v='9.3.0-2') }}" defer></script>
 {% endblock %}

@@ -36,7 +36,7 @@ def install_packages(role, *, fence_pve=False):
     profile = platform_profile()
     env = dict(os.environ, DEBIAN_FRONTEND='noninteractive')
     packages = {'cluster': ['corosync', 'pacemaker', 'resource-agents', 'python3'],
-                'witness': ['corosync-qnetd'], 'qdevice': ['corosync-qdevice'],
+                'witness': ['corosync-qnetd'], 'witness-podman': ['podman', 'nftables'], 'qdevice': ['corosync-qdevice'],
                 'witness-docker': ['docker.io'] if profile['manager'] == 'apt-get' else ['docker-ce', 'docker-ce-cli', 'containerd.io']}[role]
     if fence_pve:
         if role != 'cluster':

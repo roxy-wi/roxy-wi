@@ -76,7 +76,7 @@ def test_nginx_main_transaction_checks_the_whole_tree_and_recovers(tmp_path, mon
         return SimpleNamespace(returncode=results.pop(0), stdout=b'private config output')
 
     monkeypatch.setattr(candidate, '_run', run)
-    spec = dict(service='nginx', target=str(main), main=str(main), candidate=str(upload), action='reload',
+    spec = dict(service='nginx', target=str(main), main=str(main), root=str(tmp_path/'proxy-root'), candidate=str(upload), action='reload',
                 action_command='systemctl reload custom-nginx', expected_sha256=hashlib.sha256(main.read_bytes()).hexdigest())
     if failure == 'stale':
         spec['expected_sha256'] = 'a' * 64

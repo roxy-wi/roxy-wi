@@ -20,6 +20,12 @@ class CertificatePreview(BaseModel):
     pem: str = Field(min_length=1, max_length=certificates.MAX_PEM_BYTES)
 
 
+class CertificateUpload(BaseModel):
+    name: str = Field(min_length=1, max_length=128, pattern=r'^[A-Za-z0-9][A-Za-z0-9_.-]*$')
+    cert: str = Field(min_length=1, max_length=certificates.MAX_PEM_BYTES)
+    cert_type: Literal['key', 'crt', 'pem'] = 'pem'
+
+
 class CertificateUpdate(CertificatePreview):
     name: str = Field(min_length=1, max_length=255)
     revision: str = Field(pattern=r'^[0-9a-f]{64}$')
@@ -126,6 +132,24 @@ class CertificateFileView(MethodView):
             group_id, user_id = identity()
             server = operations.authorize(server_id, group_id, user_id, write=True, service=service)
             return certificates.certificate_file(server, service, path, revision=body.revision)
+        except Exception as error:
+            return failure(error)
+
+
+class CertificateUploadView(MethodView):
+    decorators = [jwt_required(), get_user_params()]
+
+    @validate(body=CertificateUpload)
+    def post(self, service: str, server_id: int, body: CertificateUpload):
+        try:
+            group_id, user_id = identity()
+            targets = certificates.targets_for(server_id, group_id)
+            # Authorize all members before writing the first file.
+            for server in targets:
+                operations.authorize(server.server_id, group_id, user_id, write=True, service=service)
+            for server in targets:
+                certificates.store_uploaded_file(server.ip, body.name + '.' + body.cert_type, body.cert, service=service)
+            return {'status': 'completed'}, 201
         except Exception as error:
             return failure(error)
 

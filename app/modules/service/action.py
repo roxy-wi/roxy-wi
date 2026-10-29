@@ -13,6 +13,7 @@ import app.modules.service.common as service_common
 import app.modules.service.nginx as nginx
 import app.modules.server.ssh as mod_ssh
 from app.modules.config import candidate, waf_state
+from app.modules.service import container_settings
 from app.modules.roxywi import logger
 from app.modules.server.command import build_remote_command
 
@@ -49,7 +50,7 @@ def service_action(server_ip: str, action: str, service: str) -> None:
         raise Exception('This server is not allowed to be restarted')
 
     try:
-        if service != 'keepalived':
+        if action not in ('start', 'stop'):
             service_common.check_service_config(server_ip, server_id, service)
     except Exception as e:
         raise Exception(f'Cannot check config: {e}')
@@ -71,11 +72,12 @@ def get_action_command(service: str, action: str, server_id: int) -> str:
         raise ValueError('Unsupported service action')
     if service == 'waf' and action == 'reload':
         raise ValueError('The HAProxy WAF agent requires restart to apply rules')
+    if action in ('start', 'stop', 'restart'):
+        from app.modules.pacemaker.autostart import assert_unmanaged
+        assert_unmanaged(server_id, 'haproxy' if service == 'waf' else service)
     is_docker = service_sql.select_service_setting(server_id, service, 'dockerized')
     if is_docker == '1':
-        container_name = sql.get_setting(f'{service}_container_name')
-        arguments = ['kill', '-s', 'HUP'] if action == 'reload' else [action]
-        commands = build_remote_command('docker', [*arguments, container_name], sudo=True) + ' > /dev/null'
+        commands = container_settings.command(server_id, service, action=action) + ' > /dev/null'
     else:
         service_name = service_common.get_correct_service_name(service, server_id)
         commands = build_remote_command('systemctl', [action, service_name], sudo=True)

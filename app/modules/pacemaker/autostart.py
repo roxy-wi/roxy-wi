@@ -61,22 +61,48 @@ except BaseException:
 '''
 
 
-def owned_services(xml):
+def owned_services(xml,server_id=None):
     from app.modules.pacemaker.xml import configuration
     result=set()
-    for resource in configuration(xml).findall('.//primitive'):
-        kind=resource.get('class');name=resource.get('type','').lower().removesuffix('.service')
+    from app.modules.service import container_settings
+    bindings = ({name:dict(runtime=container_settings.runtime(server_id,name),name=container_settings.name(server_id,name))
+                 for name in ('haproxy','nginx','apache')} if server_id is not None else {})
+    config=configuration(xml)
+    indexed={node.get('id'):node for node in config.iter() if node.get('id')}
+    for resource in config.findall('.//primitive'):
+        template=indexed.get(resource.get('template'))
+        attributes=dict(template.attrib) if template is not None else {}
+        attributes.update(resource.attrib)
+        kind=attributes.get('class');unit=attributes.get('type','').removesuffix('.service');name=unit.lower()
         if kind in ('systemd','ocf'):
             mapped={'haproxy':'haproxy','nginx':'nginx','apache':'apache','apache2':'apache','httpd':'apache','keepalived':'keepalived'}.get(name)
             if mapped:result.add(mapped)
+        if server_id is not None and kind == 'systemd':
+            for proxy,binding in bindings.items():
+                if binding['runtime']['unit'] and unit == binding['runtime']['unit'].removesuffix('.service'):
+                    result.add(proxy)
+        if server_id is not None and kind == 'ocf' and name in ('docker','podman'):
+            parameters={}
+            uncertain=False
+            for origin in ([template,resource] if template is not None else [resource]):
+                for group in origin.findall('./instance_attributes'):
+                    if group.get('id-ref'):
+                        group=indexed.get(group.get('id-ref'))
+                    if group is None or group.find('rule') is not None:
+                        uncertain=True
+                        continue
+                    parameters.update({value.get('name'):value.get('value') for value in group.findall('nvpair')})
+            container = parameters.get('name') or resource.get('id')
+            for proxy,binding in bindings.items():
+                if binding['name'] == container or (uncertain and binding['runtime']['engine']==name):
+                    result.add(proxy)
     return result
 
 
 def conflicts(cluster,xml=None):
     if xml is None:_remote,xml=service.connection(cluster)
-    managed=owned_services(xml)
     return [{'server_id':member.server_id,'node':member.name,'service':name}
-            for member,server in service.members(cluster) for name in sorted(managed)
+            for member,server in service.members(cluster) for name in sorted(owned_services(xml,member.server_id))
             if bool(getattr(server,name+'_active',False))]
 
 
@@ -85,7 +111,7 @@ def assert_unmanaged(server_id,name):
         if server_id in [member['server_id'] for member in json.loads(cluster.servers)]:
             try:_remote,xml=service.connection(cluster)
             except Exception as exc:raise RoxywiValidationError('Cannot verify Pacemaker ownership; inspect the cluster before changing this service') from exc
-            if name in owned_services(xml):raise RoxywiValidationError('This service is managed by Pacemaker; use its resource controls and leave proxy Auto Start disabled')
+            if name in owned_services(xml,server_id):raise RoxywiValidationError('This service is managed by Pacemaker; use its resource controls and leave proxy Auto Start disabled')
 
 
 def read_node(server):

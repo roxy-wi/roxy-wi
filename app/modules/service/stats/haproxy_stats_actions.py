@@ -2,7 +2,7 @@
 
 import re
 
-from app.modules.service.haproxy_runtime import execute_runtime_command
+from app.modules.service.managed_runtime import execute_runtime_command
 from app.modules.service.stats.haproxy_stats import StatsError, collect_stats
 
 

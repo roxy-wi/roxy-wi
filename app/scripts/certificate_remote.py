@@ -20,9 +20,11 @@ from email.utils import parsedate_to_datetime
 from contextlib import contextmanager
 
 try:
+    import roxywi_container_runtime as container_runtime
     import roxywi_config_candidate as config_candidate
     import roxywi_haproxy_runtime as haproxy_runtime
 except ModuleNotFoundError:
+    from app.modules.connectors import containers as container_runtime
     from app.modules.config import candidate as config_candidate
     from app.modules.service import haproxy_runtime
 
@@ -119,14 +121,18 @@ def validate_configuration(data, check=None, rollback=False):
                 'Rollback configuration validation' if rollback else 'HAProxy configuration validation')
 
 
+def runtime_argv(data, arguments):
+    return container_runtime.argv(data.get('container_runtime'), arguments)
+
+
 def host_path(data, value):
     """Resolve a configured container path through the existing persistent mounts."""
     path = Path(value)
     if not path.is_absolute() or '..' in path.parts:
         raise ValueError('Certificate directory must be absolute')
     if data.get('docker'):
-        mounts = json.loads(command(['docker', 'inspect', '--format', '{{json .Mounts}}',
-                                     data['container']], 'Inspect HAProxy container'))
+        mounts = json.loads(command(runtime_argv(data, ['inspect', '--format', '{{json .Mounts}}',
+                                     data['container']]), 'Inspect HAProxy container'))
         matches = []
         for mount in mounts:
             destination = Path(mount['Destination'])
@@ -153,28 +159,28 @@ def certificate_directory(data):
 
 def service_commands(data):
     if data.get('docker'):
-        args = command(['docker', 'exec', data['container'], 'cat', '/proc/1/cmdline'],
+        args = command(runtime_argv(data, ['exec', data['container'], 'cat', '/proc/1/cmdline']),
                        'Inspect HAProxy master process').decode().split('\x00')
         if not args or 'haproxy' not in Path(args[0]).name or not any(arg in ('-W', '-Ws') for arg in args):
             raise RuntimeError('Container PID 1 must run HAProxy with -W or -Ws for graceful certificate reload')
         config_path = Path(data['config_path'])
-        mounts = json.loads(command(['docker', 'inspect', '--format', '{{json .Mounts}}',
-                                     data['container']], 'Inspect HAProxy container'))
+        mounts = json.loads(command(runtime_argv(data, ['inspect', '--format', '{{json .Mounts}}',
+                                     data['container']]), 'Inspect HAProxy container'))
         for mount in sorted(mounts, key=lambda item: len(item['Source']), reverse=True):
             source = Path(mount['Source'])
             if config_path == source or source in config_path.parents:
                 config_path = Path(mount['Destination']) / config_path.relative_to(source)
                 break
-        return (['docker', 'exec', data['container'], 'haproxy', '-c', '-f', str(config_path)],
-                ['docker', 'kill', '--signal=USR2', data['container']])
+        return (runtime_argv(data, ['exec', data['container'], 'haproxy', '-c', '-f', str(config_path)]),
+                runtime_argv(data, ['kill', '--signal=USR2', data['container']]))
     return (['haproxy', '-c', '-f', data['config_path']], ['systemctl', 'reload', 'haproxy'])
 
 
 def runtime_endpoint(data):
     port = int(data['runtime_port'])
     if data.get('docker'):
-        networks = json.loads(command(['docker', 'inspect', '--format', '{{json .NetworkSettings}}',
-                                      data['container']], 'Inspect HAProxy runtime endpoint'))
+        networks = json.loads(command(runtime_argv(data, ['inspect', '--format', '{{json .NetworkSettings}}',
+                                      data['container']]), 'Inspect HAProxy runtime endpoint'))
         for network in networks.get('Networks', {}).values():
             if network.get('IPAddress'):
                 return network['IPAddress'], port
@@ -184,8 +190,38 @@ def runtime_endpoint(data):
 def runtime_request(data, request):
     command, separator, payload = request.partition(' <<\n')
     host, port = runtime_endpoint(data)
+    if data.get('docker') and data.get('container_runtime', {}).get('owner','root') != 'root':
+        return rootless_runtime_request(data, dict(server=host,port=port,command=command,timeout=3,
+            response_limit=1024*1024,payload=payload if separator else None))
     return haproxy_runtime.execute_runtime_command(host, port, command, timeout=3, response_limit=1024 * 1024,
                                                   payload=payload if separator else None)
+
+
+def rootless_runtime_request(data,request):
+    """A rootless bridge is not reachable at its private IP from the host."""
+    def state():
+        return json.loads(command(runtime_argv(data,['inspect',data['container']]),'Inspect HAProxy runtime namespace'))[0]
+    observed=state()
+    ident=observed.get('Id',observed.get('ID',''))
+    pid=int(observed.get('State',{}).get('Pid',0))
+    if not re.fullmatch(r'[0-9a-f]{64}',ident) or not observed['State'].get('Running') or pid<=0:
+        raise CertificateFailure('runtime_unavailable')
+    # Confirm ownership before pinning a namespace: PID reuse must not deliver a
+    # private certificate to an unrelated process's network namespace.
+    if ident not in Path('/proc',str(pid),'cgroup').read_text():
+        raise CertificateFailure('runtime_unavailable')
+    descriptor=os.open('/proc/'+str(pid)+'/ns/net',os.O_RDONLY)
+    try:
+        current=state()
+        if current.get('Id',current.get('ID'))!=ident or current.get('State',{}).get('Pid')!=pid or not current['State'].get('Running'):
+            raise CertificateFailure('process_changed')
+        source=getattr(haproxy_runtime,'__source__',None)
+        if source is None:source=Path(haproxy_runtime.__file__).read_text()
+        source+='\nimport json,sys\nprint(execute_runtime_command(**json.load(sys.stdin)),end="")\n'
+        return command(['nsenter','--net=/proc/self/fd/'+str(descriptor),sys.executable,'-c',source],
+            'HAProxy rootless runtime request',timeout=10,pass_fds=(descriptor,),input=json.dumps(request).encode()).decode()
+    finally:
+        os.close(descriptor)
 
 
 def runtime_pid(data):
@@ -199,8 +235,8 @@ def runtime_pid(data):
 def certificate_runtime_path(data):
     path = Path(data['cert_dir']) / data['pem_name']
     if data.get('docker'):
-        mounts = json.loads(command(['docker', 'inspect', '--format', '{{json .Mounts}}',
-                                    data['container']], 'Inspect HAProxy certificate mount'))
+        mounts = json.loads(command(runtime_argv(data, ['inspect', '--format', '{{json .Mounts}}',
+                                    data['container']]), 'Inspect HAProxy certificate mount'))
         for mount in sorted(mounts, key=lambda item: len(item['Source']), reverse=True):
             source = Path(mount['Source'])
             if path == source or source in path.parents:
@@ -260,6 +296,16 @@ def private_file(path, data, metadata=None, *, replace=True):
         if metadata:
             os.chmod(temporary, metadata['mode'])
             os.chown(temporary, metadata['uid'], metadata['gid'])
+        if path.exists():
+            # Atomic replacement must preserve the label assigned to the
+            # directory-mounted file by Podman on SELinux hosts.
+            for attribute in os.listxattr(path):
+                try:
+                    os.setxattr(temporary, attribute, os.getxattr(path, attribute))
+                except OSError as error:
+                    import errno
+                    if Path('/sys/fs/selinux/enforce').exists() or error.errno not in (errno.ENOTSUP, errno.EINVAL, errno.EPERM):
+                        raise
         if replace:
             os.replace(temporary, path)
         else:

@@ -27,7 +27,7 @@ from app.views.service.lets_encrypt_views import LetsEncryptView, LetsEncryptsVi
 from app.views.service.le_profile_views import LetsEncryptDnsProfilesView, LetsEncryptDnsProfileView
 from app.views.service.certificate_views import (
     CertificatesView, CertificatePreviewView, CertificateOperationView,
-    CertificateCreateView, CertificateFileView, CertificateHistoryView,
+    CertificateCreateView, CertificateFileView, CertificateHistoryView, CertificateUploadView,
 )
 from app.modules.roxywi.class_models import DomainName
 from app.modules.roxywi.exception import RoxywiPermissionError
@@ -47,6 +47,7 @@ bp.add_url_rule('/letsencrypt/dns-profiles', view_func=LetsEncryptDnsProfilesVie
 bp.add_url_rule('/letsencrypt/dns-profiles/<int:profile_id>', view_func=LetsEncryptDnsProfileView.as_view('le_profile'), methods=['PUT', 'DELETE'])
 bp.add_url_rule('/haproxy/certificates/<int:server_id>', view_func=CertificatesView.as_view('certificates'), methods=['GET', 'POST'])
 bp.add_url_rule('/<any(nginx, apache):service>/certificates/<int:server_id>', view_func=CertificatesView.as_view('service_certificates'), methods=['GET'])
+bp.add_url_rule('/<any(haproxy, nginx, apache):service>/certificates/<int:server_id>/upload', view_func=CertificateUploadView.as_view('certificate_upload'), methods=['POST'])
 bp.add_url_rule('/haproxy/certificates/<int:server_id>/preview', view_func=CertificatePreviewView.as_view('certificate_preview'), methods=['POST'])
 bp.add_url_rule('/haproxy/certificates/<int:server_id>/new', view_func=CertificateCreateView.as_view('certificate_create'), methods=['POST'])
 bp.add_url_rule('/haproxy/certificates/<int:server_id>/history', view_func=CertificateHistoryView.as_view('certificate_history'), methods=['GET'])
@@ -202,7 +203,11 @@ def services(service, serv):
             try:
                 cmd = ('sudo kill -USR1 `cat /var/run/keepalived.pid` && sudo grep State /tmp/keepalived.data -m 1 |'
                        'awk -F"=" \'{print $2}\'|tr -d \'[:space:]\' && sudo rm -f /tmp/keepalived.data')
-                out = server_mod.ssh_command(s[2], cmd)
+                if service_sql.select_service_setting(s[0], 'keepalived', 'dockerized') == '1':
+                    from app.modules.service import container_settings
+                    out = container_settings.keepalived_state(server_sql.get_server(s[0]))
+                else:
+                    out = server_mod.ssh_command(s[2], cmd)
                 out1 = ('1', out)
                 servers_with_status.append(out1)
             except Exception as e:
@@ -212,6 +217,9 @@ def services(service, serv):
 
         servers_with_status1.append(servers_with_status)
 
+    from app.modules.service import container_settings
+    container_engines = {row.server_id: container_settings.runtime(row.server_id, service_desc.slug)['engine']
+                         for row in docker_settings if row.value == '1'}
     kwargs = {
         'clusters': ha_sql.select_ha_cluster_name_and_slaves(),
         'master_slave': server_sql.is_master(0, master_slave=1),
@@ -224,6 +232,7 @@ def services(service, serv):
         'service_desc': service_desc,
         'restart_settings': restart_settings,
         'docker_settings': docker_settings,
+        'container_engines': container_engines,
         'waf_server': waf_server,
         'keep_alive': ''.join(keep_alive)
     }
@@ -325,8 +334,28 @@ def show_service_settings(service, server_id):
     server = server_sql.get_server(server_id)
     roxywi_common.require_active_group_access(server.group_id)
     settings = {row.setting: str(row.value) for row in service_sql.select_service_settings(server_id, service)}
+    from app.modules.service import container_settings
+    settings.update({'container_' + key: value for key, value in container_settings.runtime(server_id, service).items()})
+    settings['container_name'] = container_settings.name(server_id, service) if settings.get('dockerized') == '1' else settings.get('container_name', '')
     return render_template('ajax/service_settings.html', settings=settings, service=service,
                            server_id=server_id, lang=g.user_params['lang'])
+
+
+@bp.get('/settings/<any(haproxy,nginx,apache,keepalived):service>/<int:server_id>/containers')
+@check_services
+@get_user_params()
+@page_for_admin(level=2)
+def show_container_candidates(service, server_id):
+    from app.modules.service import container_settings
+    from app.modules.connectors import containers
+    server = server_sql.get_server(server_id)
+    roxywi_common.require_active_group_access(server.group_id)
+    try:
+        runtime = containers.validate({key: request.args.get(key, default) for key, default in
+                                       (('engine', 'docker'), ('owner', 'root'))})
+        return jsonify(container_settings.discover(server, runtime))
+    except Exception:
+        return jsonify(error='Cannot inspect this engine and owner; check installation, user runtime and permissions'), 400
 
 
 @bp.get('/settings/<any(haproxy):service>/<int:server_id>/sources')
@@ -340,7 +369,20 @@ def show_haproxy_sources(service, server_id):
     dockerized = request.args.get('dockerized')
     if dockerized not in (None, '0', '1'):
         return jsonify({'status': 'failed', 'error': 'Invalid Docker setting'}), 400
-    discovery = discover_sources(server.ip, server_id, dockerized=None if dockerized is None else dockerized == '1')
+    from app.modules.connectors import containers
+    try:
+        runtime = containers.validate({key: request.args['container_' + key] for key in ('engine', 'owner', 'unit') if 'container_' + key in request.args})
+        if int(g.user_params['role']) > 2:
+            from app.modules.service import container_settings
+            stored = container_settings.runtime(server_id, service)
+            if (any(request.args['container_' + key] != stored[key] for key in ('engine', 'owner', 'unit') if 'container_' + key in request.args)
+                    or (request.args.get('container_name') and request.args['container_name'] != container_settings.name(server_id, service))):
+                return jsonify(error='A server administrator must inspect other container identities'), 403
+        discovery = discover_sources(server.ip, server_id, dockerized=None if dockerized is None else dockerized == '1',
+                                     **({'runtime':runtime} if any(key.startswith('container_') for key in request.args) else {}),
+                                     **({'container_name':request.args['container_name']} if request.args.get('container_name') else {}))
+    except ValueError:
+        return jsonify({'status':'failed', 'error':'Invalid container identity'}), 400
     return render_template('include/haproxy_sources.html', discovery=discovery,
                            server_id=server_id, lang_code=g.user_params['lang'])
 
@@ -363,6 +405,24 @@ def save_service_settings(service):
         values['multiple_config_files'] = request.form['serverSettingsMultipleConfigs']
     if any(value not in ('0', '1') for value in values.values()):
         return jsonify({'status': 'failed', 'error': 'Invalid service setting'}), 400
+    from app.modules.connectors import containers
+    try:
+        runtime = containers.validate({key:request.form['container_' + key] for key in ('engine','owner','unit') if 'container_' + key in request.form})
+        if service == 'keepalived' and runtime['owner'] != 'root':
+            raise ValueError('Keepalived requires host network privileges')
+        if any('container_' + key in request.form for key in ('engine','owner','unit')):
+            values.update({'container_' + key:value for key,value in runtime.items()})
+        if 'container_name' in request.form:
+            values['container_name'] = containers.name(request.form['container_name']) if request.form['container_name'] else ''
+    except ValueError:
+        return jsonify({'status':'failed', 'error':'Invalid container identity; rootless Keepalived is unsupported'}), 400
+    if int(g.user_params['role']) > 2:
+        previous = {row.setting:str(row.value) for row in service_sql.select_service_settings(server_id, service)}
+        from app.modules.service import container_settings
+        previous.update({'container_' + key:value for key,value in container_settings.runtime(server_id, service).items()})
+        previous['container_name'] = container_settings.name(server_id, service) if previous.get('dockerized') == '1' else previous.get('container_name','')
+        if any(value != previous.get(key,'') for key,value in values.items() if key.startswith('container_')):
+            return jsonify({'status':'failed','error':'A server administrator must change container identities'}), 403
     try:
         database = ServiceSetting._meta.database
         # Wait for the SQLite writer before starting the settings transaction.

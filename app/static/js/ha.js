@@ -124,9 +124,9 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 				if (clusterSettings.services.haproxy.enabled) {
 					$('#hap').prop('checked', true);
 					if (clusterSettings.services.haproxy.docker) {
-						$('#hap_docker').prop('checked', true);
+						$('#haproxy_cluster_engine').val(clusterSettings.services.haproxy.container_engine || 'docker').selectmenu('refresh');
 					} else {
-						$('#hap_docker').prop('checked', false);
+						$('#haproxy_cluster_engine').val('native').selectmenu('refresh');
 					}
 				} else {
 					$('#hap').prop('checked', false);
@@ -134,15 +134,16 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 				if (clusterSettings.services.nginx.enabled) {
 					$('#nginx').prop('checked', true);
 					if (clusterSettings.services.nginx.docker) {
-						$('#nginx_docker').prop('checked', true);
+						$('#nginx_cluster_engine').val(clusterSettings.services.nginx.container_engine || 'docker').selectmenu('refresh');
 					} else {
-						$('#nginx_docker').prop('checked', false);
+						$('#nginx_cluster_engine').val('native').selectmenu('refresh');
 					}
 				} else {
 					$('#nginx').prop('checked', false);
 				}
 				if (clusterSettings.services.apache.enabled) {
 					$('#apache').prop('checked', true);
+                    $('#apache_cluster_engine').val(clusterSettings.services.apache.container_engine || (clusterSettings.services.apache.docker ? 'docker' : 'native')).selectmenu('refresh');
 				} else {
 					$('#apache').prop('checked', false);
 				}
@@ -316,15 +317,11 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	if ($('#hap').is(':checked')) {
 		hap = '1';
 	}
-	if ($('#hap_docker').is(':checked')) {
-		hap_docker = '1';
-	}
+	hap_docker = $('#haproxy_cluster_engine').val() === 'native' ? 0 : 1;
 	if ($('#nginx').is(':checked')) {
 		nginx = '1';
 	}
-	if ($('#nginx_docker').is(':checked')) {
-		nginx_docker = '1';
-	}
+	nginx_docker = $('#nginx_cluster_engine').val() === 'native' ? 0 : 1;
 	if ($('#apache').is(':checked')) {
 		apache = '1';
 	}
@@ -339,9 +336,9 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 	jsonData['return_master'] = return_master;
 	jsonData['syn_flood'] = syn_flood;
 	jsonData['use_src'] = use_src;
-	jsonData['services'] = {'haproxy': {'enabled': hap, 'docker': hap_docker}};
-	jsonData['services']['nginx'] = {'enabled': nginx, 'docker': nginx_docker};
-	jsonData['services']['apache'] = {'enabled': apache, 'docker': 0};
+	jsonData['services'] = {'haproxy': {'enabled': hap, 'docker': hap_docker, 'container_engine': $('#haproxy_cluster_engine').val()}};
+	jsonData['services']['nginx'] = {'enabled': nginx, 'docker': nginx_docker, 'container_engine': $('#nginx_cluster_engine').val()};
+	jsonData['services']['apache'] = {'enabled': apache, 'docker': $('#apache_cluster_engine').val() === 'native' ? 0 : 1, 'container_engine': $('#apache_cluster_engine').val()};
 	jsonData['router_id'] = $('#router_id-' + cluster_id).val();
 	$.ajax({
 		url: url,
@@ -746,9 +743,10 @@ function clearClusterDialog(edited=0) {
 	$('#return_master').prop('checked', true);
 	$('#use_src').prop('checked', false);
 	$('#hap').prop('checked', false);
-	$('#hap_docker').prop('checked', false);
+	$('#haproxy_cluster_engine').val('native').selectmenu('refresh');
 	$('#nginx').prop('checked', false);
-	$('#nginx_docker').prop('checked', false);
+    $('#apache_cluster_engine').val('native').selectmenu('refresh');
+	$('#nginx_cluster_engine').val('native').selectmenu('refresh');
 	$("input[type=checkbox]").checkboxradio("refresh");
 	$('#ha-cluster-master option:selected').remove();
 	$("#ha-cluster-master option").each(function (index) {

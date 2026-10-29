@@ -14,6 +14,20 @@ import sys
 from pathlib import Path
 
 
+try:
+    import roxywi_container_runtime as container_runtime
+except ModuleNotFoundError:
+    if __package__:
+        from app.modules.connectors import containers as container_runtime
+    else:
+        # Preserve the stdlib-only direct CLI contract as well as framed SSH.
+        import importlib.util
+        runtime_path = Path(__file__).resolve().parents[1] / 'connectors' / 'containers.py'
+        runtime_spec = importlib.util.spec_from_file_location('roxywi_container_runtime', runtime_path)
+        container_runtime = importlib.util.module_from_spec(runtime_spec)
+        runtime_spec.loader.exec_module(container_runtime)
+
+
 class DiscoveryError(Exception):
     pass
 
@@ -160,8 +174,8 @@ def systemd_sources(name):
     return configured, [], bool(active)
 
 
-def docker_sources(name):
-    data = json.loads(run(['docker', 'inspect', '--type', 'container', name]))[0]
+def docker_sources(name, runtime=None):
+    data = json.loads(run(container_runtime.argv(runtime, ['inspect', '--type', 'container', name])))[0]
     config = data['Config']
     entrypoint, command = config.get('Entrypoint') or [], config.get('Cmd') or []
     if not isinstance(entrypoint, list) or not isinstance(command, list):
@@ -222,10 +236,10 @@ def describe_sources(paths, mounts, root, main, docker=False):
             'sources': sources, 'files': files}
 
 
-def discover(mode, name, root, main):
+def discover(mode, name, root, main, runtime=None):
     try:
-        paths, mounts, active = docker_sources(name) if mode == 'docker' else systemd_sources(name)
-        result = describe_sources(paths, mounts, root, main, docker=mode == 'docker')
+        paths, mounts, active = (docker_sources(name, runtime) if runtime else docker_sources(name)) if mode in ('docker', 'podman') else systemd_sources(name)
+        result = describe_sources(paths, mounts, root, main, docker=mode in ('docker', 'podman'))
         result.update(mode=mode, verified_running=active)
         return result
     except DiscoveryError as exc:
@@ -242,4 +256,4 @@ def discover(mode, name, root, main):
 
 
 if __name__ == '__main__':
-    print(json.dumps(discover(*sys.argv[1:5])))
+    print(json.dumps(discover(*sys.argv[1:5], runtime=json.loads(sys.argv[5]) if len(sys.argv)>5 else None)))

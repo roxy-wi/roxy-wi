@@ -116,7 +116,7 @@ cannot operate. A witness does not replace fencing.
 
 **Installation → Corosync / Pacemaker → Install witness only** installs and enables
 `corosync-qnetd` on a separate registered supported Linux host through Operations.
-Select **Use Docker** for a managed standalone container; leave it clear for native
+Select **Runtime: Docker** or **Podman** for a managed standalone container; choose **Native** for native
 packages/systemd. See the [Docker witness guide](corosync-pacemaker-witness-docker.md)
 for engine prerequisites, persistent CA storage and recovery. It does
 not install Pacemaker or turn the host into a cluster member, and it does not
@@ -201,7 +201,7 @@ Inspect the authorized application/node diagnostics for operational failures.
 | `GET /platform/<server>` | Detect the native installation profile and its qualification status |
 | `POST /discover` | Read a running cluster from `server_id`; no CIB secrets in the response |
 | `POST /adopt` | Verify reviewed membership, mapped servers and digests; save registration only |
-| `POST /witness/install` | Queue qnetd-only installation on `server_id`; optional strict boolean `docker` defaults to false; no cluster registration required |
+| `POST /witness/install` | Queue qnetd-only installation on `server_id`; optional `container_engine` selects `native`, `docker` or `podman`; the legacy strict boolean `docker` defaults to false; no cluster registration required |
 | `GET /witness/<server>` | Read native/Docker mode, qnetd status, package version and CA fingerprint |
 | `GET /witness/tasks/<task>` | Read a group-scoped witness installation task |
 | `DELETE /<id>` | Remove registration only; refuse while work is active |
@@ -284,3 +284,6 @@ Additional operator APIs:
 Mutations use JWT/CSRF, typed host/cluster confirmation and/or a reviewed digest as
 shown by their GUI. Queued mutations return an operation identifier; inspect its
 terminal status rather than assuming acceptance means completion.
+
+Podman component and witness workflows, including their pending VM qualification,
+are documented in the [managed component guide](managed-containers.md).

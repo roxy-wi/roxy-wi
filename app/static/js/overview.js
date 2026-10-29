@@ -407,8 +407,11 @@ function serverSettings(id, name) {
 				toastr.error(data);
 			} else {
 				const dialog = $("#dialog-settings-service").html(data);
+				dialog.find('fieldset:disabled').find('input, select, button').prop('disabled', true);
 				dialog.find("input[type=checkbox]").checkboxradio();
+				dialog.find('select[name="container_engine"]').selectmenu();
 				dialog.dialog({
+                    classes:{'ui-dialog':'rw-dialog-responsive'},
 					resizable: false,
 					height: "auto",
 					width: Math.min(640, window.innerWidth - 32),
@@ -426,6 +429,27 @@ function serverSettings(id, name) {
 						}
 					}]
 				});
+                dialog.find('[data-container-discover]').on('click', async function () {
+                    const message=dialog.find('[data-container-result]');
+                    message.text('Inspecting the selected engine and Linux owner…');
+                    try {
+                        const result=await $.ajax({url:'/service/settings/'+encodeURIComponent(service)+'/'+id+'/containers',
+                            data:{engine:dialog.find('[name="container_engine"]').val(),owner:dialog.find('[name="container_owner"]').val() || 'root'},global:false});
+                        const select=dialog.find('[data-container-choice]');
+                        select.empty().append(new Option('Select a discovered container',''));
+                        for (const item of result.containers) select.append(new Option(item.name+' · '+(item.running?'running':'stopped')+' · '+item.image,item.name));
+                        dialog.find('[data-container-discovered]').prop('hidden',false);
+                        if (select.selectmenu('instance')) select.selectmenu('refresh'); else select.selectmenu();
+                        select.off('selectmenuchange change').on('selectmenuchange change',function () {
+                            const item=result.containers.find(item=>item.name===select.val());
+                            if (!item) return;
+                            dialog.find('[name="container_name"]').val(item.name).trigger('change');
+                            dialog.find('[name="container_unit"]').val(item.unit).trigger('change');
+                            dialog.find('[name="dockerized"]').prop('checked',true).checkboxradio('refresh').trigger('change');
+                        });
+                        message.text(result.version+' · '+result.containers.length+' containers · '+(result.cgroup_v2?'cgroup v2':'legacy cgroups'));
+                    } catch (error) {message.text(error.responseJSON?.error || 'Container inspection failed');}
+                });
 				const panel = dialog.find('#haproxy-sources-settings');
 				if (panel.length) {
 					function refreshSources() {
@@ -433,7 +457,7 @@ function serverSettings(id, name) {
 						panel.prop('hidden', !enabled);
 						if (enabled) loadHaproxySources(panel, dialog.find('[name="dockerized"]').is(':checked'));
 					}
-					dialog.find('[name="multiple_config_files"], [name="dockerized"]').on('change', refreshSources);
+					dialog.find('[name="multiple_config_files"], [name="dockerized"], [name^="container_"]').on('selectmenuchange change', refreshSources);
 					refreshSources();
 				}
 			}
@@ -445,6 +469,10 @@ function serverSettingsSave(id, name, service, dialog_id) {
 		serverSettingsSave: id,
 		serverSettingsDockerized: dialog_id.find('[name="dockerized"]').is(':checked') ? '1' : '0',
 		serverSettingsRestart: dialog_id.find('[name="restart"]').is(':checked') ? '1' : '0',
+		container_engine: dialog_id.find('[name="container_engine"]').val() || 'docker',
+		container_owner: dialog_id.find('[name="container_owner"]').val() || 'root',
+		container_name: dialog_id.find('[name="container_name"]').val() || '',
+		container_unit: dialog_id.find('[name="container_unit"]').val() || '',
 		token: $('#token').val()
 	};
 	const multipleConfigs = dialog_id.find('[name="multiple_config_files"]');

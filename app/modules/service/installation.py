@@ -64,7 +64,7 @@ _ANSIBLE_ROLE_NAMES = (
 	'haproxy_exporter', 'haproxy_geoip', 'haproxy_section', 'keepalived',
 	'keepalived_exporter', 'ha_cluster_exporter', 'letsencrypt', 'letsencrypt_standalone', 'nginx',
 	'nginx_exporter', 'nginx_geoip', 'nginx_section', 'node_exporter',
-	's3_backup', 'smon_agent', 'udp', 'waf_haproxy', 'waf_nginx',
+	's3_backup', 'smon_agent', 'udp', 'waf_haproxy', 'waf_nginx', 'podman_proxy',
 )
 _ANSIBLE_PLAYBOOKS = {
 	role: f'{ANSIBLE_PROJECT_DIR}/roles/{role}.yml'
@@ -318,7 +318,8 @@ def generate_waf_inv(server_ip: str, installed_service: str) -> object:
 	if installed_service == 'haproxy':
 		server_id = server_sql.get_server_by_ip(server_ip).server_id
 		context = haproxy_files.configuration_context(server_ip, server_id, verify_startup=True)
-		container = (sql.get_setting('haproxy_container_name')
+		from app.modules.service import container_settings
+		container = (container_settings.name(server_id, 'haproxy')
 			if service_sql.select_service_setting(server_id, 'haproxy', 'dockerized') == '1' else '')
 		inv['server']['hosts'][server_ip].update({
 			'SERVICE_PATH': context['root'],
@@ -365,7 +366,7 @@ def generate_haproxy_inv(json_data: ServiceInstall, installed_service: str) -> o
 	stats_password = sql.get_setting('haproxy_stats_password')
 	haproxy_dir = sql.get_setting('haproxy_dir')
 	container_name = sql.get_setting('haproxy_container_name')
-	haproxy_ver = json_data['servers'][0]['version']
+	haproxy_ver = json_data['servers'][0].get('version', '3.3.1-1')
 	is_docker = json_data['services']['haproxy']['docker']
 
 	for v in json_data['servers']:
@@ -396,6 +397,37 @@ def generate_haproxy_inv(json_data: ServiceInstall, installed_service: str) -> o
 		server_ips.append(s.ip)
 
 	return inv, server_ips
+
+
+def installation_engine(options):
+	"""An explicit engine wins; old docker booleans keep their original meaning."""
+	engine = options.get('container_engine')
+	if engine is None:
+		return 'docker' if options.get('docker') else 'native'
+	if engine not in ('native', 'docker', 'podman'):
+		raise ValueError('Select Native, Docker or Podman')
+	return engine
+
+
+def podman_inventory(inv, service, json_data):
+	from app.modules.connectors import containers
+	for address, host in inv['server']['hosts'].items():
+		host['service'] = service
+		host['CONTAINER_ENGINE'] = 'podman'
+		host['CONT_NAME'] = containers.name(host['CONT_NAME'])
+		host['CERT_DIR'] = '/var/lib/roxy-wi/certificates/' + service
+		host['LOG_DIR'] = sql.get_setting(service + '_path_logs').rstrip('/')
+		host['SYN_FLOOD'] = bool(json_data.get('syn_flood'))
+		host['service_dir'] = host.get('service_dir', host.get('HAP_DIR'))
+		host['CONFIG_PATH'] = host.get('CONFIG_PATH', sql.get_setting(service + '_config_path'))
+		if service == 'haproxy':
+			version = re.sub(r'-\d+$', '', host['HAPVER'])
+			if not re.fullmatch(r'\d+\.\d+\.\d+', version):
+				raise ValueError('Select an available HAProxy version before installing Podman')
+			host['IMAGE'] = 'docker.io/haproxytech/haproxy-alpine:' + version
+		else:
+			host['IMAGE'] = {'nginx': 'docker.io/library/nginx:stable-alpine', 'apache': 'docker.io/library/httpd:2.4-alpine'}[service]
+	return inv
 
 
 def generate_section_inv(json_data: dict, cfg: str, service: Literal['haproxy', 'nginx']) -> dict:
@@ -462,7 +494,7 @@ def generate_service_inv(json_data: ServiceInstall, installed_service: str) -> o
 
 	for v in json_data['servers']:
 		s = server_sql.get_server(v['id'])
-		if installed_service == 'apache':
+		if installed_service == 'apache' and installation_engine(json_data['services'][installed_service]) != 'podman':
 			correct_service_name = service_common.get_correct_apache_service_name(server_id=v['id'])
 			if service_dir == '/etc/httpd' and correct_service_name == 'apache2':
 				service_dir = '/etc/apache2'
@@ -505,7 +537,7 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 			raise RuntimeError(f'Cannot start SSH agent: {error}') from error
 
 		ansible_runtime_environment = _prepare_ansible_runtime_dirs()
-		if ansible_role != 'ha_cluster_exporter':
+		if ansible_role not in ('ha_cluster_exporter', 'podman_proxy'):
 			_install_ansible_collections()
 		_install_ansible_roles(ansible_role)
 
@@ -524,10 +556,10 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 
 			inv['server']['hosts'][server_ip]['PROXY'] = proxy_serv
 
-			if 'DOCKER' in inv['server']['hosts'][server_ip]:
+			if 'DOCKER' in inv['server']['hosts'][server_ip] and ansible_role != 'podman_proxy':
 				tags = 'docker' if inv['server']['hosts'][server_ip]['DOCKER'] else 'system'
 
-		if ansible_role == 'ha_cluster_exporter':
+		if ansible_role in ('ha_cluster_exporter', 'podman_proxy'):
 			from app.modules.pacemaker.exporter import pin_ansible_hosts
 			os.makedirs(ANSIBLE_INVENTORY_DIR,mode=0o700,exist_ok=True)
 			pinned_hosts=pin_ansible_hosts(server_ips,ANSIBLE_INVENTORY_DIR)
@@ -633,15 +665,21 @@ def service_actions_after_install(server_ips: list[str], service: str, json_data
 		except Exception as e:
 			roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot activate {service} on server {server_ip}')
 		if service != 'keepalived':
-			is_docker = json_data['services'][service]['docker']
+			engine = installation_engine(json_data['services'][service])
+			is_docker = engine != 'native'
 			service_sql.insert_or_update_service_setting(server_id, service, 'restart', '1')
 			if is_docker:
 				service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', '1')
 			else:
 				service_sql.insert_or_update_service_setting(server_id, service, 'dockerized', '0')
+			for key, value in {'container_engine': 'podman' if engine == 'podman' else 'docker',
+				'container_owner': 'root', 'container_name': sql.get_setting(service + '_container_name'),
+				'container_unit': 'roxywi-' + service + '.service' if engine == 'podman' else '',
+				'certificate_directory': '/var/lib/roxy-wi/certificates/' + service if engine == 'podman' else ''}.items():
+				service_sql.insert_or_update_service_setting(server_id, service, key, value)
 		if service == 'haproxy':
 			try:
-				_create_default_config_in_db(server_id)
+				_create_default_config_in_db(server_id, container=engine == 'podman')
 			except Exception:
 				pass
 
@@ -659,7 +697,7 @@ def waf_actions_after_install(server_ip: str, service: str) -> None:
 		raise ValueError('Unsupported WAF service')
 
 
-def _create_default_config_in_db(server_id: int) -> None:
+def _create_default_config_in_db(server_id: int, *, container=False) -> None:
 	hap_sock_p = sql.get_setting('haproxy_sock_port')
 	stats_port = sql.get_setting('haproxy_stats_port')
 	stats_user = sql.get_setting('haproxy_stats_user')
@@ -667,6 +705,11 @@ def _create_default_config_in_db(server_id: int) -> None:
 	config = HaproxyGlobalRequest(
 		socket=[f'*:{hap_sock_p} level admin', '/var/run/haproxy.sock mode 600 level admin', '/var/lib/haproxy/stats']
 	)
+	if container:
+		config.chroot = None
+		config.daemon = False
+		config.log = ['127.0.0.1 len 8192 local0']
+		config.socket = [f'*:{hap_sock_p} level admin', '/var/run/haproxy.sock mode 600 level admin']
 	add_sql.insert_or_update_new_section(server_id, 'global', 'global', config)
 	add_sql.insert_or_update_new_section(server_id, 'defaults', 'defaults', HaproxyDefaultsRequest())
 	option = (
@@ -691,11 +734,20 @@ def install_service(service: str, json_data: Union[str, ServiceInstall, HACluste
 	}
 
 	json_data = json_data.model_dump(mode='json')
+	for name, options in (json_data.get('services') or {}).items():
+		if options.get('container_engine') is None and json_data.get('container_engine') is not None:
+			options['container_engine'] = json_data['container_engine']
+		engine = installation_engine(options)
+		if name == 'keepalived' and engine == 'podman':
+			raise ValueError('Keepalived provisioning uses native packages; adopt a supported existing container in service settings')
+		options['docker'] = engine != 'native'
 	if cluster_id:
 		json_data['cluster_id'] = cluster_id
 	_authorize_installation_servers(json_data)
 	try:
 		inv, server_ips = generate_functions[service](json_data, service)
+		if installation_engine((json_data.get('services') or {}).get(service, {})) == 'podman':
+			inv = podman_inventory(inv, service, json_data)
 	except Exception as e:
 		raise Exception(f'Cannot generate inv {service}: {e}')
 	try:
@@ -705,8 +757,9 @@ def install_service(service: str, json_data: Union[str, ServiceInstall, HACluste
 			'service': service,
 			'request': json_data,
 		}
+		role = 'podman_proxy' if installation_engine((json_data.get('services') or {}).get(service, {})) == 'podman' else service
 		return run_ansible_thread(
-			inv, server_ips, service, service.title(), success_action=success_action
+			inv, server_ips, role, service.title(), success_action=success_action
 		)
 	except Exception as e:
 		raise Exception(f'Cannot install {service}: {e}')

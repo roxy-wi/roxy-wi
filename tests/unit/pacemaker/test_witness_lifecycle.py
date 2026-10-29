@@ -9,8 +9,9 @@ from app.modules.db.db_model import InstallationTasks,Server
 TOKEN='d'*32
 
 def host(tmp_path,monkeypatch,operation='image-upgrade'):
-    ns={};exec(RUNTIME+lifecycle.COMMON+'\nRECOVER_CODE=""\n'+lifecycle.HELPERS,ns)
-    root=tmp_path/'root';root.mkdir();data=root/'data';data.mkdir();(data/'ca').write_text('original')
+    root=tmp_path/'root'
+    ns={};exec(RUNTIME.replace("ROOT = pathlib.Path('/var/lib/roxy-wi/qnetd')", f'ROOT = pathlib.Path({str(root)!r})')+lifecycle.COMMON+'\nRECOVER_CODE=""\n'+lifecycle.HELPERS,ns)
+    root.mkdir();data=root/'data';data.mkdir();(data/'ca').write_text('original')
     ns.update(ROOT=root,DATA=data,CERT=data/'ca',NATIVE=tmp_path/'native')
     folder=ns['folder'](TOKEN);folder.mkdir(parents=True);ns['copy_state'](data,folder/'docker-before')
     state=dict(operation=operation,phase='prepared',old_container='previous-'+TOKEN,image_id='sha256:original',native_enabled=False,native_replaced=False,switched=False,clusters=[],ca_fingerprint=hashlib.sha256(b'original').hexdigest())

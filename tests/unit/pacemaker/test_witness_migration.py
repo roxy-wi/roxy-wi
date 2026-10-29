@@ -13,8 +13,8 @@ TOKEN='b'*32
 
 def host(tmp_path, monkeypatch):
     ns={}
-    exec(RUNTIME + migration.RECOVERY + migration.HELPERS, ns)
     root=tmp_path/'managed'; native=tmp_path/'native'
+    exec(RUNTIME.replace("ROOT = pathlib.Path('/var/lib/roxy-wi/qnetd')", f'ROOT = pathlib.Path({str(root)!r})') + migration.RECOVERY + migration.HELPERS, ns)
     root.mkdir(); (native/'nssdb').mkdir(parents=True)
     (native/'nssdb/qnetd-cacert.crt').write_bytes(b'preserved-ca')
     ns.update(ROOT=root,DATA=root/'data',CERT=root/'data/nssdb/qnetd-cacert.crt',NATIVE=native)
@@ -25,6 +25,28 @@ def host(tmp_path, monkeypatch):
     ns['save'](TOKEN,state)
     ns.update(container_state=lambda:None,platform_profile=lambda:None)
     return ns,state
+
+
+@pytest.mark.parametrize('same_ca',[True,False])
+def test_cross_distribution_nss_copy_restores_only_reviewed_trust_for_the_same_ca(tmp_path,monkeypatch,same_ca):
+    import ssl
+    ns,_state=host(tmp_path,monkeypatch)
+    expected=ssl.DER_cert_to_PEM_cert(b'expected-public-ca')
+    assert ns['certificate_identity']('Certificate:\n    Data: metadata\n'+expected)==ns['certificate_identity'](expected)
+    with pytest.raises(ValueError,match='exactly one'):ns['certificate_identity'](expected+expected)
+    observed=expected if same_ca else ssl.DER_cert_to_PEM_cert(b'another-public-ca')
+    calls=[]
+    ns['command']=lambda args,**kwargs:calls.append(args) or observed
+    source=dict(ca_identity=ns['certificate_identity'](expected),ca_trust=['CTu','u','u'])
+    if same_ca:
+        ns['preserve_ca_trust'](tmp_path/'copy','sha256:fixed',source)
+        assert calls[1][calls[1].index('-t')+1]=='CT,,'
+        assert '-M' in calls[1] and calls[1][calls[1].index('-n')+1]=='QNet CA'
+    else:
+        with pytest.raises(ValueError,match='differs'):ns['preserve_ca_trust'](tmp_path/'copy','sha256:fixed',source)
+        assert len(calls)==1
+    assert '--network' in calls[0] and 'none' in calls[0]
+    assert str(tmp_path/'copy')+':/etc/corosync/qnetd:rw,Z' in calls[0]
 
 
 def test_stale_source_is_refused_before_docker_preparation(tmp_path,monkeypatch):
@@ -63,6 +85,7 @@ def test_failed_switch_arms_host_recovery_and_restores_native(tmp_path,monkeypat
     monkeypatch.setattr(ns['os'],'chown',lambda *_:None)
     ns['launch_docker']=lambda *_args,**_kwargs:(_ for _ in ()).throw(RuntimeError('failed startup'))
     calls=[];ns['command']=lambda args,**_:calls.append(args)
+    ns['preserve_ca_trust']=lambda *_:calls.append(['preserve-reviewed-ca-trust'])
     monkeypatch.setattr(ns['subprocess'],'run',lambda *_args,**_kwargs:SimpleNamespace(returncode=0))
     with pytest.raises(RuntimeError):ns['switch'](TOKEN)
     assert ns['load'](TOKEN)['phase']=='rolled-back'
@@ -104,7 +127,7 @@ def target():
 
 
 def test_migration_api_requires_reviewed_digest_and_typed_confirmation(target,client,authenticated,monkeypatch):
-    monkeypatch.setattr(migration,'plan',lambda *_:dict(server=target.hostname,eligible=True,plan_digest='a'*64,pending=[]))
+    monkeypatch.setattr(migration,'plan',lambda *_,**_kwargs:dict(server=target.hostname,eligible=True,plan_digest='a'*64,pending=[]))
     url=f'/pacemaker/api/witness/{target.server_id}/migration'
     assert client.get(url,headers=authenticated[1]).status_code==200
     assert client.post(url,headers=authenticated[1],json={'plan_digest':'a'*64,'confirm':'wrong'}).status_code==400

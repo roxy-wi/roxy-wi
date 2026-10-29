@@ -66,11 +66,13 @@ class Discovery(StrictModel):
 
 class WitnessInstall(Discovery):
     docker: bool = Field(default=False, strict=True)
+    container_engine: Literal['native', 'docker', 'podman'] | None = None
 
 
 class WitnessMigration(StrictModel):
     plan_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
     confirm: str
+    container_engine: Literal['docker', 'podman'] = 'docker'
 
 
 class WitnessRecovery(StrictModel):

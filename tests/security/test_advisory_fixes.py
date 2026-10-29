@@ -16,7 +16,7 @@ from app.modules.db.db_model import WafRules
 from app.modules.roxywi import auth, common, logger, log_snapshot
 from app.modules.roxywi.class_models import SSLCertUploadRequest
 from app.modules.roxywi.exception import RoxywiResourceNotFound
-from app.modules.service import action, common as service_common, haproxy
+from app.modules.service import action, common as service_common, haproxy, managed_runtime
 from app.routes.add import routes as add_routes
 from app.routes.waf import routes as waf_routes
 
@@ -54,8 +54,10 @@ def test_stats_rejects_unmanaged_or_other_group_before_http(client, actor, monke
 @pytest.mark.parametrize('role,target', [(4, '192.0.2.10'), (1, '192.0.2.20')])
 def test_stats_registered_targets_do_not_follow_redirects(app, actor, monkeypatch, service, role, target):
     calls = []
+    monkeypatch.setattr(managed_runtime, 'managed_server', common.require_server_access)
+    monkeypatch.setattr(managed_runtime.service_sql, 'select_service_setting', lambda *a: '0')
     actor[0]['role'] = role
-    monkeypatch.setattr(haproxy.sql, 'get_setting', lambda *a, **k: 'test')
+    monkeypatch.setattr(haproxy.sql, 'get_setting', lambda name, **k: '8080' if name.endswith('_port') else 'test')
     monkeypatch.setattr(service_common, 'render_template', lambda *a, **k: 'stats')
     monkeypatch.setattr(common, 'get_user_lang_for_flask', lambda: {})
     def http(url, **kwargs):
@@ -124,8 +126,13 @@ def test_service_actions_reject_shell_fragments_before_settings(monkeypatch, ver
 @pytest.mark.parametrize('verb', ['start', 'stop', 'restart', 'reload'])
 @pytest.mark.parametrize('service', ['waf', 'nginx'])
 def test_service_action_commands_preserve_valid_verbs(monkeypatch, docker, verb, service):
-    monkeypatch.setattr(action.service_sql, 'select_service_setting', lambda *a: docker)
-    monkeypatch.setattr(action.sql, 'get_setting', lambda *a: 'waf')
+    from app.modules.service import container_settings
+    monkeypatch.setattr(container_settings.Server, 'get_by_id', lambda _id: SimpleNamespace(group_id='2'))
+    monkeypatch.setattr(action.service_sql, 'select_service_setting', lambda server, service, setting: docker if setting == 'dockerized' else None)
+    def container_default(_setting, *, group_id):
+        assert group_id == '2'
+        return 'waf'
+    monkeypatch.setattr(action.sql, 'get_setting', container_default)
     monkeypatch.setattr(action.service_common, 'get_correct_service_name', lambda *a: 'waf')
     if service == 'waf' and verb == 'reload':
         with pytest.raises(ValueError, match='requires restart'):

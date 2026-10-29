@@ -662,7 +662,7 @@ table[data-ux-table] thead th[aria-sort="descending"]::after { color: var(--rw-p
 	html.nav-mobile-open .app-nav-backdrop { display: block; }
 	html.nav-mobile-open { overflow: hidden; }
 	.ui-dialog { max-width: calc(100vw - 16px) !important; }
-	.ui-dialog.rw-dialog-responsive { inset: 8px !important; width: auto !important; max-height: calc(100vh - 16px); }
+	.ui-dialog.rw-dialog-responsive { position: fixed; inset: 8px !important; width: auto !important; max-height: calc(100vh - 16px); }
 	.ui-dialog.rw-dialog-responsive .ui-dialog-content { max-height: calc(100vh - 125px) !important; }
 }
 
