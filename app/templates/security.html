@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Account security{% endblock %}
+{% block h2 %}Account security{% endblock %}
+{% block content %}
+<link href="{{url_for('static', filename='css/security.css')}}" rel="stylesheet">
+<div class="account-security" id="account-security">
+  <p>Protect your local Roxy-WI account. Authentication works without an identity provider or subscription.</p>
+  <p role="status" id="security-feedback" aria-live="polite"></p>
+  {% include 'include/security_totp.html' ignore missing %}
+  {% if local_passkeys_installed %}
+  <section class="security-card"><h3>Passkeys</h3><p>Use your device PIN, fingerprint or security key.</p>
+  <a class="ui-button ui-widget ui-corner-all" href="/security/passkeys">Manage passkeys</a></section>
+  {% endif %}
+  <section class="security-card"><h3>Recovery codes</h3>
+    <p>Store these single-use codes offline. Each new set replaces all previous codes.</p>
+    <p id="recovery-count"></p><button id="regenerate-recovery" type="button">Generate new recovery codes</button>
+  </section>
+  <section class="security-card" id="security-policy" hidden><h3>Local account policy</h3>
+    <p>Requiring MFA signs everyone out. Accounts without a factor have a limited enrollment grace period.</p>
+    <label for="mfa-policy">Require MFA</label><select id="mfa-policy" class="form-control">
+      <option value="off">Optional</option><option value="admin">Local administrators</option><option value="all">All local accounts</option>
+    </select>
+    <label for="mfa-grace">Enrollment grace (days)</label><input id="mfa-grace" type="number" min="1" max="30" value="7" class="form-control">
+    <button id="save-mfa-policy" type="button">Save policy</button>
+  </section>
+</div>
+{% endblock %}

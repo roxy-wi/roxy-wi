@@ -70,6 +70,9 @@ _jwt_algorithm, _jwt_private_key, _jwt_public_key = _load_jwt_configuration()
 
 
 class Configuration(object):
+    # Configure these explicitly; reverse proxy Host headers never select an RP.
+    WEBAUTHN_RP_ID = _config_value('security', 'webauthn_rp_id', '')
+    WEBAUTHN_ORIGINS = _config_value('security', 'webauthn_origins', '')
     SECRET_KEY = _load_secret_key()
     TESTING = _as_bool(_config_value('main', 'testing', '0'))
     DEPLOYMENT_MODE = str(_config_value('main', 'deployment_mode', 'package')).lower()
