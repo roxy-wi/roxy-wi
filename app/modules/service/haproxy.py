@@ -5,6 +5,7 @@ import tempfile
 from flask import g
 
 import app.modules.db.sql as sql
+import app.modules.db.server as server_sql
 import app.modules.server.server as server_mod
 from app.modules.server.command import build_remote_command
 import app.modules.config.config as config_mod
@@ -159,6 +160,18 @@ def runtime_command(serv: str, enable: str, backend: str, save: str) -> str:
     server_state_file = sql.get_setting('server_state_file', group_id=g.user_params['group_id'])
     haproxy_sock = sql.get_setting('haproxy_sock', group_id=g.user_params['group_id'])
     runtime_line = f'{enable} {backend}'.strip()
+    from app.modules.service import managed_runtime
+    from app.modules.db import service as service_sql
+    server = server_sql.get_server_by_ip(serv)
+    if service_sql.select_service_setting(server.server_id, 'haproxy', 'dockerized') == '1':
+        port = int(sql.get_setting('haproxy_sock_port', group_id=g.user_params['group_id']))
+        output = managed_runtime.execute_runtime_command(serv, port, runtime_line)
+        if save == 'on':
+            state = managed_runtime.execute_runtime_command(serv, port, 'show servers state')
+            managed_runtime.save_server_state(server, sql.get_setting('haproxy_dir'), server_state_file, state)
+        if enable != 'show':
+            roxywi_common.logging(serv, f'Runtime action {enable} {backend}', keep_history=1, service='haproxy')
+        return output
     send_command = build_remote_command('printf', ['%s\\n', runtime_line])
     socket_command = build_remote_command('socat', ['stdio', haproxy_sock], sudo=True)
     cmd = f'{send_command} | {socket_command}'

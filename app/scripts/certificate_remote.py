@@ -20,11 +20,16 @@ from email.utils import parsedate_to_datetime
 from contextlib import contextmanager
 
 try:
+    import roxywi_container_runtime as container_runtime
     import roxywi_config_candidate as config_candidate
     import roxywi_haproxy_runtime as haproxy_runtime
+    import roxywi_certificate_cluster as cluster_guard
+    import roxywi_certificate_passive as passive
 except ModuleNotFoundError:
+    from app.modules.connectors import containers as container_runtime
     from app.modules.config import candidate as config_candidate
     from app.modules.service import haproxy_runtime
+    from app.scripts import certificate_cluster_remote as cluster_guard,certificate_passive as passive
 
 ROOT = Path('/var/lib/roxy-wi/letsencrypt')
 LEGACY = Path('/etc/letsencrypt')
@@ -119,14 +124,19 @@ def validate_configuration(data, check=None, rollback=False):
                 'Rollback configuration validation' if rollback else 'HAProxy configuration validation')
 
 
+def runtime_argv(data, arguments):
+    return container_runtime.argv(data.get('container_runtime'), arguments)
+
+
 def host_path(data, value):
     """Resolve a configured container path through the existing persistent mounts."""
     path = Path(value)
     if not path.is_absolute() or '..' in path.parts:
         raise ValueError('Certificate directory must be absolute')
     if data.get('docker'):
-        mounts = json.loads(command(['docker', 'inspect', '--format', '{{json .Mounts}}',
-                                     data['container']], 'Inspect HAProxy container'))
+        mounts = (cluster_guard.container_record(data)['Mounts'] if data.get('cluster_proof',{}).get('mode')=='passive' else
+            json.loads(command(runtime_argv(data, ['inspect', '--format', '{{json .Mounts}}',
+                                     data['container']]), 'Inspect HAProxy container')))
         matches = []
         for mount in mounts:
             destination = Path(mount['Destination'])
@@ -153,28 +163,28 @@ def certificate_directory(data):
 
 def service_commands(data):
     if data.get('docker'):
-        args = command(['docker', 'exec', data['container'], 'cat', '/proc/1/cmdline'],
+        args = command(runtime_argv(data, ['exec', data['container'], 'cat', '/proc/1/cmdline']),
                        'Inspect HAProxy master process').decode().split('\x00')
         if not args or 'haproxy' not in Path(args[0]).name or not any(arg in ('-W', '-Ws') for arg in args):
             raise RuntimeError('Container PID 1 must run HAProxy with -W or -Ws for graceful certificate reload')
         config_path = Path(data['config_path'])
-        mounts = json.loads(command(['docker', 'inspect', '--format', '{{json .Mounts}}',
-                                     data['container']], 'Inspect HAProxy container'))
+        mounts = json.loads(command(runtime_argv(data, ['inspect', '--format', '{{json .Mounts}}',
+                                     data['container']]), 'Inspect HAProxy container'))
         for mount in sorted(mounts, key=lambda item: len(item['Source']), reverse=True):
             source = Path(mount['Source'])
             if config_path == source or source in config_path.parents:
                 config_path = Path(mount['Destination']) / config_path.relative_to(source)
                 break
-        return (['docker', 'exec', data['container'], 'haproxy', '-c', '-f', str(config_path)],
-                ['docker', 'kill', '--signal=USR2', data['container']])
+        return (runtime_argv(data, ['exec', data['container'], 'haproxy', '-c', '-f', str(config_path)]),
+                runtime_argv(data, ['kill', '--signal=USR2', data['container']]))
     return (['haproxy', '-c', '-f', data['config_path']], ['systemctl', 'reload', 'haproxy'])
 
 
 def runtime_endpoint(data):
     port = int(data['runtime_port'])
     if data.get('docker'):
-        networks = json.loads(command(['docker', 'inspect', '--format', '{{json .NetworkSettings}}',
-                                      data['container']], 'Inspect HAProxy runtime endpoint'))
+        networks = json.loads(command(runtime_argv(data, ['inspect', '--format', '{{json .NetworkSettings}}',
+                                      data['container']]), 'Inspect HAProxy runtime endpoint'))
         for network in networks.get('Networks', {}).values():
             if network.get('IPAddress'):
                 return network['IPAddress'], port
@@ -184,8 +194,38 @@ def runtime_endpoint(data):
 def runtime_request(data, request):
     command, separator, payload = request.partition(' <<\n')
     host, port = runtime_endpoint(data)
+    if data.get('docker') and data.get('container_runtime', {}).get('owner','root') != 'root':
+        return rootless_runtime_request(data, dict(server=host,port=port,command=command,timeout=3,
+            response_limit=1024*1024,payload=payload if separator else None))
     return haproxy_runtime.execute_runtime_command(host, port, command, timeout=3, response_limit=1024 * 1024,
                                                   payload=payload if separator else None)
+
+
+def rootless_runtime_request(data,request):
+    """A rootless bridge is not reachable at its private IP from the host."""
+    def state():
+        return json.loads(command(runtime_argv(data,['inspect',data['container']]),'Inspect HAProxy runtime namespace'))[0]
+    observed=state()
+    ident=observed.get('Id',observed.get('ID',''))
+    pid=int(observed.get('State',{}).get('Pid',0))
+    if not re.fullmatch(r'[0-9a-f]{64}',ident) or not observed['State'].get('Running') or pid<=0:
+        raise CertificateFailure('runtime_unavailable')
+    # Confirm ownership before pinning a namespace: PID reuse must not deliver a
+    # private certificate to an unrelated process's network namespace.
+    if ident not in Path('/proc',str(pid),'cgroup').read_text():
+        raise CertificateFailure('runtime_unavailable')
+    descriptor=os.open('/proc/'+str(pid)+'/ns/net',os.O_RDONLY)
+    try:
+        current=state()
+        if current.get('Id',current.get('ID'))!=ident or current.get('State',{}).get('Pid')!=pid or not current['State'].get('Running'):
+            raise CertificateFailure('process_changed')
+        source=getattr(haproxy_runtime,'__source__',None)
+        if source is None:source=Path(haproxy_runtime.__file__).read_text()
+        source+='\nimport json,sys\nprint(execute_runtime_command(**json.load(sys.stdin)),end="")\n'
+        return command(['nsenter','--net=/proc/self/fd/'+str(descriptor),sys.executable,'-c',source],
+            'HAProxy rootless runtime request',timeout=10,pass_fds=(descriptor,),input=json.dumps(request).encode()).decode()
+    finally:
+        os.close(descriptor)
 
 
 def runtime_pid(data):
@@ -199,8 +239,9 @@ def runtime_pid(data):
 def certificate_runtime_path(data):
     path = Path(data['cert_dir']) / data['pem_name']
     if data.get('docker'):
-        mounts = json.loads(command(['docker', 'inspect', '--format', '{{json .Mounts}}',
-                                    data['container']], 'Inspect HAProxy certificate mount'))
+        mounts = (cluster_guard.container_record(data)['Mounts'] if data.get('cluster_proof',{}).get('mode')=='passive' else
+            json.loads(command(runtime_argv(data, ['inspect', '--format', '{{json .Mounts}}',
+                                    data['container']]), 'Inspect HAProxy certificate mount')))
         for mount in sorted(mounts, key=lambda item: len(item['Source']), reverse=True):
             source = Path(mount['Source'])
             if path == source or source in path.parents:
@@ -260,6 +301,16 @@ def private_file(path, data, metadata=None, *, replace=True):
         if metadata:
             os.chmod(temporary, metadata['mode'])
             os.chown(temporary, metadata['uid'], metadata['gid'])
+        if path.exists():
+            # Atomic replacement must preserve the label assigned to the
+            # directory-mounted file by Podman on SELinux hosts.
+            for attribute in os.listxattr(path):
+                try:
+                    os.setxattr(temporary, attribute, os.getxattr(path, attribute))
+                except OSError as error:
+                    import errno
+                    if Path('/sys/fs/selinux/enforce').exists() or error.errno not in (errno.ENOTSUP, errno.EINVAL, errno.EPERM):
+                        raise
         if replace:
             os.replace(temporary, path)
         else:
@@ -278,15 +329,64 @@ def deployment_journal(data):
     return target, journal
 
 
+def rollback_receipt(data,journal,saved):
+    item=dict(transaction=data.get('transaction'),digest=saved.get('old_digest','0'*64),
+              baseline_valid=saved.get('baseline_valid',True))
+    if saved.get('crt_list'):
+        item['crt_list']=dict(path=saved['crt_list']['path'],digest=saved['crt_list']['old'])
+    elif saved.get('list_before') and saved.get('destination',{}).get('kind')=='crt_list':
+        item['crt_list']=dict(path=str(host_path(data,saved['destination']['path'])),digest=saved['list_before'])
+    private_file(journal/'rollback-receipt.json',json.dumps(item).encode())
+
+
+def finished_receipt(data,target,journal):
+    """Recheck a completed phase after a lost acknowledgement, without rewriting."""
+    expected=data.get('expected_digest')
+    if not expected:return {'finished':True} # compatibility with older direct callers
+    actual=hashlib.sha256(target.read_bytes()).hexdigest() if target.is_file() and not target.is_symlink() else '0'*64
+    passive_node=data.get('cluster_proof',{}).get('mode')=='passive'
+    baseline=True
+    if data['operation']=='commit':
+        receipt=journal/'applied'
+        if not receipt.is_file() or receipt.read_text()!=expected or actual!=expected:
+            raise CertificateFailure('verification_failed')
+    else:
+        receipt=journal/'rollback-receipt.json'
+        if not receipt.exists():return {'finished':True} # deployment failed before creating its journal
+        restored=json.loads(receipt.read_text())
+        if restored['transaction']!=data.get('transaction') or restored['digest']!=actual:raise CertificateFailure('recovery_failed')
+        baseline=restored.get('baseline_valid',True)
+        if restored.get('crt_list'):
+            item=restored['crt_list'];file=Path(item['path'])
+            if file.is_symlink() or hashlib.sha256(file.read_bytes()).hexdigest()!=item['digest']:raise CertificateFailure('recovery_failed')
+    if passive_node:
+        cluster_guard.stopped(data)
+        passive.scope(data,sys.modules[__name__])
+        if baseline:cluster_guard.validate_offline(data)
+    else:
+        pem=data.get('expected_certificate','') if data['operation']=='commit' else target.read_text() if actual!='0'*64 else ''
+        if pem:verify_runtime(data,pem,require_loaded=True)
+        elif runtime_certificate(data)['fingerprint']:raise CertificateFailure('recovery_failed')
+        validate_configuration(data)
+    return dict(finished=True,verification='disk-staged' if passive_node else 'runtime')
+
+
 def finish_deployment(data):
     data = creation_data(data)
     target, journal = deployment_journal(data)
     pending, previous, receipt = journal / 'pending.json', journal / 'previous.pem', journal / 'applied'
     if not pending.exists():
-        return {'finished': True}
+        return finished_receipt(data,target,journal)
     saved = json.loads(pending.read_text())
     if saved.get('transaction') != data.get('transaction'):
         raise RuntimeError('Another certificate deployment owns the recovery journal')
+    if data['operation']=='rollback':
+        rollback_receipt(data,journal,saved)
+    if saved.get('method')=='disk_stage':
+        handler=passive.finish if data.get('cluster_proof',{}).get('mode')=='passive' else passive.finish_active_stage
+        return handler(data,sys.modules[__name__],saved)
+    if data.get('cluster_proof',{}).get('mode')=='passive' and saved.get('method') in ('runtime','runtime_create'):
+        return passive.finish_inactive_runtime(data,sys.modules[__name__],saved)
     if saved.get('method') == 'runtime':
         return finish_runtime(data, target, journal, saved)
     if saved.get('method') == 'runtime_create':
@@ -313,6 +413,8 @@ def finish_deployment(data):
 
 
 def deploy(data):
+    if data.get('cluster_proof',{}).get('mode')=='passive':
+        return passive.deploy(data,sys.modules[__name__])
     if data.get('destination'):
         return deploy_creation(data)
     if data.get('apply_mode') in ('auto', 'runtime'):
@@ -1174,10 +1276,14 @@ def main():
                     'check-new': creation_preflight, 'read-file': read_file, 'remove-file': remove_file,
                     'rollback': finish_deployment, 'commit': finish_deployment, 'preflight': preflight,
                     'legacy-export': legacy_export, 'legacy-disable': legacy_disable}
+        handlers['passive-context']=cluster_guard.context
+        handlers['passive-inspect']=lambda value:passive.inspect(value,sys.modules[__name__])
         # ACME challenges may take minutes; they must not block certificate listing.
-        lock = configuration_lock if data['operation'] in ('deploy', 'rollback', 'commit', 'preflight', 'catalog', 'store', 'check-new', 'read-file', 'remove-file') else host_lock
+        lock = configuration_lock if data['operation'] in ('deploy', 'rollback', 'commit', 'preflight', 'catalog', 'store', 'check-new', 'read-file', 'remove-file','passive-inspect','passive-context') else host_lock
         with lock():
+            cluster_guard.verify(data)
             result = handlers[data['operation']](data)
+            cluster_guard.verify(data)
         print(json.dumps(result))
     except Exception as error:
         # Only our fixed messages are public. Never print subprocess output/input.

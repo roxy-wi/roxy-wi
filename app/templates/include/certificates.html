@@ -1,4 +1,5 @@
 <section id="runtime-certificates" data-service="{{ service }}" data-add-label="{{ lang.words.add|title }}" data-history-label="{{ lang.words.history|title }}" data-strings="{{ lang.certificates|tojson|forceescape }}">
+    {% if service == 'haproxy' and g.user_params['role']|int <= 3 %}<p><a href="{{ url_for('service.certificate_source_page') }}">External certificate sources / CertWarden</a></p>{% endif %}
     <div class="rw-table-toolbar rw-table-search-toolbar">
         <label for="cert-server">{{ lang.words.server|title }}</label>
         <select id="cert-server" name="cert-server">

@@ -10,7 +10,7 @@ import app.modules.db.sql as sql
 import app.modules.config.common as config_common
 from app.modules.config.viewer import haproxy_sections
 from app.modules.service.haproxy import _haproxy_line_tokens
-from app.modules.service.haproxy_runtime import execute_runtime_command
+from app.modules.service.managed_runtime import execute_runtime_command
 import app.modules.roxywi.common as roxywi_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.modules.roxywi.error_handler import safe_error_message

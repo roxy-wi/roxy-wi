@@ -152,9 +152,11 @@ def test_show_map_reads_complete_native_nginx_configuration(monkeypatch):
 
 def test_show_map_reads_nginx_configuration_from_configured_container(monkeypatch):
     commands = []
+    from app.modules.service import container_settings
+    monkeypatch.setattr(container_settings.Server, 'get_by_id', lambda _id: SimpleNamespace(group_id='2'))
     monkeypatch.setattr(nginx.server_sql, 'get_server_by_ip', lambda server_ip: SimpleNamespace(server_id=8))
-    monkeypatch.setattr(nginx.service_sql, 'select_service_setting', lambda *args: '1')
-    monkeypatch.setattr(nginx.sql, 'get_setting', lambda setting, **kwargs: 'nginx-prod; touch /tmp/pwned')
+    monkeypatch.setattr(nginx.service_sql, 'select_service_setting', lambda _id, _service, key: '1' if key=='dockerized' else None)
+    monkeypatch.setattr(nginx.sql, 'get_setting', lambda setting, **kwargs: 'nginx-prod')
     monkeypatch.setattr(
         nginx.server_mod,
         'ssh_command',
@@ -165,9 +167,19 @@ def test_show_map_reads_nginx_configuration_from_configured_container(monkeypatc
 
     assert commands == [(
         '192.0.2.21',
-        "sudo docker exec 'nginx-prod; touch /tmp/pwned' nginx -T 2>&1",
+        "sudo docker exec nginx-prod nginx -T 2>&1",
         {'timeout': 20, 'rc': True},
     )]
+
+
+def test_show_map_rejects_an_invalid_container_binding_before_ssh(monkeypatch):
+    from app.modules.service import container_settings
+    monkeypatch.setattr(container_settings.Server, 'get_by_id', lambda _id: SimpleNamespace(group_id='2'))
+    monkeypatch.setattr(nginx.server_sql,'get_server_by_ip',lambda _:SimpleNamespace(server_id=8))
+    monkeypatch.setattr(nginx.service_sql,'select_service_setting',lambda _id,_service,key:'1' if key=='dockerized' else None)
+    monkeypatch.setattr(nginx.sql,'get_setting',lambda *_a,**_kw:'nginx-prod; touch /tmp/pwned')
+    monkeypatch.setattr(nginx.server_mod,'ssh_command',lambda *_a,**_kw:pytest.fail('Invalid binding reached SSH'))
+    with pytest.raises(ValueError,match='container name'):nginx.show_map('192.0.2.21',4)
 
 
 def test_show_map_rejects_empty_nginx_output(monkeypatch):

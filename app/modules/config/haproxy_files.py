@@ -42,7 +42,7 @@ def multiple_files_enabled(server_id: int) -> bool:
         return False
 
 
-def discover_sources(server_ip: str, server_id: int = None, *, dockerized: bool = None) -> dict:
+def discover_sources(server_ip: str, server_id: int = None, *, dockerized: bool = None, runtime=None, container_name=None) -> dict:
     from app.modules.db import server as server_sql, service as service_sql
     from app.modules.server import server as server_mod
     from app.modules.service.common import get_correct_service_name
@@ -50,15 +50,18 @@ def discover_sources(server_ip: str, server_id: int = None, *, dockerized: bool 
         server_id = server_sql.get_server_by_ip(server_ip).server_id
     if dockerized is None:
         dockerized = service_sql.select_service_setting(server_id, 'haproxy', 'dockerized') == '1'
-    mode = 'docker' if dockerized else 'systemd'
-    key = (server_ip, mode)
+    from app.modules.service import container_settings
+    from app.modules.connectors import containers
+    runtime = containers.validate(runtime) if runtime is not None else container_settings.runtime(server_id, 'haproxy')
+    mode = runtime['engine'] if dockerized else 'systemd'
+    name = (containers.name(container_name) if container_name else container_settings.name(server_id, 'haproxy')) if dockerized else get_correct_service_name('haproxy', server_id)
+    key = (server_ip, mode, runtime['owner'], name)
     cache = g.setdefault('haproxy_config_sources', {}) if has_request_context() else {}
     if key in cache:
         return cache[key]
-    name = sql.get_setting('haproxy_container_name') if dockerized else get_correct_service_name('haproxy', server_id)
-    script = Path(__file__).with_name('haproxy_discovery.py').read_text(encoding='utf-8')
+    script = containers.embedded() + Path(__file__).with_name('haproxy_discovery.py').read_text(encoding='utf-8')
     command = shlex.join(['sudo', '-n', 'python3', '-c', script, mode, name,
-                          absolute_path(sql.get_setting('haproxy_dir')), resolve_path()])
+                          absolute_path(sql.get_setting('haproxy_dir')), resolve_path(), json.dumps(runtime)])
     try:
         output = server_mod.ssh_command(server_ip, command, rc=1, timeout=45,
                                        error_context='Cannot inspect HAProxy startup settings')
@@ -131,5 +134,6 @@ def check_command(server_ip: str, server_id: int, container: str | None = None) 
 
 def configuration_context(server_ip: str, server_id: int = None, *, verify_startup: bool = False) -> dict:
     """Resolve service-specific identity and startup sources before uploading."""
-    return {'main': resolve_path(), 'root': absolute_path(sql.get_setting('haproxy_dir')),
+    from app.modules.service import container_settings
+    return {**container_settings.context(server_id, 'haproxy'), 'main': resolve_path(), 'root': absolute_path(sql.get_setting('haproxy_dir')),
             'sources': config_sources(server_ip, server_id, verify_startup=verify_startup)}

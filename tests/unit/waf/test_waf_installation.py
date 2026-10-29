@@ -21,9 +21,11 @@ def startup(monkeypatch):
     settings = {'haproxy_dir': root, 'haproxy_config_path': main, 'haproxy_container_name': 'proxy-custom',
                 'nginx_dir': '/srv/web-configs', 'nginx_config_path': "/srv/main configs/web's main.conf",
                 'nginx_container_name': 'web-custom'}
-    monkeypatch.setattr(installation.sql, 'get_setting', lambda name: settings[name])
+    from app.modules.service import container_settings
+    monkeypatch.setattr(container_settings.Server, 'get_by_id', lambda _id: SimpleNamespace(group_id='2'))
+    monkeypatch.setattr(installation.sql, 'get_setting', lambda name, **kwargs: settings[name])
     monkeypatch.setattr(installation.server_sql, 'get_server_by_ip', lambda ip: SimpleNamespace(server_id=11))
-    monkeypatch.setattr(installation.service_sql, 'select_service_setting', lambda *args: '1' if state.docker else '0')
+    monkeypatch.setattr(installation.service_sql, 'select_service_setting', lambda _server, _service, setting: '1' if state.docker and setting == 'dockerized' else '0')
     monkeypatch.setattr(installation.service_common, 'get_correct_service_name', lambda *args: 'proxy-custom.service')
     # Installation must inspect actual startup, independently of the editor toggle.
     monkeypatch.setattr(haproxy_files, 'multiple_files_enabled', lambda *args: False)
@@ -61,7 +63,7 @@ def test_waf_installation_uses_configured_main_and_all_actual_startup_sources(st
         'haproxy', startup.main, '', 'save', main=startup.main, root=startup.root,
         sources=spec['sources'], container=spec['container']))
     assert len(startup.calls) == 1
-    assert startup.calls[0][-4:] == [
+    assert startup.calls[0][-5:-1] == [
         'docker' if docker else 'systemd', 'proxy-custom' if docker else 'proxy-custom.service',
         startup.root, startup.main,
     ]

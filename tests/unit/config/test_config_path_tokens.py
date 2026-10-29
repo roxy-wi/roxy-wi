@@ -1,5 +1,6 @@
 """File identity survives URL encoding, transport, and persistence."""
 import shlex
+import json
 from types import SimpleNamespace
 
 import pytest
@@ -53,7 +54,7 @@ def test_download_passes_a_raw_path_to_sftp(monkeypatch, tmp_path, service, path
 
 @pytest.mark.parametrize('service,path', PATHS[1:3])
 def test_save_quotes_the_path_only_in_shell_and_keeps_version_identity(monkeypatch, tmp_path, service, path):
-    settings = {service + '_container_name': service, 'tmp_config_path': '/tmp/config staging'}
+    settings = {service + '_container_name': service, 'tmp_config_path': '/tmp/config staging', service + '_config_path': path.rsplit('/',2)[0]+'/main.conf', service + '_dir':path.rsplit('/',2)[0]}
     monkeypatch.setattr(config.sql, 'get_setting', lambda name: settings[name])
     monkeypatch.setattr(config.server_sql, 'get_server_by_ip', lambda ip: SimpleNamespace(server_id=11))
     monkeypatch.setattr(config.server_sql, 'return_firewall', lambda ip: False)
@@ -65,13 +66,14 @@ def test_save_quotes_the_path_only_in_shell_and_keeps_version_identity(monkeypat
     monkeypatch.setattr(config.roxywi_common, 'logging', lambda *a, **kw: None)
     versions, commands = [], []
     monkeypatch.setattr(config, '_create_config_version', lambda *a, **kw: versions.append(a[2]))
-    monkeypatch.setattr(config.server_mod, 'ssh_command', lambda ip, cmd, **kw: commands.append(shlex.split(cmd)) or 'valid')
+    monkeypatch.setattr(config.server_mod, 'ssh_command', lambda ip, cmd, **kw: commands.append(shlex.split(cmd)) or json.dumps({'status':'ok'}))
     config.upload_and_restart('192.0.2.11', str(tmp_path / 'candidate'), 'save', service, user_id=1,
                               config_file_name=encode_file_path(path), normalize_config=False)
     assert versions == [path]
-    assert commands[0][:3] == ['sudo', 'mv', '-f']
-    assert commands[0][3].startswith('/tmp/config staging/')
-    assert commands[0][4] == path
+    spec=json.loads(commands[0][-1])
+    assert commands[0][:3] == ['sudo','-n','flock']
+    assert spec['candidate'].startswith('/tmp/config staging/')
+    assert spec['target'] == path
 
 
 @pytest.mark.parametrize('path', ['/etc/nginx/../private.conf', '/etc/nginx/a;touch injected.conf',

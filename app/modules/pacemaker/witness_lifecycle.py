@@ -66,35 +66,35 @@ def snapshot(token=None):
     if pathlib.Path('/etc/pve').exists():raise ValueError('Proxmox hosts are not witness targets')
     platform_profile()
     for unit in ('corosync','pacemaker','corosync-qnetd'):
-        if subprocess.run(['systemctl','is-active','--quiet',unit],capture_output=True).returncode==0:raise ValueError('Select an independent running Docker witness with its native service stopped')
+        if subprocess.run(['systemctl','is-active','--quiet',unit],capture_output=True).returncode==0:raise ValueError('Select an independent running container witness with its native service stopped')
     state=container_state()
-    if not state or not docker_status(state)['active']:raise ValueError('Select a running managed Docker witness')
-    text=command(['docker','exec',CONTAINER,'corosync-qnetd-tool','-l'])
+    if not state or not docker_status(state)['active']:raise ValueError('Select a running managed container witness')
+    text=command([ENGINE,'exec',CONTAINER,'corosync-qnetd-tool','-l'])
     clusters=sorted(set(re.findall(r'^Cluster "(.*)":',text,re.M)))
     if text.strip() and not clusters:raise ValueError('Cannot identify attached clusters')
     if any(not re.fullmatch(r'[A-Za-z][A-Za-z0-9_-]{0,62}',name) for name in clusters):raise ValueError('Unmanageable attached cluster name')
-    return dict(mode='docker',image_id=state['Image'],version=docker_status(state)['version'],
+    return dict(mode=ENGINE,image_id=state['Image'],version=docker_status(state)['version'],
                 ca_fingerprint=hashlib.sha256(CERT.read_bytes()).hexdigest(),database_digest=tree_digest(DATA),
                 native_digest=tree_digest(NATIVE) if NATIVE.exists() else None,native_enabled=native_enabled(),clusters=clusters)
 def recover(token):
     state=load(token)
     if state['phase'] in ('committed','rolled-back'):return state
     try:
-        names=command(['docker','ps','-a','--format','{{.Names}}']).splitlines()
+        names=command([ENGINE,'ps','-a','--format','{{.Names}}']).splitlines()
         old_exists=state['old_container'] in names
         current=container_state()
         if not old_exists and current and current['Image']==state['image_id'] and current['Config']['Labels'].get('org.roxy-wi.migration')!=token:
             if state['operation']=='native' and state.get('backed_up'):
                 if NATIVE.exists():shutil.rmtree(NATIVE)
                 if (folder(token)/'native-before').exists():copy_state(folder(token)/'native-before',NATIVE)
-            command(['docker','start',CONTAINER]);restore_enabled(state)
+            command([ENGINE,'start',CONTAINER]);restore_enabled(state)
             restore_receipt(state)
             state['phase']='rolled-back';save(token,state)
             subprocess.run(['systemctl','stop',timer(token)+'.timer'],capture_output=True,timeout=15)
             return state
         if current:
             if current['Config']['Labels'].get('org.roxy-wi.migration')!=token:raise ValueError('Recovery refuses an unrelated container')
-            command(['docker','rm','-f',CONTAINER])
+            command([ENGINE,'rm','-f',CONTAINER])
         if state['operation']=='native':
             command(['systemctl','stop','corosync-qnetd'])
             if state.get('native_replaced'):
@@ -104,8 +104,8 @@ def recover(token):
         if old_exists:
             if DATA.exists():shutil.rmtree(DATA)
             copy_state(folder(token)/'docker-before',DATA)
-            command(['docker','rename',state['old_container'],CONTAINER])
-            command(['docker','start',CONTAINER])
+            command([ENGINE,'rename',state['old_container'],CONTAINER])
+            command([ENGINE,'start',CONTAINER])
         restore_receipt(state)
         state['phase']='rolled-back';save(token,state)
         subprocess.run(['systemctl','stop',timer(token)+'.timer'],capture_output=True,timeout=15)
@@ -147,13 +147,13 @@ def prepare(token,expected,operation):
         with tempfile.TemporaryDirectory(prefix='roxywi-qnetd-refresh-') as build:
             pathlib.Path(build,'Dockerfile').write_text(DOCKERFILE);pathlib.Path(build,'entrypoint').write_text(ENTRYPOINT)
             tag='roxywi-qnetd:refresh-'+token
-            command(['docker','build','--pull','--no-cache','--label','org.roxy-wi.recipe='+RECIPE,'-t',tag,build],timeout=900)
-        state['candidate_image']=json.loads(command(['docker','image','inspect',tag]))[0]['Id']
-        state['candidate_version']=command(['docker','run','--rm','--network','none','--entrypoint','dpkg-query',state['candidate_image'],'-W','-f=${Version}','corosync-qnetd'])
+            command([ENGINE,'build','--pull','--no-cache','--label','org.roxy-wi.recipe='+RECIPE,'-t',tag,build],timeout=900)
+        state['candidate_image']=json.loads(command([ENGINE,'image','inspect',tag]))[0]['Id']
+        state['candidate_version']=command([ENGINE,'run','--rm','--network','none','--entrypoint','dpkg-query',state['candidate_image'],'-W','-f=${Version}','corosync-qnetd'])
         probe=directory/'probe';copy_state(DATA,probe)
         for path in [probe,*probe.rglob('*')]:os.chown(path,65532,65532)
         for args in (['-L','-n','QNetd Cert'],['-K','-f','/etc/corosync/qnetd/nssdb/pwdfile.txt']):
-            command(['docker','run','--rm','--network','none','--read-only','--user','65532:65532','--cap-drop','ALL','--security-opt','no-new-privileges','--entrypoint','certutil','--volume',str(probe)+':/etc/corosync/qnetd:rw,Z',state['candidate_image'],'-d','/etc/corosync/qnetd/nssdb',*args])
+            command([ENGINE,'run','--rm','--network','none','--read-only','--user','65532:65532','--cap-drop','ALL','--security-opt','no-new-privileges','--entrypoint','certutil','--volume',str(probe)+':/etc/corosync/qnetd:rw,Z',state['candidate_image'],'-d','/etc/corosync/qnetd/nssdb',*args])
     if snapshot(token)!=expected:raise ValueError('Witness changed during preparation')
     state['phase']='prepared';save(token,state);return state
 
@@ -164,8 +164,8 @@ def switch(token):
     if any(state[key]!=value for key,value in now.items()):raise ValueError('Witness changed after preparation')
     state['phase']='switching';save(token,state)
     command(['systemd-run','--unit',timer(token),'--on-active=180s','/usr/bin/python3',str(folder(token)/'recover.py')])
-    command(['docker','stop','--time','20',CONTAINER])
-    command(['docker','rename',CONTAINER,state['old_container']])
+    command([ENGINE,'stop','--time','20',CONTAINER])
+    command([ENGINE,'rename',CONTAINER,state['old_container']])
     state['switched']=True;save(token,state)
     if state['operation']=='native':
         state['native_replaced']=True;save(token,state)
@@ -195,11 +195,12 @@ def commit(token):
     if state['operation']=='native':
         command(['corosync-qnetd-tool','-s']);command(['systemctl','enable','corosync-qnetd'])
         mode='native'
+        if ENGINE == 'podman': disable_supervisor()
     else:
         if not docker_status(container_state())['active']:raise ValueError('Candidate witness stopped')
-        mode='docker'
+        mode=ENGINE
         # Keep subsequent native-to-Docker conversions on the verified updated image.
-        command(['docker','tag',state['candidate_image'],'roxywi-qnetd:'+RECIPE[:20]])
+        command([ENGINE,'tag',state['candidate_image'],'roxywi-qnetd:'+RECIPE[:20]])
     if mode=='native' and DATA.exists():os.replace(DATA,folder(token)/'docker-retained')
     receipt=ROOT/'mode.json'
     with tempfile.NamedTemporaryFile(mode='w',dir=ROOT,delete=False) as stream:

@@ -212,7 +212,7 @@
 				{% endif %}
 				{% for set in docker_settings %}
 					{% if set.server_id == s.0 and set.setting == 'dockerized' and set.value == '1' %}
-					<span class="service-feature" title="Docker"><span class="fas fa-box" aria-hidden="true"></span> Docker</span>
+					<span class="service-feature" title="Container"><span class="fas fa-box" aria-hidden="true"></span> {{ container_engines.get(s.0, 'docker')|title }}</span>
 					{% endif %}
 				{% endfor %}
 				{% if g.user_params['role'] <= 3 %}

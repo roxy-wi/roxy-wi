@@ -415,8 +415,8 @@ def _post_deploy_check(change) -> str:
 def _is_service_active(target, service: str) -> bool:
     is_dockerized = service_sql.select_service_setting(target.server_id, service, 'dockerized')
     if is_dockerized == '1':
-        container_name = sql.get_setting(f'{service}_container_name')
-        command = f"sudo docker inspect -f '{{{{.State.Running}}}}' {quote(str(container_name))}"
+        from app.modules.service import container_settings
+        command = container_settings.command(target.server_id, service, ['inspect', '-f', '{{.State.Running}}', container_settings.name(target.server_id, service)])
         expected_state = 'true'
     else:
         service_name = service_common.get_correct_service_name(service, target.server_id)

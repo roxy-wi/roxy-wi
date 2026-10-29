@@ -28,9 +28,9 @@ def host_snapshot(token=None):
         if subprocess.run(['systemctl','is-active','--quiet',unit],capture_output=True).returncode==0:raise ValueError('Select an independent witness')
     container=container_state()
     if container:
-        if not docker_status(container)['active']:raise ValueError('Docker witness must be active')
-        root=DATA;args=['docker','exec',CONTAINER,'corosync-qnetd-tool','-l']
-        mode='docker';image=container['Image'];restart=container['HostConfig']['RestartPolicy']['Name']
+        if not docker_status(container)['active']:raise ValueError('container witness must be active')
+        root=DATA;args=[ENGINE,'exec',CONTAINER,'corosync-qnetd-tool','-l']
+        mode=ENGINE;image=container['Image'];restart=container.get('HostConfig',{}).get('RestartPolicy',{}).get('Name') or 'no'
     else:
         if subprocess.run(['systemctl','is-active','--quiet','corosync-qnetd'],capture_output=True).returncode:raise ValueError('Native witness must be active')
         root=NATIVE;args=['corosync-qnetd-tool','-l'];mode='native';image=None;restart=None
@@ -43,12 +43,12 @@ def host_snapshot(token=None):
                 ca_fingerprint=hashlib.sha256((root/'nssdb/qnetd-cacert.crt').read_bytes()).hexdigest(),
                 database_digest=tree_digest(root),clusters=clusters)
 def stop_host(state):
-    if state['source']['mode']=='docker':
-        command(['docker','update','--restart=no',CONTAINER]);command(['docker','stop','--time','20',CONTAINER])
+    if state['source']['mode'] in ('docker','podman'):
+        command([ENGINE,'update','--restart=no',CONTAINER]);command([ENGINE,'stop','--time','20',CONTAINER])
     else:command(['systemctl','disable','--now','corosync-qnetd'])
 def start_host(state):
-    if state['source']['mode']=='docker':
-        command(['docker','update','--restart='+state['source']['restart'],CONTAINER]);command(['docker','start',CONTAINER])
+    if state['source']['mode'] in ('docker','podman'):
+        command([ENGINE,'update','--restart='+state['source']['restart'],CONTAINER]);command([ENGINE,'start',CONTAINER])
     else:
         command(['systemctl','enable' if state['source']['native_enabled'] else 'disable','corosync-qnetd']);command(['systemctl','start','corosync-qnetd'])
 def host_recover(token,force=False):
@@ -60,7 +60,7 @@ def host_recover(token,force=False):
     # must establish that the other arbiter is stopped before restoring the original source.
     stop_host(state)
     if state['role']=='rotation' and state.get('replaced'):
-        root=DATA if state['source']['mode']=='docker' else NATIVE
+        root=DATA if state['source']['mode'] in ('docker','podman') else NATIVE
         if root.exists():shutil.rmtree(root)
         copy_state(folder(token)/'before',root);start_host(state)
     restore_receipt(state)
@@ -72,8 +72,8 @@ HOST_RECOVERY=BASE
 HOST=BASE+'\nHOST_RECOVERY='+repr(HOST_RECOVERY)+r'''
 def tool(state,args):
     stage=folder(state['token'])/'stage'
-    if state['source']['mode']=='docker':
-        return command(['docker','run','--rm','--network','none','--read-only','--user','65532:65532','--cap-drop','ALL','--security-opt','no-new-privileges','--entrypoint','corosync-qnetd-certutil','--volume',str(stage)+':/etc/corosync/qnetd:rw,Z',state['source']['image_id'],*args],timeout=120)
+    if state['source']['mode'] in ('docker','podman'):
+        return command([ENGINE,'run','--rm','--network','none','--read-only','--user','65532:65532','--cap-drop','ALL','--security-opt','no-new-privileges','--entrypoint','corosync-qnetd-certutil','--volume',str(stage)+':/etc/corosync/qnetd:rw,Z',state['source']['image_id'],*args],timeout=120)
     installed=pathlib.Path(shutil.which('corosync-qnetd-certutil')).read_text()
     marker='CONFIG_DIR="/etc/corosync/qnetd"'
     if installed.count(marker)!=1:raise ValueError('Unsupported certificate utility layout')
@@ -85,14 +85,14 @@ def prepare(data):
     directory=folder(token);directory.mkdir(parents=True,mode=0o700)
     state=dict(token=token,mode_before=json.loads((ROOT/'mode.json').read_text()) if (ROOT/'mode.json').exists() else None,source=current,role=data['role'],phase='prepared',context=data['context'],replaced=False)
     save(token,state)
-    root=DATA if current['mode']=='docker' else NATIVE
+    root=DATA if current['mode'] in ('docker','podman') else NATIVE
     copy_state(root,directory/'before')
     if tree_digest(root)!=current['database_digest'] or tree_digest(directory/'before')!=current['database_digest']:raise ValueError('Witness changed while taking its certificate backup')
     if data['role'] in ('target','rotation'):
         stage=directory/'stage'
         if data['role']=='rotation':
             stage.mkdir(mode=0o700)
-            if current['mode']=='docker':os.chown(stage,65532,65532)
+            if current['mode'] in ('docker','podman'):os.chown(stage,65532,65532)
             tool(state,['-i'])
         else:copy_state(root,stage)
         state['target_ca']=hashlib.sha256((stage/'nssdb/qnetd-cacert.crt').read_bytes()).hexdigest();save(token,state)
@@ -104,8 +104,8 @@ def sign(data):
     alias=data['alias']
     if not re.fullmatch(r'[a-z0-9-]{1,63}',alias):raise ValueError('Invalid certificate request identity')
     path=stage/('request-'+alias+'.crq');path.write_bytes(base64.b64decode(data['request'],validate=True));path.chmod(0o600)
-    if state['source']['mode']=='docker':os.chown(path,65532,65532)
-    request='/etc/corosync/qnetd/'+path.name if state['source']['mode']=='docker' else str(path)
+    if state['source']['mode'] in ('docker','podman'):os.chown(path,65532,65532)
+    request='/etc/corosync/qnetd/'+path.name if state['source']['mode'] in ('docker','podman') else str(path)
     tool(state,['-s','-c',request,'-n',alias]);path.unlink()
     return base64.b64encode((stage/'nssdb'/('cluster-'+alias+'.crt')).read_bytes()).decode()
 os.umask(0o077)
@@ -131,7 +131,7 @@ try:
     elif action=='activate':
         state=load(data['token'])
         if state['phase']!='switching':raise ValueError('Target is not armed for switchover')
-        root=DATA if state['source']['mode']=='docker' else NATIVE
+        root=DATA if state['source']['mode'] in ('docker','podman') else NATIVE
         if state['role']=='rotation':
             stop_host(state);state['replaced']=True;save(data['token'],state)
             shutil.rmtree(root);copy_state(folder(data['token'])/'stage',root)
@@ -158,7 +158,7 @@ try:
         state['phase']='finalizing' if action in ('commit','complete') else 'rolled-back';save(data['token'],state)
         subprocess.run(['systemctl','stop',timer(data['token'])+'.timer'],capture_output=True,timeout=15)
         if action=='complete' and state['role'] in ('target','rotation'):
-            root=DATA if state['source']['mode']=='docker' else NATIVE
+            root=DATA if state['source']['mode'] in ('docker','podman') else NATIVE
             receipt=ROOT/'mode.json'
             with tempfile.NamedTemporaryFile(mode='w',dir=ROOT,delete=False) as stream:
                 path=pathlib.Path(stream.name)

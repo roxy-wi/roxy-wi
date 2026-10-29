@@ -278,7 +278,7 @@ def test_save_to_disk_does_not_apply_and_preserves_master_slave_sync(
     expect(page.locator('#cert-upload-hint')).to_have_text(labels['disk_hint'])
     page.locator('#cert-new-name').fill(name)
     page.locator('#cert-pem').fill(host.new)
-    with page.expect_response('**/add/cert/add') as uploading:
+    with page.expect_response('**/certificates/*/upload') as uploading:
         dialog.locator('[data-cert-apply]').click()
     assert uploading.value.status == 201, uploading.value.text()
     expect(dialog).to_be_hidden()
@@ -375,7 +375,7 @@ def test_uploaded_files_share_server_selection_and_existing_actions(logged_in, p
     page.get_by_role('option', name='Crt (chain)', exact=True).click()
     chain = certificates.inspect_pem(host.new)[0]['fullchain']
     page.locator('#cert-pem').fill(chain)
-    with page.expect_response('**/add/cert/add') as uploading:
+    with page.expect_response('**/certificates/*/upload') as uploading:
         page.locator('[data-cert-apply]').click()
     assert uploading.value.status == 201, uploading.value.text()
     row = page.locator('#cert-list tr').filter(has_text='uploaded.crt')

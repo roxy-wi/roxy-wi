@@ -33,7 +33,7 @@
                 </tr>
                 <tr>
                     <td class="padding10 first-collumn">Quorum witness only</td>
-                    <td class="padding10 first-collumn">Install corosync-qnetd using native packages or Docker on an independent server. Attach it through a reviewed quorum change.</td>
+                    <td class="padding10 first-collumn">Install corosync-qnetd using native packages, Docker or Podman on an independent server. Attach it through a reviewed quorum change.</td>
                     <td class="padding10"><a class="ui-button ui-widget ui-corner-all" href="{{ url_for('install.pacemaker_setup', setup='witness') }}">{{lang.words.install|title()}} witness only</a></td>
                 </tr>
             </tbody>
@@ -46,6 +46,7 @@
     {% endif %}
 
     <div id="service">
+		<p class="rw-form-help">Podman installation requires Python 3.9+ as python3, Podman 4.9+ with Quadlet and cgroup v2. It preserves SELinux enforcement. To adopt an existing container, use the service settings and Discover containers.</p>
 		{% if not is_needed_tool %}
 			<div style="text-align: center;">
 				<h3>{{lang.admin_page.desc.no_ansible}}</h3>.
@@ -63,7 +64,7 @@
 					{{lang.words.available|title()}} {{lang.words.versions}} (?)
 				</td>
 				<td class="padding10 first-collumn" style="width: 20%;">{{lang.words.server|title()}}</td>
-				<td class="checkbox-head help_cursor" title="{{lang.admin_page.desc.install_as_docker}}">{{lang.words.use|title()}} Docker</td>
+				<td class="padding10 first-collumn">Runtime</td>
 				<td>SYN-flood {{lang.words.protection}}</td>
 				<td></td>
 			</tr>
@@ -73,7 +74,7 @@
 				<td class="padding10 first-collumn" style="width: 20%;">
 					{% set values = dict() %}
 					{% set values = {'2.7.9-1':'2.7.9-1','2.8.1-1':'2.8.1-1','2.9.6-1':'2.9.6-1','3.0.10-1':'3.0.10-1','3.1.7-1':'3.1.7-1','3.3.1-1':'3.3.1-1'} %}
-					{{ select('hapver',  values=values, selected='3.3.0-1', required='required') }}
+					{{ select('hapver',  values=values, selected='3.3.1-1', required='required') }}
 				</td>
 				<td class="padding10 first-collumn">
 					<select autofocus required name="haproxyaddserv" id="haproxyaddserv">
@@ -84,7 +85,7 @@
 					</select>
 				</td>
 				<td style="padding-left: 25px;">
-					{{ checkbox('haproxy_docker', title=lang.admin_page.desc.install_as_docker) }}
+					{{ select('haproxy_container_engine', values={'native':'Native', 'docker':'Docker', 'podman':'Podman'}, selected='native') }}
 				</td>
 				<td class="syn-flood-protection-field">
 					{{ checkbox('haproxy_syn_flood', title=lang.words.enable|title() + ' SYN-flood '+ lang.words.protection, checked='checked') }}
@@ -100,7 +101,7 @@
 				<td class="padding10 first-collumn">{{lang.words.current2|title()}} {{lang.words.version}}</td>
 				<td class="padding10 first-collumn" style="width: 30%;">{{lang.words.available|title()}} {{lang.words.versions}}</td>
 				<td class="padding10 first-collumn" style="width: 20%;">{{lang.words.server|title()}}</td>
-				<td class="checkbox-head help_cursor" title="{{lang.admin_page.desc.install_as_docker}}" >{{lang.words.use|title()}} Docker</td>
+				<td class="padding10 first-collumn">Runtime</td>
 				<td>SYN-flood {{lang.words.protection}}</td>
 				<td></td>
 			</tr>
@@ -119,7 +120,7 @@
 					</select>
 				</td>
 				<td style="padding-left: 25px;">
-					{{ checkbox('nginx_docker', title=lang.admin_page.desc.install_as_docker) }}
+					{{ select('nginx_container_engine', values={'native':'Native', 'docker':'Docker', 'podman':'Podman'}, selected='native') }}
 				</td>
 				<td class="syn-flood-protection-field">
 					{{ checkbox('nginx_syn_flood', title=lang.words.enable|title() + ' SYN-flood '+ lang.words.protection, checked='checked') }}
@@ -135,7 +136,7 @@
 				<td class="padding10 first-collumn">{{lang.words.current2|title()}} {{lang.words.version}}</td>
 				<td class="padding10 first-collumn" style="width: 30%;">{{lang.words.available|title()}} {{lang.words.versions}}</td>
 				<td class="padding10 first-collumn" style="width: 20%;">{{lang.words.server|title()}}</td>
-				<td class="checkbox-head help_cursor" title="{{lang.admin_page.desc.install_as_docker}}" >{{lang.words.use|title()}} Docker</td>
+				<td class="padding10 first-collumn">Runtime</td>
 				<td>SYN-flood {{lang.words.protection}}</td>
 				<td></td>
 			</tr>
@@ -154,7 +155,7 @@
 					</select>
 				</td>
 				<td style="padding-left: 25px;">
-					{{ checkbox('apache_docker', title=lang.admin_page.desc.install_as_docker) }}
+					{{ select('apache_container_engine', values={'native':'Native', 'docker':'Docker', 'podman':'Podman'}, selected='native') }}
 				</td>
 				<td class="syn-flood-protection-field">
 					{{ checkbox('apache_syn_flood', title=lang.words.enable|title() + ' SYN-flood '+ lang.words.protection, checked='checked') }}

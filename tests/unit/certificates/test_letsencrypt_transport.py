@@ -30,9 +30,29 @@ def test_ssh_transport_loads_remote_helper(monkeypatch):
     assert certbot.remote(SimpleNamespace(ip='192.0.2.1'), payload) == {'tested': True}
 
     command = connection.ssh.exec_command.call_args.args[0]
-    assert shlex.split(command) == ['python3', '-c', certificates.remote_source()]
-    stdin.write.assert_called_once_with(json.dumps(payload))
+    assert shlex.split(command) == ['python3', '-c', certificates.REMOTE_BOOTSTRAP]
+    frame=stdin.write.call_args.args[0].encode('utf-8')
+    header,content=frame.split(b'\n',1)
+    size=int(header,16)
+    assert content[:size].decode()==certificates.remote_source()
+    assert json.loads(content[size:])==payload
+    assert len(shlex.split(command)[-1])<512
     stdin.channel.shutdown_write.assert_called_once_with()
+
+
+def test_helper_bootstrap_accepts_large_utf8_code_without_command_line_limits():
+    source='import json,sys\nprint(json.dumps(json.load(sys.stdin)))\n'+('# café\n'*40000)
+    encoded=source.encode('utf-8')
+    frame=(format(len(encoded),'x')+'\n').encode()+encoded+b'{"test":true}'
+    result=subprocess.run([sys.executable,'-c',certificates.REMOTE_BOOTSTRAP],input=frame,capture_output=True,timeout=10)
+    assert result.returncode==0,result.stderr
+    assert json.loads(result.stdout)=={'test':True}
+
+
+@pytest.mark.parametrize('frame',[b'900000\n',b'10\nshort'])
+def test_helper_bootstrap_refuses_oversized_or_truncated_code(frame):
+    result=subprocess.run([sys.executable,'-c',certificates.REMOTE_BOOTSTRAP],input=frame,capture_output=True,timeout=10)
+    assert result.returncode!=0
 
 
 @pytest.fixture

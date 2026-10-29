@@ -475,6 +475,49 @@ def test_failed_finalize_retries_without_issuing_or_rolling_back_applied_certifi
     assert calls == [(1, 'commit'), (2, 'commit'), (2, 'commit')]
 
 
+def test_letsencrypt_uses_the_shared_certificate_deployment_engine(monkeypatch, bundle):
+    from app.modules.service import certificate_deployment
+    calls = []
+    apply, finish = certificate_deployment.apply, certificate_deployment.finish
+    def shared_apply(*args, **kwargs):
+        calls.append('apply')
+        return apply(*args, **kwargs)
+    def shared_finish(*args, **kwargs):
+        calls.append(args[1])
+        return finish(*args, **kwargs)
+    monkeypatch.setattr(certificate_deployment, 'apply', shared_apply)
+    monkeypatch.setattr(certificate_deployment, 'finish', shared_finish)
+    fake_issuer(monkeypatch, bundle)
+    _, task_id = store.create(DATA, '1')
+    assert run_task(task_id) == 'completed'
+    assert calls == ['apply', 'commit']
+    assert all(item['status'] == 'deployed' for item in json.loads(LetsEncryptState.get().targets).values())
+
+
+@pytest.mark.parametrize('phase', ['commit', 'rollback'])
+def test_shared_engine_finishes_legacy_journals_without_reissuing_or_repeating_receipts(monkeypatch, phase):
+    _, task_id = store.create(DATA, '1')
+    state = LetsEncryptState.get()
+    state.applied_revision = 1
+    state.deployment = json.dumps({'id': 'legacy-transaction', 'phase': phase, 'targets': {
+        '1': {'address': '192.0.2.1', 'settings': {}, phase: True},
+        '2': {'address': '192.0.2.2', 'settings': {}}}})
+    state.targets = json.dumps({str(index): {'status': 'deployed', 'fingerprint': 'old-fingerprint',
+                                           'address': f'192.0.2.{index}'} for index in (1, 2)})
+    state.save()
+    calls = []
+    monkeypatch.setattr(certbot, 'obtain', lambda *args, **kwargs: pytest.fail('Recovery must not issue'))
+    monkeypatch.setattr(certbot, 'deploy', lambda *args, **kwargs: pytest.fail('Recovery must not deploy again'))
+    monkeypatch.setattr(certbot, 'remote', lambda server, data: calls.append(
+        (server.server_id, data['operation'], data['transaction'])))
+    assert run_task(task_id) == ('completed' if phase == 'commit' else 'failed')
+    assert calls == [(2, phase, 'legacy-transaction')]
+    state = LetsEncryptState.get()
+    assert state.deployment == '{}'
+    if phase == 'commit':
+        assert json.loads(state.targets)['1']['fingerprint'] == 'old-fingerprint'
+
+
 def test_dns_profiles_are_tenant_scoped_and_rotation_is_used_at_execution(monkeypatch, bundle):
     from app.modules.service.le import le_profiles
     profile = le_profiles.save(dict(name='Production', provider='cloudflare', api_token='first-secret', propagation_seconds=120), '1')

@@ -1,19 +1,19 @@
 # Guided witness conversion, image update and trust migration
 
 Open **Installation → Corosync / Pacemaker → Install witness only**, select the
-registered native witness and expand **Convert an existing native witness to
-Docker**. This workflow keeps the same host/IP, TCP 5403, CA and existing cluster
+registered native witness, choose **Runtime: Docker** or **Podman**, and expand
+**Convert an existing native witness to a container**. This workflow keeps the same host/IP, TCP 5403, CA and existing cluster
 certificates. It does not change Corosync configuration or rotate client trust.
 
 1. Select **Review migration**. Roxy-WI reads the native database identity and
    connected cluster names. Every connected cluster must be registered in the
    active group; its members must be online, quorate and using this witness over
    active TLS with a vote. Review the displayed CA fingerprint and cluster list.
-2. Select **Convert to Docker**, type the witness server name and confirm.
+2. Select **Convert to selected engine**, type the witness server name and confirm.
    The reviewed source digest, host identity and cluster membership are checked
    again in the durable Operations worker. Concurrent cluster operations are
    excluded while conversion runs.
-3. Preparation installs missing Docker packages from enabled host repositories,
+3. Preparation installs missing selected-engine packages from enabled host repositories,
    builds/reuses the fixed image and takes a private host-side backup. An isolated
    container checks a copy of the original NSS certificate and private-key database
    before the native service is stopped. Debian's split `docker-cli` package is
@@ -70,7 +70,7 @@ itself, revoked SSH/sudo access or missing backups still require host recovery.
 
 ## Docker to native, and image refresh
 
-Expand **Docker witness: native conversion and image update**, select the operation,
+Expand **Container witness: native conversion and image update**, select the operation,
 then **Review operation**. The table includes the current image/version, CA and
 all attached clusters. **Apply reviewed operation** requires the witness name.
 
@@ -143,3 +143,9 @@ under `/var/lib/roxy-wi/qnetd/trust/<id>` and
 `/var/lib/roxy-wi/qdevice-trust/<id>`. Committed changes require a new reviewed move
 or rotation rather than an automatic rollback. Custom qnetd listener arguments,
 unknown clients, drift, inaccessible hosts and invalid certificates are refused.
+
+The new Podman variant uses the same CA-preservation, independent recovery timer
+and per-member TLS/vote checks. The selected engine is included in the reviewed
+digest, durable request and host runtime record. Podman VM qualification is still
+pending; see [managed components](managed-containers.md). Existing Docker-specific
+qualification below/above does not qualify Podman.

@@ -80,6 +80,15 @@ def test_quorum_roles_do_not_install_a_cluster(role, package, distro, version):
     assert 'pacemaker' not in command and 'corosync' not in command
 
 
+@pytest.mark.parametrize('distro,version',[('debian','13'),('rocky','9.8')])
+def test_podman_witness_includes_the_build_network_userspace_tool(distro,version):
+    code,_files,calls=runtime(distro,version)
+    code['install_packages']('witness-podman')
+    command=next(args for args in calls if isinstance(args,list) and 'install' in args)
+    assert 'podman' in command and 'nftables' in command
+    assert not any(isinstance(args,list) and args[0]=='systemctl' for args in calls)
+
+
 def test_cluster_in_a_container_is_refused_before_installing():
     code, _files, calls = runtime(container=True)
     with pytest.raises(SystemExit, match='Cluster daemons must run on the host'):

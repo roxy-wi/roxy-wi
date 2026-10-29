@@ -5,7 +5,7 @@ import io
 import json
 
 from app.modules.common.time import utc_now, utc_iso
-from app.modules.service.haproxy_runtime import execute_runtime_command
+from app.modules.service.managed_runtime import execute_runtime_command
 
 
 class StatsError(Exception):

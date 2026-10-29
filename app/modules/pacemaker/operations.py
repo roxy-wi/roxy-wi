@@ -105,7 +105,7 @@ def execute(task):
     return state
 
 
-def enqueue_witness(server_id, group_id, user_id, *, docker=False, action="witness-install", data=None):
+def enqueue_witness(server_id, group_id, user_id, *, docker=False, container_engine=None, action="witness-install", data=None):
     from peewee import SqliteDatabase
     from app.modules.db.db_model import Server
     from app.modules.pacemaker.qdevice import witness_server
@@ -128,7 +128,7 @@ def enqueue_witness(server_id, group_id, user_id, *, docker=False, action="witne
         return InstallationTasks.create(service_name=f'Corosync witness: {server.hostname}', group_id=group_id,
             user_id=user_id, server_ids=witness_ids, operation_id=str(uuid4()), operation_type='pacemaker',
             status='created', updated_at=utc_now(), operation_payload=serialize_operation_payload({
-                'action': action, 'server_id': server_id, 'docker': docker, 'data': data or {},
+                'action': action, 'server_id': server_id, 'docker': docker, 'container_engine': container_engine, 'data': data or {},
                 'identity': {'ip': server.ip, 'port': server.port, 'cred_id': server.cred_id},
             }))
 
@@ -150,7 +150,8 @@ def execute_witness(task, payload):
         InstallationTasks.update(operation_payload=serialize_operation_payload(payload)).where(InstallationTasks.id == task.id).execute()
         if payload.get('action','witness-install') == 'witness-migrate':
             from app.modules.pacemaker.witness_migration import migrate
-            payload['result'] = migrate(server.server_id,task.group_id_id,payload['data']['plan_digest'],actor.user_id)
+            payload['result'] = migrate(server.server_id,task.group_id_id,payload['data']['plan_digest'],actor.user_id,
+                container_engine=payload['data'].get('container_engine','docker'))
         elif payload.get('action') == 'witness-trust':
             from app.modules.pacemaker.witness_trust import execute
             data=payload['data']
@@ -167,6 +168,8 @@ def execute_witness(task, payload):
         elif payload.get('action') == 'witness-recover':
             from app.modules.pacemaker.witness_migration import recover_migration
             payload['result'] = recover_migration(server.server_id,task.group_id_id,payload['data']['token'])
+        elif payload.get('container_engine') is not None:
+            payload['result'] = install_witness(server.server_id, task.group_id_id, container_engine=payload['container_engine'])
         elif payload.get('docker', False):
             install_witness(server.server_id, task.group_id_id, docker=True)
         else:
@@ -176,6 +179,6 @@ def execute_witness(task, payload):
     except RoxywiPublicError as exc:
         state, error = 'failed', exc.public_message
     except Exception:
-        state, error = 'failed', 'Witness operation failed; inspect server permissions, the qnetd journal or Docker container logs before retrying'
+        state, error = 'failed', 'Witness operation failed; inspect server permissions, the qnetd journal or selected container engine logs before retrying'
     InstallationTasks.update(status=state, error=error, finish_date=utc_now(), updated_at=utc_now()).where(InstallationTasks.id == task.id).execute()
     return state

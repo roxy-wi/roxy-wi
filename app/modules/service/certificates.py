@@ -12,27 +12,42 @@ from cryptography.hazmat.primitives import hashes, serialization
 
 from app.modules.db import sql, service as service_sql
 from app.modules.db.db_model import Server
-from app.modules.config import candidate, haproxy_files
+from app.modules.config import candidate, haproxy_files,haproxy_discovery
 from app.modules.config.path_tokens import encode_file_path
 from app.modules.roxywi.exception import RoxywiPublicError, RoxywiResourceNotFound, RoxywiValidationError
 from app.modules.server.ssh import return_ssh_keys_path
 from app.modules.server.ssh_connection import SshConnection
 from app.modules.common.execution_context import group_settings
-from app.modules.service import haproxy_runtime
+from app.modules.service import haproxy_runtime, container_settings
+from app.modules.connectors import containers
 
 
 MAX_PEM_BYTES = 1024 * 1024
+REMOTE_BOOTSTRAP = '''import sys
+size = int(sys.stdin.buffer.readline(32), 16)
+if not 0 < size <= 512 * 1024:
+    raise ValueError('Invalid certificate helper frame size')
+source = sys.stdin.buffer.read(size)
+if len(source) != size:
+    raise ValueError('Incomplete certificate helper frame')
+exec(compile(source, 'roxywi-certificate-helper', 'exec'))
+'''
 
 
 def remote_source():
     """Ship the existing validator with the helper; managed hosts need no app install."""
     helper = Path(__file__).resolve().parents[2] / 'scripts' / 'certificate_remote.py'
-    source = 'import types, sys\n'
-    for name, module in (('roxywi_config_candidate', candidate), ('roxywi_haproxy_runtime', haproxy_runtime)):
+    source = containers.embedded()
+    from app.scripts import certificate_cluster_remote,certificate_passive
+    for name, module in (('roxywi_config_candidate', candidate), ('roxywi_haproxy_runtime', haproxy_runtime),
+                         ('roxywi_haproxy_discovery',haproxy_discovery),
+                         ('roxywi_certificate_cluster',certificate_cluster_remote),('roxywi_certificate_passive',certificate_passive)):
         content = Path(module.__file__).read_text(encoding='utf-8')
         source += (f'module = types.ModuleType({name!r})\n'
-                   'sys.modules[module.__name__] = module\n'
-                   f'exec(compile({content!r}, {name!r}, "exec"), module.__dict__)\n')
+                   'sys.modules[module.__name__] = module\n')
+        if name == 'roxywi_haproxy_runtime':
+            source += f'module.__source__ = {content!r}\n'
+        source += f'exec(compile({content!r}, {name!r}, "exec"), module.__dict__)\n'
     return source + helper.read_text(encoding='utf-8')
 
 
@@ -68,10 +83,16 @@ def inspect_pem(pem):
     return bundle, metadata
 
 
-def targets_for(server_id, group_id):
+def targets_for(server_id, group_id, *, cluster_id=None):
     server = Server.get_or_none((Server.server_id == server_id) & (Server.group_id == str(group_id)))
     if server is None:
         raise RoxywiResourceNotFound('Certificate server not found in this group')
+    if cluster_id is not None:
+        from app.modules.pacemaker import service
+        checked = service.members(service.get_cluster(cluster_id, group_id))
+        if server_id not in {member.server_id for member, _s in checked}:
+            raise RoxywiValidationError('The certificate server must belong to the selected Pacemaker cluster')
+        return [server, *[target for _member, target in checked if target.server_id != server_id]]
     children = list(Server.select().where(Server.master == server_id))
     if any(str(child.group_id) != str(group_id) for child in children):
         raise RoxywiValidationError('HA certificate targets must belong to the same group')
@@ -80,7 +101,7 @@ def targets_for(server_id, group_id):
 
 def catalog(server, service='haproxy'):
     data = (deployment_settings(server, '', verify_startup=False) if service == 'haproxy' else
-            dict(cert_dir=sql.get_setting('cert_path', group_id=server.group_id), runtime=False))
+            dict(cert_dir=container_settings.certificate_directory(server, service), runtime=False))
     result = remote(server, dict(data, operation='catalog'))
     for item in result['certificates']:
         item['file_token'] = encode_file_path(item['path'])
@@ -97,15 +118,16 @@ def catalog(server, service='haproxy'):
 
 def certificate_file(server, service, path, *, revision=None):
     data = (deployment_settings(server, '', verify_startup=revision is not None) if service == 'haproxy' else
-            dict(cert_dir=sql.get_setting('cert_path', group_id=server.group_id), runtime=False))
+            dict(cert_dir=container_settings.certificate_directory(server, service), runtime=False))
     return remote(server, dict(data, operation='remove-file' if revision is not None else 'read-file',
                                path=path, revision=revision))
 
 
-def store_uploaded_file(server_ip, name, content):
+def store_uploaded_file(server_ip, name, content, *, service=None):
     """Use the shared privileged transport for uploads, including non-root SSH users."""
     server = Server.get(Server.ip == str(server_ip))
-    return remote(server, dict(operation='store', cert_dir=sql.get_setting('cert_path', group_id=server.group_id),
+    directory = container_settings.certificate_directory(server, service) if service else sql.get_setting('cert_path', group_id=server.group_id)
+    return remote(server, dict(operation='store', cert_dir=directory,
                                pem_name=name, pem=content))
 
 
@@ -148,10 +170,16 @@ def inspect_bundle(bundle, domains=None, allow_expired=False):
 
 def remote(server, data):
     settings = return_ssh_keys_path(server.ip)
-    argv = ([] if settings['user'] == 'root' else ['sudo', '-n']) + ['python3', '-c', remote_source()]
+    source = remote_source()
+    size = len(source.encode('utf-8'))
+    if size > 512 * 1024:
+        raise CertificateError('Certificate helper exceeded its transport size limit')
+    argv = ([] if settings['user'] == 'root' else ['sudo', '-n']) + ['python3', '-c', REMOTE_BOOTSTRAP]
     with SshConnection(server.ip, settings, banner_timeout=30) as connection:
         stdin, stdout, stderr = connection.ssh.exec_command(shlex.join(argv), timeout=2700)
-        stdin.write(json.dumps(data))
+        # The helper exceeds some systems' per-argument limit. Code and private
+        # certificate data share a framed stdin stream; neither enters argv.
+        stdin.write(format(size, 'x') + '\n' + source + json.dumps(data))
         stdin.flush()
         stdin.channel.shutdown_write()
         output = stdout.read(1024 * 1024)
@@ -169,13 +197,17 @@ def remote(server, data):
 
 def deployment_settings(server, pem_name, *, verify_startup=True):
     settings = {
-        'pem_name': pem_name, 'cert_dir': sql.get_setting('cert_path', group_id=server.group_id),
+        'pem_name': pem_name, 'cert_dir': container_settings.certificate_directory(server, 'haproxy'),
         'config_path': sql.get_setting('haproxy_config_path', group_id=server.group_id),
         'docker': service_sql.select_service_setting(server.server_id, 'haproxy', 'dockerized') == '1',
-        'container': sql.get_setting('haproxy_container_name', group_id=server.group_id),
+        'container': container_settings.name(server.server_id, 'haproxy'),
         'runtime_port': int(sql.get_setting('haproxy_sock_port', group_id=server.group_id)),
         'apply_mode': 'auto',
     }
+    from app.modules.service.common import get_correct_service_name
+    settings['service_unit']=get_correct_service_name('haproxy',server.server_id)
+    settings['root']=sql.get_setting('haproxy_dir',group_id=server.group_id)
+    settings.update(container_settings.context(server.server_id, 'haproxy'))
     if verify_startup:
         try:
             with group_settings(server.group_id):
@@ -191,3 +223,23 @@ def deploy(server, bundle, pem_name, *, settings=None, transaction=None):
     data = settings or deployment_settings(server, pem_name)
     return remote(server, dict(data, operation='deploy', transaction=transaction,
                               pem=bundle['fullchain'].rstrip() + '\n' + bundle['key'].rstrip() + '\n'))
+
+
+def cluster_deployment_settings(server,pem_name,proof):
+    data=deployment_settings(server,pem_name,verify_startup=proof['mode']!='passive')
+    data['cluster_proof']=proof
+    if proof['mode']=='passive':
+        data['apply_mode']='disk_stage'
+        data['validation']=remote(server,dict(data,operation='passive-context'))
+    return data
+
+
+def passive_inspection(server,pem_name,proof,*,directory=None,destination=None,expected_digest=None):
+    data=cluster_deployment_settings(server,pem_name,proof)
+    if directory:data['update_directory']=directory
+    if destination:data['destination']=destination
+    if expected_digest:data['verify_passive_digest']=expected_digest
+    result=remote(server,dict(data,operation='passive-inspect'))
+    pem=result.pop('certificate','')
+    if pem:result['certificate']=certificate_metadata(pem)
+    return data,result

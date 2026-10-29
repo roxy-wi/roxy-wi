@@ -12,6 +12,8 @@ from app.modules.operations.queue import (
     OperationQueueSettings,
     declare_operation_topology,
     deserialize_operation_payload,
+    source_owned_operation,
+    renew_operation_lease,
 )
 from app.modules.roxywi import logger
 from app.modules.process_heartbeat import set_process_heartbeat_status
@@ -50,6 +52,8 @@ def execute_operation(operation_id: str, task_id: int) -> str:
             return 'missing'
         if task.status in {'completed', 'failed'}:
             return task.status
+        if source_owned_operation(task):
+            return 'owned'
         if task.operation_type == 'backup':
             from app.modules.service.backup_execution import execute_backup
             return execute_backup(task)
@@ -58,6 +62,9 @@ def execute_operation(operation_id: str, task_id: int) -> str:
             return execute(task)
         if task.operation_type == 'certificate':
             from app.modules.service.certificate_operations import execute
+            return execute(task)
+        if task.operation_type == 'certificate-source':
+            from app.modules.service.certificate_sources import execute
             return execute(task)
         if task.operation_type == 'change':
             from app.modules.change.operations import execute
@@ -87,6 +94,12 @@ def execute_operation(operation_id: str, task_id: int) -> str:
 def claim_operation(operation_id: str, task_id: int) -> tuple[bool, str]:
     """Atomically claim a published task; duplicate deliveries become no-ops."""
     try:
+        task = InstallationTasks.get_or_none((InstallationTasks.id == task_id) &
+            (InstallationTasks.operation_id == operation_id))
+        if task is None:
+            return False, 'missing'
+        if task.status not in ('completed', 'failed') and source_owned_operation(task):
+            return False, 'owned'
         updated = (
             InstallationTasks.update(
                 status='running',
@@ -224,10 +237,7 @@ class OperationWorker:
                             )
                     if time.monotonic() - last_heartbeat >= 30:
                         try:
-                            InstallationTasks.update(updated_at=utc_now()).where(
-                                (InstallationTasks.id == task_id)
-                                & (InstallationTasks.status == 'running')
-                            ).execute()
+                            renew_operation_lease(operation_id, task_id)
                         except Exception as error:
                             local_health.dependency('database', False)
                             logger.error(f'Cannot renew operation {operation_id} lease: {error}')

@@ -12,8 +12,8 @@ from app.modules.pacemaker.witness_docker import RUNTIME, RECIPE
 
 def runtime(tmp_path, monkeypatch):
     values = {}
-    exec(RUNTIME, values)
     root = tmp_path / 'witness'
+    exec(RUNTIME.replace("ROOT = pathlib.Path('/var/lib/roxy-wi/qnetd')", f'ROOT = pathlib.Path({str(root)!r})'), values)
     values.update(ROOT=root, DATA=root / 'data', CERT=root / 'data/nssdb/qnetd-cacert.crt',
                   platform_profile=lambda: {'manager': 'apt-get'},
                   install_packages=lambda *_: pytest.fail('Docker is already installed'))

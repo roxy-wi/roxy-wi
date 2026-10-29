@@ -106,28 +106,9 @@ def editable(le_id):
 
 
 def check_destination(data, pem_name, group_id, exclude=None):
-    # Serialize owners of overlapping HA destinations, in a consistent order.
+    from app.modules.service.certificate_ownership import check
     targets = targets_for(data['server_id'], group_id)
-    ids = {server.server_id for server in targets}
-    for server_id in sorted(ids):
-        locked(Server, Server.server_id == server_id)
-    query = LetsEncryptState.select().where(LetsEncryptState.pem_name == pem_name)
-    if not isinstance(LetsEncryptState._meta.database, SqliteDatabase):
-        query = query.for_update()  # Current read after waiting on the server lock.
-    for state in query:
-        if state.le_id == exclude:
-            continue
-        if state.status == 'deleted':
-            continue
-        other = LetsEncrypt.get_or_none(LetsEncrypt.id == state.le_id)
-        if other is None:
-            continue
-        other_ids = {other.server_id_id, *[s.server_id for s in Server.select().where(Server.master == other.server_id_id)]}
-        if state.pending_config:
-            requested = deserialize_operation_payload(state.pending_config)['server_id']
-            other_ids |= {requested, *[s.server_id for s in Server.select().where(Server.master == requested)]}
-        if ids & other_ids:
-            raise RoxywiConflictError('Another certificate already manages this PEM on a target server')
+    check({server.server_id for server in targets}, pem_name, group_id, le_id=exclude)
 
 
 def enqueue(state, data, action, group_id, user_id=None):

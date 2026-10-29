@@ -22,12 +22,14 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y openssh-server openssl fail2ban haproxy nginx libnginx-mod-http-modsecurity rsyslog logrotate
+          sudo apt-get install -y podman openssh-server openssl fail2ban haproxy nginx libnginx-mod-http-modsecurity rsyslog logrotate
           # Ubuntu's rsyslog AppArmor profile permits /var/log/**, not /tmp/**.
           sudo install -d -m 0700 -o "$(id -u)" -g "$(id -g)" /var/log/roxywi-tests
           python -m pip install -r requirements.txt -r requirements-dev.txt
           python -m playwright install --with-deps chromium
           docker pull haproxy:3.0-alpine
+      - name: Verify managed proxy Quadlets with the real generator
+        run: python -m pytest tests/unit/runtime/test_podman_proxy_install.py -q --no-cov
       - name: Verify product workflows in Chromium
         env:
           ROXYWI_TEST_BROWSER: '1'
@@ -56,6 +58,8 @@ jobs:
         run: python -m pytest tests/integration/test_waf_logs_linux.py -q --no-cov
       - name: Verify authentication events with the real Fail2Ban filter
         run: python -m pytest tests/integration/test_advisory_fail2ban.py -q --no-cov
+      - name: Verify passive cluster certificate staging with the real host helper
+        run: python -m pytest tests/integration/test_passive_certificate_linux.py -q --no-cov
       - name: Verify real SSH and Docker HAProxy certificate recovery
         env:
           ROXYWI_TEST_DOCKER_LE: '1'

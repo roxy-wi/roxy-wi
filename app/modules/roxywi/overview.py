@@ -1,4 +1,9 @@
 import requests
+import csv
+import io
+import re
+from app.modules.db import service as service_sql
+from app.modules.service import container_settings, managed_runtime
 from flask import render_template, request
 
 import app.modules.db.sql as sql
@@ -64,28 +69,35 @@ def show_overview(serv) -> str:
     if haproxy:
         cmd = f'echo "show info" |nc {server.ip} {sql.get_setting("haproxy_sock_port")} -w 1|grep -e "Process_num"'
         try:
-            haproxy_process = service_common.server_status(server_mod.subprocess_execute(cmd))
+            if service_sql.select_service_setting(server.server_id, 'haproxy', 'dockerized') == '1':
+                info = managed_runtime.execute_runtime_command(server.ip, int(sql.get_setting('haproxy_sock_port')), 'show info')
+                match = re.search(r'^Process_num:\s*(\d+)', info, re.M)
+                haproxy_process = match.group(1) if match else '0'
+            else:
+                haproxy_process = service_common.server_status(server_mod.subprocess_execute(cmd))
         except Exception as e:
             return f'error: {safe_error_message(e)} for server {server.hostname}'
 
     if nginx:
         nginx_cmd = f'echo "something" |nc {server.ip} {sql.get_setting("nginx_stats_port")} -w 1'
         try:
-            nginx_process = service_common.server_status(server_mod.subprocess_execute(nginx_cmd))
+            nginx_process = (container_settings.service_status(server, 'nginx')['Process'] if service_sql.select_service_setting(server.server_id, 'nginx', 'dockerized') == '1' else service_common.server_status(server_mod.subprocess_execute(nginx_cmd)))
         except Exception as e:
             return f'error: {safe_error_message(e)} for server {server.hostname}'
 
     if apache:
         apache_cmd = f'echo "something" |nc {server.ip} {sql.get_setting("apache_stats_port")} -w 1'
         try:
-            apache_process = service_common.server_status(server_mod.subprocess_execute(apache_cmd))
+            apache_process = (container_settings.service_status(server, 'apache')['Process'] if service_sql.select_service_setting(server.server_id, 'apache', 'dockerized') == '1' else service_common.server_status(server_mod.subprocess_execute(apache_cmd)))
         except Exception as e:
             return f'error: {safe_error_message(e)} for server {server.hostname}'
 
     if keepalived:
         command = "ps ax |grep keepalived|grep -v grep|wc -l|tr -d '\n'"
         try:
-            keepalived_process = server_mod.ssh_command(server.ip, command)
+            keepalived_process = (container_settings.service_status(server, 'keepalived')['Process']
+                if service_sql.select_service_setting(server.server_id, 'keepalived', 'dockerized') == '1'
+                else server_mod.ssh_command(server.ip, command))
         except Exception as e:
             return f'error: {safe_error_message(e)} for server {server.hostname}'
 
@@ -109,23 +121,9 @@ def show_overview(serv) -> str:
 
 def show_haproxy_binout(server_ip: str) -> str:
     port = sql.get_setting('haproxy_sock_port')
-    bin_bout = []
-    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,9|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
-        server_ip, port)
-    bit_in, stderr = server_mod.subprocess_execute(cmd)
-    bin_bout.append(bit_in[0])
-    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,10|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
-        server_ip, port)
-    bout, stderr1 = server_mod.subprocess_execute(cmd)
-    bin_bout.append(bout[0])
-    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,5|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
-        server_ip, port)
-    cin, stderr2 = server_mod.subprocess_execute(cmd)
-    bin_bout.append(cin[0])
-    cmd = "echo 'show stat' |nc {} {} |cut -d ',' -f 1-2,8|grep -E '[0-9]'|awk -F',' '{{sum+=$3;}}END{{print sum;}}'".format(
-        server_ip, port)
-    cout, stderr3 = server_mod.subprocess_execute(cmd)
-    bin_bout.append(cout[0])
+    response = managed_runtime.execute_runtime_command(server_ip, int(port), 'show stat')
+    rows = list(csv.DictReader(io.StringIO(response.lstrip('# '))))
+    bin_bout = [str(sum(int(row.get(field) or 0) for row in rows)) for field in ('bin','bout','scur','stot')]
     lang = roxywi_common.get_user_lang_for_flask()
 
     return render_template('ajax/bin_bout.html', bin_bout=bin_bout, serv=server_ip, service='haproxy', lang=lang)
@@ -139,7 +137,7 @@ def show_nginx_connections(server_ip: str) -> str:
     url = f'http://{server_ip}:{port}/{page}'
 
     try:
-        r = requests.get(url, auth=(user, password), timeout=5)
+        r = managed_runtime.statistics_response(server_ip, 'nginx', port, page, user, password)
     except Exception as e:
         raise Exception(e)
 
@@ -166,7 +164,7 @@ def show_apache_bytes(server_ip: str) -> str:
     url = f'http://{server_ip}:{port}/{page}?auto'
 
     try:
-        r = requests.get(url, auth=(user, password), timeout=5)
+        r = managed_runtime.statistics_response(server_ip, 'apache', port, page+'?auto', user, password)
     except Exception as e:
         raise Exception(e)
 
