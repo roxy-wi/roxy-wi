@@ -2,6 +2,8 @@
 from dataclasses import replace
 from contextlib import contextmanager
 from datetime import timedelta
+from functools import lru_cache
+from itertools import count
 import json
 import os
 from pathlib import Path, PurePosixPath
@@ -12,7 +14,7 @@ from types import SimpleNamespace
 import pytest
 from peewee import Model
 
-from app import cache, initialize_database
+from app import cache, create_db, initialize_database
 from app.modules.db import db_model as models
 from app.modules.db.migration_manager import Migration
 from app.modules.roxywi import common, roxy
@@ -25,8 +27,29 @@ from app.modules.service import certificates
 from app.scripts import certificate_remote
 
 
+@pytest.fixture(scope='session')
+def product_bootstrap_credentials():
+    """Prepare genuine synthetic bootstrap credentials once per test process.
+
+    Every product DB still runs the real schema/default seeding. Its fixed admin
+    and distinct secondary-user credentials are fixture data; password hashing in
+    application requests and the dedicated bootstrap/hash tests remains real.
+    """
+    original_tools, original_secrets = create_db.Tools, create_db.secrets
+
+    @lru_cache(maxsize=None)
+    def password_hash(password):
+        return original_tools.get_hash(password)
+
+    @lru_cache(maxsize=None)
+    def random_password(position, nbytes=None):
+        return original_secrets.token_urlsafe(nbytes)
+
+    return SimpleNamespace(password_hash=password_hash, random_password=random_password)
+
+
 @pytest.fixture
-def product(app, tmp_path, monkeypatch):
+def product(app, tmp_path, monkeypatch, product_bootstrap_credentials):
     path = tmp_path / 'product.db'
     monkeypatch.setenv('ROXYWI_DB_PATH', str(path))
     monkeypatch.setenv('ROXYWI_LIB_PATH', str(tmp_path / 'lib'))
@@ -43,7 +66,16 @@ def product(app, tmp_path, monkeypatch):
     monkeypatch.setattr(common, 'return_user_subscription', lambda: {'user_status': 1, 'user_plan': 'support'})
     with database.bind_ctx([*bound, Migration], bind_refs=False, bind_backrefs=False):
         cache.clear()
-        initialize_database()
+        # Only default seeding sees prepared synthetic credential material. Use
+        # module-local proxies, restoring them before any request or test body.
+        positions = count()
+        with monkeypatch.context() as bootstrap:
+            bootstrap.setattr(create_db, 'Tools', SimpleNamespace(
+                get_hash=product_bootstrap_credentials.password_hash))
+            bootstrap.setattr(create_db, 'secrets', SimpleNamespace(
+                token_urlsafe=lambda nbytes=None: product_bootstrap_credentials.random_password(
+                    next(positions), nbytes)))
+            initialize_database()
         models.Cred.create(id=11, name='Product SSH', username='operator', group_id=1,
                            key_enabled=0, password=crypt_password('SyntheticSSHPassword!'))
         server = models.Server.create(server_id=11, hostname='Product HAProxy', ip='192.0.2.11',

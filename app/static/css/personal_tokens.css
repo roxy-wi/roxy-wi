@@ -1,0 +1,13 @@
+.personal-tokens-page { padding: 0 15px 15px; }
+.personal-tokens-page [hidden] { display: none !important; }
+.personal-tokens-page h3 { background: transparent; color: inherit; border-bottom: 1px solid #888; }
+#personal-token-form, #personal-token-created { max-width: 900px; margin-top: 24px; }
+#personal-token-form > label, #personal-token-created label { display: flex; flex-direction: column; gap: 6px; margin: 15px 0; }
+.personal-tokens-page input.form-control, .personal-tokens-page textarea { color: inherit; background: transparent; }
+.personal-tokens-page textarea { width: 100%; box-sizing: border-box; overflow-wrap: anywhere; }
+#personal-token-form fieldset { margin: 20px 0; }
+#personal-token-form .personal-token-scope { display: flex; gap: 8px; align-items: center; margin: 8px 0; text-align: left; }
+.personal-token-scope code { margin-left: auto; }
+#personal-token-status { min-height: 20px; }
+#personal-token-table td { padding: 6px; overflow-wrap: anywhere; max-width: 280px; }
+@media (max-width: 700px) { .personal-token-scope code { display: none; } }
