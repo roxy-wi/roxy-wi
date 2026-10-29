@@ -7,6 +7,10 @@ These notes cover **Roxy-WI 9.1 and later**.
 - Keep HA readiness history readable across key rotation, bind evidence to cluster
   registration lifetimes and stable server IDs, treat referenced fencing metadata
   conservatively, and preserve unsaved failure-domain edits during polling.
+- Add durable request-path diagnostics for HAProxy/NGINX/Apache with discovered
+  routing candidates, context-aware includes, pinned DNS/address probes,
+  TCP/TLS-SNI/HTTP evidence, candidate-backend checks and group-scoped history.
+
 - Add reviewed HA node maintenance with Change Center approval, offline Pacemaker
   placement/quorum checks, Keepalived VIP handover, observed drain/return,
   reservations, explicit recovery and configuration-bound maintenance evidence.

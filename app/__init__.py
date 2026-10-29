@@ -100,6 +100,7 @@ def _initialize_runtime() -> None:
     from app.routes.oidc import bp as oidc_bp
     from app.routes.change import bp as change_bp
     from app.routes.health import bp as health_bp
+    from app.routes.insights import bp as insights_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(overview_bp)
@@ -113,6 +114,7 @@ def _initialize_runtime() -> None:
     app.register_blueprint(oidc_bp, url_prefix='/oidc')
     app.register_blueprint(change_bp, url_prefix='/changes')
     app.register_blueprint(health_bp)
+    app.register_blueprint(insights_bp,url_prefix='/insights')
 
     # Tests render the same navigation and pages as production.
     from app.routes.add import bp as add_bp

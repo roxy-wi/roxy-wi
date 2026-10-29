@@ -1,6 +1,9 @@
 """Build an NGINX virtual server -> location -> upstream -> server graph."""
 
 import ipaddress
+import posixpath
+import re
+from pathlib import PurePosixPath
 
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
@@ -186,8 +189,39 @@ def _is_direct_target(authority: str) -> bool:
         return False
 
 
+def expand_dump(config_text):
+    """Expand dumped include files in their original HTTP/stream/server context."""
+    files={};current=None
+    for line in config_text.splitlines(keepends=True):
+        match=re.fullmatch(r'# configuration file (/.+):\s*',line.rstrip('\n'))
+        if match:
+            current=posixpath.normpath(match[1]);files.setdefault(current,[])
+        elif current is not None:files[current].append(line)
+    if not files:return config_text,False
+    if len(files)>128 or len(config_text.encode())>2*1024*1024:raise ValueError('NGINX dump exceeds inventory limits')
+    root=next(iter(files));prefix=posixpath.dirname(root);partial=False
+    def expand(path,ancestors):
+        nonlocal partial
+        if path in ancestors:raise ValueError('Recursive NGINX include')
+        text=''.join(files[path]);tokens=_tokenize_config(text,with_spans=True);replacements=[]
+        for index,(token,start,end) in enumerate(tokens):
+            if token!='include' or (index and tokens[index-1][0] not in (';','{','}')):continue
+            if index+2>=len(tokens) or tokens[index+2][0]!=';':partial=True;continue
+            pattern=tokens[index+1][0]
+            pattern=posixpath.normpath(pattern if pattern.startswith('/') else posixpath.join(prefix,pattern))
+            matches=[value for value in files if PurePosixPath(value).match(pattern)]
+            if not matches and not any(c in pattern for c in '*?['):partial=True
+            replacement='\n'.join(expand(value,ancestors|{path}) for value in matches)
+            replacements.append((start,tokens[index+2][2],replacement))
+        for start,end,value in reversed(replacements):text=text[:start]+value+text[end:]
+        if len(text.encode())>2*1024*1024:raise ValueError('Expanded NGINX configuration exceeds inventory limits')
+        return text
+    return expand(root,set()),partial
+
+
 def build_dependency_graph(config_text: str) -> dict:
     """Return a browser-friendly graph from the complete output of ``nginx -T``."""
+    config_text,partial=expand_dump(config_text)
     syntax = _parse_config(config_text)
     nodes = {}
     edges = []
@@ -310,7 +344,8 @@ def build_dependency_graph(config_text: str) -> dict:
                 virtual_id = f'virtual_server:{scope}:{virtual_server_number}'
                 add_node(
                     'virtual_server', virtual_id, display_name, display_name=display_name,
-                    addresses=addresses, server_names=server_names, protocol=scope
+                    addresses=addresses, server_names=server_names, protocol=scope,
+                    tls=any('ssl' in directive['args'][1:] for directive in listen_directives)
                 )
                 visit_dependencies(item['children'], virtual_id, scope)
                 continue
@@ -328,7 +363,9 @@ def build_dependency_graph(config_text: str) -> dict:
         node_type: sum(1 for node in graph_nodes if node['type'] == node_type)
         for node_type in type_order
     }
-    return {'nodes': graph_nodes, 'edges': edges, 'counts': counts}
+    result={'nodes': graph_nodes, 'edges': edges, 'counts': counts}
+    if partial:result['partial']=True
+    return result
 
 
 def show_map(serv: str, group_id: int) -> dict:
