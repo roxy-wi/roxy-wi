@@ -36,6 +36,8 @@ jobs:
         run: |
           test -x /usr/lib/systemd/system-generators/podman-system-generator
           python -m pytest tests/integration/test_podman_quadlet_linux.py -q --no-cov
+      - name: Verify guided Pacemaker candidates with native tools
+        run: python -m pytest tests/unit/pacemaker/test_guided_editor.py -q --no-cov
       - name: Verify product workflows in Chromium
         env:
           ROXYWI_TEST_BROWSER: '1'

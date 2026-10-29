@@ -77,6 +77,35 @@
             <p id="pcmk-autostart-result" class="rw-form-help" role="status" aria-live="polite"></p>
         </details>
 </section>
+<section data-pcmk-view="wizard" {% if view != 'wizard' %}hidden{% endif %}>
+    <div class="rw-panel">
+        <h3>Guided cluster configuration</h3>
+        <p>Read the current cluster, choose a configuration task and create a draft. Validate and simulate the draft in the existing review before applying it.</p>
+        <p class="rw-form-help">The draft step retains the running configuration. Resources and nodes come from the selected cluster. Advanced definitions remain available in the complete CIB editor.</p>
+        <div class="rw-table-toolbar"><button type="button" id="pcmk-guided-load" class="rw-button rw-button-secondary">Read current configuration</button></div>
+        <div class="pcmk-feedback"><p id="pcmk-guided-status" class="rw-form-help" role="status" aria-live="polite">Read the cluster before creating a draft.</p></div>
+    </div>
+    <details class="change-advanced-settings" id="pcmk-guided-unsupported-panel" hidden><summary>Advanced definitions retained in the CIB editor</summary><ul id="pcmk-guided-unsupported"></ul></details>
+    <form id="pcmk-guided-form" aria-busy="false" hidden>
+        <section class="rw-panel">
+            <h4>Configuration task</h4>
+            <div class="change-advanced-grid">
+                <div class="rw-form-field"><label for="pcmk-guided-kind">Configuration task</label>{{ select('pcmk-guided-kind', values={'topology':'Fencing topology','location-rule':'Location and time rules','collection':'Groups and clones','operation':'Resource operations','bundle':'Container bundle','meta':'Resource meta-attributes'}, selected='topology') }}</div>
+                <div class="rw-form-field" id="pcmk-guided-existing-field"><label for="pcmk-guided-existing">Existing configuration</label>{{ select('pcmk-guided-existing', values={}) }}</div>
+            </div>
+        </section>
+        <section class="rw-panel">
+            <h4>Configuration details</h4>
+            <p id="pcmk-guided-help" class="rw-form-help"></p>
+            <div id="pcmk-guided-fields" class="change-advanced-grid"></div>
+        </section>
+        <div id="pcmk-guided-rows"></div>
+        <div id="pcmk-guided-actions" class="rw-table-toolbar"></div>
+        <datalist id="pcmk-guided-attributes"></datalist>
+        <div class="rw-table-toolbar"><button type="submit" id="pcmk-guided-create" class="rw-button rw-button-primary">Create reviewed draft</button></div>
+    </form>
+    <p><a href="{{ url_for('pacemaker.page',view='resources') }}">Manage discovered resource agents and packages</a> · <a href="{{ url_for('pacemaker.page',view='configuration') }}">Open complete CIB editor</a></p>
+</section>
 <section data-pcmk-view="resources" {% if view not in ['resources'] %}hidden{% endif %}>
         <details id="pcmk-agent-manager" class="change-advanced-settings">
             <summary>Agents and repository packages</summary>
@@ -202,5 +231,6 @@
     </section>
 </main>
 <script src="{{ url_for('static', filename='js/pacemaker-discovery.js') }}" defer></script>
-<script src="{{ url_for('static', filename='js/pacemaker.js', v='10.0-3') }}" defer></script>
+<script src="{{ url_for('static', filename='js/pacemaker-guided.js', v='10.0-4') }}" defer></script>
+<script src="{{ url_for('static', filename='js/pacemaker.js', v='10.0-4') }}" defer></script>
 {% endblock %}
