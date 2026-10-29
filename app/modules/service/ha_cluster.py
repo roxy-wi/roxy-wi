@@ -7,6 +7,7 @@ from app.modules.db.db_model import HaCluster, HaClusterRouter, HaClusterVip, Ha
 import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi.class_models import HAClusterRequest, HAClusterVIP, HAClusterServersRequest
 from app.modules.roxywi.exception import RoxywiResourceNotFound
+from app.modules.service.ha_mutation import guarded
 
 
 def _get_servers_dict(cluster: Union[HAClusterRequest, HAClusterVIP, HAClusterServersRequest]) -> Union[dict, None]:
@@ -25,6 +26,7 @@ def get_services_dict(cluster: HAClusterRequest) -> dict:
     return services
 
 
+@guarded
 def create_cluster(cluster: HAClusterRequest, group_id: int) -> int:
     servers = _get_servers_dict(cluster)
     services = get_services_dict(cluster)
@@ -68,6 +70,7 @@ def create_cluster(cluster: HAClusterRequest, group_id: int) -> int:
     return int(cluster_id)
 
 
+@guarded
 def update_cluster(cluster: HAClusterRequest, cluster_id: int, group_id: int) -> None:
     servers = _get_servers_dict(cluster)
     services = get_services_dict(cluster)
@@ -118,6 +121,7 @@ def update_cluster(cluster: HAClusterRequest, cluster_id: int, group_id: int) ->
     roxywi_common.logging(cluster_id, f'Cluster {cluster.name} has been updated', keep_history=1, service='HA cluster')
 
 
+@guarded
 def delete_cluster(cluster_id: int) -> None:
     router_id = ha_sql.get_router_id(cluster_id, default_router=1)
     slaves = ha_sql.select_cluster_slaves(cluster_id, router_id)
@@ -136,6 +140,7 @@ def delete_cluster(cluster_id: int) -> None:
     roxywi_common.logging(cluster_id, 'Cluster has been deleted', service='HA cluster')
 
 
+@guarded
 def update_vip(cluster_id: int, router_id: int, cluster: Union[HAClusterRequest, HAClusterVIP], group_id: int) -> None:
     vip_id = ha_sql.select_clusters_vip_id(cluster_id, router_id)
     servers = _get_servers_dict(cluster)
@@ -165,6 +170,7 @@ def update_vip(cluster_id: int, router_id: int, cluster: Union[HAClusterRequest,
     roxywi_common.logging(cluster_id, f'Cluster VIP {cluster.vip} has been updated', keep_history=1, service='HA cluster')
 
 
+@guarded
 def insert_vip(cluster_id: int, cluster: HAClusterVIP, group_id: int) -> int:
     try:
         slaves_count = ha_sql.select_count_cluster_slaves(cluster_id)
@@ -209,6 +215,7 @@ def insert_vip(cluster_id: int, cluster: HAClusterVIP, group_id: int) -> int:
     return vip_id
 
 
+@guarded
 def update_slaves(servers: dict, cluster_id: int, router_id: int) -> None:
     all_routers_in_cluster = HaClusterRouter.select(HaClusterRouter.id).where(HaClusterRouter.cluster_id == cluster_id).execute()
     server_ids_from_db = ha_sql.select_cluster_slaves(cluster_id, router_id)
@@ -245,6 +252,7 @@ def update_slaves(servers: dict, cluster_id: int, router_id: int) -> None:
     _create_or_update_master_slaves_servers(cluster_id, servers, router_id)
 
 
+@guarded
 def add_or_update_virt(cluster: Union[HAClusterRequest, HAClusterVIP], servers: dict, cluster_id: int, vip_id: int, group_id: int) -> None:
     haproxy = 0
     nginx = 0
@@ -303,6 +311,7 @@ def add_or_update_virt(cluster: Union[HAClusterRequest, HAClusterVIP], servers: 
             roxywi_common.logging(cluster_id, f'error: Cannot save cluster virtual server for VIP: {vip}: {e}', service='HA cluster')
 
 
+@guarded
 def _create_or_update_master_slaves_servers(cluster_id: int, servers: dict, router_id: int, create: bool = False) -> None:
     for server in servers:
         s = server_sql.get_server(server['id'])
@@ -320,3 +329,17 @@ def _create_or_update_master_slaves_servers(cluster_id: int, servers: dict, rout
             ha_sql.update_master_server_by_slave_ip(server['id'], s.ip)
         except Exception as e:
             raise Exception(f'error: Cannot update master on slave {s.hostname: {e}}')
+
+
+@guarded
+def delete_vip(cluster_id: int, vip_id: int) -> None:
+    vip = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)
+    router = ha_sql.get_router(vip.router_id)
+    if router.default == 1:
+        from app.modules.roxywi.exception import RoxywiValidationError
+        raise RoxywiValidationError('You cannot delete default VIP')
+    if ha_sql.check_ha_virt(vip_id):
+        ha_sql.delete_ha_virt(vip_id)
+        roxywi_common.logging(cluster_id, f'Cluster virtual server for VIP: {vip.vip} has been deleted',
+                              keep_history=1, roxywi=1, service='HA cluster')
+    ha_sql.delete_ha_router(vip.router_id)

@@ -7,7 +7,7 @@ from peewee import SqliteDatabase
 
 from app.modules.config import add, common as config_common, config as config_mod
 from app.modules.db import config as config_sql, server as server_sql
-from app.modules.db.db_model import Server, ConfigVersion, WafRules
+from app.modules.db.db_model import Server, ConfigVersion, WafRules, HaCluster, HaClusterRouter, HaClusterSlave, PacemakerCluster
 from app.modules.roxywi import auth, common
 from app.routes.config import routes
 from app.routes.waf import routes as waf_routes
@@ -133,8 +133,10 @@ def test_address_reuse_does_not_transfer_saved_version_ownership(client, editor,
     monkeypatch.setattr(config_common, 'get_config_dir', lambda _: str(directory))
     monkeypatch.setattr(common, 'get_user_lang_for_flask', lambda: 'en')
     database = SqliteDatabase(':memory:')
-    with database.bind_ctx([Server, ConfigVersion]):
-        database.create_tables([Server, ConfigVersion])
+    # Server edits now consult real HA membership before changing identity.
+    models=[Server,ConfigVersion,HaCluster,HaClusterRouter,HaClusterSlave,PacemakerCluster]
+    with database.bind_ctx(models):
+        database.create_tables(models)
         original = Server.create(hostname='original', ip=SERVER, group_id='2')
         saved = Path(config_common.generate_config_path(service, SERVER))
         saved.write_text('original owner secret\n')

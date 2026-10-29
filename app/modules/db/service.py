@@ -1,7 +1,9 @@
 from app.modules.db.db_model import Server, Services, ServiceSetting
 from app.modules.db.common import out_error
+from app.modules.service.ha_mutation import guarded_service, guarded_server
 
 
+@guarded_service
 def update_hapwi_server(server_id, alert, metrics, active, service_name):
 	try:
 		if service_name == 'nginx':
@@ -22,6 +24,7 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 		out_error(e)
 
 
+@guarded_server
 def update_server_services(server_id: int, haproxy: int, nginx: int, apache: int, keepalived: int) -> bool:
 	try:
 		server_update = Server.update(
@@ -35,6 +38,7 @@ def update_server_services(server_id: int, haproxy: int, nginx: int, apache: int
 		return True
 
 
+@guarded_service
 def insert_or_update_service_setting(server_id, service, setting, value):
 	try:
 		ServiceSetting.insert(server_id=server_id, service=service, setting=setting, value=value).on_conflict(

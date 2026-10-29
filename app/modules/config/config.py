@@ -13,6 +13,7 @@ from markupsafe import escape
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
 import app.modules.db.server as server_sql
+from app.modules.service.ha_mutation import guarded_service
 import app.modules.db.config as config_sql
 import app.modules.db.service as service_sql
 import app.modules.server.ssh as mod_ssh
@@ -345,6 +346,7 @@ def apply_waf(server_ip: str, service: str) -> None:
 	roxywi_common.logging(server_ip, f'WAF configuration applied for {service}', keep_history=1, service=service)
 
 
+@guarded_service
 def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, **kwargs):
 	"""
 	:param server_ip: IP address of the server

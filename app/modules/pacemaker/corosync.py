@@ -3,6 +3,7 @@ import base64
 import hashlib
 import json
 import secrets
+from app.modules.service.ha_topology import topology_guarded
 
 from app.modules.db.db_model import PacemakerCluster, PacemakerChange
 from app.modules.db.server import get_server_with_group
@@ -88,6 +89,7 @@ def draft(cluster, user_id, body):
         return change
 
 
+@topology_guarded
 def execute(cluster, change, user_id, *, apply=False):
     with service.locked(cluster) as lease:
         if json.loads(cluster.corosync_settings).get('membership_managed') is False:
@@ -108,6 +110,8 @@ def execute(cluster, change, user_id, *, apply=False):
             raise RoxywiInputError('Corosync changes require quorum and every current node online')
         old_ids = {member.server_id for member, _s, _conf in existing}
         checked = [(member, get_server_with_group(member.server_id, cluster.group_id)) for member in body.members]
+        if any(not server.enabled or server.type_ip for _member, server in checked):
+            raise RoxywiInputError('Cluster members must be enabled physical server entries')
         new_ids = {member.server_id for member, _s in checked}
         # Recheck on validation and apply, including drafts validated by older
         # versions. A surviving member is needed to reload the running cluster.

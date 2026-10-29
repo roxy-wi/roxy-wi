@@ -376,8 +376,19 @@ def collect(provider, cluster, nodes, current_profile, heartbeat=lambda:None):
     attestations=json.loads(current_profile.attestations) if current_profile else []
     matches=[dict(item,configuration_current=item['fingerprint']==fingerprint) for item in attestations]
     checks.append(check('verification','unknown','This read-only audit performs no switchover, fencing or partition test. Operator records are labelled separately.'))
+    verified=None
+    previous=OperationalAssessment.select().where((OperationalAssessment.group_id==cluster.group_id)&
+        (OperationalAssessment.kind=='ha-maintenance')&(OperationalAssessment.subject==subject_key(provider,cluster))&
+        (OperationalAssessment.result!='')).order_by(OperationalAssessment.created_at.desc()).limit(100)
+    for row in previous:
+        proof=deserialize_operation_payload(row.result).get('verified_test')
+        if proof and proof.get('source')=='observed-drain-and-return':
+            verified=dict(proof,configuration_current=proof.get('fingerprint')==fingerprint);break
+    if verified:
+        checks[-1]=check('verification','observed' if verified['configuration_current'] else 'warning',
+            'A planned node drain and return was observed. Check whether its configuration still matches. This does not establish fencing or partition-test success.',verified)
     return dict(provider=provider,cluster_id=cluster.id,name=cluster.name,observed_at=utc_iso(utc_now()),
-        fingerprint=fingerprint,nodes=observations,checks=checks,attestations=matches,last_verified_test=None)
+        fingerprint=fingerprint,nodes=observations,checks=checks,attestations=matches,last_verified_test=verified)
 
 
 def execute(task):

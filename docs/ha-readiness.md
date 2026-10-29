@@ -64,6 +64,11 @@ membership, SSH identities and configuration hashes. Drift marks the record as
 matching an earlier configuration. It never populates automatically verified-test
 evidence. A read-only audit never creates successful failover evidence.
 
+The [HA maintenance wizard](ha-maintenance.md) can record an automatically observed
+planned drain and return. Its kind and timestamps are shown separately from
+operator attestations. A changed configuration marks the older record stale;
+planned maintenance does not establish fencing or network-partition success.
+
 ## Access, persistence and API
 
 Cluster service permission and the active group apply throughout. Roles 1–3 may

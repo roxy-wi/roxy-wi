@@ -13,7 +13,7 @@ from app.modules.roxywi.exception import (
 
 
 def _change(change_id=1, service='haproxy', group_id=1):
-    return SimpleNamespace(id=change_id, service=service, group_id=group_id, server_id=10, status='paused', active_task_id=None)
+    return SimpleNamespace(id=change_id, service=service, group_id=group_id, server_id=10, status='paused', active_task_id=None, action='reload')
 
 
 @pytest.fixture()

@@ -74,6 +74,8 @@ def _check_action(change, action, target_id):
 def enqueue(change_id, action, group_id, actor_id, *, target_id=None, scheduled=False):
     require_feature(CHANGE_CENTER)
     with locked_change(change_id, group_id) as change:
+        if change.action=='ha-maintenance':
+            raise RoxywiValidationError('Use the HA maintenance wizard for this operational change')
         if scheduled:
             if action != 'deploy' or change.status != 'scheduled' or change.scheduled_at > utc_now():
                 raise RoxywiConflictError('This scheduled deployment is not due')
@@ -229,6 +231,8 @@ def execute(task):
                 return _finish(task, change, 'failed', 'Operations was interrupted. Inspect the change and remote state before retrying.', audit=audit)
             require_feature(CHANGE_CENTER)
             _authorize(change, payload)
+            if change.action=='ha-maintenance':
+                raise RoxywiValidationError('Operational maintenance must run through its own reviewed worker')
             if payload['scheduled'] and change.maintenance_window_end and change.maintenance_window_end < utc_now():
                 change_sql.update_change(
                     change.id, status='schedule_missed', finished_at=utc_now(),

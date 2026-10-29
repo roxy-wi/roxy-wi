@@ -3,7 +3,7 @@ from flask import abort, g, jsonify, render_template, request
 from pydantic import ValidationError
 from app.middleware import get_user_params
 from app.modules.roxywi import auth
-from app.modules.roxywi.exception import RoxywiConflictError, RoxywiResourceNotFound
+from app.modules.roxywi.exception import RoxywiConflictError, RoxywiResourceNotFound, RoxywiPermissionError, RoxywiValidationError
 from app.modules.db.db_model import HaCluster, PacemakerCluster, OperationalAssessment
 from app.modules.service import ha_readiness as audit
 from app.routes.ha import bp
@@ -23,6 +23,10 @@ def access(handler):
             return jsonify(error='HA assessment or cluster not found'),404
         except RoxywiConflictError as error:
             return jsonify(error=error.public_message),409
+        except RoxywiPermissionError as error:
+            return jsonify(error=error.public_message),403
+        except RoxywiValidationError as error:
+            return jsonify(error=error.public_message),400
         except (ValidationError,ValueError):
             return jsonify(error='Invalid assessment fields; refresh the cluster and review the form'),400
     return wrapped

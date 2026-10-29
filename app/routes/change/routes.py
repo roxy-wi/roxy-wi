@@ -66,6 +66,14 @@ def _get_active_group_change(change_id: int):
         raise RoxywiPermissionError('Change does not belong to the active group')
     if not roxywi_auth.is_access_permit_to_service(change.service):
         raise RoxywiPermissionError(f'No access to {change.service.title()} changes')
+    if change.action=='ha-maintenance' and request.method!='GET' and request.endpoint not in ('change.approve_change','change.cancel_change'):
+        raise RoxywiValidationError('Use the HA maintenance wizard to execute or review this operational change')
+    if change.action=='ha-maintenance' and request.endpoint=='change.cancel_change':
+        from app.modules.db.db_model import HaMaintenancePlan
+        from app.modules.operations.queue import deserialize_operation_payload
+        plan=HaMaintenancePlan.get_or_none(HaMaintenancePlan.change_id==change.id)
+        if plan and (deserialize_operation_payload(plan.payload).get('drained_at') or plan.status in ('draining','ready','unknown','resuming','return-reviewed')):
+            raise RoxywiConflictError('A drained node requires a reviewed return; its reservation cannot be cancelled')
     return change
 
 
@@ -108,7 +116,7 @@ def index():
 def list_changes():
     service = request.args.get('service') or None
     status = request.args.get('status') or None
-    if service and service not in ('haproxy', 'nginx', 'apache', 'keepalived'):
+    if service and service not in ('haproxy', 'nginx', 'apache', 'keepalived','cluster'):
         return _error_response(RoxywiValidationError('Unsupported service filter'))
     try:
         changes = change_sql.list_changes(g.user_params['group_id'], service=service, status=status)

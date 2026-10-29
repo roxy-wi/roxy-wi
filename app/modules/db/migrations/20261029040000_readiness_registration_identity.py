@@ -7,12 +7,22 @@ from app.modules.db.db_model import HaCluster, PacemakerCluster, HaReadinessProf
 
 def up():
     database=HaCluster._meta.database
+    fields=[(HaCluster,'readiness_key'),(PacemakerCluster,'readiness_key'),
+            (HaReadinessProfile,'registration_key')]
+    missing=[(model._meta.table_name,field) for model,field in fields
+             if field not in {c.name for c in database.get_columns(model._meta.table_name)}]
+    # Legacy plans cannot be safely attached to a newly generated registration.
+    # Abort before any DDL so their approved return remains usable on the old code.
+    if missing and 'ha_maintenance_plans' in database.get_tables():
+        busy=database.execute_sql(
+            "SELECT 1 FROM ha_maintenance_plans WHERE active_task_id IS NOT NULL "
+            "OR status IN ('draining','ready','unknown','resuming','return-reviewed') LIMIT 1"
+        ).fetchone()
+        if busy:
+            raise RuntimeError('Finish or recover every active HA maintenance plan through its approved return before upgrading')
     migrator=SqliteMigrator(database) if isinstance(database,SqliteDatabase) else MySQLMigrator(database)
-    for model, field in [(HaCluster,'readiness_key'),(PacemakerCluster,'readiness_key'),
-                         (HaReadinessProfile,'registration_key')]:
-        table=model._meta.table_name
-        if field not in {c.name for c in database.get_columns(table)}:
-            migrate(migrator.add_column(table,field,CharField(max_length=32,default='')))
+    for table,field in missing:
+        migrate(migrator.add_column(table,field,CharField(max_length=32,default='')))
     for model in (HaCluster,PacemakerCluster):
         for row in model.select().where(model.readiness_key==''):
             model.update(readiness_key=uuid4().hex).where((model.id==row.id)&(model.readiness_key=='')).execute()

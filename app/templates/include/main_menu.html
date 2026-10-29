@@ -50,6 +50,11 @@
 					<li class="nav-item" data-nav-search="ha readiness audit">
 						<a href="{{ url_for('ha.readiness') }}" class="nav-link{% if request.url_rule.endpoint == 'ha.readiness' %} menu-active{% endif %}"><span class="fas fa-clipboard-check nav-icon" aria-hidden="true"></span><span class="nav-label">HA readiness</span></a>
 					</li>
+					{% if g.user_params['role']|int <=3 %}
+					<li class="nav-item" data-nav-search="ha node maintenance">
+						<a href="{{ url_for('ha.maintenance_page') }}" class="nav-link{% if request.url_rule.endpoint == 'ha.maintenance_page' %} menu-active{% endif %}"><span class="fas fa-tools nav-icon" aria-hidden="true"></span><span class="nav-label">HA maintenance</span></a>
+					</li>
+					{% endif %}
 					{% endif %}
 				</ul>
 			</li>

@@ -15,7 +15,30 @@ from app.modules.common.common_classes import SupportClass
 from app.modules.roxywi.class_models import BaseResponse, IdResponse, HAClusterRequest, HAClusterVIP, GroupQuery
 
 
-class HAView(MethodView):
+class HAMutationView(MethodView):
+    def dispatch_request(self, *args, **kwargs):
+        if request.method in ('GET', 'HEAD', 'OPTIONS'):
+            return super().dispatch_request(*args, **kwargs)
+        from app.modules.service.ha_mutation import mutation
+        from app.modules.roxywi.exception import RoxywiConflictError
+        body = request.get_json(silent=True) or {}
+        servers = (body.get('servers') or []) if isinstance(body, dict) else []
+        server_ids = []
+        for server in servers if isinstance(servers, list) else []:
+            try:
+                server_ids.append(int(server['id']))
+            except (KeyError, TypeError, ValueError):
+                pass  # Body validation reports malformed member IDs below.
+        try:
+            with mutation(kwargs.get('cluster_id'), server_ids=server_ids, group_id=g.user_params['group_id']):
+                return super().dispatch_request(*args, **kwargs)
+        except RoxywiConflictError as error:
+            return jsonify(error=error.public_message), 409
+        except Exception as error:
+            return roxywi_common.handler_exceptions_for_json_data(error, 'Cannot mutate cluster')
+
+
+class HAView(HAMutationView):
     methods = ["GET", "POST", "PUT", "DELETE"]
     decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
 
@@ -414,7 +437,7 @@ class HAView(MethodView):
         return jsonify({"status": "accepted", "tasks_ids": tasks_ids}), 202
 
 
-class HAVIPView(MethodView):
+class HAVIPView(HAMutationView):
     methods = ["GET", "POST", "PUT", "DELETE"]
     decorators = [jwt_required(), get_user_params(), check_services, page_for_admin(level=3), check_group()]
 
@@ -668,15 +691,8 @@ class HAVIPView(MethodView):
           404:
              description: VIP not found
         """
-        vip = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)
-        router = ha_sql.get_router(vip.router_id)
-        if router.default == 1:
-            return roxywi_common.handler_exceptions_for_json_data(Exception(''), 'You cannot delete default VIP')
         try:
-            if ha_sql.check_ha_virt(vip_id):
-                ha_sql.delete_ha_virt(vip_id)
-                roxywi_common.logging(cluster_id, f'Cluster virtual server for VIP: {vip.vip} has been deleted', keep_history=1, roxywi=1, service='HA cluster')
-            ha_sql.delete_ha_router(vip.router_id)
+            ha_cluster.delete_vip(cluster_id, vip_id)
             return BaseResponse().model_dump(mode='json'), 204
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot delete VIP')

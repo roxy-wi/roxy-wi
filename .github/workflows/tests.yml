@@ -22,7 +22,7 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y podman openssh-server openssl fail2ban haproxy nginx libnginx-mod-http-modsecurity rsyslog logrotate gnupg
+          sudo apt-get install -y podman openssh-server openssl fail2ban haproxy nginx libnginx-mod-http-modsecurity rsyslog logrotate gnupg pacemaker-cli-utils
           # Ubuntu's rsyslog AppArmor profile permits /var/log/**, not /tmp/**.
           sudo install -d -m 0700 -o "$(id -u)" -g "$(id -g)" /var/log/roxywi-tests
           python -m pip install -r requirements.txt -r requirements-dev.txt
@@ -43,6 +43,8 @@ jobs:
           python -m pytest tests/product/browser -q --no-cov
           --tracing retain-on-failure --screenshot only-on-failure
           --output test-results/browser --junitxml=test-results/browser.xml
+      - name: Verify offline HA maintenance scheduling
+        run: python -m pytest tests/integration/test_ha_maintenance_simulation_linux.py -q --no-cov
       - name: Upload browser failure evidence
         if: failure()
         uses: actions/upload-artifact@v4
@@ -79,7 +81,9 @@ jobs:
 
   unit-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    # Includes dependency setup and the full growing coverage suite. A passing
+    # Python 3.10 run took 18m34s before cleanup on a hosted runner.
+    timeout-minutes: 35
     strategy:
       fail-fast: false
       matrix:
@@ -118,4 +122,4 @@ jobs:
           docker compose --env-file docker/.env.example -f docker/docker-compose.sqlite.yml config --quiet
 
       - name: Run unit, security and product workflow tests
-        run: python -m pytest --ignore=tests/smoke --ignore=tests/product/browser --cov=app --cov-report=term-missing --cov-fail-under=25
+        run: python -m pytest --ignore=tests/smoke --ignore=tests/product/browser --durations=20 --cov=app --cov-report=term-missing --cov-fail-under=25

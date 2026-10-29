@@ -8,6 +8,7 @@ from flask import render_template
 import app.modules.db.sql as sql
 import app.modules.db.waf as waf_sql
 import app.modules.db.server as server_sql
+from app.modules.service.ha_mutation import guarded_server
 import app.modules.db.backup as backup_sql
 import app.modules.db.checker as checker_sql
 import app.modules.db.service as service_sql
@@ -480,6 +481,7 @@ def update_server_after_creating(hostname: str, ip: str) -> None:
 		raise Exception(f'Cannot get information from {hostname}: {e}')
 
 
+@guarded_server
 def delete_server(server_id: int) -> None:
 	server = server_sql.get_server(server_id)
 

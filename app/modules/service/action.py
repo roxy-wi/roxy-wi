@@ -5,6 +5,7 @@ from tempfile import TemporaryDirectory
 
 import app.modules.db.sql as sql
 import app.modules.db.server as server_sql
+from app.modules.service.ha_mutation import guarded_service
 import app.modules.db.service as service_sql
 import app.modules.common.common as common
 import app.modules.server.server as server_mod
@@ -34,6 +35,7 @@ def common_action(server_ip: str, action: str, service: str) -> None:
     action_functions[service](server_ip, action, service)
 
 
+@guarded_service
 def service_action(server_ip: str, action: str, service: str) -> None:
     """
     :param server_ip: The IP address of the server on which the action will be performed.
@@ -70,6 +72,9 @@ def get_action_command(service: str, action: str, server_id: int) -> str:
     """
     if action not in ('start', 'stop', 'reload', 'restart'):
         raise ValueError('Unsupported service action')
+    if service=='keepalived':
+        from app.modules.service.ha_maintenance import assert_server_idle
+        assert_server_idle(server_id)
     if service == 'waf' and action == 'reload':
         raise ValueError('The HAProxy WAF agent requires restart to apply rules')
     if action in ('start', 'stop', 'restart'):

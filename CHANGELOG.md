@@ -7,6 +7,9 @@ These notes cover **Roxy-WI 9.1 and later**.
 - Keep HA readiness history readable across key rotation, bind evidence to cluster
   registration lifetimes and stable server IDs, treat referenced fencing metadata
   conservatively, and preserve unsaved failure-domain edits during polling.
+- Add reviewed HA node maintenance with Change Center approval, offline Pacemaker
+  placement/quorum checks, Keepalived VIP handover, observed drain/return,
+  reservations, explicit recovery and configuration-bound maintenance evidence.
 
 - Add a shared Keepalived/Pacemaker readiness page with durable read-only audits,
   per-member witness TLS/votes, configuration hashes, static fencing coverage,

@@ -10,6 +10,7 @@ from app.modules.pacemaker.remote import Remote
 from app.modules.pacemaker.schemas import ClusterCreate, Member
 from app.modules.pacemaker.xml import configuration, digest, summary
 from app.modules.roxywi.exception import RoxywiInputError, RoxywiConflictError
+from app.modules.service.ha_topology import topology_guarded
 
 
 INSPECT = r'''
@@ -84,6 +85,7 @@ def discover(server_id, group_id):
     }
 
 
+@topology_guarded
 def adopt(body, group_id, user_id):
     seed = server_for(body.seed_server_id, group_id)
     found = inspect(seed)
@@ -112,7 +114,7 @@ def adopt(body, group_id, user_id):
     with database.atomic():
         cluster = service.register(ClusterCreate(name=body.name, description=body.description, members=body.members), group_id)
         cluster.corosync_settings = json.dumps(found['settings'])
-        cluster.save()
+        cluster.save(only=[PacemakerCluster.corosync_settings])
         PacemakerChange.create(cluster=cluster, user_id=user_id, kind='cib', status='applied',
                                base_digest=found['base_digest'], candidate=service.encrypt(found['xml']),
                                previous=service.encrypt(found['xml']),

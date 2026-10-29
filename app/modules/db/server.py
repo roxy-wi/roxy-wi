@@ -3,6 +3,7 @@ from peewee import IntegrityError, DoesNotExist
 from app.modules.db.db_model import Server, SystemInfo
 from app.modules.db.common import out_error, not_unique_error
 from app.modules.roxywi.exception import RoxywiResourceNotFound
+from app.modules.service.ha_mutation import guarded_server
 
 
 def add_server(**kwargs):
@@ -14,6 +15,7 @@ def add_server(**kwargs):
 		out_error(e)
 
 
+@guarded_server
 def delete_server(server_id):
 	try:
 		server_for_delete = Server.delete().where(Server.server_id == server_id)
@@ -24,6 +26,7 @@ def delete_server(server_id):
 		return deleted == 1
 
 
+@guarded_server
 def update_server(hostname, ip, group, type_ip, enable, master, server_id, cred, port, desc, firewall, protected):
 	try:
 		server_update = Server.update(

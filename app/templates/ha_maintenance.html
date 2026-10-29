@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}HA node maintenance{% endblock %}
+{% block h2 %}<span class="rw-workspace-title">HA node maintenance</span>{% endblock %}
+{% block content %}
+{% from 'include/input_macros.html' import checkbox %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/table-6.3.9.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/pacemaker.css',v='9.3.0-2') }}">
+<main class="service-overview-page rw-operations-workspace" id="ha-maintenance" data-api="{{ url_for('ha.maintenance_list') }}" data-subjects="{{ url_for('ha.subjects') }}" data-role="{{ g.user_params['role'] }}">
+    <p>Review remaining quorum, scheduler placement and application capacity, obtain independent approval in Change Center, drain registered resources and VIP sessions, then explicitly return the node. This workflow does not power off, reboot or patch a host.</p>
+    <p>Capacity is an operator assertion backed by the evidence you provide; a scheduler simulation does not establish real application throughput. Existing TCP sessions can delay the handover. Keepalived VIP movement can interrupt connections.</p>
+    <div class="rw-workspace-feedback"><p id="ha-maintenance-message" class="rw-form-help" role="status" aria-live="polite"></p></div>
+    {% if g.user_params['role']|int <=3 %}
+    <section class="rw-panel"><h3>Plan maintenance</h3><form id="ha-maintenance-create">
+        <div class="change-advanced-grid">
+            <div class="rw-form-field"><label for="maintenance-cluster">Cluster</label><select id="maintenance-cluster" required><option value="">Select cluster</option></select></div>
+            <div class="rw-form-field"><label for="maintenance-node">Node</label><select id="maintenance-node" required><option value="">Select node</option></select></div>
+            <div class="rw-form-field"><label for="maintenance-title">Change title</label><input id="maintenance-title" class="form-control" minlength="5" maxlength="255" required></div>
+            <div class="rw-form-field"><label for="maintenance-capacity">Remaining capacity evidence</label><textarea id="maintenance-capacity" class="form-control" rows="4" minlength="10" maxlength="2000" required placeholder="Load-test result, capacity review or ticket reference"></textarea></div>
+        </div>
+        <div class="rw-table-toolbar">{{ checkbox('maintenance-confirm-capacity',desc='I verified that the remaining nodes can carry the application workload.') }}</div>
+        <button class="rw-button rw-button-primary" type="submit">Create maintenance plan</button>
+    </form></section>
+    {% endif %}
+    <div class="rw-table-toolbar"><button id="maintenance-refresh" type="button" class="rw-button rw-button-secondary">Refresh</button><a class="ui-button ui-widget ui-corner-all" href="{{ url_for('change.index') }}">Change Center approvals</a><a class="ui-button ui-widget ui-corner-all" href="{{ url_for('ha.readiness') }}">HA readiness</a></div>
+    <div id="maintenance-plans"></div>
+</main>
+<script src="{{ url_for('static',filename='js/ha-maintenance.js') }}" defer></script>
+{% endblock %}

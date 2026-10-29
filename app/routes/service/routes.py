@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from typing import Union
 
 import distro
@@ -434,7 +435,9 @@ def save_service_settings(service):
         # Wait for the SQLite writer before starting the settings transaction.
         # Deferred transactions can fail immediately when a worker writes too.
         transaction_args = ('IMMEDIATE',) if isinstance(database, SqliteDatabase) else ()
-        with database.atomic(*transaction_args):
+        from app.modules.service.ha_mutation import mutation
+        reservation = mutation(server_ids=[server_id]) if service == 'keepalived' else nullcontext()
+        with reservation, database.atomic(*transaction_args):
             for setting, value in values.items():
                 if not service_sql.insert_or_update_service_setting(server_id, service, setting, value):
                     raise RuntimeError('Cannot save service settings')
