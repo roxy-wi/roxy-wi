@@ -39,7 +39,8 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v5
         with:
-          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
+          # PR merge refs can disappear while queued jobs wait; retain the event commit.
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.sha }}
 
       - name: Set up Helm
         uses: azure/setup-helm@v5.0.1
@@ -106,7 +107,8 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v5
         with:
-          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.ref }}
+          # PR merge refs can disappear while queued jobs wait; retain the event commit.
+          ref: ${{ inputs.tag && format('refs/tags/{0}', inputs.tag) || github.sha }}
           persist-credentials: false
 
       - name: Set up Helm
