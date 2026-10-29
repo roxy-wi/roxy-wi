@@ -5,7 +5,7 @@ import os
 from cryptography.fernet import Fernet, InvalidToken
 
 from app.modules.db.db_model import (Cred, InstallationTasks, LetsEncryptState, LetsEncryptDnsProfile,
-    OidcProvider, PacemakerChange, CertificateSource, OperationalAssessment, HaMaintenancePlan)
+    OidcProvider, PacemakerChange, CertificateSource, OperationalAssessment, HaMaintenancePlan, ServedTlsMonitor)
 
 
 SECRET_FIELDS = ('password', 'passphrase', 'private_key')
@@ -100,7 +100,7 @@ def rotate_credentials() -> int:
 
         encrypted_states=((LetsEncryptState,('credentials','pending_config')),
             (LetsEncryptDnsProfile,('credentials',)),(CertificateSource,('configuration',)),
-            (OperationalAssessment,('result',)),(HaMaintenancePlan,('payload',)))
+            (OperationalAssessment,('result',)),(HaMaintenancePlan,('payload',)),(ServedTlsMonitor,('configuration',)))
         for state,fields in ((state,fields) for model,fields in encrypted_states for state in model.select()):
             updates = {}
             for field in fields:
