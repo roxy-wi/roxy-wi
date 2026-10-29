@@ -6,7 +6,7 @@ from app.middleware import get_user_params
 from app.modules.db.db_model import Server
 from app.modules.db import service as service_sql,user as user_sql
 from app.modules.roxywi.exception import RoxywiResourceNotFound,RoxywiPermissionError,RoxywiConflictError,RoxywiValidationError
-from app.modules.service import proxy_assessments as assessments, service_map
+from app.modules.service import proxy_assessments as assessments, service_map, managed_acl
 from app.modules.roxywi import logger
 from app.routes.insights import bp
 
@@ -27,7 +27,7 @@ def api(handler):
         except RoxywiPermissionError:return jsonify(error='Proxy inspection permission denied'),403
         except RoxywiConflictError as error:return jsonify(error=error.public_message),409
         except RoxywiValidationError as error:return jsonify(error=error.public_message),400
-        except (ValidationError,ValueError):return jsonify(error='Invalid fields; select a registered proxy and an HTTP(S) URL without credentials'),400
+        except (ValidationError,ValueError):return jsonify(error='Invalid fields; review the selected proxy, discovered targets and form values'),400
         except Exception as error:
             logger.error('Proxy inspection API failed', error_type=type(error).__name__)
             return jsonify(error='Proxy inspection failed; refresh configuration discovery and permissions'), 502
@@ -60,6 +60,99 @@ def available_services() -> list[str]:
 @bp.get('/services')
 def service_map_page():
     return render_template('published_services.html',lang=g.user_params['lang'])
+
+
+@bp.get('/acl-feeds')
+def acl_page():
+    if '1' not in g.user_params['user_services'].split():abort(403)
+    return render_template('managed_acl.html',lang=g.user_params['lang'])
+
+
+def acl_owned(feed_id):
+    row=managed_acl.get(feed_id,g.user_params['group_id'])
+    managed_acl.authorize(row,g.user_params['user_id'])
+    return row
+
+
+@bp.get('/api/acl-feeds')
+@api
+def acl_collection():
+    from app.modules.db.db_model import ManagedAclFeed,ManagedAclVersion
+    rows=[]
+    for row in ManagedAclFeed.select().where(ManagedAclFeed.group_id==g.user_params['group_id']).limit(256):
+        try:rows.append(managed_acl.public(row,g.user_params['user_id']))
+        except (RoxywiResourceNotFound,RoxywiPermissionError):continue
+    change_id=request.args.get('change',type=int)
+    selected=ManagedAclVersion.get_or_none((ManagedAclVersion.group_id==g.user_params['group_id'])&
+        (ManagedAclVersion.change_id==change_id)) if change_id else None
+    if selected and selected.feed_id not in {row['id'] for row in rows}:selected=None
+    return jsonify(data=rows,selected_feed_id=selected.feed_id if selected else None,selected_version_id=selected.id if selected else None,
+        providers=[dict(id=key,name=value.label) for key,value in managed_acl.ip_feeds.PROVIDERS.items()])
+
+
+@bp.post('/api/acl-feeds/discover')
+@api
+def acl_discover():
+    body=request.get_json()
+    if not isinstance(body,dict) or set(body)!={'server_id'}:raise ValueError('Select a registered server')
+    server=assessments.authorize(int(body['server_id']),'haproxy',g.user_params['group_id'],g.user_params['user_id'],probe=True)
+    return jsonify(managed_acl.remote(server,'discover'))
+
+
+@bp.post('/api/acl-feeds')
+@bp.put('/api/acl-feeds/<int:feed_id>')
+@api
+def acl_save(feed_id=None):
+    body=managed_acl.FeedRequest.model_validate(request.get_json())
+    row=managed_acl.save(body,g.user_params['group_id'],g.user_params['user_id'],feed_id)
+    return jsonify(data=managed_acl.public(row,g.user_params['user_id'])),201 if feed_id is None else 200
+
+
+@bp.delete('/api/acl-feeds/<int:feed_id>')
+@api
+def acl_delete(feed_id):
+    row=acl_owned(feed_id);managed_acl.authorize(row,g.user_params['user_id'],write=True)
+    with managed_acl.transaction():
+        row=managed_acl.locked(type(row),(type(row).id==row.id)&(type(row).group_id==row.group_id));managed_acl.editable(row);row.delete_instance()
+    return jsonify(status='deleted')
+
+
+@bp.post('/api/acl-feeds/<int:feed_id>/approve-source')
+@api
+def acl_approve(feed_id):
+    body=request.get_json()
+    if not isinstance(body,dict) or set(body)!={'revision'}:raise ValueError('Supply the reviewed source revision')
+    row=managed_acl.approve(acl_owned(feed_id),g.user_params['user_id'],int(body['revision']))
+    return jsonify(data=managed_acl.public(row,g.user_params['user_id']))
+
+
+@bp.post('/api/acl-feeds/<int:feed_id>/<any(fetch,review,apply,recover,"rollback-version"):action>')
+@api
+def acl_action(feed_id,action):
+    body=request.get_json(silent=True) or {}
+    if not isinstance(body,dict) or set(body)-{'version_id'}:raise ValueError('Select one feed version')
+    task=managed_acl.enqueue(acl_owned(feed_id),g.user_params['user_id'],action,body.get('version_id'))
+    return jsonify(task_id=task.id,status=task.status),202
+
+
+@bp.get('/api/acl-feeds/<int:feed_id>/versions')
+@api
+def acl_versions(feed_id):
+    from app.modules.db.db_model import ManagedAclVersion
+    row=acl_owned(feed_id)
+    values=list(ManagedAclVersion.select().where((ManagedAclVersion.feed_id==row.id)&(ManagedAclVersion.group_id==row.group_id)).order_by(ManagedAclVersion.id.desc()).limit(50))
+    selected_id=request.args.get('include_version',type=int)
+    if selected_id and selected_id not in {value.id for value in values}:values.append(managed_acl.version(selected_id,row))
+    return jsonify(data=[managed_acl.public_version(value) for value in values])
+
+
+@bp.get('/api/acl-feeds/<int:feed_id>/versions/<int:version_id>/content')
+@api
+def acl_version_content(feed_id,version_id):
+    row=acl_owned(feed_id);value=managed_acl.version(version_id,row)
+    details=managed_acl.unseal(value.details) if value.details else {}
+    return jsonify(candidate=managed_acl.unseal(value.content)['text'],fingerprint=value.fingerprint,
+        baselines=[dict(server_id=t['server_id'],path=t['path'],content=t['expected']['content']) for t in details.get('targets',[])])
 
 
 @bp.get('/api/services')

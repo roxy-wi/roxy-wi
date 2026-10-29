@@ -425,7 +425,7 @@ def test_registration_migration_is_idempotent_and_does_not_guess_legacy_evidence
         database.create_tables(models)
         one=PacemakerCluster.create(name='legacy-pcmk',group_id=1)
         two=HaCluster.create(name='legacy-vrrp',group_id=1,description='')
-        server=Server.create(hostname='Master',ip='192.0.2.1',group_id='1')
+        server=Server.create(hostname='Master',ip='192.0.2.1',group_id='1',ssh_host_key='ssh-ed25519 synthetic-host-key')
         router=HaClusterRouter.create(cluster_id=two,default=1)
         member=HaClusterSlave.create(cluster_id=two,router_id=router,server_id=server,master=1,eth='ens3')
         vip=HaClusterVip.create(cluster_id=two,router_id=router,vip='192.0.2.100')
@@ -457,6 +457,7 @@ def test_registration_migration_is_idempotent_and_does_not_guess_legacy_evidence
         rows=list(ha_sql.select_cluster_slaves(two.id,router.id))
         assert rows[0][:3]==(server.server_id,'Master','192.0.2.1')
         assert rows[0][31:34]==(1,'ens3',router.id)
+        assert server.ssh_host_key not in rows[0]
         assert list(ha_sql.select_cluster_master_slaves(two.id,1,router.id))==rows
         assert list(ha_sql.select_cluster_master_slaves(two.id,2,router.id))==[]
         assert database.execute_sql('PRAGMA foreign_keys').fetchone()==(1,)

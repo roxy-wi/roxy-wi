@@ -587,7 +587,7 @@ def _stored_list(value: str | None) -> list:
 
 
 def is_recoverable(change, now: datetime | None = None) -> bool:
-    if change.action=='ha-maintenance':
+    if change.action in ('ha-maintenance','acl-feed'):
         return False
     if getattr(change, 'active_task_id', None):
         return False
