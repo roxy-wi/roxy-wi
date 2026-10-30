@@ -37,6 +37,7 @@ proxies and HA clusters across multiple servers and environments.
 | Choose a managed component runtime | Install HAProxy, NGINX, Apache or a standalone quorum witness with Native/Docker/Podman choices, or [adopt existing containers](docs/managed-containers.md) with an explicit engine and owner. Podman Debian/EL VM qualification is pending. |
 | Give the right people access | Organize servers into groups, assign roles and service permissions, and integrate OIDC or LDAP authentication. |
 | Keep service health visible | Inspect backends and logs; add monitoring, traffic metrics and notifications as your needs grow. |
+| Diagnose a published request | [Inspect DNS, VIP/listener, TCP, TLS/SNI and candidate backends](docs/proxy-diagnostics.md) with bounded, configuration-derived probes and saved evidence. |
 | Manage certificates and configuration history | Issue Let's Encrypt certificates or synchronize CertWarden certificates through [provider connectors](docs/certificate-sources.md), including Pacemaker member targets; retain configuration versions and configure backup destinations. |
 
 Some capabilities require a subscription. Change Center requires **Premium**;

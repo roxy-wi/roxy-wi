@@ -117,6 +117,7 @@ class Server(BaseModel):
     apache_active = IntegerField(constraints=[SQL('DEFAULT 0')], index=True)  # Added index for service status
     apache_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     apache_metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
+    registration_key = CharField(max_length=32, default=lambda: uuid4().hex, unique=True)
 
     class Meta:
         table_name = 'servers'
@@ -1443,6 +1444,7 @@ class OperationalAssessment(BaseModel):
     created_at = DateTimeField(default=utc_now)
     task_id = IntegerField(null=True)
     result = LargeTextField(default='')
+    server_registration_key = CharField(max_length=32, default='')
 
     class Meta:
         table_name = 'operational_assessments'
