@@ -59,9 +59,7 @@ def diagnose():
 def diagnostics_history():
     service=request.args.get('service','');server_id=request.args.get('server_id',type=int)
     if not server_id:raise ValueError('Select a server')
-    assessments.authorize(server_id,service,g.user_params['group_id'],g.user_params['user_id'])
-    rows=OperationalAssessment.select().where((OperationalAssessment.group_id==g.user_params['group_id'])&
-        (OperationalAssessment.kind=='proxy-diagnostics')&(OperationalAssessment.subject==f'{service}:{server_id}')).order_by(OperationalAssessment.id.desc()).limit(20)
+    rows=assessments.history(service,server_id,g.user_params['group_id'],g.user_params['user_id'])
     return jsonify(data=[assessments.public(row) for row in rows])
 
 

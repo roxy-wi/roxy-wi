@@ -1,4 +1,5 @@
 import os
+import re
 import shlex
 import tempfile
 
@@ -28,6 +29,16 @@ def build_dependency_graph(config_text: str) -> dict:
     current_type = ''
     current_name = ''
     current_id = ''
+    routes = []
+
+    def unresolved(source: str, directive: str, line: int, reason: str) -> None:
+        node = nodes[source]
+        node['partial'] = True
+        node['unresolved_routes'] = node.get('unresolved_routes', 0) + 1
+        evidence = node.setdefault('unresolved_route_evidence', [])
+        if len(evidence) < 16:
+            # Expressions can contain map values or other private configuration.
+            evidence.append({'directive': directive, 'reason': reason, 'line': line})
 
     def add_node(node_type: str, name: str, *, defined: bool = True, **data) -> str:
         node_id = f'{node_type}:{name}'
@@ -60,7 +71,7 @@ def build_dependency_graph(config_text: str) -> dict:
         edge.update({key: value for key, value in data.items() if value not in (None, '')})
         edges.append(edge)
 
-    for raw_line in config_text.splitlines():
+    for line_number, raw_line in enumerate(config_text.splitlines(), start=1):
         tokens = _haproxy_line_tokens(raw_line.strip())
         if not tokens:
             continue
@@ -82,12 +93,21 @@ def build_dependency_graph(config_text: str) -> dict:
             continue
 
         if (
-            current_type == 'frontend'
+            current_type in {'frontend', 'listen'}
             and directive in {'default_backend', 'use_backend'}
-            and len(tokens) > 1
         ):
+            if len(tokens) < 2:
+                unresolved(current_id, directive, line_number, 'missing-backend-target')
+                continue
             backend_name = tokens[1]
+            # HAProxy proxy names have this literal alphabet. In particular,
+            # log-format/environment expressions must never become fake nodes.
+            if not re.fullmatch(r'[A-Za-z0-9_.:-]+', backend_name):
+                reason = 'dynamic-backend-expression' if '%' in backend_name or '$' in backend_name else 'invalid-backend-name'
+                unresolved(current_id, directive, line_number, reason)
+                continue
             backend_id = add_node('backend', backend_name, defined=False)
+            routes.append((current_id, backend_id, directive, line_number))
             condition = ' '.join(tokens[2:])
             label = 'default' if directive == 'default_backend' else condition or 'rule'
             add_edge(
@@ -119,6 +139,11 @@ def build_dependency_graph(config_text: str) -> dict:
             )
             add_edge(current_id, server_id, directive, address)
 
+    # Resolve forward references only after every backend definition was read.
+    for source, target, directive, line_number in routes:
+        if not nodes[target]['defined']:
+            unresolved(source, directive, line_number, 'undefined-backend')
+
     type_order = {'frontend': 0, 'listen': 1, 'backend': 2, 'server': 3}
     graph_nodes = sorted(
         nodes.values(),
@@ -129,11 +154,14 @@ def build_dependency_graph(config_text: str) -> dict:
         for node_type in type_order
     }
 
-    return {
+    result = {
         'nodes': graph_nodes,
         'edges': edges,
         'counts': counts,
     }
+    if any(node.get('partial') for node in graph_nodes):
+        result['partial'] = True
+    return result
 
 
 def show_map(serv: str, group_id: int) -> dict:

@@ -1,5 +1,6 @@
 """Durable, group-scoped request-path diagnostics over discovered proxy targets."""
 import base64
+import ipaddress
 import json
 import ssl
 from typing import Literal
@@ -44,9 +45,11 @@ class DiagnosticRequest(ProxyRequest):
         return urlunsplit((parsed.scheme,host+(':'+str(port) if port else ''),path,parsed.query,''))
 
 
-def authorize(server_id,service,group_id,user_id,*,probe=False):
+def authorize(server_id,service,group_id,user_id,*,probe=False,for_update=False):
     if service not in ('haproxy','nginx','apache'):raise ValueError('Unsupported proxy service')
-    row=Server.get_or_none((Server.server_id==server_id)&(Server.group_id==str(group_id)))
+    query=Server.select().where((Server.server_id==server_id)&(Server.group_id==str(group_id)))
+    if for_update:query=query.for_update()
+    row=query.get_or_none()
     if row is None:raise RoxywiResourceNotFound('Proxy server not found')
     actor=User.get_or_none(User.user_id==user_id)
     if not actor or not actor.enabled or str(service_sql.select_service_id_by_slug(service)) not in user_sql.select_user_services(user_id).split() or (probe and int(user_sql.get_user_role_in_group(user_id,group_id))>3):
@@ -57,7 +60,34 @@ def authorize(server_id,service,group_id,user_id,*,probe=False):
 
 def identity(server,service):
     with group_settings(server.group_id):
-        return dict(ip=server.ip,port=server.port,cred_id=server.cred_id,binding=inventory.binding(server,service))
+        return dict(registration_key=registration_key(server),ip=server.ip,port=server.port,cred_id=server.cred_id,binding=inventory.binding(server,service))
+
+
+def registration_key(server):
+    if not server.registration_key:
+        raise RoxywiConflictError('Server registration identity is unavailable; finish the database migration')
+    return server.registration_key
+
+
+def bound_server(row):
+    """Check provenance before exposing even an already loaded report row."""
+    if not row.server_registration_key:raise RoxywiResourceNotFound('Unbound proxy assessment')
+    try:service,server_id=row.subject.split(':');server_id=int(server_id)
+    except (ValueError,AttributeError):raise RoxywiResourceNotFound('Proxy assessment not found')
+    if service not in ('haproxy','nginx','apache'):raise RoxywiResourceNotFound('Proxy assessment not found')
+    server=Server.get_or_none((Server.server_id==server_id)&(Server.group_id==str(row.group_id))&
+        (Server.registration_key==row.server_registration_key))
+    if server is None:raise RoxywiResourceNotFound('Previous server registration')
+    return server
+
+
+def history(service,server_id,group_id,user_id):
+    server=authorize(server_id,service,group_id,user_id)
+    # Exhaust this bounded cursor before checking/decrypting any rows. An active
+    # SQLite WAL cursor otherwise keeps an older server-registration snapshot.
+    return list(OperationalAssessment.select().where((OperationalAssessment.group_id==group_id)&
+        (OperationalAssessment.kind=='proxy-diagnostics')&(OperationalAssessment.subject==f'{service}:{server_id}')&
+        (OperationalAssessment.server_registration_key==registration_key(server))).order_by(OperationalAssessment.id.desc()).limit(20))
 
 
 def enqueue(body,group_id,user_id,*,kind='diagnostics'):
@@ -65,12 +95,15 @@ def enqueue(body,group_id,user_id,*,kind='diagnostics'):
     server=authorize(body.server_id,body.service,group_id,user_id,probe=True)
     database=OperationalAssessment._meta.database;subject=f'{body.service}:{server.server_id}'
     with database.atomic('IMMEDIATE') if isinstance(database,SqliteDatabase) else database.atomic():
-        if not isinstance(database,SqliteDatabase):Server.select().where(Server.server_id==server.server_id).for_update().get()
+        # Do not bind an assessment to a stale object fetched before this lock.
+        server=authorize(body.server_id,body.service,group_id,user_id,probe=True,for_update=not isinstance(database,SqliteDatabase))
+        key=registration_key(server)
         if (OperationalAssessment.select().join(InstallationTasks,on=(OperationalAssessment.task_id==InstallationTasks.id)).where(
             (OperationalAssessment.group_id==group_id)&(OperationalAssessment.kind==('proxy-diagnostics' if kind=='diagnostics' else kind))&(OperationalAssessment.subject==subject)&
+            (OperationalAssessment.server_registration_key==key)&
             InstallationTasks.status.in_(('created','published','running'))).exists()):
             raise RoxywiConflictError('A diagnostic run is already queued on this proxy')
-        row=OperationalAssessment.create(group_id=group_id,user_id=user_id,kind='proxy-diagnostics' if kind=='diagnostics' else kind,subject=subject)
+        row=OperationalAssessment.create(group_id=group_id,user_id=user_id,kind='proxy-diagnostics' if kind=='diagnostics' else kind,subject=subject,server_registration_key=key)
         task=InstallationTasks.create(service_name=f'{"Request path" if kind=="diagnostics" else "Service map"}: {server.hostname}',group_id=group_id,user_id=user_id,
             server_ids=[server.server_id],operation_id=str(uuid4()),operation_type='proxy-assessment',status='created',updated_at=utc_now(),
             operation_payload=seal(dict(assessment_id=row.id,kind=kind,request=body.model_dump(),identity=identity(server,body.service))))
@@ -82,11 +115,13 @@ def get(row_id,group_id,user_id):
     row=OperationalAssessment.get_or_none((OperationalAssessment.id==row_id)&(OperationalAssessment.group_id==group_id)&
         OperationalAssessment.kind.in_(('proxy-diagnostics','service-map')))
     if row is None:raise RoxywiResourceNotFound('Proxy assessment not found')
-    service,server_id=row.subject.split(':');authorize(int(server_id),service,group_id,user_id)
+    server=bound_server(row)
+    service,_server_id=row.subject.split(':');authorize(server.server_id,service,group_id,user_id)
     return row
 
 
 def public(row):
+    if row.kind in ('proxy-diagnostics','service-map'):bound_server(row)
     task=InstallationTasks.get_or_none(InstallationTasks.id==row.task_id)
     if task and task.group_id_id!=row.group_id:task=None
     if task and task.status in ('completed','failed') and not row.result:
@@ -95,6 +130,7 @@ def public(row):
         # empty row cannot stop browser polling without displaying the result.
         row=OperationalAssessment.get((OperationalAssessment.id==row.id)&
             (OperationalAssessment.group_id==row.group_id)&(OperationalAssessment.task_id==row.task_id))
+        if row.kind in ('proxy-diagnostics','service-map'):bound_server(row)
     return dict(id=row.id,created_at=utc_iso(row.created_at),kind=row.kind,subject=row.subject,
         status=task.status if task else 'missing',error=task.error if task else None,
         report=unseal(row.result) if row.result else None)
@@ -147,6 +183,26 @@ def interfaces(server):
     return sorted(set(result))
 
 
+def listener_destinations(front, port, host_addresses):
+    """Match this frontend's binds, never every listener on the same machine."""
+    local = set()
+    for value in host_addresses:
+        try:local.add(network.address(value, loopback=False))
+        except ValueError:continue
+    allowed = set()
+    for listener in front['listeners']:
+        if listener['port'] != port:continue
+        host = listener['host']
+        if host in ('*', '0.0.0.0', '::'):
+            versions = {4} if host == '0.0.0.0' else {6} if host == '::' else {4, 6}
+            if host == '::' and listener.get('address_family') == 'v4v6':versions = {4, 6}
+            allowed.update(value for value in local if ipaddress.ip_address(value).version in versions)
+        else:
+            try:allowed.add(network.address(host, loopback=False))
+            except ValueError:continue
+    return allowed
+
+
 def stage(key,state,message,details=None):
     return dict(key=key,state=state,message=message,details=details or {})
 
@@ -180,19 +236,16 @@ def diagnostics(server,body,heartbeat=lambda:None):
         stages.append(stage('dns-proxy-host','observed' if set(host_answers)==set(answers) else 'warning',
             'DNS from the registered host; custom container DNS/search semantics are not inferred.',dict(answers=host_answers)))
     except Exception:stages.append(stage('dns-proxy-host','unknown','Proxy-host DNS could not be verified.'))
-    try:allowed=set(interfaces(server))
-    except Exception:allowed=set();stages.append(stage('vip-addresses','unknown','Could not read managed-host interface addresses.'))
-    for listener in front['listeners']:
-        if listener['port']==port:
-            try:allowed.add(network.address(listener['host'],loopback=False))
-            except ValueError:pass
+    try:host_addresses=interfaces(server)
+    except Exception:host_addresses=[];stages.append(stage('vip-addresses','unknown','Could not read managed-host interface addresses.'))
+    allowed=listener_destinations(front,port,host_addresses)
     selected=sorted(set(answers)&allowed)
     vip_probes=[]
     for ip in selected[:8]:
         value=certificate_result(network.probe(dict(ip=ip,port=port,domain=host,path=path,tls=parsed.scheme=='https',http=True,allow_loopback=False)))
         vip_probes.append(value);heartbeat()
     stages.append(stage('vip','observed' if selected else 'unknown',
-        'Probe only DNS addresses discovered on the authorized proxy host or its listener. Other answers are not contacted.',
+        'Only DNS destinations matching the selected frontend bindings are probed. Wildcards are limited to host interface addresses; unmatched answers stay separate.',
         dict(probes=vip_probes,unmatched=sorted(set(answers)-allowed))))
     node_probes=[]
     for listener in front['listeners']:
@@ -226,14 +279,16 @@ def diagnostics(server,body,heartbeat=lambda:None):
                 probes.append(rpc(server,'probe',dict(ip=ip,port=backend['port'],http=False,tls=False),binding=found['binding']))
         except Exception:probes=[dict(tcp='unknown',error='Configured backend could not be resolved/probed from the host/runtime context')]
         backend_probes.append(dict(id=backend['id'],host=backend['host'],port=backend['port'],probes=probes));heartbeat()
-    not_probed=max(0,len(front['backends'])-16)+front['unsupported_backends']+front.get('not_inventoried',0)
+    unresolved_routes=front.get('unresolved_routes',0)
+    not_probed=max(0,len(front['backends'])-16)+front['unsupported_backends']+front.get('not_inventoried',0)+unresolved_routes
     stages.append(stage('backends','observed' if not not_probed and backend_probes and all(any(p['tcp']=='connected' for p in b['probes']) for b in backend_probes) else 'warning',
         'TCP checks of discovered candidate backends; they do not prove application health or conditional route selection.',
-        dict(targets=backend_probes,not_probed=not_probed)))
+        dict(targets=backend_probes,not_probed=not_probed,unresolved_routes=unresolved_routes,
+             unresolved_route_evidence=front.get('unresolved_route_evidence',[]))))
     tls_failed=any(p.get('tls') in ('untrusted','handshake-failed') for p in vip_probes+node_probes)
     refused=any(p.get('tcp')=='refused' for b in backend_probes for p in b['probes'])
     if tls_failed:result['summary']='At least one inspected endpoint failed TLS trust/name validation.'
-    elif any(isinstance(code,int) for code in statuses) and refused:result['summary']='The selected proxy listener responds, but at least one discovered backend refuses TCP connections.'
+    elif any(isinstance(p.get('http'),int) for p in node_probes) and refused:result['summary']='The selected proxy listener responds, but at least one discovered backend refuses TCP connections.'
     elif any(isinstance(code,int) and code>=500 for code in statuses):result['summary']='The proxy returned a server error; inspect routing and application health.'
     elif any(isinstance(code,int) and code<500 for code in statuses):result['summary']='An HTTP response was observed. Review DNS, candidate backend and route evidence for its scope.'
     else:result['summary']='The request path could not be verified; inspect the stage results.'
@@ -260,9 +315,14 @@ def execute(task):
             else:
                 from app.modules.service.service_map import discover
                 result=discover(server,body.service,heartbeat)
-        server=authorize(body.server_id,body.service,task.group_id_id,task.user_id_id,probe=True)
-        if identity(server,body.service)!=payload['identity']:raise ValueError('Proxy identity changed during inspection')
-        OperationalAssessment.update(result=seal(result)).where((OperationalAssessment.id==row.id)&(OperationalAssessment.result=='')).execute()
+        database=OperationalAssessment._meta.database
+        with database.atomic('IMMEDIATE') if isinstance(database,SqliteDatabase) else database.atomic():
+            server=authorize(body.server_id,body.service,task.group_id_id,task.user_id_id,probe=True,
+                             for_update=not isinstance(database,SqliteDatabase))
+            if identity(server,body.service)!=payload['identity']:raise ValueError('Proxy identity changed during inspection')
+            OperationalAssessment.update(result=seal(result)).where((OperationalAssessment.id==row.id)&
+                (OperationalAssessment.task_id==task.id)&(OperationalAssessment.server_registration_key==registration_key(server))&
+                (OperationalAssessment.result=='')).execute()
         state,error='completed',None
     except Exception:state,error='failed','Proxy assessment could not complete; refresh permissions, configuration discovery and host access'
     InstallationTasks.update(status=state,error=error,finish_date=utc_now(),updated_at=utc_now()).where(

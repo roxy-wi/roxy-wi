@@ -78,9 +78,26 @@ def apache_graph(text):
     return dict(nodes=nodes,edges=edges,partial=bool(conditional))
 
 
+def haproxy_bind_family(options):
+    """Read explicit family flags only at recognized bind-option positions."""
+    flags=set();index=0
+    bare={'ssl','v4v6','v6only','accept-proxy','transparent','defer-accept','tfo','strict-sni','no-tls-tickets'}
+    valued={'crt','crt-list','ca-file','verify','alpn','npn','ciphers','ciphersuites',
+            'ssl-min-ver','ssl-max-ver','name','interface','namespace'}
+    while index<len(options):
+        option=options[index]
+        if option in bare:
+            if option in ('v4v6','v6only'):flags.add(option)
+            index+=1
+        elif option in valued and index+1<len(options):index+=2
+        else:return None  # Unknown argument arity must not promote a value to a flag.
+    return 'v6only' if 'v6only' in flags else 'v4v6' if 'v4v6' in flags else None
+
+
 def parse(service,text):
     if len(text.encode())>2*1024*1024:raise ValueError('Configuration inventory exceeds 2 MiB')
     graph=haproxy.build_dependency_graph(text) if service=='haproxy' else nginx.build_dependency_graph(text) if service=='nginx' else apache_graph(text)
+    listener_families={}
     if service=='haproxy':
         current=None;indexed={node['id']:node for node in graph['nodes']};default_mode='tcp';section=''
         for raw in text.splitlines():
@@ -92,33 +109,63 @@ def parse(service,text):
             elif tokens[0]=='mode' and len(tokens)>1:
                 if section=='defaults':default_mode=tokens[1]
                 elif current:current['mode']=tokens[1]
-            elif current and tokens[0]=='bind' and 'ssl' in tokens[2:]:current['tls']=True
+            elif current and tokens[0]=='bind' and len(tokens)>1:
+                if 'ssl' in tokens[2:]:current['tls']=True
+                mode=haproxy_bind_family(tokens[2:])
+                for address in tokens[1].split(','):
+                    listener_families.setdefault((current['id'],address.strip()),set()).add(mode)
             elif current and tokens[0]=='acl' and len(tokens)>4 and tokens[2].lower() in ('hdr(host)','req.hdr(host)') and tokens[3]=='-i':
                 current['server_names'].extend(host_domains(tokens[4:]))
     indexed={node['id']:node for node in graph['nodes']};links={}
-    for edge in graph['edges']:links.setdefault(edge['source'],[]).append(edge['target'])
+    for edge in graph['edges']:links.setdefault(edge['source'],[]).append(edge)
     frontends=[]
     for front in graph['nodes']:
         if front['type'] not in ('frontend','listen','virtual_server'):continue
-        addresses=[endpoint(value,listener=True) for value in front.get('addresses',[])]
-        listeners=[value for value in addresses if value]
-        seen=set();stack=[front['id']];backends=[];unsupported=0
+        listeners=[]
+        for address in front.get('addresses',[]):
+            value=endpoint(address,listener=True)
+            if value:
+                if service in ('haproxy','nginx') and value['host']=='*':value['host']='0.0.0.0'
+                modes=listener_families.get((front['id'],address),set())
+                if value['host']=='::':
+                    if 'v6only' in modes:value['address_family']='v6only'
+                    elif modes=={'v4v6'}:value['address_family']='v4v6'
+                listeners.append(value)
+        seen=set();stack=[front['id']];backends=[];unsupported=0;unresolved=0;evidence=[]
         while stack and len(seen)<2048:
             key=stack.pop()
             if key in seen:continue
             seen.add(key);item=indexed.get(key,{})
+            unresolved+=item.get('unresolved_routes',0)
+            evidence.extend(item.get('unresolved_route_evidence',[])[:max(0,16-len(evidence))])
             if item.get('type')=='server':
                 value=endpoint(item.get('address',''))
                 if value:backends.append(dict(id=key,**value))
                 else:unsupported+=1
-            stack.extend(links.get(key,[]))
+            for edge in links.get(key,[]):
+                target=indexed.get(edge['target'],{})
+                address=edge.get('target_address',target.get('address',''))
+                authority=address.split('://',1)[-1].split('/',1)[0]
+                dynamic=service!='haproxy' and '$' in authority
+                # Other graph providers retain undefined upstream placeholders.
+                # Count each referring route, not one node shared by many routes.
+                if dynamic or (service!='haproxy' and target.get('type') in ('backend','upstream') and target.get('defined') is False):
+                    unresolved+=1
+                    if len(evidence)<16:
+                        reason='dynamic-backend-expression' if dynamic else 'undefined-backend'
+                        evidence.append(dict(directive=edge.get('type','route'),reason=reason,line=None))
+                    if dynamic:continue
+                stack.append(edge['target'])
+        not_inventoried=max(0,len(backends)-64)+len(stack)
+        partial=bool(unresolved or unsupported or not_inventoried or front.get('partial') or (service!='haproxy' and graph.get('partial')))
         frontends.append(dict(id=front['id'],name=front.get('display_name',front.get('name',front['id']))[:255],
             domains=host_domains(front.get('server_names',[])),listeners=listeners,tls=bool(front.get('tls')),
             backends=backends[:64],unsupported_backends=unsupported,provenance='discovered',
-            not_inventoried=max(0,len(backends)-64)+len(stack),
+            not_inventoried=not_inventoried,unresolved_routes=unresolved,partial=partial,
+            unresolved_route_evidence=evidence,
             routing='candidate dependencies; conditional routing is not fully evaluated'))
     if len(frontends)>128:raise ValueError('Too many frontends for a bounded inventory')
-    return dict(frontends=frontends,partial=bool(graph.get('partial')),fingerprint=hashlib.sha256(text.encode()).hexdigest())
+    return dict(frontends=frontends,partial=bool(graph.get('partial') or any(front['partial'] for front in frontends)),fingerprint=hashlib.sha256(text.encode()).hexdigest())
 
 
 READ_FILES=r'''

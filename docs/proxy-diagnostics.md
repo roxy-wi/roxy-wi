@@ -15,7 +15,7 @@ frontends and run again; an ambiguous route is not guessed.
 | --- | --- |
 | Configuration sources | Configuration-derived frontend and candidate-backend metadata, source hash and completeness |
 | DNS | Answers from the controller and the registered host, including differences |
-| VIP / destination | Only DNS addresses found on the authorized host or its explicit listener are contacted |
+| VIP / destination | Only DNS addresses matching the selected frontend's bindings are contacted; unmatched DNS evidence remains separate |
 | TCP | Connection result, address, port and connect time |
 | TLS / SNI | Requested hostname, system trust, certificate fingerprint/expiry/issuer and protocol |
 | HTTP | One HTTP/1.x HEAD status; no credentials, cookies, response bodies or redirects |
@@ -34,6 +34,19 @@ Apache uses its own DUMP_INCLUDES list, including files inside a selected contai
 then preserves virtual-host include context. Dynamic/conditional constructs are
 explicitly partial. Configuration text, passwords and certificate keys are never
 included in the report.
+
+HAProxy `listen` sections retain their own servers and static `use_backend` /
+`default_backend` dependencies. Dynamic backend expressions and undefined backend
+references remain unresolved routes: they mark inventory partial and increase
+the report's unprobed count, even when a static default backend was reached.
+That count includes unresolved route directives; it does not estimate how many
+servers a dynamic expression could select. Expressions themselves are not exported.
+
+An explicit listener IP matches only that address and port. Wildcards match the
+registered host's interface addresses: HAProxy's omitted address, `*` and
+`0.0.0.0` are IPv4 wildcards; `::` is IPv6. An explicit `v4v6` flag also permits IPv4 for the IPv6 wildcard; unknown
+system dual-stack defaults are not guessed. A response from another frontend's
+address cannot establish the selected listener's health.
 
 These are configuration candidates. On-disk content can differ from what a running
 process previously loaded. NGINX/Apache inspection uses the service's configured
@@ -71,7 +84,16 @@ The active group, enabled server, service permission and operator role apply
 before queuing and again in the worker. SSH/runtime identity changes invalidate a
 queued assessment. Reports are encrypted at rest and included in secret-key
 rotation. Stored results may be viewed only through the current group/service
-authorization. No database migration beyond the shared assessment table is needed.
+authorization and the same immutable server registration identity. Deleting and
+recreating a server generates a new identity even if its numeric ID and IP are
+reused. History, individual reports and queued work cannot cross that boundary.
+
+The registration migration adds server identities and binds new proxy assessments
+to them. Existing reports are retained encrypted but remain unbound: matching an
+ID, IP or old task payload is insufficient proof of their registration. They are
+not exposed as current history; run a fresh assessment instead. Legacy queued
+assessments without this identity fail before probing and must be resubmitted.
+Upgrade web and worker processes together before running new diagnostics.
 
 ## API and verification
 
