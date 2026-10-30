@@ -1,11 +1,11 @@
 """Atomically rotate the Fernet key used for stored Roxy-WI credentials."""
 
 import os
-from itertools import chain
 
 from cryptography.fernet import Fernet, InvalidToken
 
-from app.modules.db.db_model import Cred, InstallationTasks, LetsEncryptState, LetsEncryptDnsProfile, OidcProvider, PacemakerChange, CertificateSource, OperationalAssessment
+from app.modules.db.db_model import (Cred, InstallationTasks, LetsEncryptState, LetsEncryptDnsProfile,
+    OidcProvider, PacemakerChange, CertificateSource, OperationalAssessment, HaMaintenancePlan)
 
 
 SECRET_FIELDS = ('password', 'passphrase', 'private_key')
@@ -98,11 +98,11 @@ def rotate_credentials() -> int:
             ).where(InstallationTasks.id == task.id).execute()
             rotated_credentials += 1
 
-        for state in chain(LetsEncryptState.select(), LetsEncryptDnsProfile.select(), CertificateSource.select(), OperationalAssessment.select()):
+        encrypted_states=((LetsEncryptState,('credentials','pending_config')),
+            (LetsEncryptDnsProfile,('credentials',)),(CertificateSource,('configuration',)),
+            (OperationalAssessment,('result',)),(HaMaintenancePlan,('payload',)))
+        for state,fields in ((state,fields) for model,fields in encrypted_states for state in model.select()):
             updates = {}
-            fields = (('result',) if isinstance(state, OperationalAssessment) else
-                      ('configuration',) if isinstance(state, CertificateSource) else
-                      ('credentials', 'pending_config') if isinstance(state, LetsEncryptState) else ('credentials',))
             for field in fields:
                 value = getattr(state, field)
                 if not value:

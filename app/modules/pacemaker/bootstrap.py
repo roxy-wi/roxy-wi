@@ -108,5 +108,5 @@ def provision(cluster, user_id, *, syn_flood=False, fence_pve=False):
         settings['syn_flood'] = syn_flood
         settings['fence_pve'] = fence_pve
         cluster.corosync_settings = json.dumps(settings)
-        cluster.save()
+        cluster.save(only=[type(cluster).corosync_settings])
         event(cluster, user_id, 'bootstrap', 'completed')

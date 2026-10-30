@@ -3,7 +3,8 @@ import uuid
 import pytest
 from cryptography.fernet import Fernet
 
-from app.modules.db.db_model import Cred, OidcProvider, LetsEncryptDnsProfile, PacemakerCluster, PacemakerChange, CertificateSource
+from app.modules.db.db_model import (Cred, OidcProvider, LetsEncryptDnsProfile, PacemakerCluster,
+    PacemakerChange, CertificateSource, OperationalAssessment, HaMaintenancePlan)
 from rotate_credential_secret import _fernet_from_environment, rotate_credentials
 
 
@@ -28,6 +29,10 @@ def test_credential_rotation_reencrypts_secret_fields_atomically(monkeypatch):
         provider='cloudflare', credentials='fernet:' + old_fernet.encrypt(b'{"api_token":"dns-secret"}').decode('ascii'))
     source = CertificateSource.create(name='rotation-source', group_id=1, user_id=1, provider='certwarden',
         configuration='fernet:' + old_fernet.encrypt(b'{"private_key_api_key":"provider-secret"}').decode('ascii'))
+    report=OperationalAssessment.create(group_id=1,user_id=1,kind='ha-readiness',subject='pacemaker:1',
+        result='fernet:'+old_fernet.encrypt(b'{"checks":[]}').decode())
+    maintenance=HaMaintenancePlan.create(group_id=1,user_id=1,provider='pacemaker',cluster_id=1,server_id=1,
+        payload='fernet:'+old_fernet.encrypt(b'{"capacity_evidence":"test"}').decode())
     cluster = PacemakerCluster.create(name=f'rotation-{uuid.uuid4().hex}', group_id=1)
     change = PacemakerChange.create(cluster=cluster, user_id=1, base_digest='0' * 64,
         **{field: old_fernet.encrypt(b'<cib secret="fencing-secret"/>').decode('ascii')
@@ -46,6 +51,8 @@ def test_credential_rotation_reencrypts_secret_fields_atomically(monkeypatch):
         assert Fernet(new_key).decrypt(rotated_profile.credentials.removeprefix('fernet:').encode()) == b'{"api_token":"dns-secret"}'
         rotated_source = CertificateSource.get_by_id(source.id)
         assert Fernet(new_key).decrypt(rotated_source.configuration.removeprefix('fernet:').encode()) == b'{"private_key_api_key":"provider-secret"}'
+        assert Fernet(new_key).decrypt(OperationalAssessment.get_by_id(report.id).result.removeprefix('fernet:').encode())==b'{"checks":[]}'
+        assert Fernet(new_key).decrypt(HaMaintenancePlan.get_by_id(maintenance.id).payload.removeprefix('fernet:').encode())==b'{"capacity_evidence":"test"}'
         rotated_change = PacemakerChange.get_by_id(change.id)
         for field in ('candidate', 'previous', 'result', 'details'):
             assert Fernet(new_key).decrypt(getattr(rotated_change, field).encode()) == b'<cib secret="fencing-secret"/>'
@@ -55,6 +62,8 @@ def test_credential_rotation_reencrypts_secret_fields_atomically(monkeypatch):
         OidcProvider.delete().where(OidcProvider.id == provider.id).execute()
         LetsEncryptDnsProfile.delete().where(LetsEncryptDnsProfile.id == profile.id).execute()
         source.delete_instance()
+        report.delete_instance()
+        maintenance.delete_instance()
         cluster.delete_instance(recursive=True)
 
 

@@ -14,6 +14,7 @@ from app.modules.pacemaker.transaction import TRANSACTION
 from app.modules.pacemaker.xml import configuration, digest, parse, summary
 from app.modules.roxywi.exception import RoxywiInputError, RoxywiConflictError, RoxywiResourceNotFound
 from app.modules.common.time import utc_now
+from app.modules.service.ha_topology import topology_guarded
 
 
 def _cipher():
@@ -56,6 +57,7 @@ def serialize(cluster):
             'members': [member.model_dump() for member, _server in checked]}
 
 
+@topology_guarded
 def register(body: ClusterCreate, group_id):
     database = PacemakerCluster._meta.database
     with database.atomic('IMMEDIATE') if isinstance(database, SqliteDatabase) else database.atomic():
@@ -77,7 +79,7 @@ def register(body: ClusterCreate, group_id):
 
 
 @contextmanager
-def locked(cluster):
+def locked(cluster, *, maintenance_id=None):
     token = secrets.token_hex(16)
     now = utc_now()
     updated = (PacemakerCluster.update(lock_token=token, lock_until=now + timedelta(minutes=10))
@@ -86,6 +88,10 @@ def locked(cluster):
     if not updated:
         raise RoxywiConflictError('Another cluster operation is running')
     try:
+        current=get_cluster(cluster.id,cluster.group_id)
+        pending=json.loads(current.corosync_settings).get('node_maintenance')
+        if pending is not None and pending!=maintenance_id:
+            raise RoxywiConflictError('A node is handed over for maintenance; use its reviewed return workflow before changing the cluster')
         yield token
     finally:
         (PacemakerCluster.update(lock_token=None, lock_until=None)
@@ -97,9 +103,26 @@ def event(cluster, user_id, action, status):
 
 
 def renew_lock(cluster, token):
-    updated = PacemakerCluster.update(lock_until=utc_now() + timedelta(minutes=10)).where(
-        (PacemakerCluster.id == cluster.id) & (PacemakerCluster.lock_token == token)).execute()
-    if updated != 1:
+    if not isinstance(token, str) or not token:
+        raise RoxywiConflictError('Cluster operation lock was lost; inspect state before retrying')
+    until = utc_now() + timedelta(minutes=10)
+    database = PacemakerCluster._meta.database
+    with database.atomic():
+        updated = PacemakerCluster.update(lock_until=until).where(
+            (PacemakerCluster.id == cluster.id) & (PacemakerCluster.lock_token == token)).execute()
+        if updated == 1:
+            return
+        if updated == 0:
+            # MariaDB reports changed rows, so an identical second-precision
+            # DATETIME renewal can report zero while this lease is still ours.
+            current = PacemakerCluster.select().where(
+                (PacemakerCluster.id == cluster.id) & (PacemakerCluster.lock_token == token) &
+                (PacemakerCluster.lock_until >= until.replace(microsecond=0)))
+            if not isinstance(database, SqliteDatabase):
+                # A locking current read must not trust an older RR snapshot.
+                current = current.for_update()
+            if current.exists():
+                return
         raise RoxywiConflictError('Cluster operation lock was lost; inspect state before retrying')
 
 

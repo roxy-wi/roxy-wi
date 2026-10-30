@@ -15,6 +15,7 @@ from app.modules.pacemaker.editor import Edit, Resource, build
 from app.modules.roxywi import auth
 from app.modules.roxywi.exception import RoxywiInputError, RoxywiConflictError, RoxywiResourceNotFound, RoxywiValidationError
 from app.routes.pacemaker import bp
+from app.modules.service.ha_topology import topology_lock
 
 
 @bp.before_request
@@ -360,7 +361,7 @@ def monitoring(cluster_id):
 @api
 def remove(cluster_id):
     cluster = current(cluster_id)
-    with service.locked(cluster):
+    with topology_lock(), service.locked(cluster):
         cluster = current(cluster_id)
         if cluster.active_task_id:
             raise RoxywiConflictError('Wait for the current operation before removing this registration')

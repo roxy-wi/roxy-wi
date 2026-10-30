@@ -1,4 +1,4 @@
-from flask import render_template, g, jsonify
+from flask import render_template, g, jsonify, request
 from flask_jwt_extended import jwt_required
 from playhouse.shortcuts import model_to_dict
 
@@ -18,9 +18,14 @@ bp.add_url_rule('/<service>', view_func=HAView.as_view('ha_cluster'), methods=['
 
 @bp.before_request
 @jwt_required()
+@get_user_params()
 def before_request():
     """ Protect all the admin endpoints. """
-    pass
+    if request.method!='GET' and (request.view_args or {}).get('cluster_id') and '/api/readiness/' not in request.path and '/api/maintenance/' not in request.path:
+        from app.modules.service.ha_maintenance import assert_idle
+        from app.modules.roxywi.exception import RoxywiConflictError
+        try:assert_idle('keepalived',request.view_args['cluster_id'],g.user_params['group_id'])
+        except RoxywiConflictError as error:return jsonify(error=error.public_message),409
 
 
 @bp.route('/<service>/get/<int:cluster_id>')

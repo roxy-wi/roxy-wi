@@ -1448,6 +1448,25 @@ class OperationalAssessment(BaseModel):
         table_name = 'operational_assessments'
 
 
+class HaMaintenancePlan(BaseModel):
+    id = AutoField()
+    group_id = IntegerField(index=True)
+    user_id = IntegerField()
+    provider = CharField()
+    cluster_id = IntegerField()
+    server_id = IntegerField()
+    change_id = IntegerField(null=True)
+    assessment_id = IntegerField(null=True)
+    status = CharField(default='draft')
+    payload = LargeTextField()
+    active_task_id = IntegerField(null=True)
+    created_at = DateTimeField(default=utc_now)
+    updated_at = DateTimeField(default=utc_now)
+
+    class Meta:
+        table_name = 'ha_maintenance_plans'
+
+
 class HaReadinessProfile(BaseModel):
     id = AutoField()
     group_id = IntegerField()
@@ -1508,5 +1527,5 @@ def create_tables():
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
              HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, NginxSection, InstallationTasks,
              PacemakerCluster, PacemakerChange, PacemakerEvent, CertificateSource,
-             OperationalAssessment, HaReadinessProfile]
+             OperationalAssessment, HaReadinessProfile, HaMaintenancePlan]
         )

@@ -161,3 +161,17 @@ def test_witness_attachment_waits_for_a_transiently_missing_vote(topology, monke
     corosync.execute(topology.cluster, change, 1, apply=True)
     assert len(attempts) == 2
     assert PacemakerChange.get_by_id(change.id).status == 'applied'
+
+
+@pytest.mark.parametrize('change_field', ['enabled', 'type_ip'])
+def test_apply_rechecks_new_member_eligibility_after_validation(topology, change_field):
+    change = make_change(topology, [topology.members[0], topology.members[2]])
+    corosync.execute(topology.cluster, change, 1)
+    assert PacemakerChange.get_by_id(change.id).status == 'validated'
+    Server.update(**{change_field: 0 if change_field == 'enabled' else 1}).where(
+        Server.server_id == topology.servers[2].server_id).execute()
+    topology.calls.clear()
+    with pytest.raises(RoxywiInputError, match='enabled physical'):
+        corosync.execute(topology.cluster, change, 1, apply=True)
+    assert all(args == ['cat', '/etc/corosync/corosync.conf'] for _s, args, _kw in topology.calls)
+    assert PacemakerChange.get_by_id(change.id).status == 'validated'

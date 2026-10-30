@@ -11,6 +11,9 @@ const context = vm.createContext({assert});
 vm.runInContext(`
     let allChanges = [], changesById = {}, changesLoaded = false;
     let loadingChanges = false, loadGeneration = 0, activeRequests = 0, actionPoll = null;
+    let requestedChangeId = null;
+    const opened = [];
+    const showDetails = change => opened.push(change.id);
     const messages = [], requests = [], timers = new Set();
     let timerId = 0;
     const i18n = {operationQueued: 'Queued', operationSuccess: 'Done', operationFailed: 'Failed'};
@@ -67,4 +70,11 @@ vm.runInContext(`
     allChanges = [{id: 2, status: 'scheduled'}];
     syncActionPolling();
     assert.equal(timers.size, 1, 'Scheduled work must remain observable when Scheduler starts it');
+    requestedChangeId = 42;
+    loadChanges();
+    requests[4].resolve([{id:42, status:'pending_approval'}]);
+    assert.deepEqual(opened,[42],'A maintenance approval link opens the requested review');
+    loadChanges();
+    requests[5].resolve([{id:42, status:'pending_approval'}]);
+    assert.deepEqual(opened,[42],'Periodic polling must not reopen the review dialog');
 `, context);

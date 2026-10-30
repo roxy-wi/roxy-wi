@@ -430,3 +430,118 @@ def test_deleted_registration_cannot_receive_a_late_attestation(product_client,p
     from app.modules.roxywi.exception import RoxywiConflictError
     with pytest.raises(RoxywiConflictError):audit.attest('pacemaker',cluster.id,1,product.admin.user_id,body)
     assert audit.public_profile('pacemaker',cluster.id,1)['attestations']==[]
+
+
+def test_observed_maintenance_proof_is_bound_to_current_registration(product, readiness_cluster):
+    from app.modules.operations.queue import serialize_operation_payload
+    cluster=readiness_cluster.cluster
+    _cluster,nodes=audit.subject('pacemaker',cluster.id,1)
+    proof=dict(source='observed-drain-and-return',plan_id=9,fingerprint='old-configuration')
+    OperationalAssessment.create(group_id=1,user_id=product.admin.user_id,kind='ha-maintenance',
+        subject=audit.subject_key('pacemaker',cluster),
+        result=serialize_operation_payload(dict(verified_test=proof)))
+    report=audit.collect('pacemaker',cluster,nodes,None)
+    assert report['last_verified_test']['plan_id']==9
+    assert not report['last_verified_test']['configuration_current']
+    values={k:v for k,v in cluster.__data__.items() if k not in ('id','readiness_key')}
+    cluster.delete_instance(recursive=True)
+    replacement=PacemakerCluster.create(**values)
+    assert replacement.id==cluster.id and replacement.readiness_key!=cluster.readiness_key
+    _cluster,nodes=audit.subject('pacemaker',replacement.id,1)
+    assert audit.collect('pacemaker',replacement,nodes,None)['last_verified_test'] is None
+
+
+
+@pytest.mark.parametrize('status,task_id', [
+    ('draining',None),('ready',None),('unknown',None),('resuming',None),
+    ('return-reviewed',None),('draft',42),
+])
+def test_registration_migration_rejects_legacy_busy_plans_before_schema_changes(status,task_id):
+    import importlib
+    from peewee import SqliteDatabase
+    migration=importlib.import_module('app.modules.db.migrations.20261029040000_readiness_registration_identity')
+    database=SqliteDatabase(':memory:')
+    models=[HaCluster,PacemakerCluster,HaReadinessProfile]
+    with database.bind_ctx(models,bind_refs=False,bind_backrefs=False):
+        database.create_tables(models)
+        missing=[('ha_clusters','readiness_key'),('pacemaker_clusters','readiness_key'),
+                 ('ha_readiness_profiles','registration_key')]
+        # Remove the index first because it references registration_key.
+        for index in database.get_indexes('ha_readiness_profiles'):
+            if index.unique:database.execute_sql(f'DROP INDEX {index.name}')
+        for table,field in missing:
+            database.execute_sql(f'ALTER TABLE {table} DROP COLUMN {field}')
+        database.execute_sql('CREATE TABLE ha_maintenance_plans (status TEXT, active_task_id INTEGER)')
+        database.execute_sql('INSERT INTO ha_maintenance_plans (status,active_task_id) VALUES (?,?)',(status,task_id))
+        with pytest.raises(RuntimeError,match='approved return before upgrading'):
+            migration.up()
+        for table,field in missing:
+            assert field not in {column.name for column in database.get_columns(table)}
+        assert database.execute_sql('SELECT status,active_task_id FROM ha_maintenance_plans').fetchone()==(status,task_id)
+        database.execute_sql("UPDATE ha_maintenance_plans SET status='completed',active_task_id=NULL")
+        migration.up()
+        for table,field in missing:
+            assert field in {column.name for column in database.get_columns(table)}
+        # With identities already present, a later active plan must not block a repeat.
+        database.execute_sql("UPDATE ha_maintenance_plans SET status='ready'")
+        migration.up()
+    database.close()
+
+
+
+@pytest.mark.parametrize('provider',['keepalived','pacemaker'])
+@pytest.mark.parametrize('status,task_id', [('ready',None),('draft',42)])
+def test_maintenance_guard_migration_rejects_unbound_plans_after_identity_migration(monkeypatch,provider,status,task_id):
+    import importlib
+    from cryptography.fernet import Fernet
+    from peewee import SqliteDatabase
+    from app.modules.db.db_model import HaMaintenancePlan
+    from app.modules.operations.queue import serialize_operation_payload
+    monkeypatch.setenv('ROXYWI_SECRET_PHRASE',Fernet.generate_key().decode())
+    migration=importlib.import_module('app.modules.db.migrations.20261029050000_maintenance_registration_guard')
+    database=SqliteDatabase(':memory:')
+    with database.bind_ctx([HaCluster,PacemakerCluster,HaMaintenancePlan],bind_refs=False,bind_backrefs=False):
+        database.create_tables([HaCluster,PacemakerCluster,HaMaintenancePlan])
+        model=HaCluster if provider=='keepalived' else PacemakerCluster
+        cluster=model.create(name='already-migrated',group_id=1,description='')
+        plan=HaMaintenancePlan.create(group_id=1,user_id=1,provider=provider,cluster_id=cluster.id,
+            server_id=11,status=status,active_task_id=task_id,payload=serialize_operation_payload(dict(events=[])))
+        before=plan.payload
+        with pytest.raises(RuntimeError,match='approved return before upgrading'):
+            migration.up()
+        assert HaMaintenancePlan.get_by_id(plan.id).payload==before
+        assert model.get_by_id(cluster.id).readiness_key==cluster.readiness_key
+        # Only a previously recorded matching identity allows an active plan.
+        bound=serialize_operation_payload(dict(registration_key=cluster.readiness_key))
+        HaMaintenancePlan.update(payload=bound).where(HaMaintenancePlan.id==plan.id).execute()
+        migration.up()
+        migration.up()
+        assert HaMaintenancePlan.get_by_id(plan.id).payload==bound
+    database.close()
+
+
+
+@pytest.mark.parametrize('payload', ['fernet:invalid','not-json','[]','{"registration_key":"wrong"}'])
+def test_maintenance_guard_migration_invalid_active_payload_is_safe_and_completed_legacy_allowed(monkeypatch,payload):
+    import importlib
+    from cryptography.fernet import Fernet
+    from peewee import SqliteDatabase
+    from app.modules.db.db_model import HaMaintenancePlan
+    monkeypatch.setenv('ROXYWI_SECRET_PHRASE',Fernet.generate_key().decode())
+    migration=importlib.import_module('app.modules.db.migrations.20261029050000_maintenance_registration_guard')
+    database=SqliteDatabase(':memory:')
+    with database.bind_ctx([HaCluster,PacemakerCluster,HaMaintenancePlan],bind_refs=False,bind_backrefs=False):
+        database.create_tables([HaCluster,PacemakerCluster,HaMaintenancePlan])
+        cluster=PacemakerCluster.create(name='current',group_id=1)
+        plan=HaMaintenancePlan.create(group_id=1,user_id=1,provider='pacemaker',cluster_id=cluster.id,
+            server_id=11,status='ready',payload=payload)
+        with pytest.raises(RuntimeError) as error:
+            migration.up()
+        assert str(error.value)==migration.ERROR
+        assert payload not in str(error.value)
+        assert HaMaintenancePlan.get_by_id(plan.id).payload==payload
+        HaMaintenancePlan.update(status='completed').where(HaMaintenancePlan.id==plan.id).execute()
+        migration.up()
+        assert HaMaintenancePlan.get_by_id(plan.id).payload==payload
+    database.close()
+

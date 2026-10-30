@@ -19,6 +19,7 @@ import app.modules.db.sql as sql
 import app.modules.db.add as add_sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.server as server_sql
+from app.modules.service.ha_mutation import guarded_service
 import app.modules.db.service as service_sql
 import app.modules.service.udp as udp_mod
 import app.modules.service.common as service_common
@@ -518,6 +519,7 @@ def generate_service_inv(json_data: ServiceInstall, installed_service: str) -> o
 	return inv, server_ips
 
 
+@guarded_service
 def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 	proxy = sql.get_setting('proxy')
 	proxy_serv = proxy if proxy not in (None, '', 'None') else ''
@@ -725,6 +727,7 @@ def _create_default_config_in_db(server_id: int, *, container=False) -> None:
 	add_sql.insert_new_section(server_id, 'listen', 'stats', stats_config)
 
 
+@guarded_service
 def install_service(service: str, json_data: Union[str, ServiceInstall, HAClusterRequest], cluster_id: int = None) -> int:
 	generate_functions = {
 		'haproxy': generate_haproxy_inv,

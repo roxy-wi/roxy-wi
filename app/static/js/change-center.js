@@ -8,6 +8,7 @@ $(function () {
     let actionPoll = null;
     let activeRequests = 0;
     let openDetailsId = null;
+    let requestedChangeId = Number(new URLSearchParams(window.location.search).get('change')) || null;
     let detailTimelinePoll = null;
     let iconRefreshScheduled = false;
     let allChanges = [];
@@ -147,6 +148,14 @@ $(function () {
         const menuId = 'change-actions-menu-' + change.id;
         const menu = $('<div class="change-actions-menu" role="menu" hidden>').attr('id', menuId);
         primary.append(actionButton('fa-eye', i18n.details, 'details', change.id));
+        if(change.action==='ha-maintenance') {
+            if(change.status==='pending_approval' && currentRole<=2 && change.user_id!==currentUserId)
+                primary.append(actionButton('fa-user-check', i18n.approve, 'approve', change.id));
+            primary.append($('<a class="ui-button ui-widget ui-corner-all">').attr('href','/ha/maintenance?change='+change.id).text('Maintenance wizard'));
+            if(change.maintenance_can_cancel)primary.append(actionButton('fa-times',i18n.cancel,'cancel',change.id));
+            actions.append(primary);
+            return actions;
+        }
         if (['draft', 'validation_failed'].includes(change.status)) {
             primary.append(actionButton('fa-check', i18n.validate, 'validate', change.id));
         }
@@ -331,6 +340,10 @@ $(function () {
                 updateFilterOptions();
                 applyFilters();
                 setListState('ready');
+                if(requestedChangeId && changesById[requestedChangeId]) {
+                    showDetails(changesById[requestedChangeId]);
+                    requestedChangeId=null;
+                }
                 syncActionPolling();
             })
             .fail(function () { if (generation === loadGeneration) setListState('error'); })

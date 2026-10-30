@@ -6,7 +6,7 @@ from contextlib import contextmanager
 
 
 @contextmanager
-def file_lock(path):
+def file_lock(path, *, blocking=True):
     with path.open('a+b') as stream:
         if os.name == 'nt':
             import msvcrt
@@ -21,10 +21,12 @@ def file_lock(path):
                 except OSError as error:
                     if error.errno not in (13, 36):
                         raise
+                    if not blocking:
+                        raise BlockingIOError(error.errno, 'Lock is already held') from error
                     time.sleep(0.1)
         else:
             import fcntl
-            fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+            fcntl.flock(stream.fileno(), fcntl.LOCK_EX | (0 if blocking else fcntl.LOCK_NB))
         try:
             yield
         finally:

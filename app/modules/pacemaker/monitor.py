@@ -39,7 +39,7 @@ def health(state):
 
 
 def check(cluster):
-    with service.locked(cluster):
+    with service.locked(cluster,maintenance_id=json.loads(cluster.corosync_settings).get('node_maintenance')):
         checked = service.members(cluster)
         try:
             observed = health(service.status(cluster))

@@ -585,6 +585,8 @@ def _stored_list(value: str | None) -> list:
 
 
 def is_recoverable(change, now: datetime | None = None) -> bool:
+    if change.action=='ha-maintenance':
+        return False
     if getattr(change, 'active_task_id', None):
         return False
     if change.status not in IN_PROGRESS_STATUSES:
@@ -630,7 +632,16 @@ def serialize_change(change) -> dict:
     except Exception:
         server_name = None
         server_ip = None
+    operational={}
+    if change.action=='ha-maintenance':
+        from app.modules.db.db_model import HaMaintenancePlan
+        from app.modules.service.ha_maintenance import public
+        plan=HaMaintenancePlan.get_or_none((HaMaintenancePlan.change_id==change.id)&(HaMaintenancePlan.group_id==change.group_id))
+        if plan:
+            value=public(plan)
+            operational=dict(maintenance_plan_id=plan.id,maintenance_can_cancel=value['can_cancel'])
     return {
+        **operational,
         'id': change.id,
         'operation': serialize_operation(change),
         'server_id': change.server_id,

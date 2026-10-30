@@ -11,7 +11,9 @@ from app.modules.roxywi.exception import RoxywiConflictError, RoxywiPublicError
 
 
 def enqueue(cluster, user_id, action, data=None):
-    with service.locked(cluster), PacemakerCluster._meta.database.atomic():
+    import json
+    maintenance_id=(data or {}).get('plan_id') if action=='node-maintenance' else json.loads(cluster.corosync_settings).get('node_maintenance') if action=='monitor' else None
+    with service.locked(cluster,maintenance_id=maintenance_id), PacemakerCluster._meta.database.atomic():
         cluster = service.get_cluster(cluster.id, cluster.group_id)
         import json
         if json.loads(cluster.corosync_settings).get('witness_pending') and action!='monitor':
@@ -54,6 +56,9 @@ def execute(task):
         if payload.get('servers') != identities:
             raise ValueError('Server identity changed after the operation was queued')
         if payload.get('started'):
+            if payload['action']=='node-maintenance':
+                from app.modules.service.ha_maintenance import release_failed_task
+                release_failed_task(task,payload['data']['plan_id'])
             if payload['action'] in ('validate', 'apply'):
                 change = service.change_for(cluster, payload['data']['change_id'])
                 change.status = 'unknown' if payload['action'] == 'apply' else 'failed'
@@ -91,6 +96,10 @@ def execute(task):
         elif action == 'agent-repositories':
             from app.modules.pacemaker.agents import refresh_repositories
             refresh_repositories(cluster, actor.user_id)
+        elif action == 'node-maintenance':
+            from app.modules.service.ha_maintenance import process
+            with service.locked(cluster,maintenance_id=data['plan_id']) as token:
+                process(task,data,heartbeat=lambda:service.renew_lock(cluster,token))
         else:
             raise ValueError('Unsupported cluster operation')
         state, error = 'completed', None
@@ -100,6 +109,9 @@ def execute(task):
         # Do not store raw SSH exceptions, candidate XML or credentials in task errors.
         state, error = 'failed', 'Cluster operation failed; inspect cluster state and node journal before retrying'
     InstallationTasks.update(status=state, error=error, finish_date=utc_now(), updated_at=utc_now()).where(InstallationTasks.id == task.id).execute()
+    if payload['action']=='node-maintenance' and state=='failed':
+        from app.modules.service.ha_maintenance import release_failed_task
+        release_failed_task(task,payload['data']['plan_id'])
     PacemakerCluster.update(active_task_id=None).where(
         (PacemakerCluster.id == payload['cluster_id']) & (PacemakerCluster.active_task_id == task.id)).execute()
     return state
