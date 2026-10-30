@@ -9,6 +9,7 @@
             <option value="pacemaker" data-url="{{ url_for('pacemaker.index') }}" {% if ha_provider == 'pacemaker' %}selected{% endif %}>Corosync / Pacemaker</option>
         </select>
     </div>
+    <a href="{{ url_for('ha.readiness') }}" class="rw-button rw-button-secondary">HA readiness</a>
 {% if not ha_provider_inline|default(false) %}
         <span class="rw-form-help">{% if ha_provider == 'keepalived' %}Virtual IP failover with Keepalived.{% else %}Quorum, fencing and resource orchestration with Pacemaker.{% endif %}</span>
     </div>

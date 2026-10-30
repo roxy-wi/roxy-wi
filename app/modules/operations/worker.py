@@ -72,6 +72,9 @@ def execute_operation(operation_id: str, task_id: int) -> str:
         if task.operation_type == 'pacemaker':
             from app.modules.pacemaker.operations import execute
             return execute(task)
+        if task.operation_type == 'ha-readiness':
+            from app.modules.service.ha_readiness import execute
+            return execute(task)
         if task.operation_type != 'ansible':
             raise ValueError(f'Unsupported operation type: {task.operation_type}')
         payload = deserialize_operation_payload(task.operation_payload)

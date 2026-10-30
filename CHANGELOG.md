@@ -4,6 +4,15 @@ These notes cover **Roxy-WI 9.1 and later**.
 
 ## Unreleased
 
+- Keep HA readiness history readable across key rotation, bind evidence to cluster
+  registration lifetimes and stable server IDs, treat referenced fencing metadata
+  conservatively, and preserve unsaved failure-domain edits during polling.
+
+- Add a shared Keepalived/Pacemaker readiness page with durable read-only audits,
+  per-member witness TLS/votes, configuration hashes, static fencing coverage,
+  declared failure domains and configuration-bound external test attestations.
+  Distinguish observations/configuration from functional failover verification.
+
 - Add a shared Docker/Podman connector for managed component installation,
   explicit rootful/rootless adoption, namespace-aware statistics/Runtime API,
   configuration transactions, certificate mounts and lifecycle controls.

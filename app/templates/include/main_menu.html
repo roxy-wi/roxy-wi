@@ -47,6 +47,9 @@
 							<span class="fas fa-project-diagram nav-icon" aria-hidden="true"></span><span class="nav-label">HA {{ lang.words.cluster }}</span>
 						</a>
 					</li>
+					<li class="nav-item" data-nav-search="ha readiness audit">
+						<a href="{{ url_for('ha.readiness') }}" class="nav-link{% if request.url_rule.endpoint == 'ha.readiness' %} menu-active{% endif %}"><span class="fas fa-clipboard-check nav-icon" aria-hidden="true"></span><span class="nav-label">HA readiness</span></a>
+					</li>
 					{% endif %}
 				</ul>
 			</li>

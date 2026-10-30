@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}HA readiness{% endblock %}
+{% block h2 %}<span class="rw-workspace-title">HA readiness</span>{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/table-6.3.9.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/pacemaker.css',v='9.3.0-2') }}">
+<main class="service-overview-page rw-operations-workspace" id="ha-readiness" data-api="{{ url_for('ha.subjects') }}" data-role="{{ g.user_params['role'] }}">
+    <p>Compare Keepalived and Pacemaker readiness using independent observations from every registered member. This audit reads state and does not perform a switchover, fence a node or change configuration.</p>
+    <div class="rw-table-toolbar">
+        <label for="ha-audit-cluster">Cluster</label><select id="ha-audit-cluster"><option value="">Select cluster</option></select>
+        <button type="button" id="ha-audit-refresh" class="rw-button rw-button-secondary">Refresh</button>
+        {% if g.user_params['role']|int <= 3 %}<button type="button" id="ha-audit-run" class="rw-button rw-button-primary">Run readiness audit</button>{% endif %}
+    </div>
+    <div class="rw-workspace-feedback"><p id="ha-audit-message" class="rw-form-help" role="status" aria-live="polite"></p></div>
+    <p id="ha-audit-time"></p>
+    <div class="rw-table-shell"><table class="overview dataTable"><thead><tr class="overviewHead"><th>Check</th><th>Evidence</th><th>Result</th></tr></thead><tbody id="ha-audit-checks"></tbody></table></div>
+    <section class="rw-panel">
+        <h3>Failure domains</h3>
+        <p>Record the actual hypervisor, power, uplink and storage domains. Guest addresses or VM identifiers do not prove physical independence. Empty values remain unknown.</p>
+        <form id="ha-audit-domains"><div id="ha-audit-nodes" class="change-advanced-grid"></div>
+        {% if g.user_params['role']|int <= 2 %}<button class="rw-button rw-button-primary" type="submit">Save failure domains</button>{% endif %}</form>
+    </section>
+    <section class="rw-panel">
+        <h3>Test evidence</h3>
+        <p>A configured agent, a successful audit or a command accepted by the cluster does not establish successful failover. Operator records below are attestations, tied to the selected configuration, and are shown separately from automated verification.</p>
+        <p id="ha-audit-verification">Last automatically verified HA test: unknown.</p>
+        <div id="ha-audit-tests"></div>
+        {% if g.user_params['role']|int <= 2 %}
+        <details><summary>Record an external test</summary><form id="ha-audit-attest">
+            <div class="change-advanced-grid">
+                <div class="rw-form-field"><label for="ha-test-kind">Test</label><select id="ha-test-kind"><option value="planned-switchover">Planned switchover</option><option value="fencing">Fencing</option><option value="network-partition">Network partition</option></select></div>
+                <div class="rw-form-field"><label for="ha-test-result">Result</label><select id="ha-test-result"><option value="passed">Passed</option><option value="failed">Failed</option></select></div>
+                <div class="rw-form-field"><label for="ha-test-at">Tested at (local time)</label><input id="ha-test-at" class="form-control" type="datetime-local" required></div>
+                <div class="rw-form-field"><label for="ha-test-note">Procedure and evidence reference</label><textarea id="ha-test-note" class="form-control" minlength="10" maxlength="2000" required></textarea></div>
+            </div><button class="rw-button rw-button-primary" type="submit">Record operator attestation</button>
+        </form></details>
+        {% endif %}
+    </section>
+    <details class="rw-panel"><summary>Assessment history</summary><div id="ha-audit-history"></div></details>
+</main>
+<script src="{{ url_for('static', filename='js/ha-readiness.js') }}" defer></script>
+{% endblock %}
