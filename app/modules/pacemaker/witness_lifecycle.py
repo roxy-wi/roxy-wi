@@ -11,7 +11,7 @@ from app.modules.pacemaker import service, witness_migration
 from app.modules.roxywi.exception import RoxywiValidationError, RoxywiConflictError
 
 COMMON = r'''
-import fcntl, re, stat
+import fcntl, re
 NATIVE=pathlib.Path('/etc/corosync/qnetd')
 def folder(token):
     if not re.fullmatch(r'[0-9a-f]{32}',token):raise ValueError('Invalid lifecycle identity')
@@ -33,23 +33,6 @@ def restore_receipt(state):
             json.dump(state['mode_before'],stream);stream.flush();os.fsync(stream.fileno());stage.chmod(0o600);os.replace(stage,path)
         finally:stage.unlink(missing_ok=True)
 def load(token):return json.loads((folder(token)/'state.json').read_text())
-def tree_digest(root):
-    digest=hashlib.sha256();total=0
-    paths=sorted(root.rglob('*'))
-    if len(paths)>1000:raise ValueError('Unexpectedly large certificate directory')
-    for path in paths:
-        metadata=path.lstat()
-        if path.is_symlink() or not (path.is_file() or path.is_dir()):raise ValueError('Unsupported certificate storage')
-        digest.update(str(path.relative_to(root)).encode());digest.update(str((stat.S_IMODE(metadata.st_mode),metadata.st_uid,metadata.st_gid)).encode())
-        if path.is_file():
-            total+=metadata.st_size
-            if total>32*1024*1024:raise ValueError('Unexpected certificate database size')
-            digest.update(path.read_bytes())
-    return digest.hexdigest()
-def copy_state(source,destination):
-    shutil.copytree(source,destination)
-    for path in [source,*source.rglob('*')]:
-        metadata=path.stat();os.chown(destination/path.relative_to(source),metadata.st_uid,metadata.st_gid)
 def timer(token):return 'roxywi-qnetd-lifecycle-'+token
 def native_enabled():
     value=subprocess.run(['systemctl','is-enabled','corosync-qnetd'],capture_output=True,text=True).stdout.strip()

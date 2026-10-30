@@ -1,4 +1,5 @@
 """Reports and queued probes belong to a server registration, not a reusable ID."""
+import importlib
 from threading import Thread
 
 import pytest
@@ -195,3 +196,14 @@ def test_unbound_legacy_queued_identity_cannot_be_upgraded_from_current_ip(
     assert diagnostic.execute(task) == 'failed'
     assert diagnostic_host.discoveries == [] and diagnostic_host.calls == []
     assert OperationalAssessment.get_by_id(row.id).result == ''
+
+
+def test_registration_migration_removes_legacy_report_but_preserves_operation_history(
+        product, registered_proxy, diagnostic_host):
+    row, task = legacy_assessment(registered_proxy, product.admin.user_id, completed=False)
+    migration = importlib.import_module('app.modules.db.migrations.20261030010000_proxy_registration_identity')
+    migration.up()
+    assert OperationalAssessment.get_or_none(OperationalAssessment.id == row.id) is None
+    assert InstallationTasks.get_by_id(task.id).status == 'created'
+    assert diagnostic.execute(task) == 'failed'
+    assert diagnostic_host.discoveries == [] and diagnostic_host.calls == []

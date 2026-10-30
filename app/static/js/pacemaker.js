@@ -158,6 +158,11 @@ jQuery(() => {
             if (selectId || requestedCluster) byId('cluster').value = selectId || requestedCluster;
             refreshSelect(byId('cluster'));
             selected = clusters.find(item => String(item.id) === byId('cluster').value) || null;
+            if (operator) {
+                byId('installation-task').replaceChildren();
+                byId('installation-output').textContent = '';
+                byId('installation-status').textContent = 'No installations yet';
+            }
             resetDraft();
             byId('dashboard').hidden = !selected;
             byId('empty').hidden = !!selected || view === 'setup';
@@ -262,7 +267,9 @@ jQuery(() => {
         }
     }
     async function history() {
+        const clusterId = selected.id;
         const data = await api(path('/history'));
+        if (selected?.id !== clusterId) return;
         byId('history').replaceChildren();
         byId('task-status').textContent = data.task ? `Operation #${data.task.id}: ${data.task.status}` : '';
         if (data.task && !polling) waitTask({task_id: data.task.id}).catch(error => message(error.message, true));
@@ -280,6 +287,32 @@ jQuery(() => {
             }
         });
         byId('events').textContent = data.events.map(event => `${event.date} · ${event.user_id === 0 ? 'System' : `User ${event.user_id}`} · ${event.action} · ${event.status}`).join('\n');
+        if (operator && ['setup', 'logs', 'history'].includes(view)) {
+            const select = byId('installation-task'), previous = select.value;
+            select.replaceChildren();
+            (data.installations || []).forEach(task => option(select, task.id, `#${task.id} · ${task.date} · ${task.status}`));
+            if ([...select.options].some(item => item.value === previous)) select.value = previous;
+            refreshSelect(select);
+            if (select.value) await showInstallation();
+        }
+    }
+
+    function renderInstallation(data) {
+        if (!operator || data.action !== 'bootstrap') return;
+        const output = byId('installation-output');
+        const follow = output.scrollTop + output.clientHeight >= output.scrollHeight - 20;
+        byId('installation-status').textContent = `Installation #${data.id}: ${data.status}${data.error ? ' · ' + data.error : ''}`;
+        output.textContent = (data.truncated ? '[Earlier output omitted because the log reached its size limit]\n' : '') +
+            (data.log || []).map(entry => `[${entry.time}] ${entry.node} · ${entry.stage} · ${entry.level}\n${entry.message}`).join('\n\n');
+        if (!output.textContent) output.textContent = 'This task has no saved installation log. New installations record progress here.';
+        if (follow) output.scrollTop = output.scrollHeight;
+    }
+
+    async function showInstallation() {
+        const clusterId = selected?.id, taskId = byId('installation-task').value;
+        if (!clusterId || !taskId) return;
+        const data = (await api(`/${clusterId}/tasks/${taskId}`)).data;
+        if (selected?.id === clusterId && byId('installation-task').value === taskId) renderInstallation(data);
     }
 
     async function waitTask(task) {
@@ -290,7 +323,16 @@ jQuery(() => {
         try {
             for (let attempt = 0; attempt < 1200; attempt++) {
                 const data = (await api(`/${id}/tasks/${task.task_id}`)).data;
+                if (selected?.id !== id) return;
                 message(`Operation #${data.id}: ${data.status}`);
+                if (operator && data.action === 'bootstrap') {
+                    const select = byId('installation-task');
+                    if (attempt === 0) {
+                        if (![...select.options].some(item => item.value === String(data.id))) option(select, data.id, `#${data.id} · ${data.status}`);
+                        select.value = data.id; refreshSelect(select);
+                    }
+                    if (select.value === String(data.id)) renderInstallation(data);
+                }
                 if (['completed', 'failed'].includes(data.status)) {
                     if (data.error) throw new Error(data.error);
                     if (changeId) await showChange(changeId);
@@ -384,6 +426,10 @@ jQuery(() => {
     }
     const agentUI = operator ? RoxywiPacemakerDiscovery({byId, api, guard, selected: () => selected, waitTask, refreshSelect, setDisabled, message}) : null;
     jQuery(byId('cluster')).on('selectmenuchange change', guard(() => loadClusters(byId('cluster').value)));
+    if (operator) {
+        jQuery(byId('installation-task')).on('selectmenuchange change', guard(showInstallation));
+        byId('installation-refresh').addEventListener('click', guard(showInstallation));
+    }
     byId('refresh').addEventListener('click', guard(() => selected ? refresh() : loadClusters()));
     window.addEventListener('hashchange', navigateSection);
     if (operator) {

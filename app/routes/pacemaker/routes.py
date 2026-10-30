@@ -535,10 +535,20 @@ def history(cluster_id):
     events = PacemakerEvent.select().where(PacemakerEvent.cluster == cluster.id).order_by(PacemakerEvent.id.desc()).limit(100)
     changes = PacemakerChange.select().where(PacemakerChange.cluster == cluster.id).order_by(PacemakerChange.id.desc()).limit(50)
     task = InstallationTasks.get_or_none(InstallationTasks.id == cluster.active_task_id) if cluster.active_task_id else None
+    installations = []
+    if int(g.user_params['role']) <= 3:
+        from app.modules.operations.queue import deserialize_operation_payload
+        rows = InstallationTasks.select().where(
+            (InstallationTasks.group_id == cluster.group_id) & (InstallationTasks.operation_type == 'pacemaker') &
+            (InstallationTasks.service_name == f'Pacemaker {cluster.name}: bootstrap')
+        ).order_by(InstallationTasks.id.desc()).limit(20)
+        for row in rows:
+            if deserialize_operation_payload(row.operation_payload).get('cluster_id') == cluster.id:
+                installations.append({'id': row.id, 'status': row.status, 'date': row.start_date.isoformat()})
     return jsonify(events=[{'id': row.id, 'user_id': row.user_id, 'date': row.created_at.isoformat(),
                             'action': row.action, 'status': row.status} for row in events],
                    changes=[{'id': row.id, 'kind': row.kind, 'status': row.status, 'date': row.created_at.isoformat()} for row in changes],
-                   task={'id': task.id, 'status': task.status} if task else None)
+                   task={'id': task.id, 'status': task.status} if task else None, installations=installations)
 
 
 @bp.get('/api/<int:cluster_id>/tasks/<int:task_id>')
@@ -551,9 +561,13 @@ def task(cluster_id, task_id):
     if not row:
         abort(404)
     from app.modules.operations.queue import deserialize_operation_payload
-    if deserialize_operation_payload(row.operation_payload)['cluster_id'] != cluster.id:
+    payload = deserialize_operation_payload(row.operation_payload)
+    if payload.get('cluster_id') != cluster.id:
         abort(404)
-    return jsonify(data={'id': row.id, 'status': row.status, 'error': row.error})
+    data = {'id': row.id, 'status': row.status, 'error': row.error, 'action': payload.get('action')}
+    if int(g.user_params['role']) <= 3 and payload.get('action') == 'bootstrap':
+        data.update(log=payload.get('installation_log', []), truncated=payload.get('installation_log_truncated', False))
+    return jsonify(data=data)
 
 
 @bp.get('/api/<int:cluster_id>/logs/<int:server_id>')

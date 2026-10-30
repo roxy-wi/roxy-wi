@@ -28,11 +28,33 @@ exec corosync-qnetd -f -s req -c on
 '''
 
 RUNTIME = r'''
-import hashlib, json, os, pathlib, shutil, socket, subprocess, tempfile, time
+import hashlib, json, os, pathlib, shutil, socket, stat, subprocess, tempfile, time
 CONTAINER = 'roxywi-qnetd'
 ROOT = pathlib.Path('/var/lib/roxy-wi/qnetd')
 DATA = ROOT / 'data'
 CERT = DATA / 'nssdb/qnetd-cacert.crt'
+def tree_digest(root):
+    digest = hashlib.sha256(); total = 0
+    paths = sorted(root.rglob('*'))
+    if len(paths) > 1000: raise ValueError('Unexpectedly large witness certificate directory')
+    for path in paths:
+        metadata = path.lstat()
+        if path.is_symlink() or not (path.is_file() or path.is_dir()):
+            raise ValueError('Witness certificate storage contains unsupported file types')
+        digest.update(str(path.relative_to(root)).encode())
+        digest.update(str((stat.S_IMODE(metadata.st_mode), metadata.st_uid, metadata.st_gid)).encode())
+        if path.is_file():
+            total += metadata.st_size
+            if total > 32 * 1024 * 1024: raise ValueError('Unexpectedly large witness certificate database')
+            digest.update(path.read_bytes())
+    return digest.hexdigest()
+
+def copy_state(source, destination):
+    shutil.copytree(source, destination)
+    for path in [source, *source.rglob('*')]:
+        metadata = path.stat()
+        os.chown(destination / path.relative_to(source), metadata.st_uid, metadata.st_gid)
+
 def command(args, timeout=30):
     return subprocess.run(args, check=True, capture_output=True, text=True, timeout=timeout).stdout.strip()
 def ensure_no_pending(exclude=None):

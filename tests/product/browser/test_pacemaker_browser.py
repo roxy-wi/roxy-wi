@@ -68,6 +68,63 @@ def assert_no_page_overflow(page):
     assert title['x'] + title['width'] <= page.viewport_size['width']
 
 
+@pytest.mark.parametrize('width', [1440, 390])
+def test_installation_logs_survive_reload_and_render_output_as_text(
+        logged_in, product_url, product, cluster_host, width, tmp_path):
+    from app.modules.db.db_model import InstallationTasks
+    from app.modules.operations.queue import deserialize_operation_payload
+    from app.modules.pacemaker import operations, install_log
+
+    task = operations.enqueue(cluster_host.cluster, product.admin.user_id, 'bootstrap')
+    payload = deserialize_operation_payload(task.operation_payload)
+    install_log.recorder(task, payload)('node-1', 'Repositories', 'error',
+        'Packages unavailable: pacemaker\nhttps://user:SecretPassword@example.test/repo?token=HiddenToken\n'
+        '<img src=x onerror="window.logInjection=true">')
+    InstallationTasks.update(status='failed', error='Open the installation log').where(InstallationTasks.id == task.id).execute()
+    page = logged_in
+    page.set_viewport_size({'width': width, 'height': 900})
+    for _ in range(2):
+        open_cluster(page, product_url, 'logs')
+        expect(page.locator('#pcmk-installation-output')).to_contain_text('Packages unavailable: pacemaker')
+        expect(page.locator('#pcmk-installation-status')).to_contain_text(f'Installation #{task.id}: failed')
+        assert 'SecretPassword' not in page.locator('#pcmk-installation-output').inner_text()
+        assert 'HiddenToken' not in page.locator('#pcmk-installation-output').inner_text()
+        assert page.locator('#pcmk-installation-output img').count() == 0
+        assert page.evaluate('window.logInjection !== true')
+        assert_no_page_overflow(page)
+        page.locator('#pcmk-installation-panel').screenshot(path=str(tmp_path / f'installation-log-{width}.png'))
+        page.reload()
+
+
+def test_running_installation_updates_without_replacing_selected_history(logged_in, product_url, product, cluster_host):
+    from app.modules.db.db_model import InstallationTasks
+    from app.modules.operations.queue import deserialize_operation_payload
+    from app.modules.pacemaker import operations, install_log
+
+    previous = operations.enqueue(cluster_host.cluster, product.admin.user_id, 'bootstrap')
+    install_log.recorder(previous, deserialize_operation_payload(previous.operation_payload))(
+        'node-1', 'Repositories', 'error', 'Historical package failure')
+    InstallationTasks.update(status='failed').where(InstallationTasks.id == previous.id).execute()
+    current = operations.enqueue(cluster_host.cluster, product.admin.user_id, 'bootstrap')
+    record = install_log.recorder(current, deserialize_operation_payload(current.operation_payload))
+    record('node-1', 'Packages', 'info', 'Installing packages')
+    InstallationTasks.update(status='running').where(InstallationTasks.id == current.id).execute()
+    page = logged_in
+    open_cluster(page, product_url, 'logs')
+    output = page.locator('#pcmk-installation-output')
+    expect(output).to_contain_text('Installing packages')
+    record('node-2', 'Packages', 'info', 'Second node packages complete')
+    expect(output).to_contain_text('Second node packages complete', timeout=10000)
+    page.locator('#pcmk-installation-task-button').click()
+    page.locator('#pcmk-installation-task-menu [role=option]').filter(has_text=f'#{previous.id} ·').click()
+    expect(output).to_contain_text('Historical package failure')
+    with page.expect_response(lambda response: response.url.endswith(f'/tasks/{current.id}')):
+        InstallationTasks.update(status='completed').where(InstallationTasks.id == current.id).execute()
+    page.evaluate('() => new Promise(requestAnimationFrame)')
+    expect(output).to_contain_text('Historical package failure')
+    expect(output).not_to_contain_text('Second node packages complete')
+
+
 @pytest.mark.parametrize('view', ['overview', 'resources', 'configuration', 'quorum', 'logs', 'monitoring', 'history'])
 def test_cluster_pages_use_shared_layout(logged_in, product_url, cluster_host, view, tmp_path):
     page = logged_in

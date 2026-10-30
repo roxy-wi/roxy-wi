@@ -27,6 +27,14 @@ def test_pem_validation_and_metadata_do_not_return_private_material():
         certificates.inspect_pem(bundle['fullchain'] + certificates.inspect_pem(make_pem(2))[0]['key'])
 
 
+def test_pem_validation_checks_requested_domains_in_the_same_pass():
+    pem = make_pem(domains=('example.test', 'www.example.test'))
+    _bundle, metadata = certificates.inspect_pem(pem, domains=['www.example.test', 'example.test'])
+    assert set(metadata['domains']) == {'example.test', 'www.example.test'}
+    with pytest.raises(certificates.CertificateError, match='domains do not match'):
+        certificates.inspect_pem(pem, domains=['other.test'])
+
+
 @pytest.mark.parametrize('pem', ['', 'invalid', 'x' * (1024 * 1024 + 1)], ids=['empty', 'invalid', 'oversize'])
 def test_invalid_uploads(pem):
     with pytest.raises(certificates.CertificateError):

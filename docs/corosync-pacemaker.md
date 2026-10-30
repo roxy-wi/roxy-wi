@@ -67,7 +67,23 @@ appropriate fencing agent before relying on automatic resource recovery.
 Web, Scheduler and Operations must all run. Scheduler publishes durable operation
 tasks to RabbitMQ; Operations performs SSH work. A queued task remaining in
 `created` or `published` is an Operations/queue health issue, not a completed
-cluster operation. Package installation also needs access to the distribution's enabled HA repositories.
+cluster operation. On EL hosts the installer checks package availability on every
+node before installing anything. It uses configured native High Availability and
+CRB/PowerTools repositories with `dnf --enablerepo` for the transaction, including
+when they are disabled by default. It does not add repositories or change their
+persistent configuration. Missing repositories, entitlements or packages stop the
+operation with a diagnostic message. Optional fencing packages still require the
+appropriate configured package source, such as EPEL.
+
+**Installation logs** are available on the installation, **Node logs** and
+**Change history** pages. Select an installation to see each node's preflight,
+repository checks, package output, configuration validation, service startup and
+readiness result. Progress is saved in the encrypted operation payload and remains
+available after a page reload or failed installation. Operators can read it;
+viewers cannot. Logs are bounded to 256 KB with an explicit truncation notice, and
+credentials are redacted before storage. Older tasks show that no installation
+log was recorded. **Read journal** continues to read the running services' journal;
+package-manager failures belong in the installation log.
 
 See the [control reference and recovery procedures](corosync-pacemaker-controls.md)
 for every page, form field, runtime action and operational failure state.

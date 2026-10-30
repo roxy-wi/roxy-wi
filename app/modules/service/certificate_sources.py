@@ -273,8 +273,7 @@ def execute_source(task):
                 recover_deployment(row, task, renew)
             else:
                 pem = provider(data['provider']).fetch(data['settings'])
-                bundle, metadata = certificates.inspect_pem(pem)
-                certificates.inspect_bundle(bundle, data['domains'])
+                bundle, metadata = certificates.inspect_pem(pem, domains=data['domains'])
                 if payload['check']:
                     row.status = 'checked'
                 elif already_current(row, data, checked, metadata['fingerprint'],bundle,plans):

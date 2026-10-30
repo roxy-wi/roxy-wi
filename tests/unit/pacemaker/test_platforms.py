@@ -27,7 +27,13 @@ def runtime(distro='debian', version='13', container=False, split_agents=False):
             calls.append(('chmod', self.value, mode))
     def run(args, **kwargs):
         calls.append(args)
-        return SimpleNamespace(returncode=0, stdout=b'Package: resource-agents-base' if split_agents else b'')
+        if 'repolist' in args:
+            output = 'repo id repo name status\nbaseos Base enabled\nhighavailability HA disabled\ncrb CRB disabled\n'
+        elif 'repoquery' in args:
+            output = '\n'.join(args[args.index('%{name}') + 1:])
+        else:
+            output = 'Package: resource-agents-base' if split_agents else ''
+        return SimpleNamespace(returncode=0, stdout=output if kwargs.get('text') else output.encode(), stderr='')
     def replace(source, target):
         files[target.value] = files.pop(source.value)
     namespace = {}
@@ -94,6 +100,49 @@ def test_cluster_in_a_container_is_refused_before_installing():
     with pytest.raises(SystemExit, match='Cluster daemons must run on the host'):
         code['install_packages']('cluster')
     assert not calls
+
+
+def test_disabled_ha_repository_is_used_for_both_query_and_install():
+    code, _files, calls = runtime('rocky', '9.8')
+    code['install_packages']('cluster')
+    for command in [args for args in calls if 'repoquery' in args or 'install' in args]:
+        assert '--enablerepo=highavailability' in command
+        assert '--enablerepo=crb' in command
+    assert not any('config-manager' in args for args in calls)
+
+
+def test_missing_packages_stop_before_installing_or_starting_services():
+    code, _files, calls = runtime('rocky', '9.8')
+    original = code['subprocess'].run
+
+    def run(args, **kwargs):
+        result = original(args, **kwargs)
+        if 'repoquery' in args:
+            result.stdout = 'corosync\npython3\n'
+        return result
+
+    code['subprocess'].run = run
+    with pytest.raises(SystemExit, match='Packages unavailable: pacemaker, resource-agents'):
+        code['install_packages']('cluster')
+    assert not any('install' in args or 'systemctl' in args for args in calls)
+
+
+@pytest.mark.parametrize('repo', ['HighAvailability', 'rhel-9-for-aarch64-highavailability-rpms', 'ol8_addons'])
+def test_configured_native_ha_repository_ids_are_preserved(repo):
+    code, _files, calls = runtime('rocky', '9.8')
+    original = code['subprocess'].run
+
+    def run(args, **kwargs):
+        result = original(args, **kwargs)
+        if 'repolist' in args:
+            result.stdout = f'repo id repo name status\n{repo} Native HA disabled\nunrelated Other disabled\n'
+        return result
+
+    code['subprocess'].run = run
+    code['install_packages']('cluster')
+    command = next(args for args in calls if 'install' in args)
+    assert '--enablerepo=' + repo in command
+    assert '--enablerepo=unrelated' not in command
 
 
 def test_syn_protection_persists_only_explicit_tcp_tunables_and_preserves_larger_backlog():

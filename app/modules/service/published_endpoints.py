@@ -260,8 +260,8 @@ def discover(server,service):
             if service=='haproxy':
                 found=haproxy_files.discover_sources(server.ip,server.server_id)
                 if found['state']=='error' or not found['files']:raise ValueError('Cannot discover HAProxy configuration sources')
-                paths=found['files'];verified=found['verified_running'];root=sql.get_setting('haproxy_dir')
-                raw=json.loads(Remote(server).run(['python3','-c',READ_FILES],data=json.dumps(dict(paths=paths,root=root,apache=False))))
+                paths=found['files'];verified=found['verified_running']
+                raw=json.loads(Remote(server).run(['python3','-c',READ_FILES],data=json.dumps(dict(paths=paths))))
                 result=parse(service,raw['text']);result.update(running_sources_verified=verified,file_count=raw['file_count'])
             else:
                 code=containers.embedded()+APACHE_FILES

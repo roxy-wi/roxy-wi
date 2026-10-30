@@ -4,7 +4,7 @@
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/table-6.3.9.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/pacemaker.css', v='9.3.0-2') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pacemaker.css', v='9.3.0-3') }}">
 {% macro field(id, label, name='', value='', required='', type='text', placeholder='') -%}
 <div class="rw-form-field"><label for="{{ id }}">{{ label }}</label>{{ input(id, name=name, value=value, required=required, type=type, placeholder=placeholder) }}</div>
 {%- endmacro %}
@@ -126,6 +126,7 @@
         <button type="button" id="pcmk-bootstrap" class="rw-button rw-button-secondary">Install cluster on empty nodes</button>
             </div>
             <p id="pcmk-platform-result" class="rw-form-help" role="status"></p>
+            <p class="rw-form-help">Repositories and required packages are checked on every node before installation. Configured High Availability repositories on EL hosts are used for the package transaction.</p>
             <p class="rw-form-help">The optional Proxmox agent requires available native packages (EPEL on EL). Installation repairs the known fence_pve library-path defect when present and keeps a backup. Configure the fencing device and test it before relying on recovery.</p>
         </section>
     </section>
@@ -301,8 +302,19 @@
             <p id="pcmk-task-status" role="status"></p>
             <details class="change-advanced-settings"><summary>Event log</summary><pre class="rw-notification-raw" id="pcmk-events"></pre></details>
         </details>
+        {% if g.user_params['role']|int <= 3 %}
+        <section id="pcmk-installation-panel" class="rw-panel" {% if view not in ['setup', 'logs', 'history'] %}hidden{% endif %}>
+            <h3>Installation logs</h3>
+            <div class="rw-table-toolbar">
+                <label for="pcmk-installation-task">Installation</label>{{ select('pcmk-installation-task', values={}) }}
+                <button type="button" id="pcmk-installation-refresh" class="rw-button rw-button-secondary">Refresh log</button>
+            </div>
+            <p id="pcmk-installation-status" class="rw-form-help" role="status">No installations yet</p>
+            <pre id="pcmk-installation-output" class="rw-notification-raw"></pre>
+        </section>
+        {% endif %}
     </section>
 </main>
 <script src="{{ url_for('static', filename='js/pacemaker-discovery.js') }}" defer></script>
-<script src="{{ url_for('static', filename='js/pacemaker.js', v='9.3.0-2') }}" defer></script>
+<script src="{{ url_for('static', filename='js/pacemaker.js', v='9.3.0-3') }}" defer></script>
 {% endblock %}

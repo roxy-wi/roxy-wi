@@ -14,7 +14,7 @@ from app.modules.pacemaker.witness_docker import RUNTIME
 from app.modules.roxywi.exception import RoxywiConflictError, RoxywiValidationError
 
 RECOVERY = r'''
-import fcntl, re, stat
+import fcntl, re
 NATIVE = pathlib.Path('/etc/corosync/qnetd')
 def atomic(path, value):
     with tempfile.NamedTemporaryFile(mode='w', dir=path.parent, prefix='.state-', delete=False) as stream:
@@ -82,21 +82,6 @@ def preserve_ca_trust(directory, image, source):
     command([*prefix,'-M','-d','/etc/corosync/qnetd/nssdb','-n','QNet CA','-t',trust,
              '-f','/etc/corosync/qnetd/nssdb/pwdfile.txt'],timeout=60)
 
-def tree_digest(root):
-    digest = hashlib.sha256(); total = 0
-    files = sorted(root.rglob('*'))
-    if len(files) > 1000: raise ValueError('Unexpectedly large witness certificate directory')
-    for path in files:
-        metadata = path.lstat()
-        if path.is_symlink() or not (path.is_file() or path.is_dir()):
-            raise ValueError('Witness certificate storage contains unsupported file types')
-        digest.update(str(path.relative_to(root)).encode()); digest.update(str((stat.S_IMODE(metadata.st_mode), metadata.st_uid, metadata.st_gid)).encode())
-        if path.is_file():
-            total += metadata.st_size
-            if total > 32 * 1024 * 1024: raise ValueError('Unexpectedly large witness certificate database')
-            digest.update(path.read_bytes())
-    return digest.hexdigest()
-
 def source_info(token=None):
     ensure_no_pending(token)
     if pathlib.Path('/etc/pve').exists(): raise ValueError('Proxmox hosts cannot be migration targets')
@@ -145,13 +130,6 @@ def pending():
         if state['phase'] not in ('committed', 'rolled-back'):
             result.append({'token': path.parent.name, 'phase': state['phase'], 'clusters':state.get('clusters',[])})
     return result
-
-def copy_state(source, destination):
-    shutil.copytree(source, destination)
-    for path in [source, *source.rglob('*')]:
-        relative = path.relative_to(source)
-        metadata = path.stat()
-        os.chown(destination / relative, metadata.st_uid, metadata.st_gid)
 
 def prepare(token, expected, container_engine="docker"):
     if pending(): raise ValueError('An unfinished migration must be recovered first')

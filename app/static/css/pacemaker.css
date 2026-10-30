@@ -62,6 +62,7 @@
 :is(#pacemaker-app, .rw-operations-workspace) #pcmk-dashboard > section { margin-bottom: 16px; }
 :is(#pacemaker-app, .rw-operations-workspace) #pcmk-dashboard > section > :last-child { margin-bottom: 0; }
 :is(#pacemaker-app, .rw-operations-workspace) .rw-notification-raw:empty { display: none; }
+#pacemaker-app #pcmk-installation-output { max-height: 420px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
 :is(#pacemaker-app, .rw-operations-workspace) .config-editor-shell textarea { min-height: 240px; }
 
 @media (max-width: 900px) {

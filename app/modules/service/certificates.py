@@ -64,7 +64,7 @@ def certificate_metadata(pem):
                 issuer=certificate.issuer.rfc4514_string(), serial=str(certificate.serial_number))
 
 
-def inspect_pem(pem):
+def inspect_pem(pem, *, domains=None):
     if not isinstance(pem, str) or not pem or len(pem.encode('utf-8')) > MAX_PEM_BYTES:
         raise CertificateError('Invalid PEM size', 'invalid_pem')
     certificates = re.findall(r'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----', pem, re.S)
@@ -74,7 +74,7 @@ def inspect_pem(pem):
         raise CertificateError('Provide a PEM certificate chain and one unencrypted private key', 'invalid_pem')
     bundle = {'fullchain': '\n'.join(certificates) + '\n', 'key': key.group(0) + '\n'}
     try:
-        inspect_bundle(bundle)
+        inspect_bundle(bundle, domains)
         metadata = certificate_metadata(bundle['fullchain'])
     except CertificateError:
         raise

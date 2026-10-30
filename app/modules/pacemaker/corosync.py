@@ -1,5 +1,4 @@
 """Review and coordinate authenticated Corosync membership changes."""
-import base64
 import hashlib
 import json
 import secrets

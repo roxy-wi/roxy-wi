@@ -1,4 +1,4 @@
-"""Upgrades create current identities without guessing ownership of old evidence."""
+"""Upgrades remove unbound proxy reports without deleting other assessments."""
 import importlib
 
 import pytest
@@ -9,7 +9,7 @@ from app.modules.db.db_model import Server, OperationalAssessment
 from app.modules.db import server as server_sql
 
 
-def test_registration_migration_is_idempotent_and_leaves_legacy_reports_unbound():
+def test_registration_migration_is_idempotent_and_removes_only_unbound_proxy_reports():
     migration = importlib.import_module('app.modules.db.migrations.20261030010000_proxy_registration_identity')
     database = SqliteDatabase(':memory:')
     with database.bind_ctx([Server, OperationalAssessment], bind_refs=False, bind_backrefs=False):
@@ -21,6 +21,9 @@ def test_registration_migration_is_idempotent_and_leaves_legacy_reports_unbound(
         assert list(server_sql.get_dick_permit(1, disable=0, virt=True))[0][2] == one.ip
         report = OperationalAssessment.create(group_id=1, user_id=1, kind='proxy-diagnostics',
             subject=f'haproxy:{one.server_id}', result='historical encrypted bytes')
+        unrelated = [OperationalAssessment.create(group_id=1, user_id=1, kind=kind,
+            subject=f'haproxy:{one.server_id}', result='other encrypted bytes')
+            for kind in ('ha-readiness', 'ha-maintenance', 'served-tls')]
         migrator = SqliteMigrator(database)
         for index in database.get_indexes('servers'):
             if tuple(index.columns) == ('registration_key',):
@@ -30,10 +33,18 @@ def test_registration_migration_is_idempotent_and_leaves_legacy_reports_unbound(
         migration.up()
         keys = {row.server_id: row.registration_key for row in Server.select()}
         assert len(set(keys.values())) == 2 and all(len(key) == 32 for key in keys.values())
-        assert OperationalAssessment.get_by_id(report.id).server_registration_key == ''
-        assert OperationalAssessment.get_by_id(report.id).result == 'historical encrypted bytes'
+        assert OperationalAssessment.get_or_none(OperationalAssessment.id == report.id) is None
+        for row in unrelated:
+            assert OperationalAssessment.get_by_id(row.id).result == 'other encrypted bytes'
+        bound = OperationalAssessment.create(group_id=1, user_id=1, kind='proxy-diagnostics',
+            subject=f'haproxy:{one.server_id}', server_registration_key=keys[one.server_id],
+            result='current encrypted bytes')
+        queued = OperationalAssessment.create(group_id=2, user_id=2, kind='proxy-diagnostics',
+            subject='nginx:99', result='')
         migration.up()
         assert {row.server_id: row.registration_key for row in Server.select()} == keys
+        assert OperationalAssessment.get_by_id(bound.id).result == 'current encrypted bytes'
+        assert OperationalAssessment.get_or_none(OperationalAssessment.id == queued.id) is None
         with pytest.raises(IntegrityError):
             Server.create(hostname='Duplicate identity', ip='192.0.2.3', group_id='1', registration_key=keys[one.server_id])
         Server.delete_by_id(two.server_id)

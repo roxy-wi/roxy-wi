@@ -89,10 +89,12 @@ recreating a server generates a new identity even if its numeric ID and IP are
 reused. History, individual reports and queued work cannot cross that boundary.
 
 The registration migration adds server identities and binds new proxy assessments
-to them. Existing reports are retained encrypted but remain unbound: matching an
-ID, IP or old task payload is insufficient proof of their registration. They are
-not exposed as current history; run a fresh assessment instead. Legacy queued
-assessments without this identity fail before probing and must be resubmitted.
+to them. It deletes old proxy diagnostics without a
+registration identity: matching an ID, IP or old task payload is insufficient
+proof of their registration. Reports with a recorded identity and other assessment
+types are preserved. Run a fresh assessment instead. Legacy queued assessments
+without this identity fail before probing and must be resubmitted; their operation
+history is preserved.
 Upgrade web and worker processes together before running new diagnostics.
 
 ## API and verification

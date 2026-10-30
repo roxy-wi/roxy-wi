@@ -1,4 +1,3 @@
-import os
 import subprocess
 from contextlib import ExitStack
 from difflib import unified_diff
@@ -62,7 +61,7 @@ def get_config(server_ip, cfg, service='haproxy', **kwargs):
 		config_path = haproxy_files.resolve_path(kwargs.get('config_file_name'))
 	elif service == 'keepalived':
 		config_path = sql.get_setting(f'{service}_config_path')
-	elif service in ('nginx', 'apache', 'keepalived'):
+	elif service in ('nginx', 'apache'):
 		config_path = _replace_config_path_to_correct(kwargs.get('config_file_name'))
 	if not kwargs.get('waf'):
 		common.check_is_conf(config_path)
@@ -119,10 +118,10 @@ def validate_candidate_config(server_ip: str, cfg: str, service: str, config_fil
 	except OSError:
 		# dos2unix is optional; the actual service validator is authoritative.
 		pass
-	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
-	from app.modules.service import container_settings
-	container_name = container_settings.name(server_id, service) if is_dockerized == '1' else ''
 	if service == 'haproxy':
+		is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
+		from app.modules.service import container_settings
+		container_name = container_settings.name(server_id, service) if is_dockerized == '1' else ''
 		command = candidate.candidate_command(
 			'haproxy', config_path, tmp_file, 'test', **haproxy_files.configuration_context(server_ip, server_id),
 			container=container_name if is_dockerized == '1' else ''
@@ -139,46 +138,11 @@ def validate_candidate_config(server_ip: str, cfg: str, service: str, config_fil
 		candidate.check_result(server_mod.ssh_command(server_ip, command, rc=1, timeout=candidate.REMOTE_TIMEOUT,
 			error_context='Proxy configuration validation failed'))
 		return service.title() + ' configuration is valid'
-	if is_dockerized == '1':
-		checks = {
-			'nginx': container_settings.command(server_id, service, ['exec', container_name, 'nginx', '-t']),
-			'apache': container_settings.command(server_id, service, ['exec', container_name, 'apachectl', '-t', '-f', sql.get_setting('apache_config_path')]),
-			'keepalived': container_settings.command(server_id, service, ['exec', container_name, 'keepalived', '-t', '-f', config_path]),
-		}
-	else:
-		checks = {
-			'nginx': 'sudo nginx -t',
-			'apache': 'sudo apachectl -t',
-			'keepalived': f'sudo keepalived -t -f {quote(tmp_file)}',
-		}
-
-	check_command = checks[service]
-	# NGINX and Apache validate the complete configuration tree. Dockerized
-	# services also need the candidate at the mounted production path. Preserve
-	# the original and restore it before returning, including on failure.
-	stage_candidate = service in ('nginx', 'apache') or is_dockerized == '1'
-	if stage_candidate:
-		backup_file = f'{tmp_file}.before'
-		command = (
-			f'sudo cp -p {quote(config_path)} {quote(backup_file)} && '
-			f'sudo mv -f {quote(tmp_file)} {quote(config_path)} && {check_command}; '
-			f'validation_rc=$?; sudo mv -f {quote(backup_file)} {quote(config_path)}; exit $validation_rc'
-		)
-	else:
-		command = (
-			f'{check_command}; validation_rc=$?; sudo rm -f {quote(tmp_file)}; exit $validation_rc'
-		)
-
-	try:
-		upload(server_ip, tmp_file, cfg)
-		output = server_mod.ssh_command(server_ip, command, rc=1)
-	except Exception as e:
-		roxywi_common.handle_exceptions(e, server_ip, f'Cannot validate {service} candidate configuration')
-	return str(output or '').strip() or f'{service.title()} configuration is valid'
+	raise ValueError('Unsupported configuration service')
 
 
 def _generate_command(
-	service: str, server_id: int, just_save: str, config_path: str, tmp_file: str, cfg: str, server_ip: str,
+	service: str, server_id: int, just_save: str, config_path: str, tmp_file: str, server_ip: str,
 	waf_service: str = None, apply_only: bool = False, expected_sha256: str = ''
 ) -> str:
 	"""
@@ -187,12 +151,11 @@ def _generate_command(
 	:param just_save: Indicates whether the configuration should only be saved or not. Possible values are 'test', 'save', 'restart' or 'reload'.
 	:param config_path: The path to the configuration file.
 	:param tmp_file: The temporary file path.
-	:param cfg: The configuration object.
 	:param server_ip: The IP address of the server.
 	:param waf_service: The proxy owning the WAF rule, used to select its runtime service.
-	:return: A list of commands.
+	:return: The remote configuration transaction command.
 
-	This method generates a list of commands based on the given parameters.
+	Generate a configuration transaction for the selected service and action.
 	"""
 	validate_config_action(just_save)
 	if service == 'waf':
@@ -204,10 +167,10 @@ def _generate_command(
 		action = service_action.get_action_command(action_service, just_save, server_id) if just_save in ('reload', 'restart') else ''
 		return candidate.candidate_command(f'{waf_service}_waf', config_path, tmp_file, just_save,
 			**service_common.waf_runtime_settings(waf_service, server_id), action_command=action, apply_only=apply_only)
-	from app.modules.service import container_settings
-	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
-	container_name = container_settings.name(server_id, service) if is_dockerized == '1' else ''
 	if service == 'haproxy':
+		from app.modules.service import container_settings
+		is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
+		container_name = container_settings.name(server_id, service) if is_dockerized == '1' else ''
 		if service_common.is_not_allowed_to_restart(server_id, service, just_save):
 			raise Exception('error: This server is not allowed to be restarted')
 		action_command = service_action.get_action_command(service, just_save, server_id) if just_save in ('reload', 'restart') else ''
@@ -223,38 +186,7 @@ def _generate_command(
 		action = service_action.get_action_command(service, just_save, server_id) if just_save in ('reload', 'restart') else ''
 		return candidate.candidate_command(service, config_path, tmp_file, just_save,
 			**service_common.proxy_runtime_settings(service, server_id), action_command=action, expected_sha256=expected_sha256)
-	reload_or_restart_command = ''
-	if just_save in ('reload', 'restart'):
-		reload_or_restart_command = f' && {service_action.get_action_command(service, just_save, server_id)}'
-	move_config = f" sudo mv -f {quote(tmp_file)} {quote(config_path)}"
-	command = {
-		'nginx': {'0': 'sudo nginx -t ', '1': container_settings.command(server_id, service, ['exec', container_settings.name(server_id, service), 'nginx', '-t']) if is_dockerized == '1' else ''},
-		'apache': {'0': 'sudo apachectl -t ', '1': container_settings.command(server_id, service, ['exec', container_settings.name(server_id, service), 'apachectl', '-t', '-f', sql.get_setting('apache_config_path')]) if is_dockerized == '1' else ''},
-		'keepalived': {'0': f'keepalived -t -f {quote(tmp_file)} ', '1': ' '},
-	}
-
-	try:
-		check_config = command[service][is_dockerized]
-	except Exception as e:
-		raise Exception(f'error: Cannot generate command: {e}')
-
-	if just_save == 'test':
-		return f"{check_config} && sudo rm -f {quote(tmp_file)}"
-	elif just_save == 'save':
-		reload_or_restart_command = ''
-	else:
-		if service_common.is_not_allowed_to_restart(server_id, service, just_save):
-			raise Exception('error: This server is not allowed to be restarted')
-
-	if service in ('nginx', 'apache', 'keepalived'):
-		commands = f'{move_config} && {check_config} {reload_or_restart_command}'
-	else:
-		commands = f'{check_config} && {move_config} {reload_or_restart_command}'
-
-	if service == 'nginx':
-		if server_sql.return_firewall(server_ip):
-			commands += _open_port_firewalld(cfg, server_ip, service)
-	return commands
+	raise ValueError('Unsupported configuration service')
 
 
 def _prepare_config_version_diff(server_ip: str, service: str, config_path: str, cfg: str, old_cfg: str, tmp_file: str) -> str:
@@ -338,7 +270,7 @@ def apply_waf(server_ip: str, service: str) -> None:
 	action = 'restart' if service == 'haproxy' else 'reload'
 	service_common.is_protected(server_ip, action)
 	command = _generate_command('waf', server_id, action, common.get_waf_directory(service) + '/modsecurity.conf',
-		'', '', server_ip, waf_service=service, apply_only=True)
+		'', server_ip, waf_service=service, apply_only=True)
 	with waf_state.operation_lock(server_ip, service), waf_state.track_changes(server_id, service, applying=True):
 		output = server_mod.ssh_command(server_ip, command, rc=1, timeout=candidate.REMOTE_TIMEOUT,
 			error_context='WAF configuration apply did not complete')
@@ -414,7 +346,7 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 		command_options = {'waf_service': kwargs.get('waf')} if service == 'waf' else {}
 		if service == 'haproxy' and kwargs.get('expected_sha256'):
 			command_options['expected_sha256'] = kwargs['expected_sha256']
-		commands = _generate_command(service, server_id, just_save, config_path, tmp_file, cfg, server_ip, **command_options)
+		commands = _generate_command(service, server_id, just_save, config_path, tmp_file, server_ip, **command_options)
 	except Exception as e:
 		roxywi_common.handle_exceptions(e, 'Roxy-WI server', f'Cannot generate command for service {service}')
 
@@ -424,15 +356,11 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 				operations.enter_context(waf_state.operation_lock(server_ip, kwargs['waf']))
 				operations.enter_context(waf_state.track_changes(server_id, kwargs['waf'], applying=just_save in ('reload', 'restart')))
 			upload(server_ip, tmp_file, cfg)
-			uses_candidate = service in ('haproxy', 'nginx', 'apache', 'keepalived', 'waf')
-			error = server_mod.ssh_command(server_ip, commands, rc=1, **(
-				{'timeout': candidate.REMOTE_TIMEOUT, 'error_context': 'Configuration transaction did not complete'} if uses_candidate else {}
-			))
-			if uses_candidate:
-				candidate.check_result(error)
-				error = ''
-				if service == 'haproxy' and just_save != 'test' and server_sql.return_firewall(server_ip):
-					server_mod.ssh_command(server_ip, 'true' + _open_port_firewalld(cfg, server_ip, service), rc=1)
+			output = server_mod.ssh_command(server_ip, commands, rc=1, timeout=candidate.REMOTE_TIMEOUT,
+				error_context='Configuration transaction did not complete')
+			candidate.check_result(output)
+			if service == 'haproxy' and just_save != 'test' and server_sql.return_firewall(server_ip):
+				server_mod.ssh_command(server_ip, 'true' + _open_port_firewalld(cfg, server_ip, service), rc=1)
 	except Exception as e:
 		if service == 'waf':
 			try:
@@ -457,8 +385,7 @@ def upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, *
 	if just_save != 'test':
 		roxywi_common.logging(server_ip, 'A new config file has been uploaded', keep_history=1, service=service)
 
-	if error.strip() != 'haproxy' and error.strip() != 'nginx':
-		return error.strip() or service.title()
+	return service.title()
 
 
 def master_slave_upload_and_restart(server_ip: str, cfg: str, just_save: str, service: str, **kwargs: Any) -> str:

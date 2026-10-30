@@ -278,7 +278,7 @@ def test_save_and_test_do_not_generate_service_verbs(monkeypatch):
     monkeypatch.setattr(config_mod.service_action, 'get_action_command', lambda *a: pytest.fail('Invalid service verb requested'))
     monkeypatch.setattr(config_mod.server_sql, 'return_firewall', lambda *a: False)
     for verb in ('save', 'test'):
-        command = config_mod._generate_command('haproxy', 1, verb, '/etc/haproxy.cfg', '/tmp/test.cfg', 'unused', '192.0.2.10')
+        command = config_mod._generate_command('haproxy', 1, verb, '/etc/haproxy.cfg', '/tmp/test.cfg', '192.0.2.10')
         spec = json.loads(shlex.split(command)[-1])
         assert spec['action'] == verb and not spec['action_command']
 

@@ -3,7 +3,7 @@ from flask import abort,g,jsonify,render_template,request
 from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 from app.middleware import get_user_params
-from app.modules.db.db_model import Server,OperationalAssessment
+from app.modules.db.db_model import Server
 from app.modules.db import service as service_sql,user as user_sql
 from app.modules.roxywi.exception import RoxywiResourceNotFound,RoxywiPermissionError,RoxywiConflictError,RoxywiValidationError
 from app.modules.service import proxy_assessments as assessments

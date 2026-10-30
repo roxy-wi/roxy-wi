@@ -14,7 +14,7 @@ MAX_ISSUES = 100
 MAX_HISTORY = 20
 
 
-def redact_error(value: str) -> str:
+def redact_error(value: str, *, max_length: int = 2000) -> str:
     # Heartbeats may contain exception text, never render arbitrary metadata.
     text = re.sub(r'-----BEGIN [^-]*PRIVATE KEY-----.*?(?:-----END [^-]*PRIVATE KEY-----|$)',
                   '[redacted]', value[:20000], flags=re.S)
@@ -33,7 +33,7 @@ def redact_error(value: str) -> str:
         r'''(?ix)(["']?(?:password|passwd|pwd|secret(?:_key)?|client_secret|api[_-]?(?:key|token)|access[_-]?token|refresh[_-]?token|token|authorization|cookie)["']?\s*[:=]\s*)(?:"[^"\n]*"|'[^'\n]*'|[^\s,;]+)''',
         r'\1[redacted]', text,
     )
-    return text[:2000]
+    return text[:max_length]
 
 
 def error_reason(message: str) -> str:

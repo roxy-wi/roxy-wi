@@ -67,8 +67,9 @@ def test_save_quotes_the_path_only_in_shell_and_keeps_version_identity(monkeypat
     versions, commands = [], []
     monkeypatch.setattr(config, '_create_config_version', lambda *a, **kw: versions.append(a[2]))
     monkeypatch.setattr(config.server_mod, 'ssh_command', lambda ip, cmd, **kw: commands.append(shlex.split(cmd)) or json.dumps({'status':'ok'}))
-    config.upload_and_restart('192.0.2.11', str(tmp_path / 'candidate'), 'save', service, user_id=1,
-                              config_file_name=encode_file_path(path), normalize_config=False)
+    result = config.upload_and_restart('192.0.2.11', str(tmp_path / 'candidate'), 'save', service, user_id=1,
+                                       config_file_name=encode_file_path(path), normalize_config=False)
+    assert result == service.title()
     assert versions == [path]
     spec=json.loads(commands[0][-1])
     assert commands[0][:3] == ['sudo','-n','flock']

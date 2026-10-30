@@ -265,6 +265,7 @@ def command(arguments,**kwargs):
 def verify_resources(directory):
     """Do not attach another deployment's data or silently replace its keys."""
     expected=deployment_id(directory)
+    secrets_verified=False
     for kind,names in (('network',('roxywi-backend',)),('volume',VOLUMES),('container',tuple('roxywi-'+role for role in ('migrate',*ROLES,'broker','tls')))):
         for name in names:
             exists=subprocess.run(['podman',kind,'exists',name],capture_output=True,timeout=20)
@@ -274,9 +275,11 @@ def verify_resources(directory):
             labels=record.get('Labels',record.get('labels',{})) if kind in ('volume','network') else record.get('Config',{}).get('Labels',{})
             if (labels or {}).get('org.roxy-wi.deployment')!=expected:
                 raise ValueError('Existing '+kind+' '+name+' belongs to another or unmanaged deployment')
-            if not (Path(directory)/'secrets.json').is_file():
-                raise ValueError('Existing controller data requires its original deployment secrets; restore them before starting')
-            controller_secrets(directory)
+            if not secrets_verified:
+                if not (Path(directory)/'secrets.json').is_file():
+                    raise ValueError('Existing controller data requires its original deployment secrets; restore them before starting')
+                controller_secrets(directory)
+                secrets_verified=True
 
 
 def verify_manager(manager,unit_directory):

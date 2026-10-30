@@ -1,5 +1,4 @@
 """Initialize TLS for a new net qdevice through existing SSH credentials."""
-import base64
 import json
 
 from app.modules.roxywi.exception import RoxywiInputError

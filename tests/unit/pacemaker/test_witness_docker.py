@@ -29,6 +29,33 @@ def managed():
             'Mounts': [{'Type': 'bind', 'Source': '/var/lib/roxy-wi/qnetd/data', 'Destination': '/etc/corosync/qnetd'}]}
 
 
+def test_shared_witness_backup_preserves_contents_and_ownership(tmp_path, monkeypatch):
+    code = runtime(tmp_path, monkeypatch)
+    source = tmp_path / 'original'
+    source.mkdir()
+    (source / 'nssdb').mkdir()
+    (source / 'nssdb' / 'certificate').write_bytes(b'certificate database')
+    destination = tmp_path / 'backup'
+    owners = []
+    monkeypatch.setattr(code['os'], 'chown', lambda *values: owners.append(values), raising=False)
+    code['copy_state'](source, destination)
+    assert code['tree_digest'](source) == code['tree_digest'](destination)
+    assert owners == [(destination / path.relative_to(source), path.stat().st_uid, path.stat().st_gid)
+                      for path in [source, *source.rglob('*')]]
+    (destination / 'nssdb' / 'certificate').write_bytes(b'changed certificate')
+    assert code['tree_digest'](source) != code['tree_digest'](destination)
+
+
+def test_shared_witness_digest_rejects_oversized_storage_before_reading(tmp_path, monkeypatch):
+    code = runtime(tmp_path, monkeypatch)
+    source = tmp_path / 'original'
+    source.mkdir()
+    with (source / 'oversized').open('wb') as stream:
+        stream.truncate(32 * 1024 * 1024 + 1)
+    with pytest.raises(ValueError, match='database'):
+        code['tree_digest'](source)
+
+
 def test_docker_mode_is_strict_and_survives_durable_worker_dispatch(monkeypatch):
     with pytest.raises(ValidationError): WitnessInstall(server_id=1, docker='false')
     assert WitnessInstall(server_id=1).docker is False

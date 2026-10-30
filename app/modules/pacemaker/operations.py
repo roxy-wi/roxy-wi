@@ -72,7 +72,9 @@ def execute(task):
             check(cluster)
         elif action == 'bootstrap':
             from app.modules.pacemaker.bootstrap import provision
-            provision(cluster, actor.user_id, syn_flood=data.get('syn_flood', False), fence_pve=data.get('fence_pve', False))
+            from app.modules.pacemaker.install_log import recorder
+            provision(cluster, actor.user_id, syn_flood=data.get('syn_flood', False),
+                      fence_pve=data.get('fence_pve', False), log=recorder(task, payload))
         elif action in ('validate', 'apply'):
             change = service.change_for(cluster, data['change_id'])
             if change.kind == 'corosync':
@@ -108,6 +110,8 @@ def execute(task):
     except Exception:
         # Do not store raw SSH exceptions, candidate XML or credentials in task errors.
         state, error = 'failed', 'Cluster operation failed; inspect cluster state and node journal before retrying'
+        if payload.get('action') == 'bootstrap':
+            error = 'Cluster installation failed; open the installation log and inspect node state before retrying'
     InstallationTasks.update(status=state, error=error, finish_date=utc_now(), updated_at=utc_now()).where(InstallationTasks.id == task.id).execute()
     if payload['action']=='node-maintenance' and state=='failed':
         from app.modules.service.ha_maintenance import release_failed_task

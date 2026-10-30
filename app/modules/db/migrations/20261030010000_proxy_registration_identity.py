@@ -1,11 +1,12 @@
-"""Retain old reports unbound; numeric server IDs cannot establish provenance."""
+"""Assign server identities and remove proxy reports with unknown provenance."""
 from uuid import uuid4
 from peewee import CharField, SqliteDatabase
 from playhouse.migrate import MySQLMigrator, SqliteMigrator, migrate
 from app.modules.db.db_model import Server, OperationalAssessment
 
 
-def up():
+def up() -> None:
+    """Bind current registrations and delete only unbound proxy diagnostics."""
     database = Server._meta.database
     migrator = SqliteMigrator(database) if isinstance(database, SqliteDatabase) else MySQLMigrator(database)
     for model, field in ((Server, 'registration_key'), (OperationalAssessment, 'server_registration_key')):
@@ -18,9 +19,13 @@ def up():
     table = Server._meta.table_name
     if not any(index.unique and tuple(index.columns) == ('registration_key',) for index in database.get_indexes(table)):
         migrate(migrator.add_index(table, ('registration_key',), unique=True))
-    # Never attach an existing assessment to a current server merely because its
-    # ID/IP matches. Old proxy tasks without the new identity must be resubmitted.
+    OperationalAssessment.delete().where(
+        (OperationalAssessment.kind == 'proxy-diagnostics')
+        & ((OperationalAssessment.server_registration_key == '')
+           | OperationalAssessment.server_registration_key.is_null())
+    ).execute()
 
 
-def down():
+def down() -> None:
+    """Keep registration identities; deleted legacy reports cannot be restored."""
     raise RuntimeError('Server registration identities and report provenance must be retained')

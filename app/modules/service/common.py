@@ -126,37 +126,11 @@ def server_status(stdout):
 
 
 def check_service_config(server_ip: str, server_id: int, service: str) -> None:
-	"""
-	:param server_ip: The IP address of the server to check the service configuration for.
-	:param server_id: The unique identifier of the server.
-	:param service: The name of the service to check the configuration for.
-	:return: True if the service configuration is valid, False otherwise.
-
-	This method checks the configuration of a given service on a server. It first retrieves the value of the "dockerized" setting for the service and the container name from the database
-	*. Then, it constructs the command to check the configuration based on the service type and dockerization status.
-
-	The command depends on the service type and can be one of the following:
-	- For haproxy:
-	    - Use the shared transaction to validate the ordered startup sources with `haproxy -c`.
-	    - Docker paths are resolved through the container mounts.
-	- For nginx:
-	    - If not dockerized: `sudo nginx -q -t -p {config_path}`
-	    - If dockerized: `sudo docker exec -it {container_name} nginx -t`
-	- For apache:
-	    - If not dockerized: `sudo apachectl -t`
-	    - If dockerized: `sudo docker exec -it {container_name} apachectl -t`
-	- For keepalived:
-	    - If not dockerized: `keepalived -t -f {config_path}`
-	    - If dockerized: empty string ` ` (no command needed)
-
-	The method then tries to execute the generated command on the server using the server_mod.ssh_command method. If any exception occurs during the process, it is re-ra
-	*ised with an appropriate error message.
-
-	"""
-	is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
-	from app.modules.service import container_settings
-	container_name = container_settings.name(server_id, service) if is_dockerized == '1' else ''
+	"""Validate the active service configuration through its managed runtime."""
 	if service == 'haproxy':
+		is_dockerized = service_sql.select_service_setting(server_id, service, 'dockerized')
+		from app.modules.service import container_settings
+		container_name = container_settings.name(server_id, service) if is_dockerized == '1' else ''
 		output = server_mod.ssh_command(server_ip, check_command(server_ip, server_id, container_name if is_dockerized == '1' else None), rc=1,
 			timeout=REMOTE_TIMEOUT, error_context='HAProxy configuration validation failed')
 		check_result(output)
@@ -168,27 +142,7 @@ def check_service_config(server_ip: str, server_id: int, service: str) -> None:
 		check_result(server_mod.ssh_command(server_ip, command, rc=1, timeout=REMOTE_TIMEOUT,
 			error_context='Proxy configuration validation failed'))
 		return
-	from app.modules.service import container_settings
-	config_path = ''
-
-	if service == 'keepalived':
-		config_path = sql.get_setting(f'{service}_config_path')
-
-	command = {
-		'nginx': {'0': 'sudo nginx -q -t ', '1': container_settings.command(server_id, service, ['exec', container_settings.name(server_id, service), 'nginx', '-t']) if is_dockerized == '1' else ''},
-		'apache': {'0': 'sudo apachectl -t ', '1': container_settings.command(server_id, service, ['exec', container_settings.name(server_id, service), 'apachectl', '-t', '-f', sql.get_setting('apache_config_path')]) if is_dockerized == '1' else ''},
-		'keepalived': {'0': f'keepalived -t -f {config_path} ', '1': container_settings.command(server_id, service, ['exec', container_name, 'keepalived', '-t', '-f', config_path]) if is_dockerized == '1' else ''}
-	}
-
-	try:
-		check_config = command[service][is_dockerized]
-	except Exception as e:
-		raise Exception(f'error: Cannot generate command: {e}')
-
-	try:
-		server_mod.ssh_command(server_ip, check_config, rc=1)
-	except Exception as e:
-		raise Exception(e)
+	raise ValueError('Unsupported configuration service')
 
 
 def overview_backends(server_ip: str, service: str) -> Union[str, dict]:

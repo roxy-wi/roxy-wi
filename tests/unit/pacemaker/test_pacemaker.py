@@ -76,6 +76,31 @@ def test_moved_server_invalidates_saved_cluster_access(cluster):
     Server.update(group_id='1').where(Server.server_id == first_id).execute()
 
 
+def test_members_use_one_group_scoped_query_and_preserve_declared_order(cluster, monkeypatch):
+    declared = list(reversed(json.loads(cluster.servers)))
+    cluster.servers = json.dumps(declared)
+    queries = []
+    database = Server._meta.database
+    execute = database.execute_sql
+
+    def traced(sql, *args, **kwargs):
+        queries.append(sql)
+        return execute(sql, *args, **kwargs)
+
+    monkeypatch.setattr(database, 'execute_sql', traced)
+    checked = service.members(cluster)
+    assert [server.server_id for _member, server in checked] == [value['server_id'] for value in declared]
+    assert len(queries) == 1
+
+
+@pytest.mark.parametrize('fields', [{'enabled': 0}, {'type_ip': 1}])
+def test_members_reject_ineligible_servers_after_batch_loading(cluster, fields):
+    ident = json.loads(cluster.servers)[0]['server_id']
+    Server.update(**fields).where(Server.server_id == ident).execute()
+    with pytest.raises(ValueError, match='enabled physical'):
+        service.members(cluster)
+
+
 def test_cluster_operations_are_serialized_and_lock_released(cluster):
     with service.locked(cluster):
         with pytest.raises(RoxywiConflictError):

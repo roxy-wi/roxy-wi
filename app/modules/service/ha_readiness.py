@@ -10,7 +10,7 @@ from peewee import SqliteDatabase
 from pydantic import BaseModel, ConfigDict, Field
 from app.modules.common.time import utc_now, utc_iso, as_naive_utc
 from app.modules.common.execution_context import group_settings
-from app.modules.db.db_model import (HaCluster, HaClusterSlave, HaClusterVip, PacemakerCluster,
+from app.modules.db.db_model import (HaCluster, HaClusterSlave, HaClusterVip,
     OperationalAssessment, HaReadinessProfile, InstallationTasks, User, Server)
 from app.modules.db import server as server_sql, user as user_sql
 from app.modules.operations.queue import serialize_operation_payload, deserialize_operation_payload

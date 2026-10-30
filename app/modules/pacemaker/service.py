@@ -7,11 +7,11 @@ from cryptography.fernet import Fernet
 from peewee import IntegrityError, SqliteDatabase
 
 from app.modules.db.db_model import PacemakerCluster, PacemakerChange, PacemakerEvent, Server
-from app.modules.db.server import get_server_with_group
+from app.modules.db.server import get_server_with_group, select_servers_with_group
 from app.modules.pacemaker.remote import Remote, RemoteError
 from app.modules.pacemaker.schemas import ClusterCreate, Member
 from app.modules.pacemaker.transaction import TRANSACTION
-from app.modules.pacemaker.xml import configuration, digest, parse, summary
+from app.modules.pacemaker.xml import configuration, digest, summary
 from app.modules.roxywi.exception import RoxywiInputError, RoxywiConflictError, RoxywiResourceNotFound
 from app.modules.common.time import utc_now
 from app.modules.service.ha_topology import topology_guarded
@@ -38,10 +38,15 @@ def get_cluster(cluster_id, group_id):
 
 
 def members(cluster):
+    """Validate the saved membership against one current, group-scoped read."""
+    declared = [Member.model_validate(value) for value in json.loads(cluster.servers)]
+    servers = {server.server_id: server for server in select_servers_with_group(cluster.group_id).where(
+        Server.server_id.in_([member.server_id for member in declared]))}
     result = []
-    for value in json.loads(cluster.servers):
-        member = Member.model_validate(value)
-        server = get_server_with_group(member.server_id, cluster.group_id)
+    for member in declared:
+        server = servers.get(member.server_id)
+        if server is None:
+            raise RoxywiResourceNotFound('Cluster member not found in the active group')
         if not server.enabled or server.type_ip:
             raise RoxywiInputError('Cluster members must be enabled physical server entries')
         result.append((member, server))
@@ -64,13 +69,15 @@ def register(body: ClusterCreate, group_id):
         if not isinstance(database, SqliteDatabase):
             list(Server.select().where(Server.server_id.in_([m.server_id for m in body.members]))
                  .order_by(Server.server_id).for_update())
+        registered = {item['server_id']
+                      for cluster in PacemakerCluster.select(PacemakerCluster.servers).where(PacemakerCluster.group_id == group_id)
+                      for item in json.loads(cluster.servers)}
         for member in body.members:
             server = get_server_with_group(member.server_id, group_id)
             if not server.enabled or server.type_ip:
                 raise RoxywiInputError('Select enabled physical servers')
-            for cluster in PacemakerCluster.select().where(PacemakerCluster.group_id == group_id):
-                if member.server_id in [item['server_id'] for item in json.loads(cluster.servers)]:
-                    raise RoxywiInputError('A server is already registered in another Pacemaker cluster')
+            if member.server_id in registered:
+                raise RoxywiInputError('A server is already registered in another Pacemaker cluster')
         try:
             return PacemakerCluster.create(name=body.name, description=body.description, group_id=group_id,
                                            servers=json.dumps([member.model_dump() for member in body.members]))

@@ -42,6 +42,28 @@ def deploy(monkeypatch):
     return module
 
 
+@pytest.mark.parametrize('existing', [False, True])
+def test_resource_ownership_checks_decrypt_shared_secrets_once(deploy, tmp_path, monkeypatch, existing):
+    (tmp_path / 'secrets.json').write_text('{}')
+    label = {'org.roxy-wi.deployment': deploy.deployment_id(tmp_path)}
+    inspected = []
+    decrypted = []
+
+    def run(arguments, **kwargs):
+        if arguments[2] == 'exists':
+            return SimpleNamespace(returncode=0 if existing else 1)
+        assert arguments[2] == 'inspect'
+        inspected.append((arguments[1], arguments[3]))
+        return SimpleNamespace(returncode=0, stdout=json.dumps([
+            {'Labels': label, 'Config': {'Labels': label}}]))
+
+    monkeypatch.setattr(deploy.subprocess, 'run', run)
+    monkeypatch.setattr(deploy, 'controller_secrets', lambda directory: decrypted.append(directory))
+    deploy.verify_resources(tmp_path)
+    assert len(inspected) == (12 if existing else 0)
+    assert decrypted == ([tmp_path] if existing else [])
+
+
 def test_all_controller_roles_share_private_data_and_migration_order(deploy,tmp_path):
     units=deploy.units(tmp_path)
     assert len(units)==12

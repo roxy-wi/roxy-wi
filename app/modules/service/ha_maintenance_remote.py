@@ -56,6 +56,3 @@ def simulate(xml,target,*,returning=False):
         run(['crm_simulate','--xml-file',str(source),'--simulate','--save-output',str(output)])
         return run(['crm_mon','--one-shot','--output-as=xml'],
             env={**os.environ,'CIB_file':str(output)},allowed=(0,1,2))
-
-
-SOURCE = None  # Assigned by the controller from this exact shipped file.

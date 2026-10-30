@@ -6,6 +6,7 @@ import secrets
 from app.modules.roxywi.exception import RoxywiInputError
 from app.modules.pacemaker.remote import Remote
 from app.modules.pacemaker.platforms import SOURCE
+from app.modules.pacemaker import install_log
 
 
 PREFLIGHT = SOURCE + r'''
@@ -42,7 +43,7 @@ for tool in ('cibadmin', 'crm_mon', 'crm_simulate', 'crm_verify', 'crm_diff', 'c
         raise SystemExit('Required Pacemaker CLI tool is unavailable')
 # Debian may start the default one-node cluster when the packages are first
 # installed. Only nodes that passed preflight above reach this point.
-subprocess.run(['systemctl', 'stop', 'pacemaker', 'corosync'], check=True, timeout=60)
+installation_command(['systemctl', 'stop', 'pacemaker', 'corosync'], timeout=60)
 # Preflight established that no CIB existed. Discard only the default CIB that
 # Debian's package post-install startup may have created during this operation.
 for default_cib in pathlib.Path('/var/lib/pacemaker/cib').glob('cib*'):
@@ -57,11 +58,19 @@ if data.get('syn_flood'):
 # Syntax validation must run before that first start.
 pathlib.Path('/var/lib/corosync').mkdir(mode=0o755, parents=True, exist_ok=True)
 if shutil.which('restorecon'):
-    subprocess.run(['restorecon', '/etc/corosync/authkey', '/etc/corosync/corosync.conf',
-                    '/var/lib/corosync'], check=True, capture_output=True, timeout=15)
-subprocess.run(['corosync', '-t'], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15)
+    installation_command(['restorecon', '/etc/corosync/authkey', '/etc/corosync/corosync.conf',
+                          '/var/lib/corosync'], timeout=15)
+installation_command(['corosync', '-t'], timeout=15)
 print(json.dumps({'fence_pve_repaired': fence_repaired}))
 '''
+
+REPOSITORIES = SOURCE + r'''
+data = json.load(sys.stdin)
+profile = platform_profile()
+package_repositories(profile, 'cluster', role_packages(profile, 'cluster', data.get('fence_pve', False)))
+'''
+
+START = SOURCE + "\ninstallation_command(['systemctl', 'enable', '--now', 'corosync', 'pacemaker'], timeout=90)\n"
 
 
 def corosync_config(cluster, checked):
@@ -76,34 +85,51 @@ def corosync_config(cluster, checked):
     return '\n'.join(lines)
 
 
-def provision(cluster, user_id, *, syn_flood=False, fence_pve=False):
+def provision(cluster, user_id, *, syn_flood=False, fence_pve=False, log=None):
     from app.modules.pacemaker.service import members, locked, event, renew_lock
     if json.loads(cluster.corosync_settings).get('adopted'):
         raise RoxywiInputError('An adopted cluster cannot be bootstrapped again')
+
+    def record(node, stage, level, message):
+        renew_lock(cluster, token)
+        if log is not None:
+            log(node, stage, level, message)
+
     with locked(cluster) as token:
         checked = members(cluster)
         # Inspect every node before any node is modified.
         for member, server in checked:
             renew_lock(cluster, token)
-            Remote(server).run(['python3', '-c', PREFLIGHT])
-            actual_name = Remote(server).run(['hostname', '-f' if '.' in member.name else '-s']).strip()
+            source = PREFLIGHT + '\nprint(installation_command(' + repr(
+                ['hostname', '-f' if '.' in member.name else '-s']) + ').stdout.strip())\n'
+            actual_name = install_log.run(Remote(server), source, member.name, 'Preflight', record)
             if actual_name != member.name:
+                record(member.name, 'Preflight', 'error', 'Member name does not match the node hostname')
                 raise RoxywiInputError('Member names must match node hostnames before provisioning')
+            install_log.run(Remote(server), REPOSITORIES, member.name, 'Repositories', record,
+                            data=json.dumps({'fence_pve': fence_pve}), timeout=240)
         config = corosync_config(cluster, checked)
         payload = json.dumps({'key': base64.b64encode(secrets.token_bytes(256)).decode(), 'config': config,
                               'syn_flood': syn_flood, 'fence_pve': fence_pve})
         event(cluster, user_id, 'bootstrap', 'started')
         for member, server in checked:
             renew_lock(cluster, token)
-            result = json.loads(Remote(server).run(['python3', '-c', PREPARE], data=payload, timeout=450))
+            result = json.loads(install_log.run(Remote(server), PREPARE, member.name, 'Packages and configuration',
+                                               record, data=payload, timeout=600))
             if result['fence_pve_repaired']:
                 event(cluster, user_id, f'fence-pve-repair:{member.name}', 'completed')
         # Start only after every node has the same authenticated membership.
-        for _member, server in checked:
+        for member, server in checked:
             renew_lock(cluster, token)
-            Remote(server).run(['systemctl', 'enable', '--now', 'corosync', 'pacemaker'], timeout=90)
+            install_log.run(Remote(server), START, member.name, 'Start services', record, timeout=120)
         from app.modules.pacemaker.service import wait_ready
-        wait_ready(cluster)
+        record('Cluster', 'Readiness', 'info', 'Waiting for quorum and all registered nodes')
+        try:
+            wait_ready(cluster)
+        except Exception:
+            record('Cluster', 'Readiness', 'error', 'Cluster did not become quorate with all registered nodes online')
+            raise
+        record('Cluster', 'Readiness', 'info', 'All registered nodes are online and the cluster has quorum')
         settings = json.loads(cluster.corosync_settings)
         settings['syn_flood'] = syn_flood
         settings['fence_pve'] = fence_pve

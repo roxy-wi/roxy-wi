@@ -5,7 +5,64 @@ Distribution profiles describe an implementation, not a claim of live qualificat
 """
 
 SOURCE = r'''
-import os, pathlib, re, shlex, shutil, subprocess, sys
+import json, os, pathlib, re, shlex, shutil, subprocess, sys
+
+def installation_message(message, level='info'):
+    if globals().get('INSTALL_LOG', False):
+        print('ROXYWI_INSTALL_LOG ' + json.dumps({'message': message, 'level': level}), flush=True)
+
+def installation_command(command, *, timeout=90, env=None):
+    installation_message('Running: ' + shlex.join(command))
+    try:
+        result = subprocess.run(command, capture_output=True, text=True, timeout=timeout,
+                                env=env or dict(os.environ, LC_ALL='C'))
+    except subprocess.TimeoutExpired as exc:
+        output = ''.join(part.decode('utf-8', errors='replace') if isinstance(part, bytes) else part
+                         for part in (exc.stdout or '', exc.stderr or ''))
+        installation_message(output[-16000:], 'error')
+        raise SystemExit('Command timed out after %s seconds' % timeout)
+    output = (result.stdout or '') + (result.stderr or '')
+    if output.strip():
+        installation_message(output[-16000:], 'error' if result.returncode else 'info')
+    if result.returncode:
+        raise SystemExit('Command failed (exit %s); check the installation output above' % result.returncode)
+    return result
+
+def role_packages(profile, role, fence_pve=False):
+    packages = {'cluster': ['corosync', 'pacemaker', 'resource-agents', 'python3'],
+                'witness': ['corosync-qnetd'], 'witness-podman': ['podman', 'nftables'], 'qdevice': ['corosync-qdevice'],
+                'witness-docker': ['docker.io'] if profile['manager'] == 'apt-get' else ['docker-ce', 'docker-ce-cli', 'containerd.io']}[role]
+    if fence_pve:
+        if role != 'cluster':
+            raise SystemExit('Fencing agents belong on cluster nodes only')
+        packages.append('fence-agents-pve')
+    return packages
+
+def package_repositories(profile, role, packages):
+    if profile['manager'] != 'dnf':
+        return []
+    result = installation_command(['dnf', '-q', 'repolist', '--all'])
+    repositories = []
+    if role in ('cluster', 'witness', 'qdevice'):
+        for line in result.stdout.splitlines():
+            columns = line.split()
+            repo = columns[0] if columns else ''
+            if (repo.lower() in ('highavailability', 'crb', 'powertools')
+                    or re.fullmatch(r'rhel-[89]-for-[a-z0-9_]+-highavailability-rpms', repo)
+                    or re.fullmatch(r'ol[89]_(addons|codeready_builder)', repo)):
+                repositories.append(repo)
+    options = ['--enablerepo=' + repo for repo in sorted(set(repositories))]
+    if repositories:
+        installation_message('Using configured repositories for this installation: ' + ', '.join(sorted(set(repositories))))
+    result = installation_command(['dnf', '-q', *options, 'repoquery', '--queryformat', '%{name}', *packages], timeout=120)
+    available = set(result.stdout.splitlines())
+    missing = sorted(set(packages) - available)
+    if missing:
+        raise SystemExit('Packages unavailable: ' + ', '.join(missing)
+                         + '. Configure the OS High Availability repositories and entitlement, then retry.')
+    installation_message('All required packages are available')
+    return options
+
 def platform_profile():
     if sys.version_info < (3, 8):
         raise SystemExit('Cluster management requires Python 3.8 or newer as python3 on the target host')
@@ -34,17 +91,10 @@ def platform_profile():
 
 def install_packages(role, *, fence_pve=False):
     profile = platform_profile()
-    env = dict(os.environ, DEBIAN_FRONTEND='noninteractive')
-    packages = {'cluster': ['corosync', 'pacemaker', 'resource-agents', 'python3'],
-                'witness': ['corosync-qnetd'], 'witness-podman': ['podman', 'nftables'], 'qdevice': ['corosync-qdevice'],
-                'witness-docker': ['docker.io'] if profile['manager'] == 'apt-get' else ['docker-ce', 'docker-ce-cli', 'containerd.io']}[role]
-    if fence_pve:
-        if role != 'cluster':
-            raise SystemExit('Fencing agents belong on cluster nodes only')
-        packages.append('fence-agents-pve')
+    env = dict(os.environ, DEBIAN_FRONTEND='noninteractive', LC_ALL='C')
+    packages = role_packages(profile, role, fence_pve)
     if profile['manager'] == 'apt-get':
-        subprocess.run(['apt-get', '-o', 'DPkg::Lock::Timeout=60', 'update', '-qq'], check=True, env=env,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=90)
+        installation_command(['apt-get', '-o', 'DPkg::Lock::Timeout=60', 'update', '-qq'], env=env)
         if role == 'witness-docker':
             split = subprocess.run(['apt-cache', 'show', 'docker-cli'], capture_output=True)
             if split.returncode == 0 and split.stdout:
@@ -63,9 +113,8 @@ def install_packages(role, *, fence_pve=False):
                     packages += ['resource-agents-base', 'resource-agents-extra']
         command = ['apt-get', '-o', 'DPkg::Lock::Timeout=60', 'install', '-y', '--no-install-recommends']
     else:
-        command = ['dnf', '-y', 'install']
-    subprocess.run(command + packages, check=True, env=env, stdout=subprocess.DEVNULL,
-                   stderr=subprocess.DEVNULL, timeout=240)
+        command = ['dnf', '-y', *package_repositories(profile, role, packages), 'install']
+    installation_command(command + packages, env=env, timeout=240)
     return profile
 
 def repair_fence_pve():
