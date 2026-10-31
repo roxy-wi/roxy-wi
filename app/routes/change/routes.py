@@ -66,8 +66,8 @@ def _get_active_group_change(change_id: int):
         raise RoxywiPermissionError('Change does not belong to the active group')
     if not roxywi_auth.is_access_permit_to_service(change.service):
         raise RoxywiPermissionError(f'No access to {change.service.title()} changes')
-    if change.action=='ha-maintenance' and request.method!='GET' and request.endpoint not in ('change.approve_change','change.cancel_change'):
-        raise RoxywiValidationError('Use the HA maintenance wizard to execute or review this operational change')
+    if change.action in ('ha-maintenance','acl-feed') and request.method!='GET' and request.endpoint not in ('change.approve_change','change.cancel_change'):
+        raise RoxywiValidationError('Use the corresponding maintenance or managed ACL page to execute this operational change')
     if change.action=='ha-maintenance' and request.endpoint=='change.cancel_change':
         from app.modules.db.db_model import HaMaintenancePlan
         from app.modules.operations.queue import deserialize_operation_payload
