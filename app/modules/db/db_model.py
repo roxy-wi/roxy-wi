@@ -1513,6 +1513,52 @@ class PacemakerEvent(BaseModel):
         table_name = 'pacemaker_events'
 
 
+class ConnectionProfile(BaseModel):
+    id = AutoField()
+    group_id = IntegerField(index=True)
+    scope_group = ForeignKeyField(Groups, null=True, column_name='scope_group_id',
+                                  on_delete='RESTRICT', lazy_load=False)
+    name = CharField(max_length=128)
+    enabled = BooleanField(default=True)
+    revision = IntegerField(default=1)
+    settings = TextField(default='{}')
+    credentials_encrypted = TextField(default='')
+    created_by = IntegerField()
+    created_at = DateTimeField(default=utc_now)
+    updated_at = DateTimeField(default=utc_now)
+
+    class Meta:
+        table_name = 'connection_profiles'
+        indexes = ((('group_id', 'name'), True),)
+        constraints = [SQL('CHECK ((group_id = 0 AND scope_group_id IS NULL) OR '
+                           '(scope_group_id IS NOT NULL AND group_id = scope_group_id))')]
+
+
+class ConnectionProfileRevision(BaseModel):
+    id = AutoField()
+    profile_id = IntegerField(index=True)
+    revision = IntegerField()
+    settings = TextField()
+    credentials_encrypted = TextField()
+    changed_by = IntegerField()
+    created_at = DateTimeField(default=utc_now)
+
+    class Meta:
+        table_name = 'connection_profile_revisions'
+        indexes = ((('profile_id', 'revision'), True),)
+
+
+class ConnectionProfileUse(BaseModel):
+    id = AutoField()
+    profile_id = IntegerField(index=True)
+    consumer = CharField(max_length=64)
+    consumer_id = CharField(max_length=128)
+
+    class Meta:
+        table_name = 'connection_profile_uses'
+        indexes = ((('consumer', 'consumer_id'), True),)
+
+
 def create_tables():
     conn = connect()
     with conn:
@@ -1529,5 +1575,6 @@ def create_tables():
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
              HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, NginxSection, InstallationTasks,
              PacemakerCluster, PacemakerChange, PacemakerEvent, CertificateSource,
-             OperationalAssessment, HaReadinessProfile, HaMaintenancePlan]
+             OperationalAssessment, HaReadinessProfile, HaMaintenancePlan, ConnectionProfile,
+             ConnectionProfileRevision, ConnectionProfileUse]
         )

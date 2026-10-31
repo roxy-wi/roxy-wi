@@ -12,6 +12,7 @@ adding a Markdown file here does not publish it to roxy-wi.org.
 - [External certificate providers and CertWarden](certificate-sources.md)
 - [Roxy-WI controller deployment with Podman Quadlet](podman-controller.md)
 - [HA technologies, platforms, Docker and SYN protection](ha-support.md)
+- [Shared connection profiles and outbound authentication](connection-profiles.md)
 - [Corosync/Pacemaker administration and HTTP API](corosync-pacemaker.md)
 - [Guided witness conversion and recovery](corosync-pacemaker-witness-migration.md)
 - [Exporter and daemon Auto Start](corosync-pacemaker-monitoring.md)
