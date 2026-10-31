@@ -11,8 +11,7 @@ For access, adoption semantics and API endpoints, see the
 Services → Corosync / Pacemaker has separate pages, not scroll anchors.
 The **Cluster** selector carries the selected registration between service pages.
 **Refresh** reads status and history; it does not apply configuration. A failed
-status read leaves installation and discovery available. **HA technology** opens
-the Keepalived or Pacemaker management workflow; it does not convert a cluster.
+status read does not block the creation and adoption dialog on **HA cluster**.
 
 | Page | Controls and effect |
 | --- | --- |
@@ -23,14 +22,14 @@ the Keepalived or Pacemaker management workflow; it does not convert a cluster.
 | Logs (`/pacemaker/logs`) | Select a member and read at most 200 journal lines from Corosync and Pacemaker. |
 | Monitoring (`/pacemaker/monitoring`) | Enable/disable periodic monitoring and cluster-wide maintenance. Monitoring uses existing HA notification routes; maintenance changes resource management. |
 | Versions (`/pacemaker/history`) | Change state, review, restore a previous CIB as a fresh draft, task state and audit events. Restore never applies automatically. |
-| Installation (`/install#pacemaker-installation`) | Install cluster, adopt existing cluster or install witness only. Each opens its dedicated installer mode. |
+| HA cluster (`/ha/cluster`) | Create a new cluster, add an existing cluster or install a quorum witness in a dialog. Actions → Installation and logs reopens cluster provisioning and its saved logs. |
 
 Viewer roles can read Overview, Resources and Versions but have no mutation
 controls or secret-bearing review/configuration/journal access. Configuration,
 quorum and monitoring pages require an operator. Every server and change is scoped
 to the active group; changing groups does not grant access to another group's data.
-The shared Installation landing page/menu retains its existing role 1–2 restriction;
-cluster operators at role 3 can use the dedicated `/install/pacemaker` workflow.
+Cluster operators at roles 1–3 can open the setup dialog on **HA cluster**.
+The former `/install/pacemaker` page has been removed.
 
 ## Installation forms
 
@@ -49,9 +48,9 @@ cluster operators at role 3 can use the dedicated `/install/pacemaker` workflow.
 | Install witness only | Confirm the exact independent host. Install/enable qnetd without Pacemaker or cluster membership. Initialize a new NSS database only when none exists; preserve existing CA/certificates. Attach it separately under Quorum / witness. |
 
 Selecting another installer mode does not install, adopt or attach anything.
-After saving a registration, verify the Cluster selector before provisioning.
+After saving a registration, review its installation options in the same dialog.
 An existing registration can be opened directly with
-`/install/pacemaker?setup=new&cluster=<id>`. Discovery rejects duplicate adoption.
+`/ha/cluster?setup=new&cluster=<id>`. Discovery rejects duplicate adoption.
 Deleting a registration through the API unregisters it only; it does not uninstall
 the remote cluster. There is no remote cluster destruction button.
 

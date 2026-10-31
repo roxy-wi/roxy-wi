@@ -2,7 +2,6 @@
 :is(#pacemaker-app, .rw-operations-workspace) [hidden] { display: none !important; }
 :is(#pacemaker-app, .rw-operations-workspace) { min-width: 0; }
 :is(#pacemaker-app, .rw-operations-workspace) .pcmk-toolbar { gap: 12px 20px; margin-bottom: 0; padding-bottom: 0; }
-:is(#pacemaker-app, .rw-operations-workspace) .ha-provider-field { grid-template-columns: auto minmax(0, 220px); }
 :is(#pacemaker-app, .rw-operations-workspace) .pcmk-cluster-field { grid-template-columns: auto minmax(0, 260px); }
 :is(#pacemaker-app, .rw-operations-workspace) .pcmk-toolbar select,
 :is(#pacemaker-app, .rw-operations-workspace) .pcmk-toolbar .ui-selectmenu-button { width: 100% !important; min-width: 0; box-sizing: border-box; }
@@ -70,7 +69,6 @@
 }
 @media (max-width: 720px) {
     :is(.pcmk-page-title, .rw-workspace-title) { display: block; padding-top: 28px; margin-right: 15px; font-size: 26px; line-height: 1.3; overflow-wrap: anywhere; }
-    :is(#pacemaker-app, .rw-operations-workspace) .ha-provider-field,
     :is(#pacemaker-app, .rw-operations-workspace) .pcmk-cluster-field { grid-template-columns: minmax(0, 1fr); width: 100%; }
     :is(#pacemaker-app, .rw-operations-workspace) .change-advanced-grid { grid-template-columns: minmax(0, 1fr); }
     :is(#pacemaker-app, .rw-operations-workspace) .rw-table-responsive td { min-width: 0; }
@@ -78,3 +76,15 @@
     :is(#pacemaker-app, .rw-operations-workspace) .rw-panel,
     :is(#pacemaker-app, .rw-operations-workspace) .change-advanced-settings { padding: 12px; }
 }
+
+.rw-operations-workspace .rw-page-help > :first-child { margin-top: 0; }
+.rw-operations-workspace .rw-page-help > :last-child { margin-bottom: 0; }
+.rw-operations-workspace [role="status"] .fa-spinner { margin-right: 8px; }
+#maintenance-plans :is(p, li) { overflow-wrap: anywhere; }
+#maintenance-plans .maintenance-capacity { white-space: pre-wrap; }
+#maintenance-plans pre { max-height: 360px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+#maintenance-plans summary { cursor: pointer; }
+#maintenance-plans .rw-table-toolbar { margin-top: 16px; }
+#ha-readiness > .rw-table-toolbar { margin: 0 0 8px; }
+#ha-readiness .ha-audit-status { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; min-height: 20px; margin-bottom: 8px; }
+#ha-readiness .ha-audit-status p { margin: 0; line-height: 20px; overflow-wrap: anywhere; }

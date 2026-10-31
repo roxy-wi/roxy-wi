@@ -1,0 +1,111 @@
+{% from 'include/input_macros.html' import input, checkbox, select %}
+{% macro field(id, label, name='', value='', required='', type='text', placeholder='') -%}
+<div class="rw-form-field"><label for="{{ id }}">{{ label }}</label>{{ input(id, name=name, value=value, required=required, type=type, placeholder=placeholder) }}</div>
+{%- endmacro %}
+<section id="pacemaker-app" class="rw-operations-workspace ha-operation-panel" data-view="setup" data-operator="true">
+    <div class="pcmk-feedback"><p id="pcmk-message" class="rw-form-help" role="status" aria-live="polite"></p></div>
+    <button type="button" id="pcmk-setup-retry" class="rw-button rw-button-secondary" hidden>Retry loading servers</button>
+    <section data-pcmk-view="setup">
+        <div class="rw-table-toolbar pcmk-setup-modes" role="group" aria-label="Installation workflow">
+        <button type="button" id="pcmk-register" class="rw-button rw-button-secondary" data-setup="new" aria-pressed="false">Create new cluster</button>
+        <button type="button" id="pcmk-adopt-open" class="rw-button rw-button-secondary" data-setup="adopt" aria-pressed="false">Add existing cluster</button>
+        <button type="button" id="pcmk-witness-open" class="rw-button rw-button-secondary" data-setup="witness" aria-pressed="false">Quorum witness</button>
+        </div>
+    {% if g.user_params['role']|int <= 3 %}
+    <section id="pcmk-witness-panel" class="rw-panel" hidden>
+        <h3>Standalone quorum witness</h3>
+        <p>Install corosync-qnetd only on a separate supported Linux host. Choose native packages, Docker or Podman on a Debian/Ubuntu or EL 8/9 host. It runs outside the cluster and hosts no Pacemaker resources. An independent Roxy-WI host can serve this role using its registered SSH credentials. Keep fencing enabled; a witness does not replace it.</p>
+        <div class="rw-form-field"><label for="pcmk-witness-server">Witness server</label>{{ select('pcmk-witness-server', values={}) }}</div>
+        <div class="rw-table-toolbar">
+            <button type="button" id="pcmk-witness-self" class="rw-button rw-button-secondary">Select Roxy-WI host</button>
+            <button type="button" id="pcmk-witness-platform" class="rw-button rw-button-secondary">Check platform</button>
+            <button type="button" id="pcmk-witness-status" class="rw-button rw-button-secondary">Read status</button>
+            <label for="pcmk-witness-engine">Runtime</label>{{ select('pcmk-witness-engine', values={'native':'Native','docker':'Docker','podman':'Podman'}, selected='native') }}
+            <button type="button" id="pcmk-witness-install" class="rw-button rw-button-primary">Install witness only</button>
+        </div>
+        <p class="rw-form-help">Docker and Podman use a locally built Debian image, persistent certificate storage and host networking on TCP 5403. The selected engine must be available in enabled host repositories. Podman uses a managed systemd supervisor for boot persistence and reviewed migrations. For an existing native witness, review the guided conversion below.</p>
+        <p id="pcmk-witness-result" class="rw-form-help" role="status" aria-live="polite"></p>
+        <details class="change-advanced-settings" id="pcmk-migration-panel">
+            <summary>Convert an existing native witness to a container</summary>
+            <p class="rw-form-help">Preserve the current CA, certificates, host address and TCP port. The plan checks every connected cluster. The native service stays running while the image and certificate copy are checked. Conversion briefly reconnects qdevice clients; a host timer restores native qnetd if verification or the controller fails.</p>
+            <div class="rw-table-toolbar">
+                <button type="button" id="pcmk-migration-plan" class="rw-button rw-button-secondary">Review migration</button>
+                <button type="button" id="pcmk-migration-start" class="rw-button rw-button-primary" disabled>Convert to selected engine</button>
+                <button type="button" id="pcmk-migration-recover" class="rw-button rw-button-secondary" disabled>Recover native witness</button>
+                <button type="button" id="pcmk-witness-logs" class="rw-button rw-button-secondary">Read witness logs</button>
+            </div>
+            <div class="rw-table-shell"><table class="overview"><thead><tr class="overviewHead"><th class="padding10">Check</th><th class="padding10">Result</th></tr></thead><tbody id="pcmk-migration-review"></tbody></table></div>
+            <p id="pcmk-migration-status" class="rw-form-help" role="status" aria-live="polite"></p>
+            <pre id="pcmk-witness-log-output" class="rw-notification-raw" hidden></pre>
+        </details>
+        <details class="change-advanced-settings" id="pcmk-lifecycle-panel">
+            <summary>Container witness: native conversion and image update</summary>
+            <p class="rw-form-help">Keep the current CA and client certificates. Preparation checks a private database copy while the witness keeps running. The switch briefly reconnects clients; an independent 180-second host timer restores the original container if verification fails.</p>
+            <div class="rw-table-toolbar">
+                <label for="pcmk-lifecycle-operation">Operation</label><select id="pcmk-lifecycle-operation"><option value="native">Convert container to native service</option><option value="image-upgrade">Rebuild and update managed container image</option></select>
+                <button type="button" id="pcmk-lifecycle-plan" class="rw-button rw-button-secondary">Review operation</button>
+                <button type="button" id="pcmk-lifecycle-start" class="rw-button rw-button-primary" disabled>Apply reviewed operation</button>
+                <button type="button" id="pcmk-lifecycle-recover" class="rw-button rw-button-secondary" disabled>Recover original witness</button>
+            </div>
+            <div class="rw-table-shell"><table class="overview"><thead><tr class="overviewHead"><th class="padding10">Check</th><th class="padding10">Result</th></tr></thead><tbody id="pcmk-lifecycle-review"></tbody></table></div>
+            <p id="pcmk-lifecycle-status" class="rw-form-help" role="status" aria-live="polite"></p>
+        </details>
+        <details class="change-advanced-settings" id="pcmk-trust-panel">
+            <summary>Move witness to another host or rotate its CA</summary>
+            <p class="rw-form-help">First install an independent target witness in this dialog. The move preserves its CA; rotation creates a new CA on the current host. Client keys are generated locally on every node. All attached clusters are included and their custom Corosync transport is preserved.</p>
+            <div class="rw-form-field"><label for="pcmk-trust-target">Installed target witness</label>{{ select('pcmk-trust-target',values={}) }}</div>
+            <div class="rw-table-toolbar">{{ checkbox('pcmk-trust-rotate',desc='Rotate CA on current host',title='Generate a new CA on the current witness instead of moving to another host') }}</div>
+            <div class="rw-table-toolbar">
+                <button type="button" id="pcmk-trust-plan" class="rw-button rw-button-secondary">Review witness trust change</button>
+                <button type="button" id="pcmk-trust-start" class="rw-button rw-button-primary" disabled>Apply reviewed trust change</button>
+                <button type="button" id="pcmk-trust-recover" class="rw-button rw-button-secondary" disabled>Recover original trust</button>
+            </div>
+            <div class="rw-table-shell"><table class="overview"><thead><tr class="overviewHead"><th class="padding10">Check</th><th class="padding10">Result</th></tr></thead><tbody id="pcmk-trust-review"></tbody></table></div>
+            <p id="pcmk-trust-status" class="rw-form-help" role="status" aria-live="polite"></p>
+        </details>
+        <p>Preparing a witness does not attach or change any cluster. For a managed cluster, select it under Corosync membership and review the generated change. Adopted custom transport settings require an explicit migration. Use a failure domain independent of both cluster nodes. Allow their access to the witness on TCP 5403.</p>
+    </section>
+    <section id="pcmk-discovery" class="rw-panel" hidden>
+        <h3>Adopt an existing cluster</h3>
+        <p>Select one running node. Roxy-WI reads its cluster name, membership, resources and quorum, then verifies every mapped node before saving registration. Packages, services, CIB, Corosync, fencing and witness configuration remain untouched.</p>
+        <div class="rw-table-toolbar">
+            <label for="pcmk-discovery-server">Existing cluster node</label>{{ select('pcmk-discovery-server', values={}) }}
+            <button type="button" id="pcmk-discover" class="rw-button rw-button-secondary">Discover cluster</button>
+        </div>
+        <p id="pcmk-discovery-result" class="rw-form-help" role="status"></p>
+        <p>All members must have enabled server entries and working SSH credentials in the active group. Adopted clusters retain their existing Corosync transport and witness settings; managed membership changes require an explicit migration.</p>
+    </section>
+    {% endif %}
+    <section id="pcmk-registration" class="rw-panel" hidden>
+        <h3 id="pcmk-registration-title">Register a new or existing cluster</h3>
+        <p>Use servers already registered in this Roxy-WI group. Registration leaves the running cluster untouched.</p>
+        <div id="pcmk-registration-quorum" hidden><p class="alert alert-warning">Two-node cluster: an independent quorum witness is strongly recommended. Provisioning uses Corosync two-node mode until a witness is connected. Configure fencing before relying on automatic recovery. Prepare a standalone qnetd server, then attach it through a reviewed quorum change.</p></div>
+        <form id="pcmk-register-form" novalidate>
+            <div class="change-advanced-grid">
+                {{ field('pcmk-name', 'Name', required='required') }}
+                {{ field('pcmk-description', 'Description') }}
+            </div>
+            <div class="rw-table-shell"><table class="overview dataTable"><thead><tr class="overviewHead"><th>Server</th><th>Cluster node name</th><th>Corosync address</th><th>Node ID</th><th></th></tr></thead><tbody id="pcmk-members"></tbody></table></div>
+            <div class="rw-table-toolbar">
+                <button type="button" id="pcmk-add-member" class="rw-button rw-button-secondary">Add member</button>
+                <button type="submit" id="pcmk-registration-save" class="rw-button rw-button-primary">Save registration</button>
+                <button type="button" id="pcmk-registration-cancel" class="rw-button rw-button-secondary">Cancel</button>
+            </div>
+        </form>
+    </section>
+        <section id="pcmk-bootstrap-panel" class="rw-panel" hidden>
+            <h3>Install registered cluster</h3>
+            <p>Select the registered empty nodes, check their platforms and choose installation options. Existing cluster configuration is never overwritten.</p>
+            <div class="rw-table-toolbar">
+        <button type="button" id="pcmk-platform-check" class="rw-button rw-button-secondary">Check target platforms</button>
+        {{ checkbox('pcmk-bootstrap-syn', desc='SYN-flood protection', title='Enable persistent host TCP SYN cookies and queue tuning during new cluster installation') }}
+        {{ checkbox('pcmk-bootstrap-fence-pve', desc='Install Proxmox fencing agent', title='Install fence_pve and verify its metadata. Requires an enabled package repository (EPEL on EL). Configure and test the fencing device separately.') }}
+        <button type="button" id="pcmk-bootstrap" class="rw-button rw-button-secondary">Install cluster on empty nodes</button>
+            </div>
+            <p id="pcmk-platform-result" class="rw-form-help" role="status"></p>
+            <p class="rw-form-help">Repositories and required packages are checked on every node before installation. Configured High Availability repositories on EL hosts are used for the package transaction.</p>
+            <p class="rw-form-help">The optional Proxmox agent requires available native packages (EPEL on EL). Installation repairs the known fence_pve library-path defect when present and keeps a backup. Configure the fencing device and test it before relying on recovery.</p>
+        </section>
+    </section>
+    {% with view='setup' %}{% include 'include/ha/corosync_installation_log.html' %}{% endwith %}
+</section>

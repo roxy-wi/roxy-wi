@@ -1,12 +1,17 @@
 from functools import wraps
-from flask import abort, g, jsonify, render_template, request
-from pydantic import ValidationError
+from flask import abort, g, jsonify, redirect, request, url_for
+from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from app.middleware import get_user_params
 from app.modules.roxywi import auth
 from app.modules.roxywi.exception import RoxywiConflictError, RoxywiResourceNotFound, RoxywiPermissionError, RoxywiValidationError
 from app.modules.db.db_model import HaCluster, PacemakerCluster, OperationalAssessment
 from app.modules.service import ha_readiness as audit
 from app.routes.ha import bp
+
+
+class HistoryQuery(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    before: int | None = Field(default=None, gt=0)
 
 
 def access(handler):
@@ -35,7 +40,8 @@ def access(handler):
 @bp.get('/readiness')
 @access
 def readiness():
-    return render_template('ha_readiness.html',lang=g.user_params['lang'])
+    return redirect(url_for('ha.cluster_index', panel='readiness', provider=request.args.get('provider'),
+                            cluster=request.args.get('cluster', type=int)))
 
 
 @bp.get('/api/readiness')
@@ -51,9 +57,14 @@ def subjects():
 def overview(provider,cluster_id):
     group=g.user_params['group_id']; info=audit.public_profile(provider,cluster_id,group)
     cluster, _nodes=audit.subject(provider,cluster_id,group)
-    rows=OperationalAssessment.select().where((OperationalAssessment.group_id==group) &
-        (OperationalAssessment.kind=='ha-readiness') & (OperationalAssessment.subject==audit.subject_key(provider,cluster))).order_by(OperationalAssessment.id.desc()).limit(20)
-    return jsonify(profile=info,assessments=[audit.get_report(row.id,group) for row in rows])
+    query = HistoryQuery.model_validate(request.args.to_dict())
+    rows = OperationalAssessment.select().where((OperationalAssessment.group_id == group) &
+        (OperationalAssessment.kind == 'ha-readiness') & (OperationalAssessment.subject == audit.subject_key(provider, cluster)))
+    if query.before:
+        rows = rows.where(OperationalAssessment.id < query.before)
+    page = list(rows.order_by(OperationalAssessment.id.desc()).limit(21))
+    return jsonify(profile=info, assessments=[audit.get_report(row.id, group) for row in page[:20]],
+                   next_before=page[19].id if len(page) > 20 else None)
 
 
 @bp.post('/api/readiness/<provider>/<int:cluster_id>/run')

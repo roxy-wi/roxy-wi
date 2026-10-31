@@ -41,13 +41,14 @@ def test_existing_installation_form_queues_the_selected_podman_proxy(logged_in,p
     assert payload['success_action']['request']['services'][service]['container_engine']=='podman'
 
 
-def test_witness_installation_uses_the_same_engine_selector(logged_in,product_url,product):
+@pytest.mark.parametrize('engine', ['Native', 'Docker', 'Podman'])
+def test_witness_installation_uses_the_same_engine_selector(logged_in,product_url,product,engine):
     page=logged_in
     product.server.hostname='Product witness';product.server.save()
-    page.goto(product_url+'/install/pacemaker?setup=witness')
+    page.goto(product_url+'/ha/cluster?setup=witness')
     page.locator('#pcmk-witness-engine-button').click()
-    page.get_by_role('option',name='Podman',exact=True).click()
-    expect(page.locator('#pcmk-witness-engine')).to_have_value('podman')
+    page.get_by_role('option',name=engine,exact=True).click()
+    expect(page.locator('#pcmk-witness-engine')).to_have_value(engine.lower())
     page.locator('#pcmk-witness-server-button').click()
     page.get_by_role('option',name='Product witness',exact=False).click()
     if os.environ.get('ROXYWI_CAPTURE_CONTAINER_DOCS')=='1':
@@ -60,4 +61,4 @@ def test_witness_installation_uses_the_same_engine_selector(logged_in,product_ur
         page.get_by_role('button',name='Continue',exact=True).click()
     assert response.value.status==202,response.value.text()
     task=InstallationTasks.get_by_id(response.value.json()['task_id'])
-    assert deserialize_operation_payload(task.operation_payload)['container_engine']=='podman'
+    assert deserialize_operation_payload(task.operation_payload)['container_engine']==engine.lower()

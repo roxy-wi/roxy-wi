@@ -408,22 +408,23 @@ def test_service_pages_have_separate_views_and_no_visible_installer(client, auth
     soup = BeautifulSoup(response.text, 'html.parser')
     assert soup.find(id='pacemaker-app')['data-view'] == view
     setup = soup.find(attrs={'data-pcmk-view': 'setup'})
-    assert setup.has_attr('hidden')
-    assert setup.find(id='pcmk-bootstrap-syn')
+    assert setup is None
+    assert soup.find(id='pcmk-bootstrap-syn') is None
     authenticated[0]['role'] = 4
     assert client.get('/pacemaker/' + view, headers=authenticated[1]).status_code == (200 if view in ('resources','history') else 403)
 
 
-def test_syn_flood_and_bootstrap_belong_to_installation(client, authenticated):
+def test_syn_flood_and_bootstrap_belong_to_cluster_dialog(client, authenticated):
     from bs4 import BeautifulSoup
-    response = client.get('/install/pacemaker?setup=new', headers=authenticated[1])
+    assert client.get('/install/pacemaker?setup=new', headers=authenticated[1]).status_code == 404
+    response = client.get('/ha/cluster?setup=new', headers=authenticated[1])
     assert response.status_code == 200
     soup = BeautifulSoup(response.text, 'html.parser')
     assert soup.find(id='pacemaker-app')['data-view'] == 'setup'
     assert not soup.find(attrs={'data-pcmk-view': 'setup'}).has_attr('hidden')
     assert soup.find(id='pcmk-bootstrap-syn')
     response = client.get('/pacemaker?setup=new', headers=authenticated[1])
-    assert response.status_code == 302 and '/install/pacemaker' in response.headers['Location']
+    assert response.status_code == 302 and '/ha/cluster' in response.headers['Location']
 
 
 def test_bootstrap_proxmox_fencing_is_explicit_and_strict(client, authenticated, cluster, monkeypatch):

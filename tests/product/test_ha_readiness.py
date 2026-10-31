@@ -227,6 +227,14 @@ def keepalived_registration(product, monkeypatch):
     return cluster
 
 
+def test_keepalived_missing_members_returns_actionable_error(product_client):
+    cluster = HaCluster.create(name='Incomplete cluster', group_id=1, description='No registered nodes')
+    response = product_client.post(f'/ha/api/readiness/keepalived/{cluster.id}/run', json={})
+    assert response.status_code == 409
+    assert response.json['error'] == 'A readiness audit requires 2–32 registered cluster members'
+    assert not InstallationTasks.select().where(InstallationTasks.operation_type == 'ha-readiness').exists()
+
+
 def test_duplicate_keepalived_names_cannot_hide_first_member_drift(product_client, product, readiness_cluster, monkeypatch):
     Server.update(hostname='same-name').where(Server.server_id.in_([11,33])).execute()
     cluster=keepalived_registration(product,monkeypatch)
@@ -387,13 +395,23 @@ def test_registration_migration_is_idempotent_and_does_not_guess_legacy_evidence
     import importlib
     from peewee import SqliteDatabase
     from playhouse.migrate import SqliteMigrator, migrate
+    from app.modules.db.db_model import HaClusterService, HaClusterVirt, PacemakerEvent
+    from app.modules.db import ha_cluster as ha_sql
     migration=importlib.import_module('app.modules.db.migrations.20261029040000_readiness_registration_identity')
-    database=SqliteDatabase(':memory:')
-    models=[HaCluster,PacemakerCluster,HaReadinessProfile]
+    database=SqliteDatabase(':memory:', pragmas={'foreign_keys': 1})
+    models=[HaCluster,PacemakerCluster,HaReadinessProfile,Server,HaClusterRouter,
+            HaClusterSlave,HaClusterVip,HaClusterService,HaClusterVirt,PacemakerEvent]
     with database.bind_ctx(models,bind_refs=False,bind_backrefs=False):
         database.create_tables(models)
         one=PacemakerCluster.create(name='legacy-pcmk',group_id=1)
         two=HaCluster.create(name='legacy-vrrp',group_id=1,description='')
+        server=Server.create(hostname='Master',ip='192.0.2.1',group_id='1')
+        router=HaClusterRouter.create(cluster_id=two,default=1)
+        member=HaClusterSlave.create(cluster_id=two,router_id=router,server_id=server,master=1,eth='ens3')
+        vip=HaClusterVip.create(cluster_id=two,router_id=router,vip='192.0.2.100')
+        HaClusterVirt.create(cluster_id=two,virt_id=server,vip_id=vip)
+        HaClusterService.create(cluster_id=two,service_id='1')
+        event=PacemakerEvent.create(cluster=one,user_id=1,action='Created cluster',status='completed')
         old=HaReadinessProfile.create(group_id=1,provider='pacemaker',cluster_id=one.id,
             domains='{"11":{"power":"legacy"}}',attestations='[{"result":"passed"}]')
         migrator=SqliteMigrator(database)
@@ -410,6 +428,19 @@ def test_registration_migration_is_idempotent_and_does_not_guess_legacy_evidence
         assert HaReadinessProfile.get_by_id(old.id).domains==old.domains
         migration.up()
         assert PacemakerCluster.get_by_id(one.id).readiness_key==key
+        assert HaClusterRouter.get_by_id(router.id).default==1
+        assert HaClusterSlave.get_by_id(member.id).server_id_id==server.server_id
+        assert HaClusterVip.get_by_id(vip.id).vip=='192.0.2.100'
+        assert HaClusterVirt.select().count()==1 and HaClusterService.select().count()==1
+        assert PacemakerEvent.get_by_id(event.id).action=='Created cluster'
+        # Existing HA screens expect master and interface at these tuple offsets.
+        rows=list(ha_sql.select_cluster_slaves(two.id,router.id))
+        assert rows[0][:3]==(server.server_id,'Master','192.0.2.1')
+        assert rows[0][31:34]==(1,'ens3',router.id)
+        assert list(ha_sql.select_cluster_master_slaves(two.id,1,router.id))==rows
+        assert list(ha_sql.select_cluster_master_slaves(two.id,2,router.id))==[]
+        assert database.execute_sql('PRAGMA foreign_keys').fetchone()==(1,)
+        assert database.execute_sql('PRAGMA foreign_key_check').fetchall()==[]
         HaReadinessProfile.create(group_id=1,provider='pacemaker',cluster_id=one.id,registration_key=key)
     database.close()
 

@@ -187,6 +187,7 @@
 			{% set is_checker_enabled = s.4.0.8 %}
 			{% set is_metrics_enabled = s.4.0.9 %}
 		{% endif %}
+		{% set diagnostics_enabled = service in ('haproxy', 'nginx', 'apache') and not s.4.0.4 and s.4.0.5 %}
 		<div id="div-server-{{s.0}}" class="div-server-hapwi div-server-head-dis service-card rw-card" data-server-id="{{s.0}}" data-server-name="{{s.1|lower}}" data-service-status="unavailable"
 			 {% if not serv %}data-detail-url="{{ url_for('service.services', service=service, serv=s.2) }}" role="link" tabindex="0"{% endif %}>
 			<div class="server-name">
@@ -215,12 +216,13 @@
 					<span class="service-feature" title="Container"><span class="fas fa-box" aria-hidden="true"></span> {{ container_engines.get(s.0, 'docker')|title }}</span>
 					{% endif %}
 				{% endfor %}
-				{% if g.user_params['role'] <= 3 %}
+				{% if g.user_params['role'] <= 3 or diagnostics_enabled %}
 				<span class="server-action service-actions">
 					<button type="button" class="rw-icon-button service-actions-toggle" aria-expanded="false" title="{{lang.ux.actions}}" aria-label="{{lang.ux.actions}}">
 						<span class="fas fa-ellipsis-v" aria-hidden="true"></span>
 					</button>
 					<span class="service-actions-menu" hidden>
+					{% if g.user_params['role'] <= 3 %}
 					<button type="button" class="service-action-command" data-action="start" data-service="{{service}}" data-server-id="{{s.0}}"><span class="fas fa-play" aria-hidden="true"></span> {{lang.words.start|title()}}</button>
 					<button type="button" class="service-action-command" data-action="reload" data-service="{{service}}" data-server-id="{{s.0}}"><span class="fas fa-sync" aria-hidden="true"></span> {{lang.words.reload|title()}}</button>
 					{% for set in restart_settings %}
@@ -236,8 +238,12 @@
 					{% if service != 'keepalived' %}
 					<button type="button" class="service-settings-command" data-server-id="{{s.0}}" data-server-name="{{s.1}}"><span class="fas fa-cog" aria-hidden="true"></span> {{lang.words.settings|title()}}</button>
 					{% endif %}
+					{% endif %}
+                    {% if diagnostics_enabled %}
+                    <button type="button" class="proxy-diagnostics-trigger" data-service="{{service}}" data-server-id="{{s.0}}" data-server-name="{{s.1}}" data-server-ip="{{s.2}}"><span class="fas fa-stethoscope" aria-hidden="true"></span> Request diagnostics</button>
+                    {% endif %}
 					</span>
-					{%if not serv%}
+					{%if not serv and g.user_params['role'] <= 3 %}
 					<button type="button" class="portlet-header service-drag-handle rw-icon-button" title="{{lang.words.change2|title()}} {{lang.words.position}} {{s.1}}" aria-label="{{lang.words.change2|title()}} {{lang.words.position}} {{s.1}}">
 						<i class="fas fa-grip-vertical"></i>
 					</button>
@@ -385,6 +391,9 @@
 		</div>
 		{% endif %}
 	{% endfor %}
+{% endif %}
+{% if service in ('haproxy', 'nginx', 'apache') %}
+{% include 'include/proxy_diagnostics.html' %}
 {% endif %}
 <div id="dialog-confirm" style="display: none;">
   <p><span class="ui-icon ui-icon-alert" style="float:left; margin:3px 12px 20px 0;"></span>{{lang.phrases.are_you_sure}}</p>

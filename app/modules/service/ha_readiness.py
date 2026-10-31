@@ -50,14 +50,14 @@ def subject(provider, cluster_id, group_id):
         for ident in ids:
             server = server_sql.get_server_with_group(ident, group_id)
             if not server.enabled or server.type_ip:
-                raise ValueError('Cluster members must be enabled physical server entries')
+                raise RoxywiConflictError('Cluster members must be enabled physical server entries')
             nodes.append((server.hostname, server))
     else:
         raise ValueError('Select Keepalived or Pacemaker')
     if not re.fullmatch(r'[0-9a-f]{32}',cluster.readiness_key):
         raise RoxywiConflictError('Cluster registration identity is missing; complete the database migration')
     if not 2 <= len(nodes) <= 32:
-        raise ValueError('A readiness audit requires 2–32 registered cluster members')
+        raise RoxywiConflictError('A readiness audit requires 2–32 registered cluster members')
     return cluster, nodes
 
 

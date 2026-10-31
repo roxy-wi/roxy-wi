@@ -4,9 +4,8 @@
 {% block content %}
 {% from 'include/input_macros.html' import checkbox %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/table-6.3.9.css') }}">
-<link rel="stylesheet" href="{{ url_for('static',filename='css/pacemaker.css',v='9.3.0-2') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/pacemaker.css',v='10.0-1') }}">
 <main class="service-overview-page rw-operations-workspace" id="certificate-sources" data-api="{{ url_for('service.certificate_source_collection') }}">
-    <p>Retrieve renewed certificates from an external provider and deploy them through the existing HAProxy certificate workflow. A source owns its selected PEM on every target. Existing Let's Encrypt schedules remain separate.</p>
     <div class="rw-table-toolbar service-page-toolbar"><button type="button" id="source-refresh" class="rw-button rw-button-secondary">Refresh</button><button type="button" id="source-new" class="rw-button rw-button-primary">Add certificate source</button></div>
     <div class="rw-workspace-feedback"><p id="source-message" class="rw-form-help" role="status" aria-live="polite"></p></div>
     <div class="rw-table-shell"><table class="overview dataTable rw-table-responsive"><thead><tr class="overviewHead"><th>Name</th><th>Provider</th><th>Domains</th><th>Status</th><th>Last check</th><th>Next check</th><th>Actions</th></tr></thead><tbody id="source-rows"></tbody></table></div>
@@ -18,7 +17,6 @@
                 <div class="rw-form-field"><label for="source-provider">Provider</label><select id="source-provider" required></select></div>
             </div>
             <div id="source-settings" class="change-advanced-grid"></div>
-            <p class="rw-form-help">Use the provider's HTTPS server URL, without /certwarden. Optional CA PEM adds your private CA; TLS verification remains enabled. Leave existing API keys empty to keep them when editing.</p>
             <div class="change-advanced-grid">
                 <div class="rw-form-field"><label for="source-server">Primary HAProxy server</label><select id="source-server" required></select></div>
                 <div class="rw-form-field"><label for="source-cluster">Pacemaker targets</label><select id="source-cluster"><option value="">Use the server and its existing HA replicas</option></select></div>
@@ -26,7 +24,6 @@
                 <div class="rw-form-field"><label for="source-domains">Expected domains, comma separated</label><input id="source-domains" class="form-control" placeholder="example.com, *.example.com" required></div>
                 <div class="rw-form-field"><label for="source-interval">Check interval (minutes)</label><input id="source-interval" class="form-control" type="number" min="5" max="10080" value="360" required></div>
             </div>
-            <p>Cluster targets include every current member, including standby nodes. The primary server must belong to the selected cluster. Every target requires HAProxy certificate permissions; cluster changes are locked during deployment.</p>
             <div class="rw-table-toolbar"><button id="source-destinations" type="button" class="rw-button rw-button-secondary">Discover certificate destinations</button></div>
             <div class="rw-form-field"><label for="source-destination">First deployment destination</label><select id="source-destination"><option value="">Update an existing loaded PEM</option></select></div>
             <div class="rw-form-field"><label for="source-directory">Existing PEM directory (only to disambiguate duplicate names)</label><input id="source-directory" class="form-control" placeholder="/etc/ssl/certs"></div>
@@ -34,6 +31,11 @@
             <div class="rw-table-toolbar"><button class="rw-button rw-button-primary" type="submit">Save source</button><button id="source-cancel" class="rw-button rw-button-secondary" type="button">Cancel</button></div>
         </form>
     </section>
+    <aside class="alert alert-info rw-page-help">
+        <p>Retrieve renewed certificates from an external provider and deploy them through the existing HAProxy certificate workflow. A source owns its selected PEM on every target. Existing Let's Encrypt schedules remain separate.</p>
+        <p>Use the provider's HTTPS server URL, without /certwarden. Optional CA PEM adds your private CA; TLS verification remains enabled. Leave existing API keys empty to keep them when editing.</p>
+        <p>Cluster targets include every current member, including standby nodes. The primary server must belong to the selected cluster. Every target requires HAProxy certificate permissions; cluster changes are locked during deployment.</p>
+    </aside>
 </main>
 <script src="{{ url_for('static', filename='js/certificate-sources.js',v='9.3.0-2') }}" defer></script>
 {% endblock %}

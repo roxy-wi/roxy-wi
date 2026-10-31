@@ -31,7 +31,7 @@ proxies and HA clusters across multiple servers and environments.
 | Coordinate a deployment across HA nodes | Choose canaries and batches, check each target, pause between stages and recover or roll back failed changes. |
 | Choose and operate your HA technology | Use Keepalived/VRRP or [Corosync/Pacemaker](#corosync-and-pacemaker) with resource management, quorum witnesses and fencing. |
 | Review HA readiness | [Audit Keepalived and Pacemaker](docs/ha-readiness.md) with per-node quorum/witness evidence, fencing configuration, declared failure domains and separately labelled test records. |
-| Hand a node over for maintenance | [Review quorum and placement, obtain approval, verify drain and return](docs/ha-maintenance.md) through the HA maintenance wizard and Change Center. |
+| Hand a node over for maintenance | [Check quorum and placement, obtain approval, verify drain and return](docs/ha-maintenance.md) from **HA clusters → Actions → Node maintenance**. |
 | Bring existing infrastructure into one interface | Connect servers over SSH; manage HAProxy, NGINX, Apache and Keepalived configurations and service actions. |
 | Adopt an existing Linux HA cluster | Discover Corosync/Pacemaker nodes, verify their identities and configuration, and register the cluster while preserving its running configuration. |
 | Choose a managed component runtime | Install HAProxy, NGINX, Apache or a standalone quorum witness with Native/Docker/Podman choices, or [adopt existing containers](docs/managed-containers.md) with an explicit engine and owner. Podman Debian/EL VM qualification is pending. |
@@ -134,8 +134,8 @@ before running an upgrade.
 
 Choose **Keepalived** or **Corosync / Pacemaker** in **HA Cluster**. Use the
 **Services → Corosync / Pacemaker** submenu for cluster status, resources,
-configuration, quorum, logs, monitoring and history. **Installation → Corosync /
-Pacemaker** provides new-cluster, adoption and standalone-witness workflows.
+configuration, quorum, logs, monitoring and history. **HA cluster → Create Corosync cluster** opens a dialog for creating a new cluster,
+adding an existing cluster or preparing a standalone witness.
 
 - Provision supported Linux nodes or adopt a running cluster after reviewing
   discovered membership and configuration.

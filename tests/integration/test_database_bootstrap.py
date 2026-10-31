@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 import pytest
+from cryptography.fernet import Fernet
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
@@ -90,6 +91,46 @@ def test_wait_on_empty_database_does_not_initialize_it(command_environment):
     assert 'no such table: settings' not in result.stderr
     with sqlite3.connect(command_environment['ROXYWI_DB_PATH']) as connection:
         assert connection.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall() == []
+
+
+def test_upgrade_without_installation_tasks_preserves_credentials(command_environment):
+    """Run the real migration chain after removing a table absent in 8.1.6."""
+    initialized = run_command('migrate', command_environment)
+    assert initialized.returncode == 0, initialized.stdout + initialized.stderr
+    fernet = Fernet(command_environment['ROXYWI_SECRET_PHRASE'].encode())
+    secrets = ('test-password', 'test-passphrase', 'test-private-key')
+    encrypted = tuple(fernet.encrypt(value.encode()).decode() for value in secrets)
+    database = command_environment['ROXYWI_DB_PATH']
+    with sqlite3.connect(database) as connection:
+        connection.execute('DROP TABLE installation_tasks')
+        connection.execute(
+            'DELETE FROM migrations WHERE name >= ?',
+            ('20260903000000_add_operation_queue',),
+        )
+        connection.execute(
+            'INSERT INTO cred (name, username, password, passphrase, private_key) '
+            'VALUES (?, ?, ?, ?, ?)', ('upgrade-test', 'test-user', *encrypted),
+        )
+        connection.execute("UPDATE settings SET value='Europe/Moscow' WHERE param='time_zone'")
+        password = connection.execute("SELECT password FROM user WHERE username='admin'").fetchone()
+
+    for _ in range(2):
+        migrated = run_command('migrate', command_environment)
+        assert migrated.returncode == 0, migrated.stdout + migrated.stderr
+        with sqlite3.connect(database) as connection:
+            stored = connection.execute(
+                "SELECT password, passphrase, private_key FROM cred WHERE name='upgrade-test'"
+            ).fetchone()
+            assert stored == encrypted
+            assert tuple(fernet.decrypt(value.encode()).decode() for value in stored) == secrets
+            assert connection.execute('SELECT COUNT(*) FROM installation_tasks').fetchone() == (0,)
+            assert connection.execute("SELECT password FROM user WHERE username='admin'").fetchone() == password
+            assert connection.execute(
+                "SELECT value FROM settings WHERE param='time_zone'"
+            ).fetchone() == ('Europe/Moscow',)
+
+    ready = run_command('wait-for-database', command_environment)
+    assert ready.returncode == 0, ready.stdout + ready.stderr
 
 
 def test_wait_detects_pending_migrations_without_applying_them(command_environment):

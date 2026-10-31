@@ -1,7 +1,7 @@
 from peewee import CharField, DateTimeField, IntegerField, TextField
 from playhouse.migrate import migrate
 
-from app.modules.db.db_model import connect
+from app.modules.db.db_model import InstallationTasks, connect
 
 
 def _column_names(database):
@@ -11,6 +11,11 @@ def _column_names(database):
 def up():
     """Add the durable outbox fields used by the operations worker."""
     database = connect()
+    if not database.table_exists('installation_tasks'):
+        # Older installations predate this table. Only create it when absent:
+        # current model indexes reference columns added below on existing tables.
+        database.create_tables([InstallationTasks], safe=True)
+        return
     migrator = connect(get_migrator=1)
     existing = _column_names(database)
     changes = []

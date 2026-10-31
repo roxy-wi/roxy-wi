@@ -5,7 +5,7 @@ import subprocess
 import pytest
 
 
-@pytest.mark.parametrize('script', ['pacemaker_ui.cjs', 'ha_provider_ui.cjs'])
+@pytest.mark.parametrize('script', ['pacemaker_ui.cjs'])
 def test_pacemaker_status_and_review_widgets(script):
     node = shutil.which('node')
     if not node:

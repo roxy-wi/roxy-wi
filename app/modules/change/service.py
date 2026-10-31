@@ -28,6 +28,7 @@ from app.modules.subscription.access import CHANGE_CENTER, require_feature
 from app.modules.roxywi.exception import (
     RoxywiConflictError,
     RoxywiPermissionError,
+    RoxywiResourceNotFound,
     RoxywiValidationError,
 )
 
@@ -567,12 +568,13 @@ def _save_successful_version(change, source_path: str, diff: str, message: str) 
     )
 
 
-def _name_for_user(user_id: int | None) -> str | None:
+def name_for_user(user_id: int | None) -> str | None:
+    """Return the actor's display name, including deleted-user handling."""
     if not user_id:
         return None
     try:
         return user_sql.get_user_id(user_id).username
-    except Exception:
+    except RoxywiResourceNotFound:
         return None
 
 
@@ -639,7 +641,7 @@ def serialize_change(change) -> dict:
         plan=HaMaintenancePlan.get_or_none((HaMaintenancePlan.change_id==change.id)&(HaMaintenancePlan.group_id==change.group_id))
         if plan:
             value=public(plan)
-            operational=dict(maintenance_plan_id=plan.id,maintenance_can_cancel=value['can_cancel'])
+            operational=dict(maintenance_plan_id=plan.id,maintenance_can_cancel=value['can_cancel'],maintenance=value)
     return {
         **operational,
         'id': change.id,
@@ -649,9 +651,9 @@ def serialize_change(change) -> dict:
         'server_ip': server_ip,
         'group_id': change.group_id,
         'user_id': change.user_id,
-        'created_by': _name_for_user(change.user_id),
+        'created_by': name_for_user(change.user_id),
         'approved_by': change.approved_by,
-        'approved_by_name': _name_for_user(change.approved_by),
+        'approved_by_name': name_for_user(change.approved_by),
         'service': change.service,
         'action': change.action,
         'execution_mode': change.execution_mode,

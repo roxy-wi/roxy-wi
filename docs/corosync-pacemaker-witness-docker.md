@@ -1,6 +1,6 @@
 # Standalone quorum witness in Docker
 
-Use **Installation → Corosync / Pacemaker → Install witness only**, choose an
+Use **HA cluster → Create Corosync cluster → Quorum witness**, choose an
 independent registered host, select **Runtime: Docker** and confirm installation.
 Choose **Native** for the package/systemd variant. **Podman** is also available;
 its new lifecycle and pending qualification are described in the

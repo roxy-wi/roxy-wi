@@ -1,4 +1,4 @@
-from app.modules.db.db_model import connect, HaCluster, HaClusterVirt, HaClusterVip, HaClusterService, HaClusterSlave, Server, HaClusterRouter
+from app.modules.db.db_model import HaCluster, HaClusterVirt, HaClusterVip, HaClusterService, HaClusterSlave, Server, HaClusterRouter
 from app.modules.db.common import out_error
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 
@@ -104,29 +104,25 @@ def select_count_cluster_slaves(cluster_id: int) -> int:
 
 
 def select_cluster_master_slaves(cluster_id: int, group_id: int, router_id: int):
-	conn = connect()
-	cursor = conn.cursor()
-	sql = f"select * from servers left join ha_cluster_slaves on (servers.id = ha_cluster_slaves.server_id) " \
-		  f"where servers.group_id = {group_id} and ha_cluster_slaves.cluster_id = {cluster_id} and ha_cluster_slaves.router_id = {router_id};"
 	try:
-		cursor.execute(sql)
+		return cluster_slaves_query(cluster_id, router_id).where(Server.group_id == group_id).tuples().execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		return cursor.fetchall()
+
+
+def cluster_slaves_query(cluster_id: int, router_id: int):
+	"""Keep the established server/member tuples without registration metadata."""
+	server_fields = [field for field in Server._meta.sorted_fields if field.name != 'registration_key']
+	return Server.select(*server_fields, *HaClusterSlave._meta.sorted_fields).join(HaClusterSlave).where(
+		(HaClusterSlave.cluster_id == cluster_id) & (HaClusterSlave.router_id == router_id)
+	)
 
 
 def select_cluster_slaves(cluster_id: int, router_id: int):
-	conn = connect()
-	cursor = conn.cursor()
-	sql = f"select * from servers left join ha_cluster_slaves on (servers.id = ha_cluster_slaves.server_id) " \
-		  f"where ha_cluster_slaves.cluster_id = {cluster_id} and ha_cluster_slaves.router_id = {router_id};"
 	try:
-		cursor.execute(sql)
+		return cluster_slaves_query(cluster_id, router_id).tuples().execute()
 	except Exception as e:
 		out_error(e)
-	else:
-		return cursor.fetchall()
 
 
 def select_cluster_slaves_for_inv(router_id: int):

@@ -1,9 +1,10 @@
 # Shared HA readiness audit
 
-Open **Operations → HA readiness**, select a registered Keepalived or Pacemaker
-cluster and choose **Run readiness audit**. A link also appears beside the HA
-technology selector. Jobs run in the existing Operations worker and remain in
-assessment history. A second audit of the same cluster is refused while one is
+Open **Operations → HA clusters**, choose **Actions → HA readiness** on a
+Keepalived or Corosync / Pacemaker card, then select **Run readiness audit**.
+The dialog has **Check**, **History** and **Settings** tabs. History belongs to
+that cluster; older audits can be loaded without leaving the dialog. Jobs run in
+the existing Operations worker and remain in assessment history. A second audit of the same cluster is refused while one is
 queued/running. Refreshing or closing the browser does not cancel it.
 
 ![Shared HA audit](screenshots/ha-readiness/overview.png)

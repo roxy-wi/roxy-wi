@@ -2,12 +2,14 @@
 jQuery(() => {
     'use strict';
     const root = document.getElementById('pacemaker-app');
+    if (!root) return;
     const operator = root.dataset.operator === 'true';
     const view = root.dataset.view || 'overview';
     const requestedCluster = new URLSearchParams(window.location.search).get('cluster');
     const byId = id => document.getElementById(`pcmk-${id}`);
     let clusters = [], servers = [], selected = null, digest = null, changeId = null, changeKind = 'cib', polling = false, discovery = null;
-    let refreshing = false, clusterRequest = 0, serversLoaded = false;
+    let refreshing = false, clusterRequest = 0, serversLoaded = false, setupWorking = false;
+    let setupInitialized = false, setupModeName = '', setupContext = null;
     const message = (text, error = false) => {
         byId('message').textContent = text;
         byId('message').className = error ? 'rw-error-state' : 'rw-form-help';
@@ -24,7 +26,17 @@ jQuery(() => {
     }
     const guard = fn => async event => {
         if (event) event.preventDefault();
+        const setupAction = view === 'setup' && (!event || event.currentTarget?.matches('button, form'));
+        if (setupAction && setupWorking) return;
+        if (setupAction) {
+            setupWorking = true;
+            message('');
+            root.querySelectorAll('[data-setup]').forEach(control => jQuery(control).button('disable'));
+        }
         try { await fn(event); } catch (error) { message(error.message, true); }
+        finally {
+            if (setupAction) { setupWorking = false; root.querySelectorAll('[data-setup]').forEach(control => jQuery(control).button('option', 'disabled', polling)); }
+        }
     };
     function button(label, action) {
         const result = document.createElement('button');
@@ -53,19 +65,30 @@ jQuery(() => {
         status.className = `rw-status-badge rw-status-${state}`; status.textContent = label; container.append(status);
     }
     function actionMenu(cell, label, actions) {
+        const icon = name => {
+            const element = document.createElement('span');
+            element.className = 'fas fa-' + name; element.setAttribute('aria-hidden', 'true');
+            return element;
+        };
         cell.className = 'admin-actions-cell';
         const wrapper = document.createElement('div'); wrapper.className = 'admin-actions';
         const toggle = document.createElement('button'); toggle.type = 'button';
-        toggle.className = 'rw-icon-button admin-actions-toggle'; toggle.textContent = '⋮';
-        toggle.setAttribute('aria-label', `Actions for ${label}`); toggle.setAttribute('aria-expanded', 'false'); toggle.setAttribute('aria-haspopup', 'true');
+        toggle.className = 'rw-icon-button admin-actions-toggle'; toggle.append(icon('ellipsis-v'));
+        toggle.setAttribute('aria-label', `Actions for ${label}`); toggle.setAttribute('aria-expanded', 'false'); toggle.setAttribute('aria-haspopup', 'menu');
         const menu = document.createElement('div'); menu.className = 'admin-actions-menu'; menu.hidden = true;
-        actions.forEach(([text, action]) => {
-            const item = button(text, action); item.className += ' admin-action-item'; menu.append(item);
+        menu.setAttribute('role', 'menu');
+        actions.forEach(([text, action, symbol, danger = false]) => {
+            const item = document.createElement('button'); item.type = 'button';
+            item.className = 'admin-action-item' + (danger ? ' admin-action-item-danger' : '');
+            item.setAttribute('role', 'menuitem');
+            const caption = document.createElement('span'); caption.textContent = text;
+            item.append(icon(symbol), caption); item.addEventListener('click', guard(action)); menu.append(item);
         });
-        wrapper.append(toggle, menu); cell.append(wrapper); jQuery(toggle).button();
+        wrapper.append(toggle, menu); cell.append(wrapper);
+        if (window.FontAwesome) FontAwesome.dom.i2svg({node: wrapper});
     }
     function pageURL(target, extra = {}) {
-        const paths = {overview: '/pacemaker', setup: '/install/pacemaker'};
+        const paths = {overview: '/pacemaker', setup: '/ha/cluster'};
         const url = new URL(paths[target] || `/pacemaker/${target}`, window.location.origin);
         if (selected) url.searchParams.set('cluster', selected.id);
         Object.entries(extra).forEach(([key, value]) => url.searchParams.set(key, value));
@@ -84,7 +107,7 @@ jQuery(() => {
         window.history.replaceState(null, '', current.pathname + current.search + current.hash);
         document.querySelectorAll('#app-navigation a[href]').forEach(link => {
             const url = new URL(link.href, window.location.origin);
-            if (url.pathname === '/pacemaker' || url.pathname.startsWith('/pacemaker/') || url.pathname === '/install/pacemaker') {
+            if (url.pathname === '/pacemaker' || url.pathname.startsWith('/pacemaker/')) {
                 url.searchParams.set('cluster', selected.id); link.href = url.pathname + url.search + url.hash;
             }
         });
@@ -101,6 +124,7 @@ jQuery(() => {
             : 'Two-node cluster: the external quorum witness could not be verified. Check quorum diagnostics and configure an independent witness. Fencing remains necessary.';
     }
     function registrationWarning() {
+        if (!byId('registration-quorum')) return;
         byId('registration-quorum').hidden = !!discovery || byId('members').rows.length !== 2;
     }
     function witnessServers() {
@@ -144,10 +168,6 @@ jQuery(() => {
                 if (request !== clusterRequest) return;
                 servers = result.data;
                 serversLoaded = true;
-                byId('discovery-server').replaceChildren(new Option('Select an existing cluster node', ''));
-                servers.forEach(server => option(byId('discovery-server'), server.id, `${server.name} (${server.ip})`));
-                refreshSelect(byId('discovery-server'));
-                addMember(); addMember();
             }
             const result = await api('');
             if (request !== clusterRequest) return;
@@ -165,11 +185,11 @@ jQuery(() => {
             }
             resetDraft();
             byId('dashboard').hidden = !selected;
-            byId('empty').hidden = !!selected || view === 'setup';
+            byId('empty').hidden = !!selected;
             byId('updated').textContent = '—';
             message('');
             if (operator) {
-                witnessServers(); agentUI.reset();
+                agentUI.reset();
                 byId('membership-members').querySelectorAll('select').forEach(select => jQuery(select).selectmenu('destroy'));
                 byId('membership-members').replaceChildren(); byId('membership-json').value='';
                 byId('autostart-nodes').replaceChildren();byId('autostart-result').textContent='';
@@ -178,7 +198,6 @@ jQuery(() => {
             if (!selected) return;
             if (operator) {
                 byId('adopted-note').hidden = !selected.corosync_settings.adopted;
-                setDisabled('bootstrap', !!selected.corosync_settings.adopted);
                 const imported = selected.corosync_settings.membership_managed === false;
                 setDisabled('membership-save', imported); setDisabled('membership-load', imported); setDisabled('membership-add', imported);
                 byId('membership-json').disabled = imported; byId('token').disabled = imported;
@@ -189,8 +208,6 @@ jQuery(() => {
                     byId('witness').replaceChildren(new Option(selected.corosync_settings.qdevice_host ? `Preserved witness: ${selected.corosync_settings.qdevice_host}` : 'Preserved external configuration', ''));
                     refreshSelect(byId('witness'));
                 }
-                byId('bootstrap-syn').checked = !!selected.corosync_settings.syn_flood; jQuery(byId('bootstrap-syn')).checkboxradio('refresh');
-                byId('bootstrap-fence-pve').checked = !!selected.corosync_settings.fence_pve; jQuery(byId('bootstrap-fence-pve')).checkboxradio('refresh');
                 byId('monitor').checked = selected.monitor_enabled; jQuery(byId('monitor')).checkboxradio('refresh');
                 byId('log-node').replaceChildren();
                 selected.members.forEach(member => option(byId('log-node'), member.server_id, member.name));
@@ -239,7 +256,7 @@ jQuery(() => {
                 });
                 const actions = cell(row, '');
                 if (operator) {
-                    actionMenu(actions, node.name, [['Standby', () => operate('standby', node.name)], ['Online', () => operate('online', node.name)]]);
+                    actionMenu(actions, node.name, [['Standby', () => operate('standby', node.name), 'pause'], ['Online', () => operate('online', node.name), 'play']]);
                 }
             });
             byId('resources').replaceChildren();
@@ -250,8 +267,9 @@ jQuery(() => {
                 badge(cell(row, ''), failed && blocked ? 'Failed / blocked' : failed ? 'Failed' : blocked ? 'Blocked' : 'Healthy', failed || blocked ? 'stopped' : 'running');
                 const actions = cell(row, '');
                 if (operator) {
-                    const items = ['enable', 'disable', 'restart', 'cleanup', 'clear'].map(action => [action.charAt(0).toUpperCase() + action.slice(1), () => operate(action, resource.target_id || resource.id)]);
-                    selected.members.filter(member => !resource.nodes.includes(member.name)).forEach(member => items.push([`Move to ${member.name}`, () => operate('move', resource.target_id || resource.id, member.name)]));
+                    const icons = {enable: 'play', disable: 'stop', restart: 'redo', cleanup: 'broom', clear: 'eraser'};
+                    const items = Object.entries(icons).map(([action, icon]) => [action.charAt(0).toUpperCase() + action.slice(1), () => operate(action, resource.target_id || resource.id), icon, action === 'disable']);
+                    selected.members.filter(member => !resource.nodes.includes(member.name)).forEach(member => items.push([`Move to ${member.name}`, () => operate('move', resource.target_id || resource.id, member.name), 'arrow-right']));
                     actionMenu(actions, resource.id, items);
                 }
             });
@@ -279,22 +297,24 @@ jQuery(() => {
             badge(cell(row, ''), change.status, change.status === 'applied' ? 'running' : change.status === 'failed' ? 'stopped' : 'stale');
             const actions = cell(row, '');
             if (operator) {
-                const items = [['Review', () => showChange(change.id)]];
+                const items = [['Review', () => showChange(change.id), 'search']];
                 if (change.kind === 'cib') items.push(['Restore as draft', async () => {
                     const restored = await api(path(`/changes/${change.id}/restore`), 'POST', {}); await showChange(restored.id);
-                }]);
+                }, 'undo']);
                 actionMenu(actions, `change #${change.id}`, items);
             }
         });
         byId('events').textContent = data.events.map(event => `${event.date} · ${event.user_id === 0 ? 'System' : `User ${event.user_id}`} · ${event.action} · ${event.status}`).join('\n');
-        if (operator && ['setup', 'logs', 'history'].includes(view)) {
-            const select = byId('installation-task'), previous = select.value;
-            select.replaceChildren();
-            (data.installations || []).forEach(task => option(select, task.id, `#${task.id} · ${task.date} · ${task.status}`));
-            if ([...select.options].some(item => item.value === previous)) select.value = previous;
-            refreshSelect(select);
-            if (select.value) await showInstallation();
-        }
+        if (operator && ['logs', 'history'].includes(view)) await installationHistory(data);
+    }
+
+    async function installationHistory(data) {
+        const select = byId('installation-task'), previous = select.value;
+        select.replaceChildren();
+        (data.installations || []).forEach(task => option(select, task.id, `#${task.id} · ${task.date} · ${task.status}`));
+        if ([...select.options].some(item => item.value === previous)) select.value = previous;
+        refreshSelect(select);
+        if (select.value) await showInstallation();
     }
 
     function renderInstallation(data) {
@@ -319,7 +339,8 @@ jQuery(() => {
         if (polling) throw new Error('An operation is already being followed');
         polling = true;
         const id = selected.id;
-        setDisabled('cluster', true);
+        if (view !== 'setup') setDisabled('cluster', true);
+        else root.querySelectorAll('[data-setup]').forEach(control => jQuery(control).button('disable'));
         try {
             for (let attempt = 0; attempt < 1200; attempt++) {
                 const data = (await api(`/${id}/tasks/${task.task_id}`)).data;
@@ -334,6 +355,7 @@ jQuery(() => {
                     if (select.value === String(data.id)) renderInstallation(data);
                 }
                 if (['completed', 'failed'].includes(data.status)) {
+                    if (data.status === 'failed') throw new Error(data.error || 'Cluster operation failed. Inspect the operation log.');
                     if (data.error) throw new Error(data.error);
                     if (changeId) await showChange(changeId);
                     return;
@@ -342,7 +364,12 @@ jQuery(() => {
             }
             throw new Error('The operation is still pending. Check Operations worker health and refresh history.');
         } finally {
-            polling = false; setDisabled('cluster', false);
+            polling = false;
+            if (view !== 'setup') setDisabled('cluster', false);
+            else {
+                root.querySelectorAll('[data-setup]').forEach(control => jQuery(control).button('option', 'disabled', setupWorking));
+                window.RoxywiHAClusters.refresh();
+            }
         }
     }
     async function showChange(id) {
@@ -394,7 +421,8 @@ jQuery(() => {
                 option(choice, '__custom__', 'Custom IP address or DNS name');
                 address.value = ''; address.hidden = true; address.required = false; refreshSelect(choice);
             }
-            jQuery(choice).selectmenu(); addressChoices(); row.dataset.factsReady = 'false';
+            jQuery(choice).selectmenu({appendTo: view === 'setup' ? root.closest('.ui-dialog') : null});
+            addressChoices(); row.dataset.factsReady = 'false';
             jQuery(choice).on('selectmenuchange change', () => {
                 const custom = choice.value === '__custom__';
                 address.hidden = !custom; address.required = custom;
@@ -420,22 +448,26 @@ jQuery(() => {
         }
         const actions = row.insertCell();
         if (!member || fixed) actions.append(button('Remove', () => { row.querySelectorAll('select').forEach(select => jQuery(select).selectmenu('destroy')); row.remove(); registrationWarning(); }));
-        jQuery(server).selectmenu();
+        jQuery(server).selectmenu({appendTo: view === 'setup' ? root.closest('.ui-dialog') : null});
         if (fixed) { jQuery(server).selectmenu('option','disabled',true); row.dataset.factsReady='true'; }
         registrationWarning();
     }
-    const agentUI = operator ? RoxywiPacemakerDiscovery({byId, api, guard, selected: () => selected, waitTask, refreshSelect, setDisabled, message}) : null;
-    jQuery(byId('cluster')).on('selectmenuchange change', guard(() => loadClusters(byId('cluster').value)));
+    const agentUI = operator && view !== 'setup' ? RoxywiPacemakerDiscovery({byId, api, guard, selected: () => selected, waitTask, refreshSelect, setDisabled, message}) : null;
+    if (view !== 'setup') jQuery(byId('cluster')).on('selectmenuchange change', guard(() => loadClusters(byId('cluster').value)));
     if (operator) {
         jQuery(byId('installation-task')).on('selectmenuchange change', guard(showInstallation));
         byId('installation-refresh').addEventListener('click', guard(showInstallation));
     }
-    byId('refresh').addEventListener('click', guard(() => selected ? refresh() : loadClusters()));
-    window.addEventListener('hashchange', navigateSection);
-    if (operator) {
+    if (view !== 'setup') {
+        byId('refresh').addEventListener('click', guard(() => selected ? refresh() : loadClusters()));
+        window.addEventListener('hashchange', navigateSection);
+    }
+    if (operator && view === 'setup') {
         function setupMode(mode) {
             root.querySelectorAll('[data-setup]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.setup === mode)));
-            byId('bootstrap-panel').hidden = mode !== 'new';
+            setupModeName = mode;
+            byId('bootstrap-panel').hidden = mode !== 'new' || !selected;
+            byId('installation-panel').hidden = !selected || mode !== 'new';
             byId('witness-panel').hidden = mode !== 'witness';
             byId('discovery').hidden = mode !== 'adopt';
             byId('registration').hidden = true;
@@ -444,7 +476,7 @@ jQuery(() => {
                 window.history.replaceState(null, '', url.pathname + url.search);
             }
         }
-        byId('witness-open').addEventListener('click', () => setupMode('witness'));
+        byId('witness-open').addEventListener('click', guard(() => setupMode('witness')));
         byId('witness-self').addEventListener('click', guard(() => {
             const host = servers.find(server => server.ip === window.location.hostname || server.name === window.location.hostname);
             if (!host || !Array.from(byId('witness-server').options).some(option => option.value === String(host.id))) throw new Error('Register the independent Roxy-WI host as a server in this group with SSH credentials first');
@@ -589,7 +621,7 @@ jQuery(() => {
                 for(let attempt=0;attempt<700;attempt++){
                     const state=(await api(`/witness/tasks/${queued.task_id}`)).data;byId('trust-status').textContent=`Trust operation #${state.id}: ${state.status}`;
                     if(state.status==='failed')throw new Error(state.error);
-                    if(state.status==='completed'){byId('trust-status').textContent=recover?'Original witness trust restored and every TLS vote verified.':'Witness trust changed; every attached TLS vote verified. Old remote witness remains stopped. CA: '+state.result.ca_fingerprint;trustPlan=null;await loadClusters(selected?.id);return;}
+                    if(state.status==='completed'){byId('trust-status').textContent=recover?'Original witness trust restored and every TLS vote verified.':'Witness trust changed; every attached TLS vote verified. Old remote witness remains stopped. CA: '+state.result.ca_fingerprint;trustPlan=null;await loadSetup(selected?.id);return;}
                     await new Promise(resolve=>setTimeout(resolve,2000));
                 }
                 throw new Error('Operation is still pending. Review its journal before retrying.');
@@ -638,6 +670,172 @@ jQuery(() => {
                 throw new Error('Witness installation is still pending. Check Operations and read witness status before retrying.');
             } finally { setDisabled('witness-install', false); setDisabled('witness-server', false); setDisabled('witness-engine', false); }
         }));
+        function clearMembers() {
+            byId('members').querySelectorAll('select').forEach(select => jQuery(select).selectmenu('destroy'));
+            byId('members').replaceChildren();
+        }
+        function registrationMode(adopting) {
+            byId('name').readOnly = adopting;
+            setDisabled('add-member', adopting);
+            setDisabled('registration-save', false);
+            byId('registration-title').textContent = adopting ? 'Review discovered cluster and map its nodes' : 'Register a new cluster';
+            jQuery(byId('registration-save')).button('option', 'label', adopting ? 'Adopt verified cluster' : 'Save registration');
+            byId('registration').hidden = false;
+            setDisabled('bootstrap', true);
+        }
+        function newRegistration() {
+            selected = null; setupContext = null;
+            setupMode('new');
+            byId('bootstrap-panel').hidden = true;
+            discovery = null; byId('discovery').hidden = true;
+            byId('name').value = ''; byId('description').value = '';
+            clearMembers(); addMember(); addMember(); registrationMode(false);
+        }
+        function openDiscovery() {
+            selected = null; setupContext = null;
+            setupMode('adopt');
+            discovery = null; byId('discovery').hidden = false; byId('registration').hidden = true;
+            setDisabled('bootstrap', true);
+        }
+        byId('register').addEventListener('click', guard(newRegistration));
+        byId('registration-cancel').addEventListener('click', () => dialog.dialog('close'));
+        byId('adopt-open').addEventListener('click', guard(openDiscovery));
+        byId('add-member').addEventListener('click', () => addMember());
+        jQuery(byId('discovery-server')).on('selectmenuchange change', () => {
+            discovery = null; byId('registration').hidden = true; byId('discovery-result').textContent = '';
+        });
+        byId('discover').addEventListener('click', guard(async () => {
+            discovery = null; byId('registration').hidden = true;
+            const serverId = Number(byId('discovery-server').value);
+            if (!serverId) throw new Error('Select an existing cluster node');
+            setDisabled('discover', true);
+            try {
+                const found = (await api('/discover', 'POST', {server_id: serverId})).data;
+                if (Number(byId('discovery-server').value) !== serverId) return;
+                discovery = {...found, seed_server_id: serverId};
+                byId('name').value = found.name; byId('description').value = '';
+                clearMembers(); found.members.forEach(member => addMember(member)); registrationMode(true);
+                byId('discovery-result').textContent = `${found.name}: ${found.members.length} nodes, ${found.state.resources.length} resources, ${found.state.quorate ? 'quorum available' : 'NO QUORUM'}. Review every server mapping. Existing transport and witness settings will be preserved.`;
+                setDisabled('registration-save', !!found.existing_cluster_id);
+                if (found.existing_cluster_id) byId('discovery-result').textContent += ' This cluster is already registered in Roxy-WI.';
+            } finally { setDisabled('discover', false); }
+        }));
+        byId('register-form').addEventListener('submit', guard(async () => {
+            if (!discovery && Array.from(byId('members').rows).some(row => row.dataset.factsReady !== 'true')) throw new Error('Read host facts for every selected empty node before saving registration');
+            const members = Array.from(byId('members').rows).map(row => ({
+                server_id: Number(row.querySelector('select').value),
+                name: row.querySelector('[data-field=name]').value, address: row.querySelector('[data-field=address]').value,
+                nodeid: Number(row.querySelector('[data-field=nodeid]').value),
+            }));
+            if (members.some(member => !member.server_id)) throw new Error('Map every discovered node to a Roxy-WI server');
+            const body = {name: byId('name').value, description: byId('description').value, members};
+            if (discovery) {
+                if (discovery.existing_cluster_id) throw new Error('This cluster is already registered in Roxy-WI');
+                if (!await confirmAction(`Adopt ${discovery.name} into Roxy-WI? The running cluster will only be read and verified.`)) return;
+                Object.assign(body, {seed_server_id: discovery.seed_server_id, base_digest: discovery.base_digest, topology_digest: discovery.topology_digest});
+            }
+            setDisabled('registration-save', true);
+            try {
+                const result = await api(discovery ? '/adopt' : '', 'POST', body);
+                byId('registration').hidden = true; byId('discovery').hidden = true;
+                const adopted = !!discovery; discovery = null; await loadSetup(result.data.id);
+                byId('bootstrap-panel').hidden = adopted;
+                message(adopted ? 'Existing cluster adopted without changing its configuration or services.' : 'Registration saved. Review installation options below and install the registered cluster.');
+                window.RoxywiHAClusters.refresh();
+                byId('installation-panel').hidden = adopted;
+                if (adopted) dialog.dialog('close');
+            } finally { setDisabled('registration-save', false); }
+        }));
+        byId('bootstrap').addEventListener('click', guard(async () => {
+            path();
+            if (!await confirmAction('Install Corosync and Pacemaker on all registered empty supported Linux nodes. Existing clusters are refused.', selected.name)) return;
+            setDisabled('bootstrap', true);
+            try {
+                const task = await api(path('/bootstrap'), 'POST', {confirm: selected.name,
+                    syn_flood: byId('bootstrap-syn').checked, fence_pve: byId('bootstrap-fence-pve').checked});
+                window.RoxywiHAClusters.refresh();
+                await waitTask(task);
+                message('Cluster installation completed.');
+            } finally { setDisabled('bootstrap', false); }
+        }));
+        async function loadSetup(clusterId) {
+            setupContext = clusterId || null;
+            byId('setup-retry').hidden = true;
+            message('Loading servers and clusters…');
+            try {
+                const [hosts, inventory] = await Promise.all([api('/servers'), api('')]);
+                servers = hosts.data; clusters = inventory.data;
+                selected = clusterId ? clusters.find(cluster => String(cluster.id) === String(clusterId)) : null;
+                if (clusterId && !selected) throw new Error('Cluster is no longer available in this group');
+                setupContext = selected?.id || null;
+                const seed = byId('discovery-server').value;
+                byId('discovery-server').replaceChildren(new Option('Select an existing cluster node', ''));
+                servers.forEach(server => option(byId('discovery-server'), server.id, `${server.name} (${server.ip})`));
+                if (servers.some(server => String(server.id) === seed)) byId('discovery-server').value = seed;
+                refreshSelect(byId('discovery-server'));
+                witnessServers();
+                if (selected) {
+                    byId('bootstrap-syn').checked = !!selected.corosync_settings.syn_flood;
+                    byId('bootstrap-fence-pve').checked = !!selected.corosync_settings.fence_pve;
+                    jQuery(byId('bootstrap-syn')).checkboxradio('refresh');
+                    jQuery(byId('bootstrap-fence-pve')).checkboxradio('refresh');
+                    const data = await api(path('/history'));
+                    await installationHistory(data);
+                    const active = data.installations.find(task => task.id === data.task?.id && ['created', 'queued', 'running'].includes(task.status));
+                    setDisabled('bootstrap', !!selected.corosync_settings.adopted || !!active);
+                    if (active && !polling) waitTask({task_id: active.id}).catch(error => message(error.message, true));
+                } else {
+                    byId('installation-task').replaceChildren(); refreshSelect(byId('installation-task'));
+                    byId('installation-output').textContent = '';
+                    byId('installation-status').textContent = 'No installations yet';
+                }
+                setupInitialized = true; message('');
+            } catch (error) { byId('setup-retry').hidden = false; throw error; }
+        }
+        function resizeDialog() {
+            dialog.dialog('option', {width: Math.min(1100, window.innerWidth - 24), maxHeight: window.innerHeight - 24,
+                position: {my: 'center', at: 'center', of: window}});
+        }
+        const dialog = jQuery('#ha-corosync-dialog').dialog({autoOpen: false, modal: true, resizable: false, draggable: false,
+            title: 'Corosync / Pacemaker', classes: {'ui-dialog': 'rw-dialog-responsive ha-cluster-dialog'},
+            open() { jQuery('.ui-widget-overlay').last().addClass('ha-cluster-overlay'); },
+            close() {
+                const url = new URL(window.location.href);
+                if (url.searchParams.has('setup')) { url.searchParams.delete('setup'); url.searchParams.delete('cluster'); window.history.replaceState(null, '', url); }
+                window.RoxywiHAClusters.refresh();
+            }
+        });
+        jQuery(root).find('select').selectmenu('option', 'appendTo', dialog.dialog('widget'));
+        async function openSetup(mode = '', clusterId = null) {
+            resizeDialog(); dialog.dialog('open');
+            // Closing and reopening must preserve forms and the operation being followed.
+            if (setupWorking || polling) return;
+            if (setupInitialized && !mode && !clusterId) return;
+            setupModeName = mode || '';
+            await guard(async () => {
+                await loadSetup(clusterId);
+                if (clusterId) {
+                    setupMode('new');
+                    dialog.dialog('option', 'title', 'Corosync / Pacemaker · ' + selected.name);
+                } else {
+                    dialog.dialog('option', 'title', 'Corosync / Pacemaker');
+                    if (mode === 'new') newRegistration();
+                    else if (mode === 'adopt') openDiscovery();
+                    else setupMode(mode === 'witness' ? 'witness' : '');
+                }
+            })();
+        }
+        byId('setup-retry').addEventListener('click', () => openSetup(setupModeName || new URLSearchParams(window.location.search).get('setup'), setupContext));
+        document.addEventListener('click', event => {
+            const control = event.target.closest('[data-ha-setup]');
+            if (control) { event.preventDefault(); openSetup(control.dataset.haSetup, control.dataset.haCluster); }
+        });
+        window.addEventListener('resize', () => { if (dialog.dialog('isOpen')) resizeDialog(); });
+        byId('name').pattern = '[A-Za-z][A-Za-z0-9_-]{0,62}'; byId('name').maxLength = 63; byId('description').maxLength = 2000;
+        const initial = new URLSearchParams(window.location.search).get('setup');
+        if (['new', 'adopt', 'witness'].includes(initial)) openSetup(initial, requestedCluster);
+    }
+    if (operator && view !== 'setup') {
         async function readAutostart() {
             const id=selected?.id;const result=(await api(path('/autostart'))).data;
             if (selected?.id!==id)return;
@@ -686,88 +884,6 @@ jQuery(() => {
         byId('monitor').addEventListener('change', guard(async () => {
             await api(path('/monitor'), 'PUT', {enabled: byId('monitor').checked});
             message('Monitoring settings saved. Notifications follow the existing HA cluster alert routing.');
-        }));
-        function clearMembers() {
-            byId('members').querySelectorAll('select').forEach(select => jQuery(select).selectmenu('destroy'));
-            byId('members').replaceChildren();
-        }
-        function registrationMode(adopting) {
-            byId('name').readOnly = adopting;
-            setDisabled('add-member', adopting);
-            setDisabled('registration-save', false);
-            byId('registration-title').textContent = adopting ? 'Review discovered cluster and map its nodes' : 'Register a new cluster';
-            jQuery(byId('registration-save')).button('option', 'label', adopting ? 'Adopt verified cluster' : 'Save registration');
-            byId('registration').hidden = false;
-            setDisabled('bootstrap', true);
-        }
-        function newRegistration() {
-            setupMode('new');
-            byId('bootstrap-panel').hidden = true;
-            discovery = null; byId('discovery').hidden = true;
-            byId('name').value = ''; byId('description').value = '';
-            clearMembers(); addMember(); addMember(); registrationMode(false);
-        }
-        function openDiscovery() {
-            setupMode('adopt');
-            discovery = null; byId('discovery').hidden = false; byId('registration').hidden = true;
-            setDisabled('bootstrap', true);
-        }
-        byId('register').addEventListener('click', newRegistration);
-        byId('registration-cancel').addEventListener('click', () => {
-            discovery = null; byId('registration').hidden = true; byId('discovery').hidden = true;
-            byId('bootstrap-panel').hidden = new URLSearchParams(window.location.search).get('setup') !== 'new';
-            setDisabled('bootstrap', !selected || !!selected.corosync_settings.adopted);
-        });
-        byId('adopt-open').addEventListener('click', openDiscovery);
-        byId('add-member').addEventListener('click', () => addMember());
-        jQuery(byId('discovery-server')).on('selectmenuchange change', () => {
-            discovery = null; byId('registration').hidden = true; byId('discovery-result').textContent = '';
-        });
-        byId('discover').addEventListener('click', guard(async () => {
-            discovery = null; byId('registration').hidden = true;
-            const serverId = Number(byId('discovery-server').value);
-            if (!serverId) throw new Error('Select an existing cluster node');
-            setDisabled('discover', true);
-            try {
-                const found = (await api('/discover', 'POST', {server_id: serverId})).data;
-                discovery = {...found, seed_server_id: serverId};
-                byId('name').value = found.name; byId('description').value = '';
-                clearMembers(); found.members.forEach(member => addMember(member)); registrationMode(true);
-                byId('discovery-result').textContent = `${found.name}: ${found.members.length} nodes, ${found.state.resources.length} resources, ${found.state.quorate ? 'quorum available' : 'NO QUORUM'}. Review every server mapping. Existing transport and witness settings will be preserved.`;
-                setDisabled('registration-save', !!found.existing_cluster_id);
-                if (found.existing_cluster_id) byId('discovery-result').textContent += ' This cluster is already registered in Roxy-WI.';
-            } finally { setDisabled('discover', false); }
-        }));
-        byId('register-form').addEventListener('submit', guard(async () => {
-            if (!discovery && Array.from(byId('members').rows).some(row => row.dataset.factsReady !== 'true')) throw new Error('Read host facts for every selected empty node before saving registration');
-            const members = Array.from(byId('members').rows).map(row => ({
-                server_id: Number(row.querySelector('select').value),
-                name: row.querySelector('[data-field=name]').value, address: row.querySelector('[data-field=address]').value,
-                nodeid: Number(row.querySelector('[data-field=nodeid]').value),
-            }));
-            if (members.some(member => !member.server_id)) throw new Error('Map every discovered node to a Roxy-WI server');
-            const body = {name: byId('name').value, description: byId('description').value, members};
-            if (discovery) {
-                if (discovery.existing_cluster_id) throw new Error('This cluster is already registered in Roxy-WI');
-                if (!await confirmAction(`Adopt ${discovery.name} into Roxy-WI? The running cluster will only be read and verified.`)) return;
-                Object.assign(body, {seed_server_id: discovery.seed_server_id, base_digest: discovery.base_digest, topology_digest: discovery.topology_digest});
-            }
-            setDisabled('registration-save', true);
-            try {
-                const result = await api(discovery ? '/adopt' : '', 'POST', body);
-                byId('registration').hidden = true; byId('discovery').hidden = true;
-                const adopted = !!discovery; discovery = null; await loadClusters(result.data.id);
-                byId('bootstrap-panel').hidden = adopted;
-                message(adopted ? 'Existing cluster adopted without changing its configuration or services.' : 'Registration saved. Review installation options below and install the registered cluster.');
-                if (adopted) window.location.assign(pageURL('overview'));
-            } finally { setDisabled('registration-save', false); }
-        }));
-        byId('bootstrap').addEventListener('click', guard(async () => {
-            path();
-            if (!await confirmAction('Install Corosync and Pacemaker on all registered empty supported Linux nodes. Existing clusters are refused.', selected.name)) return;
-            await waitTask(await api(path('/bootstrap'), 'POST', {confirm: selected.name, syn_flood: byId('bootstrap-syn').checked,
-                fence_pve: byId('bootstrap-fence-pve').checked}));
-            window.location.assign(pageURL('overview'));
         }));
         byId('maintenance-on').addEventListener('click', guard(() => operate('maintenance-on')));
         byId('maintenance-off').addEventListener('click', guard(() => operate('maintenance-off')));
@@ -837,15 +953,9 @@ jQuery(() => {
             byId('log-output').textContent = (await api(path(`/logs/${byId('log-node').value}`))).data;
         }));
     }
+    if (view === 'setup') return;
     guard(async () => {
-        if (operator) { byId('name').pattern = '[A-Za-z][A-Za-z0-9_-]{0,62}'; byId('name').maxLength = 63; byId('description').maxLength = 2000; }
         await loadClusters();
-        if (operator && view === 'setup') {
-            const mode = root.dataset.setupMode || 'new';
-            if (mode === 'new' && !requestedCluster) byId('register').click();
-            if (mode === 'adopt') byId('adopt-open').click();
-            if (mode === 'witness') byId('witness-open').click();
-        }
         const change = new URLSearchParams(window.location.search).get('change');
         if (operator && view === 'configuration' && /^\d+$/.test(change || '')) await showChange(Number(change));
         navigateSection();

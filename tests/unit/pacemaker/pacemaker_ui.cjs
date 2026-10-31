@@ -41,7 +41,7 @@ assert.equal(destinations.at(-1), '/pacemaker/quorum?cluster=7');
 const count = destinations.length;
 navWindow.location.hash = '#unknown'; vm.runInContext('navigateSection()', navContext);
 assert.equal(destinations.length, count);
-assert.equal(vm.runInContext("pageURL('setup', {setup:'new'})", navContext), '/install/pacemaker?cluster=7&setup=new');
+assert.equal(vm.runInContext("pageURL('setup', {setup:'new'})", navContext), '/ha/cluster?cluster=7&setup=new');
 
 let response;
 const context = vm.createContext({assert, byId, jQuery, URL,

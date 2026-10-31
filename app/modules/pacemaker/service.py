@@ -6,7 +6,7 @@ from datetime import timedelta
 from cryptography.fernet import Fernet
 from peewee import IntegrityError, SqliteDatabase
 
-from app.modules.db.db_model import PacemakerCluster, PacemakerChange, PacemakerEvent, Server
+from app.modules.db.db_model import PacemakerCluster, PacemakerChange, PacemakerEvent, Server, InstallationTasks
 from app.modules.db.server import get_server_with_group, select_servers_with_group
 from app.modules.pacemaker.remote import Remote, RemoteError
 from app.modules.pacemaker.schemas import ClusterCreate, Member
@@ -60,6 +60,18 @@ def serialize(cluster):
             'corosync_settings': json.loads(cluster.corosync_settings),
             'monitor_enabled': cluster.monitor_enabled, 'health': cluster.health,
             'members': [member.model_dump() for member, _server in checked]}
+
+
+def installation_history(cluster: PacemakerCluster) -> list[InstallationTasks]:
+    """Return recent bootstrap tasks belonging to this cluster and group."""
+    from app.modules.operations.queue import deserialize_operation_payload
+
+    rows = InstallationTasks.select().where(
+        (InstallationTasks.group_id == cluster.group_id) & (InstallationTasks.operation_type == 'pacemaker') &
+        (InstallationTasks.service_name == f'Pacemaker {cluster.name}: bootstrap')
+    ).order_by(InstallationTasks.id.desc()).limit(20)
+    return [row for row in rows
+            if deserialize_operation_payload(row.operation_payload).get('cluster_id') == cluster.id]
 
 
 @topology_guarded

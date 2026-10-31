@@ -237,7 +237,27 @@
 		render();
 	}
 
+	function operationStatus(status, button, message, busy, disabled = false) {
+		status.replaceChildren();
+		if (busy) {
+			const spinner = document.createElement('span');
+			spinner.className = 'fas fa-spinner fa-spin';
+			spinner.setAttribute('aria-hidden', 'true');
+			status.append(spinner);
+		}
+		const label = document.createElement('span');
+		label.textContent = message;
+		status.append(label);
+		if (busy && window.FontAwesome) window.FontAwesome.dom.i2svg({node: status});
+		if (button) {
+			button.disabled = busy || disabled;
+			button.setAttribute('aria-busy', String(busy));
+			if ($(button).button('instance')) $(button).button('refresh');
+		}
+	}
+
 	window.RoxywiUI = {
+		operationStatus: operationStatus,
 		showGeneratedConfig: showGeneratedConfig,
 		parseResponse: parse,
 		error: showError,

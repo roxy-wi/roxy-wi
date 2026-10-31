@@ -1,6 +1,6 @@
 # Guided witness conversion, image update and trust migration
 
-Open **Installation → Corosync / Pacemaker → Install witness only**, select the
+Open **HA cluster → Create Corosync cluster → Quorum witness**, select the
 registered native witness, choose **Runtime: Docker** or **Podman**, and expand
 **Convert an existing native witness to a container**. This workflow keeps the same host/IP, TCP 5403, CA and existing cluster
 certificates. It does not change Corosync configuration or rotate client trust.

@@ -1,74 +1,67 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
-{% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard %}
-{% for cluster in clusters %}
-<div id="cluster-{{cluster.id}}" class="div-server-hapwi div-server-head-dis">
-    <div class="server-name">
-        <a href="/ha/cluster/{{cluster.id}}" title="{{lang.words.open|title()}} {{lang.words.cluster|replace("'", "")}}">
-            <span id="cluster-name-{{cluster.id}}">{{cluster.name|replace("'", "")}}</span>
-            <span id="cluster-desc-{{cluster.id}}">{% if cluster.description != '' and cluster.description != 'None' %} ({{cluster.description|replace("'", "")}}) {% endif %}</span>
-        </a>
-        <span class="server-action">
-            {% if g.user_params['role'] <= 3 %}
-            <a class="plus" onclick="add_vip_ha_cluster('{{cluster.id}}', '{{cluster.name|replace("'", "")}}')"></a>
-            <a class="edit" onclick="createHaClusterStep1(true, '{{cluster.id}}')"></a>
-            <a class="delete" onclick="confirmDeleteCluster('{{cluster.id}}')"></a>
-            {% endif %}
-            <a href="{{ url_for('main.service_history', service='cluster', server_ip=cluster.id) }}" title="{{lang.words.view|title()}} {{lang.words.history3}} {{cluster.name|replace("'", "")}}" class="history" style="margin: 0 5px 0 10px;"></a>
-        </span>
-    </div>
-    <div class="server-desc">
-        {% for slave in slaves %}
-            {% if slave.31 %}
-                Master name: {{ copy_to_clipboard(id='master-server-'+cluster.id|string(), value=slave.1) }}<br>
-                Master IP: {{ copy_to_clipboard(id='master-ip-'+cluster.id|string(), value=slave.2) }}<br>
-                <span style="display: none;" id="master-id-{{ cluster.id }}">{{ slave.0 }}</span>
-            {% endif %}
-         {% endfor %}
-        {{lang.words.slaves|title()}}:
-        {% for slave in slaves %}
-            {% if not slave.31 %}
-            <span class="cluster-server">{{slave.1}}</span> ({{slave.2}})
-            {% endif %}
-         {% endfor %}
-        <div>
-        {{lang.words.virtual|title()}} {{lang.words.servers}}:
-        {% for virt in virts %}
-            {% if virt.cluster_id|string() == cluster.id|string() %}
-                {% for server in servers %}
-                {% if virt.virt_id|string() == server.0|string() %}
-                    <span class="cluster-server">{{server.1}}</span> ({{server.2}})
-                {% endif %}
-                {% endfor %}
-            {% endif %}
-        {% endfor %}
-        </div>
-        <div>
-            VIP:
-            <span id="cluster-vip">
-            {%- for vip in vips %}
-                {% if g.user_params['role'] <= 2 %}
-                    <a style="cursor: pointer;" onclick="add_vip_ha_cluster('{{vip.cluster_id}}', '{{cluster.name|replace("'", "")}}', '{{vip.id}}', '{{vip.vip}}', 1)" title="{{lang.words.edit|title()}} VIP">{{vip.vip}}</a>
+{% from 'include/input_macros.html' import input, copy_to_clipboard %}
+{% from 'include/admin_action_menu.html' import admin_action_menu %}
+{% for cluster in cards %}
+<article id="{{ 'cluster-' if cluster.provider == 'keepalived' else 'pacemaker-cluster-' }}{{ cluster.id }}"
+         class="service-card rw-card div-server-head-dis ha-cluster-card" data-ha-provider="{{ cluster.provider }}" data-ha-cluster="{{ cluster.id }}" data-ha-name="{{ cluster.name }}" data-ha-vip="{{ cluster.status_vip }}"
+         data-ha-status-url="{{ url_for('ha.check_cluster_status', service='cluster', cluster_id=cluster.id) if cluster.provider == 'keepalived' else url_for('pacemaker.status', cluster_id=cluster.id) }}">
+    <header class="server-name">
+        <a href="{{ '/ha/cluster/' ~ cluster.id if cluster.provider == 'keepalived' else url_for('pacemaker.index', cluster=cluster.id) }}"><span id="cluster-name-{{ cluster.provider }}-{{ cluster.id }}">{{ cluster.name }}</span></a>
+        <span class="rw-status-badge rw-status-stale service-status-badge" data-ha-health="unknown" title="Status has not been checked">{{ lang.words.status|title() }}…</span>
+        {% call admin_action_menu(lang.words.actions|title) %}
+                <button type="button" class="admin-action-item" role="menuitem" data-ha-action="readiness"><span class="fas fa-clipboard-check" aria-hidden="true"></span>HA readiness</button>
+                {% if g.user_params['role']|int <= 3 %}
+                <button type="button" class="admin-action-item" role="menuitem" data-ha-action="maintenance"><span class="fas fa-tools" aria-hidden="true"></span>Node maintenance</button>
+                {% if cluster.provider == 'keepalived' %}
+                <button type="button" class="admin-action-item" role="menuitem" data-ha-action="vip"><span class="fas fa-plus" aria-hidden="true"></span>{{ lang.words.add|title() }} VIP</button>
+                <button type="button" class="admin-action-item" role="menuitem" data-ha-action="edit"><span class="fas fa-edit" aria-hidden="true"></span>{{ lang.words.edit|title() }}</button>
+                <button type="button" class="admin-action-item admin-action-item-danger" role="menuitem" data-ha-action="delete"><span class="fas fa-trash-alt" aria-hidden="true"></span>{{ lang.words.delete|title() }}</button>
                 {% else %}
-                    {{vip.vip}}
-                {%- endif -%}
-            {%- endfor -%}
-            </span>
-        </div>
-        <div>
-            {{lang.words.services|title()}}:
-            {% for c_s in cluster_services %}
-                {% if c_s.cluster_id|string() == cluster.id|string() %}
-                {% for service in services %}
-                {% if c_s.service_id|string() == service.service_id|string() %}
-                <span id="{{ service.slug }}-{{ cluster.id }}-status" class="serverNone server-status-small" title="Service is none"></span>
-                <a href="/service/{{service.slug}}">{{service.service}}</a>
+                <button type="button" class="admin-action-item" role="menuitem" data-ha-setup="new" data-ha-cluster="{{ cluster.id }}"><span class="fas fa-download" aria-hidden="true"></span>Installation and logs</button>
+                <button type="button" class="admin-action-item" role="menuitem" data-ha-setup="witness"><span class="fas fa-project-diagram" aria-hidden="true"></span>Quorum witness</button>
+                <a class="admin-action-item" role="menuitem" href="{{ url_for('pacemaker.page', view='resources', cluster=cluster.id) }}"><span class="fas fa-cubes" aria-hidden="true"></span>Resources</a>
+                <a class="admin-action-item" role="menuitem" href="{{ url_for('pacemaker.page', view='configuration', cluster=cluster.id) }}"><span class="fas fa-cog" aria-hidden="true"></span>Configuration</a>
+                <a class="admin-action-item" role="menuitem" href="{{ url_for('pacemaker.page', view='quorum', cluster=cluster.id) }}"><span class="fas fa-project-diagram" aria-hidden="true"></span>Quorum</a>
                 {% endif %}
-                {% endfor %}
                 {% endif %}
-            {% endfor %}
+                <a class="admin-action-item" role="menuitem" href="{{ url_for('main.service_history', service='cluster', server_ip=cluster.id) if cluster.provider == 'keepalived' else url_for('pacemaker.page', view='history', cluster=cluster.id) }}"><span class="fas fa-history" aria-hidden="true"></span>{{ lang.words.history|default('History')|title() }}</a>
+        {% endcall %}
+    </header>
+    <div class="server-desc"><strong>{{ 'Keepalived' if cluster.provider == 'keepalived' else 'Corosync / Pacemaker' }}</strong>{% if cluster.description and cluster.description != 'None' %} · {{ cluster.description|replace("'", "") }}{% endif %}</div>
+    {% if cluster.error %}<p class="alert alert-warning">{{ cluster.error }}</p>{% endif %}
+    <div class="server-desc ha-card-members">
+        {% for member in cluster.members %}
+        <div class="ha-card-member"{% if cluster.provider == 'pacemaker' %} data-ha-node="{{ member.name }}"{% endif %}>
+            <strong>{% if cluster.provider == 'keepalived' and member.master %}{{ copy_to_clipboard(id='master-server-'+cluster.id|string(), value=member.name) }}{% else %}{{ member.name }}{% endif %}</strong>
+            <span>{% if cluster.provider == 'keepalived' and member.master %}{{ copy_to_clipboard(id='master-ip-'+cluster.id|string(), value=member.ip) }}<span hidden id="master-id-{{ cluster.id }}">{{ member.id }}</span>{% else %}{{ member.ip }}{% endif %}</span>
+            {% if member.master %}<small>Configured master</small>{% endif %}
+            {% if cluster.provider == 'pacemaker' %}<span class="rw-status-badge rw-status-stale" data-ha-node-status>Unknown</span>{% endif %}
         </div>
+        {% else %}<p class="rw-form-help">No available members</p>{% endfor %}
     </div>
-    {{ input('router_id-'+ cluster.id|string(), type='hidden') }}
-</div>
-<script>checkHaClusterStatus({{ cluster.id }})</script>
+    {% if cluster.provider == 'keepalived' %}
+    <dl class="ha-card-details">
+        <dt>VIP</dt><dd>{% for vip in cluster.vips %}{% if g.user_params['role']|int <= 2 %}<button type="button" class="ha-text-button" data-ha-action="edit-vip" data-vip-id="{{ vip.id }}" data-vip="{{ vip.vip }}">{{ vip.vip }}</button>{% else %}{{ vip.vip }}{% endif %}{% if not loop.last %}, {% endif %}{% else %}—{% endfor %}</dd>
+        <dt>{{ lang.words.services|title() }}</dt><dd>{% for service in cluster.services %}<span class="ha-service-health" data-ha-service="{{ service.slug }}" data-state="unknown" title="Status has not been checked"></span> <a href="/service/{{ service.slug }}">{{ service.service }}</a>{% if not loop.last %}, {% endif %}{% else %}Keepalived{% endfor %}</dd>
+        {% if cluster.virtuals %}<dt>Virtual servers</dt><dd>{% for server in cluster.virtuals %}{{ server.hostname }} ({{ server.ip }}){% if not loop.last %}, {% endif %}{% endfor %}</dd>{% endif %}
+    </dl>
+    {{ input('router_id-'+cluster.id|string(), type='hidden') }}
+    {% else %}
+    <dl class="ha-card-details">
+        <dt>Quorum</dt><dd><span class="rw-status-badge rw-status-stale" data-ha-quorum>Unknown</span></dd>
+    </dl>
+    <dl class="ha-card-details ha-card-summary">
+        <div><dt>Coordinator</dt><dd data-ha-coordinator>—</dd></div>
+        <div><dt>{{ lang.words.resources|default('Resources')|title }}</dt><dd data-ha-resources>—</dd></div>
+        <div><dt>Failed actions</dt><dd data-ha-failures>—</dd></div>
+    </dl>
+    {% endif %}
+    {% if cluster.provider == 'pacemaker' and cluster.installation and cluster.installation != 'completed' %}
+    {% set installing = cluster.installation in ['created', 'queued', 'running', 'processing'] %}
+    {% if g.user_params['role']|int <= 3 %}<button type="button" class="ha-installation-status ha-text-button" data-ha-setup="new" data-ha-cluster="{{ cluster.id }}">{% else %}<div class="ha-installation-status">{% endif %}
+        <span class="rw-status-badge rw-status-{{ 'unavailable' if installing else 'stopped' }}">{{ 'Installing' if installing else 'Installation ' ~ cluster.installation }}</span>
+    {% if g.user_params['role']|int <= 3 %}</button>{% else %}</div>{% endif %}
+    {% endif %}
+    <button type="button" class="ha-plan-status" data-ha-action="maintenance" hidden></button>
+</article>
 {% endfor %}

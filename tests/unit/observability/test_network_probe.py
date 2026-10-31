@@ -2,9 +2,15 @@ from contextlib import contextmanager
 from datetime import datetime,timedelta,timezone
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 import json
+import io
+from pathlib import Path
+import shutil
 import socket
 import ssl
+import subprocess
+import sys
 import threading
+from types import SimpleNamespace
 import pytest
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes,serialization
@@ -120,3 +126,41 @@ def test_apache_includes_keep_the_virtual_host_context():
            '/etc/apache2/sites/backend.conf':'ProxyPass / http://192.0.2.88:8080/'}
     text,partial=endpoints.apache_configuration(files,'/etc/apache2/apache2.conf')
     assert not partial and endpoints.parse('apache',text)['frontends'][0]['backends'][0]['port']==8080
+
+
+@pytest.mark.parametrize(('available', 'expected'), [
+    (('httpd', 'apachectl'), 'httpd'),
+    (('apache2ctl', 'apachectl', 'httpd'), 'apache2ctl'),
+    (('apachectl',), 'apachectl'),
+])
+def test_apache_inventory_uses_configuration_capable_command(monkeypatch, capsys, available, expected):
+    main = '/etc/httpd/conf/httpd.conf'
+    content = '<VirtualHost *:80>\nServerName example.test\n</VirtualHost>'
+    monkeypatch.setattr(shutil, 'which', lambda value: value if value in available else None)
+    monkeypatch.setattr(sys, 'stdin', io.StringIO(json.dumps(dict(main=main))))
+
+    def run(args, **kwargs):
+        assert args == [expected, '-t', '-D', 'DUMP_INCLUDES', '-f', main]
+        assert kwargs['check'] and kwargs['timeout'] == 30
+        return SimpleNamespace(stdout=f'Included configuration files:\n  (*) {main}\n', stderr='')
+
+    def read_text(path):
+        assert path == Path(main)
+        return content
+
+    monkeypatch.setattr(subprocess, 'run', run)
+    monkeypatch.setattr(Path, 'read_text', read_text)
+    exec(endpoints.APACHE_FILES, {})
+    assert json.loads(capsys.readouterr().out) == dict(files={main: content}, root=main)
+
+
+def test_apache_inventory_does_not_hide_configuration_errors(monkeypatch):
+    monkeypatch.setattr(shutil, 'which', lambda value: value if value == 'httpd' else None)
+    monkeypatch.setattr(sys, 'stdin', io.StringIO(json.dumps(dict(main='/etc/httpd/conf/httpd.conf'))))
+
+    def run(args, **_kwargs):
+        raise subprocess.CalledProcessError(1, args)
+
+    monkeypatch.setattr(subprocess, 'run', run)
+    with pytest.raises(subprocess.CalledProcessError):
+        exec(endpoints.APACHE_FILES, {})

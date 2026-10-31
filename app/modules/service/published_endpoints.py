@@ -197,7 +197,8 @@ if selected:
     program='httpd'
 else:
     command=lambda args:args
-    program=next((value for value in ('apache2ctl','apachectl','httpd') if shutil.which(value)),None)
+    # RHEL's apachectl wrapper rejects configuration inspection arguments.
+    program=next((value for value in ('apache2ctl','httpd','apachectl') if shutil.which(value)),None)
     if not program:raise ValueError('Apache configuration tool is unavailable')
 dump=run(command([program,'-t','-D','DUMP_INCLUDES','-f',main]))
 paths=[]

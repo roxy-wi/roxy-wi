@@ -1,0 +1,28 @@
+{% from 'include/input_macros.html' import checkbox %}
+<section class="rw-operations-workspace ha-operation-panel" id="ha-maintenance" data-api="{{ url_for('ha.maintenance_list') }}" data-subjects="{{ url_for('ha.subjects') }}" data-role="{{ g.user_params['role'] }}" data-user-id="{{ g.user_params['user_id'] }}">
+    <div class="rw-workspace-feedback"><p id="ha-maintenance-message" class="rw-form-help" role="status" aria-live="polite"></p></div>
+    <input type="hidden" id="maintenance-cluster">
+    <div id="ha-maintenance-tabs" class="ha-operation-tabs">
+        <ul><li><a href="#ha-maintenance-current">Current plan</a></li><li><a href="#ha-maintenance-history">History</a></li></ul>
+    <div id="ha-maintenance-current">
+    <div id="maintenance-plans"></div>
+    {% if g.user_params['role']|int <=3 %}
+    <section class="rw-panel" id="maintenance-new"><h3>Plan maintenance</h3><form id="ha-maintenance-create">
+        <div class="change-advanced-grid">
+            <div class="rw-form-field"><label for="maintenance-node">Node</label><select id="maintenance-node" required><option value="">Select node</option></select></div>
+            <div class="rw-form-field"><label for="maintenance-title">Change title</label><input id="maintenance-title" class="form-control" maxlength="255" required></div>
+            <div class="rw-form-field"><label for="maintenance-capacity">Remaining capacity evidence</label><textarea id="maintenance-capacity" class="form-control" rows="2" maxlength="2000" required placeholder="Capacity note or ticket link"></textarea></div>
+        </div>
+        <div class="rw-table-toolbar">{{ checkbox('maintenance-confirm-capacity',desc='I verified that the remaining nodes can carry the application workload.') }}</div>
+        <button id="maintenance-create" class="rw-button rw-button-primary" type="submit">Create maintenance plan</button>
+    </form></section>
+    {% endif %}
+    </div>
+    <div id="ha-maintenance-history"><div id="maintenance-history"></div><button type="button" id="maintenance-more" class="rw-button rw-button-secondary" hidden>Load older plans</button></div>
+    </div>
+    <aside class="alert alert-info rw-page-help">
+        <p>Run drain checks, have another administrator approve the results, then drain the node. After maintenance, run return checks, obtain a new approval and return the node. Checks and approvals are available here; Change Center keeps the shared approval record and history.</p>
+        <p>The approver must be an enabled administrator in this group with HA access. The plan author cannot approve their own plan. A new check invalidates the previous approval. This workflow does not power off, reboot or patch a host.</p>
+        <p>Capacity is an operator assertion backed by the evidence you provide; a scheduler simulation does not establish real application throughput. Existing TCP sessions can delay the handover. Keepalived VIP movement can interrupt connections.</p>
+    </aside>
+</section>

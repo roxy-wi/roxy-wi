@@ -3,7 +3,7 @@
 {% block h2 %}{{lang.menu_links.change_center.h2}}{% endblock %}
 {% block content %}
 <link href="{{ url_for('static', filename='css/table-6.3.9.css') }}" rel="stylesheet" type="text/css">
-<link href="{{ url_for('static', filename='css/change-center.css') }}" rel="stylesheet" type="text/css">
+<link href="{{ url_for('static', filename='css/change-center.css', v='10.0-2') }}" rel="stylesheet" type="text/css">
 
 <div class="change-center-page">
 	{% if not change_center_available %}
@@ -90,8 +90,9 @@
 {% if change_center_available %}
 <div id="change-details-dialog" title="{{lang.change_center.details}}" style="display:none;">
 	<div id="change-details-summary"></div>
-	<h4>{{lang.change_center.rollout}}</h4>
-	<div id="change-details-rollout" class="change-rollout" role="region" aria-label="{{lang.change_center.rollout}}">
+	<div id="change-details-maintenance" style="display:none;"></div>
+	<h4 class="change-config-details">{{lang.change_center.rollout}}</h4>
+	<div id="change-details-rollout" class="change-rollout change-config-details" role="region" aria-label="{{lang.change_center.rollout}}">
 		<table>
 			<thead>
 			<tr>
@@ -108,24 +109,25 @@
 			<tbody></tbody>
 		</table>
 	</div>
-	<h4>{{lang.change_center.diff}}</h4>
-	<div id="change-details-diff" class="change-diff" role="region" aria-label="{{lang.change_center.diff}}"></div>
+	<h4 class="change-config-details">{{lang.change_center.diff}}</h4>
+	<div id="change-details-diff" class="change-diff change-config-details" role="region" aria-label="{{lang.change_center.diff}}"></div>
 	<section id="change-details-drift-section">
 		<h4>{{lang.change_center.drift}}</h4>
 		<p class="change-form-help">{{lang.change_center.drift_help}}</p>
 		<div id="change-details-drift" class="change-diff" role="region" aria-label="{{lang.change_center.drift}}"></div>
 	</section>
 	<div class="change-section-heading">
-		<h4>{{lang.change_center.timeline}}</h4>
+		<h4 class="change-config-details">{{lang.change_center.timeline}}</h4>
+		<h4 class="change-maintenance-details" style="display:none;">{{lang.change_center.audit_history}}</h4>
 		<span class="change-live-indicator"><span aria-hidden="true"></span>{{lang.change_center.live}}</span>
 	</div>
 	<div id="change-details-timeline" class="change-timeline" role="region" aria-live="polite"></div>
-	<h4>{{lang.change_center.validation}}</h4>
-	<pre id="change-details-validation"></pre>
-	<h4>{{lang.change_center.deployment}}</h4>
-	<pre id="change-details-deployment"></pre>
-	<h4>{{lang.change_center.rollback_output}}</h4>
-	<pre id="change-details-rollback"></pre>
+	<h4 class="change-config-details">{{lang.change_center.validation}}</h4>
+	<pre id="change-details-validation" class="change-config-details"></pre>
+	<h4 class="change-config-details">{{lang.change_center.deployment}}</h4>
+	<pre id="change-details-deployment" class="change-config-details"></pre>
+	<h4 class="change-config-details">{{lang.change_center.rollback_output}}</h4>
+	<pre id="change-details-rollback" class="change-config-details"></pre>
 </div>
 
 <div id="change-schedule-dialog" title="{{lang.change_center.schedule_deployment}}" style="display:none;">
@@ -283,6 +285,7 @@
 	 data-no-matching-changes="{{lang.change_center.no_matching_changes}}"
 	 data-showing-changes="{{lang.change_center.showing_changes}}"
 	 data-invalid-schedule="{{lang.change_center.invalid_schedule}}"></div>
-<script src="{{ url_for('static', filename='js/change-center.js') }}"></script>
+<script src="{{ url_for('static', filename='js/ha-maintenance-ui.js', v='10.0-2') }}"></script>
+<script src="{{ url_for('static', filename='js/change-center.js', v='10.0-3') }}"></script>
 {% endif %}
 {% endblock %}

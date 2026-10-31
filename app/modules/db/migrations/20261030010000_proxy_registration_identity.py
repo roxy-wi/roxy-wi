@@ -12,7 +12,14 @@ def up() -> None:
     for model, field in ((Server, 'registration_key'), (OperationalAssessment, 'server_registration_key')):
         table = model._meta.table_name
         if field not in {column.name for column in database.get_columns(table)}:
-            migrate(migrator.add_column(table, field, CharField(max_length=32, default='')))
+            if isinstance(database, SqliteDatabase):
+                # Adding NOT NULL through Peewee rebuilds this parent table and
+                # deletes its children through ON DELETE CASCADE.
+                database.execute_sql(
+                    f'ALTER TABLE "{table}" ADD COLUMN "{field}" ' "VARCHAR(32) NOT NULL DEFAULT ''"
+                )
+            else:
+                migrate(migrator.add_column(table, field, CharField(max_length=32, default='')))
     for row in Server.select(Server.server_id).where((Server.registration_key == '') | Server.registration_key.is_null()):
         Server.update(registration_key=uuid4().hex).where(
             (Server.server_id == row.server_id) & ((Server.registration_key == '') | Server.registration_key.is_null())).execute()

@@ -1,32 +1,38 @@
 # Reviewed HA node maintenance
 
-Open **Operations → HA maintenance**. This workflow manages registered cluster
+Open **Operations → HA clusters → Actions → Node maintenance** on the cluster card. This workflow manages registered cluster
 resources and VIPs; it does not power off, reboot, patch or reinstall a machine.
 It uses the existing **Premium Change Center** entitlement and Cluster service
 permission. Every drain and return needs approval by another administrator.
 
-![Maintenance review and approval](screenshots/ha-maintenance/review.png)
-
 ## Workflow
 
-1. Select the cluster/member, supply a change title and record evidence that the
+1. Select the member, supply a change title and record evidence that the
    remaining nodes can carry the application load. A scheduler's placement
    prediction does not establish real application throughput.
-2. Create the plan and select **Review drain**. This is a durable read-only
+2. Create the plan and select **Run drain checks**. This is a durable read-only
    Operations job. Inspect quorum, placement, identities and capacity evidence.
-3. A different enabled administrator with Cluster permission approves the review
-   in Change Center. The author cannot approve it. Use **Drain approved node**
-   from the maintenance wizard; ordinary configuration-deployment actions cannot
-   execute this operational change.
+3. The plan lists eligible approvers: other enabled administrators in the same
+   group with HA access. One of them opens the plan, reviews the check results and
+   capacity evidence, and selects **Approve drain**. The author cannot approve
+   their own plan. Once approved, select **Drain node** in the same dialog.
 4. The worker rechecks permissions, approval, membership/SSH identities and the
    reviewed configuration before the write. It then waits for resource/VIP
    movement and established sessions on the detected VIPs to drain.
-5. **ready** means registered resources and detected VIP sessions were observed
+5. **Ready for maintenance** means registered resources and detected VIP sessions were observed
    drained. The node is handed over for the external maintenance procedure.
-6. When the member is reachable and healthy again, select **Review return**.
+6. When the member is reachable and healthy again, select **Run return checks**.
    Review current placement and configuration and obtain a new independent
-   approval. **Return approved node** restores its eligibility/service and
+   approval using **Approve return**. **Return node** restores its eligibility/service and
    verifies the cluster. Resources need not move back to that particular node.
+
+The dialog updates automatically, including approvals by another administrator.
+The cluster card shows the active plan and its status. Completed and cancelled
+plans remain in the dialog’s **History** tab, with older plans available on demand.
+Closing the dialog does not stop an operation; reopening it restores current state.
+Running checks again invalidates the previous approval. Change Center retains
+the shared approval record and history; its details dialog also shows the checks
+and allows approval. Checks and node actions are run from HA maintenance.
 
 Protected servers require an administrator to execute the drain/return. Capacity
 remains an operator assertion and is shown as such. Existing connections may keep

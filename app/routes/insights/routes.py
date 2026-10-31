@@ -1,5 +1,5 @@
 from functools import wraps
-from flask import abort,g,jsonify,render_template,request
+from flask import abort,g,jsonify,redirect,request,url_for
 from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 from app.middleware import get_user_params
@@ -7,6 +7,7 @@ from app.modules.db.db_model import Server
 from app.modules.db import service as service_sql,user as user_sql
 from app.modules.roxywi.exception import RoxywiResourceNotFound,RoxywiPermissionError,RoxywiConflictError,RoxywiValidationError
 from app.modules.service import proxy_assessments as assessments
+from app.modules.roxywi import logger
 from app.routes.insights import bp
 
 
@@ -27,20 +28,39 @@ def api(handler):
         except RoxywiConflictError as error:return jsonify(error=error.public_message),409
         except RoxywiValidationError as error:return jsonify(error=error.public_message),400
         except (ValidationError,ValueError):return jsonify(error='Invalid fields; select a registered proxy and an HTTP(S) URL without credentials'),400
-        except Exception:return jsonify(error='Proxy inspection failed; refresh configuration discovery and permissions'),502
+        except Exception as error:
+            logger.error('Proxy inspection API failed', error_type=type(error).__name__)
+            return jsonify(error='Proxy inspection failed; refresh configuration discovery and permissions'), 502
     return wrapped
 
 
 @bp.get('/diagnostics')
+@api
 def diagnostics_page():
-    return render_template('proxy_diagnostics.html',lang=g.user_params['lang'])
+    """Keep existing links working while diagnostics live on service cards."""
+    services = available_services()
+    if not services:
+        raise RoxywiPermissionError('Proxy inspection permission denied')
+    service = request.args.get('service') or services[0]
+    if service not in services:
+        raise RoxywiPermissionError('Proxy inspection permission denied')
+    server_id = request.args.get('server_id', type=int)
+    if server_id:
+        assessments.authorize(server_id, service, g.user_params['group_id'], g.user_params['user_id'])
+    return redirect(url_for('service.services', service=service, diagnostics=server_id))
+
+
+def available_services() -> list[str]:
+    """Return proxy services available to the current user."""
+    allowed = set(user_sql.select_user_services(g.user_params['user_id']).split())
+    return [name for name in ('haproxy', 'nginx', 'apache')
+            if str(service_sql.select_service_id_by_slug(name)) in allowed]
 
 
 @bp.get('/api/choices')
 @api
 def choices():
-    allowed=set(user_sql.select_user_services(g.user_params['user_id']).split())
-    services=[name for name in ('haproxy','nginx','apache') if str(service_sql.select_service_id_by_slug(name)) in allowed]
+    services = available_services()
     rows=Server.select().where((Server.group_id==str(g.user_params['group_id']))&(Server.enabled==1)&(Server.type_ip==0))
     return jsonify(services=services,servers=[dict(id=row.server_id,name=row.hostname,ip=row.ip,
         services=[name for name in services if getattr(row,name)]) for row in rows if any(getattr(row,name) for name in services)])

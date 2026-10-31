@@ -1164,12 +1164,12 @@ def test_change_serialization_tolerates_deleted_server_and_user(
     monkeypatch.setattr(
         change_service.server_sql,
         'get_server',
-        lambda *_args: (_ for _ in ()).throw(RuntimeError('server removed')),
+        lambda *_args: (_ for _ in ()).throw(RoxywiResourceNotFound('server removed')),
     )
     monkeypatch.setattr(
         change_service.user_sql,
         'get_user_id',
-        lambda *_args: (_ for _ in ()).throw(RuntimeError('user removed')),
+        lambda *_args: (_ for _ in ()).throw(RoxywiResourceNotFound('user removed')),
     )
 
     serialized = change_service.serialize_change(change)
@@ -1178,6 +1178,15 @@ def test_change_serialization_tolerates_deleted_server_and_user(
     assert serialized['server_ip'] is None
     assert serialized['created_by'] is None
     assert serialized['approved_by_name'] is None
+
+
+def test_actor_name_lookup_does_not_hide_database_errors(monkeypatch):
+    def lookup(_user_id):
+        raise OperationalError('database unavailable')
+
+    monkeypatch.setattr(change_service.user_sql, 'get_user_id', lookup)
+    with pytest.raises(OperationalError, match='database unavailable'):
+        change_service.name_for_user(1)
 
 
 @pytest.mark.parametrize(

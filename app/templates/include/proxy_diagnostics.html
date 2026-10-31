@@ -1,0 +1,31 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/pacemaker.css', v='10.0-1') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/proxy-diagnostics.css', v='10.0-1') }}">
+<div id="proxy-diagnostics" class="rw-operations-workspace" style="display: none"
+     data-api="{{ url_for('insights.diagnose') }}"
+     data-assessments="{{ url_for('insights.assessment', assessment_id=0) }}">
+    {% if g.user_params['role']|int <= 3 %}
+    <form id="diagnostics-form" class="rw-panel">
+        <div class="rw-form-field">
+            <label for="diagnostics-url">Domain or HTTP(S) URL</label>
+            <input id="diagnostics-url" class="form-control" maxlength="2048" required placeholder="https://example.com/">
+        </div>
+        <div id="diagnostics-frontend-field" class="rw-form-field" hidden>
+            <label for="diagnostics-frontend">Discovered frontend</label>
+            <select id="diagnostics-frontend"><option value="">Choose automatically when unambiguous</option></select>
+        </div>
+        <button class="rw-button rw-button-primary" id="diagnostics-run" type="submit">Diagnose request path</button>
+    </form>
+    {% endif %}
+    <div class="rw-workspace-feedback"><p id="diagnostics-message" class="rw-form-help" role="status" aria-live="polite"></p></div>
+    <button id="diagnostics-retry" class="rw-button rw-button-secondary" type="button" hidden>Retry status</button>
+    <section id="diagnostics-result" class="rw-panel" hidden>
+        <h3 id="diagnostics-summary"></h3><p id="diagnostics-time"></p>
+        <div class="rw-table-shell"><table class="overview dataTable"><thead><tr class="overviewHead"><th>Stage</th><th>State</th><th>Evidence</th></tr></thead><tbody id="diagnostics-stages"></tbody></table></div>
+    </section>
+    <details class="rw-panel"><summary>Assessment history</summary><div id="diagnostics-history"></div></details>
+    <aside class="alert alert-info rw-page-help">
+        <p>Check DNS, listener addresses, TCP, TLS/SNI and candidate backends for this proxy. Probes send no credentials or cookies, read no HTTP bodies and follow no redirects.</p>
+        <p>A domain alone uses HTTPS. If several frontends match, choose one from the results and run again. Conditional routing and application capacity are not inferred.</p>
+    </aside>
+</div>
+<script src="{{ url_for('static', filename='js/proxy-diagnostics.js', v='10.0-2') }}" defer></script>

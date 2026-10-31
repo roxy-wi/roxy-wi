@@ -1,0 +1,59 @@
+.ha-clusters-grid { margin: 16px 0; }
+#ha-clusters > .rw-table-toolbar > .rw-button { min-height: 30px; padding: 6px 10px; }
+.ha-cluster-card .server-name > a, .ha-cluster-card .server-desc { overflow-wrap: anywhere; }
+.ha-card-member { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+.ha-card-member small { color: var(--rw-text-muted); }
+.ha-cluster-card .admin-action-item > .svg-inline--fa { width: 1.1em; margin: 0; flex-shrink: 0; }
+.ha-card-details { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; margin: 8px 0 0; }
+.ha-card-details dt { font-weight: bold; }
+.ha-card-details dd { margin: 0; overflow-wrap: anywhere; }
+.ha-card-summary { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+.ha-card-summary > div { display: flex; align-items: baseline; gap: 6px; min-width: 0; }
+.ha-card-summary dt { flex-shrink: 0; }
+.ha-installation-status { margin-top: 10px; }
+#ha-corosync-dialog .pcmk-feedback:has(p:empty) { display: none; }
+#ha-corosync-dialog .pcmk-setup-modes { display: flex; flex-wrap: wrap; gap: 12px; }
+#ha-corosync-dialog .pcmk-setup-modes button { flex: 1 1 200px; padding: 14px; }
+#ha-corosync-dialog .pcmk-setup-modes button:last-child { flex: 0 1 auto; }
+#ha-corosync-dialog #pcmk-members .rw-button { white-space: nowrap; padding: 6px 8px; }
+.ha-service-health { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--rw-text-muted); }
+.ha-service-health[data-state="up"] { background: var(--rw-success); }
+.ha-service-health[data-state="down"] { background: var(--rw-danger); }
+.ha-text-button, .ha-plan-status { border: 0; background: none; padding: 0; color: var(--rw-primary, #078fab); font: inherit; text-align: left; cursor: pointer; }
+.ha-text-button:hover, .ha-plan-status:hover { text-decoration: underline; }
+.ha-plan-status { display: block; margin-top: 10px; padding: 6px 9px; border-radius: 6px; background: var(--rw-surface-muted); font-size: 12px; }
+.ha-cluster-dialog .ui-dialog-content { padding: 16px; max-height: calc(100vh - 80px) !important; box-sizing: border-box; overflow-y: auto; }
+.ui-dialog.ha-cluster-dialog { position: fixed; top: 12px !important; max-height: calc(100vh - 24px); z-index: 10010 !important; }
+.ha-cluster-overlay { z-index: 10009 !important; }
+/* Shared confirmations must appear above the cluster dialog, not behind it. */
+body:has(#ha-corosync-dialog) .ui-dialog.rw-dialog-responsive:not(.ha-cluster-dialog) { z-index: 10012 !important; }
+body:has(#ha-corosync-dialog) .ui-widget-overlay:not(.ha-cluster-overlay) { z-index: 10011 !important; }
+.ha-operation-panel { min-width: 0; }
+.ha-operation-panel .rw-workspace-feedback:has(p:empty) { display: none; }
+.ha-operation-panel [hidden], #ha-clusters [hidden] { display: none !important; }
+.ha-operation-tabs.ui-tabs { border: 0; padding: 0; background: transparent; }
+.ha-operation-tabs.ui-tabs .ui-tabs-panel { padding: 16px 0 0 !important; }
+.ha-operation-tabs.ui-tabs .ui-tabs-nav { display: flex; padding: 0 !important; border: 0; border-bottom: 1px solid var(--rw-border); border-radius: 0; background: transparent !important; }
+.ha-operation-tabs.ui-tabs .ui-tabs-nav li { margin: 0 8px 0 0; border: 0; background: transparent !important; color: var(--rw-text-muted) !important; }
+.ha-operation-tabs.ui-tabs .ui-tabs-nav li.ui-tabs-active { color: var(--rw-primary) !important; border-bottom: 2px solid var(--rw-primary, #078fab) !important; }
+.ha-operation-tabs.ui-tabs .ui-tabs-nav a { padding: 9px 12px; color: inherit !important; background: transparent !important; }
+.ha-operation-tabs > .ha-audit-status { margin: 12px 0 0 !important; }
+.ha-operation-panel .rw-panel { margin: 0 0 16px; }
+.ha-operation-panel .rw-panel h3 { margin: 0 0 12px; padding: 0; }
+.ha-operation-panel .rw-table-toolbar { margin: 0 0 10px; }
+.ha-operation-panel .rw-page-help { margin: 16px 0 0; }
+#ha-clusters .rw-page-help, .ha-operation-panel .rw-page-help { background: var(--rw-surface-muted); color: var(--rw-text-muted) !important; }
+.ha-operation-panel .ui-selectmenu-button { width: 100% !important; box-sizing: border-box; }
+.ha-operation-panel .change-advanced-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 20px; }
+.ha-operation-panel .rw-form-field { min-width: 0; }
+.ha-operation-panel input.form-control, .ha-operation-panel textarea.form-control { width: 100%; box-sizing: border-box; }
+.ha-operation-panel pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.ha-operation-panel .rw-table-shell { overflow-x: auto; }
+#ha-audit-history { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; margin-bottom: 12px; }
+#ha-audit-nodes fieldset { min-width: 0; border: 1px solid var(--rw-border); border-radius: 6px; }
+#ha-clusters-message:empty, #ha-maintenance-message:empty { display: none; }
+@media (max-width: 600px) {
+    .ha-operation-panel .change-advanced-grid { grid-template-columns: minmax(0, 1fr); }
+    .ha-cluster-dialog .ui-dialog-content { padding: 10px; }
+    .ha-operation-tabs .ui-tabs-nav a { padding: 8px; }
+}

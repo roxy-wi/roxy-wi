@@ -54,6 +54,61 @@ def create(product_client,state):
     return HaMaintenancePlan.get_by_id(response.json['data']['id'])
 
 
+@pytest.mark.parametrize('title,evidence', [('OS', '#7'), ('x', 'y')])
+def test_short_maintenance_notes_are_accepted(product_client, maintenance_cluster, title, evidence):
+    response = product_client.post('/ha/api/maintenance', json=dict(
+        provider='pacemaker', cluster_id=maintenance_cluster.cluster.id, server_id=11,
+        title=title, capacity_confirmed=True, capacity_evidence=evidence,
+    ))
+    assert response.status_code == 201, response.text
+    assert response.json['data']['title'] == title
+    assert response.json['data']['capacity_evidence'] == evidence
+
+
+@pytest.mark.parametrize('field,value', [
+    ('title', ''), ('title', '  '), ('title', 'x' * 256),
+    ('capacity_evidence', ''), ('capacity_evidence', ' \n '),
+    ('capacity_evidence', 'x' * 2001), ('capacity_confirmed', False),
+])
+def test_maintenance_still_requires_notes_and_capacity_confirmation(
+    product_client, maintenance_cluster, field, value,
+):
+    body = dict(provider='pacemaker', cluster_id=maintenance_cluster.cluster.id, server_id=11,
+                title='OS', capacity_confirmed=True, capacity_evidence='#7')
+    body[field] = value
+    response = product_client.post('/ha/api/maintenance', json=body)
+    assert response.status_code == 400, response.text
+    assert HaMaintenancePlan.select().count() == 0
+
+
+@pytest.mark.parametrize('restriction', [None, 'disabled', 'service', 'role', 'group'])
+def test_approval_guidance_names_only_eligible_other_administrators(
+    product_client, product, maintenance_cluster, restriction,
+):
+    row = create(product_client, maintenance_cluster)
+    reviewer = maintenance_cluster.reviewer
+    if restriction == 'disabled':
+        User.update(enabled=0).where(User.user_id == reviewer.user_id).execute()
+    elif restriction == 'service':
+        User.update(user_services='1 2 3 4 6').where(User.user_id == reviewer.user_id).execute()
+    elif restriction == 'role':
+        UserGroups.update(user_role_id=3).where(UserGroups.user_id == reviewer.user_id).execute()
+    elif restriction == 'group':
+        UserGroups.update(user_group_id=2).where(UserGroups.user_id == reviewer.user_id).execute()
+    response = product_client.get('/ha/api/maintenance')
+    assert response.status_code == 200, response.text
+    plan = response.json['data'][0]
+    assert plan['user_id'] == product.admin.user_id and plan['created_by'] == 'admin'
+    eligible = {user['id']: user['name'] for user in plan['approvers']}
+    assert product.admin.user_id not in eligible
+    assert (reviewer.user_id in eligible) is (restriction is None)
+    if restriction is None:
+        assert eligible[reviewer.user_id] == 'reviewer'
+    change = product_client.get(f'/changes/api/{row.change_id}')
+    assert change.status_code == 200, change.text
+    assert change.json['data']['maintenance'] == plan
+
+
 def step(product_client,row,action,expected='completed'):
     response=product_client.post(f'/ha/api/maintenance/{row.id}/{action}',json={})
     assert response.status_code==202,response.text

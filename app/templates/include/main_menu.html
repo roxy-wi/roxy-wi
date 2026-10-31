@@ -43,22 +43,9 @@
 					{% if '5' in g.user_params['user_services'] %}
 					<li class="nav-item" data-nav-search="ha {{ lang.words.cluster|lower }}">
 						<a href="{{ url_for('ha.ha_cluster', service='cluster') }}" title="{{ lang.menu_links.ha.title }}"
-						   class="nav-link{% if request.url_rule.endpoint == 'ha.ha_cluster' %} menu-active{% endif %}">
+						   class="nav-link{% if request.url_rule.endpoint in ('ha.ha_cluster', 'ha.cluster_index') %} menu-active{% endif %}">
 							<span class="fas fa-project-diagram nav-icon" aria-hidden="true"></span><span class="nav-label">HA {{ lang.words.cluster }}</span>
 						</a>
-					</li>
-					<li class="nav-item" data-nav-search="ha readiness audit">
-						<a href="{{ url_for('ha.readiness') }}" class="nav-link{% if request.url_rule.endpoint == 'ha.readiness' %} menu-active{% endif %}"><span class="fas fa-clipboard-check nav-icon" aria-hidden="true"></span><span class="nav-label">HA readiness</span></a>
-					</li>
-					{% if g.user_params['role']|int <=3 %}
-					<li class="nav-item" data-nav-search="ha node maintenance">
-						<a href="{{ url_for('ha.maintenance_page') }}" class="nav-link{% if request.url_rule.endpoint == 'ha.maintenance_page' %} menu-active{% endif %}"><span class="fas fa-tools nav-icon" aria-hidden="true"></span><span class="nav-label">HA maintenance</span></a>
-					</li>
-					{% endif %}
-					{% endif %}
-					{% if '1' in g.user_params['user_services'] or '2' in g.user_params['user_services'] or '4' in g.user_params['user_services'] %}
-					<li class="nav-item" data-nav-search="request path diagnostics dns tls backend">
-						<a href="{{ url_for('insights.diagnostics_page') }}" class="nav-link{% if request.url_rule.endpoint == 'insights.diagnostics_page' %} menu-active{% endif %}"><span class="fas fa-route nav-icon" aria-hidden="true"></span><span class="nav-label">Request diagnostics</span></a>
 					</li>
 					{% endif %}
 				</ul>
@@ -81,7 +68,6 @@
 							<li><a href="{{ url_for('service.services', service='haproxy') }}" title="{{ lang.menu_links.hapservers.haproxy.title }}" class="head-submenu">{{ lang.menu_links.hapservers.link }}</a></li>
 							<li><a href="{{ url_for('config.config', service='haproxy') }}" title="{{ lang.menu_links.config.haproxy.title }}" class="head-submenu">{{ lang.menu_links.config.link }}</a></li>
 							<li><a href="{{ url_for('main.stats', service='haproxy') }}" title="{{ lang.menu_links.stats.haproxy.title }}" class="head-submenu">{{ lang.menu_links.stats.link }}</a></li>
-							<li><a href="{{ url_for('insights.diagnostics_page',service='haproxy') }}" class="head-submenu">Request diagnostics</a></li>
 							<li><a href="{{ url_for('logs.logs', service='haproxy') }}" title="HAProxy {{ lang.menu_links.logs.title }}" class="head-submenu">{{ lang.menu_links.logs.link }}</a></li>
 							<li><a href="{{ url_for('runtime.runtimeapi') }}" title="Runtime API" class="head-submenu">Runtime API</a></li>
 							<li><a href="{{ url_for('metric.metrics', service='haproxy') }}" title="HAProxy {{ lang.menu_links.metrics.title }}" class="head-submenu">{{ lang.menu_links.metrics.link }}</a></li>
@@ -108,7 +94,6 @@
 							<li><a href="{{ url_for('service.services', service='nginx') }}" title="{{ lang.menu_links.hapservers.nginx.title }}" class="head-submenu">{{ lang.menu_links.hapservers.link }}</a></li>
 							<li><a href="{{ url_for('config.config', service='nginx') }}" title="{{ lang.menu_links.config.nginx.title }}" class="head-submenu">{{ lang.menu_links.config.link }}</a></li>
 							<li><a href="{{ url_for('main.stats', service='nginx') }}" title="{{ lang.menu_links.stats.nginx.title }}" class="head-submenu">{{ lang.menu_links.stats.link }}</a></li>
-							<li><a href="{{ url_for('insights.diagnostics_page',service='nginx') }}" class="head-submenu">Request diagnostics</a></li>
 							<li><a href="{{ url_for('logs.logs', service='nginx') }}" title="NGINX {{ lang.menu_links.logs.title }}" class="head-submenu">{{ lang.menu_links.logs.link }}</a></li>
 							<li><a href="{{ url_for('metric.metrics', service='nginx') }}" title="NGINX {{ lang.menu_links.metrics.title }}" class="head-submenu">{{ lang.menu_links.metrics.link }}</a></li>
 							{% if g.user_params['role'] <= 3 %}
@@ -133,7 +118,6 @@
 							<li><a href="{{ url_for('service.services', service='apache') }}" title="{{ lang.menu_links.hapservers.apache.title }}" class="head-submenu">{{ lang.menu_links.hapservers.link }}</a></li>
 							<li><a href="{{ url_for('config.config', service='apache') }}" title="{{ lang.menu_links.config.apache.title }}" class="head-submenu">{{ lang.menu_links.config.link }}</a></li>
 							<li><a href="{{ url_for('main.stats', service='apache') }}" title="{{ lang.menu_links.stats.apache.title }}" class="head-submenu">{{ lang.menu_links.stats.link }}</a></li>
-							<li><a href="{{ url_for('insights.diagnostics_page',service='apache') }}" class="head-submenu">Request diagnostics</a></li>
 							<li><a href="{{ url_for('logs.logs', service='apache') }}" title="Apache {{ lang.menu_links.logs.title }}" class="head-submenu">{{ lang.menu_links.logs.link }}</a></li>
 							<li><a href="{{ url_for('metric.metrics', service='apache') }}" title="Apache {{ lang.menu_links.metrics.title }}" class="head-submenu">{{ lang.menu_links.metrics.link }}</a></li>
 							{% if g.user_params['role'] <= 3 %}
@@ -238,7 +222,6 @@
 						<ul class="v_menu">
 							<li><a href="{{ url_for('install.install_monitoring') }}#service" title="{{ lang.words.servers|title() }}: {{ lang.words.proxy|title() }} {{ lang.words.services }} {{ lang.words.installation }}" class="service installproxy head-submenu">{{ lang.words.proxy|title() }} {{ lang.words.services }}</a></li>
 							<li><a href="{{ url_for('install.install_monitoring') }}#monitoring" title="{{ lang.words.servers|title() }}: {{ lang.words.monitoring|title() }} {{ lang.words.services }} {{ lang.words.installation }}" class="monitoring installmon head-submenu">{{ lang.words.monitoring|title() }}</a></li>
-                            {% if '5' in g.user_params['user_services'] %}<li><a href="{{ url_for('install.install_monitoring') }}#pacemaker-installation" class="installpcmk head-submenu">Corosync / Pacemaker</a></li>{% endif %}
 							<li><a href="{{ url_for('install.install_monitoring') }}#geolite2" title="{{ lang.words.installation|title() }} GeoLite2" class="geolite2 installgeo head-submenu">GeoLite2</a></li>
 						</ul>
 					</li>

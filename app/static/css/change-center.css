@@ -491,3 +491,8 @@ button.ui-button.change-confirm-button:hover {
     margin-top: 0.35rem;
     overflow-wrap: anywhere;
 }
+
+#change-details-maintenance { overflow-wrap: anywhere; }
+#change-details-maintenance .maintenance-capacity { white-space: pre-wrap; }
+#change-details-maintenance pre { max-height: 360px; overflow: auto; white-space: pre-wrap; }
+#change-details-maintenance .change-action-labeled { display: inline-flex; align-items: center; gap: 6px; }

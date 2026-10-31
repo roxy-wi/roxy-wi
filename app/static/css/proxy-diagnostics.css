@@ -1,0 +1,26 @@
+.ui-dialog.proxy-diagnostics-dialog { position: fixed; top: 16px !important; max-height: calc(100vh - 32px); z-index: 10010 !important; }
+.proxy-diagnostics-overlay { z-index: 10009 !important; }
+.proxy-diagnostics-dialog .ui-dialog-content { padding: 16px; max-height: calc(100vh - 90px) !important; box-sizing: border-box; }
+#proxy-diagnostics .rw-form-field { margin: 0 0 16px; min-width: 0; }
+#proxy-diagnostics input, #proxy-diagnostics .ui-selectmenu-button { width: 100% !important; box-sizing: border-box; }
+#proxy-diagnostics .rw-workspace-feedback:has(p:empty) { display: none; }
+#proxy-diagnostics pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+#proxy-diagnostics .rw-table-shell { overflow-x: auto; }
+#proxy-diagnostics .rw-page-help { margin: 16px 0 0; background: var(--rw-surface-muted); color: var(--rw-text-muted) !important; }
+#diagnostics-history { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+#diagnostics-history button { white-space: normal; text-align: left; }
+#diagnostics-history [aria-pressed="true"] { color: var(--rw-primary) !important; box-shadow: inset 0 -2px var(--rw-primary); }
+#diagnostics-time, #diagnostics-summary { overflow-wrap: anywhere; }
+#diagnostics-retry { margin-bottom: 12px; }
+#diagnostics-result th:first-child { width: 24%; }
+#diagnostics-result th:nth-child(2) { width: 16%; }
+@media (max-width: 600px) {
+    .proxy-diagnostics-dialog .ui-dialog-title { white-space: normal; }
+    .proxy-diagnostics-dialog .ui-dialog-content { max-height: calc(100vh - 115px) !important; }
+    #diagnostics-result table, #diagnostics-result tbody { display: block; }
+    #diagnostics-result thead { display: none; }
+    #diagnostics-result tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; padding: 8px 0; border-bottom: 1px solid var(--rw-border); }
+    #diagnostics-result td { display: block; min-width: 0; }
+    #diagnostics-result td:first-child { font-weight: 600; }
+    #diagnostics-result td:last-child { grid-column: 1 / -1; }
+}

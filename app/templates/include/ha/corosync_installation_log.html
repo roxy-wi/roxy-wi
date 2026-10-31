@@ -1,0 +1,9 @@
+        <section id="pcmk-installation-panel" class="rw-panel" {% if view not in ['logs', 'history'] %}hidden{% endif %}>
+            <h3>Installation logs</h3>
+            <div class="rw-table-toolbar">
+                <label for="pcmk-installation-task">Installation</label>{{ select('pcmk-installation-task', values={}) }}
+                <button type="button" id="pcmk-installation-refresh" class="rw-button rw-button-secondary">Refresh log</button>
+            </div>
+            <p id="pcmk-installation-status" class="rw-form-help" role="status">No installations yet</p>
+            <pre id="pcmk-installation-output" class="rw-notification-raw"></pre>
+        </section>

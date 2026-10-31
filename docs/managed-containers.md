@@ -119,7 +119,7 @@ must not compete with its resource agents.
 
 ## Standalone quorum witness
 
-Open **Installation → Corosync / Pacemaker → Install witness only**, select an
+Open **HA cluster → Create Corosync cluster → Quorum witness**, select an
 independent registered host and choose **Native / Docker / Podman**.
 
 ![Standalone witness runtime selection](screenshots/managed-containers/witness.png)

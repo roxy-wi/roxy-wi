@@ -7,7 +7,7 @@ from werkzeug.exceptions import HTTPException
 
 from app.middleware import get_user_params
 from app.modules.db.db_model import PacemakerCluster, PacemakerChange, PacemakerEvent, InstallationTasks, Server
-from app.modules.pacemaker import service, operations
+from app.modules.pacemaker import service, operations, monitor
 from app.modules.pacemaker.bootstrap import corosync_config
 from app.modules.pacemaker.remote import RemoteError
 from app.modules.pacemaker.schemas import ClusterCreate, Candidate, Action, Bootstrap, CorosyncCandidate, Discovery, Adoption, WitnessInstall, WitnessMigration, WitnessRecovery
@@ -72,15 +72,15 @@ def queued(cluster, action, data=None):
 def index():
     mode = request.args.get('setup')
     if mode in ('new', 'adopt', 'witness'):
-        return redirect(url_for('install.pacemaker_setup', setup=mode, cluster=request.args.get('cluster', type=int)))
-    return render_template('pacemaker.html', lang=g.user_params['lang'], view='overview', setup_mode='new')
+        return redirect(url_for('ha.cluster_index', setup=mode, cluster=request.args.get('cluster', type=int)))
+    return render_template('pacemaker.html', lang=g.user_params['lang'], view='overview')
 
 
 @bp.get('/<any(resources,configuration,quorum,logs,monitoring,history):view>')
 def page(view):
     if view in ('configuration', 'quorum', 'logs', 'monitoring'):
         operator()
-    return render_template('pacemaker.html', lang=g.user_params['lang'], view=view, setup_mode='new')
+    return render_template('pacemaker.html', lang=g.user_params['lang'], view=view)
 
 
 @bp.get('/api')
@@ -373,7 +373,8 @@ def remove(cluster_id):
 @bp.get('/api/<int:cluster_id>/status')
 @api
 def status(cluster_id):
-    return jsonify(data=service.status(current(cluster_id)))
+    state = service.status(current(cluster_id))
+    return jsonify(data=state, health=monitor.health(state))
 
 
 @bp.get('/api/<int:cluster_id>/config')
@@ -537,14 +538,8 @@ def history(cluster_id):
     task = InstallationTasks.get_or_none(InstallationTasks.id == cluster.active_task_id) if cluster.active_task_id else None
     installations = []
     if int(g.user_params['role']) <= 3:
-        from app.modules.operations.queue import deserialize_operation_payload
-        rows = InstallationTasks.select().where(
-            (InstallationTasks.group_id == cluster.group_id) & (InstallationTasks.operation_type == 'pacemaker') &
-            (InstallationTasks.service_name == f'Pacemaker {cluster.name}: bootstrap')
-        ).order_by(InstallationTasks.id.desc()).limit(20)
-        for row in rows:
-            if deserialize_operation_payload(row.operation_payload).get('cluster_id') == cluster.id:
-                installations.append({'id': row.id, 'status': row.status, 'date': row.start_date.isoformat()})
+        installations = [{'id': row.id, 'status': row.status, 'date': row.start_date.isoformat()}
+                         for row in service.installation_history(cluster)]
     return jsonify(events=[{'id': row.id, 'user_id': row.user_id, 'date': row.created_at.isoformat(),
                             'action': row.action, 'status': row.status} for row in events],
                    changes=[{'id': row.id, 'kind': row.kind, 'status': row.status, 'date': row.created_at.isoformat()} for row in changes],

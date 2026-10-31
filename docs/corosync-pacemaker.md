@@ -13,14 +13,13 @@ profiles, Docker workflows, HA technology selection and SYN-flood settings.
 
 ## Access and installation
 
-**Installation → Corosync / Pacemaker** provides separate entry points for a new
-Linux cluster, adoption of a running installation, and a standalone quorum witness. The installer is separate from the service management pages and uses existing
-Roxy-WI form controls.
+**HA cluster → Create Corosync cluster** opens a dialog for a new Linux cluster, adoption of a running installation, or a standalone quorum witness.
+The dialog reuses the existing provisioning, discovery and witness APIs. Closing it does not
+cancel an installation. Open **Actions → Installation and logs** on the cluster to follow it again.
 
 HA cluster service permission (service ID 5) controls access. Operators at role
-levels 1–3 can configure clusters. The shared Installation landing page/menu
-retains its existing administrator restriction (levels 1–2); the dedicated
-`/install/pacemaker` workflow allows cluster operators (levels 1–3). Viewers can see status and history, but cannot
+levels 1–3 can configure clusters and open the setup dialog on **HA cluster**.
+Viewers can see status and history, but cannot
 read CIB snapshots, journals or credential-bearing configuration.
 
 First register physical server entries and their SSH credentials in the active
@@ -49,7 +48,7 @@ Managed Corosync membership/witness changes and bootstrap are blocked for adopte
 clusters. An explicit transport/certificate migration is required before using
 Roxy-WI's generated membership configuration; there is no automatic conversion.
 
-For a new cluster, open **Installation → Corosync / Pacemaker → Install cluster**.
+For a new cluster, open **HA cluster → Create Corosync cluster → Create new cluster**.
 Choose **Register cluster**, enter its name and at least two distinct servers,
 then enter each actual node hostname, Corosync address and unique positive node ID.
 Use **Add member** or **Remove** to adjust the planned membership. **Cancel** closes
@@ -130,7 +129,7 @@ vote: available, configured but not voting, absent, or not verifiable. The
 absence of a witness is a design warning, not a claim that Corosync two-node mode
 cannot operate. A witness does not replace fencing.
 
-**Installation → Corosync / Pacemaker → Install witness only** installs and enables
+**HA cluster → Create Corosync cluster → Quorum witness** installs and enables
 `corosync-qnetd` on a separate registered supported Linux host through Operations.
 Select **Runtime: Docker** or **Podman** for a managed standalone container; choose **Native** for native
 packages/systemd. See the [Docker witness guide](corosync-pacemaker-witness-docker.md)

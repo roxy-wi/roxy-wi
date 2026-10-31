@@ -1,11 +1,17 @@
 # Request-path diagnostics
 
-Open **Operations → Request diagnostics** or **Request diagnostics** in a proxy's
-service submenu. Choose an enabled registered HAProxy, NGINX or Apache server,
-enter a domain/HTTP(S) URL and run the assessment. A domain alone uses HTTPS.
-Results and history remain in the existing Operations queue after the browser
-closes. If multiple frontends match the port, select one of the discovered
-frontends and run again; an ambiguous route is not guessed.
+Open **Actions → Request diagnostics** on a HAProxy, NGINX or Apache server card.
+The dialog uses that server and service automatically. Enter a domain/HTTP(S) URL
+and run the assessment; a domain alone uses HTTPS. Results and history remain in
+the existing Operations queue after closing the dialog or browser. Reopening the
+dialog resumes status polling without starting another job. Readers can view the
+history; operators can start assessments.
+
+If multiple frontends match the port, select one of the discovered frontends and
+run again; an ambiguous route is not guessed. Changing the URL clears that choice.
+Viewing an old report does not change the next request's frontend. Temporary
+status failures are retried, and a Retry status button recovers a failed read.
+Legacy diagnostics page links redirect to the corresponding service page.
 
 ![Request-path evidence](screenshots/proxy-diagnostics/path.png)
 
@@ -70,6 +76,11 @@ numerical addresses are pinned before connection. Link-local, multicast,
 unspecified and known metadata endpoints are refused; controller loopback is not
 treated as a remote VIP. Redirects, proxy environment variables, response bodies,
 cookies and authorization headers are not used.
+
+Repeated backend names and IP/port targets share DNS and TCP observations within
+one assessment. Each backend keeps its evidence in the report. A later assessment
+always performs fresh probes. Failed jobs are logged with their ID and exception
+type, without logging the URL, configuration or report contents.
 
 A rejected TLS certificate is observed through a separate read-only handshake,
 labelled untrusted; no HTTP request crosses that unverified connection. It is

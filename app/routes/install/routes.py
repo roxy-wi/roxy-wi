@@ -60,16 +60,6 @@ def install_monitoring():
     return render_template('install.html', **kwargs)
 
 
-@bp.get('/pacemaker')
-def pacemaker_setup():
-    if not roxywi_auth.is_access_permit_to_service('cluster'):
-        abort(403)
-    mode = request.args.get('setup', 'new')
-    if mode not in ('new', 'adopt', 'witness'):
-        abort(400)
-    return render_template('pacemaker.html', lang=g.user_params['lang'], view='setup', setup_mode=mode)
-
-
 @bp.post('/exporter/<exporter>')
 def install_exporter(exporter):
     json_data = request.get_json()

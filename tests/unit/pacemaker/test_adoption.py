@@ -138,12 +138,11 @@ def test_import_accepts_dns_addresses_and_fqdn_node_names():
     assert member.address == 'cluster-1.example.test'
 
 
-def test_installation_exposes_both_setup_paths(client, authenticated):
+def test_installation_no_longer_has_cluster_setup(client, authenticated):
     response = client.get('/install', headers=authenticated[1])
     assert response.status_code == 200
-    assert 'id="pacemaker-installation"' in response.text
-    assert '/install/pacemaker?setup=new' in response.text
-    assert '/install/pacemaker?setup=adopt' in response.text
+    assert 'id="pacemaker-installation"' not in response.text
+    assert '/install/pacemaker' not in response.text
     authenticated[0]['user_services'] = '1 2 3 4 6'
     response = client.get('/install', headers=authenticated[1])
     assert response.status_code == 200

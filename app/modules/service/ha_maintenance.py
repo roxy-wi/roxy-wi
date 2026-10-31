@@ -7,14 +7,14 @@ import re
 import time
 from typing import Literal
 from uuid import uuid4
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 from peewee import SqliteDatabase
 
 from app.modules.common.file_lock import file_lock
 from app.modules.common.execution_context import group_settings
 from app.modules.common.time import utc_now,utc_iso
 from app.modules.db.db_model import (HaMaintenancePlan,ConfigChange,InstallationTasks,OperationalAssessment,
-    PacemakerCluster,HaClusterVip,User)
+    PacemakerCluster,HaClusterVip,User,UserGroups)
 from app.modules.db import user as user_sql
 from app.modules.operations.queue import serialize_operation_payload as seal,deserialize_operation_payload as unseal
 from app.modules.pacemaker import service
@@ -32,9 +32,48 @@ class Create(BaseModel):
     provider: Literal['pacemaker','keepalived']
     cluster_id: int=Field(gt=0)
     server_id: int=Field(gt=0)
-    title: str=Field(min_length=5,max_length=255,pattern=r'^[^\r\n<>]+$')
+    title: str=Field(min_length=1,max_length=255,pattern=r'^[^\r\n<>]+$')
     capacity_confirmed: bool=Field(strict=True)
-    capacity_evidence: str=Field(min_length=10,max_length=2000)
+    capacity_evidence: str=Field(min_length=1,max_length=2000)
+
+
+class ListQuery(BaseModel):
+    """Scope maintenance history to a cluster while retaining the existing group list."""
+    model_config = ConfigDict(extra='forbid')
+    provider: Literal['pacemaker', 'keepalived'] | None = None
+    cluster_id: int | None = Field(default=None, gt=0)
+    before: int | None = Field(default=None, gt=0)
+    change_id: int | None = Field(default=None, gt=0)
+
+    @model_validator(mode='after')
+    def paired_cluster(self) -> 'ListQuery':
+        if (self.provider is None) != (self.cluster_id is None):
+            raise ValueError('Provider and cluster are required together')
+        return self
+
+
+def plans(group_id: int, query: ListQuery) -> tuple[list[HaMaintenancePlan], int | None, str | None]:
+    """Fetch active plans plus one bounded history page for this registration."""
+    rows = HaMaintenancePlan.select(HaMaintenancePlan, ConfigChange).join(
+        ConfigChange, on=(HaMaintenancePlan.change_id == ConfigChange.id)
+    ).where((HaMaintenancePlan.group_id == group_id) & (ConfigChange.group_id == group_id))
+    registration = None
+    if query.provider is not None:
+        cluster, _nodes = audit.subject(query.provider, query.cluster_id, group_id)
+        registration = cluster.readiness_key
+        rows = rows.where((HaMaintenancePlan.provider == query.provider) & (HaMaintenancePlan.cluster_id == query.cluster_id))
+    terminal = (HaMaintenancePlan.status == 'completed') | (ConfigChange.status == 'cancelled')
+    active = list(rows.where(~terminal).order_by(HaMaintenancePlan.id.desc()))
+    history = rows.where(terminal)
+    if query.before:
+        history = history.where(HaMaintenancePlan.id < query.before)
+    page = list(history.order_by(HaMaintenancePlan.id.desc()).limit(51))
+    result = active + page[:50]
+    if query.change_id and not any(row.change_id == query.change_id for row in result):
+        result.extend(rows.where(HaMaintenancePlan.change_id == query.change_id))
+    if registration is not None:
+        result = [row for row in result if unseal(row.payload).get('registration_key') == registration]
+    return result, page[49].id if len(page) > 50 else None, registration
 
 
 def get(ident,group_id):
@@ -52,14 +91,32 @@ def parent(row):
     return change
 
 
-def public(row):
+def approvers(group_id: int) -> list[dict]:
+    """List enabled HA administrators in the active group for approval guidance."""
+    users = User.select(User.user_id, User.username, User.user_services).join(
+        UserGroups, on=(User.user_id == UserGroups.user_id)
+    ).where(
+        (UserGroups.user_group_id == group_id)
+        & UserGroups.user_role_id.in_((1, 2))
+        & (User.enabled == 1)
+    ).distinct().order_by(User.username)
+    return [dict(id=user.user_id, name=user.username) for user in users if '5' in user.user_services.split()]
+
+
+def public(row, *, available_approvers: list[dict] | None = None) -> dict:
+    from app.modules.change.service import name_for_user
+
     data=unseal(row.payload);change=parent(row)
     task=InstallationTasks.get_or_none(InstallationTasks.id==row.active_task_id) if row.active_task_id else None
+    if available_approvers is None:
+        available_approvers = approvers(row.group_id)
     return dict(id=row.id,provider=row.provider,cluster_id=row.cluster_id,server_id=row.server_id,
         title=change.title,cluster_name=data.get('cluster_name',str(row.cluster_id)),node_name=data.get('node_name',str(row.server_id)),
         can_cancel=not row.active_task_id and not data.get('drained_at') and row.status in ('draft','reviewed','review-failed') and change.status in ('draft','validation_failed','pending_approval','approved'),
         status='cancelled' if change.status=='cancelled' else row.status,change_id=change.id,
-        change_status=change.status,approved_by=change.approved_by,
+        change_status=change.status,user_id=change.user_id,created_by=name_for_user(change.user_id),
+        approved_by=change.approved_by,approved_by_name=name_for_user(change.approved_by),
+        approvers=[user for user in available_approvers if user['id'] != change.user_id],
         operation=dict(id=task.id,status=task.status,error=task.error) if task else None,
         capacity_evidence=data['capacity_evidence'],review=data.get('review'),events=data.get('events',[]),
         updated_at=utc_iso(row.updated_at))
@@ -120,7 +177,7 @@ def enqueue(row,user_id,action):
             'resume':('return-reviewed',)}
         if change.status=='cancelled' or row.status not in allowed[action]:raise RoxywiConflictError('This action is not available in the current maintenance state')
         if action in ('drain','resume') and (change.status!='approved' or change.approved_by is None):
-            raise RoxywiConflictError('An independent administrator must approve the current review in Change Center')
+            raise RoxywiConflictError('Another administrator must approve the current checks before this action')
         cluster,nodes=audit.subject(row.provider,row.cluster_id,row.group_id)
         assert_idle(row.provider,row.cluster_id,row.group_id,row.id)
         if action in ('drain','resume') and any(s.server_id==row.server_id and s.protected for _n,s in nodes) and int(user_sql.get_user_role_in_group(user_id,row.group_id))>2:
@@ -398,7 +455,7 @@ def execute_step(task,row,action,renew=lambda:None):
         assert_idle(row.provider,row.cluster_id,row.group_id,row.id)
         returning=action=='resume'
         if change.status!='approved' or not change.approved_by or data['review']['returning']!=returning:
-            raise RoxywiConflictError('Approve the current matching review in Change Center')
+            raise RoxywiConflictError('Approve the current matching checks before changing the node')
         approver=User.get_or_none(User.user_id==change.approved_by)
         if not approver or not approver.enabled or approver.user_id==change.user_id or '5' not in user_sql.select_user_services(approver.user_id).split() or int(user_sql.get_user_role_in_group(approver.user_id,row.group_id))>2:
             raise RoxywiValidationError('The independent approver no longer has the required permissions; review again')

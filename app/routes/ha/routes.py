@@ -2,7 +2,6 @@ from flask import render_template, g, jsonify, request
 from flask_jwt_extended import jwt_required
 from playhouse.shortcuts import model_to_dict
 
-from app.modules.roxywi.exception import RoxywiResourceNotFound
 from app.routes.ha import bp
 from app.modules.roxywi.error_handler import safe_error_message
 from app.middleware import get_user_params, check_services
@@ -32,28 +31,13 @@ def before_request():
 @check_services
 @get_user_params()
 def get_ha_cluster(service, cluster_id):
-    try:
-        router_id = ha_sql.get_router_id(cluster_id, default_router=1)
-    except RoxywiResourceNotFound:
-        router_id = None
-    if router_id:
-        slaves = ha_sql.select_cluster_slaves(cluster_id, router_id)
-    else:
-        slaves = {}
-    kwargs = {
-        'servers': roxywi_common.get_dick_permit(virt=1),
-        'clusters': ha_sql.select_cluster(cluster_id),
-        'slaves': slaves,
-        'virts': ha_sql.select_clusters_virts(),
-        'vips': ha_sql.select_cluster_vips(cluster_id),
-        'cluster_services': ha_sql.select_cluster_services(cluster_id),
-        'services': service_sql.select_services(),
-        'group_id': g.user_params['group_id'],
-        'router_id': router_id,
-        'lang': g.user_params['lang']
-    }
+    from app.modules.db.db_model import HaCluster
+    from app.routes.ha.dashboard import cluster_card
 
-    return render_template('ajax/ha/clusters.html', **kwargs)
+    cluster = HaCluster.get_or_none((HaCluster.id == cluster_id) & (HaCluster.group_id == g.user_params['group_id']))
+    if cluster is None:
+        return jsonify(error='Cluster not found in the active group'), 404
+    return render_template('ajax/ha/clusters.html', cards=[cluster_card(cluster, 'keepalived')], lang=g.user_params['lang'])
 
 
 @bp.route('/<service>/<int:cluster_id>')

@@ -15,6 +15,7 @@ $(function () {
     let changesLoaded = false;
     let loadingChanges = false;
     let loadGeneration = 0;
+    const pendingActions = new Set();
     const filterStorageKey = 'roxywi-change-center-filters:v1';
 
     function operationActive(change) {
@@ -91,6 +92,8 @@ $(function () {
             .addClass('change-action-' + action)
             .attr('title', title)
             .attr('aria-label', title)
+            .attr('data-change-id', changeId)
+            .prop('disabled', pendingActions.has(changeId))
             .append($('<span aria-hidden="true">').addClass('fas ' + icon))
             .on('click', function (event) {
                 event.stopPropagation();
@@ -149,9 +152,8 @@ $(function () {
         const menu = $('<div class="change-actions-menu" role="menu" hidden>').attr('id', menuId);
         primary.append(actionButton('fa-eye', i18n.details, 'details', change.id));
         if(change.action==='ha-maintenance') {
-            if(change.status==='pending_approval' && currentRole<=2 && change.user_id!==currentUserId)
+            if(change.maintenance && RoxywiMaintenance.canApprove(change.maintenance, currentUserId))
                 primary.append(actionButton('fa-user-check', i18n.approve, 'approve', change.id));
-            primary.append($('<a class="ui-button ui-widget ui-corner-all">').attr('href','/ha/maintenance?change='+change.id).text('Maintenance wizard'));
             if(change.maintenance_can_cancel)primary.append(actionButton('fa-times',i18n.cancel,'cancel',change.id));
             actions.append(primary);
             return actions;
@@ -323,7 +325,7 @@ $(function () {
         } else {
             $('#change-center-table').attr('aria-busy', 'true');
         }
-        return $.getJSON('/changes/api')
+        return $.ajax({url: '/changes/api', dataType: 'json', global: false})
             .done(function (response) {
                 if (generation !== loadGeneration) return;
                 (response.data || []).forEach(function (change) {
@@ -451,6 +453,17 @@ $(function () {
     }
 
     function renderDetailsContent(change) {
+        const maintenance = change.action === 'ha-maintenance';
+        $('.change-config-details').toggle(!maintenance);
+        $('.change-maintenance-details').toggle(maintenance);
+        $('#change-details-maintenance').toggle(maintenance);
+        if (maintenance) {
+            renderMaintenanceDetails(change);
+            $('#change-details-drift-section').hide();
+            loadTimeline(change.id);
+            return;
+        }
+        $('#change-details-maintenance').empty().removeData('snapshot');
         const executionMode = change.execution_mode || 'rolling';
         const executionModeKey = 'executionMode' + executionMode.charAt(0).toUpperCase() + executionMode.slice(1);
         const healthMode = change.health_check_mode || 'full';
@@ -474,6 +487,40 @@ $(function () {
         $('#change-details-deployment').text(normalizeRoxywiResponse(change.deployment_output) || '—');
         $('#change-details-rollback').text(normalizeRoxywiResponse(change.rollback_output) || '—');
         loadTimeline(change.id);
+    }
+
+    function renderMaintenanceDetails(change) {
+        const container = $('#change-details-maintenance'), plan = change.maintenance;
+        const snapshot = JSON.stringify([plan, pendingActions.has(change.id)]);
+        if (container.data('snapshot') === snapshot) return;
+        $('#change-details-summary').empty().append($('<p>').text('#' + change.id + ' — ' + change.title));
+        const openDetails = {};
+        container.find('[data-maintenance-detail]').each(function () { openDetails[this.dataset.maintenanceDetail] = this.open; });
+        container.empty().data('snapshot', snapshot);
+        if (!plan) {
+            container.append($('<p>').text('The maintenance plan is no longer available.'));
+            return;
+        }
+        container.append($('<p>').text(plan.cluster_name + ' · ' + plan.provider + ' · ' + plan.node_name),
+            $('<p>').text('Created by ' + (plan.created_by || 'deleted user')),
+            $('<p>').text(RoxywiMaintenance.status(plan)),
+            $('<p>').text(RoxywiMaintenance.nextStep(plan, currentUserId)),
+            $('<p>').text(RoxywiMaintenance.approval(plan, currentUserId)),
+            $('<p class="maintenance-capacity">').text('Capacity evidence (operator): ' + plan.capacity_evidence));
+        const review = RoxywiMaintenance.review(plan);
+        if (review) container.append(review);
+        const actions = $('<div class="rw-table-toolbar">');
+        if (RoxywiMaintenance.canApprove(plan, currentUserId)) {
+            actions.append(actionButton('fa-user-check', plan.status === 'return-reviewed' ? 'Approve return' : 'Approve drain',
+                'approve', change.id, false, true));
+        }
+        const link = $('<a>').attr('href', '/ha/cluster?panel=maintenance&provider=' + encodeURIComponent(plan.provider) + '&cluster=' + plan.cluster_id + '&change=' + change.id).text('Open maintenance plan');
+        actions.append(link);
+        container.append(actions);
+        container.find('[data-maintenance-detail]').each(function () {
+            if (Object.hasOwn(openDetails, this.dataset.maintenanceDetail)) this.open = openDetails[this.dataset.maintenanceDetail];
+        });
+        if (window.FontAwesome) window.FontAwesome.dom.i2svg({node: container.get(0)});
     }
 
     function renderDiffInto(container, diff) {
@@ -538,7 +585,7 @@ $(function () {
 
     function loadTimeline(changeId) {
         if (openDetailsId !== changeId) return;
-        $.getJSON('/changes/api/' + changeId + '/events', {limit: 500})
+        $.ajax({url: '/changes/api/' + changeId + '/events', data: {limit: 500}, dataType: 'json', global: false})
             .done(function (response) { renderTimeline(response.data || []); });
     }
 
@@ -556,7 +603,10 @@ $(function () {
             }
         }).dialog('open');
         window.clearInterval(detailTimelinePoll);
-        detailTimelinePoll = window.setInterval(function () { loadTimeline(change.id); }, 2000);
+        detailTimelinePoll = window.setInterval(function () {
+            loadTimeline(change.id);
+            if (change.action === 'ha-maintenance') loadChanges();
+        }, 2000);
     }
 
     function confirmAction(action, message, callback) {
@@ -602,6 +652,8 @@ $(function () {
     }
 
     function executeAction(changeId, action) {
+        if (pendingActions.has(changeId)) return;
+        pendingActions.add(changeId);
         const endpoint = action === 'cancel-schedule' ? 'schedule/cancel' : action;
         $.ajax({
             url: '/changes/api/' + changeId + '/' + endpoint,
@@ -610,6 +662,7 @@ $(function () {
             beforeSend: function () {
                 toastr.clear();
                 activeRequests += 1;
+                $('[data-change-id="' + changeId + '"]').not('.change-action-details').prop('disabled', true);
                 syncActionPolling();
             },
             success: function (response) {
@@ -630,7 +683,9 @@ $(function () {
                 loadChanges();
             },
             complete: function () {
+                pendingActions.delete(changeId);
                 activeRequests = Math.max(0, activeRequests - 1);
+                applyFilters();
                 syncActionPolling();
             }
         });

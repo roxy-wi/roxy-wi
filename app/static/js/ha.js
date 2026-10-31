@@ -41,7 +41,7 @@ function confirmDeleteCluster(cluster_id) {
 		height: "auto",
 		width: 400,
 		modal: true,
-		title: delete_word + " " + $('#cluster-name-' + cluster_id).text() + "?",
+		title: delete_word + " " + $('#cluster-' + cluster_id).attr('data-ha-name') + "?",
 		buttons: [{
 			text: delete_word,
 			click: function () {
@@ -352,12 +352,9 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 			} else {
 				if (!edited) {
 					cluster_id = data.id;
-					getHaCluster(cluster_id, true);
-					setTimeout(function () {
-						setInterval(checkHaClusterStatus, 10000, cluster_id);
-					}, 2500);
+					RoxywiHAClusters.refresh();
 				} else {
-					getHaCluster(cluster_id);
+					RoxywiHAClusters.refresh();
 					$("#cluster-" + cluster_id).addClass("update", 1000);
 					setTimeout(function () {
 						$("#cluster-" + cluster_id).removeClass("update");
@@ -588,12 +585,12 @@ function saveVip(jsonData, cluster_id, dialog_id, edited, vip_id='', deleted=fal
 		type: req_type,
 		statusCode: {
 			204: function (xhr) {
-				getHaCluster(cluster_id);
+				RoxywiHAClusters.refresh();
 				dialog_id.dialog('destroy');
 				clearClusterDialog();
 			},
 			404: function (xhr) {
-				getHaCluster(cluster_id);
+				RoxywiHAClusters.refresh();
 				dialog_id.dialog('destroy');
 				clearClusterDialog();
 			}
@@ -603,7 +600,7 @@ function saveVip(jsonData, cluster_id, dialog_id, edited, vip_id='', deleted=fal
 				if (data.status === "failed") {
 					toastr.error(data);
 				} else {
-					getHaCluster(cluster_id);
+					RoxywiHAClusters.refresh();
 					dialog_id.dialog('destroy');
 					clearClusterDialog();
 				}
@@ -756,153 +753,4 @@ function clearClusterDialog(edited=0) {
 	$('#ha-cluster-master option').attr('selected', false);
 	$('#ha-cluster-master option:first').attr('selected', 'selected');
 	$('#ha-cluster-master').selectmenu("refresh");
-}
-function getHaCluster(cluster_id, new_cluster=false) {
-	$.ajax({
-		url: "/ha/cluster/get/" + cluster_id,
-		statusCode: {
-			404: function (xhr) {
-				$('#cluster-' + cluster_id).remove();
-			}
-		},
-		success: function (data) {
-			data = data.replace(/^\s+|\s+$/g, '');
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				if (new_cluster) {
-					$('.up-pannel').append(data);
-				} else {
-					$('#cluster-' + cluster_id).replaceWith(data);
-				}
-				$.getScript(awesome);
-				$('#cluster-' + cluster_id).removeClass('animated-background');
-			}
-		}
-	});
-}
-function checkHaClusterStatus(cluster_id) {
-	if (sessionStorage.getItem('check-ha-cluster-'+cluster_id) == 0) {
-		return false;
-	}
-	NProgress.configure({showSpinner: false});
-	let listener_div = $('#cluster-' + cluster_id);
-	$.ajax({
-		url: "/ha/cluster/" + cluster_id + "/status",
-		contentType: "application/json; charset=utf-8",
-		statusCode: {
-			404: function (xhr) {
-				$('#cluster-' + cluster_id).remove();
-			},
-			403: function (xhr) {
-				sessionStorage.setItem('check-ha-cluster-'+cluster_id, 0);
-			},
-			500: function (xhr) {
-				sessionStorage.setItem('ccheck-ha-cluster-'+cluster_id, 0);
-			}
-		},
-		success: function (data) {
-			try {
-				if (data.indexOf('logout') != '-1') {
-					sessionStorage.setItem('check-ha-cluster-'+cluster_id, 0);
-				}
-			} catch (e) {}
-
-			if (data.status === 'ok') {
-				listener_div.addClass('div-server-head-up');
-				listener_div.attr('title', 'All services are UP');
-				listener_div.removeClass('div-server-head-down');
-				listener_div.removeClass('div-server-head-unknown');
-				listener_div.removeClass('div-server-head-dis');
-			} else if (data.status === 'failed' || data.status === 'error') {
-				listener_div.removeClass('div-server-head-unknown');
-				listener_div.removeClass('div-server-head-up');
-				listener_div.removeClass('div-server-head-dis');
-				listener_div.addClass('div-server-head-down');
-				listener_div.attr('title', 'All services are DOWN');
-			} else if (data.status === 'warning') {
-				listener_div.addClass('div-server-head-unknown');
-				listener_div.removeClass('div-server-head-up');
-				listener_div.removeClass('div-server-head-down');
-				listener_div.removeClass('div-server-head-dis');
-				listener_div.attr('title', 'Not all services are UP');
-			}
-			checkHAClusterServices(cluster_id);
-		}
-	});
-	NProgress.configure({showSpinner: true});
-}
-function checkHAClusterServices(cluster_id) {
-	$.ajax({
-		url: api_prefix + "/ha/cluster/" + cluster_id,
-		success: function (data) {
-			for (const [key, value] of Object.entries(data.services)) {
-				if (value['enabled']) {
-					checkHaClusterService(key, data.vip, cluster_id);
-				}
-			}
-		}
-	});
-}
-function checkHaClusterService(service, vip_ip, cluster_id) {
-	$.ajax({
-		url: api_prefix + "/service/" + service + "/" + vip_ip + "/status",
-		statusCode: {
-			500: function (data) {
-				console.log(data.error);
-			},
-			504: function (data) {
-				console.log(data.error);
-			},
-		},
-		success: function (data) {
-			let service_div = $('#' + service + '-' + cluster_id + '-status');
-			if (data.status === 'failed') {
-				service_div.removeClass('serverNone');
-				service_div.removeClass('serverUp');
-				service_div.addClass('serverDown');
-				service_div.attr('title', service + ' is Down');
-			} else if (data.status === 'running') {
-				service_div.removeClass('serverNone');
-				service_div.removeClass('serverDown');
-				service_div.addClass('serverUp');
-				service_div.attr('title', service + ' is UP');
-			} else {
-				service_div.removeClass('serverNone');
-				service_div.removeClass('serverUp');
-				service_div.addClass('serverDown');
-				service_div.attr('title', service + ' is Down');
-			}
-		}
-	});
-}
-function getClusters() {
-	$.ajax({
-		url: api_prefix + "/ha/cluster/clusters",
-		success: function (data) {
-			let clusters = document.querySelectorAll('.up-pannel > [id^="cluster-"]');
-			let clusterNumbers = Array.from(clusters).map(div =>
-				parseInt(div.id.replace('cluster-', ''), 10)
-			);
-			if (data.status === 'failed') {
-				toastr.error(data.error);
-				return;
-			}
-			if (data.length > 0) {
-				const dataIds = data.map(item => item.id);
-				const idsToDelete = clusterNumbers.filter(id => !dataIds.includes(id));
-
-				for (const [key, value] of Object.entries(data)) {
-					if (!clusterNumbers.includes(value.id)) {
-						getHaCluster(value.id, true);
-					} else {
-						getHaCluster(value.id, false);
-					}
-				}
-				for (let id of idsToDelete) {
-					$('#cluster-' + id).remove();
-				}
-			}
-		}
-	});
 }

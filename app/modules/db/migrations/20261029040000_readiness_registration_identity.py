@@ -22,7 +22,14 @@ def up():
             raise RuntimeError('Finish or recover every active HA maintenance plan through its approved return before upgrading')
     migrator=SqliteMigrator(database) if isinstance(database,SqliteDatabase) else MySQLMigrator(database)
     for table,field in missing:
-        migrate(migrator.add_column(table,field,CharField(max_length=32,default='')))
+        if isinstance(database, SqliteDatabase):
+            # Peewee rebuilds the parent table for NOT NULL, cascading deletes
+            # into its children when foreign_keys is enabled.
+            database.execute_sql(
+                f'ALTER TABLE "{table}" ADD COLUMN "{field}" ' "VARCHAR(32) NOT NULL DEFAULT ''"
+            )
+        else:
+            migrate(migrator.add_column(table,field,CharField(max_length=32,default='')))
     for model in (HaCluster,PacemakerCluster):
         for row in model.select().where(model.readiness_key==''):
             model.update(readiness_key=uuid4().hex).where((model.id==row.id)&(model.readiness_key=='')).execute()

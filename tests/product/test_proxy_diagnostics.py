@@ -126,3 +126,73 @@ def test_metadata_parser_never_exports_configuration_passwords():
     assert 'NeverExposeSecret' not in json.dumps(parsed) and '/private/' not in json.dumps(parsed)
     apache=inventory.parse('apache','<VirtualHost *:443>\nServerName example.test\nSSLEngine on\nProxyPass / http://user:NeverExposeSecret@backend:80/\n</VirtualHost>')
     assert 'NeverExposeSecret' not in json.dumps(apache)
+
+
+def test_duplicate_backend_targets_are_probed_once_per_assessment(product_client, diagnostic_host, monkeypatch):
+    original = inventory.discover
+
+    def discover(server, service):
+        result = original(server, service)
+        backend = result['frontends'][0]['backends'][0]
+        result['frontends'][0]['backends'].append(dict(backend, id='second-reference'))
+        return result
+
+    monkeypatch.setattr(inventory, 'discover', discover)
+    for _ in range(2):
+        diagnostic_host.calls.clear()
+        report = finish(queue(product_client))
+        backends = next(stage for stage in report['stages'] if stage['key'] == 'backends')['details']['targets']
+        assert len(backends) == 2
+        assert backends[0]['probes'] == backends[1]['probes']
+        assert len([data for operation, data in diagnostic_host.calls
+                    if operation == 'resolve' and data['host'] == '192.0.2.88']) == 1
+        assert len([data for operation, data in diagnostic_host.calls
+                    if operation == 'probe' and data['port'] == 8080]) == 1
+
+
+def test_invalid_encrypted_payload_finishes_failed_without_logging_secrets(product_client, diagnostic_host, monkeypatch):
+    response = queue(product_client)
+    task = InstallationTasks.get_by_id(response.json['task_id'])
+    InstallationTasks.update(operation_payload='NeverExposeSecret').where(InstallationTasks.id == task.id).execute()
+    logged = []
+    monkeypatch.setattr(diagnostic.logger, 'error', lambda *args, **kwargs: logged.append((args, kwargs)))
+    assert diagnostic.execute(task) == 'failed'
+    assert logged[0][1]['task_id'] == task.id
+    assert logged[0][1]['error_type']
+    assert 'NeverExposeSecret' not in json.dumps(logged)
+    assert not diagnostic_host.calls
+    # Terminal tasks must not be probed again on redelivery.
+    assert diagnostic.execute(task) == 'failed'
+    assert len(logged) == 1
+
+
+def test_diagnostics_links_redirect_to_service_cards_and_preserve_context(product_client):
+    response = product_client.get('/insights/diagnostics?service=nginx&server_id=11')
+    assert response.status_code == 302
+    assert response.location.endswith('/service/nginx?diagnostics=11')
+    assert product_client.get('/insights/diagnostics?service=haproxy&server_id=22').status_code == 404
+    assert product_client.get('/insights/diagnostics?service=keepalived').status_code == 403
+
+
+@pytest.mark.parametrize(('partial', 'unresolved', 'expected'), [
+    (False, 0, 'not-applicable'),
+    (True, 0, 'warning'),
+    (False, 1, 'warning'),
+])
+def test_empty_backends_only_skip_complete_inventory(
+    product_client, diagnostic_host, monkeypatch, partial, unresolved, expected,
+):
+    original = inventory.discover
+
+    def discover(server, service):
+        result = original(server, service)
+        result['partial'] = partial
+        result['frontends'][0].update(backends=[], unresolved_routes=unresolved)
+        return result
+
+    monkeypatch.setattr(inventory, 'discover', discover)
+    report = finish(queue(product_client))
+    stage = next(stage for stage in report['stages'] if stage['key'] == 'backends')
+    assert stage['state'] == expected
+    assert stage['details']['targets'] == []
+    assert not any(data.get('port') == 8080 for _operation, data in diagnostic_host.calls)

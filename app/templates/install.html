@@ -10,40 +10,7 @@
         <li><a href="#service" title="{{lang.words.proxy|title()}} {{lang.words.service}} - Roxy-WI">{{lang.words.proxy|title()}} {{lang.words.service}}</a></li>
         <li><a href="#monitoring" title="{{lang.words.monitoring|title()}} - Roxy-WI">{{lang.words.monitoring|title()}}</a></li>
         <li><a href="#geolite2" title="GeoLite2 - Roxy-WI">GeoLite2</a></li>
-        {% if '5' in g.user_params['user_services'] %}<li><a href="#pacemaker-installation">Corosync / Pacemaker</a></li>{% endif %}
     </ul>
-
-    {% if '5' in g.user_params['user_services'] %}
-    <div id="pacemaker-installation">
-        <div class="rw-panel">
-        <div class="rw-table-shell">
-        <table class="overview" id="pacemaker-installation-table">
-            <caption><h3>{{lang.words.install|title()}} Corosync / Pacemaker</h3></caption>
-            <thead><tr class="overviewHead"><th class="padding10 first-collumn">Workflow</th><th class="padding10 first-collumn">Description</th><th class="padding10">Actions</th></tr></thead>
-            <tbody>
-                <tr>
-                    <td class="padding10 first-collumn">New cluster</td>
-                    <td class="padding10 first-collumn">Select registered Linux servers, check their platforms and install the cluster. SYN-flood protection is optional.</td>
-                    <td class="padding10"><a class="ui-button ui-widget ui-corner-all" href="{{ url_for('install.pacemaker_setup', setup='new') }}">{{lang.words.install|title()}} cluster</a></td>
-                </tr>
-                <tr>
-                    <td class="padding10 first-collumn">Existing cluster</td>
-                    <td class="padding10 first-collumn">Discover and map existing nodes. Adoption preserves running services, resources, fencing and quorum.</td>
-                    <td class="padding10"><a class="ui-button ui-widget ui-corner-all" href="{{ url_for('install.pacemaker_setup', setup='adopt') }}">Adopt existing cluster</a></td>
-                </tr>
-                <tr>
-                    <td class="padding10 first-collumn">Quorum witness only</td>
-                    <td class="padding10 first-collumn">Install corosync-qnetd using native packages, Docker or Podman on an independent server. Attach it through a reviewed quorum change.</td>
-                    <td class="padding10"><a class="ui-button ui-widget ui-corner-all" href="{{ url_for('install.pacemaker_setup', setup='witness') }}">{{lang.words.install|title()}} witness only</a></td>
-                </tr>
-            </tbody>
-        </table>
-        </div>
-        <p class="rw-form-help">Installation profiles: Debian 11+, Ubuntu 20.04+, EL 8/9.</p>
-        <p class="rw-form-help">Check the target platform before installation. See the administration guide for qualification and prerequisites.</p>
-        </div>
-    </div>
-    {% endif %}
 
     <div id="service">
 		<p class="rw-form-help">Podman installation requires Python 3.9+ as python3, Podman 4.9+ with Quadlet and cgroup v2. It preserves SELinux enforcement. To adopt an existing container, use the service settings and Discover containers.</p>

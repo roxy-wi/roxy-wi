@@ -23,7 +23,8 @@ vm.runInContext(`
         clearInterval: id => timers.delete(id)
     };
     const $ = () => ({attr() {return this;}});
-    $.getJSON = () => {
+    $.ajax = options => {
+        assert.equal(options.global, false, 'Background polling must not flash the global loading overlay');
         const request = {
             done(fn) {this.onDone = fn; return this;},
             fail(fn) {this.onFail = fn; return this;},

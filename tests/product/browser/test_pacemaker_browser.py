@@ -131,11 +131,10 @@ def test_cluster_pages_use_shared_layout(logged_in, product_url, cluster_host, v
     open_cluster(page, product_url, view)
     expect(page.locator('#pcmk-empty')).to_be_hidden()
     expect(page.locator('#pcmk-message')).to_have_text('')
-    provider = page.locator('#ha-provider-button').bounding_box()
+    expect(page.locator('#ha-provider')).to_have_count(0)
     cluster = page.locator('#pcmk-cluster-button').bounding_box()
     refresh = page.locator('#pcmk-refresh').bounding_box()
-    assert abs(provider['y'] - cluster['y']) < 2
-    assert abs(provider['y'] + provider['height'] / 2 - refresh['y'] - refresh['height'] / 2) < 2
+    assert abs(cluster['y'] + cluster['height'] / 2 - refresh['y'] - refresh['height'] / 2) < 2
     assert_no_page_overflow(page)
     page.screenshot(path=str(tmp_path / f'pacemaker-{view}.png'), full_page=True, animations='disabled')
 
@@ -180,6 +179,41 @@ def test_refresh_error_can_be_retried(logged_in, product_url, cluster_host):
     expect(page.locator('#pcmk-cluster-button')).to_have_attribute('aria-disabled', 'false')
 
 
+@pytest.mark.parametrize('width', [1440, 390])
+def test_overview_actions_use_shared_menus_and_keep_confirmation(
+    logged_in, product_url, cluster_host, width, tmp_path,
+):
+    page = logged_in
+    page.set_viewport_size({'width': width, 'height': 900})
+    open_cluster(page, product_url)
+    posted = []
+    page.on('request', lambda request: posted.append(request.url)
+            if request.method == 'POST' and request.url.endswith('/actions') else None)
+    for table, command, target in [('nodes', 'Standby', 'node-1'), ('resources', 'Disable', 'frontend-vip')]:
+        row = page.locator(f'#pcmk-{table} tr').first
+        toggle = row.get_by_role('button', name=f'Actions for {target}', exact=True)
+        expect(toggle.locator('svg[data-icon="ellipsis-v"]')).to_have_count(1)
+        assert 'ui-button' not in toggle.get_attribute('class')
+        # Finish scrolling before opening a menu, which closes on scroll events.
+        toggle.scroll_into_view_if_needed()
+        page.evaluate('() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))')
+        toggle.click()
+        menu = row.get_by_role('menu')
+        expect(menu).to_be_visible()
+        items = menu.get_by_role('menuitem')
+        expect(menu.locator('.admin-action-item svg')).to_have_count(items.count())
+        bounds = menu.bounding_box()
+        assert bounds['x'] >= 0 and bounds['x'] + bounds['width'] <= width
+        assert bounds['y'] >= 0 and bounds['y'] + bounds['height'] <= 900
+        page.screenshot(path=str(tmp_path / f'{table}-actions-{width}.png'))
+        menu.get_by_role('menuitem', name=command, exact=True).click()
+        dialog = page.get_by_role('dialog', name='Confirm cluster operation')
+        expect(dialog).to_contain_text(f'{command.lower()}: {target}')
+        expect(menu).to_be_hidden()
+        dialog.get_by_role('button', name='Cancel', exact=True).click()
+    assert posted == []
+
+
 def test_empty_cluster_state_and_reload(logged_in, product_url, tmp_path):
     page = logged_in
     page.goto(product_url + '/pacemaker')
@@ -202,14 +236,14 @@ def test_setup_has_no_automatic_scroll_or_overflow(logged_in, product_url, mode,
     page = logged_in
     page.set_viewport_size({'width': width, 'height': 900})
     page.add_init_script(f"localStorage.setItem('theme', '{theme}')")
-    page.goto(product_url + '/install/pacemaker?setup=' + mode)
-    expect(page.locator('#pcmk-refresh')).to_be_enabled()
+    page.goto(product_url + '/ha/cluster?setup=' + mode)
+    expect(page.locator('#ha-corosync-dialog')).to_be_visible()
     expect(page.locator('#nprogress')).to_have_count(0)
     expect(page.locator(f'[data-setup="{mode}"]')).to_have_attribute('aria-pressed', 'true')
     panel = {'new': 'registration', 'adopt': 'discovery', 'witness': 'witness-panel'}[mode]
     expect(page.locator('#pcmk-' + panel)).to_be_visible()
     assert page.evaluate('window.scrollY') == 0
-    assert_no_page_overflow(page)
+    assert page.locator('#ha-corosync-dialog').evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
     page.screenshot(path=str(tmp_path / f'pacemaker-setup-{mode}-{width}.png'), full_page=True, animations='disabled')
     # Changing workflows must preserve the header position and current-mode indicator.
     page.locator('[data-setup="witness"]').click()
@@ -242,26 +276,24 @@ def test_initial_server_load_failure_can_be_retried(logged_in, product_url):
     page = logged_in
     endpoint = '**/pacemaker/api/servers'
     page.route(endpoint, lambda route: route.fulfill(status=502, json={'error': 'Server list unavailable'}))
-    page.goto(product_url + '/install/pacemaker?setup=new')
+    page.goto(product_url + '/ha/cluster?setup=new')
     expect(page.locator('#pcmk-message')).to_have_text('Server list unavailable')
-    expect(page.locator('#pcmk-refresh')).to_be_enabled()
+    expect(page.locator('#pcmk-setup-retry')).to_be_enabled()
     page.unroute(endpoint)
-    page.locator('#pcmk-refresh').click()
+    page.locator('#pcmk-setup-retry').click()
     expect(page.locator('#pcmk-members tr')).to_have_count(2)
     expect(page.locator('#pcmk-members select').first).to_contain_text('Product HAProxy')
     expect(page.locator('#pcmk-message')).to_have_text('')
 
 
-def test_ha_provider_still_navigates_between_services(logged_in, product_url):
+def test_cluster_navigation_uses_main_menu_without_technology_selector(logged_in, product_url):
     page = logged_in
     page.goto(product_url + '/ha/cluster')
-    expect(page.locator('#ha-provider')).to_have_value('keepalived')
-    page.locator('#ha-provider-button').click()
-    page.locator('#ha-provider-menu').get_by_role('option', name='Corosync / Pacemaker', exact=True).click()
+    expect(page.locator('#ha-provider')).to_have_count(0)
+    page.locator('#app-navigation a[href="/pacemaker"]').first.click()
     expect(page).to_have_url(product_url + '/pacemaker')
     expect(page.locator('#pcmk-empty')).to_be_visible()
-    page.locator('#ha-provider-button').click()
-    page.locator('#ha-provider-menu').get_by_role('option', name='Keepalived / VRRP', exact=True).click()
+    page.locator('#app-navigation a[href="/ha/cluster"]').click()
     expect(page).to_have_url(product_url + '/ha/cluster')
 
 

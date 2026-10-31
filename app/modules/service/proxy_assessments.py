@@ -17,6 +17,7 @@ from app.modules.pacemaker.remote import Remote
 from app.modules.roxywi.exception import RoxywiPermissionError,RoxywiResourceNotFound,RoxywiConflictError
 from app.modules.service import published_endpoints as inventory,network_probe as network,certificates
 from app.modules.connectors import containers
+from app.modules.roxywi import logger
 
 
 class DiagnosticRequest(BaseModel):
@@ -265,24 +266,42 @@ def diagnostics(server,body,heartbeat=lambda:None):
     statuses=[p.get('http') for p in listeners]
     stages.append(stage('http','observed' if any(isinstance(code,int) and code<400 for code in statuses) else 'warning',
         'HEAD responses are recorded without cookies, authentication, response bodies or redirects.',dict(statuses=statuses)))
-    backend_probes=[]
+    backend_probes = []
+    resolved_backends = {}
+    inspected_backends = {}
     for backend in front['backends'][:16]:
-        probes=[]
+        probes = []
         try:
-            addresses=rpc(server,'resolve',dict(host=backend['host']))
+            if backend['host'] not in resolved_backends:
+                resolved_backends[backend['host']] = rpc(server, 'resolve', dict(host=backend['host']))
+            addresses = resolved_backends[backend['host']]
             for ip in addresses[:4]:
-                probes.append(rpc(server,'probe',dict(ip=ip,port=backend['port'],http=False,tls=False),binding=found['binding']))
-        except Exception:probes=[dict(tcp='unknown',error='Configured backend could not be resolved/probed from the host/runtime context')]
-        backend_probes.append(dict(id=backend['id'],host=backend['host'],port=backend['port'],probes=probes));heartbeat()
+                target = (ip, backend['port'])
+                if target not in inspected_backends:
+                    inspected_backends[target] = rpc(
+                        server, 'probe', dict(ip=ip, port=backend['port'], http=False, tls=False),
+                        binding=found['binding'],
+                    )
+                probes.append(inspected_backends[target])
+                heartbeat()
+        except Exception:
+            probes = [dict(tcp='unknown', error='Configured backend could not be resolved/probed from the host/runtime context')]
+        backend_probes.append(dict(id=backend['id'], host=backend['host'], port=backend['port'], probes=probes))
+        heartbeat()
     unresolved_routes=front.get('unresolved_routes',0)
     not_probed=max(0,len(front['backends'])-16)+front['unsupported_backends']+front.get('not_inventoried',0)+unresolved_routes
-    stages.append(stage('backends','observed' if not not_probed and backend_probes and all(any(p['tcp']=='connected' for p in b['probes']) for b in backend_probes) else 'warning',
-        'TCP checks of discovered candidate backends; they do not prove application health or conditional route selection.',
+    backend_state = 'warning'
+    backend_message = 'TCP checks of discovered candidate backends; they do not prove application health or conditional route selection.'
+    if not backend_probes and not not_probed and not found['partial']:
+        backend_state = 'not-applicable'
+        backend_message = 'No candidate backend targets were found in the discovered configuration for this frontend.'
+    elif not not_probed and backend_probes and all(any(p['tcp'] == 'connected' for p in b['probes']) for b in backend_probes):
+        backend_state = 'observed'
+    stages.append(stage('backends', backend_state, backend_message,
         dict(targets=backend_probes,not_probed=not_probed,unresolved_routes=unresolved_routes,
              unresolved_route_evidence=front.get('unresolved_route_evidence',[]))))
-    tls_failed=any(p.get('tls') in ('untrusted','handshake-failed') for p in vip_probes+node_probes)
     refused=any(p.get('tcp')=='refused' for b in backend_probes for p in b['probes'])
-    if tls_failed:result['summary']='At least one inspected endpoint failed TLS trust/name validation.'
+    if tls_bad:result['summary']='At least one inspected endpoint failed TLS trust/name validation.'
     elif any(isinstance(p.get('http'),int) for p in node_probes) and refused:result['summary']='The selected proxy listener responds, but at least one discovered backend refuses TCP connections.'
     elif any(isinstance(code,int) and code>=500 for code in statuses):result['summary']='The proxy returned a server error; inspect routing and application health.'
     elif any(isinstance(code,int) and code<500 for code in statuses):result['summary']='An HTTP response was observed. Review DNS, candidate backend and route evidence for its scope.'
@@ -295,8 +314,8 @@ def diagnostics(server,body,heartbeat=lambda:None):
 def execute(task):
     task=InstallationTasks.get_by_id(task.id)
     if task.status in ('completed','failed'):return task.status
-    payload=unseal(task.operation_payload)
     try:
+        payload = unseal(task.operation_payload)
         if payload['kind']!='diagnostics':raise ValueError('Unsupported proxy assessment')
         body=DiagnosticRequest.model_validate(payload['request'])
         server=authorize(body.server_id,body.service,task.group_id_id,task.user_id_id,probe=True)
@@ -315,7 +334,10 @@ def execute(task):
                 (OperationalAssessment.task_id==task.id)&(OperationalAssessment.server_registration_key==registration_key(server))&
                 (OperationalAssessment.result=='')).execute()
         state,error='completed',None
-    except Exception:state,error='failed','Proxy assessment could not complete; refresh permissions, configuration discovery and host access'
+    except Exception as exception:
+        logger.error('Proxy assessment failed', task_id=task.id, error_type=type(exception).__name__)
+        state = 'failed'
+        error = 'Proxy assessment could not complete; refresh permissions, configuration discovery and host access'
     InstallationTasks.update(status=state,error=error,finish_date=utc_now(),updated_at=utc_now()).where(
         (InstallationTasks.id==task.id)&InstallationTasks.status.not_in(('completed','failed'))).execute()
     return InstallationTasks.get_by_id(task.id).status

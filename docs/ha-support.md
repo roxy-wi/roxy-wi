@@ -7,7 +7,7 @@ It does not convert a running Keepalived cluster into a Pacemaker cluster, merge
 their database records or change the subscription/access checks of Keepalived HA.
 
 For Pacemaker installation, adoption and a qnetd-only host, use
-**Installation → Corosync / Pacemaker**. Day-to-day management is also available
+**HA cluster → Create Corosync cluster**. Day-to-day management is also available
 under **Services → Corosync / Pacemaker**. Its standard service submenu opens
 Overview, Resources, Configuration, Quorum/witness, Logs, Monitoring and Versions.
 Each submenu item opens its own URL and retains the selected cluster. Installation

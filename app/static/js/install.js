@@ -7,15 +7,6 @@ let nice_names = {
     'ha_cluster': 'Corosync / Pacemaker'
 };
 $( function() {
-    $('.installpcmk').on('click', function () {
-        const tab = $('#admin-tabs a[href="#pacemaker-installation"]').parent();
-        if (tab.length) $('#tabs').tabs('option', 'active', tab.index());
-    });
-    $('#tabs').on('tabsactivate', function (_event, ui) {
-        if (ui.newPanel.attr('id') === 'pacemaker-installation') {
-            activateNavigationLink(document.querySelector('#app-navigation .installpcmk'));
-        }
-    });
 	$('#install').click(function () {
 		installService('haproxy')
 	});
