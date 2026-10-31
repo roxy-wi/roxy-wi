@@ -57,6 +57,12 @@ def close_request_database_connection(_exception=None):
 def is_token_revoked(_jwt_header, jwt_payload):
     return token_sql.is_token_revoked(jwt_payload['jti'])
 
+@jwt.token_verification_loader
+def verify_credential(_jwt_header, jwt_payload):
+    from app.modules.common.credential_verification import verify
+    return verify(jwt_payload)
+
+
 def initialize_database() -> None:
     """Create bootstrap data and apply migrations from a single process."""
     database = BaseModel._meta.database
@@ -66,6 +72,8 @@ def initialize_database() -> None:
     if fresh_database:
         create_tables()
         default_values()
+        from app.modules.authentication.security import initialize_baseline
+        initialize_baseline()
         # create_tables() builds the current schema. Replaying historical
         # ALTER migrations on that schema would corrupt a fresh installation.
         mark_all_migrations_applied()
@@ -115,6 +123,10 @@ def _initialize_runtime() -> None:
     app.register_blueprint(change_bp, url_prefix='/changes')
     app.register_blueprint(health_bp)
     app.register_blueprint(insights_bp,url_prefix='/insights')
+    from app.modules.authentication.routes import bp as local_auth_bp
+    app.register_blueprint(local_auth_bp)
+    from app.routes.passkeys import bp as passkeys_bp
+    app.register_blueprint(passkeys_bp, url_prefix='/security/passkeys')
 
     # Tests render the same navigation and pages as production.
     from app.routes.add import bp as add_bp

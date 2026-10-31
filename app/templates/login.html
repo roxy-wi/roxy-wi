@@ -3,6 +3,7 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 <head>
     {% include 'include/main_head.html' %}
+    {% if passkeys_available %}<link rel="stylesheet" href="{{ url_for('static', filename='css/passkeys.css') }}">{% endif %}
 </head>
 <body>
 <style>
@@ -83,6 +84,10 @@ $( function() {
 				</div>
 				<button type="submit" name="Login" value="Enter" id="enter">{{lang.words.login2|title()}}</button>
 			</form>
+            {% if passkeys_available %}
+            <button type="button" id="passkey-login">Sign in with a passkey</button>
+            <p id="passkey-status" role="status" aria-live="polite"></p>
+            {% endif %}
 			{% if oidc_providers %}
 			<div class="oidc-login-separator"><span>{{ lang.oidc_page.or }}</span></div>
 			<div class="oidc-login-providers">

@@ -25,6 +25,9 @@ def get_jwt_token_claims() -> dict:
 	verify_jwt_in_request()
 	claims = get_jwt()
 	claim = {'user_id': claims['user_id'], 'group': claims['group']}
+	for key in ('auth_epoch', 'auth_account', 'auth_method', 'auth_time', 'credential_version', 'jti', 'credential_type'):
+		if key in claims:
+			claim[key] = claims[key]
 	return claim
 
 
