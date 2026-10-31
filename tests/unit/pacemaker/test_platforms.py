@@ -155,17 +155,25 @@ def test_syn_protection_persists_only_explicit_tcp_tunables_and_preserves_larger
     assert all('--system' not in args for args in calls)
 
 
-def test_cluster_pages_have_no_technology_selector_and_keep_existing_guards(client, authenticated, monkeypatch):
+@pytest.mark.parametrize('role', [1, 3, 4])
+def test_cluster_pages_have_no_technology_selector_and_keep_existing_guards(
+        client, authenticated, monkeypatch, role):
     from app.modules.roxywi import common
+
     monkeypatch.setattr(common, 'return_user_subscription', lambda: SimpleNamespace(user_status=0, user_plan='user'))
+    authenticated[0]['role'] = role
     response = client.get('/ha/cluster', headers=authenticated[1])
     assert response.status_code == 200
     assert 'id="ha-provider"' not in response.text
     assert 'HA technology' not in response.text
     assert 'href="/ha/readiness"' not in response.text
+    for control in ('ha-corosync-dialog', 'pcmk-bootstrap-syn', 'pcmk-bootstrap-fence-pve'):
+        assert (f'id="{control}"' in response.text) == (role <= 3)
+
     response = client.get('/pacemaker', headers=authenticated[1])
     assert response.status_code == 200 and 'id="ha-provider"' not in response.text
-    assert 'pcmk-bootstrap-syn' in response.text
+    assert 'pcmk-bootstrap-syn' not in response.text
+    assert 'pcmk-bootstrap-fence-pve' not in response.text
 
 
 def test_platform_endpoint_is_scoped_and_rejects_viewers(client, authenticated, monkeypatch):

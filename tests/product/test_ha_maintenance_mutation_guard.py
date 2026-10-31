@@ -509,25 +509,36 @@ def test_busy_keepalived_worker_does_not_hold_up_unrelated_topology_writes(
 
 def test_bootstrap_settings_save_preserves_the_live_cluster_token(
         product_client, maintenance_cluster, monkeypatch):
-    from types import SimpleNamespace
-    from app.modules.pacemaker import bootstrap, service
+    from app.modules.pacemaker import bootstrap, install_log, service
+
     loaded = PacemakerCluster.get_by_id(maintenance_cluster.cluster.id)
-    names = {value['server_id']: value['name'] for value in json.loads(loaded.servers)}
-    def remote(server):
-        def run(args, **kwargs):
-            if args[:1] == ['hostname']:
-                return names[server.server_id]
-            return json.dumps(dict(fence_pve_repaired=False)) if args == ['python3', '-c', bootstrap.PREPARE] else ''
-        return SimpleNamespace(run=run)
-    monkeypatch.setattr(bootstrap, 'Remote', remote)
+
+    def run(remote, source, node, stage, record, **kwargs):
+        if stage == 'Preflight':
+            return node
+        if stage == 'Packages and configuration':
+            return json.dumps({'fence_pve_repaired': False})
+        return ''
+
+    monkeypatch.setattr(install_log, 'run', run)
     monkeypatch.setattr(service, 'wait_ready', lambda *_: None)
     events = []
     original = service.event
+
     def event(cluster, user_id, action, status):
         if action == 'bootstrap':
-            events.append(PacemakerCluster.get_by_id(cluster.id).lock_token)
-            assert events[-1], 'A settings-only save cleared the active lock token'
+            token = PacemakerCluster.get_by_id(cluster.id).lock_token
+            assert token, 'A settings-only save cleared the active lock token'
+            events.append((status, token))
         return original(cluster, user_id, action, status)
+
     monkeypatch.setattr(service, 'event', event)
-    bootstrap.provision(loaded, 1)
-    assert events and PacemakerCluster.get_by_id(loaded.id).lock_token is None
+    bootstrap.provision(loaded, 1, syn_flood=True, fence_pve=True)
+
+    assert [status for status, _token in events] == ['started', 'completed']
+    assert events[0][1] == events[1][1]
+    saved = PacemakerCluster.get_by_id(loaded.id)
+    settings = json.loads(saved.corosync_settings)
+    assert settings['syn_flood'] is True
+    assert settings['fence_pve'] is True
+    assert saved.lock_token is None
