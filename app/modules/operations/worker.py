@@ -78,6 +78,9 @@ def execute_operation(operation_id: str, task_id: int) -> str:
         if task.operation_type == 'ha-maintenance':
             from app.modules.service.ha_maintenance import execute
             return execute(task)
+        if task.operation_type == 'served-tls':
+            from app.modules.service.served_tls import execute
+            return execute(task)
         if task.operation_type == 'proxy-assessment':
             from app.modules.service.proxy_assessments import execute
             return execute(task)

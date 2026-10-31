@@ -378,12 +378,12 @@ def test_http_contract_and_recurse_do_not_return_credentials(monkeypatch):
 def test_rotation_preserves_applied_and_pending_dns_credentials(database, monkeypatch):
     from cryptography.fernet import Fernet
     from app.modules.db.db_model import (Cred, OidcProvider, CertificateSource, PacemakerCluster,
-        PacemakerChange, OperationalAssessment, HaMaintenancePlan)
+        PacemakerChange, OperationalAssessment, HaMaintenancePlan, ServedTlsMonitor)
     from rotate_credential_secret import rotate_credentials
     import os
     old = os.environ['ROXYWI_SECRET_PHRASE']
     new = Fernet.generate_key().decode()
-    rotation_models=[Cred,OidcProvider,CertificateSource,PacemakerCluster,PacemakerChange,OperationalAssessment,HaMaintenancePlan]
+    rotation_models=[Cred,OidcProvider,CertificateSource,PacemakerCluster,PacemakerChange,OperationalAssessment,HaMaintenancePlan,ServedTlsMonitor]
     with database.bind_ctx(rotation_models, bind_refs=False, bind_backrefs=False):
         database.create_tables(rotation_models)
         store.create(DATA, '1')

@@ -38,6 +38,8 @@ proxies and HA clusters across multiple servers and environments.
 | Give the right people access | Organize servers into groups, assign roles and service permissions, and integrate OIDC or LDAP authentication. |
 | Keep service health visible | Inspect backends and logs; add monitoring, traffic metrics and notifications as your needs grow. |
 | Diagnose a published request | [Inspect DNS, VIP/listener, TCP, TLS/SNI and candidate backends](docs/proxy-diagnostics.md) with bounded, configuration-derived probes and saved evidence. |
+| Map published services | [Link domains, listeners, proxies and backend candidates](docs/published-services.md), distinguish discovered and confirmed relationships, and inspect potential node impact. |
+| Verify served TLS | [Compare certificates presented by proxy nodes](docs/served-tls.md), validate trust/SNI and expiry, and check provider deployment after renewal. |
 | Manage certificates and configuration history | Issue Let's Encrypt certificates or synchronize CertWarden certificates through [provider connectors](docs/certificate-sources.md), including Pacemaker member targets; retain configuration versions and configure backup destinations. |
 
 Some capabilities require a subscription. Change Center requires **Premium**;

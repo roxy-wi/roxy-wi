@@ -32,7 +32,7 @@ def endpoint(tmp_path,*,tls=False):
     ca=None
     if tls:
         now=datetime.now(timezone.utc);key=ec.generate_private_key(ec.SECP256R1());leaf_key=ec.generate_private_key(ec.SECP256R1())
-        root_name=x509.Name([x509.NameAttribute(NameOID.COMMON_NAME,'Disposable diagnostic CA')])
+        root_name=x509.Name([x509.NameAttribute(NameOID.COMMON_NAME,'Diagnostic CA '+tmp_path.name[-32:])])
         ca=(x509.CertificateBuilder().subject_name(root_name).issuer_name(root_name).public_key(key.public_key()).serial_number(1)
             .not_valid_before(now-timedelta(days=1)).not_valid_after(now+timedelta(days=1))
             .add_extension(x509.BasicConstraints(ca=True,path_length=None),critical=True).sign(key,hashes.SHA256()))
