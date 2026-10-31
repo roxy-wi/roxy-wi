@@ -6,6 +6,7 @@ from cryptography.fernet import Fernet, InvalidToken
 
 from app.modules.db.db_model import (Cred, InstallationTasks, LetsEncryptState, LetsEncryptDnsProfile,
     OidcProvider, PacemakerChange, CertificateSource, OperationalAssessment, HaMaintenancePlan)
+from app.modules.db.db_model import AuditDestinationRevision
 
 
 SECRET_FIELDS = ('password', 'passphrase', 'private_key')
@@ -96,6 +97,24 @@ def rotate_credentials() -> int:
             InstallationTasks.update(
                 operation_payload='fernet:' + new_fernet.encrypt(plaintext).decode('ascii')
             ).where(InstallationTasks.id == task.id).execute()
+            rotated_credentials += 1
+
+        for receiver in AuditDestinationRevision.select():
+            value = receiver.credentials_encrypted
+            if not value or not value.startswith('fernet:'):
+                raise RuntimeError(f'Audit receiver revision {receiver.id} contains invalid encrypted state')
+            token = value.removeprefix('fernet:').encode('ascii')
+            try:
+                plaintext = old_fernet.decrypt(token)
+            except InvalidToken as error:
+                try:
+                    new_fernet.decrypt(token)
+                except InvalidToken:
+                    raise RuntimeError(f'Audit receiver revision {receiver.id} cannot be decrypted') from error
+                continue
+            AuditDestinationRevision.update(
+                credentials_encrypted='fernet:' + new_fernet.encrypt(plaintext).decode('ascii')
+            ).where(AuditDestinationRevision.id == receiver.id).execute()
             rotated_credentials += 1
 
         encrypted_states=((LetsEncryptState,('credentials','pending_config')),

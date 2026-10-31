@@ -144,6 +144,8 @@ def _initialize_runtime() -> None:
     app.register_blueprint(udp_bp)
 
     from app import login
+    from app.modules.audit.http import install as install_audit_hooks
+    install_audit_hooks(app)
     if not app.config['TESTING']:
         from app import jobs
         if app.config['SCHEDULER_ENABLED']:

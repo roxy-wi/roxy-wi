@@ -91,14 +91,17 @@ def add_setting_for_new_group(group_id):
 
 def delete_group(group_id):
 	try:
-		OidcGroupMapping.delete().where(OidcGroupMapping.group_id == group_id).execute()
-		Groups.delete().where(Groups.group_id == group_id).execute()
-		UserGroups.delete().where(UserGroups.user_group_id == group_id).execute()
+		# A refused dependent-resource deletion must also preserve OIDC mappings,
+		# memberships and settings, rather than partially dismantling the group.
+		with Groups._meta.database.atomic():
+			OidcGroupMapping.delete().where(OidcGroupMapping.group_id == group_id).execute()
+			Groups.delete().where(Groups.group_id == group_id).execute()
+			UserGroups.delete().where(UserGroups.user_group_id == group_id).execute()
+			Setting.delete().where(Setting.group_id == group_id).execute()
 	except Exception as e:
 		out_error(e)
 		return False
 	else:
-		delete_group_settings(group_id)
 		return True
 
 

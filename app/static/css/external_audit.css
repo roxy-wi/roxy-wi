@@ -1,0 +1,20 @@
+#audit-receiver-status { margin: 12px 0; min-height: 20px; }
+#audit-receiver-form { margin-top: 20px; max-width: 900px; }
+.audit-receiver-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.audit-receiver-fields > label { display: flex; flex-direction: column; gap: 5px; }
+.audit-receiver-fields input, .audit-receiver-fields select { width: 100%; box-sizing: border-box; }
+.audit-receiver-fields .audit-receiver-inline, .audit-receiver-inline { display: flex; flex-direction: row; align-items: center; gap: 6px; }
+.audit-receiver-inline input { width: auto; }
+.audit-receiver-secret { display: grid; gap: 5px; margin: 12px 0; }
+.audit-receiver-secret textarea, .audit-receiver-secret > input { width: 100%; box-sizing: border-box; }
+.audit-receiver-secret textarea.form-control { min-height: 75px; }
+#audit-receiver-form fieldset { margin: 20px 0; }
+#audit-receiver-table button { margin: 3px; }
+@media (max-width: 650px) { .audit-receiver-fields { grid-template-columns: 1fr; } }
+.audit-receivers-page { padding: 0 15px 15px; }
+
+#audit-receiver-form input.form-control, #audit-receiver-form textarea.form-control { color: inherit; background-color: transparent; }
+#audit-receiver-form h3 { background: transparent; color: inherit; border-bottom: 1px solid #888; }
+
+.audit-receivers-page [hidden] { display: none !important; }
+.audit-receivers-page h3 { background: transparent; color: inherit; border-bottom: 1px solid #888; }

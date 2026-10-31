@@ -15,6 +15,20 @@ from app.modules.db.db_model import close_database_connection
 get_config = roxy_wi_tools.GetConfigVar()
 
 
+@scheduler.task('interval', id='external_audit_delivery', seconds=10,
+                max_instances=1, coalesce=True, misfire_grace_time=30)
+def external_audit_delivery():
+    def run():
+        from app.modules.audit.delivery import process
+        from app.modules.audit.events import prune
+        from app.modules.audit.destinations import prune_unused_revisions
+        processed = process(limit=20, time_budget=20)
+        prune()
+        prune_unused_revisions()
+        return processed
+    return _run_database_job(run)
+
+
 def _run_database_job(callback):
     """Run a scheduler callback and release its thread-local DB connection."""
     try:

@@ -11,6 +11,7 @@ adding a Markdown file here does not publish it to roxy-wi.org.
 - [Managed Docker/Podman components, adoption and witness lifecycle](managed-containers.md)
 - [External certificate providers and CertWarden](certificate-sources.md)
 - [Roxy-WI controller deployment with Podman Quadlet](podman-controller.md)
+- [External audit and syslog export](external-audit.md)
 - [HA technologies, platforms, Docker and SYN protection](ha-support.md)
 - [Corosync/Pacemaker administration and HTTP API](corosync-pacemaker.md)
 - [Guided witness conversion and recovery](corosync-pacemaker-witness-migration.md)
