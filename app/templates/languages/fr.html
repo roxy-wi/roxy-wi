@@ -1951,3 +1951,46 @@
     "ssl_failed_handshake": "Négociations SSL/TLS échouées.",
     "unknown_field": "Champ supplémentaire de cette version HAProxy, pas encore décrit dans ce catalogue."
 } %}
+
+{% set personal_tokens = {
+    "title": "Jetons API personnels",
+    "intro": "Créer un identifiant distinct pour chaque script. Les jetons donnent accès uniquement à l’API.",
+    "name": "Nom",
+    "group": "Groupe",
+    "scopes": "Autorisations",
+    "expires": "Expiration (UTC)",
+    "used": "Dernier usage (UTC)",
+    "state": "État",
+    "create": "Créer un jeton",
+    "days": "Validité en jours (1–365)",
+    "fixed_group": "Groupe fixe",
+    "least_privilege": "Sélectionner uniquement les autorisations nécessaires. Votre rôle et vos accès restent applicables.",
+    "password": "Mot de passe actuel",
+    "otp": "Code à usage unique, si activé",
+    "use_passkey": "Vérifier avec une clé d’accès",
+    "once": "Jeton affiché une seule fois",
+    "copy_now": "Copier ce jeton dans le stockage sécurisé de votre intégration. Fermer ou actualiser cette page le masque définitivement.",
+    "value": "Jeton personnel",
+    "hide": "Masquer le jeton",
+    "failed": "Échec de la requête.",
+    "never": "Jamais",
+    "revoked": "Révoqué",
+    "expired": "Expiré",
+    "active": "Actif",
+    "revoke": "Révoquer",
+    "confirm_revoke": "Révoquer immédiatement ? Les opérations déjà en file continueront.",
+    "created": "Jeton créé. Copiez-le.",
+    "reauthenticated": "Identité vérifiée.",
+    "scope_labels": {
+        "inventory.read": "Lire les serveurs",
+        "services.read": "Lire l’état des services",
+        "config.read": "Lire les configurations",
+        "changes.read": "Lire les changements et différences",
+        "changes.write": "Créer et valider les brouillons",
+        "changes.approve": "Approuver les changements",
+        "changes.deploy": "Déployer et piloter les déploiements",
+        "services.control": "Démarrer, arrêter et recharger"
+    },
+    "hidden": "Jeton masqué.",
+    "unavailable": "Indisponible"
+} %}

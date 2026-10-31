@@ -1,4 +1,5 @@
 from datetime import datetime
+import secrets
 from uuid import uuid4
 from peewee import (
     AutoField,
@@ -1513,11 +1514,42 @@ class PacemakerEvent(BaseModel):
         table_name = 'pacemaker_events'
 
 
+class PersonalTokenGate(BaseModel):
+    user_id = ForeignKeyField(User, column_name='user_id', primary_key=True,
+                              on_delete='CASCADE', lazy_load=False)
+    incarnation = CharField(max_length=32, default=lambda: secrets.token_hex(16))
+    attempts = IntegerField(default=0)
+    window_started_at = DateTimeField(default=utc_now)
+
+    class Meta:
+        table_name = 'personal_token_gates'
+
+
+class PersonalAccessToken(BaseModel):
+    id = CharField(primary_key=True, max_length=36)
+    user_id = ForeignKeyField(User, column_name='user_id', index=True,
+                              on_delete='CASCADE', lazy_load=False)
+    group_id = ForeignKeyField(Groups, column_name='group_id', index=True,
+                               on_delete='CASCADE', lazy_load=False)
+    name = CharField(max_length=128)
+    token_digest = CharField(unique=True, max_length=64)
+    password_version = CharField(max_length=64)
+    security_version = IntegerField(default=0)
+    scopes = TextField()
+    created_at = DateTimeField(default=utc_now)
+    expires_at = DateTimeField(index=True)
+    revoked_at = DateTimeField(null=True)
+    last_used_at = DateTimeField(null=True)
+
+    class Meta:
+        table_name = 'personal_access_tokens'
+
+
 def create_tables():
     conn = connect()
     with conn:
         conn.create_tables(
-            [User, Server, Role, Telegram, Slack, Groups, UserGroups, OidcProvider, OidcIdentity, OidcGroupMapping,
+            [User, PersonalTokenGate, PersonalAccessToken, Server, Role, Telegram, Slack, Groups, UserGroups, OidcProvider, OidcIdentity, OidcGroupMapping,
              RevokedToken, ConfigVersion, ConfigChange, ConfigChangeTarget, ConfigChangeEvent,
              ConfigChangeWebhook, ConfigChangeDelivery, Setting, RoxyTool, Alerts, ServiceEvent,
              ServiceEventDelivery, ServiceNotification, ServiceEventPosition, ServiceEventRetention,

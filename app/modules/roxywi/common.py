@@ -25,6 +25,8 @@ def get_jwt_token_claims() -> dict:
 	verify_jwt_in_request()
 	claims = get_jwt()
 	claim = {'user_id': claims['user_id'], 'group': claims['group']}
+	if claims.get('credential_type') == 'pat':
+		claim['credential_type'] = 'pat'
 	return claim
 
 
@@ -261,11 +263,12 @@ def get_users_params(**kwargs):
 	except Exception:
 		raise Exception('error: Cannot get user id')
 
-	if int(user_data['group']) != int(user.group_id):
+	if user_data.get('credential_type') != 'pat' and int(user_data['group']) != int(user.group_id):
 		raise Exception('error: Wrong active group')
 
+	effective_group = user_data['group'] if user_data.get('credential_type') == 'pat' else user.group_id
 	try:
-		role = user_sql.get_role_id(user_id, user.group_id)
+		role = user_sql.get_role_id(user_id, effective_group)
 	except Exception as e:
 		raise Exception(f'error: Cannot get user role {e}')
 
@@ -296,7 +299,7 @@ def get_users_params(**kwargs):
 		'user_services': user_services,
 		'lang': user_lang,
 		'user_id': user_id,
-		'group_id': user.group_id
+		'group_id': effective_group
 	}
 
 	return user_params

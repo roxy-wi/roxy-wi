@@ -1949,3 +1949,46 @@
     "ssl_failed_handshake": "Negociações SSL/TLS que falharam.",
     "unknown_field": "Campo adicional desta versão do HAProxy, ainda sem descrição neste catálogo."
 } %}
+
+{% set personal_tokens = {
+    "title": "Tokens API pessoais",
+    "intro": "Crie uma credencial diferente para cada script. Tokens permitem apenas acesso à API.",
+    "name": "Nome",
+    "group": "Grupo",
+    "scopes": "Permissões",
+    "expires": "Expira (UTC)",
+    "used": "Último uso (UTC)",
+    "state": "Estado",
+    "create": "Criar token",
+    "days": "Validade em dias (1–365)",
+    "fixed_group": "Grupo fixo",
+    "least_privilege": "Selecione apenas as permissões necessárias. Seu papel e acesso aos serviços continuam válidos.",
+    "password": "Senha atual",
+    "otp": "Código de uso único, se ativado",
+    "use_passkey": "Verificar com chave de acesso",
+    "once": "Token exibido uma vez",
+    "copy_now": "Copie o valor para o armazenamento seguro da integração. Fechar ou recarregar a página o oculta definitivamente.",
+    "value": "Token pessoal",
+    "hide": "Ocultar token",
+    "failed": "Falha na solicitação.",
+    "never": "Nunca",
+    "revoked": "Revogado",
+    "expired": "Expirado",
+    "active": "Ativo",
+    "revoke": "Revogar",
+    "confirm_revoke": "Revogar agora? Operações na fila continuarão.",
+    "created": "Token criado. Copie agora.",
+    "reauthenticated": "Identidade verificada.",
+    "scope_labels": {
+        "inventory.read": "Ler servidores",
+        "services.read": "Ler estado dos serviços",
+        "config.read": "Ler configurações",
+        "changes.read": "Ler alterações e diferenças",
+        "changes.write": "Criar e validar rascunhos",
+        "changes.approve": "Aprovar alterações",
+        "changes.deploy": "Implantar e controlar",
+        "services.control": "Iniciar, parar e recarregar"
+    },
+    "hidden": "Token oculto.",
+    "unavailable": "Indisponível"
+} %}

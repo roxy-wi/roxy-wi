@@ -19,6 +19,8 @@ These notes cover **Roxy-WI 9.1 and later**.
   per-member witness TLS/votes, configuration hashes, static fencing coverage,
   declared failure domains and configuration-bound external test attestations.
   Distinguish observations/configuration from functional failover verification.
+- Add revocable personal API credentials with explicit scopes, fixed groups,
+  live owner authorization, one-time display and local sensitive-action checks.
 
 - Add a shared Docker/Podman connector for managed component installation,
   explicit rootful/rootless adoption, namespace-aware statistics/Runtime API,

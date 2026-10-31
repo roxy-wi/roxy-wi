@@ -24,6 +24,12 @@ def _run_database_job(callback):
         close_database_connection()
 
 
+@scheduler.task('interval', id='personal_token_retention', hours=1, max_instances=1, coalesce=True)
+def personal_token_retention():
+    from app.modules.api_tokens.service import purge_metadata
+    return _run_database_job(purge_metadata)
+
+
 def update_new_versions() -> None:
     tools = roxy_sql.get_roxy_tools()
     for tool in tools:

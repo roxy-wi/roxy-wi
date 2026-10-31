@@ -2013,3 +2013,46 @@
     "ssl_failed_handshake": "SSL/TLS handshakes that failed.",
     "unknown_field": "Additional field from this HAProxy version. Its meaning is not yet described in this catalog."
 } %}
+
+{% set personal_tokens = {
+    "title": "Personal API tokens",
+    "intro": "Create a separate credential for each script or integration. Tokens use the API only and cannot sign in to the web interface.",
+    "name": "Name",
+    "group": "Group",
+    "scopes": "Permissions",
+    "expires": "Expires (UTC)",
+    "used": "Last used (UTC)",
+    "state": "Status",
+    "create": "Create personal token",
+    "days": "Validity in days (1–365)",
+    "fixed_group": "Fixed group",
+    "least_privilege": "Select only the permissions this integration needs. Your current role and service access still apply.",
+    "password": "Current password",
+    "otp": "One-time code, if enabled",
+    "use_passkey": "Verify with passkey",
+    "once": "Token shown once",
+    "copy_now": "Copy this value now and keep it in your integration’s secret store. Closing or reloading this page hides it permanently.",
+    "value": "Personal token",
+    "hide": "Hide token",
+    "failed": "Request failed.",
+    "never": "Never",
+    "revoked": "Revoked",
+    "expired": "Expired",
+    "active": "Active",
+    "revoke": "Revoke",
+    "confirm_revoke": "Revoke this token immediately? Existing queued operations are unaffected.",
+    "created": "Token created. Copy it now.",
+    "reauthenticated": "Identity verified for token creation.",
+    "scope_labels": {
+        "inventory.read": "Read server inventory",
+        "services.read": "Read service status",
+        "config.read": "Read remote configurations",
+        "changes.read": "Read changes and configuration diffs",
+        "changes.write": "Create and validate drafts",
+        "changes.approve": "Approve changes",
+        "changes.deploy": "Deploy and control rollouts",
+        "services.control": "Start, stop and reload services"
+    },
+    "hidden": "Token hidden.",
+    "unavailable": "Unavailable"
+} %}
