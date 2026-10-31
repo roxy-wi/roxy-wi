@@ -1,0 +1,13 @@
+<section class="security-card"><h3>Authenticator app</h3>
+<p>Use a six-digit verification code from an app such as Aegis, Google Authenticator or Microsoft Authenticator.</p>
+<p id="totp-status">Loading…</p>
+<button id="setup-totp" type="button">Set up authenticator</button>
+<button id="remove-totp" type="button" hidden>Remove authenticator</button>
+<div id="totp-setup" hidden>
+  <p>Scan this QR code or enter the setup key in your authenticator. Then enter its current code to activate protection.</p>
+  <img id="totp-qr" alt="Authenticator setup QR code" width="220" height="220">
+  <label for="totp-secret">Setup key</label><input id="totp-secret" readonly class="form-control" autocomplete="off">
+  <form id="totp-confirm-form"><label for="totp-confirm-code">Verification code</label>
+  <input id="totp-confirm-code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required class="form-control">
+  <button type="submit">Confirm authenticator</button><button id="cancel-totp" type="button">Cancel setup</button></form>
+</div></section>

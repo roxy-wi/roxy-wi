@@ -13,7 +13,8 @@ from app.modules.roxywi.exception import RoxywiConflictError
 @pytest.fixture
 def witness(monkeypatch):
     server = Server.create(hostname='test-witness', ip='192.0.2.230', group_id='1')
-    monkeypatch.setattr(operations.User, 'get_or_none', lambda *_args: SimpleNamespace(user_id=1, enabled=True))
+    account = operations.User.get_by_id(1)
+    monkeypatch.setattr(operations.User, 'get_or_none', lambda *_args: account)
     monkeypatch.setattr(operations.user_sql, 'select_user_services', lambda _id: '5')
     monkeypatch.setattr(operations.user_sql, 'get_user_role_in_group', lambda *_args: 1)
     yield server

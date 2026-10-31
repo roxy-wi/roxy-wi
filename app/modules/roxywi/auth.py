@@ -3,7 +3,7 @@ from time import monotonic
 from typing import Union
 
 from flask import request, abort, url_for, jsonify, make_response, redirect
-from flask_jwt_extended import create_access_token, set_access_cookies
+from flask_jwt_extended import create_access_token, set_access_cookies, get_jwt
 from urllib.parse import urlparse
 
 import app.modules.db.sql as sql
@@ -162,21 +162,43 @@ def do_login(user_params: dict, next_url: str):
 
 def build_login_redirect(user_params: dict, next_url: str):
     """Issue the normal Roxy-WI JWT cookies and redirect after browser SSO."""
+    from app.modules.authentication import security
+    from app.modules.roxywi.exception import RoxywiPublicError
+    if any(key not in user_params for key in security.PROOF_FIELDS) or user_params.get('auth_method') != 'oidc':
+        raise RoxywiPublicError('Verified identity snapshot is required; authenticate again')
+    expected = dict(_user_id=user_params['user'], **{key: user_params[key] for key in ('auth_epoch', 'auth_account', 'credential_version')})
+    current = security.bind_snapshot(user_params['user'], expected)
+    if str(current.group_id) != str(user_params['group']):
+        raise RoxywiPublicError('Account group changed; authenticate again')
     response = make_response(redirect(safe_next_url(next_url)))
     set_access_cookies(response, create_jwt_token(user_params))
     return response
 
 
 def create_jwt_token(user_params: dict) -> str:
+    from app.modules.authentication import security
     additional_claims = {'group': str(user_params['group'])}
+    # Group switching preserves the original authentication time and method.
+    try:
+        previous = get_jwt()
+    except RuntimeError:
+        previous = {}
+    for key in security.PROOF_FIELDS:
+        if key in user_params:
+            additional_claims[key] = user_params[key]
+        elif key in previous:
+            additional_claims[key] = previous[key]
     return create_access_token(str(user_params['user']), additional_claims=additional_claims)
 
 
 def check_user_password(login: str, password: str) -> dict:
     if not login and not password:
         raise Exception('There is no login or password')
+    from app.modules.authentication import security
     try:
-        user = user_sql.get_user_by_username(login)
+        with security.atomic():
+            verified_record = user_sql.get_user_by_username(login)
+            user, proof = security.capture_account(verified_record.user_id, allow_disabled=True)
     except RoxywiResourceNotFound:
         logger.authentication_failure()
         raise Exception('ban')
@@ -185,18 +207,32 @@ def check_user_password(login: str, password: str) -> dict:
         raise Exception('ban')
     if user.enabled == 0:
         raise Exception('Your login is disabled')
+    proof_epoch = proof['auth_epoch']
+    proof_account = proof['auth_account']
     if user.ldap_user == 1:
-        if login in user.username and check_in_ldap(login, password):
-            return {'group': str(user.group_id), 'user': user.user_id, 'name': user.username}
+        if login == user.username and verified_record.username == user.username and verified_record.ldap_user == user.ldap_user and check_in_ldap(login, password):
+            return {'group': str(user.group_id), 'user': user.user_id, 'name': user.username,
+                    '_password_epoch': proof_epoch, '_password_account': proof_account,
+                    '_password_version': proof['credential_version'], '_password_proof': proof}
         else:
             logger.authentication_failure()
             raise Exception('ban')
     else:
-        password_matches, needs_rehash = roxy_wi_tools.Tools.check_password(password, user.password)
+        password_matches, needs_rehash = roxy_wi_tools.Tools.check_password(password, verified_record.password)
         if login == user.username and password_matches:
+            if verified_record.username != user.username or verified_record.password != user.password or verified_record.ldap_user != user.ldap_user:
+                from app.modules.roxywi.exception import RoxywiPublicError
+                raise RoxywiPublicError('Account credentials changed; authenticate again')
             if needs_rehash:
-                user_sql.update_user_password(password, user.user_id)
-            return {'group': str(user.group_id), 'user': user.user_id, 'name': user.username}
+                # An administrator reset or account replacement must win over
+                # upgrading the hash of the password we verified earlier.
+                with security.atomic():
+                    security.assert_unchanged(user, proof_epoch, proof_account)
+                    user_sql.rehash_user_password(user, password)
+                    user, proof = security.capture_account(user.user_id)
+            return {'group': str(user.group_id), 'user': user.user_id, 'name': user.username,
+                    '_password_epoch': proof['auth_epoch'], '_password_account': proof['auth_account'],
+                    '_password_version': proof['credential_version'], '_password_proof': proof}
         else:
             logger.authentication_failure()
             raise Exception('ban')

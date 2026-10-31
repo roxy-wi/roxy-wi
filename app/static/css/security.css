@@ -1,0 +1,16 @@
+.account-security {max-width: 890px; padding: 6px 20px 40px; box-sizing: border-box;}
+.security-card {border: 1px solid #bbc4ce; border-radius: 5px; margin: 20px 0; padding: 20px;}
+.security-card h3 {margin: 0 0 15px; padding: 0; background: transparent;}
+.security-card p {line-height: 1.6;}
+.security-card label, .security-reauth label {display: block; margin: 14px 0 6px;}
+.security-card .form-control, .security-reauth input {display:block; width: min(100%, 390px); box-sizing:border-box; padding:9px; color:inherit; background:transparent; border:1px solid #8995a3; border-radius:3px;}
+.security-card button {margin: 14px 8px 0 0;}
+.security-card [hidden], #local-auth-step [hidden] {display:none !important;}
+#totp-qr {display:block; background:#fff; padding:8px; margin:16px 0; width:220px; height:220px;}
+#totp-secret {font-family:monospace;}
+.security-recovery {font-family:monospace; white-space:pre-wrap; overflow-wrap:anywhere; line-height:1.7;}
+.security-recovery-dialog p {line-height:1.5;}
+.security-error {color:#c73737;}
+#local-auth-step {max-width:340px; margin:15px auto; line-height:1.5;}
+#local-auth-step input {box-sizing:border-box; width:100%; padding:10px; margin:12px 0; color:inherit; background:transparent; border:1px solid #8995a3;}
+#local-auth-step img {background:#fff; max-width:220px;}

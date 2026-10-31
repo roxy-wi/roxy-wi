@@ -1,3 +1,4 @@
+from app.modules.roxywi.exception import RoxywiPublicError
 import json
 import secrets
 from urllib.error import HTTPError, URLError
@@ -288,4 +289,8 @@ def oidc_callback(slug: str):
         }), 502
 
     logger.info(f'{user_params["name"]} login via OIDC', provider=provider.slug)
-    return roxywi_auth.build_login_redirect(user_params, redirect_to)
+    try:
+        return roxywi_auth.build_login_redirect(user_params, redirect_to)
+    except RoxywiPublicError:
+        return jsonify({'status': 'failed', 'error': 'oidc_account_changed',
+                        'message': 'Account changed; sign in again'}), 401

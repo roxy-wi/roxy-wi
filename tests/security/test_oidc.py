@@ -239,11 +239,12 @@ def test_oidc_callback_issues_normal_jwt_cookie(client, monkeypatch):
     monkeypatch.setattr(oidc_routes, 'OAuth2Session', FakeOAuthSession)
     monkeypatch.setattr(oidc_routes, '_validate_id_token', lambda *_args, **_kwargs: {'sub': 'subject'})
     monkeypatch.setattr(oidc_routes, '_fetch_userinfo', lambda *_args, **_kwargs: {})
-    monkeypatch.setattr(
-        oidc_routes,
-        'complete_oidc_login',
-        lambda *_args, **_kwargs: {'group': '1', 'user': 1, 'name': 'admin'},
-    )
+    from app.modules.authentication import security
+    def verified_local_identity(*_args, **_kwargs):
+        user, expected = security.capture_account(1)
+        return {'group': '1', 'user': 1, 'name': 'admin',
+                **security.login_proof(user, 'oidc', expected=expected)}
+    monkeypatch.setattr(oidc_routes, 'complete_oidc_login', verified_local_identity)
 
     with client.session_transaction() as oidc_session:
         oidc_session[f'oidc_state:{provider.slug}'] = 'expected-state'

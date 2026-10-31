@@ -1,4 +1,5 @@
 from datetime import datetime
+import secrets
 from uuid import uuid4
 from peewee import (
     AutoField,
@@ -1513,6 +1514,78 @@ class PacemakerEvent(BaseModel):
         table_name = 'pacemaker_events'
 
 
+
+# Shared by independently installable local authentication providers.
+class UserSecurity(BaseModel):
+    account_id = CharField(max_length=32, default=lambda: secrets.token_hex(16))
+    legacy_allowed = BooleanField(default=False)
+    user_id = ForeignKeyField(User, column_name='user_id', primary_key=True, on_delete='CASCADE', lazy_load=False)
+    epoch = IntegerField(default=0)
+    password_version = CharField(max_length=64)
+    failed_attempts = IntegerField(default=0)
+    blocked_until = BigIntegerField(default=0)
+
+    class Meta:
+        table_name = 'user_security'
+
+
+class AuthenticationChallenge(BaseModel):
+    token_hash = CharField(max_length=64, primary_key=True)
+    user_id = ForeignKeyField(User, column_name='user_id', on_delete='CASCADE', lazy_load=False)
+    purpose = CharField(max_length=80)
+    epoch = IntegerField()
+    password_version = CharField(max_length=64)
+    binding = CharField(max_length=64, default='')
+    payload = TextField(default='')
+    expires_at = BigIntegerField(index=True)
+    attempts = IntegerField(default=0)
+    used = BooleanField(default=False)
+
+    class Meta:
+        table_name = 'authentication_challenges'
+
+
+class RecoveryCode(BaseModel):
+    id = AutoField()
+    user_id = ForeignKeyField(User, column_name='user_id', on_delete='CASCADE', lazy_load=False)
+    digest = CharField(max_length=64, unique=True)
+    used_at = BigIntegerField(null=True)
+
+    class Meta:
+        table_name = 'authentication_recovery_codes'
+
+
+class AuthenticationPolicy(BaseModel):
+    baseline_initialized = BooleanField(default=False)
+    id = IntegerField(primary_key=True, default=1)
+    mode = CharField(default='off')
+    grace_until = BigIntegerField(default=0)
+
+    class Meta:
+        table_name = 'authentication_policy'
+
+
+class AuthenticationEvent(BaseModel):
+    id = AutoField()
+    user_id = IntegerField(index=True)
+    event = CharField()
+    outcome = CharField()
+    created_at = BigIntegerField()
+
+    class Meta:
+        table_name = 'authentication_events'
+
+
+class TotpCredential(BaseModel):
+    user_id = ForeignKeyField(User, column_name='user_id', primary_key=True, on_delete='CASCADE', lazy_load=False)
+    secret_encrypted = TextField()
+    last_counter = BigIntegerField(default=-1)
+    created_at = BigIntegerField()
+
+    class Meta:
+        table_name = 'totp_credentials'
+
+
 def create_tables():
     conn = connect()
     with conn:
@@ -1529,5 +1602,7 @@ def create_tables():
              SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
              HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, NginxSection, InstallationTasks,
              PacemakerCluster, PacemakerChange, PacemakerEvent, CertificateSource,
-             OperationalAssessment, HaReadinessProfile, HaMaintenancePlan]
+             OperationalAssessment, HaReadinessProfile, HaMaintenancePlan, UserSecurity,
+             AuthenticationChallenge, RecoveryCode, AuthenticationPolicy, AuthenticationEvent,
+             TotpCredential]
         )

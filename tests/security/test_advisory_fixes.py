@@ -314,7 +314,7 @@ def test_only_actual_password_failures_emit_ban_event(app, monkeypatch, failure)
             raise RoxywiResourceNotFound()
         if failure == 'database':
             raise RuntimeError('database unavailable')
-        return SimpleNamespace(enabled=1, ldap_user=0, password='synthetic', username='test')
+        return SimpleNamespace(user_id=1, enabled=1, ldap_user=0, password='synthetic', username='test')
     monkeypatch.setattr(auth.user_sql, 'get_user_by_username', user)
     monkeypatch.setattr(auth.roxy_wi_tools.Tools, 'check_password', lambda *a: (False, False))
     with app.test_request_context('/login'), pytest.raises(Exception):
