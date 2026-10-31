@@ -1,12 +1,12 @@
 from functools import wraps
-from flask import abort,g,jsonify,redirect,request,url_for
+from flask import abort,g,jsonify,redirect,render_template,request,url_for
 from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 from app.middleware import get_user_params
 from app.modules.db.db_model import Server
 from app.modules.db import service as service_sql,user as user_sql
 from app.modules.roxywi.exception import RoxywiResourceNotFound,RoxywiPermissionError,RoxywiConflictError,RoxywiValidationError
-from app.modules.service import proxy_assessments as assessments
+from app.modules.service import proxy_assessments as assessments, service_map
 from app.modules.roxywi import logger
 from app.routes.insights import bp
 
@@ -57,12 +57,54 @@ def available_services() -> list[str]:
             if str(service_sql.select_service_id_by_slug(name)) in allowed]
 
 
+@bp.get('/services')
+def service_map_page():
+    return render_template('published_services.html',lang=g.user_params['lang'])
+
+
+@bp.get('/api/services')
+@api
+def service_map_view():
+    return jsonify(service_map.view(g.user_params['group_id'],g.user_params['user_id'],request.args.get('impact_node',type=int)))
+
+
+@bp.post('/api/services/discover')
+@api
+def service_map_discover():
+    body=assessments.ProxyRequest.model_validate(request.get_json())
+    row=assessments.enqueue(body,g.user_params['group_id'],g.user_params['user_id'],kind='service-map')
+    return jsonify(id=row.id,task_id=row.task_id,status='created'),202
+
+
+@bp.post('/api/services/confirm')
+@api
+def service_map_confirm():
+    body=service_map.Confirmation.model_validate(request.get_json())
+    row=service_map.confirm(body,g.user_params['group_id'],g.user_params['user_id'])
+    return jsonify(id=row.id),201
+
+
+@bp.delete('/api/services/confirm/<int:confirmation_id>')
+@api
+def service_map_retract(confirmation_id):
+    from app.modules.db.db_model import PublishedServiceConfirmation
+    row=PublishedServiceConfirmation.get_or_none((PublishedServiceConfirmation.id==confirmation_id)&
+        (PublishedServiceConfirmation.group_id==g.user_params['group_id']))
+    if row is None:raise RoxywiResourceNotFound()
+    snapshot=assessments.get(row.assessment_id,g.user_params['group_id'],g.user_params['user_id'])
+    service,ident=snapshot.subject.split(':')
+    assessments.authorize(int(ident),service,g.user_params['group_id'],g.user_params['user_id'],probe=True)
+    row.delete_instance()
+    return jsonify(status='retracted')
+
+
 @bp.get('/api/choices')
 @api
 def choices():
     services = available_services()
     rows=Server.select().where((Server.group_id==str(g.user_params['group_id']))&(Server.enabled==1)&(Server.type_ip==0))
-    return jsonify(services=services,servers=[dict(id=row.server_id,name=row.hostname,ip=row.ip,
+    rows=list(rows)
+    return jsonify(services=services,nodes=[dict(id=row.server_id,name=row.hostname,ip=row.ip) for row in rows],servers=[dict(id=row.server_id,name=row.hostname,ip=row.ip,
         services=[name for name in services if getattr(row,name)]) for row in rows if any(getattr(row,name) for name in services)])
 
 

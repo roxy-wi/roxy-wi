@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Published services{% endblock %}
+{% block h2 %}<span class="rw-workspace-title">Published services</span>{% endblock %}
+{% block content %}
+{% from 'include/admin_action_menu.html' import admin_action_menu %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/table-6.3.9.css') }}">
+<link rel="stylesheet" href="{{ url_for('static',filename='css/pacemaker.css',v='10.0-1') }}">
+<main class="service-overview-page rw-operations-workspace" id="published-services" data-api="{{ url_for('insights.service_map_view') }}" data-choices="{{ url_for('insights.choices') }}" data-assessments="{{ url_for('insights.assessment',assessment_id=0) }}" data-write="{{ '1' if g.user_params['role']|int <=3 else '0' }}">
+    <p>Domain → VIP/listener → proxy → candidate backends. Configuration discovery and operator confirmation are separate evidence. HA dependencies show possible impact, not a guaranteed outage.</p>
+    <form id="map-form" class="rw-panel"><div class="change-advanced-grid">
+        <div class="rw-form-field"><label for="map-service">Proxy service</label><select id="map-service" required></select></div>
+        <div class="rw-form-field"><label for="map-server">Registered proxy</label><select id="map-server" required></select></div>
+        <div class="rw-form-field"><label for="map-impact">Potential impact of node maintenance</label><select id="map-impact"><option value="">All discovered services</option></select></div>
+    </div><div class="rw-table-toolbar service-page-toolbar">
+        {% if g.user_params['role']|int <=3 %}<button class="rw-button rw-button-primary" id="map-discover" type="submit">Discover proxy configuration</button>{% endif %}
+        <button class="rw-button rw-button-secondary" id="map-refresh" type="button">Refresh map</button>
+    </div></form>
+    <div class="rw-workspace-feedback"><p id="map-message" class="rw-form-help" role="status" aria-live="polite">Loading service map…</p></div>
+    <section id="map-results" hidden><div class="rw-table-shell rw-panel"><table id="map-table" class="overview dataTable" data-ux-table data-searchable="true" data-page-size="25"><thead><tr class="overviewHead"><th>Domain / evidence</th><th>VIP / listener</th><th>Proxy</th><th>Backend candidates</th><th>HA / certificate / impact</th><th data-sortable="false">Actions</th></tr></thead><tbody id="map-rows"></tbody></table></div></section>
+    <template id="map-action-menu">{% call admin_action_menu('Actions') %}{% endcall %}</template>
+    <div id="map-confirm-dialog" class="rw-operations-workspace ui-helper-hidden"><form id="map-confirm-form"><h3>Confirm publication relationship</h3>
+        <p>This records your confirmation for the selected configuration snapshot. It does not verify DNS, certificate delivery, traffic or failover.</p>
+        <div class="rw-form-field"><label for="map-domain">Domain</label><input class="form-control" id="map-domain" maxlength="253" required></div>
+        <div class="rw-form-field"><label for="map-note">Evidence / reason</label><textarea class="form-control" id="map-note" minlength="5" maxlength="1000" required></textarea></div>
+        <p id="map-confirm-message" role="status"></p><div class="rw-table-toolbar"><button class="rw-button rw-button-primary" type="submit">Record confirmation</button><button class="rw-button rw-button-secondary" id="map-cancel" type="button">Cancel</button></div>
+    </form></div>
+</main>
+<script src="{{ url_for('static',filename='js/published-services.js') }}" defer></script>
+{% endblock %}
