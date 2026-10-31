@@ -148,6 +148,7 @@
                             <li><a href="{{ url_for('pacemaker.index') }}" class="head-submenu">{{ lang.menu_links.hapservers.link }}</a></li>
                             <li><a href="{{ url_for('pacemaker.page', view='resources') }}" class="head-submenu">Resources</a></li>
                             {% if g.user_params['role']|int <= 3 %}
+                            <li><a href="{{ url_for('pacemaker.page', view='wizard') }}" class="head-submenu">Configuration wizard</a></li>
                             <li><a href="{{ url_for('pacemaker.page', view='configuration') }}" class="head-submenu">{{ lang.menu_links.config.link }}</a></li>
                             <li><a href="{{ url_for('pacemaker.page', view='quorum') }}" class="head-submenu">Quorum / witness</a></li>
                             <li><a href="{{ url_for('pacemaker.page', view='logs') }}" class="head-submenu">{{ lang.menu_links.logs.link }}</a></li>

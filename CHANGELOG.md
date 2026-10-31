@@ -31,6 +31,10 @@ These notes cover **Roxy-WI 9.1 and later**.
   with system/rootless units, persistent SQLite and secrets, local HTTPS,
   readiness checks and explicit upgrades. Debian/EL live VM qualification is
   pending; managed-component Podman installation is a separate feature.
+- Add a native Pacemaker configuration wizard for fencing levels, attribute/time
+  rules, groups/clones, resource operations, static meta-attributes and
+  Docker/Podman bundles. Preserve unsupported definitions in the complete CIB
+  editor and retain the existing draft, validation, simulation and apply workflow.
 
 - Reject full Corosync membership replacement during validation and before apply.
   Require the selected witness address, active TLS and a vote on every resulting

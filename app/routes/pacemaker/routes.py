@@ -76,9 +76,9 @@ def index():
     return render_template('pacemaker.html', lang=g.user_params['lang'], view='overview')
 
 
-@bp.get('/<any(resources,configuration,quorum,logs,monitoring,history):view>')
+@bp.get('/<any(resources,wizard,configuration,quorum,logs,monitoring,history):view>')
 def page(view):
-    if view in ('configuration', 'quorum', 'logs', 'monitoring'):
+    if view in ('wizard', 'configuration', 'quorum', 'logs', 'monitoring'):
         operator()
     return render_template('pacemaker.html', lang=g.user_params['lang'], view=view)
 
@@ -486,6 +486,38 @@ def draft(cluster_id):
     body = Candidate.model_validate(request.get_json())
     change = service.draft(current(cluster_id), g.user_params['user_id'], body)
     return jsonify(id=change.id, status=change.status), 201
+
+
+@bp.get('/api/<int:cluster_id>/guided')
+@api
+def guided_catalog(cluster_id):
+    operator()
+    from app.modules.pacemaker.guided import catalog
+    cluster=current(cluster_id)
+    live=service.get_config(cluster)
+    return jsonify(data=catalog(live['xml'],[member.name for member,_server in service.members(cluster)]))
+
+
+@bp.post('/api/<int:cluster_id>/guided')
+@api
+def guided_draft(cluster_id):
+    operator()
+    from app.modules.pacemaker import guided, agents
+    body=guided.Request.model_validate(request.get_json())
+    cluster=current(cluster_id); live=service.get_config(cluster)
+    candidate=guided.build(live['xml'],body,[member.name for member,_server in service.members(cluster)])
+    if body.kind=='bundle':
+        bundle=guided.Bundle.model_validate(body.data)
+        agents.metadata(cluster,'ocf:heartbeat:'+bundle.engine)
+    if body.kind=='operation':
+        operation=guided.Operation.model_validate(body.data)
+        if not operation.remove:
+            resource=next(item for item in guided.catalog(live['xml'],[])['resources'] if item['id']==operation.resource)
+            metadata=agents.metadata(cluster,resource['agent'])
+            if metadata['actions'] and operation.name not in {action['name'] for action in metadata['actions']}:
+                raise RoxywiInputError('The resource agent does not advertise this operation')
+    change=service.draft(cluster,g.user_params['user_id'],candidate)
+    return jsonify(id=change.id,status=change.status),201
 
 
 @bp.post('/api/<int:cluster_id>/build')

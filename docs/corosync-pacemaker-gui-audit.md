@@ -14,7 +14,7 @@ It does not certify every third-party agent, workload or distribution.
 | Agent selection | Genuine selector, filtering, installed-on-all-node checks, per-class counts and explanation that availability is not a running service. Required/optional fields and operation timings come from native metadata. |
 | Packages | Enabled-repository candidate/installed versions per node, repository refresh and reviewed installation/update through Operations. |
 | Resources/constraints | GUI-generated drafts, real resource/node/removal selectors, validation/simulation and confirmation before application. Runtime controls use standard action menus. |
-| Advanced configuration | Complete CIB editor remains inside the web UI for schema-supported advanced rules, bundles, operations and fencing topology. It is an advanced text editor, not a separate graphical wizard for every XML feature. |
+| Advanced configuration | The [configuration wizard](pacemaker-guided-editor.md) covers static fencing levels, attribute/time rules, group/clone edits, operations, meta-attributes and Docker/Podman bundles. Conditional/referenced or schema-specific definitions remain in the lossless CIB editor. |
 | Diagnostics/history | Node journals, all-node quorum diagnostics, witness logs, encrypted history and restore-as-draft are available through web controls. |
 
 The normal supported workflows above do not require opening a server terminal.
