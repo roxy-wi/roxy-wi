@@ -1951,3 +1951,17 @@
     "ssl_failed_handshake": "Négociations SSL/TLS échouées.",
     "unknown_field": "Champ supplémentaire de cette version HAProxy, pas encore décrit dans ce catalogue."
 } %}
+
+{% set update_overview = {
+    "external_update": "Mettre à jour sur l’hôte",
+    "external_help": "Mettez à jour l’image ou le paquet sur l’hôte du service. Cette page ne remplace pas les conteneurs.",
+    "unknown_version": "La version installée n’a pas pu être vérifiée.",
+    "unknown_state": "État inconnu",
+    "not_reported": "Aucun rapport récent",
+    "not_detected": "Non détecté sur l’hôte inventorié",
+    "stale": "Aucun signal récent",
+    "worker": "Version signalée par les processus actifs",
+    "inventory": "Version de l’inventaire du déploiement",
+    "package": "Version du paquet local installé",
+    "container_note": "Les conteneurs sont mis à jour sur leur hôte. Les versions proviennent des processus actifs ou de l’inventaire. L’absence de rapport ne signifie pas que le service est désinstallé."
+} %}

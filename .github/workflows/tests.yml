@@ -53,6 +53,11 @@ jobs:
           path: test-results/
           retention-days: 1
           if-no-files-found: ignore
+      - name: Verify read-only container version inventory
+        env:
+          ROXYWI_TEST_CONTAINER_INVENTORY: '1'
+          ROXYWI_TEST_INVENTORY_ENGINE: docker
+        run: python tests/integration/test_update_inventory_engine_linux.py -v
       - name: Verify real JSON logs on isolated loopback listeners
         env:
           ROXYWI_TEST_SERVICE_LOGS: '1'

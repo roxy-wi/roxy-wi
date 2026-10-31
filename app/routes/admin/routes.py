@@ -17,6 +17,7 @@ import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 from app.modules.oidc.access import is_oidc_available
 import app.modules.tools.common as tools_common
+from app.modules.tools.updates import get_update_services
 from app.modules.tools.diagnostics import WORKER_SERVICES, service_diagnostics
 import app.modules.server.ssh as ssh_mod
 from app.views.admin.views import SettingsView
@@ -77,6 +78,7 @@ def admin():
         'servers': servers,
         'roles': sql.select_roles(),
         'ldap_enable': sql.get_setting('ldap_enable'),
+        'package_deployment': roxy.deployment_mode() == 'package',
         'services': service_sql.select_services(),
         'user_subscription': user_subscription,
         'users_roles': user_sql.select_users_roles(),
@@ -154,12 +156,15 @@ def action_tools(service, action):
 def update_roxywi():
     roxywi_auth.page_for_admin()
     versions = roxy.versions()
-    services = tools_common.get_services_status()
+    services = get_update_services()
     lang = roxywi_common.get_user_lang_for_flask()
 
-    return render_template(
-        'ajax/load_updateroxywi.html', services=services, versions=versions, lang=lang
-    )
+    response = make_response(render_template(
+        'ajax/load_updateroxywi.html', services=services, versions=versions, lang=lang,
+        package_deployment=roxy.deployment_mode() == 'package',
+    ))
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
 @bp.post('/update/check')
