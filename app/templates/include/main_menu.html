@@ -48,6 +48,9 @@
 						</a>
 					</li>
 					{% endif %}
+					{% if '1' in g.user_params['user_services'] or '2' in g.user_params['user_services'] or '4' in g.user_params['user_services'] %}
+                    <li class="nav-item" data-nav-search="published service map impact"><a href="{{ url_for('insights.service_map_page') }}" class="nav-link{% if request.url_rule.endpoint == 'insights.service_map_page' %} menu-active{% endif %}"><span class="fas fa-project-diagram nav-icon" aria-hidden="true"></span><span class="nav-label">Published services</span></a></li>
+					{% endif %}
 				</ul>
 			</li>
 

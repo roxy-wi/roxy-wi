@@ -20,10 +20,13 @@ from app.modules.connectors import containers
 from app.modules.roxywi import logger
 
 
-class DiagnosticRequest(BaseModel):
+class ProxyRequest(BaseModel):
     model_config=ConfigDict(extra='forbid',str_strip_whitespace=True)
     service: Literal['haproxy','nginx','apache']
     server_id: int=Field(gt=0)
+
+
+class DiagnosticRequest(ProxyRequest):
     url: str=Field(min_length=1,max_length=2048)
     frontend_id: str|None=Field(default=None,max_length=255)
 
@@ -88,28 +91,31 @@ def history(service,server_id,group_id,user_id):
         (OperationalAssessment.server_registration_key==registration_key(server))).order_by(OperationalAssessment.id.desc()).limit(20))
 
 
-def enqueue(body,group_id,user_id):
+def enqueue(body,group_id,user_id,*,kind='diagnostics'):
+    if kind not in ('diagnostics','service-map'):raise ValueError('Unsupported proxy assessment')
+    assessment_kind='proxy-diagnostics' if kind=='diagnostics' else 'service-map'
+    label='Request path' if kind=='diagnostics' else 'Service discovery'
     database=OperationalAssessment._meta.database;subject=f'{body.service}:{body.server_id}'
     with database.atomic('IMMEDIATE') if isinstance(database,SqliteDatabase) else database.atomic():
         # Authorize and bind the registration while holding the database lock.
         server=authorize(body.server_id,body.service,group_id,user_id,probe=True,for_update=not isinstance(database,SqliteDatabase))
         key=registration_key(server)
         if (OperationalAssessment.select().join(InstallationTasks,on=(OperationalAssessment.task_id==InstallationTasks.id)).where(
-            (OperationalAssessment.group_id==group_id)&(OperationalAssessment.kind=='proxy-diagnostics')&(OperationalAssessment.subject==subject)&
+            (OperationalAssessment.group_id==group_id)&(OperationalAssessment.kind==assessment_kind)&(OperationalAssessment.subject==subject)&
             (OperationalAssessment.server_registration_key==key)&
             InstallationTasks.status.in_(('created','published','running'))).exists()):
-            raise RoxywiConflictError('A diagnostic run is already queued on this proxy')
-        row=OperationalAssessment.create(group_id=group_id,user_id=user_id,kind='proxy-diagnostics',subject=subject,server_registration_key=key)
-        task=InstallationTasks.create(service_name=f'Request path: {server.hostname}',group_id=group_id,user_id=user_id,
+            raise RoxywiConflictError('An assessment of this kind is already queued on this proxy')
+        row=OperationalAssessment.create(group_id=group_id,user_id=user_id,kind=assessment_kind,subject=subject,server_registration_key=key)
+        task=InstallationTasks.create(service_name=f'{label}: {server.hostname}',group_id=group_id,user_id=user_id,
             server_ids=[server.server_id],operation_id=str(uuid4()),operation_type='proxy-assessment',status='created',updated_at=utc_now(),
-            operation_payload=seal(dict(assessment_id=row.id,kind='diagnostics',request=body.model_dump(),identity=identity(server,body.service))))
+            operation_payload=seal(dict(assessment_id=row.id,kind=kind,request=body.model_dump(),identity=identity(server,body.service))))
         row.task_id=task.id;row.save()
     return row
 
 
 def get(row_id,group_id,user_id):
     row=OperationalAssessment.get_or_none((OperationalAssessment.id==row_id)&(OperationalAssessment.group_id==group_id)&
-        (OperationalAssessment.kind=='proxy-diagnostics'))
+        OperationalAssessment.kind.in_(('proxy-diagnostics','service-map')))
     if row is None:raise RoxywiResourceNotFound('Proxy assessment not found')
     server=bound_server(row)
     service,_server_id=row.subject.split(':');authorize(server.server_id,service,group_id,user_id)
@@ -117,7 +123,7 @@ def get(row_id,group_id,user_id):
 
 
 def public(row):
-    if row.kind=='proxy-diagnostics':bound_server(row)
+    if row.kind in ('proxy-diagnostics','service-map'):bound_server(row)
     task=InstallationTasks.get_or_none(InstallationTasks.id==row.task_id)
     if task and task.group_id_id!=row.group_id:task=None
     if task and task.status in ('completed','failed') and not row.result:
@@ -126,7 +132,7 @@ def public(row):
         # empty row cannot stop browser polling without displaying the result.
         row=OperationalAssessment.get((OperationalAssessment.id==row.id)&
             (OperationalAssessment.group_id==row.group_id)&(OperationalAssessment.task_id==row.task_id))
-        if row.kind=='proxy-diagnostics':bound_server(row)
+        if row.kind in ('proxy-diagnostics','service-map'):bound_server(row)
     return dict(id=row.id,created_at=utc_iso(row.created_at),kind=row.kind,subject=row.subject,
         status=task.status if task else 'missing',error=task.error if task else None,
         report=unseal(row.result) if row.result else None)
@@ -316,15 +322,24 @@ def execute(task):
     if task.status in ('completed','failed'):return task.status
     try:
         payload = unseal(task.operation_payload)
-        if payload['kind']!='diagnostics':raise ValueError('Unsupported proxy assessment')
-        body=DiagnosticRequest.model_validate(payload['request'])
+        kind=payload['kind']
+        if kind=='diagnostics':
+            request_model=DiagnosticRequest
+            inspect=diagnostics
+        elif kind=='service-map':
+            from app.modules.service.service_map import discover
+            request_model=ProxyRequest
+            inspect=lambda server,body,heartbeat:discover(server,body.service,heartbeat)
+        else:raise ValueError('Unsupported proxy assessment')
+        body=request_model.model_validate(payload['request'])
         server=authorize(body.server_id,body.service,task.group_id_id,task.user_id_id,probe=True)
         if identity(server,body.service)!=payload['identity']:raise ValueError('Proxy identity/runtime changed after queuing')
         row=get(payload['assessment_id'],task.group_id_id,task.user_id_id)
-        if row.task_id!=task.id:raise ValueError('Assessment does not belong to this task')
+        expected_kind='proxy-diagnostics' if kind=='diagnostics' else 'service-map'
+        if row.task_id!=task.id or row.kind!=expected_kind:raise ValueError('Assessment does not belong to this task')
         with group_settings(task.group_id_id):
             heartbeat=lambda:InstallationTasks.update(updated_at=utc_now()).where(InstallationTasks.id==task.id).execute()
-            result=diagnostics(server,body,heartbeat)
+            result=inspect(server,body,heartbeat)
         database=OperationalAssessment._meta.database
         with database.atomic('IMMEDIATE') if isinstance(database,SqliteDatabase) else database.atomic():
             server=authorize(body.server_id,body.service,task.group_id_id,task.user_id_id,probe=True,
