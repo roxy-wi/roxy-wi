@@ -2,8 +2,8 @@ apiVersion: v2
 name: roxy-wi-charts
 description: HAProxy, NGINX, Apache and Keepalived management interface
 type: application
-version: 9.2.0
-appVersion: "9.2.0"
+version: 10.0.0
+appVersion: "10.0"
 kubeVersion: ">=1.23.0-0"
 home: https://roxy-wi.org
 sources:
