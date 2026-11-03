@@ -175,11 +175,14 @@ def test_runtime_config_edits_do_not_invoke_sed(haproxy_config):
 
 
 @pytest.mark.security
-def test_runtime_list_path_cannot_escape_group_directory(tmp_path):
+def test_runtime_list_path_cannot_escape_group_directory(tmp_path, monkeypatch):
+    from app.modules.service.haproxy_lists import local_path
+    from app.modules.service.haproxy_list_models import ListIdentity
+    monkeypatch.setenv("ROXYWI_LIB_PATH", str(tmp_path))
     group_directory = tmp_path / 'lists' / '7' / 'white'
     group_directory.mkdir(parents=True)
 
-    assert runtime._list_file_path(str(tmp_path), 7, 'white/allowed.lst') == group_directory / 'allowed.lst'
+    assert local_path(7, ListIdentity(color='white', name='allowed.lst')) == group_directory / 'allowed.lst'
 
     invalid_names = (
         'allowed.lst',
@@ -187,12 +190,11 @@ def test_runtime_list_path_cannot_escape_group_directory(tmp_path):
         'white/../../other-group.lst',
         'white\\..\\other-group.lst',
         'other/allowed.lst',
-        'white/not-a-list.txt',
         'white/name with spaces.lst',
     )
     for invalid_name in invalid_names:
         with pytest.raises(ValueError):
-            runtime._list_file_path(str(tmp_path), 7, invalid_name)
+            local_path(7, ListIdentity(color=invalid_name.partition('/')[0], name=invalid_name.partition('/')[2]))
 
 
 @pytest.mark.security

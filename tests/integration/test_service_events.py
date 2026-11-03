@@ -97,6 +97,21 @@ def status_event(**overrides):
     return payload
 
 
+def test_legacy_unsupported_keepalived_event_is_not_a_health_measurement(monkeypatch):
+    stored = []
+    monkeypatch.setattr(event_sql, 'store_status_event', lambda payload: stored.append(payload) or True)
+    payload = status_event(
+        service='keepalived', object_type='service', object_name='keepalived',
+        message='Keepalived check failed at 192.0.2.42: UnsupportedCheck: '
+                'distributed keepalived checks require a credential provider or a target-side probe agent',
+    )
+    assert process_event(payload).created is False
+    assert stored == []
+    payload['message'] = 'Keepalived process was observed stopped'
+    assert process_event(payload).created is True
+    assert len(stored) == 1
+
+
 def metric_event(**overrides):
     payload = {
         'event_id': str(uuid4()),

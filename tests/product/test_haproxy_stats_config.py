@@ -10,6 +10,7 @@ import pytest
 
 from app.modules.db import add as add_sql
 from app.modules.db.db_model import HaproxySection
+from app.modules.service import haproxy_targets
 from app.modules.service.stats import haproxy_stats_config as stats_config
 from app.modules.service.stats import haproxy_stats_maxconn as maxconn
 from tests.fixtures.haproxy_servers import server_host, maxconn_host  # noqa: F401
@@ -34,13 +35,13 @@ def test_server_edit_and_maxconn_serialize_and_preserve_both_changes(
 ):
     payload = prepare(product_client, product)
     validating, waiting, release = (threading.Event() for _ in range(3))
-    original_lock = stats_config.file_lock
+    original_lock = haproxy_targets.file_lock
 
     @contextmanager
-    def observed_lock(path):
+    def observed_lock(path, **kwargs):
         if validating.is_set():
             waiting.set()
-        with original_lock(path):
+        with original_lock(path, **kwargs):
             yield
 
     def hold_first_validation(ip):
@@ -48,7 +49,7 @@ def test_server_edit_and_maxconn_serialize_and_preserve_both_changes(
             validating.set()
             assert release.wait(15), 'Concurrent request did not reach the lock'
 
-    monkeypatch.setattr(stats_config, 'file_lock', observed_lock)
+    monkeypatch.setattr(haproxy_targets, 'file_lock', observed_lock)
     server_host.validation_hook = hold_first_validation
     with ThreadPoolExecutor(max_workers=2) as pool:
         edit = pool.submit(request, app, product.server.ip, 'servers', payload)
@@ -78,19 +79,19 @@ def test_topology_is_rechecked_after_waiting_for_existing_worker_lock(
 ):
     payload = prepare(product_client, product) if operation == 'servers' else maxconn_body()
     waiting = threading.Event()
-    original_lock = stats_config.file_lock
+    original_lock = haproxy_targets.file_lock
     # Use the pre-refactor lock path: old and new workers must still serialize.
     lock_dir = product.root / 'lib' / 'stats-maxconn-locks'
     lock_dir.mkdir(parents=True, exist_ok=True)
     lock_path = lock_dir / (hashlib.sha256(product.server.ip.encode()).hexdigest() + '.lock')
 
     @contextmanager
-    def observed_lock(path):
+    def observed_lock(path, **kwargs):
         waiting.set()
-        with original_lock(path):
+        with original_lock(path, **kwargs):
             yield
 
-    monkeypatch.setattr(stats_config, 'file_lock', observed_lock)
+    monkeypatch.setattr(haproxy_targets, 'file_lock', observed_lock)
     with ThreadPoolExecutor(max_workers=1) as pool:
         with original_lock(lock_path):
             future = pool.submit(request, app, product.server.ip, operation, payload)

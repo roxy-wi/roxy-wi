@@ -1,19 +1,17 @@
 """Shared safeguards and configuration persistence for HAProxy Stats changes."""
 
 from collections.abc import Callable, Iterator
-from contextlib import ExitStack, contextmanager
+from contextlib import contextmanager
 import hashlib
 from pathlib import Path
 
-from app.modules.common.file_lock import file_lock
 from app.modules.config import config, common as config_common, deployment_policy
-from app.modules.db import server as server_sql
 from app.modules.db.db_model import Server
-from app.modules.roxy_wi_tools import GetConfigVar
 from app.modules.roxywi import common
 from app.modules.roxywi.error_handler import safe_error_message
 from app.modules.roxywi.exception import RoxywiPermissionError
 from app.modules.service.stats.haproxy_stats import StatsError
+from app.modules.service.haproxy_targets import linked_servers, lock_servers
 
 
 class ChangeError(StatsError):
@@ -27,18 +25,15 @@ class ChangeError(StatsError):
 
 def targets(server: Server) -> list[Server]:
     """Keep the existing selected-node -> direct replicas propagation topology."""
-    nodes = {server.ip: server}
-    for ip, _hostname in server_sql.is_master(server.ip):
-        if ip:
-            nodes[ip] = common.require_server_access(ip)
-    for node in nodes.values():
+    nodes = linked_servers(server)
+    for node in nodes:
         if not node.haproxy:
             raise StatsError('unsupported_target', 409)
         try:
             deployment_policy.require_direct_deployment_for_server(node.ip, 'haproxy', action='save')
         except RoxywiPermissionError as exc:
             raise StatsError('maxconn_policy', 403) from exc
-    return [server, *[nodes[ip] for ip in sorted(nodes) if ip != server.ip]]
+    return nodes
 
 
 def require_targets(server: Server, expected: list[str]) -> list[Server]:
@@ -51,12 +46,7 @@ def require_targets(server: Server, expected: list[str]) -> list[Server]:
 @contextmanager
 def locked_targets(server: Server, expected: list[str]) -> Iterator[list[Server]]:
     nodes = require_targets(server, expected)
-    # Retain the shared lock directory for compatibility with existing workers.
-    lock_dir = Path(GetConfigVar().get_config_var('main', 'lib_path')) / 'stats-maxconn-locks'
-    lock_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
-    with ExitStack() as locks:
-        for node in sorted(nodes, key=lambda node: node.ip):
-            locks.enter_context(file_lock(lock_dir / (hashlib.sha256(node.ip.encode()).hexdigest() + '.lock')))
+    with lock_servers(nodes):
         # Access and topology may have changed while waiting for a lock.
         yield require_targets(server, expected)
 

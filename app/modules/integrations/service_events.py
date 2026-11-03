@@ -10,6 +10,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 
 import app.modules.db.service_event as event_sql
 from app.modules.db.db_model import ServiceAssignment, ServiceCommand
+from app.modules.roxywi import logger
 
 
 SUPPORTED_WORKER_SERVICES = frozenset({
@@ -225,6 +226,18 @@ def process_event(payload: bytes | str | Mapping[str, Any]) -> ProcessResult:
         event = CheckerStatusChanged.model_validate(raw)
         if event.source != 'checker':
             raise ValueError('checker.status.changed must have source=checker')
+        # Checker 5.0.0 manufactured this exact DOWN event without a probe.
+        # Ignore delayed/redelivered copies during a rolling upgrade; measured
+        # Keepalived results and the existing audit history remain unchanged.
+        unsupported_message = (
+            f'Keepalived check failed at {event.server_address}: UnsupportedCheck: '
+            'distributed keepalived checks require a credential provider or a target-side probe agent'
+        )
+        if (event.service == 'keepalived' and event.object_type == 'service'
+                and event.object_name == 'keepalived' and event.current_status == 'DOWN'
+                and not event.notify and event.message == unsupported_message):
+            logger.warning(f'Ignored legacy unsupported Keepalived result {event.event_id}')
+            return ProcessResult(kind='status_changed', created=False)
         assignment = ServiceAssignment.get_or_none(
             ServiceAssignment.assignment_id == event.assignment_id
         )
@@ -325,7 +338,12 @@ def deliver_pending_notifications(limit: int = 100) -> int:
                     raise_on_error=True,
                 )
         except Exception as exc:
-            event_sql.mark_delivery_failed(delivery.id, str(exc), delivery.claim_token)
+            error = str(exc) if isinstance(exc, alerting.NotificationDeliveryError) else type(exc).__name__
+            event_sql.mark_delivery_failed(delivery.id, error, delivery.claim_token)
+            logger.error(
+                'Notification delivery failed', notification_id=delivery.id,
+                attempt=delivery.attempts + 1, reason=error,
+            )
         else:
             event_sql.mark_delivery_succeeded(delivery.id, delivery.claim_token)
             delivered += 1

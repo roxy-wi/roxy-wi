@@ -4,12 +4,10 @@ import posixpath
 import dateutil
 from datetime import datetime
 
-import distro
 from shlex import quote
 from shutil import which
 from pytz import timezone
 import ipaddress
-import subprocess
 from markupsafe import escape
 
 import app.modules.db.sql as sql
@@ -235,22 +233,6 @@ def return_proxy_dict() -> dict:
 	if proxy in {None, '', 'None'}:
 		return {}
 	return {"https": proxy, "http": proxy}
-
-
-def set_correct_owner(path: str) -> None:
-	"""
-	Sets the correct owner of the specified path.
-
-	:param path: The path for which to set the correct owner.
-	:type path: str
-	:return: None
-	:rtype: None
-	"""
-	if distro.id() == 'ubuntu':
-		owner = 'www-data:www-data'
-	else:
-		owner = 'apache:apache'
-	subprocess.run(['sudo', 'chown', owner, '-R', path], check=False)
 
 
 def get_waf_directory(service: str) -> str:

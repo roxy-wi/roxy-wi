@@ -170,7 +170,6 @@ def test_address_reuse_does_not_transfer_saved_version_ownership(client, editor,
 @pytest.fixture
 def maps(tmp_path, monkeypatch):
     monkeypatch.setattr(add.get_config, 'get_config_var', lambda *a: str(tmp_path))
-    monkeypatch.setattr(add.common, 'set_correct_owner', lambda *a: None)
     monkeypatch.setattr(add.roxywi_common, 'logging', lambda *a, **k: None)
     return tmp_path / 'maps'
 
@@ -181,7 +180,6 @@ def test_map_creation_cannot_escape_group(maps, monkeypatch, kind):
     foreign.mkdir(parents=True)
     names = {'absolute': str(foreign / 'injected'), 'traversal': '../2/injected',
              'backslash': '..\\2\\injected', 'empty': ''}
-    monkeypatch.setattr(add.common, 'set_correct_owner', lambda *a: pytest.fail('Filesystem mutation before validation'))
     with pytest.raises(ValueError):
         add.create_map(SERVER, names[kind], '1')
     assert list(foreign.iterdir()) == []

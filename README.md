@@ -222,6 +222,24 @@ hook from each one. Application imports belong inside worker hooks, after fork.
 | [Plans and feature availability](https://roxy-wi.org/pricing) | [Configuration backups](https://roxy-wi.org/description/backup) |
 | [Deployment guide](https://roxy-wi.org/description/operations) | [Let's Encrypt](https://roxy-wi.org/description/letsencrypt) |
 
+### HAProxy IP lists
+
+Manage blacklists and whitelists in **Add → Lists**. Select a server to view the
+group catalog, inspect active ACLs, compare files on linked nodes, and edit IPv4,
+IPv6 or CIDR entries. **Save and apply** replaces loaded ACLs through Runtime API
+transactions (HAProxy 2.4+) and persists the files on each target. New, unused
+lists are saved as files; attach them to a configuration section and reload
+HAProxy before they can affect traffic. Files also used as maps are managed
+separately through Maps.
+
+The editor checks revisions before writing and reports file/runtime results for
+each node. A lost response is reported as unknown; use **Reload state** and
+review differences before retrying. There is no atomic transaction across nodes.
+Deleting a list is blocked while a configuration or active ACL still uses it.
+The old list endpoints remain compatible adapters; explicit legacy reload or
+restart requests retain their service action. Docker/Podman list files require a
+persistent directory mount, not a bind mount of an individual file.
+
 ## Community and support
 
 - [Report a bug](https://github.com/roxy-wi/roxy-wi/issues/new/choose) or [discuss an idea](https://github.com/orgs/roxy-wi/discussions).

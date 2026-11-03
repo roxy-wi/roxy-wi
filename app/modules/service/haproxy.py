@@ -14,7 +14,7 @@ import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi.error_handler import safe_error_message
 
 
-def _haproxy_line_tokens(line: str) -> list[str]:
+def haproxy_line_tokens(line: str) -> list[str]:
     """Split one HAProxy directive while respecting quotes and comments."""
     try:
         return shlex.split(line, comments=True, posix=True)
@@ -72,7 +72,7 @@ def build_dependency_graph(config_text: str) -> dict:
         edges.append(edge)
 
     for line_number, raw_line in enumerate(config_text.splitlines(), start=1):
-        tokens = _haproxy_line_tokens(raw_line.strip())
+        tokens = haproxy_line_tokens(raw_line.strip())
         if not tokens:
             continue
 

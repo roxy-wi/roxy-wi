@@ -29,6 +29,7 @@ from app.modules.db.db_model import (
 
 ACTIVE_WORKER_STATUSES = frozenset({'starting', 'running', 'degraded'})
 UNGROUPED_WORKER_SERVICES = frozenset({'smon', 'keep_alive'})
+NOTIFICATION_RETRY_SECONDS = (30, 60, 120, 300, 600, 1800)
 
 
 def worker_instance_key(worker):
@@ -385,10 +386,15 @@ def claim_pending_deliveries(limit: int = 100):
     """Claim notification work so parallel HA schedulers do not send it together."""
     now = utc_now()
     abandoned_before = now - timedelta(minutes=5)
-    retry_before = now - timedelta(seconds=30)
+    retry_due = ServiceNotification.updated_at <= now - timedelta(seconds=NOTIFICATION_RETRY_SECONDS[-1])
+    for attempts, delay in enumerate(NOTIFICATION_RETRY_SECONDS[:-1], start=1):
+        retry_due |= (
+            (ServiceNotification.attempts <= attempts)
+            & (ServiceNotification.updated_at <= now - timedelta(seconds=delay))
+        )
     eligible = (
         (ServiceNotification.status == 'pending')
-        | ((ServiceNotification.status == 'failed') & (ServiceNotification.updated_at <= retry_before))
+        | ((ServiceNotification.status == 'failed') & retry_due)
         | ((ServiceNotification.status == 'processing') & (ServiceNotification.updated_at < abandoned_before))
     )
     claimed_ids = []

@@ -1,10 +1,14 @@
 import json
+from email.mime.text import MIMEText
+from smtplib import SMTPResponseException
+from typing import Annotated
 
 import pagerduty
 import requests
 import telebot
 from telebot import apihelper
 from flask import render_template, abort, g
+from pydantic import BaseModel, Field, SecretStr, StringConstraints, ValidationError
 
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
@@ -14,12 +18,24 @@ import app.modules.db.channel as channel_sql
 import app.modules.db.checker as checker_sql
 import app.modules.common.common as common
 import app.modules.roxywi.common as roxywi_common
+from app.modules.common.execution_context import group_settings
 from app.modules.integrations.socket_notifications import publish_socket_notification
 from app.modules.roxywi.error_handler import safe_error_message
 
 
 class NotificationDeliveryError(RuntimeError):
-	pass
+	"""Delivery failure whose message is safe to store and show in diagnostics."""
+
+
+class SmtpSettings(BaseModel):
+	"""Validate persisted SMTP values without exposing credentials in errors."""
+
+	mail_ssl: bool = False
+	mail_from: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+	mail_smtp_host: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1)]
+	mail_smtp_port: int = Field(default=25, ge=1, le=65535)
+	mail_smtp_user: str = ''
+	mail_smtp_password: SecretStr = SecretStr('')
 
 
 def _attempt_delivery(errors, channel, sender, *args, **kwargs):
@@ -27,13 +43,17 @@ def _attempt_delivery(errors, channel, sender, *args, **kwargs):
 		sender(*args, **kwargs)
 	except Exception as exc:
 		# Provider exceptions may contain token-bearing webhook URLs.
-		errors.append(f'{channel} ({type(exc).__name__})')
-		roxywi_common.logging('Roxy-WI server', f'error: notification delivery failed: {errors[-1]}', roxywi=1)
+		detail = str(exc) if isinstance(exc, NotificationDeliveryError) else f'{channel} ({type(exc).__name__})'
+		errors.append(detail)
 
 
 def _finish_delivery(errors, raise_on_error):
-	if errors and raise_on_error:
-		raise NotificationDeliveryError('Notification delivery failed: ' + ', '.join(errors))
+	if not errors:
+		return
+	message = ', '.join(dict.fromkeys(errors))
+	if raise_on_error:
+		raise NotificationDeliveryError(message)
+	roxywi_common.logging('Roxy-WI server', f'error: Notification delivery failed: {message}', roxywi=1)
 
 
 def alert_routing(
@@ -76,50 +96,47 @@ def portscanner_alert_routing(
 
 
 def send_email_to_server_group(subject: str, mes: str, level: str, group_id: int, raise_on_error=False) -> None:
+	errors = []
 	try:
 		users_email = user_sql.select_users_emails_by_group_id(group_id)
-		errors = []
-		for user_email in users_email:
-			_attempt_delivery(errors, 'Email', send_email, user_email.email, subject,
-							  f'{level}: {mes}', raise_on_error=raise_on_error)
-		_finish_delivery(errors, raise_on_error)
-	except Exception as e:
-		if raise_on_error:
-			raise NotificationDeliveryError('Email group delivery failed') from None
-		roxywi_common.logging('Roxy-WI server', f'error: unable to send email: {e}', roxywi=1)
+		with group_settings(group_id):
+			for user_email in users_email:
+				_attempt_delivery(errors, 'Email', send_email, user_email.email, subject,
+								  f'{level}: {mes}', raise_on_error=True)
+	except Exception as exc:
+		errors.append(f'Cannot load email recipients ({type(exc).__name__})')
+	_finish_delivery(errors, raise_on_error)
 
 
 def send_email(email_to: str, subject: str, message: str, raise_on_error=False) -> None:
 	from smtplib import SMTP
 
 	try:
-		from email.MIMEText import MIMEText
-	except Exception:
-		from email.mime.text import MIMEText
+		settings = SmtpSettings(**{name: sql.get_setting(name) for name in SmtpSettings.model_fields})
+		msg = MIMEText(message)
+		msg['Subject'] = f'Roxy-WI: {subject}'
+		msg['From'] = f'Roxy-WI <{settings.mail_from}>'
+		msg['To'] = email_to
 
-	mail_ssl = sql.get_setting('mail_ssl')
-	mail_from = sql.get_setting('mail_from')
-	mail_smtp_host = sql.get_setting('mail_smtp_host')
-	mail_smtp_port = sql.get_setting('mail_smtp_port')
-	mail_smtp_user = sql.get_setting('mail_smtp_user')
-	mail_smtp_password = sql.get_setting('mail_smtp_password').replace("'", "")
-
-	msg = MIMEText(message)
-	msg['Subject'] = f'Roxy-WI: {subject}'
-	msg['From'] = f'Roxy-WI <{mail_from}>'
-	msg['To'] = email_to
-
-	try:
-		with SMTP(mail_smtp_host, mail_smtp_port, timeout=15) as smtp_obj:
-			if mail_ssl:
+		with SMTP(settings.mail_smtp_host, settings.mail_smtp_port, timeout=15) as smtp_obj:
+			if settings.mail_ssl:
 				smtp_obj.starttls()
-			smtp_obj.login(mail_smtp_user, mail_smtp_password)
+			if settings.mail_smtp_user:
+				smtp_obj.login(settings.mail_smtp_user, settings.mail_smtp_password.get_secret_value())
 			smtp_obj.send_message(msg)
 		roxywi_common.logging('Roxy-WI server', f'An email has been sent to {email_to}', roxywi=1)
-	except Exception as e:
+	except Exception as exc:
+		if isinstance(exc, ValidationError):
+			fields = sorted({str(error['loc'][0]) for error in exc.errors(include_input=False)})
+			reason = 'Invalid SMTP settings: ' + ', '.join(fields)
+		else:
+			reason = type(exc).__name__
+			if isinstance(exc, SMTPResponseException) and isinstance(exc.smtp_code, int):
+				reason += f' (SMTP {exc.smtp_code})'
+		message = f'Email delivery failed: {reason}'
 		if raise_on_error:
-			raise NotificationDeliveryError('Email delivery failed') from None
-		roxywi_common.logging('Roxy-WI server', f'error: unable to send email: {e}', roxywi=1)
+			raise NotificationDeliveryError(message) from None
+		roxywi_common.logging('Roxy-WI server', f'error: {message}', roxywi=1)
 
 
 def telegram_send_mess(mess, level, **kwargs):
@@ -317,7 +334,9 @@ def check_email_alert() -> str:
 		return f'error: Cannot get a user email: {safe_error_message(e)}'
 
 	try:
-		send_email(user.email, subject, message)
+		send_email(user.email, subject, message, raise_on_error=True)
+	except NotificationDeliveryError as exc:
+		return f'error: {exc}'
 	except Exception as e:
 		return f'error: Cannot send a message {safe_error_message(e)}'
 

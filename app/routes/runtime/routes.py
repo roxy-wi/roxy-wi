@@ -79,7 +79,7 @@ def get_list(server_ip: Union[IPvAnyAddress, DomainName], list_id: int, color: E
 @bp.route('/list/delete', methods=['POST'])
 def delete_ip_from_list():
     ip_id = common.checkAjaxInput(request.form.get('list_ip_id_for_delete'))
-    ip = common.is_ip_or_dns(request.form.get('list_ip_for_delete'))
+    ip = request.form.get('list_ip_for_delete')
     serv = common.is_ip_or_dns(request.form.get('serv'))
     list_id = common.checkAjaxInput(request.form.get('list_id_for_delete'))
     list_name = common.checkAjaxInput(request.form.get('list_name'))
@@ -93,7 +93,6 @@ def delete_ip_from_list():
 @bp.route('/list/add', methods=['POST'])
 def add_ip_to_list():
     ip = request.form.get('list_ip_for_add')
-    ip = common.is_ip_or_dns(ip.strip())
     serv = common.is_ip_or_dns(request.form.get('serv'))
     list_id = common.checkAjaxInput(request.form.get('list_id_for_add'))
     list_name = common.checkAjaxInput(request.form.get('list_name'))

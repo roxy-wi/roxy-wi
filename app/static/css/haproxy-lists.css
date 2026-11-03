@@ -1,0 +1,30 @@
+#haproxy-lists { box-sizing: border-box; padding: var(--indent); }
+#haproxy-lists .lists-toolbar { margin-top: 0; }
+#haproxy-lists .add-note { margin-left: 0; margin-right: 0; }
+.ui-dialog.lists-dialog { display: flex; flex-direction: column; max-height: calc(100vh - 32px); }
+.ui-dialog.lists-dialog .ui-dialog-content { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.ui-dialog.lists-dialog .ui-dialog-titlebar,
+.ui-dialog.lists-dialog .ui-dialog-buttonpane { flex: 0 0 auto; }
+#haproxy-lists .lists-toolbar label { font-weight: 600; }
+#haproxy-lists .lists-toolbar .ui-selectmenu-button { width: 280px; max-width: 100%; }
+#haproxy-lists .lists-muted, #lists-editor .lists-muted { color: var(--rw-text-muted); }
+#lists-targets:empty, #lists-status:empty, #lists-editor-status:empty { display: none; }
+#lists-table td, #lists-table th { padding: 10px 12px; vertical-align: top; }
+#lists-table .admin-actions { display: inline-block; }
+#lists-table .lists-name-button { border: 0; padding: 0; background: transparent; color: var(--rw-primary); cursor: pointer; font: inherit; }
+#lists-editor .lists-editor-fields { display: grid; grid-template-columns: 1fr 180px; gap: 16px; }
+#lists-editor .rw-form-field { margin-bottom: 12px; }
+#lists-editor textarea { box-sizing: border-box; width: 100%; resize: vertical; font-family: monospace; line-height: 1.5; }
+#lists-editor details { margin: 12px 0; }
+#lists-editor summary { cursor: pointer; font-weight: 600; padding: 6px 0; }
+#lists-sources .rw-panel { padding: 12px; margin-top: 10px; }
+#lists-sources h4 { margin: 0 0 10px; }
+#lists-sources textarea { max-height: 160px; }
+#lists-results table { width: 100%; margin-top: 10px; }
+#lists-results td, #lists-results th { padding: 8px; text-align: left; }
+#lists-editor-status.lists-error, #lists-status.lists-error { color: var(--rw-danger); white-space: pre-wrap; }
+#lists-editor [hidden] { display: none !important; }
+@media (max-width: 600px) {
+    #lists-editor .lists-editor-fields { grid-template-columns: 1fr; gap: 0; }
+    #haproxy-lists .lists-toolbar .ui-selectmenu-button { width: 100%; }
+}

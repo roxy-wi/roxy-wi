@@ -7,7 +7,6 @@ import app.modules.db.sql as sql
 import app.modules.db.roxy as roxy_sql
 import app.modules.db.history as history_sql
 import app.modules.roxywi.roxy as roxy
-import app.modules.common.common as common
 import app.modules.tools.common as tools_common
 import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.modules.db.db_model import close_database_connection
@@ -56,6 +55,10 @@ def delete_action_history_for_period():
 
 @scheduler.task('interval', id='delete_old_logs', hours=1, misfire_grace_time=None)
 def delete_old_logs():
+    # Package logrotate owns retention in the shared log directory. A web
+    # process must not unlink active files or independently owned helper logs.
+    if get_config.get_config_var('main', 'deployment_mode', 'package').lower() == 'package':
+        return
     def delete_logs():
         time_storage = sql.get_setting('log_time_storage')
         log_path = get_config.get_config_var('main', 'log_path')
@@ -70,17 +73,6 @@ def delete_old_logs():
         except Exception as e:
             print(f'error: cannot delete old log files: {e}')
     return _run_database_job(delete_logs)
-
-
-@scheduler.task('interval', id='update_owner_on_log', hours=12, misfire_grace_time=None)
-def update_owner_on_log():
-    if get_config.get_config_var('main', 'deployment_mode', 'package').lower() != 'package':
-        return
-    log_path = get_config.get_config_var('main', 'log_path')
-    try:
-        common.set_correct_owner(log_path)
-    except Exception:
-        pass
 
 
 @scheduler.task(

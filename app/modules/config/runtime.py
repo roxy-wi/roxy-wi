@@ -1,5 +1,5 @@
 import json
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 import re
 import shlex
 
@@ -9,15 +9,11 @@ from werkzeug.utils import secure_filename
 import app.modules.db.sql as sql
 import app.modules.config.common as config_common
 from app.modules.config.viewer import haproxy_sections
-from app.modules.service.haproxy import _haproxy_line_tokens
+from app.modules.service.haproxy import haproxy_line_tokens
 from app.modules.service.managed_runtime import execute_runtime_command
 import app.modules.roxywi.common as roxywi_common
-import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.modules.roxywi.error_handler import safe_error_message
 from app.modules.roxywi.exception import RoxywiInputError
-
-get_config_var = roxy_wi_tools.GetConfigVar()
-
 
 def _runtime_command(server: str, port: int, command: str) -> tuple[list[str], str]:
 	try:
@@ -71,7 +67,7 @@ def find_section(lines: list[str], section_types, section_name: str = '', *, req
 def server_line(lines, section, server) -> tuple[int, re.Match]:
 	start, end = section[:2]
 	matches = [(index, SERVER_LINE.fullmatch(lines[index])) for index in range(start + 1, end)
-		if _haproxy_line_tokens(lines[index])[:2] == ['server', server]]
+		if haproxy_line_tokens(lines[index])[:2] == ['server', server]]
 	if len(matches) != 1 or matches[0][1] is None:
 		raise RuntimeError(f'Cannot identify server {server} in configuration')
 	return matches[0]
@@ -90,7 +86,7 @@ def replace_server_address(config_path: str, backend: str, server: str, address:
 
 def _insert_section_line(lines, section, line) -> None:
 	start, end = section
-	identity = ' '.join(_haproxy_line_tokens(lines[start])[:2])
+	identity = ' '.join(haproxy_line_tokens(lines[start])[:2])
 	marker = f'# END Roxy-WI MANAGED {identity} do not edit it directly'
 	markers = [index for index in range(start + 1, end) if lines[index].strip() == marker]
 	if len(markers) > 1:
@@ -105,9 +101,9 @@ def _insert_section_line(lines, section, line) -> None:
 def insert_server(config_path: str, backend: str, server_line: str) -> None:
 	lines = read_config_lines(config_path)
 	section = find_section(lines, ('backend', 'listen'), backend)
-	name = _haproxy_line_tokens(server_line)[1]
+	name = haproxy_line_tokens(server_line)[1]
 	for line in lines[section[0] + 1:section[1]]:
-		tokens = _haproxy_line_tokens(line)
+		tokens = haproxy_line_tokens(line)
 		if tokens and (tokens[0] == 'server-template' or tokens[:2] == ['server', name]):
 			raise RuntimeError('Server already exists or uses a server template')
 	_insert_section_line(lines, section, server_line)
@@ -122,13 +118,13 @@ def server_default_options(sources, backend: str) -> str:
 			kind = section['kind']
 			if kind not in ('defaults', 'backend', 'listen'):
 				continue
-			tokens = _haproxy_line_tokens(lines[section['header']])
+			tokens = haproxy_line_tokens(lines[section['header']])
 			parent = tokens[tokens.index('from') + 1] if 'from' in tokens else None
 			if parent is not None and parent not in defaults:
 				raise RuntimeError('Cannot resolve inherited default-server options')
 			options = defaults[parent] if parent is not None else '' if kind == 'defaults' else current
 			for line in lines[section['header'] + 1:section['end']]:
-				values = _haproxy_line_tokens(line)
+				values = haproxy_line_tokens(line)
 				if values[:1] == ['default-server']:
 					# CLI words use backslash escaping, not configuration-file quotes.
 					options += ' ' + ' '.join(re.sub(r'([\\ \t])', r'\\\1', value) for value in values[1:])
@@ -222,26 +218,6 @@ def set_server_maxconn(config_path: str, backend: str, server: str, maxconn: int
 	raise RuntimeError(f'Cannot find server {backend}/{server} in configuration')
 
 
-def _list_file_path(lib_path: str, user_group: int, list_name: str) -> Path:
-	if not isinstance(list_name, str) or '\\' in list_name or '\x00' in list_name:
-		raise RoxywiInputError('Invalid list filename')
-	parts = PurePosixPath(list_name).parts
-	if len(parts) != 2 or parts[0] not in ('white', 'black'):
-		raise RoxywiInputError('List file must belong to the white or black list directory')
-	list_filename = secure_filename(parts[1])
-	if not list_filename or list_filename != parts[1] or not list_filename.endswith('.lst'):
-		raise RoxywiInputError('Invalid list filename')
-
-	base_path = (Path(lib_path) / 'lists' / str(int(user_group))).resolve()
-	list_directory = (base_path / parts[0]).resolve()
-	if list_directory.parent != base_path:
-		raise RoxywiInputError('List file is outside of the group directory')
-	list_path = (list_directory / list_filename).resolve()
-	if list_path.parent != list_directory:
-		raise RoxywiInputError('List file is outside of the group directory')
-	return list_path
-
-
 def escape_runtime_argument(value: str) -> str:
 	"""Escape a single CLI argument, including command separators."""
 	return ''.join('\\' + char if char in '\\; \t' else char for char in value)
@@ -308,43 +284,20 @@ def show_lists(serv, list_id, color, list_name) -> str:
 
 
 def delete_ip_from_list(serv, ip_id, ip, list_id, list_name) -> str:
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	lib_path = get_config_var.get_config_var('main', 'lib_path')
-	user_group = roxywi_common.get_user_group(id=1)
-	list_path = _list_file_path(lib_path, user_group, list_name)
-	list_entries = [
-		line for line in list_path.read_text(encoding='utf-8', errors='replace').splitlines()
-		if line.strip() and line.strip() != ip
-	]
-	content = '\n'.join(list_entries)
-	list_path.write_text(f'{content}\n' if content else '', encoding='utf-8')
-
-	output, stderr = _runtime_command(serv, haproxy_sock_port, f'del acl #{list_id} #{ip_id}')
-
-	roxywi_common.logging(serv, f'{ip_id} has been delete from list {list_id}', keep_history=1, service='haproxy')
-	if output[0] != '':
-		return f'error: {output[0]}'
-	if stderr != '':
-		return f'error: {stderr}'
-
+	from app.modules.service.haproxy_lists import change_entry
+	from app.modules.service.haproxy_list_models import RuntimeEntry
+	color, _, name = list_name.partition('/')
+	body = RuntimeEntry(color=color, name=name, entry=ip, acl_id=list_id, pointer=ip_id)
+	change_entry(serv, roxywi_common.get_user_group(id=1), body, delete=True)
 	return 'ok'
 
 
 def add_ip_to_list(serv, ip, list_id, list_name) -> str:
-	haproxy_sock_port = sql.get_setting('haproxy_sock_port')
-	lib_path = get_config_var.get_config_var('main', 'lib_path')
-	user_group = roxywi_common.get_user_group(id=1)
-	output, stderr = _runtime_command(serv, haproxy_sock_port, f'add acl #{list_id} {ip}')
-	if output[0]:
-		return f'error: {output[0]}'
-	if stderr:
-		return f'error: {stderr}'
-
-	if 'is not a valid IPv4 or IPv6 address' not in output[0]:
-		list_path = _list_file_path(lib_path, user_group, list_name)
-		with list_path.open('a', encoding='utf-8') as list_file:
-			list_file.write(f'{ip}\n')
-		roxywi_common.logging(serv, f'{ip} has been added to list {list_id}', keep_history=1, service='haproxy')
+	from app.modules.service.haproxy_lists import change_entry
+	from app.modules.service.haproxy_list_models import RuntimeEntry
+	color, _, name = list_name.partition('/')
+	body = RuntimeEntry(color=color, name=name, entry=ip, acl_id=list_id)
+	change_entry(serv, roxywi_common.get_user_group(id=1), body)
 	return 'ok'
 
 

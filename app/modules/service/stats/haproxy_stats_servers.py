@@ -9,7 +9,7 @@ import re
 from app.modules.config import haproxy_files, runtime
 from app.modules.db import add as add_sql, sql
 from app.modules.roxywi.exception import RoxywiResourceNotFound
-from app.modules.service.haproxy import _haproxy_line_tokens
+from app.modules.service.haproxy import haproxy_line_tokens
 from app.modules.service.stats.haproxy_stats import StatsError, collect_stats
 from app.modules.service.stats import haproxy_stats_config as stats_config
 
@@ -69,7 +69,7 @@ def _prepare(node, paths, previous, *, body):
         except RuntimeError as exc:
             raise StatsError('server_config_target', 409) from exc
         if section is not None:
-            section = (*section, _haproxy_line_tokens(lines[section[0]])[0])
+            section = (*section, haproxy_line_tokens(lines[section[0]])[0])
             entry['lines'] = lines
             entry['section'] = section
             found.append(entry)

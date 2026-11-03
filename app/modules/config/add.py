@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from shlex import quote
 
 from flask import render_template, g
 
@@ -50,135 +49,63 @@ def save_nginx_config(config_add: str, server_ip: str, config_name: str) -> str:
 
 
 def get_bwlist(color: str, group: str, list_name: str) -> str:
-	lib_path = get_config.get_config_var('main', 'lib_path')
-	list_path = f"{lib_path}/lists/{group}/{color}/{list_name}"
-
-	try:
-		with open(list_path, 'r') as f:
-			return f.read()
-	except IOError as e:
-		return f"error: Cannot read {color} list: {safe_error_message(e)}"
+	from app.modules.service.haproxy_lists import local_path
+	from app.modules.service.haproxy_list_models import ListIdentity
+	from app.modules.roxywi.exception import RoxywiResourceNotFound
+	from app.scripts.haproxy_lists import read_file
+	value = read_file(local_path(int(group), ListIdentity(color=color, name=list_name)))
+	if value is None:
+		raise RoxywiResourceNotFound('List not found')
+	return value
 
 
 def get_bwlists_for_autocomplete(color: str, group: str) -> str:
-	lib_path = get_config.get_config_var('main', 'lib_path')
-	list_path = f"{lib_path}/lists/{group}/{color}"
-	lists = roxywi_common.get_files(list_path, "lst")
-	lines = ''
-
-	for line in lists:
-		lines += line + ' '
-
-	return lines
+	from app.modules.service.haproxy_lists import local_path
+	from app.modules.service.haproxy_list_models import ListIdentity
+	directory = local_path(int(group), ListIdentity(color=color, name='catalog.lst')).parent
+	return ' '.join(path.name for path in sorted(directory.glob('*.lst')) if path.is_file())
 
 
 def create_bwlist(server_ip: str, list_name: str, color: str, group: str) -> str:
-	lib_path = get_config.get_config_var('main', 'lib_path')
-	list_name = f"{list_name.split('.')[0]}.lst"
-	list_path = f"{lib_path}/lists/{group}/{color}/{list_name}"
-	try:
-		open(list_path, 'a').close()
-		try:
-			roxywi_common.logging(server_ip, f'A new list {color} {list_name} has been created', roxywi=1, login=1)
-		except Exception:
-			pass
-		return 'success: '
-	except IOError as e:
-		return f'error: Cannot create a new {color} list. {safe_error_message(e)}, '
+	from app.modules.common.file_lock import file_lock
+	from app.modules.service.haproxy_lists import local_path, ListError
+	from app.modules.service.haproxy_list_models import ListIdentity
+	from app.scripts.haproxy_lists import write_file
+	roxywi_common.require_active_group_access(group)
+	path = local_path(int(group), ListIdentity(color=color, name=list_name))
+	path.parent.mkdir(parents=True, exist_ok=True)
+	with file_lock(path.parent.parent / '.lists.lock'):
+		if path.exists():
+			raise ListError('already_exists')
+		write_file(path, '', mode=0o600)
+	return 'success: '
 
 
 def save_bwlist(list_name: str, list_con: str, color: str, group: str, server_ip: str, action: str) -> str:
-	from app.modules.config.runtime import _list_file_path
-	from app.modules.service import action as service_action, certificate_operations
-	from app.modules.server.command import build_remote_command
-	from app.modules.config.deployment_policy import require_direct_deployment
-	from app.modules.roxywi.exception import RoxywiPermissionError
-	if action not in ('save', 'reload', 'restart', 'None', None):
-		raise RoxywiInputError('Unsupported list action')
-	lib_path = get_config.get_config_var('main', 'lib_path')
-	list_path = str(_list_file_path(lib_path, int(group), f'{color}/{list_name}'))
-	path = sql.get_setting('haproxy_dir', group_id=group).rstrip('/') + "/" + color
-	servers = [server_ip]
-	output = ''
-
-	masters = server_sql.is_master(server_ip)
-	for master in masters:
-		if master[0] is not None:
-			servers.append(master[0])
-	servers = list(dict.fromkeys(servers))
-	commands = {}
-	roxywi_common.require_active_group_access(group)
-	role = int(g.user_params['role'])
-	for serv in servers:
-		server = server_sql.get_server_by_ip(serv)
-		certificate_operations.authorize(server.server_id, int(group), g.user_params['user_id'])
-		if role > 3 or (server.protected and role > 2):
-			raise RoxywiPermissionError('Proxy list update permission is required')
-		if not server.enabled or server.type_ip or not server.haproxy:
-			raise RoxywiInputError('Select an enabled physical HAProxy server')
-		require_direct_deployment(int(group), 'haproxy')
-		if action in ('reload', 'restart'):
-			commands[serv] = service_action.get_action_command('haproxy', action, server.server_id)
-	try:
-		with open(list_path, 'w') as file:
-			file.write(list_con)
-	except IOError as e:
-		raise Exception(f'Cannot save {color} list: {e}')
-
-	for serv in servers:
-		server_mod.ssh_command(serv, build_remote_command('mkdir', ['-p', '--', path], sudo=True), rc=1, timeout=15)
-		server_mod.ssh_command(serv, 'sudo chown -- "$(id -un)" ' + quote(path), rc=1, timeout=15)
-		try:
-			config_mod.upload(serv, f'{path}/{list_name}', list_path)
-		except Exception as e:
-			output += f'error: Upload fail: to {serv}: {safe_error_message(e)} , '
-			continue
-
-		output += f'success: Edited {color} list was uploaded to {serv} , '
-		try:
-			roxywi_common.logging(serv, f'Has been edited the {color} list {list_name}', roxywi=1, login=1)
-		except Exception:
-			pass
-
-		if serv in commands:
-			server_mod.ssh_command(serv, commands[serv], rc=1, timeout=60, error_context='Cannot apply HAProxy list')
-
-	return output
+	from typing import Literal
+	from pydantic import TypeAdapter
+	from app.modules.service import haproxy_lists
+	from app.modules.service.haproxy_list_models import ListIdentity, ListChange
+	mode = TypeAdapter(Literal['runtime', 'reload', 'restart']).validate_python(
+		'runtime' if action in ('save', 'None', None) else action)
+	identity = ListIdentity(color=color, name=list_name)
+	haproxy_lists.targets(str(server_ip), int(group), write=True)
+	snapshot = haproxy_lists.detail(str(server_ip), int(group), identity)
+	result = haproxy_lists.change(str(server_ip), int(group), ListChange(
+		**identity.model_dump(), content=list_con, revision=snapshot['revision'],
+		apply_mode=mode))
+	return ' , '.join(f'success: List saved on {node["server"]}' for node in result['nodes'])
 
 
 def delete_bwlist(list_name: str, color: str, group: str, server_ip: str) -> str:
-	servers = []
-	lib_path = get_config.get_config_var('main', 'lib_path')
-	list_path = f"{lib_path}/lists/{group}/{color}/{list_name}"
-	path = f"{sql.get_setting('haproxy_dir')}/{color}"
-	output = ''
-
-	try:
-		os.remove(list_path)
-	except IOError as e:
-		return f'error: Cannot delete {color} list from Roxy-WI server. {safe_error_message(e)} , '
-
-	if server_ip != 'all':
-		servers.append(server_ip)
-
-		masters = server_sql.is_master(server_ip)
-		for master in masters:
-			if master[0] is not None:
-				servers.append(master[0])
-	else:
-		server = roxywi_common.get_dick_permit()
-		for s in server:
-			servers.append(s[2])
-
-	for serv in servers:
-		try:
-			server_mod.ssh_command(serv, f"sudo rm {path}/{list_name}")
-		except Exception as e:
-			return f'error: Deleting fail: {safe_error_message(e)} , '
-
-		output += f'success: the {color} list has been deleted on {serv} , '
-		roxywi_common.logging(serv, f'has been deleted the {color} list {list_name}', roxywi=1, login=1)
-	return output
+	from app.modules.service import haproxy_lists
+	from app.modules.service.haproxy_list_models import ListIdentity, ListChange
+	identity = ListIdentity(color=color, name=list_name)
+	haproxy_lists.targets(str(server_ip), int(group), write=True)
+	snapshot = haproxy_lists.detail(str(server_ip), int(group), identity)
+	haproxy_lists.change(str(server_ip), int(group), ListChange(
+		**identity.model_dump(), revision=snapshot['revision'], operation='delete'))
+	return 'success: List deleted'
 
 
 def _map_path(map_name: str, group: str) -> Path:
@@ -213,7 +140,6 @@ def edit_map(map_name: str, group: str) -> str:
 
 
 def create_map(server_ip: str, map_name: str, group: str) -> str:
-	lib_path = Path(get_config.get_config_var('main', 'lib_path')).resolve()
 	_map_path(map_name, group)
 	map_name = f"{map_name.split('.')[0]}.map"
 	full_path = _map_path(map_name, group)
@@ -221,7 +147,6 @@ def create_map(server_ip: str, map_name: str, group: str) -> str:
 
 	try:
 		map_path.mkdir(parents=True, exist_ok=True)
-		common.set_correct_owner(str(lib_path))
 	except Exception as e:
 		raise Exception(f'error: cannot create a local folder for maps: {e}')
 	try:

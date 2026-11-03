@@ -1,9 +1,11 @@
-/var/www/roxy-wi/log/backup.log {
+/var/log/roxy-wi/backup.log {
     daily
     rotate 10
     missingok
     notifempty
-    create 0644 apache apache
+    create 0640 apache apache
+    compress
+    delaycompress
     dateext
     sharedscripts
 }

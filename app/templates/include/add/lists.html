@@ -1,0 +1,37 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='css/haproxy-lists.css', v='10.0-1') }}">
+<script id="haproxy-lists-language" type="application/json">{{ lang.haproxy_lists|tojson }}</script>
+<script src="{{ url_for('static', filename='js/haproxy-lists.js', v='10.0-1') }}" defer></script>
+<div id="haproxy-lists">
+    <div class="rw-table-toolbar lists-toolbar">
+        <label for="lists-server">{{ lang.words.server|title() }}</label>
+        {{ select('lists-server', values=g.user_params['servers'], is_servers='true') }}
+        <button type="button" class="rw-button rw-button-secondary" id="lists-refresh"><i class="fas fa-sync-alt" aria-hidden="true"></i> {{ lang.words.refresh|title() }}</button>
+        <button type="button" class="rw-button rw-button-primary" id="lists-create" disabled><i class="fas fa-plus" aria-hidden="true"></i> {{ lang.words.create|title() }}</button>
+    </div>
+    <p id="lists-targets" class="lists-muted"></p>
+    <p id="lists-status" role="status" aria-live="polite"></p>
+    <table id="lists-table" class="overview" data-ux-table data-searchable="true" data-page-size="25">
+        <thead><tr class="overviewHead">
+            <th>{{ lang.words.name|title() }}</th><th>{{ lang.words.type|title() }}</th>
+            <th>{{ lang.haproxy_lists.entries }}</th><th>{{ lang.haproxy_lists.used_in }}</th>
+            <th>{{ lang.words.status|title() }}</th><th data-sortable="false">{{ lang.words.actions|title() }}</th>
+        </tr></thead><tbody></tbody>
+    </table>
+    <div class="add-note alert addName alert-info">{{ lang.haproxy_lists.hint }}</div>
+</div>
+<div id="lists-editor" hidden>
+    <div class="lists-editor-fields">
+        <div class="rw-form-field"><label for="lists-name">{{ lang.words.name|title() }}</label><input id="lists-name" maxlength="124" autocomplete="off"></div>
+        <div class="rw-form-field"><label for="lists-color">{{ lang.words.type|title() }}</label><select id="lists-color"><option value="black">Blacklist</option><option value="white">Whitelist</option></select></div>
+    </div>
+    <p id="lists-editor-status" role="status" aria-live="polite"></p>
+    <div class="rw-form-field"><label for="lists-content">{{ lang.haproxy_lists.content }}</label><textarea id="lists-content" rows="9" spellcheck="false" maxlength="262144"></textarea></div>
+    <div class="rw-table-toolbar">
+        <input id="lists-entry" aria-label="IPv4 / IPv6 / CIDR" placeholder="IPv4 / IPv6 / CIDR">
+        <button id="lists-add-entry" type="button" class="rw-button rw-button-secondary"><i class="fas fa-plus" aria-hidden="true"></i> {{ lang.words.add|title() }}</button>
+        <button id="lists-export" type="button" class="rw-button rw-button-secondary"><i class="fas fa-download" aria-hidden="true"></i> {{ lang.haproxy_lists.export }}</button>
+    </div>
+    <details><summary>{{ lang.haproxy_lists.entries }}</summary><table id="lists-entries" class="overview" data-page-size="10"><thead><tr><th>IPv4 / IPv6 / CIDR</th><th data-sortable="false">{{ lang.words.actions|title() }}</th></tr></thead><tbody></tbody></table></details>
+    <details id="lists-comparison"><summary>{{ lang.haproxy_lists.compare }}</summary><div id="lists-sources"></div></details>
+    <div id="lists-results" role="status" aria-live="polite"></div>
+</div>

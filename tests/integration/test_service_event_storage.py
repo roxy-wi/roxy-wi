@@ -231,6 +231,57 @@ def test_expired_claim_cannot_finish_work_owned_by_another_consumer():
     assert ServiceNotification.get().status == 'delivered'
 
 
+@pytest.mark.parametrize('attempts,delay', [(1, 30), (2, 60), (3, 120), (4, 300), (5, 600), (6, 1800), (1000, 1800)])
+def test_failed_notifications_back_off_without_being_discarded(monkeypatch, attempts, delay):
+    now = utc_now()
+    monkeypatch.setattr(storage, 'utc_now', lambda: now)
+    row = ServiceNotification.create(
+        event_id=str(uuid4()), payload='{}', category='checker', observed_at=now,
+        status='failed', attempts=attempts, updated_at=now - timedelta(seconds=delay - 1),
+    )
+    assert storage.claim_pending_deliveries() == []
+    assert ServiceNotification.get_by_id(row.id).status == 'failed'
+    now += timedelta(seconds=1)
+    claimed = storage.claim_pending_deliveries()
+    assert [item.id for item in claimed] == [row.id]
+    assert claimed[0].attempts == attempts
+
+
+def test_new_notifications_are_not_blocked_by_failed_older_messages():
+    now = utc_now()
+    ServiceNotification.create(
+        event_id=str(uuid4()), payload='{}', category='checker', observed_at=now,
+        status='failed', attempts=100, created_at=now - timedelta(days=1), updated_at=now,
+    )
+    pending = ServiceNotification.create(event_id=str(uuid4()), payload='{}', category='checker', observed_at=now)
+    assert [row.id for row in storage.claim_pending_deliveries(limit=1)] == [pending.id]
+
+
+def test_outbox_logs_one_safe_failure_with_notification_identity(monkeypatch):
+    from app.modules.integrations import service_events
+    from app.modules.tools import alerting
+
+    payload = status_event(notify=True)
+    process_event(payload)
+    logs = []
+    monkeypatch.setattr(service_events.logger, 'error', lambda message, **context: logs.append((message, context)))
+
+    def fail(*args, **kwargs):
+        assert kwargs['raise_on_error'] is True
+        raise alerting.NotificationDeliveryError('Email delivery failed: SMTPAuthenticationError (SMTP 535)')
+
+    monkeypatch.setattr(alerting, 'alert_routing', fail)
+    assert deliver_pending_notifications() == 0
+    row = ServiceNotification.get()
+    assert row.status == 'failed' and row.attempts == 1
+    assert 'SMTP 535' in row.last_error
+    assert logs == [('Notification delivery failed', {
+        'notification_id': row.id, 'attempt': 1, 'reason': row.last_error,
+    })]
+    assert deliver_pending_notifications() == 0
+    assert len(logs) == 1
+
+
 def test_notification_migration_is_resumable_and_preserves_pending_data():
     payload = status_event(notify=True)
     process_event(payload)

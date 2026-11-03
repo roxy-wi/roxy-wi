@@ -101,7 +101,7 @@ def parse(service,text):
     if service=='haproxy':
         current=None;indexed={node['id']:node for node in graph['nodes']};default_mode='tcp';section=''
         for raw in text.splitlines():
-            tokens=haproxy._haproxy_line_tokens(raw)
+            tokens=haproxy.haproxy_line_tokens(raw)
             if not tokens:continue
             if tokens[0] in ('defaults','global','frontend','listen','backend'):
                 section=tokens[0];current=indexed.get(section+':'+tokens[1]) if len(tokens)>1 else None

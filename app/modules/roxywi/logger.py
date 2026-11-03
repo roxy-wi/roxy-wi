@@ -1,4 +1,5 @@
 import logging
+from logging.handlers import WatchedFileHandler
 import json
 import os
 import sys
@@ -116,7 +117,10 @@ def setup_logger(
 
     if file_logging:
         os.makedirs(log_path, exist_ok=True)
-        file_handler = logging.FileHandler(os.path.join(log_path, log_file))
+        # Each Unix worker reopens the new inode on its next record after
+        # logrotate. Windows cannot rename these open files and uses FileHandler.
+        handler_class = WatchedFileHandler if os.name == 'posix' else logging.FileHandler
+        file_handler = handler_class(os.path.join(log_path, log_file), encoding='utf-8')
         file_handler.setLevel(log_level)
         file_handler.setFormatter(StructuredLogFormatter())
         logger.addHandler(file_handler)

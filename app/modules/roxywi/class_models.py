@@ -7,6 +7,8 @@ from pydantic_core import CoreSchema, core_schema
 from pydantic import BaseModel, Base64Str, StringConstraints, IPvAnyAddress, GetCoreSchemaHandler, AnyUrl, \
     root_validator, EmailStr, model_validator, DirectoryPath, Field, field_validator, ConfigDict, RootModel
 
+from app.modules.service.haproxy_list_models import ListIdentity, ListContent
+
 DomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
 WildcardDomainName = Annotated[str, StringConstraints(pattern=r"^(?:[a-z0-9\*](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z][a-z0-9-]{0,61}[a-z0-9]$")]
 SizeStr = Annotated[str, StringConstraints(pattern=r'^\d+\s*(b|kb|mb|gb|tb|B|KB|MB|GB|TB|m|M|g|G|k|K)$')]
@@ -736,12 +738,9 @@ class NettoolsRequest(BaseModel):
     netmask: Optional[int] = None
 
 
-class ListRequest(BaseModel):
+class ListRequest(ListIdentity, ListContent):
     server_ip: Optional[Union[IPvAnyAddress, DomainName]] = None
-    color: Literal['white', 'black']
-    name: EscapedString
     action: Optional[Literal['reload', 'restart', 'save']] = None
-    content: Optional[str] = ''
     group_id: Optional[int] = None
 
 

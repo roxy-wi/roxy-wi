@@ -6,7 +6,6 @@ from flask_jwt_extended import JWTManager
 from flask_apscheduler import APScheduler
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from app.modules.common.common import set_correct_owner
 from app.modules.roxywi import logger
 from app.modules.common.lock_utils import acquire_file_lock
 
@@ -84,9 +83,6 @@ def _initialize_runtime() -> None:
         initialize_database()
     elif app.config['AUTO_MIGRATE'] and not acquire_file_lock():
         initialize_database()
-
-    if not app.config['TESTING'] and app.config['DEPLOYMENT_MODE'] == 'package':
-        set_correct_owner('/var/lib/roxy-wi')
 
     from app.routes.main import bp as main_bp
     from app.routes.overview import bp as overview_bp

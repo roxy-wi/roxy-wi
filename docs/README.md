@@ -24,4 +24,3 @@ adding a Markdown file here does not publish it to roxy-wi.org.
 - [Verification scope and remaining limits](corosync-pacemaker-verification.md)
 - [Annotated UI screenshots](screenshots/corosync-pacemaker/README.md)
 - [Project setup and deployment entry points](../README.md#deployment-choices)
-- [Release notes](../CHANGELOG.md)

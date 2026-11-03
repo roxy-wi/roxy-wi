@@ -1,8 +1,7 @@
-import os
 from typing import Literal
 
 from flask import render_template, request, jsonify, redirect, url_for, g
-from flask_jwt_extended import jwt_required, get_jwt
+from flask_jwt_extended import jwt_required
 from flask_pydantic import validate
 
 from app.modules.roxywi.class_models import SSLCertUploadRequest, DataStrResponse, SavedServerRequest, BaseResponse, \
@@ -20,7 +19,7 @@ import app.modules.roxy_wi_tools as roxy_wi_tools
 from app.views.service.haproxy_section_views import (GlobalSectionView, DefaultsSectionView, ListenSectionView,
                                                      UserListSectionView, PeersSectionView)
 from app.views.service.nginx_section_views import UpstreamSectionView, ProxyPassSectionView
-from app.views.service.haproxy_lists_views import HaproxyListView
+from app.views.service.haproxy_lists_views import HaproxyListView, HaproxyListsView
 from app.modules.roxywi.error_handler import safe_error_message
 
 get_config = roxy_wi_tools.GetConfigVar()
@@ -42,7 +41,8 @@ register_api_id_ip(PeersSectionView, 'haproxy_peers_a', '/section/peers/<section
 register_api_id_ip(GlobalSectionView, 'haproxy_global_a', '/section/global', methods=['GET', 'PUT'])
 register_api_id_ip(DefaultsSectionView, 'haproxy_defaults_a', '/section/defaults', methods=['GET', 'PUT'])
 bp.add_url_rule('/<any(haproxy):service>/list/<list_name>/<color>', view_func=HaproxyListView.as_view('list_get'), methods=['GET'])
-bp.add_url_rule('/<any(haproxy):service>/list', view_func=HaproxyListView.as_view('list_post'), methods=['POST', 'DELETE'])
+bp.add_url_rule('/<any(haproxy):service>/list', view_func=HaproxyListView.as_view('list_post'), methods=['POST', 'PUT', 'DELETE'])
+bp.add_url_rule('/<any(haproxy):service>/lists/<server_ip>', view_func=HaproxyListsView.as_view('lists'), methods=['GET', 'PUT'])
 register_api_id_ip(UpstreamSectionView, 'nginx_section_upstream_post_a', '/section/upstream', methods=['POST'])
 register_api_id_ip(UpstreamSectionView, 'nginx_section_upstream_post', '/section/upstream/<section_name>', methods=['GET', 'PUT', 'DELETE'])
 register_api_id_ip(ProxyPassSectionView, 'nginx_section_proxy_pass_post_a', '/section/proxy_pass', methods=['POST'])
@@ -79,21 +79,9 @@ def add(service):
     }
 
     if service == 'haproxy':
-        claims = get_jwt()
-        user_group = claims['group']
+        user_group = g.user_params['group_id']
         lib_path = get_config.get_config_var('main', 'lib_path')
-        list_dir = lib_path + "/lists"
-        white_dir = lib_path + "/lists/" + user_group + "/white"
-        black_dir = lib_path + "/lists/" + user_group + "/black"
-        dirs = (list_dir, white_dir, black_dir)
-
-        for dir_to_create in dirs:
-            if not os.path.exists(dir_to_create):
-                os.makedirs(dir_to_create)
-
         kwargs.setdefault('options', add_sql.select_options(group=user_group, term=''))
-        kwargs.setdefault('white_lists', roxywi_common.get_files(folder=white_dir, file_format="lst"))
-        kwargs.setdefault('black_lists', roxywi_common.get_files(folder=black_dir, file_format="lst"))
         kwargs.setdefault('maps', roxywi_common.get_files(folder=f'{lib_path}/maps/{user_group}', file_format="map"))
 
         return render_template('add.html', **kwargs)

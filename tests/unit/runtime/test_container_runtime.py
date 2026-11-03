@@ -404,3 +404,21 @@ def test_existing_database_is_migrated_before_model_indexes_are_created(monkeypa
     app_module.initialize_database()
 
     assert calls == ['migrate', 'create_tables', 'default_values']
+
+
+def test_package_web_startup_does_not_run_privileged_commands(monkeypatch):
+    from flask import Flask
+    from app.modules import process_heartbeat
+
+    application = Flask('package-startup')
+    application.config.update(app_module.app.config)
+    application.config.update(TESTING=False, AUTO_MIGRATE=False, DEPLOYMENT_MODE='package', SCHEDULER_ENABLED=False)
+    monkeypatch.setattr(app_module, 'app', application)
+    monkeypatch.setattr(process_heartbeat, 'start_configured_process_heartbeat', lambda: None)
+    monkeypatch.setattr(subprocess, 'run', lambda *a, **k: pytest.fail(f'Web startup ran a subprocess: {a}'))
+
+    app_module._initialize_runtime()
+
+    assert application.blueprints
+    assert application.test_client().get('/health/live').status_code == 200
+    assert app_module.scheduler.get_job('update_owner_on_log') is None

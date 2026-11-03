@@ -40,7 +40,7 @@ and explain database migrations or operational requirements.
 - Add a regression test for a bug fix. Exercise failure and retry paths for
   background work, and group/role isolation for access changes.
 - Keep secrets out of logs, screenshots, fixtures and reports.
-- Update the relevant guide and [release notes](CHANGELOG.md) for user-visible changes.
+- Update the relevant guide for user-visible changes.
 - Review the diff and run the checks appropriate to the affected paths.
 
 Check that documentation links point to the relevant pages and sections on
