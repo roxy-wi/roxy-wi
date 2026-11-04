@@ -81,6 +81,24 @@ def test_inactive_subscription_keeps_controls_disabled(product_client, product, 
     assert all('disabled' in controls[name + '-11'] for name in ('alert', 'metrics', 'active'))
 
 
+@pytest.mark.parametrize('plan,active,enabled', [
+    ('user', 1, True), ('company', 1, True), ('cloud', 1, True), ('support', 1, True),
+    ('Trial', 1, False), ('free', 1, False), ('user', 0, False),
+])
+def test_keepalived_checker_switch_requires_user_plan(product_client, product, service_worker_controls,
+                                                     monkeypatch, plan, active, enabled):
+    from app.modules.service import keepalived
+    from app.modules.integrations.keepalived_contract import KeepalivedSnapshot
+
+    Server.update(keepalived=1).where(Server.server_id == 11).execute()
+    monkeypatch.setattr(common, 'return_user_subscription',
+                        lambda: dict(user_status=active, user_plan=plan))
+    monkeypatch.setattr(keepalived, 'collect', lambda server: KeepalivedSnapshot(
+        service='UP', instances=[dict(name='one', state='BACKUP')]))
+    controls = Inputs(product_client.get('/service/keepalived')).fields
+    assert ('disabled' not in controls['alert-11']) is enabled
+
+
 def test_disabled_controls_preserve_saved_settings(product_client, product, service_worker_controls):
     Server.update(nginx_alert=1, nginx_metrics=1).where(Server.server_id == 11).execute()
     WorkerState.delete().execute()

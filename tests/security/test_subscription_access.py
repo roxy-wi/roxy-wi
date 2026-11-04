@@ -8,7 +8,6 @@ import app.modules.change.service as change_service
 import app.modules.oidc.login as oidc_login
 import app.modules.service.backup as backup_service
 import app.modules.subscription.access as subscription_access
-import app.modules.tools.smon as smon_service
 from app.modules.roxywi.exception import RoxywiPermissionError
 
 
@@ -87,7 +86,6 @@ def test_browser_socket_identity_is_not_read_from_hidden_html_fields():
         (subscription_access.WAF_WIZARD, {'company', 'cloud', 'support'}),
         (subscription_access.CHANGE_CENTER, {'support'}),
         (subscription_access.GIT_BACKUP, {'support'}),
-        (subscription_access.SMON_STATUS_PAGES, {'support'}),
         (
             subscription_access.MANAGED_SERVICES,
             {'user', 'company', 'cloud', 'support'},
@@ -191,11 +189,6 @@ def test_business_services_recheck_entitlement_before_side_effects(monkeypatch):
         'run_ansible',
         lambda *_args: side_effects.append('ansible'),
     )
-    monkeypatch.setattr(
-        smon_service.smon_sql,
-        'add_status_page',
-        lambda *_args: side_effects.append('smon-db-write'),
-    )
 
     with pytest.raises(RoxywiPermissionError, match='Change Center'):
         change_service.cancel_change(1, group_id=1)
@@ -215,8 +208,6 @@ def test_business_services_recheck_entitlement_before_side_effects(monkeypatch):
         backup_service.create_git_backup_inv(
             SimpleNamespace(), '192.0.2.1', 'haproxy'
         )
-    with pytest.raises(RoxywiPermissionError, match='SMON status pages'):
-        smon_service.create_status_page('name', 'slug', '', [1])
 
     assert side_effects == []
 
@@ -238,10 +229,7 @@ def test_http_routes_cannot_bypass_premium_service_guards(app, client, monkeypat
     responses = (
         client.post('/server/backup/git', json={}, headers=headers),
         client.post('/api/server/backup/git', json={}, headers=headers),
-        client.post('/smon/status-page', data={}, headers=headers),
-        client.get('/smon/status/checks/1', headers=headers),
     )
 
-    assert [response.status_code for response in responses] == [403, 403, 403, 403]
+    assert [response.status_code for response in responses] == [403, 403]
     assert responses[0].get_json()['error'] == 'Git backup requires an active Premium plan'
-    assert responses[2].get_json()['error'] == 'SMON status pages require an active Premium plan'

@@ -33,7 +33,7 @@ from app.views.service.certificate_views import (
 )
 from app.modules.roxywi.class_models import DomainName
 from app.modules.roxywi.exception import RoxywiPermissionError
-from app.modules.subscription.access import MANAGED_SERVICES, require_feature
+from app.modules.subscription.access import MANAGED_SERVICES, is_feature_available, require_feature
 from app.modules.roxywi.error_handler import safe_error_message
 
 bp.add_url_rule('/<service>/<server_id>/<any(start, stop, reload, restart):action>', view_func=ServiceActionView.as_view('service_action_ip'), methods=['POST'])
@@ -208,13 +208,8 @@ def services(service, serv):
 
         if is_keepalived:
             try:
-                cmd = ('sudo kill -USR1 `cat /var/run/keepalived.pid` && sudo grep State /tmp/keepalived.data -m 1 |'
-                       'awk -F"=" \'{print $2}\'|tr -d \'[:space:]\' && sudo rm -f /tmp/keepalived.data')
-                if service_sql.select_service_setting(s[0], 'keepalived', 'dockerized') == '1':
-                    from app.modules.service import container_settings
-                    out = container_settings.keepalived_state(server_sql.get_server(s[0]))
-                else:
-                    out = server_mod.ssh_command(s[2], cmd)
+                from app.modules.service.keepalived import collect, summary
+                out = summary(collect(server_sql.get_server(s[0])))
                 out1 = ('1', out)
                 servers_with_status.append(out1)
             except Exception as e:
@@ -227,10 +222,12 @@ def services(service, serv):
     from app.modules.service import container_settings
     container_engines = {row.server_id: container_settings.runtime(row.server_id, service_desc.slug)['engine']
                          for row in docker_settings if row.value == '1'}
+    user_subscription = roxywi_common.return_user_subscription()
     kwargs = {
         'clusters': ha_sql.select_ha_cluster_name_and_slaves(),
         'master_slave': server_sql.is_master(0, master_slave=1),
-        'user_subscription': roxywi_common.return_user_subscription(),
+        'user_subscription': user_subscription,
+        'checker_available': tool_availability['checker'] and is_feature_available(MANAGED_SERVICES, user_subscription),
         'servers': servers_with_status1,
         'lang': g.user_params['lang'],
         'serv': serv,

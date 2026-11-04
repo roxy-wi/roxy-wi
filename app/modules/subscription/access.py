@@ -12,7 +12,6 @@ from app.modules.roxywi.exception import RoxywiPermissionError
 OIDC = 'oidc'
 CHANGE_CENTER = 'change_center'
 GIT_BACKUP = 'git_backup'
-SMON_STATUS_PAGES = 'smon_status_pages'
 MANAGED_SERVICES = 'managed_services'
 WAF_WIZARD = 'waf_wizard'
 
@@ -25,7 +24,6 @@ MANAGED_SERVICE_TOOLS = frozenset({
     'roxy-wi-metrics',
     'roxy-wi-portscanner',
     'roxy-wi-prometheus-exporter',
-    'roxy-wi-smon',
     'roxy-wi-socket',
 })
 
@@ -52,10 +50,6 @@ FEATURE_POLICIES = MappingProxyType({
     GIT_BACKUP: FeaturePolicy(
         frozenset({'support'}),
         'Git backup requires an active Premium plan',
-    ),
-    SMON_STATUS_PAGES: FeaturePolicy(
-        frozenset({'support'}),
-        'SMON status pages require an active Premium plan',
     ),
     MANAGED_SERVICES: FeaturePolicy(
         frozenset({'user', 'company', 'cloud', 'support'}),

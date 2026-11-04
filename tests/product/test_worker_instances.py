@@ -137,7 +137,7 @@ def test_same_host_different_instances_and_missing_identity_are_not_merged(produ
     assert worker_summary()['checker']['total'] == 1
 
 
-@pytest.mark.parametrize('service', ['smon', 'keep_alive'])
+@pytest.mark.parametrize('service', ['keep_alive'])
 def test_excluded_services_keep_existing_behavior(product, service):
     record_worker_heartbeat(heartbeat('old', service=service, status='stopped'))
     record_worker_heartbeat(heartbeat('new', service=service))

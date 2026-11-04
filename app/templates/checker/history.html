@@ -4,12 +4,11 @@
 {% block content %}
 {% if user_subscription['user_status'] == 0 or user_subscription['user_plan'] == 'user' %}
 	{% include 'include/no_sub.html' %}
-{% elif smon|length == 0 %}
+{% elif alerts|length == 0 %}
 <div style="text-align: center;">
 	<br />
 	<h3>{{lang.phrases.no_events_added}}</h3>
 	<img src="{{ url_for('static', filename='images/no_servers.png')}}" alt="There is no server">
-	<h4>Click <a href="/smon/admin" title="Roxy-WI SMON" target="_blank">{{lang.words.here}}</a> {{lang.smon_page.desc.see_check}}</h4>
 	<br />
 </div>
 {% else %}

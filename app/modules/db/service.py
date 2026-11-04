@@ -121,7 +121,7 @@ def select_service_setting(server_id: int, service: str, setting: str) -> str:
 			& (ServiceSetting.service == service)
 			& (ServiceSetting.setting == setting)
 		).value
-	except Exception:
+	except ServiceSetting.DoesNotExist:
 		return '0'
 	else:
 		return result

@@ -3,7 +3,7 @@
 {% block h2 %}{{ lang.menu_links.hapservers.h2 }} {{ service_desc.service }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select, copy_to_clipboard %}
-{% set checker_disabled = 'disabled' if user_subscription['user_status'] == 0 or not tool_availability.checker else '' %}
+{% set checker_disabled = '' if checker_available else 'disabled' %}
 {% set metrics_disabled = 'disabled' if user_subscription['user_status'] == 0 or not tool_availability.metrics else '' %}
 {% set auto_start_disabled = 'disabled' if user_subscription['user_status'] == 0 or not tool_availability.keep_alive else '' %}
 <script src="/static/js/overview.js"></script>

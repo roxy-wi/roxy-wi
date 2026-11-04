@@ -65,7 +65,7 @@ _ANSIBLE_ROLE_NAMES = (
 	'haproxy_exporter', 'haproxy_geoip', 'haproxy_section', 'keepalived',
 	'keepalived_exporter', 'ha_cluster_exporter', 'letsencrypt', 'letsencrypt_standalone', 'nginx',
 	'nginx_exporter', 'nginx_geoip', 'nginx_section', 'node_exporter',
-	's3_backup', 'smon_agent', 'udp', 'waf_haproxy', 'waf_nginx', 'podman_proxy',
+	's3_backup', 'udp', 'waf_haproxy', 'waf_nginx', 'podman_proxy',
 )
 _ANSIBLE_PLAYBOOKS = {
 	role: f'{ANSIBLE_PROJECT_DIR}/roles/{role}.yml'

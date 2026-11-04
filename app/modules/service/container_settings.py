@@ -71,9 +71,7 @@ def is_running(server, service):
     return json.loads(Remote(server).run(['python3', '-c', script, json.dumps(data)], timeout=90))
 
 
-def keepalived_state(server):
-    import json
-    from app.modules.pacemaker.remote import Remote
-    script=containers.embedded()+'import json,sys\ndata=json.loads(sys.argv[1])\nprint(module.keepalived_state(data["runtime"],data["name"]))\n'
-    data=dict(runtime=runtime(server.server_id,'keepalived'),name=name(server.server_id,'keepalived'))
-    return Remote(server).run(['python3','-c',script,json.dumps(data)],timeout=45).strip()
+def keepalived_state(server) -> str:
+    """Compatibility adapter for callers expecting one aggregate role."""
+    from app.modules.service.keepalived import collect, summary
+    return summary(collect(server))

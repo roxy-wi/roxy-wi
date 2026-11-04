@@ -302,7 +302,16 @@ class OperationWorker:
 
 
 def run_worker() -> None:
+    from app.modules.integrations.keepalived_probes import KeepalivedProbeConsumer
+
     worker = OperationWorker()
     signal.signal(signal.SIGTERM, worker.stop)
     signal.signal(signal.SIGINT, worker.stop)
-    worker.run()
+    probes = threading.Thread(target=KeepalivedProbeConsumer(worker._stop_event).run,
+                              name='keepalived-probes', daemon=False)
+    probes.start()
+    try:
+        worker.run()
+    finally:
+        worker.stop()
+        probes.join()

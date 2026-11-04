@@ -7,7 +7,6 @@ from flask import g
 import app.api.routes.change_routes as public_change_routes
 import app.routes.change.routes as change_routes
 import app.routes.service.routes as service_routes
-import app.routes.smon.routes as smon_routes
 from app.modules.roxywi.exception import RoxywiValidationError
 
 
@@ -33,35 +32,6 @@ def test_batch_status_does_not_return_internal_exception_details(app, monkeypatc
 
     assert payload['data'][0]['error'] == 'Cannot get service status'
     assert secret not in str(payload)
-    assert secret in log_messages[0]
-
-
-@pytest.mark.security
-def test_status_page_failure_does_not_return_internal_exception_details(app, monkeypatch):
-    secret = '/var/lib/roxy-wi/private-status-page-state'
-    log_messages = []
-    monkeypatch.setattr(
-        smon_routes.smon_mod,
-        'create_status_page',
-        lambda *_args: (_ for _ in ()).throw(RuntimeError(secret)),
-    )
-    monkeypatch.setattr(
-        smon_routes.roxywi_common,
-        'logging',
-        lambda _server, message, **_kwargs: log_messages.append(message),
-    )
-
-    with app.test_request_context(
-        '/smon/status-page',
-        method='POST',
-        data={'name': 'Status', 'slug': 'status', 'desc': '', 'checks': '{"checks": [1]}'},
-    ):
-        g.user_params = {'group_id': 1}
-        response, status = inspect.unwrap(smon_routes.status_page)()
-
-    assert status == 500
-    assert response == 'error: Cannot create status page'
-    assert secret not in response
     assert secret in log_messages[0]
 
 

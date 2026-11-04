@@ -3,10 +3,9 @@ import uuid
 import pytest
 
 import app.modules.db.server as server_sql
-import app.modules.db.smon as smon_sql
 import app.modules.db.backup as backup_sql
 import app.modules.db.add as add_sql
-from app.modules.db.db_model import Backup, Groups, Option, Server, SMON
+from app.modules.db.db_model import Backup, Groups, Option, Server
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 
 
@@ -32,21 +31,6 @@ def test_server_list_does_not_treat_group_one_as_global_access():
 
     assert own_server.server_id in visible_ids
     assert foreign_server.server_id not in visible_ids
-
-
-@pytest.mark.security
-def test_smon_list_is_always_scoped_to_requested_group():
-    suffix = uuid.uuid4().hex
-    other_group = Groups.create(name=f'smon-tenant-{suffix}', description='test tenant')
-    own_check = SMON.create(name=f'own-check-{suffix}', port=10001, http='', body='', user_group=1)
-    foreign_check = SMON.create(
-        name=f'foreign-check-{suffix}', port=10002, http='', body='', user_group=other_group.group_id
-    )
-
-    visible_ids = {check.id for check in smon_sql.smon_list(1)}
-
-    assert own_check.id in visible_ids
-    assert foreign_check.id not in visible_ids
 
 
 @pytest.mark.security

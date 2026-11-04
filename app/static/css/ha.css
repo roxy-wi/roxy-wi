@@ -18,6 +18,27 @@
 }
 .checks {
     height: 100px;
+    overflow-y: auto;
+}
+.all-checks, .enabled-check {
+    height: 40px;
+    width: 300px;
+}
+.enabled-check {
+    float: right;
+}
+.add_user_group {
+    height: 14px;
+}
+.check-name {
+    margin-left: 15px;
+    margin-top: 10px;
+    width: 245px;
+    float: left;
+}
+.check-button {
+    float: left;
+    margin-top: 3px;
 }
 .add-button-status-page {
     margin-left: 20px;
@@ -42,4 +63,11 @@
 .udp-listener-invalid .server-desc {
     height: auto;
     min-height: 80px;
+}
+
+.add-button-big {
+    font-size: 15px;
+    float: unset;
+    margin: var(--indent);
+    width: fit-content;
 }

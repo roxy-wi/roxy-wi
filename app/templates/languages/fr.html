@@ -207,12 +207,7 @@
     "monitoring": {
         "link": "Monitoring",
         "title": "Outils de monitoring",
-        "smon": {
-            "dashboard": "SMON: tableau de bord",
-            "status_page": "SMON: Page d'état",
-            "history": "SMON: Historique",
-            "agent": "SMON: Agent",
-        },
+
         "checker_history": "Vérificateur: Historique",
         "port_scan": "Scanner de port",
         "net_tools": "Réseau: outils",
@@ -496,14 +491,7 @@
         "checker_check_interval": "Valeur du seuil pour les alertes maxconn, en %",
         "action_keep_history_range": "Période de conservation de l'historique des actions (en jours)",
         },
-    "smon": {
-        "master_ip": "IP ou nom pour se connecter au maître SMON",
-        "master_port": "Port de connexion au maître SMON",
-        "agent_port": "Port SMON de l'agent",
-        "smon_keep_history_range": "Période de rétention pour l\'historiques de SMON",
-        "smon_ssl_expire_warning_alert": "Alerte type warning dès qu'un certificat SSL expire (en jours)",
-        "smon_ssl_expire_critical_alert": "Alerte tpye critical dès qu'un certificat SSL expire (en jours)",
-    },
+
     "main": {
         "time_zone": "Fuseau horaire",
         "license": "Clé de licence",
@@ -656,7 +644,6 @@
     "BytesPerSec": "Octets par seconde",
     "became_master": "Devenu maître",
     "resource_record_type": "Type d'enregistrement de ressource",
-    "add_to_smon_desc": "Ajouter le serveur pour vérification par SMON ping",
     "create_page_status": "Créer une page de statut",
     "not_in_cluster": "Pas dans un cluster",
     "ssh_passphrase": "Phrase secrète de la clé SSH",
@@ -766,6 +753,15 @@
         }
     }
 %}
+{% set exporter_check = {
+    "select_server": "Sélectionnez un serveur pour vérifier l’exportateur.",
+    "checking": "Vérification de l’installation de l’exportateur…",
+    "installed": "Installé, version {version}",
+    "not_installed": "L’exportateur n’est pas installé.",
+    "failed": "Impossible de vérifier l’exportateur. Vérifiez la connexion SSH et les droits d’accès, puis sélectionnez à nouveau le serveur.",
+    "session_expired": "Votre session a expiré. Reconnectez-vous.",
+    "forbidden": "Vous n’avez pas les droits nécessaires pour vérifier ce serveur."
+} %}
 {% set admin_page = {
     "desc": {
         "latest_repo": "Roxy-WI va essayer d\'installer la dernière version du service à partir du dépôt officiel.",
@@ -775,7 +771,6 @@
         "been_installed": "les serveurs ont été installés",
         "there_are_no": "Il n\'y a pas de serveurs Grafana ni Prometheus.",
         "country_codes": "Сodes des pays",
-        "smon_desc": "SMON stands for <b>S</b>imple <b>MON</b>itoring",
         "checker_desc": "Checker est conçu pour surveiller les services HAProxy, Nginx, Apache et Keepalived ainsi que les backends HAProxy et maxconn.",
         "auto_start_desc": "Le service Auto Start permet de redémarrer les services HAProxy, NGINX, Apache et Keepalived s\'ils sont hors service.",
         "metrics_desc": "Collecte du nombre de connexions pour les services HAProxy, NGINX, Apache et HAProxy WAF",
@@ -860,38 +855,6 @@
     "sign_in_with": "Se connecter avec",
     "delete_mapping_confirm": "Supprimer l'association du groupe externe « {group} » ?"
 }
-%}
-{% set smon_page = {
-    "desc": {
-        "before_use": "avant l\'utilisation",
-        "smon_is_not_run": "Le service SMON n\'est pas en cours d\'exécution  .",
-        "run_smon": "Exécutez le service SMON",
-        "not_installed": "Vous n\'avez pas installé le service SMON",
-        "not_added": "Vous n\'avez pas ajouté de serveurs dans le service SMON",
-        "create_server": "Créez votre premier serveur",
-        "see_check": "pour voir si de nouveaux contrôles ont été ajoutés",
-        "do_not_sort": "Ne pas trier",
-        "do_not_sort_by_status": "Ne pas trier par statut",
-        "sort_status": "Trier par statut",
-        "status_summary": "Résumé du statut",
-        "enabled_checks": "Contrôles activés",
-        "http_status_check": "Vérification du statut HTTP",
-        "body_status_check": "Vérification de la réponse du corps",
-        "resp_time": "Temps de réponse",
-        "last_resp_time": "Dernier temps de réponse",
-        "UP": "UP",
-        "DOWN": "DOWN",
-        "HTTP_FAILURE": "ECHEC HTTP",
-        "BODY_FAILURE": " DÉFAILLANCE DU CORPS",
-        "UNKNOWN": "INCONNU",
-        "PORT_DOWN": "PORT DOWN",
-        "DISABLED": "DÉSACTIVÉ",
-        "packet_size": "Taille du paquet",
-        "add_agent": "Ajouter un agent",
-        "total_checks": "Chèques totaux",
-        "not_assign_to_agent": "Le chèque n'est attribué à aucun agent"
-        }
-    }
 %}
 {% set p_s_page = {
     "desc": {

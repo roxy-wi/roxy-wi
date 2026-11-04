@@ -242,23 +242,45 @@ function installExporter(exporter) {
 		}
 	});
 }
+const exporterVersionRequests = {};
 function showExporterVersion(exporter) {
-	$.ajax({
-		url: "/install/exporter/" + exporter + "/version/" + $('#' + exporter + '_exp_addserv option:selected').val(),
-		success: function (data) {
-			data = data.replace(/^\s+|\s+$/g, '');
-			if (data.indexOf('error:') != '-1') {
-				toastr.clear();
-				toastr.error(data);
-			} else if (data == 'no' || data.indexOf('command') != '-1' || data.indexOf('_exporter:') != '-1' || data == '') {
-				$('#cur_' + exporter + '_exp_ver').text(nice_names[exporter] + ' exporter has not been installed');
-			} else {
-                const version = exporter === 'ha_cluster' ? data.match(/\bversion\s+([^\s,]+)/) : null;
-                $('#cur_' + exporter + '_exp_ver').text(version ? version[1] : data);
-                if (exporter === 'ha_cluster') $('#cur_' + exporter + '_exp_ver').attr('title', data);
-			}
-		}
-	});
+    const messages = JSON.parse($('#exporter-check-messages').text());
+    const server = $('#' + exporter + '_exp_addserv').val();
+    const result = $('#cur_' + exporter + '_exp_ver');
+    const previous = exporterVersionRequests[exporter];
+    // Invalidate callbacks before aborting: abort invokes the error callback too.
+    const current = {};
+    exporterVersionRequests[exporter] = current;
+    if (previous?.request) previous.request.abort();
+    result.removeAttr('title').attr({'role': 'status', 'aria-live': 'polite', 'aria-busy': 'false'});
+    if (!server || server === '------') {
+        result.text(messages.select_server);
+        return;
+    }
+    result.text(messages.checking).attr('aria-busy', 'true');
+    current.request = $.ajax({
+        url: '/install/exporter/' + exporter + '/version/' + encodeURIComponent(server),
+        dataType: 'text',
+        suppressGlobalError: true,
+        timeout: 30000,
+        success: function (data) {
+            if (exporterVersionRequests[exporter] !== current) return;
+            const version = data.trim();
+            let message = messages.failed;
+            if (version === 'no') {
+                message = messages.not_installed;
+            } else if (/^v?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version)) {
+                message = messages.installed.replace('{version}', version);
+            }
+            result.text(message).attr('aria-busy', 'false');
+        },
+        error: function (response) {
+            if (exporterVersionRequests[exporter] !== current) return;
+            const message = response.status === 401 ? messages.session_expired
+                : response.status === 403 ? messages.forbidden : messages.failed;
+            result.text(message).attr('aria-busy', 'false');
+        }
+    });
 }
 function showServiceVersion(service) {
 	let install_div = service === 'haproxy' ? $('#install') : $('#' + service + '_install');

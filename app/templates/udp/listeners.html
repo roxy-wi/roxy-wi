@@ -6,7 +6,6 @@
 <script src="/static/js/install.js"></script>
 <script src="/static/js/udp.js"></script>
 <link href="{{ url_for('static', filename='css/servers.css') }}" rel="stylesheet"/>
-<link href="{{ url_for('static', filename='css/smon.css') }}" rel="stylesheet">
 <link href="{{ url_for('static', filename='css/ha.css') }}" rel="stylesheet">
 {% if user_subscription.user_status == 0 or user_subscription.user_plan == 'user' %}
 	{% include 'include/no_sub.html' %}

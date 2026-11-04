@@ -182,20 +182,16 @@
 					<span class="nav-group-label">{{ lang.words.monitoring|title() }}</span><span class="fas fa-chevron-down nav-chevron" aria-hidden="true"></span>
 				</button>
 				<ul class="nav-group-items">
-					<li class="p_menu nav-service" data-nav-search="{{ lang.menu_links.monitoring.link|lower }} smon checker">
+					<li class="p_menu nav-service" data-nav-search="{{ lang.menu_links.monitoring.link|lower }} checker">
 						<div class="nav-service-row">
-							<a href="{{ url_for('smon.smon_main_dashboard') }}" title="{{ lang.menu_links.monitoring.title }}" class="nav-link nav-service-link">
+							<a href="{{ url_for('checker.checker_history') }}" title="{{ lang.menu_links.monitoring.title }}" class="nav-link nav-service-link">
 								<span class="fas fa-chart-line nav-icon" aria-hidden="true"></span><span class="nav-label">{{ lang.menu_links.monitoring.link }}</span>
 							</a>
 							<button type="button" class="nav-submenu-toggle" aria-expanded="false" aria-label="{{ lang.menu_links.monitoring.link }} {{ lang.menu_links.navigation.submenu }}"><span class="fas fa-chevron-right nav-chevron" aria-hidden="true"></span></button>
 						</div>
 						<ul class="v_menu">
-							<li><a href="{{ url_for('smon.smon_main_dashboard') }}" title="{{ lang.menu_links.monitoring.smon.dashboard }}" class="head-submenu">{{ lang.menu_links.monitoring.smon.dashboard }}</a></li>
-							<li><a href="{{ url_for('smon.status_page') }}" title="{{ lang.menu_links.monitoring.smon.status_page }}" class="head-submenu">{{ lang.menu_links.monitoring.smon.status_page }}</a></li>
-							<li><a href="{{ url_for('smon.smon_history') }}" title="{{ lang.menu_links.monitoring.smon.history }}" class="head-submenu">{{ lang.menu_links.monitoring.smon.history }}</a></li>
 							{% if g.user_params['role'] <= 3 %}
-							<li><a href="{{ url_for('smon.agent') }}" title="{{ lang.menu_links.monitoring.smon.agent }}" class="head-submenu">{{ lang.menu_links.monitoring.smon.agent }}</a></li>
-							<li><a href="{{ url_for('channel.channels') }}" title="{{ lang.words.channels|title() }} {{ lang.words.for }} Checker {{ lang.words.and }} SMON" class="head-submenu">{{ lang.words.channels|title }}</a></li>
+							<li><a href="{{ url_for('channel.channels') }}" title="{{ lang.words.channels|title() }} {{ lang.words.for }} Checker" class="head-submenu">{{ lang.words.channels|title }}</a></li>
 							<li><a href="{{ url_for('checker.checker_settings') }}" title="Checker: {{ lang.words.settings }}" class="head-submenu">Checker: {{ lang.words.settings|title() }}</a></li>
 							{% endif %}
 							<li><a href="{{ url_for('checker.checker_history') }}" title="{{ lang.menu_links.monitoring.checker_history }}" class="head-submenu">{{ lang.menu_links.monitoring.checker_history }}</a></li>

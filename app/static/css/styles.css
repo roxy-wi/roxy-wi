@@ -1260,22 +1260,9 @@ label {
 .sort_menu {
 	clear: both;
 }
-.smon_group {
-	clear: both;
-}
 .group_name {
 	font-size: 18px;
 	padding: 10px 20px 0 0;
-}
-.smon_services {
-	width: 300px;
-	height: 185px;
-	float: left;
-	background-color: var(--color-gray-light-alpha);
-	margin: 10px 10px 10px 0;
-	padding-left: var(--indent);
-	padding-top: 0;
-	border-radius: var(--border-radius);
 }
 #good_services {
 	clear: both;

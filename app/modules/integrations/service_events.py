@@ -14,7 +14,7 @@ from app.modules.roxywi import logger
 
 
 SUPPORTED_WORKER_SERVICES = frozenset({
-    'checker', 'metrics', 'keep_alive', 'portscanner', 'smon', 'socket', 'automation'
+    'checker', 'metrics', 'keep_alive', 'portscanner', 'socket', 'automation'
 })
 SERVICE_IDS = {
     'pacemaker': 5,

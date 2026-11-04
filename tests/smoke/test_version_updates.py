@@ -42,7 +42,7 @@ def test_existing_component_update_cycle_also_updates_roxywi(monkeypatch):
     app_updates = []
     discovered = {
         'roxy-wi-checker': '2.0.0',
-        'roxy-wi-smon': '3.0.0',
+        'roxy-wi-metrics': '3.0.0',
         'roxy-wi': '99.0.0',
     }
 
@@ -53,7 +53,7 @@ def test_existing_component_update_cycle_also_updates_roxywi(monkeypatch):
     monkeypatch.setattr(
         jobs.roxy_sql,
         'get_roxy_tools',
-        lambda: ['roxy-wi-checker', 'roxy-wi-smon'],
+        lambda: ['roxy-wi-checker', 'roxy-wi-metrics'],
     )
     monkeypatch.setattr(jobs.roxy, 'check_new_version', check)
     monkeypatch.setattr(jobs.roxy, 'check_ver', get_service_version)
@@ -70,10 +70,10 @@ def test_existing_component_update_cycle_also_updates_roxywi(monkeypatch):
 
     jobs.update_new_versions()
 
-    assert checks == ['roxy-wi-checker', 'roxy-wi-smon', 'roxy-wi']
+    assert checks == ['roxy-wi-checker', 'roxy-wi-metrics', 'roxy-wi']
     assert component_updates == [
         ('roxy-wi-checker', '2.0.0'),
-        ('roxy-wi-smon', '3.0.0'),
+        ('roxy-wi-metrics', '3.0.0'),
     ]
     assert app_updates == [(get_service_version(), '99.0.0')]
 

@@ -3,6 +3,7 @@
 {% block h2 %}{{lang.words.installation|title()}}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import select, checkbox %}
+<script id="exporter-check-messages" type="application/json">{{lang.exporter_check|tojson}}</script>
 <script src="{{ url_for('static', filename='js/install.js') }}"></script>
 <script src="/static/js/fontawesome.min.js"></script>
 <div id="tabs">

@@ -28,7 +28,7 @@ from app.modules.db.db_model import (
 
 
 ACTIVE_WORKER_STATUSES = frozenset({'starting', 'running', 'degraded'})
-UNGROUPED_WORKER_SERVICES = frozenset({'smon', 'keep_alive'})
+UNGROUPED_WORKER_SERVICES = frozenset({'keep_alive'})
 NOTIFICATION_RETRY_SECONDS = (30, 60, 120, 300, 600, 1800)
 
 

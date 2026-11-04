@@ -13,9 +13,9 @@ from app.modules.roxy_wi_tools import GetConfigVar
 _INTEGER_SETTINGS = {
 	'nginx_stats_port', 'session_ttl', 'token_ttl', 'haproxy_stats_port', 'haproxy_sock_port',
 	'ldap_type', 'ldap_port', 'ldap_enable', 'log_time_storage', 'syslog_server_enable',
-	'checker_check_interval', 'port_scan_interval', 'smon_keep_history_range',
+	'checker_check_interval', 'port_scan_interval',
 	'checker_keep_history_range', 'portscanner_keep_history_range', 'checker_maxconn_threshold',
-	'apache_stats_port', 'smon_ssl_expire_warning_alert', 'smon_ssl_expire_critical_alert',
+	'apache_stats_port',
 	'action_keep_history_range',
 }
 _config = GetConfigVar()

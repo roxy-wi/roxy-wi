@@ -9,13 +9,11 @@ from flask_jwt_extended import jwt_required
 import app.modules.db.sql as sql
 import app.modules.roxywi.roxy as roxy
 import app.modules.roxywi.common as roxywi_common
-import app.modules.tools.smon as smon_mod
 from app.middleware import get_user_params, page_for_admin, check_group
 from app.modules.roxywi.class_models import (
     BaseResponse, GroupQuery, SettingsRequest
 )
 from app.modules.common.common_classes import SupportClass
-from app.modules.roxywi.error_handler import safe_error_message
 
 
 class SettingsView(MethodView):
@@ -34,10 +32,10 @@ class SettingsView(MethodView):
         parameters:
         - name: section
           in: path
-          description: The name of the settings section. Only 'main', 'smon', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'keepalived' are allowed. If none get all settings.
+          description: The name of the settings section. Only 'main', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'keepalived' are allowed. If none get all settings.
           required: true
           type: string
-          enum: ['main', 'smon', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'keepalived']
+          enum: ['main', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'keepalived']
         - name: group_id
           in: query
           description: This parameter is used only for the superAdmin role.
@@ -95,10 +93,10 @@ class SettingsView(MethodView):
         parameters:
         - name: section
           in: path
-          description: The name of the settings section. Only 'main', 'smon', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'keepalived' are allowed. If none get all settings.
+          description: The name of the settings section. Only 'main', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'keepalived' are allowed. If none get all settings.
           required: true
           type: string
-          enum: ['main', 'smon', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'keepalived']
+          enum: ['main', 'rabbitmq', 'ldap', 'monitoring', 'logs', 'haproxy', 'nginx', 'apache', 'keepalived']
         - name: group_id
           in: query
           description: The parameter is used only for the superAdmin role.
@@ -137,11 +135,6 @@ class SettingsView(MethodView):
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update settings')
         roxywi_common.logging('Roxy-WI server', f'The {body.param} setting has been changed to: {val}', roxywi=1, login=1)
 
-        if body.param == 'master_port':
-            try:
-                smon_mod.change_smon_port(int(val))
-            except Exception as e:
-                return 'error: ' + safe_error_message(e)
         if body.param == 'license':
             roxy.update_plan()
         return BaseResponse().model_dump(mode='json'), 201

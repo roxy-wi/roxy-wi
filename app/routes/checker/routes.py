@@ -62,9 +62,8 @@ def checker_history():
 
     kwargs = {
         'lang': g.user_params['lang'],
-        'smon': history_sql.alerts_history('Checker', g.user_params['group_id']),
+        'alerts': history_sql.alerts_history('Checker', g.user_params['group_id']),
         'user_subscription': roxywi_common.return_user_subscription(),
-        'action': 'checker'
     }
 
-    return render_template('smon/checker_history.html', **kwargs)
+    return render_template('checker/history.html', **kwargs)

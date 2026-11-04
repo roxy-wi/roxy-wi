@@ -1,3 +1,4 @@
+import re
 from typing import Union
 
 import requests
@@ -72,25 +73,31 @@ def is_not_allowed_to_restart(server_id: int, service: str, action: str) -> int:
 
 
 def get_exp_version(server_ip: str, service_name: str) -> str:
-	if service_name == 'haproxy':
-		command = "/opt/prometheus/exporters/haproxy_exporter --version 2>&1 |head -1|awk '{print $3}'"
-	elif service_name == 'nginx':
-		command = "/opt/prometheus/exporters/nginx_exporter --version 2>&1 |head -1 |awk -F\"version\" '{print $2}'|awk '{print $1}'"
-	elif service_name == 'node':
-		command = "node_exporter --version 2>&1 |head -1|awk '{print $3}'"
-	elif service_name == 'apache':
-		command = "/opt/prometheus/exporters/apache_exporter --version 2>&1 |head -1|awk '{print $3}'"
-	elif service_name == 'ha_cluster':
-		command = "/usr/local/bin/ha_cluster_exporter --version 2>&1 |head -n 1"
-	elif service_name == 'keepalived':
-		command = "keepalived_exporter --version 2>&1 |head -1|awk '{print $2}'"
-
-	ver = server_mod.ssh_command(server_ip, command)
-
-	if ver != '':
-		return ver
-	else:
+	"""Return the installed version or ``no``; raise if the check fails."""
+	binaries = {
+		'haproxy': '/opt/prometheus/exporters/haproxy_exporter',
+		'nginx': '/opt/prometheus/exporters/nginx_exporter',
+		'apache': '/opt/prometheus/exporters/apache_exporter',
+		'node': 'node_exporter',
+		'keepalived': 'keepalived_exporter',
+		'ha_cluster': '/usr/local/bin/ha_cluster_exporter',
+	}
+	binary = binaries[service_name]
+	present = f'[ -e {binary} ]' if binary.startswith('/') else f'command -v {binary} >/dev/null 2>&1'
+	command = f"if {present}; then {binary} --version 2>&1; else printf '%s\\n' no; fi"
+	output = server_mod.ssh_command(
+		server_ip, command, rc=1, timeout=10, connect_timeout=10, banner_timeout=10,
+		error_context='Cannot check exporter version',
+	).strip()
+	if output == 'no':
 		return 'no'
+	version = re.search(
+		r'(?im)^(?:[^\r\n]*\bversion\s*[:=]?\s*|keepalived_exporter\s+)'
+		r'(v?\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?)(?=[\s,]|$)', output,
+	)
+	if version is None:
+		raise ValueError('Cannot determine exporter version')
+	return version.group(1)
 
 
 def get_correct_apache_service_name(server_ip=None, server_id=None) -> str:

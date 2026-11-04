@@ -79,7 +79,7 @@ def test_navigation_groups_existing_destinations_without_changing_access_guards(
         "url_for('service.services', service='apache')",
         "url_for('service.services', service='keepalived')",
         "url_for('udp.udp_listener', service='udp')",
-        "url_for('smon.smon_main_dashboard')",
+        "url_for('checker.checker_history')",
         "url_for('install.install_monitoring')",
         "url_for('admin.admin')",
     ):

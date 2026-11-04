@@ -91,7 +91,10 @@ def install_exporter(exporter):
 
 @bp.route('/exporter/<exporter>/version/<server_ip>')
 @validate()
-def get_exporter_version(exporter: str, server_ip: Union[IPvAnyAddress, DomainName]):
+def get_exporter_version(
+    exporter: Literal['haproxy', 'nginx', 'apache', 'keepalived', 'node', 'ha_cluster'],
+    server_ip: Union[IPvAnyAddress, DomainName],
+) -> str:
     if exporter=='ha_cluster':
         from app.modules.pacemaker.exporter import member_server
         if int(g.user_params['role'])>3 or not roxywi_auth.is_access_permit_to_service('cluster'):abort(403)

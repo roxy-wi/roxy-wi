@@ -292,23 +292,21 @@ path=pathlib.Path(data['path'])
 if not path.is_absolute() or path.is_symlink() or path.stat().st_size>1048576:raise ValueError('Unsupported configuration file')
 text=path.read_text()
 # Do not return auth_pass, scripts, comments or configuration text.
-active=subprocess.run(['systemctl','is-active','keepalived'],capture_output=True,text=True,timeout=10).stdout.strip()=='active'
 addresses=json.loads(subprocess.run(['ip','-j','address','show'],check=True,capture_output=True,text=True,timeout=10).stdout)
-print(json.dumps(dict(digest=hashlib.sha256(text.encode()).hexdigest(),active=active,
+print(json.dumps(dict(digest=hashlib.sha256(text.encode()).hexdigest(),
     includes=bool(__import__('re').search(r'^\s*include\s',text,__import__('re').M)),
     addresses=sorted({a['local'] for i in addresses for a in i.get('addr_info',[])}))))
 '''
 
 
 def keepalived_node(cluster, name, server):
-    from app.modules.db import sql, service as service_sql
-    from app.modules.service import container_settings
+    from app.modules.db import sql
+    from app.modules.service.keepalived import collect, summary
     info=json.loads(Remote(server).run(['python3','-c',KEEPALIVED_PROBE],
         data=json.dumps(dict(path=sql.get_setting('keepalived_config_path',group_id=cluster.group_id)))))
-    if service_sql.select_service_setting(server.server_id,'keepalived','dockerized')=='1':
-        state=container_settings.keepalived_state(server)
-        info['active']=state in ('MASTER','BACKUP','FAULT','INIT')
-        info['runtime_state']=state
+    snapshot = collect(server)
+    info.update(active=snapshot.service == 'UP', runtime_state=summary(snapshot),
+                instances=[instance.model_dump() for instance in snapshot.instances])
     return dict(id=server.server_id,name=name,**info)
 
 

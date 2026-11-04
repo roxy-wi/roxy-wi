@@ -8,12 +8,12 @@ from flask_jwt_extended import jwt_required
 from pydantic import ValidationError
 
 from app.middleware import get_user_params, page_for_admin, check_group, check_services
-from app.modules.roxywi import common
 from app.modules.roxywi.class_models import GroupQuery, ListRequest
 from app.modules.common.common_classes import SupportClass
 from app.modules.service import haproxy_lists as lists
 from app.modules.service.haproxy_list_models import ListChange, ListIdentity
 from app.modules.config import add
+from app.modules.roxywi.error_handler import ERROR_CODE_MAPPING, safe_error_message
 
 
 def error_response(error: Exception):
@@ -22,7 +22,9 @@ def error_response(error: Exception):
                 error.errors(include_url=False, include_context=False, include_input=False)}}, 400
     if isinstance(error, lists.ListError):
         return {'status': 'failed', 'error': error.code, 'code': error.code, 'nodes': error.nodes}, error.status
-    return common.handler_exceptions_for_json_data(error, 'Cannot update HAProxy list')
+    status = next((code for error_type, code in ERROR_CODE_MAPPING.items()
+                   if isinstance(error, error_type)), 500)
+    return {'error': f'Cannot update HAProxy list: {safe_error_message(error)}'}, status
 
 
 class HaproxyListsView(MethodView):

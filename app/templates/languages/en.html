@@ -207,12 +207,7 @@
     "monitoring": {
         "link": "Monitoring",
         "title": "Monitoring tools",
-        "smon": {
-            "dashboard": "SMON: Dashboard",
-            "status_page": "SMON: Status page",
-            "history": "SMON: History",
-            "agent": "SMON: Agent",
-        },
+
         "checker_history": "Checker: History",
         "port_scan": "Port scanner",
         "net_tools": "Network: tools",
@@ -544,14 +539,7 @@
         "checker_check_interval": "Check interval for Checker (in minutes)",
         "action_keep_history_range": "Retention period for Action history (in days)",
         },
-    "smon": {
-        "master_ip": "IP or name to connect to the SMON master",
-        "master_port": "Port for connecting to the SMON master",
-        "agent_port": "Agent SMON port",
-        "smon_keep_history_range": "Retention period for SMON history",
-        "smon_ssl_expire_warning_alert": "Warning alert about a SSL certificate expiration (in days)",
-        "smon_ssl_expire_critical_alert": "Critical alert about a SSL certificate expiration (in days)",
-    },
+
     "main": {
         "time_zone": "Time Zone",
         "license": "License key",
@@ -717,7 +705,6 @@
     "BytesPerSec": "BytesPerSec",
     "became_master": "Became Master",
     "resource_record_type": "Resource Record Type",
-    "add_to_smon_desc": "Add the server for checking by SMON ping",
     "create_page_status": "Create status page",
     "not_in_cluster": "Not in a cluster",
     "ssh_passphrase": "SSH key passphrase",
@@ -827,6 +814,15 @@
         }
     }
 %}
+{% set exporter_check = {
+    "select_server": "Select a server to check the exporter.",
+    "checking": "Checking exporter installation…",
+    "installed": "Installed, version {version}",
+    "not_installed": "Exporter is not installed.",
+    "failed": "Could not check the exporter. Check the SSH connection and access permissions, then select the server again.",
+    "session_expired": "Your session has expired. Sign in again.",
+    "forbidden": "You do not have permission to check this server."
+} %}
 {% set admin_page = {
     "desc": {
         "latest_repo": "Roxy-WI will try to install the latest version of the service from the official repository",
@@ -836,7 +832,6 @@
         "been_installed": "servers have been installed",
         "there_are_no": "There are no Grafana and Prometheus servers",
         "country_codes": "Country codes",
-        "smon_desc": "SMON stands for <b>S</b>imple <b>MON</b>itoring",
         "checker_desc": "Checker is designed for monitoring HAProxy, Nginx, Apache and Keepalived services as well as HAProxy backends and maxconn",
         "auto_start_desc": "The Auto Start service allows to restart the HAProxy, NGINX, Apache and Keepalived services if they are down",
         "metrics_desc": "Collects number of connections for HAProxy, NGINX, Apache and HAProxy WAF services",
@@ -921,38 +916,6 @@
     "sign_in_with": "Sign in with",
     "delete_mapping_confirm": "Delete the mapping for external group '{group}'?"
 }
-%}
-{% set smon_page = {
-    "desc": {
-        "before_use": "before use",
-        "smon_is_not_run": "SMON service is not run.",
-        "run_smon": "Run the SMON service",
-        "not_installed": "You have not installed SMON service",
-        "not_added": "You do not have added servers in SMON service",
-        "create_server": "Create your first server",
-        "see_check": "to see if new check have been added",
-        "do_not_sort": "Do not sort",
-        "do_not_sort_by_status": "Do not sort by status",
-        "sort_status": "Sort by status",
-        "status_summary": "Status summary",
-        "enabled_checks": "Enabled checks",
-        "http_status_check": "HTTP status check",
-        "body_status_check": "Body response check",
-        "resp_time": "Resp time",
-        "last_resp_time": "Last resp time",
-        "UP": "UP",
-        "DOWN": "DOWN",
-        "HTTP_FAILURE": "HTTP FAILURE",
-        "BODY_FAILURE": "BODY FAILURE",
-        "UNKNOWN": "UNKNOWN",
-        "PORT_DOWN": "PORT DOWN",
-        "DISABLED": "DISABLED",
-        "packet_size": "Packet size",
-        "add_agent": "Add Agent",
-        "total_checks": "Total checks",
-        "not_assign_to_agent": "The check is not assigned to any agent"
-        }
-    }
 %}
 {% set p_s_page = {
     "desc": {

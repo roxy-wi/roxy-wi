@@ -266,28 +266,3 @@ def in_network(spec, container, source, payload, *, timeout=15):
         return result.stdout.decode()
     finally:
         os.close(descriptor)
-
-
-def keepalived_state(spec, container):
-    spec, container = validate(spec), name(container)
-    if spec['owner'] != 'root': raise ValueError('Keepalived requires a rootful host-network container')
-    def run(arguments, check=True):
-        return subprocess.run(argv(spec, arguments), check=check, capture_output=True, text=True, timeout=10)
-    record = json.loads(run(['inspect', container]).stdout)[0]
-    if record.get('HostConfig', {}).get('NetworkMode') != 'host':
-        raise ValueError('Keepalived requires host networking')
-    command = run(['exec', container, 'cat', '/proc/1/cmdline']).stdout.split('\x00')
-    if not command or Path(command[0]).name != 'keepalived':
-        raise ValueError('Keepalived must run as container PID 1')
-    path = '/tmp/keepalived.data'
-    run(['exec', container, 'rm', '-f', path])
-    run(['kill', '-s', 'USR1', container])
-    try:
-        for _ in range(10):
-            output = run(['exec', container, 'cat', path], check=False).stdout[:1024*1024]
-            match = re.search(r'^\s*State\s*=\s*(MASTER|BACKUP|FAULT|INIT)\b', output, re.M)
-            if match: return match.group(1)
-            time.sleep(.2)
-        raise ValueError('Keepalived did not report its VRRP state')
-    finally:
-        run(['exec', container, 'rm', '-f', path], check=False)

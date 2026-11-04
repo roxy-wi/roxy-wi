@@ -91,7 +91,6 @@ def _initialize_runtime() -> None:
     from app.routes.waf import bp as waf_bp
     from app.routes.runtime import bp as runtime_bp
     from app.routes.user import bp as user_bp
-    from app.routes.smon import bp as smon_bp
     from app.api.routes import bp as api_bp
     from app.routes.oidc import bp as oidc_bp
     from app.routes.change import bp as change_bp
@@ -105,7 +104,6 @@ def _initialize_runtime() -> None:
     app.register_blueprint(waf_bp, url_prefix='/waf')
     app.register_blueprint(runtime_bp, url_prefix='/runtimeapi')
     app.register_blueprint(user_bp, url_prefix='/user')
-    app.register_blueprint(smon_bp, url_prefix='/smon')
     app.register_blueprint(api_bp, url_prefix='/api')
     app.register_blueprint(oidc_bp, url_prefix='/oidc')
     app.register_blueprint(change_bp, url_prefix='/changes')

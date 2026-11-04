@@ -67,9 +67,8 @@ def show_ha_cluster(service, cluster_id):
 
         if is_keepalived:
             try:
-                cmd = ('sudo kill -USR1 `cat /var/run/keepalived.pid` && sudo grep State /tmp/keepalived.data -m 1 |'
-                       'awk -F"=" \'{print $2}\'|tr -d \'[:space:]\' && sudo rm -f /tmp/keepalived.data')
-                out = server_mod.ssh_command(s[2], cmd)
+                from app.modules.service.keepalived import collect, summary
+                out = summary(collect(server_sql.get_server(s[0])))
                 out1 = ('1', out)
                 servers_with_status.append(out1)
             except Exception as e:
@@ -151,15 +150,9 @@ def check_cluster_status(service: str, cluster_id: int):
         slaves = ha_sql.select_cluster_slaves(cluster_id, router_id)
     except Exception as e:
         return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get slaves')
-    status = 'ok'
-    statuses = []
-    cmd = 'systemctl is-active keepalived.service'
-    for slave in slaves:
-        output = server_mod.ssh_command(slave[2], cmd)
-        statuses.append(output.replace('\n', '').replace('\r', ''))
-    if 'inactive' in statuses and 'active' in statuses:
-        status = 'warning'
-    elif 'inactive' in statuses and 'active' not in statuses:
-        status = 'error'
+    from app.modules.service.keepalived import collect, summary
+    statuses = [summary(collect(server_sql.get_server(slave[0]))) for slave in slaves]
+    healthy = sum(state in ('MASTER', 'BACKUP') for state in statuses)
+    status = 'ok' if statuses and healthy == len(statuses) else 'warning' if healthy else 'error'
 
     return jsonify({'status': status})

@@ -159,7 +159,7 @@ bp.add_url_rule(
 )
 
 bp.add_url_rule(
-    '/settings/<any(smon, main, haproxy, nginx, apache, keepalived, rabbitmq, ldap, monitoring, mail, logs):section>',
+    '/settings/<any(main, haproxy, nginx, apache, keepalived, rabbitmq, ldap, monitoring, mail, logs):section>',
     view_func=SettingsView.as_view('settings_section'),
     methods=['GET', 'POST']
 )

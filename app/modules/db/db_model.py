@@ -539,34 +539,6 @@ class MetricsHttpStatus(BaseModel):
         primary_key = False
 
 
-class SMON(BaseModel):
-    id = AutoField()
-    name = CharField(null=True, index=True)  # Added index for name as it's used in filters
-    port = IntegerField(null=True, index=True)  # Added index for port as it's used in filters
-    status = IntegerField(constraints=[SQL('DEFAULT 1')], index=True)  # Added index for status as it's used in filters
-    en = IntegerField(constraints=[SQL('DEFAULT 1')], index=True)  # Added index for en as it's used in filters
-    desc = CharField(null=True)
-    response_time = CharField(null=True)
-    time_state = DateTimeField(constraints=[SQL('DEFAULT "0000-00-00 00:00:00"')], index=True)  # Added index for time-based queries
-    group = CharField(null=True, index=True)  # Added index for group as it's used in filters
-    http = CharField(null=True)
-    body = CharField(null=True)
-    body_status = IntegerField(constraints=[SQL('DEFAULT 1')])
-    telegram_channel_id = IntegerField(null=True)
-    user_group = IntegerField(index=True)  # Added index for user_group as it's used in joins and filters
-    slack_channel_id = IntegerField(null=True)
-    ssl_expire_warning_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
-    ssl_expire_critical_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
-    ssl_expire_date = CharField(null=True)
-    pd_channel_id = IntegerField(null=True)
-    check_type = CharField(constraints=[SQL('DEFAULT "tcp"')], index=True)  # Added index for check_type as it's used in filters
-    mm_channel_id = IntegerField(null=True)
-
-    class Meta:
-        table_name = 'smon'
-        constraints = [SQL('UNIQUE (name, port, http, body)')]
-
-
 class Alerts(BaseModel):
     event_id = CharField(null=True, unique=True, max_length=64)
     event_key = CharField(null=True, unique=True, max_length=64)
@@ -1085,103 +1057,6 @@ class KeepaliveRestart(BaseModel):
         constraints = [SQL('UNIQUE (server_id, service)')]
 
 
-class SmonHistory(BaseModel):
-    smon_id = ForeignKeyField(SMON, on_delete='Cascade')
-    check_id = IntegerField()
-    response_time = FloatField()
-    status = IntegerField()
-    mes = CharField()
-    date = DateTimeField(default=datetime.now)
-
-    class Meta:
-        table_name = 'smon_history'
-        primary_key = False
-
-
-class SmonAgent(BaseModel):
-    id = AutoField()
-    server_id = ForeignKeyField(Server, on_delete='Cascade')
-    name = CharField()
-    uuid = CharField()
-    enabled = IntegerField(constraints=[SQL('DEFAULT 1')])
-    desc = CharField()
-
-    class Meta:
-        table_name = 'smon_agents'
-
-
-class SmonTcpCheck(BaseModel):
-    smon_id = ForeignKeyField(SMON, on_delete='Cascade', unique=True)
-    ip = CharField()
-    port = IntegerField()
-    interval = IntegerField(constraints=[SQL('DEFAULT 120')])
-    agent_id = IntegerField(constraints=[SQL('DEFAULT 1')])
-
-    class Meta:
-        table_name = 'smon_tcp_check'
-        primary_key = False
-
-
-class SmonHttpCheck(BaseModel):
-    smon_id = ForeignKeyField(SMON, on_delete='Cascade', unique=True)
-    url = CharField()
-    method = CharField(constraints=[SQL('DEFAULT "get"')])
-    accepted_status_codes = CharField(constraints=[SQL('DEFAULT "200"')])
-    body = CharField(null=True)
-    interval = IntegerField(constraints=[SQL('DEFAULT 120')])
-    agent_id = IntegerField(constraints=[SQL('DEFAULT 1')])
-
-    class Meta:
-        table_name = 'smon_http_check'
-        primary_key = False
-
-
-class SmonPingCheck(BaseModel):
-    smon_id = ForeignKeyField(SMON, on_delete='Cascade', unique=True)
-    ip = CharField()
-    packet_size = IntegerField(constraints=[SQL('DEFAULT 56')])
-    interval = IntegerField(constraints=[SQL('DEFAULT 120')])
-    agent_id = IntegerField(constraints=[SQL('DEFAULT 1')])
-
-    class Meta:
-        table_name = 'smon_ping_check'
-        primary_key = False
-
-
-class SmonDnsCheck(BaseModel):
-    smon_id = ForeignKeyField(SMON, on_delete='Cascade', unique=True)
-    ip = CharField()
-    port = IntegerField(constraints=[SQL('DEFAULT 53')])
-    resolver = CharField()
-    record_type = CharField()
-    interval = IntegerField(constraints=[SQL('DEFAULT 120')])
-    agent_id = IntegerField(constraints=[SQL('DEFAULT 1')])
-
-    class Meta:
-        table_name = 'smon_dns_check'
-        primary_key = False
-
-
-class SmonStatusPage(BaseModel):
-    id = AutoField()
-    name = CharField()
-    slug = CharField(unique=True)
-    desc = CharField(null=True)
-    group_id = IntegerField()
-
-    class Meta:
-        table_name = 'smon_status_pages'
-
-
-class SmonStatusPageCheck(BaseModel):
-    page_id = ForeignKeyField(SmonStatusPage, on_delete='Cascade')
-    check_id = ForeignKeyField(SMON, on_delete='Cascade')
-
-    class Meta:
-        table_name = 'smon_status_page_checks'
-        primary_key = False
-
-
 class RoxyTool(BaseModel):
     id = AutoField()
     name = CharField()
@@ -1523,10 +1398,10 @@ def create_tables():
              ServiceEventDelivery, ServiceNotification, ServiceEventPosition, ServiceEventRetention,
              WorkerState, WorkerRun, ServiceAssignment, ServiceCommand,
              Cred, Backup, BackupSchedule, Metrics, WafMetrics, Version, Option, SavedServer, Waf, ActionHistory, PortScannerSettings,
-             PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, SMON, WafRules, WafConfigState, GeoipCodes,
+             PortScannerPorts, PortScannerHistory, ServiceSetting, MetricsHttpStatus, WafRules, WafConfigState, GeoipCodes,
              NginxMetrics, SystemInfo, Services, UserName, GitSetting, CheckerSetting, ApacheMetrics, WafNginx, ServiceStatus,
-             KeepaliveRestart, PD, SmonHistory, SmonAgent, SmonTcpCheck, SmonHttpCheck, SmonPingCheck, SmonDnsCheck, S3Backup,
-             SmonStatusPage, SmonStatusPageCheck, HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
+             KeepaliveRestart, PD, S3Backup,
+             HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
              HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, NginxSection, InstallationTasks,
              PacemakerCluster, PacemakerChange, PacemakerEvent, CertificateSource,
              OperationalAssessment, HaReadinessProfile, HaMaintenancePlan]

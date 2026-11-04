@@ -207,12 +207,7 @@
     "monitoring": {
         "link": "监控",
         "title": "监控工具",
-        "smon": {
-            "dashboard": "SMON：仪表板",
-            "status_page": "SMON：状态页面",
-            "history": "SMON：历史记录",
-            "agent": "SMON：代理",
-        },
+
         "checker_history": "检查器：历史记录",
         "port_scan": "端口扫描器",
         "net_tools": "网络工具",
@@ -493,14 +488,7 @@
         "checker_check_interval": "检查器检查间隔（分钟）",
         "action_keep_history_range": "动作历史保留时长（天）",
         },
-    "smon": {
-        "master_ip": "连接到 SMON 主服务器的 IP 或名称",
-        "master_port": "连接到 SMON 主服务器的端口",
-        "agent_port": "SMON 代理端口",
-        "smon_keep_history_range": "SMON 历史保留周期",
-        "smon_ssl_expire_warning_alert": "SSL 证书即将过期警告（天）",
-        "smon_ssl_expire_critical_alert": "SSL 证书即将过期严重警报（天）",
-    },
+
     "main": {
         "time_zone": "时区",
         "license": "许可证密钥",
@@ -653,7 +641,6 @@
     "BytesPerSec": "每秒字节数",
     "became_master": "变为主机",
     "resource_record_type": "资源记录类型",
-    "add_to_smon_desc": "添加服务器以通过 SMON Ping 检查",
     "create_page_status": "创建状态页面",
     "not_in_cluster": "不在集群中",
     "ssh_passphrase": "SSH 密钥密码",
@@ -763,6 +750,15 @@
         }
     }
 %}
+{% set exporter_check = {
+    "select_server": "请选择服务器以检查导出器。",
+    "checking": "正在检查导出器安装状态…",
+    "installed": "已安装，版本 {version}",
+    "not_installed": "尚未安装导出器。",
+    "failed": "无法检查导出器。请检查 SSH 连接和访问权限，然后重新选择服务器。",
+    "session_expired": "会话已过期，请重新登录。",
+    "forbidden": "您没有权限检查此服务器。"
+} %}
 {% set admin_page = {
     "desc": {
         "latest_repo": "Roxy-WI 将尝试从官方库安装服务的最新版本。",
@@ -772,7 +768,6 @@
         "been_installed": "服务器已安装。",
         "there_are_no": "没有 Grafana 和 Prometheus 服务器。",
         "country_codes": "国家代码。",
-        "smon_desc": "SMON 表示 <b>简单监控（S</b>imple <b>MON</b>itoring）。",
         "checker_desc": "Checker 设计用于监控 HAProxy、Nginx、Apache 和 Keepalived 服务，以及 HAProxy 后端和 maxconn。",
         "auto_start_desc": "自动启动服务允许在 HAProxy、NGINX、Apache 和 Keepalived 服务停止时重新启动它们。",
         "metrics_desc": "收集 HAProxy、NGINX、Apache 和 HAProxy WAF 服务的连接数。",
@@ -857,38 +852,6 @@
     "sign_in_with": "使用以下方式登录：",
     "delete_mapping_confirm": "删除外部用户组“{group}”的映射吗？"
 }
-%}
-{% set smon_page = {
-    "desc": {
-        "before_use": "使用前",
-        "smon_is_not_run": "SMON 服务未运行。",
-        "run_smon": "运行 SMON 服务",
-        "not_installed": "您尚未安装 SMON 服务",
-        "not_added": "您未在 SMON 服务中添加任何服务器",
-        "create_server": "创建您的第一个服务器",
-        "see_check": "查看是否已添加新的检查",
-        "do_not_sort": "不排序",
-        "do_not_sort_by_status": "不按状态排序",
-        "sort_status": "按状态排序",
-        "status_summary": "状态摘要",
-        "enabled_checks": "已启用检查",
-        "http_status_check": "HTTP 状态检查",
-        "body_status_check": "响应正文检查",
-        "resp_time": "响应时间",
-        "last_resp_time": "最后响应时间",
-        "UP": "正常",
-        "DOWN": "异常",
-        "HTTP_FAILURE": "HTTP 失败",
-        "BODY_FAILURE": "响应正文失败",
-        "UNKNOWN": "未知",
-        "PORT_DOWN": "端口关闭",
-        "DISABLED": "禁用",
-        "packet_size": "数据包大小",
-        "add_agent": "添加代理",
-        "total_checks": "检查总数",
-        "not_assign_to_agent": "该检查未分配给任何代理"
-        }
-    }
 %}
 {% set p_s_page = {
     "desc": {

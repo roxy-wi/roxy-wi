@@ -39,7 +39,7 @@ def _managed_service_access_error(service: str, action: str):
     return None
 
 bp.add_url_rule(
-    '/settings/<any(smon, main, haproxy, nginx, apache, keepalived, rabbitmq, ldap, monitoring, mail, logs):section>',
+    '/settings/<any(main, haproxy, nginx, apache, keepalived, rabbitmq, ldap, monitoring, mail, logs):section>',
     view_func=SettingsView.as_view('settings'),
     methods=['GET', 'POST']
 )

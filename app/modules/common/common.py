@@ -122,7 +122,7 @@ def is_ip_or_dns(server_from_request: str) -> str:
 	try:
 		if server_from_request in (
 			'roxy-wi-checker', 'roxy-wi-keep_alive', 'roxy-wi-keep-alive', 'roxy-wi-metrics', 'roxy-wi-portscanner',
-			'roxy-wi-smon', 'roxy-wi-socket', 'roxy-wi-prometheus-exporter', 'prometheus', 'fail2ban', 'all', 'grafana-server', 'rabbitmq-server'
+			'roxy-wi-socket', 'roxy-wi-prometheus-exporter', 'prometheus', 'fail2ban', 'all', 'grafana-server', 'rabbitmq-server'
 		):
 			return server_from_request
 		if re.match(ip_regex, server_from_request):

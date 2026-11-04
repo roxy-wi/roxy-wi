@@ -50,9 +50,8 @@ def test_api_text_in_url_does_not_bypass_authentication(client):
 
 
 @pytest.mark.security
-def test_smon_history_is_not_public(client):
-    response = client.get('/smon/history/statuses/1')
-    assert response.status_code == 401
+def test_smon_routes_are_removed(app):
+    assert not any(rule.rule.startswith('/smon') for rule in app.url_map.iter_rules())
 
 
 @pytest.mark.security

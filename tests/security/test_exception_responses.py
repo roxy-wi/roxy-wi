@@ -5,18 +5,16 @@ from types import SimpleNamespace
 import pytest
 from flask import g
 
-from app.modules.config import add, runtime
+from app.modules.config import runtime
 from app.modules.roxywi import error_handler
 from app.modules.roxywi import nettools
 from app.modules.server import command
-from app.modules.tools import smon_agent
 from app.modules.roxywi.exception import (
     RoxywiInputError, RoxywiValidationError, RoxywiResourceNotFound,
 )
 from app.routes.admin import oidc_routes
 from app.routes.logs import routes as log_routes
 from app.routes.runtime import routes as runtime_routes
-from app.routes.smon import routes as smon_routes
 from app.views.service import haproxy_lists_views
 from app.views.service import views as service_views
 
@@ -90,10 +88,14 @@ def test_runtime_route_failure_and_success_contract(app, monkeypatch, safe_logs,
     assert response.get_data(as_text=True) == 'runtime result'
 
 
-def test_list_read_failure_is_redacted_before_json_serialization(app, monkeypatch, safe_logs):
+def test_list_read_failure_is_redacted_before_json_serialization(app, monkeypatch, safe_logs, tmp_path):
+    from app.modules.service import haproxy_lists
+    from app.scripts import haproxy_lists as list_files
+
     def unreadable(*_args):
         raise OSError(PRIVATE)
-    monkeypatch.setattr(add, 'open', unreadable, raising=False)
+    monkeypatch.setattr(haproxy_lists, 'local_path', lambda *_args: tmp_path / 'allow.lst')
+    monkeypatch.setattr(list_files, 'read_file', unreadable)
     monkeypatch.setattr(haproxy_lists_views.SupportClass, 'return_group_id', lambda _query: 1)
     with app.test_request_context('/service/haproxy/list'):
         response = inspect.unwrap(haproxy_lists_views.HaproxyListView.get)(
@@ -101,7 +103,8 @@ def test_list_read_failure_is_redacted_before_json_serialization(app, monkeypatc
         )
         response = app.make_response(response)
     assert PRIVATE not in response.get_data(as_text=True)
-    assert response.get_json()['data'] == 'error: Cannot read white list: Internal server error'
+    assert response.status_code == 500
+    assert response.get_json()['error'] == 'Cannot update HAProxy list: Internal server error'
     assert safe_logs
 
 
@@ -162,28 +165,3 @@ def test_oidc_uses_public_domain_message_not_exception_string(app, monkeypatch, 
     assert actual_status == status
     assert response.get_json() == {'status': 'failed', 'error': expected}
     assert PRIVATE not in response.get_data(as_text=True)
-
-
-@pytest.mark.parametrize(('error', 'expected'), (
-    (RuntimeError(PRIVATE), 'error: Internal server error'),
-    (RoxywiInputError('warning: Select an Agent first'), 'warning: Select an Agent first'),
-    (RoxywiInputError('SMON error: port must be 0-65535'), 'SMON error: port must be 0-65535'),
-))
-def test_smon_errors_keep_legacy_warning_and_failure_contract(app, monkeypatch, safe_logs, error, expected):
-    monkeypatch.setattr(smon_routes.roxywi_common, 'get_user_group', lambda **_kwargs: 1)
-    monkeypatch.setattr(smon_routes.smon_sql, 'get_agent_server_for_group', lambda *_args: None)
-    def reject(*_args):
-        raise error
-    monkeypatch.setattr(smon_routes.smon_mod, 'create_smon', reject)
-    with app.test_request_context('/smon/check', method='POST', json={'agent_id': 1}):
-        response, status = inspect.unwrap(smon_routes.smon_add)()
-    assert status == 200
-    assert response == expected
-
-
-def test_smon_installation_preserves_configuration_validation(monkeypatch):
-    monkeypatch.setattr(smon_agent, 'check_agent_limit', lambda: None)
-    monkeypatch.setattr(smon_agent.server_sql, 'get_server', lambda *_args: SimpleNamespace(ip='192.0.2.10'))
-    monkeypatch.setattr(smon_agent.sql, 'get_setting', lambda key: '' if key == 'master_ip' else '5101')
-    with pytest.raises(RoxywiInputError, match='error: Master IP cannot be empty'):
-        smon_agent.add_agent({'name': 'agent', 'server_id': 1, 'desc': '', 'enabled': 1})
