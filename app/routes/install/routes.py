@@ -32,6 +32,11 @@ bp.add_url_rule(
     view_func=InstallView.as_view('install_ip'),
     methods=['POST'],
 )
+bp.add_url_rule(
+    '/<any(haproxy, nginx, apache, keepalived):service>/<int:server_id>',
+    view_func=InstallView.as_view('install_id'),
+    methods=['POST'],
+)
 
 
 @bp.before_request
