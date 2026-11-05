@@ -74,13 +74,14 @@
         </span>
     </div>
     <div class="bytes" id="bin">
-        {{bin_bout.0}}
+        {{ bin_bout.0 if bin_bout.0 is not none else '—' }}
     </div>
     <div class="server-name">
         <div class="bin_bout_text bin_bout_text_without_refresh overflow" title="{{lang.phrases.BytesPerSec}}">{{lang.phrases.BytesPerSec}}</div>
     </div>
     <div class="bytes" id="bout">
-        {% set total = bin_bout.1|int / 1024 %}
+        {% if bin_bout.1 is none %}—{% else %}
+        {% set total = bin_bout.1|float / 1024 %}
         {% set metric = 'Kb' %}
         {% if total > 1000 %}
             {% set total = total / 1024 %}
@@ -91,6 +92,7 @@
             {% set metric = 'Gb' %}
         {% endif %}
         {{total|round(2)}} {{metric}}
+        {% endif %}
     </div>
 </div>
 {% endif %}

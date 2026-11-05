@@ -75,22 +75,6 @@ def test_toolbar_uses_standard_select_styles(logged_in, product_url, runtime_hos
     page.locator('.hs-toolbar').screenshot(path=str(tmp_path / 'stats-toolbar.png'))
 
 
-@pytest.mark.parametrize('service', ['nginx', 'apache'])
-def test_other_stats_load_without_legacy_haproxy_scripts(logged_in, product_url, product, monkeypatch, service):
-    from app.modules.service import common
-    product.server.apache = 1
-    product.server.save()
-    content = (b'Active connections: 3\nserver accepts handled requests\n 10 10 20\nReading: 0 Writing: 1 Waiting: 2\n'
-               if service == 'nginx' else b'<h1>Apache Server Status</h1><p>Total accesses: 20</p>')
-    monkeypatch.setattr(common.requests, 'get', lambda *args, **kwargs: SimpleNamespace(content=content))
-    page = logged_in
-    page.goto(f'{product_url}/stats/{service}/{product.server.ip}')
-    expect(page.locator('#service-stats-content')).to_contain_text('Active connections' if service == 'nginx' else 'Total accesses')
-    expect(page.locator('h2').first).to_be_visible()
-    expect(page.locator('#stats_filter')).to_have_count(0)
-    page.locator('#show').click()
-    expect(page.locator('#service-stats-content')).to_contain_text('Waiting' if service == 'nginx' else 'Total accesses')
-
 
 def test_stats_filters_columns_details_and_refresh_preserve_view(logged_in, product_url, runtime_host, tmp_path):
     page = logged_in

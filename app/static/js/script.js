@@ -363,20 +363,6 @@ $(document).ajaxError(function myErrorHandler(event, xhr, ajaxOptions, thrownErr
 		}
 	}
 });
-function showStats() {
-	$.ajax({
-		url: "/stats/view/" + $("#service").val() + "/" + $("#serv").val(),
-		success: function (data) {
-			if (data.indexOf('error:') != '-1' && data.indexOf('Internal error:') == '-1') {
-				toastr.error(data);
-			} else {
-				toastr.clear();
-				$("#service-stats-content").html(data);
-				window.history.pushState("Stats", "Stats", "/stats/" + $("#service").val() + "/" + $("#serv").val());
-			}
-		}
-	});
-}
 function openStats() {
 	let serv = $("#serv option:selected").val();
 	let service_url = $('#service').val();
@@ -607,7 +593,7 @@ $( function() {
 		},
 		show: {"delay": 1000}
 	});
-	$( "input[type=submit], button" ).not('#log-viewer-form button, #overview-logs button, .config-viewer button, #haproxy-stats button').button();
+	$( "input[type=submit], button" ).not('#log-viewer-form button, #overview-logs button, .config-viewer button, #haproxy-stats button, #proxy-stats button').button();
 	$( "input[type=checkbox]" ).not('#log-viewer-form input, .config-viewer input, #haproxy-stats input').checkboxradio();
 	$( ".controlgroup" ).controlgroup();
 	initializeAppNavigation();

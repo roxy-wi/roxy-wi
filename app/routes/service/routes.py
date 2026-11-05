@@ -1,5 +1,5 @@
 from contextlib import nullcontext
-from typing import Union
+from typing import Literal, Union
 
 import distro
 from flask import render_template, request, g, jsonify
@@ -7,6 +7,7 @@ from flask_jwt_extended import jwt_required
 from flask_pydantic import validate
 from peewee import SqliteDatabase
 from pydantic import IPvAnyAddress
+from werkzeug.exceptions import HTTPException
 
 from app import app, cache
 from app.routes.service import bp
@@ -300,20 +301,28 @@ def show_haproxy_bytes(server_ip: Union[IPvAnyAddress, DomainName]):
         return f'error: {safe_error_message(e)}'
 
 
-@bp.get('/nginx/connections/<server_ip>')
+@bp.get('/nginx/connections/<server_ip>', defaults={'service': 'nginx'})
+@check_services
+@get_user_params()
 @validate()
-def show_nginx_connections(server_ip: Union[IPvAnyAddress, DomainName]):
+def show_nginx_connections(server_ip: Union[IPvAnyAddress, DomainName], service: Literal['nginx']):
     try:
         return roxy_overview.show_nginx_connections(server_ip)
+    except HTTPException:
+        raise
     except Exception as e:
         return f'error: {safe_error_message(e)}'
 
 
-@bp.get('/apache/bytes/<server_ip>')
+@bp.get('/apache/bytes/<server_ip>', defaults={'service': 'apache'})
+@check_services
+@get_user_params()
 @validate()
-def show_apache_bytes(server_ip: Union[IPvAnyAddress, DomainName]):
+def show_apache_bytes(server_ip: Union[IPvAnyAddress, DomainName], service: Literal['apache']):
     try:
         return roxy_overview.show_apache_bytes(server_ip)
+    except HTTPException:
+        raise
     except Exception as e:
         return f'error: {safe_error_message(e)}'
 

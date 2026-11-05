@@ -25,7 +25,7 @@ import app.modules.roxywi.common as roxywi_common
 import app.modules.service.common as service_common
 from app.modules.service.stats import (
     haproxy_stats, haproxy_stats_actions, haproxy_stats_config, haproxy_stats_maxconn, haproxy_stats_servers,
-    haproxy_stats_sessions, haproxy_stats_tables,
+    haproxy_stats_sessions, haproxy_stats_tables, proxy_stats,
 )
 from app.modules.roxywi.class_models import (
     ErrorResponse, NettoolsRequest, DomainName, HaproxyStatsMaxconnRequest,
@@ -106,29 +106,26 @@ def stats(service, serv):
 @validate()
 def show_stats(service: Literal['haproxy', 'apache', 'nginx'], server_ip: Union[IPvAnyAddress, DomainName]):
     server = roxywi_common.require_server_access(server_ip)
-    if service in ('nginx', 'apache'):
-        try:
-            return service_common.get_stat_page(server_ip, service, g.user_params['group_id'])
-        except Exception as e:
-            return 'error: ' + safe_error_message(e)
-    else:
-        if not server.haproxy:
-            abort(404)
-        try:
+    if not getattr(server, service):
+        abort(404)
+    try:
+        if service == 'haproxy':
             data = haproxy_stats.collect_stats(
                 str(server.ip), sql.get_setting('haproxy_sock_port', group_id=server.group_id)
             )
-            response = jsonify(data)
-        except haproxy_stats.StatsError as e:
-            safe_error_message(e)
-            response = jsonify({'status': 'error', 'code': e.code})
-            response.status_code = e.status
-        except Exception as e:
-            safe_error_message(e)
-            response = jsonify({'status': 'error', 'code': 'operation_failed'})
-            response.status_code = 500
-        response.headers['Cache-Control'] = 'no-store'
-        return response
+        else:
+            data = proxy_stats.collect_stats(server, service)
+        response = jsonify(data)
+    except haproxy_stats.StatsError as exc:
+        safe_error_message(exc)
+        response = jsonify({'status': 'error', 'code': exc.code})
+        response.status_code = exc.status
+    except Exception as exc:
+        safe_error_message(exc)
+        response = jsonify({'status': 'error', 'code': 'operation_failed'})
+        response.status_code = 500
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
 @bp.post('/stats/server/<any(haproxy):service>/<server_ip>')

@@ -4,6 +4,7 @@ import io
 import re
 from app.modules.db import service as service_sql
 from app.modules.service import container_settings, managed_runtime
+from app.modules.service.stats import proxy_stats
 from flask import render_template, request
 
 import app.modules.db.sql as sql
@@ -130,53 +131,21 @@ def show_haproxy_binout(server_ip: str) -> str:
 
 
 def show_nginx_connections(server_ip: str) -> str:
-    port = sql.get_setting('nginx_stats_port')
-    user = sql.get_setting('nginx_stats_user')
-    password = sql.get_setting('nginx_stats_password')
-    page = sql.get_setting('nginx_stats_page')
-    url = f'http://{server_ip}:{port}/{page}'
-
-    try:
-        r = managed_runtime.statistics_response(server_ip, 'nginx', port, page, user, password)
-    except Exception as e:
-        raise Exception(e)
-
-    if r.status_code == 200:
-        bin_bout = [0, 0]
-        for num, line in enumerate(r.text.split('\n')):
-            if num == 0:
-                bin_bout.append(line.split(' ')[2])
-            if num == 2:
-                bin_bout.append(line.split(' ')[3])
-
-        lang = roxywi_common.get_user_lang_for_flask()
-        return render_template('ajax/bin_bout.html', bin_bout=bin_bout, serv=server_ip, service='nginx', lang=lang)
-    else:
-        raise Exception('Cannot connect to NGINX stat page')
+    server = roxywi_common.require_server_access(server_ip)
+    counters = proxy_stats.collect_stats(server, 'nginx')['counters']
+    return render_template(
+        'ajax/bin_bout.html', bin_bout=[0, 0, counters['active'], counters['accepts']],
+        serv=server_ip, service='nginx', lang=roxywi_common.get_user_lang_for_flask(),
+    )
 
 
 def show_apache_bytes(server_ip: str) -> str:
-    port = sql.get_setting('apache_stats_port')
-    user = sql.get_setting('apache_stats_user')
-    password = sql.get_setting('apache_stats_password')
-    page = sql.get_setting('apache_stats_page')
-    bin_bout = []
-    url = f'http://{server_ip}:{port}/{page}?auto'
-
-    try:
-        r = managed_runtime.statistics_response(server_ip, 'apache', port, page+'?auto', user, password)
-    except Exception as e:
-        raise Exception(e)
-
-    if r.status_code == 200:
-        for line in r.text.split('\n'):
-            if 'ReqPerSec' in line or 'BytesPerSec' in line:
-                bin_bout.append(line.split(' ')[1])
-
-        lang = roxywi_common.get_user_lang_for_flask()
-        return render_template('ajax/bin_bout.html', bin_bout=bin_bout, serv=server_ip, service='apache', lang=lang)
-    else:
-        raise Exception('Cannot connect to Apache stat page')
+    server = roxywi_common.require_server_access(server_ip)
+    counters = proxy_stats.collect_stats(server, 'apache')['counters']
+    return render_template(
+        'ajax/bin_bout.html', bin_bout=[counters['average_rps'], counters['average_bps']],
+        serv=server_ip, service='apache', lang=roxywi_common.get_user_lang_for_flask(),
+    )
 
 
 def show_services_overview():

@@ -1,0 +1,18 @@
+#proxy-stats [hidden] {display:none !important;}
+#proxy-stats .ps-note {margin:0 0 12px; color:var(--rw-text-muted);}
+#proxy-stats .ps-charts {display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-bottom:12px;}
+#proxy-stats h3 {margin:0 0 10px; padding:0; background:none; color:inherit; font-size:13px; font-weight:600;}
+#proxy-stats .ps-chart {position:relative; height:190px;}
+#proxy-stats .hs-detail-grid {padding:14px;}
+#proxy-stats .hs-card-label {cursor:help;}
+#proxy-stats [data-stale=true] {opacity:.65;}
+#ps-scoreboard {margin-bottom:12px;}
+#ps-scoreboard-bar {display:flex; height:16px; overflow:hidden; border-radius:4px; background:var(--rw-surface-muted); margin-bottom:12px;}
+#ps-scoreboard-bar span {min-width:1px;}
+#ps-scoreboard-legend {display:flex; flex-wrap:wrap; gap:8px 16px; font-size:12px;}
+#ps-scoreboard-legend span {display:inline-flex; align-items:center; gap:6px;}
+#ps-scoreboard-legend i {width:10px; height:10px; border-radius:2px;}
+#proxy-stats .rw-page-help {margin:12px 0 0;}
+@media(max-width:760px) {
+    #proxy-stats .ps-charts {grid-template-columns:minmax(0,1fr);}
+}

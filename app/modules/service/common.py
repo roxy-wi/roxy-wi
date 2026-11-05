@@ -1,9 +1,6 @@
 import re
 from typing import Union
 
-import requests
-from flask import render_template
-
 import app.modules.common.common as common
 import app.modules.db.sql as sql
 import app.modules.db.user as user_sql
@@ -202,50 +199,6 @@ def get_overview_last_edit(server_ip: str, service: str) -> str:
 		return server_mod.ssh_command(server_ip, command, connect_timeout=10, banner_timeout=10)
 	except Exception as e:
 		return f'error: Cannot get last date {safe_error_message(e)} for server {server_ip}'
-
-
-def get_stat_page(server_ip: str, service: str, group_id: int) -> str:
-	if service not in ('nginx', 'apache'):
-		raise ValueError('HTTP Stats are supported only for Nginx and Apache')
-	server_ip = str(roxywi_common.require_server_access(server_ip).ip)
-	server_ip = f'[{server_ip}]' if ':' in server_ip else server_ip
-	stats_user = sql.get_setting(f'{service}_stats_user', group_id=group_id)
-	stats_pass = sql.get_setting(f'{service}_stats_password', group_id=group_id)
-	stats_pass = stats_pass.replace("'", "")
-	stats_port = sql.get_setting(f'{service}_stats_port', group_id=group_id)
-	stats_page = sql.get_setting(f'{service}_stats_page', group_id=group_id)
-
-	try:
-		from app.modules.service.managed_runtime import statistics_response
-		response = statistics_response(server_ip, service, stats_port, stats_page, stats_user, stats_pass)
-	except requests.exceptions.ConnectTimeout:
-		return 'error: Connection timeout occurred!'
-	except requests.exceptions.ReadTimeout:
-		return 'error: Read timeout occurred'
-	except requests.exceptions.HTTPError as errh:
-		return f'error: Http Error: {safe_error_message(errh)}'
-	except requests.exceptions.ConnectionError as errc:
-		if "Max retries exceeded" in str(errc):
-			raise Exception(f"error: Max retries exceeded")
-		return f'error: Error Connecting: {safe_error_message(errc)}'
-	except requests.exceptions.Timeout as errt:
-		return f'error: Timeout Error: {safe_error_message(errt)}'
-	except requests.exceptions.RequestException as err:
-		return f'error: Something Else {safe_error_message(err)}'
-
-	data = response.content
-	if service == 'nginx':
-		lang = roxywi_common.get_user_lang_for_flask()
-		servers_with_status = list()
-		out1 = []
-		for k in data.decode('utf-8').split():
-			out1.append(k)
-		h = (out1,)
-		servers_with_status.append(h)
-
-		return render_template('ajax/nginx_stats.html', out=servers_with_status, lang=lang)
-	else:
-		return data.decode('utf-8')
 
 
 def waf_runtime_settings(service: str, server_id: int) -> dict:

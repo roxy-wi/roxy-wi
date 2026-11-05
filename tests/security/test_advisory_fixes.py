@@ -17,6 +17,7 @@ from app.modules.roxywi import auth, common, logger, log_snapshot
 from app.modules.roxywi.class_models import SSLCertUploadRequest
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 from app.modules.service import action, common as service_common, haproxy, managed_runtime
+from app.modules.service.stats import proxy_stats
 from app.routes.add import routes as add_routes
 from app.routes.waf import routes as waf_routes
 
@@ -44,8 +45,8 @@ def actor(app, monkeypatch):
 @pytest.mark.parametrize('service', ['haproxy', 'nginx', 'apache'])
 @pytest.mark.parametrize('target', ['192.0.2.20', '192.0.2.99'])
 def test_stats_rejects_unmanaged_or_other_group_before_http(client, actor, monkeypatch, service, target):
-    monkeypatch.setattr(service_common.requests, 'post', lambda *a, **k: pytest.fail('HTTP credentials escaped'))
-    monkeypatch.setattr(service_common.requests, 'get', lambda *a, **k: pytest.fail('HTTP credentials escaped'))
+    monkeypatch.setattr(managed_runtime.requests, 'post', lambda *a, **k: pytest.fail('HTTP credentials escaped'))
+    monkeypatch.setattr(managed_runtime.requests, 'get', lambda *a, **k: pytest.fail('HTTP credentials escaped'))
     response = client.get(f'/stats/view/{service}/{target}', headers=actor[1])
     assert response.status_code == 403
 
@@ -58,16 +59,16 @@ def test_stats_registered_targets_do_not_follow_redirects(app, actor, monkeypatc
     monkeypatch.setattr(managed_runtime.service_sql, 'select_service_setting', lambda *a: '0')
     actor[0]['role'] = role
     monkeypatch.setattr(haproxy.sql, 'get_setting', lambda name, **k: '8080' if name.endswith('_port') else 'test')
-    monkeypatch.setattr(service_common, 'render_template', lambda *a, **k: 'stats')
     monkeypatch.setattr(common, 'get_user_lang_for_flask', lambda: {})
     def http(url, **kwargs):
         calls.append((url, kwargs))
         return SimpleNamespace(content=b'stats', status_code=302, headers={'Location': 'http://192.0.2.99/'})
-    monkeypatch.setattr(service_common.requests, 'post', http)
-    monkeypatch.setattr(service_common.requests, 'get', http)
+    monkeypatch.setattr(managed_runtime.requests, 'post', http)
+    monkeypatch.setattr(managed_runtime.requests, 'get', http)
     with app.test_request_context('/'):
         g.user_params = actor[0]
-        service_common.get_stat_page(target, service, 1)
+        with pytest.raises(proxy_stats.StatsError, match='unavailable'):
+            proxy_stats.collect_stats(common.require_server_access(target), service)
     assert calls[0][0].startswith(f'http://{target}:')
     assert calls[0][1]['allow_redirects'] is False
     assert calls[0][1]['auth'] == ('test', 'test')

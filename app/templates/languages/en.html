@@ -2034,3 +2034,136 @@
     "persistent_mount_required": "The list directory needs a writable persistent container mount.",
     "file_operation_failed": "Cannot read or save the list file. Check SSH access and file permissions."
 } %}
+
+{% set proxy_stats = {
+    "rps": "Requests/s",
+    "connections": "Connections",
+    "workers": "Workers",
+    "rate_pending": "Collecting a second sample to calculate rates.",
+    "reset": "Counters reset; collecting a new baseline.",
+    "history_note": "Charts show up to 120 samples collected while this page is open. Long-term history is available in Metrics.",
+    "extended": "Extended statistics are unavailable. Enable ExtendedStatus in Apache to collect request and traffic counters.",
+    "unavailable": "Cannot reach the statistics endpoint. Check connectivity and the configured port.",
+    "stats_forbidden": "Statistics access denied. Check the configured credentials and endpoint access rules.",
+    "not_configured": "Statistics endpoint not found. Check its configured path and enable stub_status or mod_status.",
+    "invalid_response": "The endpoint returned invalid statistics. Check its path and status module.",
+    "timeout": "The statistics request timed out. Retry or check connectivity.",
+    "operation_failed": "Unable to collect statistics. Check service settings and connectivity.",
+    "unauthorized": "Your session expired. Sign in again.",
+    "forbidden": "You do not have access to this server or service.",
+    "fields": {
+        "version": [
+            "Version",
+            "Apache version reported by mod_status."
+        ],
+        "connection_rate": [
+            "Connections/s",
+            "Accepted connections between the last two samples, divided by elapsed time."
+        ],
+        "rps": [
+            "Requests/s",
+            "Increase in requests between the last two samples, divided by elapsed time."
+        ],
+        "bps": [
+            "Bytes/s",
+            "Bytes served between the last two samples, divided by elapsed time."
+        ],
+        "gap": [
+            "Unhandled connections",
+            "Increase in accepted minus handled connections during the last interval. May indicate resource limits."
+        ],
+        "active": [
+            "Active connections",
+            "All current client connections, including idle keep-alive connections."
+        ],
+        "accepts": [
+            "Accepted connections",
+            "Total accepted client connections since the counter started."
+        ],
+        "handled": [
+            "Handled connections",
+            "Total handled connections. Can be lower than accepts when resource limits are reached."
+        ],
+        "requests": [
+            "Total requests",
+            "Cumulative HTTP requests since the counter started."
+        ],
+        "reading": [
+            "Reading",
+            "Connections reading the request header."
+        ],
+        "writing": [
+            "Writing",
+            "Connections writing a response to the client."
+        ],
+        "waiting": [
+            "Waiting",
+            "Idle keep-alive connections waiting for another request."
+        ],
+        "busy": [
+            "Busy workers",
+            "Workers currently serving requests; not a percentage of configured capacity."
+        ],
+        "idle": [
+            "Idle workers",
+            "Workers currently available to handle requests."
+        ],
+        "total_kbytes": [
+            "Total KiB",
+            "Cumulative data served, in units of 1024 bytes."
+        ],
+        "uptime": [
+            "Uptime",
+            "Time since Apache started or restarted; days and hours:minutes:seconds."
+        ],
+        "cpu_load": [
+            "CPU load (%)",
+            "CPU utilization reported by mod_status, averaged over uptime."
+        ],
+        "average_rps": [
+            "Average requests/s",
+            "Average since Apache started. Not the current interval rate."
+        ],
+        "average_bps": [
+            "Average bytes/s",
+            "Average since Apache started. Not the current interval rate."
+        ],
+        "bytes_per_request": [
+            "Bytes/request",
+            "Average response size in bytes since Apache started."
+        ],
+        "graceful": [
+            "Graceful workers",
+            "Workers finishing their work during a graceful restart."
+        ],
+        "connections": [
+            "Connections",
+            "Current connections reported by the asynchronous MPM, when available."
+        ],
+        "async_writing": [
+            "Async writing",
+            "Asynchronous connections writing responses."
+        ],
+        "async_keepalive": [
+            "Async keep-alive",
+            "Asynchronous keep-alive connections."
+        ],
+        "async_closing": [
+            "Async closing",
+            "Asynchronous connections being closed."
+        ]
+    },
+    "states": {
+        ".": "Open slot",
+        "_": "Waiting for connection",
+        "S": "Starting",
+        "R": "Reading request",
+        "W": "Sending response",
+        "K": "Keep-alive",
+        "D": "DNS lookup",
+        "C": "Closing",
+        "L": "Logging",
+        "G": "Gracefully finishing",
+        "I": "Idle cleanup"
+    }
+} %}

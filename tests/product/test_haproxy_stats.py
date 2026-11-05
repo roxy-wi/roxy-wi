@@ -8,9 +8,6 @@ from app.modules.service.stats import haproxy_stats
 from tests.fixtures.haproxy_stats import INFO, stats_csv
 
 
-STATS_HTML = b'<table class="tbl"><tr class="backend"><td>app_backend</td></tr></table>'
-
-
 @pytest.fixture
 def stats_runtime(product, monkeypatch):
     state = SimpleNamespace(calls=[], failure=None)
@@ -119,15 +116,3 @@ def test_stats_failure_is_not_an_empty_success(product_client, product, stats_ru
     assert response.json == {'status': 'error', 'code': code}
     assert response.headers['Cache-Control'] == 'no-store'
     assert b'credential-secret' not in response.data
-
-
-@pytest.mark.parametrize('service', ['nginx', 'apache'])
-def test_other_stats_pages_keep_existing_transport(product_client, product, monkeypatch, service):
-    calls = []
-    def fetch(server, selected, group):
-        calls.append((str(server), selected, group))
-        return STATS_HTML
-    monkeypatch.setattr('app.routes.main.routes.service_common.get_stat_page', fetch)
-    response = product_client.get(f'/stats/view/{service}/{product.server.ip}')
-    assert response.status_code == 200 and response.data == STATS_HTML
-    assert calls == [(product.server.ip, service, '1')]

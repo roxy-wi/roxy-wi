@@ -1972,3 +1972,136 @@
     "persistent_mount_required": "Le répertoire nécessite un montage persistant accessible en écriture.",
     "file_operation_failed": "Impossible de lire ou enregistrer la liste. Vérifiez SSH et les permissions."
 } %}
+
+{% set proxy_stats = {
+    "rps": "Requêtes/s",
+    "connections": "Connexions",
+    "workers": "Workers",
+    "rate_pending": "Collecte du second relevé pour calculer les débits.",
+    "reset": "Compteurs réinitialisés ; nouvelle référence en cours.",
+    "history_note": "Les graphiques affichent jusqu’à 120 relevés collectés pendant l’ouverture de cette page. Historique dans Metrics.",
+    "extended": "Statistiques détaillées indisponibles. Activez ExtendedStatus dans Apache pour les compteurs de requêtes et de trafic.",
+    "unavailable": "Statistiques inaccessibles. Vérifiez la connexion et le port configuré.",
+    "stats_forbidden": "Accès refusé aux statistiques. Vérifiez les identifiants et les règles d’accès.",
+    "not_configured": "Adresse des statistiques introuvable. Vérifiez le chemin et activez stub_status ou mod_status.",
+    "invalid_response": "Réponse de statistiques invalide. Vérifiez le chemin et le module.",
+    "timeout": "Délai de collecte dépassé. Réessayez ou vérifiez la connexion.",
+    "operation_failed": "Impossible de collecter les statistiques. Vérifiez le service et la connexion.",
+    "unauthorized": "Session expirée. Reconnectez-vous.",
+    "forbidden": "Vous n’avez pas accès à ce serveur ou service.",
+    "fields": {
+        "version": [
+            "Version",
+            "Version Apache indiquée par mod_status."
+        ],
+        "connection_rate": [
+            "Connexions/s",
+            "Connexions acceptées entre les deux derniers relevés, divisées par le temps écoulé."
+        ],
+        "rps": [
+            "Requêtes/s",
+            "Variation du nombre de requêtes divisée par le temps entre deux relevés."
+        ],
+        "bps": [
+            "Octets/s",
+            "Octets transmis divisés par le temps entre deux relevés."
+        ],
+        "gap": [
+            "Connexions non traitées",
+            "Hausse de la différence entre connexions acceptées et traitées. Limites de ressources possibles."
+        ],
+        "active": [
+            "Connexions actives",
+            "Toutes les connexions clientes, y compris les connexions keep-alive inactives."
+        ],
+        "accepts": [
+            "Connexions acceptées",
+            "Total des connexions clientes acceptées depuis le début du compteur."
+        ],
+        "handled": [
+            "Connexions traitées",
+            "Total traité, parfois inférieur au total accepté lorsque les limites sont atteintes."
+        ],
+        "requests": [
+            "Requêtes totales",
+            "Nombre cumulé de requêtes HTTP."
+        ],
+        "reading": [
+            "Lecture",
+            "Connexions lisant les en-têtes de requête."
+        ],
+        "writing": [
+            "Écriture",
+            "Connexions transmettant une réponse au client."
+        ],
+        "waiting": [
+            "Attente",
+            "Connexions keep-alive attendant une nouvelle requête."
+        ],
+        "busy": [
+            "Workers occupés",
+            "Workers traitant des requêtes, sans rapport avec la capacité configurée."
+        ],
+        "idle": [
+            "Workers libres",
+            "Workers disponibles pour traiter des requêtes."
+        ],
+        "total_kbytes": [
+            "Total Kio",
+            "Données transmises cumulées, par unités de 1024 octets."
+        ],
+        "uptime": [
+            "Durée de fonctionnement",
+            "Temps depuis le démarrage Apache : jours et heures:minutes:secondes."
+        ],
+        "cpu_load": [
+            "Charge CPU (%)",
+            "Utilisation CPU moyenne depuis le démarrage selon mod_status."
+        ],
+        "average_rps": [
+            "Requêtes/s moyennes",
+            "Moyenne depuis le démarrage Apache, pas sur le dernier intervalle."
+        ],
+        "average_bps": [
+            "Octets/s moyens",
+            "Moyenne depuis le démarrage Apache, pas sur le dernier intervalle."
+        ],
+        "bytes_per_request": [
+            "Octets/requête",
+            "Taille moyenne des réponses depuis le démarrage Apache."
+        ],
+        "graceful": [
+            "Workers en arrêt gracieux",
+            "Workers terminant leur travail pendant un redémarrage gracieux."
+        ],
+        "connections": [
+            "Connexions",
+            "Connexions actuelles du MPM asynchrone, si disponibles."
+        ],
+        "async_writing": [
+            "Écriture asynchrone",
+            "Connexions asynchrones transmettant des réponses."
+        ],
+        "async_keepalive": [
+            "Keep-alive asynchrone",
+            "Connexions keep-alive asynchrones."
+        ],
+        "async_closing": [
+            "Fermeture asynchrone",
+            "Connexions asynchrones en cours de fermeture."
+        ]
+    },
+    "states": {
+        ".": "Emplacement libre",
+        "_": "Attente de connexion",
+        "S": "Démarrage",
+        "R": "Lecture de requête",
+        "W": "Envoi de réponse",
+        "K": "Keep-alive",
+        "D": "Recherche DNS",
+        "C": "Fermeture",
+        "L": "Journalisation",
+        "G": "Arrêt gracieux",
+        "I": "Nettoyage"
+    }
+} %}

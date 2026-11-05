@@ -1970,3 +1970,136 @@
     "persistent_mount_required": "O diretório precisa de uma montagem persistente com permissão de escrita.",
     "file_operation_failed": "Não foi possível ler ou salvar a lista. Verifique o SSH e as permissões."
 } %}
+
+{% set proxy_stats = {
+    "rps": "Requisições/s",
+    "connections": "Conexões",
+    "workers": "Workers",
+    "rate_pending": "Coletando uma segunda amostra para calcular as taxas.",
+    "reset": "Contadores reiniciados; coletando uma nova referência.",
+    "history_note": "Os gráficos mostram até 120 amostras enquanto esta página está aberta. O histórico está em Metrics.",
+    "extended": "Estatísticas estendidas indisponíveis. Ative ExtendedStatus no Apache para os contadores de requisições e tráfego.",
+    "unavailable": "Estatísticas inacessíveis. Verifique a conexão e a porta.",
+    "stats_forbidden": "Acesso às estatísticas negado. Verifique as credenciais e as regras de acesso.",
+    "not_configured": "Endereço das estatísticas não encontrado. Verifique o caminho e ative stub_status ou mod_status.",
+    "invalid_response": "Resposta de estatísticas inválida. Verifique o caminho e o módulo.",
+    "timeout": "Tempo de espera esgotado. Tente novamente ou verifique a conexão.",
+    "operation_failed": "Não foi possível obter estatísticas. Verifique o serviço e a conexão.",
+    "unauthorized": "Sessão expirada. Entre novamente.",
+    "forbidden": "Você não tem acesso a este servidor ou serviço.",
+    "fields": {
+        "version": [
+            "Versão",
+            "Versão do Apache informada pelo mod_status."
+        ],
+        "connection_rate": [
+            "Conexões/s",
+            "Conexões aceitas entre as duas últimas amostras, divididas pelo tempo decorrido."
+        ],
+        "rps": [
+            "Requisições/s",
+            "Aumento das requisições dividido pelo tempo entre duas amostras."
+        ],
+        "bps": [
+            "Bytes/s",
+            "Bytes enviados divididos pelo tempo entre duas amostras."
+        ],
+        "gap": [
+            "Conexões não atendidas",
+            "Aumento de aceitas menos atendidas no intervalo. Pode indicar limites de recursos."
+        ],
+        "active": [
+            "Conexões ativas",
+            "Todas as conexões de clientes, incluindo keep-alive ociosas."
+        ],
+        "accepts": [
+            "Conexões aceitas",
+            "Total de conexões aceitas desde o início do contador."
+        ],
+        "handled": [
+            "Conexões atendidas",
+            "Total atendido. Pode ser menor que o aceito quando os limites são atingidos."
+        ],
+        "requests": [
+            "Total de requisições",
+            "Número acumulado de requisições HTTP."
+        ],
+        "reading": [
+            "Leitura",
+            "Conexões lendo o cabeçalho da requisição."
+        ],
+        "writing": [
+            "Escrita",
+            "Conexões enviando a resposta ao cliente."
+        ],
+        "waiting": [
+            "Espera",
+            "Conexões keep-alive aguardando outra requisição."
+        ],
+        "busy": [
+            "Workers ocupados",
+            "Workers atendendo requisições; não é uma porcentagem da capacidade configurada."
+        ],
+        "idle": [
+            "Workers livres",
+            "Workers disponíveis para atender requisições."
+        ],
+        "total_kbytes": [
+            "Total KiB",
+            "Dados enviados acumulados em unidades de 1024 bytes."
+        ],
+        "uptime": [
+            "Tempo ativo",
+            "Tempo desde o início do Apache: dias e horas:minutos:segundos."
+        ],
+        "cpu_load": [
+            "Carga CPU (%)",
+            "Uso médio de CPU desde o início, informado por mod_status."
+        ],
+        "average_rps": [
+            "Média de requisições/s",
+            "Média desde o início do Apache, não do último intervalo."
+        ],
+        "average_bps": [
+            "Média de bytes/s",
+            "Média desde o início do Apache, não do último intervalo."
+        ],
+        "bytes_per_request": [
+            "Bytes/requisição",
+            "Tamanho médio das respostas desde o início do Apache."
+        ],
+        "graceful": [
+            "Workers finalizando",
+            "Workers terminando o trabalho durante uma reinicialização gradual."
+        ],
+        "connections": [
+            "Conexões",
+            "Conexões atuais do MPM assíncrono, quando disponíveis."
+        ],
+        "async_writing": [
+            "Escrita assíncrona",
+            "Conexões assíncronas enviando respostas."
+        ],
+        "async_keepalive": [
+            "Keep-alive assíncrono",
+            "Conexões keep-alive assíncronas."
+        ],
+        "async_closing": [
+            "Fechamento assíncrono",
+            "Conexões assíncronas sendo fechadas."
+        ]
+    },
+    "states": {
+        ".": "Slot livre",
+        "_": "Aguardando conexão",
+        "S": "Iniciando",
+        "R": "Lendo requisição",
+        "W": "Enviando resposta",
+        "K": "Keep-alive",
+        "D": "Consulta DNS",
+        "C": "Fechando",
+        "L": "Registrando",
+        "G": "Finalização gradual",
+        "I": "Limpeza"
+    }
+} %}

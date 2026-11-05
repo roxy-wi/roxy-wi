@@ -1,26 +1,56 @@
 {% extends "base.html" %}
-{% block title %}{{lang.menu_links.stats.h2}} {{service_desc.service}}{% endblock %}
-{% block h2 %}{{lang.menu_links.stats.h2}} {{service_desc.service}}{% endblock %}
+{% block title %}{{ lang.menu_links.stats.h2 }} {{ service_desc.service }}{% endblock %}
+{% block h2 %}{{ lang.menu_links.stats.h2 }} {{ service_desc.service }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import select %}
-<br />
+{% set common = lang.haproxy_stats %}
+{% set labels = lang.proxy_stats %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/haproxy-stats.css', v='9.3.0-8') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/proxy-stats.css', v='10.0-2') }}">
 {% if g.user_params['servers']|length == 0 %}
-	{% include 'include/getstarted.html' %}
+    {% include 'include/getstarted.html' %}
 {% else %}
-<div class="left-space">
-	<input type="hidden" id="service" value="{{service}}" />
-	{{ select('serv', values=g.user_params['servers'], is_servers='true', selected=serv) }}
-	<a class="ui-button ui-widget ui-corner-all" id="show" title="{{lang.words.show|title()}} {{lang.words.stats}}" onclick="showStats()">{{lang.words.open|title()}}</a>
-</div>
-
-<div id="service-stats-content" style="margin: 15px;"></div>
-<script>
-	if ($('#serv').val()) {
-		showStats();		
-	}	
-	$('#serv').on('selectmenuchange',function() {
-		showStats();		
-	});
-</script>
+<section id="proxy-stats" class="haproxy-stats-page" data-service="{{ service }}"
+         data-labels='{{ labels|tojson }}' data-common='{{ common|tojson }}'>
+    <div class="hs-toolbar rw-table-toolbar service-page-toolbar">
+        <label class="rw-form-field" for="serv"><span>{{ lang.words.server|title() }}</span>
+            {{ select('serv', values=g.user_params['servers'], is_servers='true', selected=serv) }}
+        </label>
+        <button type="button" class="ui-button ui-widget ui-corner-all" id="ps-refresh">{{ common.refresh }}</button>
+        <label class="rw-form-field" for="ps-interval"><span>{{ common.auto_refresh }}</span>
+            <select id="ps-interval">
+                <option value="0">{{ common.paused }}</option>
+                <option value="5">5 {{ common.seconds }}</option>
+                <option value="10">10 {{ common.seconds }}</option>
+                <option value="30" selected>30 {{ common.seconds }}</option>
+            </select>
+        </label>
+    </div>
+    <div id="service-stats-content" class="haproxy-stats">
+        <div id="ps-status" class="hs-status" role="status" aria-live="polite">{{ common.select_server }}</div>
+        <div id="ps-error" class="hs-error" role="alert" hidden></div>
+        <div id="ps-data" hidden>
+            <div id="ps-summary" class="hs-summary"></div>
+            <p id="ps-note" class="ps-note" role="status"></p>
+            <div class="ps-charts">
+                <div class="hs-card"><h3>{{ labels.rps }}</h3><div class="ps-chart"><canvas id="ps-requests-chart" role="img" aria-label="{{ labels.rps }}"></canvas></div></div>
+                <div class="hs-card"><h3>{{ labels.connections if service == 'nginx' else labels.workers }}</h3><div class="ps-chart"><canvas id="ps-connections-chart" role="img" aria-label="{{ labels.connections if service == 'nginx' else labels.workers }}"></canvas></div></div>
+            </div>
+            {% if service == 'apache' %}
+            <section id="ps-scoreboard" class="hs-card">
+                <h3>Scoreboard</h3>
+                <div id="ps-scoreboard-bar" aria-hidden="true"></div>
+                <div id="ps-scoreboard-legend"></div>
+            </section>
+            {% endif %}
+            <details class="hs-group" open><summary>{{ common.details }}</summary>
+                <dl id="ps-details" class="hs-detail-grid"></dl>
+            </details>
+            <aside class="alert alert-info rw-page-help">{{ labels.history_note }}</aside>
+        </div>
+    </div>
+</section>
+<script src="{{ url_for('static', filename='js/chart.min-4.3.0.js') }}"></script>
+<script src="{{ url_for('static', filename='js/proxy-stats.js', v='10.0-2') }}" defer></script>
 {% endif %}
 {% endblock %}
