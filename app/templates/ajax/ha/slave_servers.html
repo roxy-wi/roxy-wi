@@ -5,12 +5,12 @@
     {%- if not s.31 -%}
     <div class="{{ loop.cycle('odd', 'even') }}" id="remove_check-{{s.0}}" data-name="{{ s.1 }}">
         <div class="check-name">
-            <div style="width: 150px; display: inline-block;">{{ s.1.replace("'", '') }}</div>
+            <div style="width: 150px; display: inline-block;">{{ s.1|replace("'", "") }}</div>
             <span class="slave_int" id="slave_int_div-{{s.0}}" data-ip="{{s.2}}">
                 {{ input('slave_int-'+s.0|string(), value=s.32, size='7', title=lang.phrases.int_vrrp + ' ' +lang.ha_page.start_enter) }}
             </span>
         </div>
-        <div class="add_user_group check-button" onclick="removeCheckFromStatus({{s.0}}, '{{s.2}}')">-</div>
+        <div class="add_user_group check-button" data-ip="{{s.2}}" onclick="removeCheckFromStatus({{s.0}}, this.dataset.ip)">-</div>
     </div>
     {%- endif -%}
     {%- endfor -%}
@@ -18,8 +18,8 @@
 <div id="all-checks">
     {% for s in free_servers %}
     <div class="{{ loop.cycle('odd', 'even') }} all-checks" id="add_check-{{ s.server_id }}" data-name="{{ s.hostname }}">
-        <div class="check-name" title="{{s.desc}}" data-help="{{s.desc}}">{{ s.hostname.replace("'", '') }}</div>
-        <div class="add_user_group check-button" title="{{lang.words.add|title()}} {{lang.words.service}}" onclick="addCheckToStatus('{{ s.server_id }}', '{{s.ip}}')">+</div>
+        <div class="check-name" title="{{s.desc}}" data-help="{{s.desc}}">{{ s.hostname|replace("'", "") }}</div>
+        <div class="add_user_group check-button" title="{{lang.words.add|title()}} {{lang.words.service}}" data-ip="{{s.ip}}" onclick="addCheckToStatus('{{ s.server_id }}', this.dataset.ip)">+</div>
     </div>
     {% endfor %}
 </div>

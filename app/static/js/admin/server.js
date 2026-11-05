@@ -456,11 +456,13 @@ function addServiceToServer(service_id) {
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	let html_tag = '<tr class="'+tr_class+'" id="remove_service-'+service_id+'" data-service_name="'+service_name+'">' +
-		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
-		'<td><span class="add_user_group" onclick="removeServiceFromUser('+service_id+')" title="'+delete_word+' '+service_word+'">-</span></td></tr>';
+	const row = elem('tr', {class: tr_class, id: 'remove_service-' + service_id, 'data-service_name': service_name}, [
+		elem('td', {class: 'padding20', style: 'width: 100%;'}, service_name),
+		elem('td', {}, [elem('span', {class: 'add_user_group', title: delete_word + ' ' + service_word,
+			onclick: () => removeServiceFromServer(service_id)}, '-')])
+	]);
 	$('#add_service-'+service_id).remove();
-	$("#checked_services tbody").append(html_tag);
+	$("#checked_services tbody").append(row);
 }
 function removeServiceFromServer(service_id) {
 	let service_name = $('#remove_service-'+service_id).attr('data-service_name');
@@ -469,11 +471,13 @@ function removeServiceFromServer(service_id) {
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	let html_tag = '<tr class="'+tr_class+'" id="add_service-'+service_id+'" data-service_name="'+service_name+'">' +
-		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
-		'<td><span class="add_user_group" onclick="addServiceToUser('+service_id+')" title="'+add_word+' '+service_word+'">+</span></td></tr>';
+	const row = elem('tr', {class: tr_class, id: 'add_service-' + service_id, 'data-service_name': service_name}, [
+		elem('td', {class: 'padding20', style: 'width: 100%;'}, service_name),
+		elem('td', {}, [elem('span', {class: 'add_user_group', title: add_word + ' ' + service_word,
+			onclick: () => addServiceToServer(service_id)}, '+')])
+	]);
 	$('#remove_service-'+service_id).remove();
-	$("#all_services tbody").append(html_tag);
+	$("#all_services tbody").append(row);
 }
 function changeServerServices(server_id) {
 	let jsonData = {};

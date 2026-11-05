@@ -519,12 +519,17 @@ function createBackendServer(server='', port='', weight='1') {
 	let port_word = translate_div.attr('data-port');
 	let weight_word = translate_div.attr('data-weight');
 	let delete_word = translate_div.attr('data-delete');
-	$('<div class="servers">' +
-		server_word+': <input name="new-udp-server" value="' + server + '" class="form-control" placeholder="10.0.0.1">' +
-		port_word + ': <input name="new-udp-port" value="' + port + '" type="number" class="form-control" placeholder="443" style="width: 50px">' +
-		weight_word + ': <input name="new-udp-weight" value="' + weight + '" type="number" class="form-control" style="width: 30px">' +
-		'<span class="minus minus-style" title="'+delete_word+' '+server_word+'" onclick="$(this).parent().remove()"></span>' +
-		'</div>').insertBefore('.add-server');
+	const row = elem('div', {class: 'servers'}, [
+		server_word + ': ',
+		elem('input', {name: 'new-udp-server', value: server, class: 'form-control', placeholder: '10.0.0.1'}),
+		port_word + ': ',
+		elem('input', {name: 'new-udp-port', value: port, type: 'number', class: 'form-control', placeholder: '443', style: 'width: 50px'}),
+		weight_word + ': ',
+		elem('input', {name: 'new-udp-weight', value: weight, type: 'number', class: 'form-control', style: 'width: 30px'})
+	]);
+	row.appendChild(elem('span', {class: 'minus minus-style', title: delete_word + ' ' + server_word,
+		onclick: () => row.remove()}));
+	$(row).insertBefore('.add-server');
 	$.getScript(awesome);
 }
 function checkStatus(listener_id) {

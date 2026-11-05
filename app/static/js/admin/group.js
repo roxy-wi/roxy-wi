@@ -84,7 +84,7 @@ function addGroup(dialog_id) {
 				} else {
 					let id = data.id;
 					let actionsLabel = $('#ajax-group th.admin-actions-cell').text().trim() || 'Actions';
-					$('select:regex(id, group)').append('<option value=' + id + '>' + $('#new-group-add').val() + '</option>').selectmenu("refresh");
+					$('select:regex(id, group)').append($('<option>').val(id).text(name)).selectmenu("refresh");
 					let new_group = elem("tr", {"id":"group-"+id,"class":"newgroup"}, [
                         elem("td", {"class":"padding10","style":"width: 0"}, id),
                         elem("td", {"class":"padding10 first-collumn"}, [
@@ -196,7 +196,7 @@ function updateGroup(id) {
 					$("#group-" + id).removeClass("update");
 				}, 2500);
 				$('select:regex(id, group) option[value=' + id + ']').remove();
-				$('select:regex(id, group)').append('<option value=' + id + '>' + $('#name-' + id).val() + '</option>').selectmenu("refresh");
+				$('select:regex(id, group)').append($('<option>').val(id).text($('#name-' + id).val())).selectmenu("refresh");
 			}
 		}
 	});

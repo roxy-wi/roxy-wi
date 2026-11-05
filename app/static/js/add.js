@@ -1006,7 +1006,7 @@ function deleteId(id) {
 var if_word = translate_div.attr('data-if-title');
 var then_word = translate_div.attr('data-then');
 var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">\n' +
-		'<b class="padding10">'+if_word+'</b>\n' +
+		'<b class="padding10" data-acl-label="if"></b>\n' +
 		'<select name="acl_if">\n' +
 		'\t<option selected>Select if</option>\n' +
 		'\t<option value="1">Host name starts with</option>\n' +
@@ -1015,9 +1015,9 @@ var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; paddin
 		'\t<option value="4">Path ends with</option>\n' +
 		'\t<option value="6">Src ip</option>\n' +
 		'</select> ' +
-		'<b class="padding10">'+value_word+'</b>\n' +
+		'<b class="padding10" data-acl-label="value"></b>\n' +
 		'<input type="text" name="acl_value" class="form-control">\n' +
-		'<b class="padding10">'+then_word+'</b>\n' +
+		'<b class="padding10" data-acl-label="then"></b>\n' +
 		'<select name="acl_then">\n' +
 		'\t<option selected>Select then</option>\n' +
 		'\t<option value="5">Use backend</option>\n' +
@@ -1027,13 +1027,17 @@ var acl_option = '<p id="new_acl_p" style="border-bottom: 1px solid #ddd; paddin
 		'\t<option value="6">Return</option>\n' +
 		'\t<option value="7">Set-header</option>\n' +
 		'</select>\n' +
-		'<b class="padding10">'+value_word+'</b>\n' +
+		'<b class="padding10" data-acl-label="value"></b>\n' +
 		'<input type="text" name="acl_then_value" class="form-control" value="" title="Required if\" then\" is \"Use backend\" or \"Redirect\"">\n' +
 		'<span class="minus minus-style" id="new_acl_rule_minus" title="Delete this ACL"></span>' +
 		'</p>'
 function make_actions_for_adding_acl_rule(section_id) {
 	let random_id = makeid(3);
-	$(section_id).append(acl_option);
+	const row = $(acl_option);
+	row.find('[data-acl-label="if"]').text(if_word);
+	row.find('[data-acl-label="then"]').text(then_word);
+	row.find('[data-acl-label="value"]').text(value_word);
+	$(section_id).append(row);
 	$('#new_acl_rule_minus').attr('onclick', 'deleteId(\''+random_id+'\')');
 	$('#new_acl_rule_minus').attr('id', '');
 	$('#new_acl_p').attr('id', random_id);
@@ -1053,15 +1057,18 @@ var header_option = '<p style="border-bottom: 1px solid #ddd; padding-bottom: 10
 	'<option value="set-header">set-header</option>' +
 	'<option value="del-header">del-header</option>' +
 	'</select>' +
-	'\t<b class="padding10">'+name_word+'</b>' +
+	'\t<b class="padding10" data-header-label="name"></b>' +
 	'\t<input name="header_name" class="form-control">' +
-	'\t<b class="padding10">'+value_word+'</b>' +
+	'\t<b class="padding10" data-header-label="value"></b>' +
 	'\t<input name="header_value" class="form-control" placeholder="Leave blank if using del-header">' +
 	'\t<span class="minus minus-style" id="new_header_minus" title="Delete this header"></span>' +
 	'</p>'
 function make_actions_for_adding_header(section_id) {
 	let random_id = makeid(3);
-	$(section_id).append(header_option);
+	const row = $(header_option);
+	row.find('[data-header-label="name"]').text(name_word);
+	row.find('[data-header-label="value"]').text(value_word);
+	$(section_id).append(row);
 	$('#new_header_minus').attr('onclick', 'deleteId(\''+random_id+'\')');
 	$('#new_header_minus').attr('id', '');
 	$('#new_header_p').attr('id', random_id);

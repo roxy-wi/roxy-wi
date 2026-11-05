@@ -47,7 +47,7 @@
                 </td>
                 <td>
                     {% if b.description is not none %}
-                        {{ input('backup-description-'+b.id|string(), value=b.description.replace("'", "")) }}
+                        {{ input('backup-description-'+b.id|string(), value=b.description|replace("'", "")) }}
                     {% else %}
                         {{ input('backup-description-'+b.id|string()) }}
                     {% endif %}

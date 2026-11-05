@@ -655,15 +655,18 @@ function addCheckToStatus(server_id, server_ip) {
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	let html_tag = '<div class="' + tr_class + '" id="remove_check-' + server_id + '" data-name="' + hostname + '">' +
-		'<div class="check-name"><div style="display: inline-block; width: 150px;">' + hostname + '</div>' +
-		'<span class="slave_int" id="slave_int_div-' + server_id + '" data-ip="' + server_ip + '">' +
-		'<input id="slave_int-' + server_id + '" title="'+start_enter+'" placeholder="eth0" size="7" class="form-control"></span></div>' +
-		'<div class="add_user_group check-button" onclick="removeCheckFromStatus(' + server_id + ', \'' + server_ip + '\')" title="' + delete_word + ' ' + service_word + '">-</div>' +
-
-		'</div>';
+	const row = elem('div', {class: tr_class, id: 'remove_check-' + server_id, 'data-name': hostname}, [
+		elem('div', {class: 'check-name'}, [
+			elem('div', {style: 'display: inline-block; width: 150px;'}, hostname),
+			elem('span', {class: 'slave_int', id: 'slave_int_div-' + server_id, 'data-ip': server_ip}, [
+				elem('input', {id: 'slave_int-' + server_id, title: start_enter, placeholder: 'eth0', size: 7, class: 'form-control'})
+			])
+		]),
+		elem('div', {class: 'add_user_group check-button', title: delete_word + ' ' + service_word,
+			onclick: () => removeCheckFromStatus(server_id, server_ip)}, '-')
+	]);
 	$('#add_check-' + server_id).remove();
-	$("#enabled-check").append(html_tag);
+	$("#enabled-check").append(row);
 	$.getScript(ha);
 }
 function removeCheckFromStatus(server_id, server_ip) {
@@ -675,11 +678,13 @@ function removeCheckFromStatus(server_id, server_ip) {
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	let html_tag = '<div class="' + tr_class + ' all-checks" id="add_check-' + server_id + '" data-name="' + hostname + '">' +
-		'<div class="check-name">' + hostname + '</div>' +
-		'<div class="add_user_group check-button" onclick="addCheckToStatus(' + server_id + ',  \'' + server_ip + '\')" title="' + add_word + ' ' + service_word + '">+</div></div>';
+	const row = elem('div', {class: tr_class + ' all-checks', id: 'add_check-' + server_id, 'data-name': hostname}, [
+		elem('div', {class: 'check-name'}, hostname),
+		elem('div', {class: 'add_user_group check-button', title: add_word + ' ' + service_word,
+			onclick: () => addCheckToStatus(server_id, server_ip)}, '+')
+	]);
 	$('#remove_check-' + server_id).remove();
-	$("#all-checks").append(html_tag);
+	$("#all-checks").append(row);
 }
 function createJsonCluster(div_id) {
 	let jsonData = {};

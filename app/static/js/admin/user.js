@@ -345,11 +345,13 @@ function addServiceToUser(service_id) {
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	let html_tag = '<tr class="'+tr_class+'" id="remove_service-'+service_id+'" data-service_name="'+service_name+'">' +
-		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
-		'<td><span class="add_user_group" onclick="removeServiceFromUser('+service_id+')" title="'+delete_word+' '+service_word+'">-</span></td></tr>';
+	const row = elem('tr', {class: tr_class, id: 'remove_service-' + service_id, 'data-service_name': service_name}, [
+		elem('td', {class: 'padding20', style: 'width: 100%;'}, service_name),
+		elem('td', {}, [elem('span', {class: 'add_user_group', title: delete_word + ' ' + service_word,
+			onclick: () => removeServiceFromUser(service_id)}, '-')])
+	]);
 	$('#add_service-'+service_id).remove();
-	$("#checked_services tbody").append(html_tag);
+	$("#checked_services tbody").append(row);
 }
 function removeServiceFromUser(service_id) {
 	let service_name = $('#remove_service-'+service_id).attr('data-service_name');
@@ -358,11 +360,13 @@ function removeServiceFromUser(service_id) {
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	let html_tag = '<tr class="'+tr_class+'" id="add_service-'+service_id+'" data-service_name="'+service_name+'">' +
-		'<td class="padding20" style="width: 100%;">'+service_name+'</td>' +
-		'<td><span class="add_user_group" onclick="addServiceToUser('+service_id+')" title="'+add_word+' '+service_word+'">+</span></td></tr>';
+	const row = elem('tr', {class: tr_class, id: 'add_service-' + service_id, 'data-service_name': service_name}, [
+		elem('td', {class: 'padding20', style: 'width: 100%;'}, service_name),
+		elem('td', {}, [elem('span', {class: 'add_user_group', title: add_word + ' ' + service_word,
+			onclick: () => addServiceToUser(service_id)}, '+')])
+	]);
 	$('#remove_service-'+service_id).remove();
-	$("#all_services tbody").append(html_tag);
+	$("#all_services tbody").append(row);
 }
 function confirmChangeGroupsAndRoles(user_id) {
 	let user_groups_word = translate_div.attr('data-user_groups');
@@ -407,26 +411,24 @@ function addGroupToUser(group_id, user_role_id=0) {
 	let group2_word = translate_div.attr('data-group2');
 	let length_tr = $('#all_groups tbody tr').length;
 	const roles = {1: 'superAdmin', 2: 'admin', 3: 'user', 4: 'guest'};
-	let options_roles = '';
+	const roleSelect = elem('select', {id: 'add_role-' + group_id});
 	for (const [role_id, role_name] of Object.entries(roles)) {
-		console.log(user_role_id)
-		if (user_role_id === Number(role_id)) {
-			options_roles += '<option value="' + role_id + '" selected>' + role_name + '</option>';
-		} else {
-			options_roles += '<option value="' + role_id + '">' + role_name + '</option>';
-		}
+		const option = elem('option', {value: role_id}, role_name);
+		option.selected = Number(user_role_id) === Number(role_id);
+		roleSelect.appendChild(option);
 	}
 	let tr_class = 'odd';
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	let html_tag = '<tr class="' + tr_class + '" id="remove_group-' + group_id + '" data-group_name="' + group_name + '">\n' +
-		'        <td class="padding20" style="width: 50%;">' + group_name + '</td>\n' +
-		'        <td style="width: 50%;">\n' +
-		'            <select id="add_role-' + group_id + '">' + options_roles + '</select></td>\n' +
-		'        <td><span class="remove_user_group" onclick="removeGroupFromUser(' + group_id + ')" title="' + delete_word + ' ' + group2_word + '">-</span></td></tr>'
+	const row = elem('tr', {class: tr_class, id: 'remove_group-' + group_id, 'data-group_name': group_name}, [
+		elem('td', {class: 'padding20', style: 'width: 50%;'}, group_name),
+		elem('td', {style: 'width: 50%;'}, [roleSelect]),
+		elem('td', {}, [elem('span', {class: 'remove_user_group', title: delete_word + ' ' + group2_word,
+			onclick: () => removeGroupFromUser(group_id)}, '-')])
+	]);
 	$('#add_group-' + group_id).remove();
-	$("#checked_groups tbody").append(html_tag);
+	$("#checked_groups tbody").append(row);
 }
 function removeGroupFromUser(group_id, name=false, desc=false) {
 	let group_name = $('#remove_group-'+group_id).attr('data-group_name');
@@ -442,11 +444,13 @@ function removeGroupFromUser(group_id, name=false, desc=false) {
 	if (length_tr % 2 != 0) {
 		tr_class = 'even';
 	}
-	let html_tag = '<tr class="'+tr_class+'" id="add_group-'+group_id+'" data-group_name='+group_name+'>\n' +
-		'    <td class="padding20" style="width: 100%">'+group_name+'</td>\n' +
-		'    <td><span class="add_user_group" title="'+add_word+' '+group2_word+'" title="'+description+'" onclick="addGroupToUser('+group_id+')">+</span></td></tr>'
+	const row = elem('tr', {class: tr_class, id: 'add_group-' + group_id, 'data-group_name': group_name}, [
+		elem('td', {class: 'padding20', style: 'width: 100%;', title: description}, group_name),
+		elem('td', {}, [elem('span', {class: 'add_user_group', title: add_word + ' ' + group2_word,
+			onclick: () => addGroupToUser(group_id)}, '+')])
+	]);
 	$('#remove_group-'+group_id).remove();
-	$("#all_groups tbody").append(html_tag);
+	$("#all_groups tbody").append(row);
 }
 function saveGroupsAndRoles(user_id) {
 	let length_tr = $('#checked_groups tbody tr').length;

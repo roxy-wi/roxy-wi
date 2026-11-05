@@ -22,7 +22,7 @@
         </td>
         <td>
             {% set id = 'telegram-chanel-' + telegram.id|string() %}
-            {{ input(id, value=telegram.chanel_name.replace("'", ""), size='30') }}
+            {{ input(id, value=telegram.chanel_name|replace("'", ""), size='30') }}
         </td>
         {% if user_params['role']|int() == 1 %}
         <td>
@@ -74,7 +74,7 @@
         </td>
         <td>
             {% set id = 'slack-chanel-' + slack.id|string() %}
-            {{ input(id, value=slack.chanel_name.replace("'", ""), size='30') }}
+            {{ input(id, value=slack.chanel_name|replace("'", ""), size='30') }}
         </td>
         {% if user_params['role']|int() == 1 %}
         <td>
@@ -126,7 +126,7 @@
         </td>
         <td>
             {% set id = 'pd-chanel-' + pd.id|string() %}
-            {{ input(id, value=pd.chanel_name.replace("'", ""), size='30') }}
+            {{ input(id, value=pd.chanel_name|replace("'", ""), size='30') }}
         </td>
         {% if user_params['role']|int() == 1 %}
         <td>
@@ -178,7 +178,7 @@
         </td>
         <td>
             {% set id = 'mm-chanel-' + mm.id|string() %}
-            {{ input(id, value=mm.chanel_name.replace("'", ""), size='30') }}
+            {{ input(id, value=mm.chanel_name|replace("'", ""), size='30') }}
         </td>
         {% if user_params['role']|int() == 1 %}
         <td>
