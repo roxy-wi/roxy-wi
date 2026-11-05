@@ -139,6 +139,11 @@ def check_user_group(user_id, group_id):
 			return False
 
 
+def select_user_groups(user_id: int) -> list[UserGroups]:
+	"""Return every membership, including records whose group no longer exists."""
+	return list(UserGroups.select().where(UserGroups.user_id == user_id))
+
+
 def select_user_groups_with_names(user_id, **kwargs):
 	if kwargs.get("all") is not None:
 		query = (UserGroups.select(

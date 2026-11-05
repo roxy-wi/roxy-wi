@@ -82,10 +82,12 @@ def update_user_password(user_id):
 def show_user_services(user_id):
     try:
         roxywi_common.is_user_has_access_to_its_group(user_id)
-        target_role = user_sql.get_user_role_in_group(user_id, g.user_params['group_id'])
-        roxywi_access.ensure_target_role(g.user_params['role'], target_role)
         if request.method == 'POST':
             roxywi_auth.page_for_admin(level=2)
+            roxywi_access.ensure_user_management(g.user_params, user_id)
+        elif int(g.user_params['role']) != 1:
+            target_role = user_sql.get_user_role_in_group(user_id, g.user_params['group_id'])
+            roxywi_access.ensure_target_role(g.user_params['role'], target_role)
     except Exception as e:
         return roxywi_common.handle_json_exceptions(e, 'Cannot manage user services'), 403
     if request.method == 'GET':

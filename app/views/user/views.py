@@ -221,8 +221,7 @@ class UserView(MethodView):
         try:
             _ = user_sql.get_user_id(user_id)
             roxywi_common.is_user_has_access_to_its_group(user_id)
-            target_role = user_sql.get_user_role_in_group(user_id, g.user_params['group_id'])
-            roxywi_access.ensure_target_role(g.user_params['role'], target_role)
+            roxywi_access.ensure_user_management(g.user_params, user_id)
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot get user'), 404
         try:
@@ -264,9 +263,8 @@ class UserView(MethodView):
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot get user'), 404
 
-        target_role = user_sql.get_user_role_in_group(user_id, g.user_params['group_id'])
         try:
-            roxywi_access.ensure_target_role(g.user_params['role'], target_role)
+            roxywi_access.ensure_user_management(g.user_params, user_id)
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot delete user'), 403
 
@@ -359,7 +357,7 @@ class UserGroupView(MethodView):
         """
         roxywi_auth.page_for_admin(level=2)
         try:
-            roxywi_access.ensure_group_management(g.user_params['role'], g.user_params['group_id'], group_id)
+            roxywi_access.ensure_user_management(g.user_params, user_id, group_id=group_id)
             roxywi_access.ensure_role_assignment(g.user_params['role'], body.role_id)
             self._check_is_user_and_group(user_id, group_id)
         except Exception as e:
@@ -405,14 +403,13 @@ class UserGroupView(MethodView):
         """
         roxywi_auth.page_for_admin(level=2)
         try:
-            roxywi_access.ensure_group_management(g.user_params['role'], g.user_params['group_id'], group_id)
+            roxywi_access.ensure_user_management(g.user_params, user_id, group_id=group_id)
             roxywi_access.ensure_role_assignment(g.user_params['role'], body.role_id)
             self._check_is_user_and_group(user_id, group_id)
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot get user or group'), 404
 
         try:
-            user_sql.delete_user_from_group(group_id, user_id)
             user_sql.update_user_role(user_id, group_id, body.role_id)
             return BaseResponse().model_dump(mode='json'), 201
         except Exception as e:
@@ -491,13 +488,11 @@ class UserGroupView(MethodView):
         """
         try:
             roxywi_auth.page_for_admin(level=2)
-            roxywi_access.ensure_group_management(g.user_params['role'], g.user_params['group_id'], group_id)
+            roxywi_access.ensure_user_management(g.user_params, user_id, group_id=group_id)
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot get user or group'), 404
         try:
             self._check_is_user_and_group(user_id, group_id)
-            target_role = user_sql.get_user_role_in_group(user_id, group_id)
-            roxywi_access.ensure_target_role(g.user_params['role'], target_role)
         except Exception as e:
             return roxywi_common.handle_json_exceptions(e, 'Cannot get user or group'), 404
 
