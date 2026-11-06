@@ -89,13 +89,64 @@ def test_map_writers_keep_access(client, actor, monkeypatch, role, method, helpe
     calls = []
     monkeypatch.setattr(add_routes.add_mod, helper, lambda *a: calls.append(a) or 'ok')
     response = client.open('/add/map', method=method, headers=actor[1], data={'serv': '192.0.2.10', 'map_name': 'test.map'})
-    assert response.status_code in (200, 201)
+    assert response.status_code == (201 if method == 'PUT' else 200)
+    assert response.mimetype == 'text/plain'
+    assert response.headers['X-Content-Type-Options'] == 'nosniff'
     assert len(calls) == 1
 
 
-def test_guest_can_read_map(client, actor, monkeypatch):
-    monkeypatch.setattr(add_routes.add_mod, 'edit_map', lambda *a: 'existing map')
-    assert client.get('/add/map?map_name=test.map', headers=actor[1]).get_data(as_text=True) == 'existing map'
+def test_guest_can_read_literal_map_text(client, actor, monkeypatch, tmp_path):
+    monkeypatch.setattr(add_routes.add_mod.get_config, 'get_config_var', lambda *args: str(tmp_path))
+    folder = tmp_path / 'maps' / '1'
+    folder.mkdir(parents=True)
+    content = 'error: backend_a\n<img src=x onerror=alert(1)> backend_b\n'
+    target = folder / 'test.map'
+    target.write_text(content)
+    response = client.get('/add/map?map_name=test.map', headers=actor[1])
+    assert response.status_code == 200
+    assert response.mimetype == 'text/plain'
+    assert response.headers['X-Content-Type-Options'] == 'nosniff'
+    assert response.get_data(as_text=True) == content
+    target.unlink()
+    missing = client.get('/add/map?map_name=test.map', headers=actor[1])
+    assert missing.status_code == 404
+    assert missing.mimetype == 'text/plain'
+
+
+def test_last_edit_returns_remote_text_and_authorizes_before_ssh(client, actor, monkeypatch):
+    output = '<svg onload=alert(1)>\n'
+    calls = []
+    monkeypatch.setattr(service_common.sql, 'get_setting', lambda _: '/etc/haproxy/haproxy.cfg')
+    monkeypatch.setattr(service_common.server_mod, 'ssh_command',
+                        lambda ip, *args, **kwargs: calls.append(ip) or output)
+    response = client.get('/service/haproxy/192.0.2.10/last-edit', headers=actor[1])
+    assert response.status_code == 200
+    assert response.mimetype == 'text/plain'
+    assert response.headers['X-Content-Type-Options'] == 'nosniff'
+    assert response.get_data(as_text=True) == output
+    for address in ('192.0.2.20', '192.0.2.99'):
+        response = client.get(f'/service/haproxy/{address}/last-edit', headers=actor[1])
+        assert response.status_code == 403
+    assert calls == ['192.0.2.10']
+
+
+@pytest.mark.parametrize('fails', [False, True])
+def test_runtime_response_is_plain_text(client, actor, monkeypatch, fails):
+    actor[0]['role'] = 3
+    output = 'first line\n<img src=x onerror=alert(1)>\n'
+
+    def run(*args):
+        if fails:
+            raise RuntimeError('private detail')
+        return output
+
+    monkeypatch.setattr(haproxy, 'runtime_command', run)
+    response = client.post('/runtimeapi/action/192.0.2.10', headers=actor[1],
+                           data={'servaction': 'show', 'servbackend': 'info'})
+    assert response.status_code == 200
+    assert response.mimetype == 'text/plain'
+    assert response.headers['X-Content-Type-Options'] == 'nosniff'
+    assert response.get_data(as_text=True) == ('error: Internal server error' if fails else output)
 
 
 @pytest.mark.parametrize('method,url', [('POST', '/add/cert/add'), ('DELETE', '/add/cert/1/test.pem')])

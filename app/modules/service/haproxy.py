@@ -211,12 +211,11 @@ def runtime_command(serv: str, enable: str, backend: str, save: str) -> str:
         cmd = f'{cmd}; {show_state_command} | {read_socket_command} | {save_state_command}'
 
     try:
-        output = server_mod.ssh_command(serv, cmd, show_log="1")
+        output = server_mod.ssh_command(serv, cmd)
     except Exception as e:
         return 'error: ' + safe_error_message(e)
     else:
         if enable != "show":
             roxywi_common.logging(serv, f'Has been {enable}ed {backend}', keep_history=1, service='haproxy')
-            return f'<center><h3>You {enable} {backend} on HAProxy {serv}.</center> {output}'
-        else:
-            return output
+            return f'You {enable} {backend} on HAProxy {serv}.\n{output}'
+        return output

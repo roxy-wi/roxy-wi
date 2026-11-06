@@ -12,8 +12,9 @@ function showRuntime() {
 			save: saveCheck,
 		},
 		type: "POST",
+		dataType: "text",
 		success: function (data) {
-			$("#ajaxruntime").html(data);
+			$("#ajaxruntime").text(data);
 		},
 		error: function (xhr) {
 			RoxywiUI.error(xhr.responseJSON || xhr.responseText);

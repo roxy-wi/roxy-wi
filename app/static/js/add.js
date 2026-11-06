@@ -837,16 +837,17 @@ function createMap() {
 	map_name = escapeHtml(map_name);
 	$.ajax( {
 		url: "/add/map",
+		dataType: "text",
 		data: {
 			map_name: map_name
 		},
 		type: "POST",
 		success: function( data ) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
-				toastr.error(data);
+				toastr.error(escapeHtml(data));
 			} else if (data.indexOf('Info') != '-1' ){
 				toastr.clear();
-				toastr.info(data);
+				toastr.info(escapeHtml(data));
 			} else if (data.indexOf('success') != '-1' ) {
 				toastr.clear();
 				toastr.success('A map has been created');
@@ -860,53 +861,54 @@ function createMap() {
 function editMap(map) {
 	$.ajax({
 		url: "/add/map",
+		dataType: "text",
 		data: {
 			map_name: map,
 		},
 		type: "GET",
+		suppressGlobalError: true,
+		error: function (xhr) {
+			RoxywiUI.error(xhr.responseJSON || xhr.responseText);
+		},
 		success: function (data) {
-			if (data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				$('#edit_map').text(data);
-				$("#dialog-confirm-map-edit").dialog({
-					resizable: false,
-					height: "auto",
-					width: 650,
-					modal: true,
-					title: edit_word + " " + map,
-					buttons: [{
-						text: delete_word,
-						click: function () {
-							$(this).dialog("close");
-							confirmDeleting('map', map, $(this));
-						}
-					}, {
-						text: just_save_word,
-						click: function () {
-							$(this).dialog("close");
-							saveMap('save', map);
-						}
-					}, {
-						text: upload_and_reload,
-						click: function () {
-							$(this).dialog("close");
-							saveMap('reload', map);
-						}
-					}, {
-						text: upload_and_restart,
-						click: function () {
-							$(this).dialog("close");
-							saveMap('restart', map);
-						}
-					}, {
-						text: cancel_word,
-						click: function () {
-							$(this).dialog("close");
-						}
-					}]
-				});
-			}
+			$('#edit_map').val(data);
+			$("#dialog-confirm-map-edit").dialog({
+				resizable: false,
+				height: "auto",
+				width: 650,
+				modal: true,
+				title: edit_word + " " + map,
+				buttons: [{
+					text: delete_word,
+					click: function () {
+						$(this).dialog("close");
+						confirmDeleting('map', map, $(this));
+					}
+				}, {
+					text: just_save_word,
+					click: function () {
+						$(this).dialog("close");
+						saveMap('save', map);
+					}
+				}, {
+					text: upload_and_reload,
+					click: function () {
+						$(this).dialog("close");
+						saveMap('reload', map);
+					}
+				}, {
+					text: upload_and_restart,
+					click: function () {
+						$(this).dialog("close");
+						saveMap('restart', map);
+					}
+				}, {
+					text: cancel_word,
+					click: function () {
+						$(this).dialog("close");
+					}
+				}]
+			});
 		}
 	});
 }
@@ -915,6 +917,7 @@ function saveMap(action, map) {
 	if(!checkIsServerFiled($("#serv-map"))) return false;
 	$.ajax({
 		url: "/add/map",
+		dataType: "text",
 		data: {
 			map_name: map,
 			serv: serv,
@@ -924,13 +927,13 @@ function saveMap(action, map) {
 		type: "PUT",
 		success: function (data) {
 			data = data.split(" , ");
-			for (i = 0; i < data.length; i++) {
+			for (let i = 0; i < data.length; i++) {
 				if (data[i]) {
 					if (data[i].indexOf('error: ') != '-1' || data[i].indexOf('Errno') != '-1') {
-						toastr.error(data[i]);
+						toastr.error(escapeHtml(data[i]));
 					} else {
 						if (data[i] != '\n') {
-							toastr.success(data[i]);
+							toastr.success(escapeHtml(data[i]));
 						}
 					}
 				}
@@ -943,6 +946,7 @@ function deleteMap(map) {
 	if(!checkIsServerFiled($("#serv-map"))) return false;
 	$.ajax({
 		url: "/add/map",
+		dataType: "text",
 		data: {
 			map_name: map,
 			serv: serv,
@@ -950,10 +954,10 @@ function deleteMap(map) {
 		type: "DELETE",
 		success: function (data) {
 			if (data.indexOf('error:') != '-1' || data.indexOf('Failed') != '-1' || data.indexOf('Errno') != '-1') {
-				toastr.error(data);
+				toastr.error(escapeHtml(data));
 			} else if (data.indexOf('Info') != '-1' ){
 				toastr.clear();
-				toastr.info(data);
+				toastr.info(escapeHtml(data));
 			} else if (data.indexOf('success') != '-1' ) {
 				toastr.clear();
 				toastr.success('The map has been deleted');

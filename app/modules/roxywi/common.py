@@ -2,7 +2,7 @@ import os
 import glob
 from typing import Any, Union
 
-from flask import request, g, abort, has_request_context
+from flask import Response, request, g, abort, has_request_context
 from flask_jwt_extended import get_jwt
 from flask_jwt_extended import verify_jwt_in_request
 
@@ -19,6 +19,11 @@ from app.modules.roxywi.error_handler import handle_exception, log_error
 from app.modules.roxywi import logger
 
 get_config_var = roxy_wi_tools.GetConfigVar()
+
+
+def text_response(body: str, status: int = 200) -> Response:
+	"""Return literal file or command output without browser content sniffing."""
+	return Response(body, status=status, mimetype='text/plain', headers={'X-Content-Type-Options': 'nosniff'})
 
 
 def get_jwt_token_claims() -> dict:

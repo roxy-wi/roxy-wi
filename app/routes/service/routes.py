@@ -247,9 +247,11 @@ def services(service, serv):
 
 @bp.route('/<service>/<server_ip>/last-edit')
 @check_services
+@get_user_params()
 @validate()
 def last_edit(service: str, server_ip: Union[IPvAnyAddress, DomainName]):
-    return service_common.get_overview_last_edit(str(server_ip), service)
+    server = roxywi_common.require_server_access(str(server_ip))
+    return roxywi_common.text_response(service_common.get_overview_last_edit(server.ip, service))
 
 
 @bp.route('/<service>/ssl')

@@ -242,19 +242,24 @@ def create_map():
     group = g.user_params['group_id']
     if request.method == 'POST':
         try:
-            return add_mod.create_map(server_ip, map_name, group)
+            output = add_mod.create_map(server_ip, map_name, group)
         except Exception as e:
-            return 'error: ' + safe_error_message(e)
+            output = 'error: ' + safe_error_message(e)
     elif request.method == 'PUT':
         content = request.form.get('content')
         action = common.checkAjaxInput(request.form.get('map_restart'))
 
-        return add_mod.save_map(map_name, content, group, server_ip, action), 201
+        return roxywi_common.text_response(add_mod.save_map(map_name, content, group, server_ip, action), 201)
     elif request.method == 'DELETE':
-        server_id = common.checkAjaxInput(request.form.get('serv'))
-        return add_mod.delete_map(map_name, group, server_id)
-    elif request.method == 'GET':
-        return add_mod.edit_map(map_name, group)
+        output = add_mod.delete_map(map_name, group, server_ip)
+    else:
+        try:
+            output = add_mod.edit_map(map_name, group)
+        except FileNotFoundError:
+            return roxywi_common.text_response('error: Map not found', 404)
+        except OSError as e:
+            return roxywi_common.text_response(f'error: Cannot read map: {safe_error_message(e)}', 500)
+    return roxywi_common.text_response(output)
 
 
 @bp.route('/get/upstreams/<int:server_id>')

@@ -14,15 +14,13 @@ pytestmark = [pytest.mark.browser, pytest.mark.skipif(
 @pytest.mark.parametrize('service', ['haproxy', 'nginx', 'apache', 'keepalived'])
 @pytest.mark.parametrize('detail', [False, True], ids=['overview', 'detail'])
 def test_start_stop_follow_status_and_recover_after_missing_poll(
-    logged_in, product_url, product, service_worker_controls, host_metrics, monkeypatch, app, service, detail,
+    logged_in, product_url, product, service_worker_controls, host_metrics, keepalived_probe, app, service, detail,
 ):
     setattr(product.server, service, 1)
     product.server.save()
     if not detail:
         Server.create(server_id=33, hostname='Secondary service server', ip='192.0.2.33', group_id='1',
                       cred_id=11, **{service: 1})
-    # The Keepalived page also reads its VRRP state through SSH.
-    monkeypatch.setattr('app.routes.service.routes.server_mod.ssh_command', lambda *args, **kwargs: '')
     page = logged_in
     page.set_viewport_size({'width': 2160, 'height': 1000})
     page.clock.install()
@@ -47,6 +45,10 @@ def test_start_stop_follow_status_and_recover_after_missing_poll(
     assert response.status == 200
     card = page.locator('#div-server-' + str(server_id))
     expect(card).to_be_visible()
+    if service == 'keepalived':
+        expect(card.get_by_text('MASTER', exact=True)).to_be_visible()
+        if not detail:
+            expect(page.locator('#div-server-33').get_by_text('BACKUP', exact=True)).to_be_visible()
     assert card.bounding_box()['width'] <= 500
     if not detail:
         search = page.locator('#service-server-search')

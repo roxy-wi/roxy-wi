@@ -188,6 +188,7 @@ def test_translations_and_removed_runtime_tab(logged_in, product_url, tables_hos
     expect(page.get_by_role('dialog')).to_contain_text(labels['table_clear_hint'])
     page.get_by_role('dialog').get_by_role('button', name=labels['cancel'], exact=True).click()
     page.goto(product_url + '/runtimeapi')
+    expect(page.locator('#servbackend')).to_be_visible()
     expect(page.locator('#table')).to_have_count(0)
-    expect(page.locator('#lists')).to_have_count(1)
+    expect(page.locator('#lists')).to_have_count(0)
     assert tables_host.writes == []

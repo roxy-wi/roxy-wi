@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 from types import SimpleNamespace
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 from flask import render_template
@@ -16,6 +17,31 @@ pytestmark = [pytest.mark.security, pytest.mark.browser, pytest.mark.skipif(
     os.environ.get('ROXYWI_TEST_BROWSER') != '1', reason='Set ROXYWI_TEST_BROWSER=1',
 )]
 LABELS = ['ordinary name', '''O'Brien "quoted" <img src=x onerror="window.injected=1"> & <svg onload="window.injected=1">''']
+
+
+def test_map_editor_keeps_filenames_contents_and_statuses_literal(logged_in, product_url, product, monkeypatch):
+    filename = "'+(window.injected=1)+[].map+'"
+    markup = '<img src=x onerror="window.injected=1">'
+    content = f'error: backend_a\n{markup} backend_b\n'
+    monkeypatch.setattr('app.routes.add.routes.roxywi_common.get_files', lambda **_: [filename])
+    page = logged_in
+    page.route('**/add/map?*', lambda route: route.fulfill(content_type='text/plain', body=content))
+    page.goto(product_url + '/add/haproxy#maps')
+    page.locator('#edit_map').evaluate("node => {node.value = 'previous unsaved edit';}")
+    with page.expect_request(lambda request: '/add/map?' in request.url) as request:
+        page.locator('.list_maps a').click()
+    assert parse_qs(urlsplit(request.value.url).query)['map_name'] == [filename]
+    expect(page.locator('#edit_map')).to_have_value(content)
+    page.locator('#serv-map').select_option(product.server.ip, force=True)
+    statuses = {'PUT': f'success: uploaded to {markup} , error: {markup}', 'DELETE': f'Info: {markup}'}
+    page.route('**/add/map', lambda route: route.fulfill(content_type='text/plain', body=statuses[route.request.method]))
+    page.evaluate("name => saveMap('save', name)", filename)
+    for status in statuses['PUT'].split(' , '):
+        expect(page.locator('.toast-message').filter(has_text=status)).to_be_visible()
+    page.evaluate('name => deleteMap(name)', filename)
+    expect(page.locator('.toast-message').filter(has_text=statuses['DELETE'])).to_be_visible()
+    expect(page.locator('.toast-message img')).to_have_count(0)
+    assert not page.evaluate('window.injected')
 
 
 @pytest.fixture

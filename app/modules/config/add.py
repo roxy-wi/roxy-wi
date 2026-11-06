@@ -128,15 +128,7 @@ def _map_path(map_name: str, group: str) -> Path:
 
 
 def edit_map(map_name: str, group: str) -> str:
-	list_path = _map_path(map_name, group)
-
-	try:
-		with open(list_path, 'r') as f:
-			read_map = f.read()
-	except IOError as e:
-		return f"error: Cannot read {map_name} list: {safe_error_message(e)}"
-	else:
-		return read_map
+	return _map_path(map_name, group).read_text()
 
 
 def create_map(server_ip: str, map_name: str, group: str) -> str:

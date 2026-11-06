@@ -198,7 +198,7 @@ def get_overview_last_edit(server_ip: str, service: str) -> str:
 	try:
 		return server_mod.ssh_command(server_ip, command, connect_timeout=10, banner_timeout=10)
 	except Exception as e:
-		return f'error: Cannot get last date {safe_error_message(e)} for server {server_ip}'
+		return f'error: Cannot get last date: {safe_error_message(e)}'
 
 
 def waf_runtime_settings(service: str, server_id: int) -> dict:

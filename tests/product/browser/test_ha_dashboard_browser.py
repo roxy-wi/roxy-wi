@@ -23,18 +23,10 @@ def close_panel(page):
     page.locator('.ha-cluster-dialog:visible .ui-dialog-titlebar-close').click()
 
 
-@pytest.fixture
-def cluster_service_state(monkeypatch):
-    def ssh(_ip, command):
-        assert command == 'systemctl is-active keepalived.service'
-        return 'active\n'
-    monkeypatch.setattr('app.modules.server.server.ssh_command', ssh)
-
-
 @pytest.mark.parametrize('width,theme', [(1440, 'light'), (390, 'light'), (1440, 'dark')])
 def test_common_cards_and_scoped_plan_history(
     logged_in, product_url, product_client, maintenance_cluster, keepalived_maintenance,
-    cluster_service_state, width, theme, tmp_path,
+    keepalived_probe, width, theme, tmp_path,
 ):
     active = create(product_client, maintenance_cluster)
     terminal = ka_create(product_client, keepalived_maintenance)

@@ -53,9 +53,10 @@ def action(server_ip: Union[IPvAnyAddress, DomainName]):
     save = request.form.get('save')
 
     try:
-        return service_haproxy.runtime_command(str(server_ip), enable, backend, save)
+        output = service_haproxy.runtime_command(str(server_ip), enable, backend, save)
     except Exception as e:
-        return 'error: ' + safe_error_message(e)
+        output = 'error: ' + safe_error_message(e)
+    return roxywi_common.text_response(output)
 
 
 @bp.route('/list/<server_ip>')

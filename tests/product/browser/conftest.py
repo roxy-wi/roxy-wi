@@ -1,8 +1,10 @@
+import json
 import threading
 
 import pytest
 from werkzeug.serving import make_server
 from app.modules.server import server as server_module
+from app.modules.service import keepalived
 
 
 @pytest.fixture(scope='session')
@@ -36,6 +38,19 @@ def browser_errors(page):
     page.on('pageerror', lambda error: errors.append(str(error)))
     yield
     assert not errors, '\n'.join(errors)
+
+
+@pytest.fixture
+def keepalived_probe(product, monkeypatch):
+    """Supply VRRP observations for the two synthetic nodes at the SSH boundary."""
+    roles = {product.server.server_id: 'MASTER', 33: 'BACKUP'}
+
+    class ProbeRemote(keepalived.Remote):
+        def run(self, argv, **kwargs):
+            role = roles[self.server.server_id]
+            return json.dumps({'service': 'UP', 'instances': [{'name': 'VI_1', 'state': role}]})
+
+    monkeypatch.setattr(keepalived, 'Remote', ProbeRemote)
 
 
 @pytest.fixture

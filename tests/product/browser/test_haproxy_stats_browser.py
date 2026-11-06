@@ -502,8 +502,9 @@ def test_menu_uses_shared_styles_and_fits_mobile_in_both_themes(logged_in, produ
 
 def test_runtime_console_still_executes_commands_after_forms_move_to_stats(logged_in, product_url, product, monkeypatch):
     commands = []
+    output = 'Runtime command completed\n<img src=x onerror="window.injected=1"> & done\n'
     monkeypatch.setattr('app.modules.service.haproxy.runtime_command',
-                        lambda *args: commands.append(args) or 'Runtime command completed')
+                        lambda *args: commands.append(args) or output)
     page = logged_in
     page.goto(product_url + '/runtimeapi')
     expect(page.get_by_text('Server state, weight and Maxconn are now managed', exact=False)).to_have_count(0)
@@ -512,6 +513,9 @@ def test_runtime_console_still_executes_commands_after_forms_move_to_stats(logge
     page.locator('#servbackend').fill('server web/one state drain')
     page.locator('#runtimeapiform').evaluate('form => $(form).trigger("submit")')
     expect(page.locator('#ajaxruntime')).to_contain_text('Runtime command completed')
+    assert page.locator('#ajaxruntime').text_content() == output
+    expect(page.locator('#ajaxruntime img')).to_have_count(0)
+    assert not page.evaluate('window.injected')
     assert commands[0][:3] == (product.server.ip, 'set', "'server web/one state drain'")
 
 

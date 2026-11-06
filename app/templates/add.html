@@ -19,7 +19,7 @@
 {% if user_subscription.user_status == 0 %}
 	{% include 'include/no_sub.html' %}
 {% else %}
-<script src="{{ url_for('static', filename='js/add.js', v='10.0-lists') }}"></script>
+<script src="{{ url_for('static', filename='js/add.js', v='10.0-text') }}"></script>
 <script src="/static/js/add_common.js"></script>
 <script src="{{ url_for('static', filename='js/edit_config.js', v='9.3.0-servers') }}"></script>
 <script id="haproxy-file-messages" type="application/json">{{lang.config_files|tojson}}</script>
@@ -161,7 +161,7 @@
 				<td style="width: 30%; padding: 10px 0 10px 0;">
 					{% for map in maps %}
 					<span class="list_of_lists list_maps">
-						<a onclick="editMap('{{ map }}')" title="{{lang.words.edit|title()}} {{lang.words.the}} {{ map }} {{lang.words.map}}">{{ map }}</a>
+						<a data-map="{{ map }}" onclick="editMap(this.dataset.map)" title="{{lang.words.edit|title()}} {{lang.words.the}} {{ map }} {{lang.words.map}}">{{ map }}</a>
 					</span>
 					{% endfor %}
 				</td>

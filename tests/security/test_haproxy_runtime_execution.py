@@ -106,12 +106,15 @@ def test_runtime_certificate_payload_cannot_introduce_another_command(monkeypatc
 
 
 @pytest.mark.security
-def test_unix_socket_runtime_command_quotes_user_input(app, monkeypatch):
+@pytest.mark.parametrize('action', ['show', 'set'])
+def test_unix_socket_runtime_command_quotes_user_input(app, monkeypatch, action):
     commands = []
     monkeypatch.setattr(haproxy_service.server_sql, 'get_server_by_ip', lambda _: SimpleNamespace(server_id=1))
     from app.modules.db import service as service_sql
     monkeypatch.setattr(service_sql, 'select_service_setting', lambda *args: '0')
     backend = "backend one'; touch /tmp/pwned"
+    output = '<img src=x onerror=alert(1)>\nsecond line\n'
+    monkeypatch.setattr(haproxy_service.roxywi_common, 'logging', lambda *args, **kwargs: None)
     settings = {
         'server_state_file': '/var/lib/roxy wi/server.state',
         'haproxy_sock': '/run/haproxy admin.sock',
@@ -124,20 +127,20 @@ def test_unix_socket_runtime_command_quotes_user_input(app, monkeypatch):
     monkeypatch.setattr(
         haproxy_service.server_mod,
         'ssh_command',
-        lambda server, command, **kwargs: commands.append((server, command, kwargs)) or 'runtime output',
+        lambda server, command, **kwargs: commands.append((server, command, kwargs)) or output,
     )
 
     with app.test_request_context('/runtimeapi/action/192.0.2.20'):
         g.user_params = {'group_id': 7}
-        response = haproxy_service.runtime_command('192.0.2.20', 'show', backend, '')
+        response = haproxy_service.runtime_command('192.0.2.20', action, backend, '')
 
-    assert response == 'runtime output'
+    assert response == (output if action == 'show' else f'You set {backend} on HAProxy 192.0.2.20.\n{output}')
     server, command, kwargs = commands[0]
     send_command, socket_command = command.split(' | ', 1)
     assert server == '192.0.2.20'
-    assert shlex.split(send_command) == ['printf', '%s\\n', f'show {backend}']
+    assert shlex.split(send_command) == ['printf', '%s\\n', f'{action} {backend}']
     assert shlex.split(socket_command) == ['sudo', 'socat', 'stdio', '/run/haproxy admin.sock']
-    assert kwargs == {'show_log': '1'}
+    assert 'show_log' not in kwargs
 
 
 @pytest.fixture()
