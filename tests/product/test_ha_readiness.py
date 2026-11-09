@@ -68,6 +68,26 @@ def test_audit_reads_every_member_and_never_calls_configured_fencing_tested(prod
     assert response.status_code==200 and response.json['assessments'][0]['id']==row.id
 
 
+def test_poll_keeps_status_and_report_consistent_when_worker_finishes(product_client, readiness_cluster, monkeypatch):
+    url = f'/ha/api/readiness/pacemaker/{readiness_cluster.cluster.id}'
+    queued = product_client.post(url + '/run', json={})
+    assert queued.status_code == 202
+    task = InstallationTasks.get_by_id(queued.json['task_id'])
+    subject = audit.subject
+
+    def finish_during_registration_check(*args):
+        monkeypatch.setattr(audit, 'subject', subject)
+        assert audit.execute(task) == 'completed'
+        return subject(*args)
+
+    monkeypatch.setattr(audit, 'subject', finish_during_registration_check)
+    item = audit.get_report(queued.json['id'], 1)
+    assert item['status'] == 'created' and item['report'] is None
+    latest = product_client.get(url).json['assessments'][0]
+    assert latest['status'] == 'completed'
+    assert any(check['key'] == 'fencing' for check in latest['report']['checks'])
+
+
 @pytest.mark.parametrize('field,value',[('votes',0),('tls',False),('host','192.0.2.88:5403')])
 def test_quorate_cluster_with_zero_or_mismatched_witness_evidence_fails(product_client,readiness_cluster,field,value):
     node=readiness_cluster.observations['two']

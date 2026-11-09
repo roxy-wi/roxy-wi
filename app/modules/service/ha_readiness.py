@@ -5,7 +5,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Literal
 from uuid import uuid4
-from peewee import SqliteDatabase
+from peewee import JOIN, SqliteDatabase
 
 from pydantic import BaseModel, ConfigDict, Field
 from app.modules.common.time import utc_now, utc_iso, as_naive_utc
@@ -158,8 +158,17 @@ def enqueue(provider, cluster_id, group_id, user_id):
 
 
 def get_report(assessment_id, group_id):
-    row=OperationalAssessment.get_or_none((OperationalAssessment.id == assessment_id) &
-        (OperationalAssessment.group_id == group_id) & (OperationalAssessment.kind == 'ha-readiness'))
+    """Read the report and task status in one snapshot while the worker may be finishing."""
+    row = (
+        OperationalAssessment
+        .select(OperationalAssessment.id, OperationalAssessment.subject, OperationalAssessment.created_at,
+                OperationalAssessment.result, InstallationTasks.status, InstallationTasks.error)
+        .join(InstallationTasks, JOIN.LEFT_OUTER, on=(OperationalAssessment.task_id == InstallationTasks.id))
+        .where(OperationalAssessment.id == assessment_id, OperationalAssessment.group_id == group_id,
+               OperationalAssessment.kind == 'ha-readiness')
+        .namedtuples()
+        .first()
+    )
     if row is None:
         raise RoxywiResourceNotFound('Assessment not found')
     parts=row.subject.split(':')
@@ -169,9 +178,8 @@ def get_report(assessment_id, group_id):
     cluster, _nodes=subject(provider,int(ident),group_id)
     if registration != cluster.readiness_key:
         raise RoxywiResourceNotFound('Assessment belongs to a previous cluster registration')
-    task=InstallationTasks.get_or_none(InstallationTasks.id == row.task_id)
-    return dict(id=row.id, created_at=utc_iso(row.created_at), status=task.status if task else 'missing',
-                error=task.error if task else None, report=deserialize_operation_payload(row.result) if row.result else None)
+    return dict(id=row.id, created_at=utc_iso(row.created_at), status=row.status or 'missing',
+                error=row.error, report=deserialize_operation_payload(row.result) if row.result else None)
 
 
 def attest(provider, cluster_id, group_id, user_id, body):

@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 from playwright.sync_api import expect
 from tests.product.test_ha_readiness import readiness_cluster, run
+from app.modules.pacemaker import service as pacemaker_service
 from app.modules.service import ha_readiness as audit
 from app.modules.db.db_model import InstallationTasks, OperationalAssessment
 from app.modules.operations.queue import serialize_operation_payload
@@ -12,6 +13,12 @@ from app.modules.common.time import utc_now
 from datetime import timedelta
 
 pytestmark=[pytest.mark.browser,pytest.mark.skipif(os.environ.get('ROXYWI_TEST_BROWSER')!='1',reason='Requires Chromium')]
+
+
+@pytest.fixture(autouse=True)
+def cluster_card_status(readiness_cluster, monkeypatch):
+    """The cluster card also polls Pacemaker while the readiness dialog is open."""
+    monkeypatch.setattr(pacemaker_service, 'status', lambda cluster: readiness_cluster.observations['one']['state'])
 
 
 def test_native_audit_gui_queues_displays_evidence_and_saves_domains(logged_in,product_url,product,readiness_cluster,tmp_path):
