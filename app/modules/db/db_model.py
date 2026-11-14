@@ -1325,6 +1325,21 @@ class OperationalAssessment(BaseModel):
         table_name = 'operational_assessments'
 
 
+class PublishedServiceConfirmation(BaseModel):
+    id = AutoField()
+    group_id = IntegerField(index=True)
+    user_id = IntegerField()
+    assessment_id = IntegerField(index=True)
+    frontend_id = CharField()
+    domain = CharField()
+    fingerprint = CharField(max_length=64)
+    note = CharField(max_length=1000)
+    created_at = DateTimeField(default=utc_now)
+
+    class Meta:
+        table_name = 'published_service_confirmations'
+
+
 class HaMaintenancePlan(BaseModel):
     id = AutoField()
     group_id = IntegerField(index=True)
@@ -1404,5 +1419,5 @@ def create_tables():
              HaCluster, HaClusterSlave, HaClusterVip, HaClusterVirt, HaClusterService,
              HaClusterRouter, MM, UDPBalancer, HaproxySection, LetsEncrypt, LetsEncryptState, LetsEncryptDnsProfile, NginxSection, InstallationTasks,
              PacemakerCluster, PacemakerChange, PacemakerEvent, CertificateSource,
-             OperationalAssessment, HaReadinessProfile, HaMaintenancePlan]
+             OperationalAssessment, HaReadinessProfile, HaMaintenancePlan, PublishedServiceConfirmation]
         )

@@ -213,7 +213,7 @@
 		});
 		if ($table.data('searchable')) {
 			const toolbar = $('<div class="rw-table-toolbar rw-table-search-toolbar"></div>').insertBefore(shell);
-			const search = $('<input type="search">').attr('placeholder', text('search', 'Search')).appendTo(toolbar);
+			const search = $('<input type="search" class="form-control">').attr('placeholder', text('search', 'Search')).appendTo(toolbar);
 			try { search.val(localStorage.getItem(storageKey) || ''); } catch (error) { /* Optional. */ }
 			query = search.val().trim().toLocaleLowerCase();
 			search.on('input', function () {
