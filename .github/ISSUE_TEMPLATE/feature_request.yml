@@ -23,4 +23,4 @@ body:
     id: version
     attributes:
       label: Roxy-WI version and installation method
-      placeholder: For example, 10.0 with Docker Compose
+      placeholder: For example, 10.0.0 with Docker Compose

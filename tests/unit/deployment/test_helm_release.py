@@ -1,6 +1,7 @@
 """Exercise release validation and publication used by Actions."""
 import os
 from pathlib import Path
+import runpy
 import shutil
 import subprocess
 import tempfile
@@ -11,6 +12,19 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[3]
 BASH = shutil.which('bash')
+
+
+class RepositoryReleaseMetadata(unittest.TestCase):
+    def test_application_and_chart_use_the_same_stable_version(self):
+        version = runpy.run_path(str(ROOT / 'app/version.py'))['SERVICE_VERSION']
+        chart = yaml.safe_load((ROOT / 'helm/roxy-wi/Chart.yaml').read_text())
+
+        self.assertRegex(
+            version,
+            r'^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\Z',
+        )
+        self.assertEqual(chart['version'], version)
+        self.assertEqual(chart['appVersion'], version)
 
 
 @unittest.skipUnless(BASH, 'Release metadata validation requires Bash')
@@ -42,6 +56,18 @@ class HelmReleaseMetadata(unittest.TestCase):
         result, output = self.validate()
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(output, 'version=9.1.0\n')
+
+    def test_repository_metadata_passes_release_validation(self):
+        version = runpy.run_path(str(ROOT / 'app/version.py'))['SERVICE_VERSION']
+        chart = yaml.safe_load((ROOT / 'helm/roxy-wi/Chart.yaml').read_text())
+
+        result, output = self.validate(
+            tag=f'v{version}', version=chart['version'],
+            app_version=chart['appVersion'], name=chart['name'],
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(output, f'version={version}\n')
 
     def test_branch_build_packages_without_a_release_tag(self):
         result, output = self.validate(tag='master', publish=False)
