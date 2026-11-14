@@ -1,4 +1,16 @@
 {% set lang_short = 'zh' %}
+{% set ssh_host_keys = {
+    "title": "确认服务器 SSH 主机密钥",
+    "intro": "尚未确认此服务器的 SSH 身份。",
+    "changed": "SSH 主机密钥已更改。这可能是服务器重新安装或连接被拦截所致。",
+    "address": "服务器地址",
+    "port": "SSH 端口",
+    "algorithm": "密钥类型",
+    "previous": "之前的 SHA-256 指纹",
+    "verify": "确认之前，请通过可信渠道将此指纹与服务器的主机密钥进行核对。",
+    "confirm": "确认指纹",
+    "cancel": "取消"
+} %}
 {% set http_errors = {
     "400_title": "请求无效",
     "400_description": "请检查地址或提交的数据，然后重试。",

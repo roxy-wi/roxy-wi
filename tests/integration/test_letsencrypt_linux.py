@@ -66,6 +66,9 @@ def ssh_target(tmp_path, monkeypatch):
                     return True
             wait_until(reachable)
             settings = dict(user=getpass.getuser(), port=port, password=None, enabled=1, key=str(user_key), passphrase=None)
+            # Trust the public key created by this fixture, never the network observation.
+            settings['host_key'] = dict(host='127.0.0.1', port=port,
+                                        key=' '.join(host_key.with_suffix('.pub').read_text().split()[:2]))
             monkeypatch.setattr(certificate_service, 'return_ssh_keys_path', lambda _ip: settings)
             yield SimpleNamespace(ip='127.0.0.1')
         finally:

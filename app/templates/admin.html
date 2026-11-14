@@ -7,6 +7,8 @@
 {% from 'include/admin_action_menu.html' import admin_action_menu %}
 <script src="{{ url_for('static', filename='js/admin/common.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin/group.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin/host-keys.js') }}"></script>
+<script id="ssh-host-key-translations" type="application/json">{{ lang.ssh_host_keys|tojson }}</script>
 <script src="{{ url_for('static', filename='js/admin/server.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin/ssh.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin/user.js') }}"></script>

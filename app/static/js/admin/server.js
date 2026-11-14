@@ -10,6 +10,7 @@ $( function() {
 		width: 600,
 		modal: true,
 		title: server_tabel_title,
+		beforeClose: function () { return !$(this).data('sshRequestPending'); },
 		show: {
 			effect: "fade",
 			duration: 200
@@ -117,7 +118,7 @@ function addServer(dialog_id) {
             "description": $('#desc').val(),
             "protected": 0
         }
-        $.ajax({
+        requestWithSshConfirmation({
             url: "/server",
             type: "POST",
             data: JSON.stringify(json_data),
@@ -144,7 +145,7 @@ function addServer(dialog_id) {
                     $('select:regex(id, apacheaddserv)').append($('<option>').val(ip).text(servername)).selectmenu("refresh");
                 }
             }
-        });
+        }, dialog_id);
     }
 }
 function updateServer(id) {
@@ -182,7 +183,7 @@ function updateServer(id) {
 		"description": $('#desc-' + id).val(),
 		"protected": protected_serv
 	}
-	$.ajax({
+	requestWithSshConfirmation({
 		url: "/server/" + id,
 		type: 'PUT',
 		contentType: "application/json; charset=utf-8",
@@ -198,7 +199,7 @@ function updateServer(id) {
 				}, 2500);
 			}
 		}
-	});
+	}, '#server-' + id);
 }
 function confirmDeleteServer(id) {
 	$( "#dialog-confirm" ).dialog({

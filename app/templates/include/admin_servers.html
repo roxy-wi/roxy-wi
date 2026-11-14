@@ -133,7 +133,7 @@
 					<button type="button" class="admin-action-item" onclick="viewFirewallRules('{{server.2}}')">
 						<span class="fas fa-shield-alt" aria-hidden="true"></span> {{lang.words.view|title()}} Firewall {{lang.words.rules2|title()}}
 					</button>
-					<button type="button" class="admin-action-item" onclick="checkSshConnect('{{server.2}}')">
+					<button type="button" class="admin-action-item" onclick="checkSshConnect('{{server.2}}', {{server.0}})">
 						<span class="fas fa-terminal" aria-hidden="true"></span> {{lang.words.check|title()}} SSH
 					</button>
 					<a class="admin-action-item" href="/history/server/{{server.2}}">

@@ -27,11 +27,13 @@ def delete_server(server_id):
 
 
 @guarded_server
-def update_server(hostname, ip, group, type_ip, enable, master, server_id, cred, port, desc, firewall, protected):
+def update_server(hostname, ip, group, type_ip, enable, master, server_id, cred, port, desc, firewall, protected,
+                  ssh_host_key=...):
 	try:
+		key_update = {} if ssh_host_key is ... else {'ssh_host_key': ssh_host_key}
 		server_update = Server.update(
 			hostname=hostname, ip=ip, group_id=group, type_ip=type_ip, enabled=enable, master=master, cred_id=cred,
-			port=port, description=desc, firewall_enable=firewall, protected=protected
+			port=port, description=desc, firewall_enable=firewall, protected=protected, **key_update
 		).where(Server.server_id == server_id)
 		server_update.execute()
 	except Exception as e:

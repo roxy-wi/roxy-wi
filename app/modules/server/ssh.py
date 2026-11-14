@@ -95,6 +95,8 @@ def return_ssh_keys_path(server_ip: str, cred_id: int = None) -> dict:
 		ssh_settings.setdefault('passphrase', passphrase)
 
 	ssh_settings.setdefault('port', server.port)
+	if getattr(server, 'ssh_host_key', None):
+		ssh_settings['host_key'] = {'host': server.ip, 'port': server.port, 'key': server.ssh_host_key}
 
 	return ssh_settings
 

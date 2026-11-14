@@ -131,12 +131,16 @@ def test_successful_installation_activates_service_before_completing_task(monkey
 
 
 @pytest.mark.security
-@pytest.mark.parametrize('role', ['haproxy', 'podman_proxy', 'ha_cluster_exporter'])
-def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_path, monkeypatch, role):
+@pytest.mark.parametrize('role,approved', [('haproxy', False), ('haproxy', True),
+                                          ('podman_proxy', False), ('ha_cluster_exporter', False)])
+def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_path, monkeypatch, role, approved):
     private_data_dir = tmp_path / 'ansible'
     inventory_dir = private_data_dir / 'inventory'
     observed = {}
     stopped_agents = []
+    import paramiko
+    key = paramiko.RSAKey.generate(1024)
+    pin = dict(host='192.0.2.10', port=22, key=key.get_name() + ' ' + key.get_base64())
 
     monkeypatch.setattr(installation, 'ANSIBLE_PRIVATE_DATA_DIR', str(private_data_dir))
     monkeypatch.setattr(installation, 'ANSIBLE_INVENTORY_DIR', str(inventory_dir))
@@ -152,6 +156,7 @@ def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_
             'password': 'temporary-secret',
             'user': 'deploy',
             'port': 22,
+            **({'host_key': pin} if approved else {}),
         },
     )
     monkeypatch.setattr(
@@ -188,7 +193,16 @@ def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_
                 common_args = host['ansible_ssh_common_args']['__ansible_unsafe']
                 assert 'StrictHostKeyChecking=yes' in common_args
                 assert 'UserKnownHostsFile=' + str(pinned) in common_args
+                assert 'GlobalKnownHostsFile=/dev/null' in common_args
                 assert pinned.is_file()
+            elif approved:
+                import shlex
+                host = observed['data']['server']['hosts']['192.0.2.10']
+                args = shlex.split(host['ansible_ssh_common_args']['__ansible_unsafe'])
+                assert 'StrictHostKeyChecking=yes' in args
+                assert 'GlobalKnownHostsFile=/dev/null' in args
+                known_hosts = Path(next(arg.split('=', 1)[1] for arg in args if arg.startswith('UserKnownHostsFile=')))
+                assert known_hosts.read_text().strip() == '192.0.2.10 ' + pin['key']
             raise RuntimeError('runner failed')
 
     monkeypatch.setattr(installation, '_ansible_runner', lambda: FailingRunner)

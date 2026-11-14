@@ -2,12 +2,20 @@ import select
 
 import paramiko
 
+from app.modules.server.host_keys import parse_key
+
 
 class SshConnection:
     def __init__(self, server_ip: str, ssh_settings: dict, connect_timeout: int = 11, banner_timeout: int = 200):
         self.ssh = paramiko.SSHClient()
-        self.ssh.load_system_host_keys()
-        self.ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        pin = ssh_settings.get('host_key')
+        if pin and pin['host'] == server_ip and int(pin['port']) == int(ssh_settings['port']):
+            key = parse_key(pin['key'])
+            hostname = server_ip if int(pin['port']) == 22 else f"[{server_ip}]:{pin['port']}"
+            self.ssh.get_host_keys().add(hostname, key.get_name(), key)
+        else:
+            self.ssh.load_system_host_keys()
+        self.ssh.set_missing_host_key_policy(paramiko.RejectPolicy())
         self.server_ip = server_ip
         self.ssh_port = ssh_settings['port']
         self.ssh_user_name = ssh_settings['user']
@@ -36,15 +44,22 @@ class SshConnection:
             kwargs.setdefault('password', self.ssh_user_password)
         try:
             self.ssh.connect(**kwargs)
+        except paramiko.BadHostKeyException:
+            self.ssh.close()
+            raise paramiko.SSHException(
+                f'{self.server_ip} SSH host key changed. Verify its fingerprint in Administration > Servers > Check SSH.'
+            ) from None
         except paramiko.AuthenticationException:
+            self.ssh.close()
             raise paramiko.SSHException(f'{self.server_ip} Authentication failed, please verify your credentials')
-        except paramiko.SSHException as sshException:
-            raise paramiko.SSHException(f'{self.server_ip} Unable to establish SSH connection: {sshException}')
         except paramiko.PasswordRequiredException as e:
+            self.ssh.close()
             raise paramiko.SSHException(f'{self.server_ip} {e}')
-        except paramiko.BadHostKeyException as badHostKeyException:
-            raise paramiko.SSHException(f'{self.server_ip} Unable to verify server\'s host key: {badHostKeyException}')
+        except paramiko.SSHException as sshException:
+            self.ssh.close()
+            raise paramiko.SSHException(f'{self.server_ip} Unable to establish SSH connection: {sshException}')
         except Exception as e:
+            self.ssh.close()
             if e == "No such file or directory":
                 raise paramiko.SSHException(f'{self.server_ip} {e}. Check SSH key')
             elif e == "Invalid argument":

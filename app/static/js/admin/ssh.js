@@ -234,7 +234,14 @@ function uploadSsh() {
         }
     });
 }
-function checkSshConnect(ip) {
+function checkSshConnect(ip, serverId) {
+	requestWithSshConfirmation({
+		url: '/server/' + serverId + '/ssh-host-key',
+		type: 'POST', data: '{}', contentType: 'application/json; charset=utf-8',
+		success: function () { checkTrustedSshConnect(ip); }
+	}, '#server-' + serverId);
+}
+function checkTrustedSshConnect(ip) {
 	$.ajax({
 		url: "/server/check/ssh/" + ip,
 		success: function (data) {

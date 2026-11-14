@@ -124,6 +124,7 @@ class AddUserToGroup(BaseModel):
 
 
 class ServerRequest(BaseModel):
+    model_config = ConfigDict(validate_default=True)
     hostname: EscapedString
     ip: Union[IPvAnyAddress, DomainName]
     enabled: Optional[bool] = 1
@@ -139,6 +140,12 @@ class ServerRequest(BaseModel):
     apache: Optional[bool] = 0
     firewall_enable: Optional[bool] = 0
     scan_server: Optional[bool] = 1
+    ssh_host_key_confirmation: Optional[str] = Field(default=None, max_length=8192)
+
+
+class SshHostKeyConfirmation(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    ssh_host_key_confirmation: Optional[str] = Field(default=None, max_length=8192)
 
 
 class GroupQuery(BaseModel):

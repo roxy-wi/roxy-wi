@@ -1,4 +1,16 @@
 {% set lang_short = 'fr' %}
+{% set ssh_host_keys = {
+    "title": "Confirmer la clé SSH du serveur",
+    "intro": "L’identité SSH de ce serveur n’a pas encore été confirmée.",
+    "changed": "La clé SSH a changé. Le serveur a peut-être été réinstallé ou la connexion interceptée.",
+    "address": "Adresse du serveur",
+    "port": "Port SSH",
+    "algorithm": "Type de clé",
+    "previous": "Empreinte SHA-256 précédente",
+    "verify": "Comparez cette empreinte à la clé du serveur via un canal fiable avant de confirmer.",
+    "confirm": "Confirmer l’empreinte",
+    "cancel": "Annuler"
+} %}
 {% set http_errors = {
     "400_title": "Requête incorrecte",
     "400_description": "Vérifiez l’adresse ou les données envoyées, puis réessayez.",

@@ -1,4 +1,16 @@
 {% set lang_short = 'pt-br' %}
+{% set ssh_host_keys = {
+    "title": "Confirmar chave SSH do servidor",
+    "intro": "A identidade SSH deste servidor ainda não foi confirmada.",
+    "changed": "A chave SSH mudou. Isso pode indicar uma reinstalação do servidor ou uma conexão interceptada.",
+    "address": "Endereço do servidor",
+    "port": "Porta SSH",
+    "algorithm": "Tipo de chave",
+    "previous": "Impressão digital SHA-256 anterior",
+    "verify": "Compare esta impressão digital com a chave do servidor por um canal confiável antes de confirmar.",
+    "confirm": "Confirmar impressão digital",
+    "cancel": "Cancelar"
+} %}
 {% set http_errors = {
     "400_title": "Solicitação inválida",
     "400_description": "Verifique o endereço ou os dados enviados e tente novamente.",

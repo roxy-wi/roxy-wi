@@ -6,7 +6,7 @@ from flask_pydantic import validate
 from app import app
 from app.api.routes import bp
 from app.views.install.views import InstallView, InstallGetStatus
-from app.views.server.views import ServerView, ServerGroupView, ServerGroupsView, ServersView, ServerIPView
+from app.views.server.views import ServerView, ServerGroupView, ServerGroupsView, ServersView, ServerIPView, ServerHostKeyView
 from app.views.server.cred_views import CredView, CredsView
 from app.views.server.backup_vews import BackupView, S3BackupView, GitBackupView
 from app.views.service.views import (ServiceView, ServiceActionView, ServiceBackendView, ServiceConfigView,
@@ -125,6 +125,7 @@ bp.add_url_rule('/server/portscanner/<int:server_id>', view_func=PortScannerView
 bp.add_url_rule('/server/portscanner/<server_id>/ports', view_func=PortScannerPortsView.as_view('port_scanner_ports_ip'), methods=['GET'])
 bp.add_url_rule('/server/portscanner/<int:server_id>/ports', view_func=PortScannerPortsView.as_view('port_scanner_ports'), methods=['GET'])
 bp.add_url_rule('/servers', view_func=ServersView.as_view('servers'), methods=['GET'])
+bp.add_url_rule('/server/<int:server_id>/ssh-host-key', view_func=ServerHostKeyView.as_view('ssh_host_key'), methods=['POST'])
 
 register_api(ServerGroupView, 'group', '/group', 'group_id')
 bp.add_url_rule('/groups', view_func=ServerGroupsView.as_view('groups'), methods=['GET'])

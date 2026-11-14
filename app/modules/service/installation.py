@@ -530,6 +530,7 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 	output_lines = []
 	ansible_runtime_environment = {}
 	pinned_hosts = None
+	approved_keys = []
 
 	playbook = _ansible_playbook(ansible_role)
 	try:
@@ -546,6 +547,8 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 		for server_ip in server_ips:
 			if server_ip != 'localhost':
 				ssh_settings = return_ssh_keys_path(server_ip)
+				if ssh_settings.get('host_key'):
+					approved_keys.append(ssh_settings['host_key'])
 				if ssh_settings['enabled']:
 					inv['server']['hosts'][server_ip]['ansible_ssh_private_key_file'] = ssh_settings['key']
 				inv['server']['hosts'][server_ip]['ansible_password'] = ssh_settings['password']
@@ -566,7 +569,17 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 			os.makedirs(ANSIBLE_INVENTORY_DIR,mode=0o700,exist_ok=True)
 			pinned_hosts=pin_ansible_hosts(server_ips,ANSIBLE_INVENTORY_DIR)
 			for server_ip in server_ips:
-				inv['server']['hosts'][server_ip]['ansible_ssh_common_args']=shlex.join(['-o','StrictHostKeyChecking=yes','-o','UserKnownHostsFile='+pinned_hosts])
+				inv['server']['hosts'][server_ip]['ansible_ssh_common_args'] = shlex.join(
+					['-o', 'StrictHostKeyChecking=yes', '-o', 'UserKnownHostsFile=' + pinned_hosts,
+					 '-o', 'GlobalKnownHostsFile=/dev/null'])
+		elif approved_keys:
+			from app.modules.server.host_keys import write_known_hosts
+			os.makedirs(ANSIBLE_INVENTORY_DIR, mode=0o700, exist_ok=True)
+			pinned_hosts = write_known_hosts(approved_keys, ANSIBLE_INVENTORY_DIR)
+			for pin in approved_keys:
+				inv['server']['hosts'][pin['host']]['ansible_ssh_common_args'] = shlex.join(
+					['-o', 'StrictHostKeyChecking=yes', '-o', 'UserKnownHostsFile=' + pinned_hosts,
+					 '-o', 'GlobalKnownHostsFile=/dev/null'])
 		inventory = _create_secure_inventory(inv)
 		envvars = {
 			'ANSIBLE_DISPLAY_OK_HOSTS': 'no',
@@ -603,7 +616,9 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 		if agent_pid is not None:
 			if pinned_hosts:
 				try: os.remove(pinned_hosts)
-				except OSError: pass
+				except FileNotFoundError: pass
+				except OSError:
+					roxywi_common.logging('Roxy-WI server', 'error: Cannot remove temporary SSH host key file')
 			try:
 				server_mod.stop_ssh_agent(agent_pid)
 			except Exception as error:

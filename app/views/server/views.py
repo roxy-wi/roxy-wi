@@ -10,10 +10,12 @@ import app.modules.db.server as server_sql
 import app.modules.roxywi.group as group_mod
 import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
+from app.modules.server import host_keys
+from app.modules.service.ha_mutation import mutation
 import app.modules.config.deployment_policy as deployment_policy
 from app.middleware import get_user_params, page_for_admin, check_group
 from app.modules.roxywi.class_models import BaseResponse, IdResponse, IdDataResponse, ServerRequest, GroupQuery, GroupRequest, \
-    GroupDeploymentPolicyRequest
+    GroupDeploymentPolicyRequest, SshHostKeyConfirmation
 from app.modules.common.common_classes import SupportClass
 from app.modules.roxywi.exception import RoxywiConflictError
 
@@ -191,13 +193,20 @@ class ServerView(MethodView):
         }
 
         try:
+            kwargs['ssh_host_key'] = host_keys.prepare_server(body, group)
             last_id = server_mod.create_server(**kwargs)
+        except host_keys.HostKeyError as e:
+            return e.response, e.status
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create a server')
 
         roxywi_common.logging(server_ip, f'A new server {body.hostname} has been created', login=1, keep_history=1, service='server')
+        if kwargs['ssh_host_key']:
+            roxywi_common.logging(server_ip, f'SSH host key confirmed: {host_keys.fingerprint(kwargs["ssh_host_key"])}',
+                                  login=1, keep_history=1, service='server')
         try:
-            server_mod.update_server_after_creating(body.hostname, server_ip)
+            if not body.type_ip and body.scan_server:
+                server_mod.update_server_after_creating(body.hostname, server_ip)
         except Exception as e:
             roxywi_common.logging(server_ip, f'Cannot get system info from {body.hostname}: {e}', login=1, keep_history=1, service='server', mes_type='error')
 
@@ -287,12 +296,22 @@ class ServerView(MethodView):
         group_id = SupportClass.return_group_id(body)
 
         try:
-            server_sql.update_server(
-                body.hostname, body.ip, group_id, body.type_ip, body.enabled, body.master, server_id, body.cred_id, body.port, body.description,
-                body.firewall_enable, body.protected
-            )
+            with mutation(server_ids=[server_id]):
+                existing = server_sql.get_server(server_id)
+                roxywi_common.require_active_group_access(existing.group_id)
+                key = host_keys.prepare_server(body, group_id, existing)
+                server_sql.update_server(
+                    body.hostname, body.ip, group_id, body.type_ip, body.enabled, body.master,
+                    server_id, body.cred_id, body.port, body.description, body.firewall_enable,
+                    body.protected, ssh_host_key=key,
+                )
             server_ip = server_sql.get_server(server_id).ip
+            if key and key != existing.ssh_host_key:
+                roxywi_common.logging(server_ip, f'SSH host key confirmed: {host_keys.fingerprint(key)}',
+                                      login=1, keep_history=1, service='server')
             roxywi_common.logging(server_ip, f'The server {body.hostname} has been update', roxywi=1, login=1, keep_history=1, service='server')
+        except host_keys.HostKeyError as e:
+            return e.response, e.status
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update server')
 
@@ -327,6 +346,20 @@ class ServerView(MethodView):
             if isinstance(e, RoxywiConflictError):
                 response['error'] = e.public_message
             return response, status
+
+
+class ServerHostKeyView(MethodView):
+    """Review and explicitly approve keys for existing server registrations."""
+
+    decorators = ServerView.decorators
+
+    @validate(body=SshHostKeyConfirmation)
+    def post(self, server_id: int, body: SshHostKeyConfirmation):
+        SupportClass().return_server_ip_or_id(server_id)
+        try:
+            return host_keys.confirm_existing(server_id, body.ssh_host_key_confirmation)
+        except host_keys.HostKeyError as error:
+            return error.response, error.status
 
 
 class ServersView(MethodView):

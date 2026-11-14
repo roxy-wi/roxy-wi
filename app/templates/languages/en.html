@@ -1,4 +1,16 @@
 {% set lang_short = 'en' %}
+{% set ssh_host_keys = {
+    "title": "Confirm SSH host key",
+    "intro": "This server's SSH identity has not been confirmed.",
+    "changed": "The SSH host key has changed. This may indicate a reinstalled server or an intercepted connection.",
+    "address": "Server address",
+    "port": "SSH port",
+    "algorithm": "Key type",
+    "previous": "Previous SHA-256 fingerprint",
+    "verify": "Compare this fingerprint with the server's host key using a trusted channel before confirming.",
+    "confirm": "Confirm fingerprint",
+    "cancel": "Cancel"
+} %}
 {% set http_errors = {
     "400_title": "Invalid request",
     "400_description": "Check the address or submitted data, then try again.",

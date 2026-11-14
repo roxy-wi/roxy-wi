@@ -118,6 +118,7 @@ class Server(BaseModel):
     apache_alert = IntegerField(constraints=[SQL('DEFAULT 0')])
     apache_metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
     registration_key = CharField(max_length=32, default=lambda: uuid4().hex, unique=True)
+    ssh_host_key = TextField(null=True)
 
     class Meta:
         table_name = 'servers'

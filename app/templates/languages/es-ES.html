@@ -1,4 +1,16 @@
 {% set lang_short = 'es-ES' %}
+{% set ssh_host_keys = {
+    "title": "Confirmar la clave SSH del servidor",
+    "intro": "La identidad SSH de este servidor aún no se ha confirmado.",
+    "changed": "La clave SSH ha cambiado. Puede deberse a una reinstalación del servidor o a una conexión interceptada.",
+    "address": "Dirección del servidor",
+    "port": "Puerto SSH",
+    "algorithm": "Tipo de clave",
+    "previous": "Huella SHA-256 anterior",
+    "verify": "Compare esta huella con la clave del servidor mediante un canal de confianza antes de confirmar.",
+    "confirm": "Confirmar huella",
+    "cancel": "Cancelar"
+} %}
 {% set http_errors = {
     "400_title": "Solicitud incorrecta",
     "400_description": "Compruebe la dirección o los datos enviados y vuelva a intentarlo.",

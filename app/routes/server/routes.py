@@ -16,7 +16,7 @@ import app.modules.roxywi.auth as roxywi_auth
 import app.modules.roxywi.common as roxywi_common
 import app.modules.server.server as server_mod
 from app.middleware import get_user_params
-from app.views.server.views import ServerView, ServerGroupView, ServerGroupsView, ServerIPView, GroupDeploymentPolicyView
+from app.views.server.views import ServerView, ServerGroupView, ServerGroupsView, ServerIPView, GroupDeploymentPolicyView, ServerHostKeyView
 from app.views.server.cred_views import CredView, CredsView
 from app.views.server.backup_vews import BackupView, S3BackupView, GitBackupView
 from app.modules.roxywi.class_models import DomainName
@@ -30,6 +30,7 @@ def register_api(view, endpoint, url, pk='listener_id', pk_type='int'):
 
 
 register_api(ServerView, 'server', '', 'server_id')
+bp.add_url_rule('/<int:server_id>/ssh-host-key', view_func=ServerHostKeyView.as_view('ssh_host_key'), methods=['POST'])
 register_api(ServerGroupView, 'group', '/group', 'group_id')
 register_api(CredView, 'cred', '/cred', 'cred_id')
 bp.add_url_rule('/groups', view_func=ServerGroupsView.as_view('groups'), methods=['GET'])
