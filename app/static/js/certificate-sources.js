@@ -80,6 +80,10 @@ $(function () {
             for (const [index,value] of values.entries()) {
                 const td = document.createElement('td'); td.textContent = value;
                 td.dataset.label = ['Name','Provider','Domains','Status','Last check','Next check'][index]; tr.append(td);
+                if (index === 3) {
+                    const verification = row.served_tls ? window.certificateVerification(row.served_tls) : null;
+                    if (verification) td.append(verification);
+                }
             }
             const cell = document.createElement('td'); cell.dataset.label='Actions';
             const group = document.createElement('div'); group.className='admin-actions';

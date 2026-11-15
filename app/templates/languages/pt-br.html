@@ -2115,3 +2115,29 @@
         "I": "Limpeza"
     }
 } %}
+
+{% set certificate_verification = {
+    "title": "Verificação da implantação",
+    "verified": "Certificado esperado apresentado",
+    "mismatch": "Certificado divergente",
+    "incomplete": "Verificação incompleta",
+    "expected": "Esperado",
+    "actual": "Apresentado",
+    "observed": "Observado",
+    "target-unavailable": "Destino indisponível",
+    "listener-unavailable": "Listener indisponível",
+    "no-discovered-listener": "Nenhum listener encontrado para estes nomes",
+    "passive-staged": "Nó passivo: arquivo preparado sem listener ativo",
+    "configuration-changed": "Configuração alterada durante a verificação",
+    "running-configuration-unverified": "Configuração ativa não verificada",
+    "probe-limit": "Limite de sondas atingido",
+    "target-limit": "Limite de destinos atingido",
+    "unsupported-certificate-name": "Nome de certificado não suportado",
+    "expected-certificate-unavailable": "Certificado esperado indisponível",
+    "no-certificate-names": "Nenhum nome de certificado utilizável",
+    "unreachable": "Listener inacessível",
+    "handshake-incomplete": "Negociação TLS incompleta",
+    "scope": "Evidência pontual após a implantação. A entrega do certificado e a verificação do listener têm resultados separados. O monitoramento contínuo pertence ao RMON.",
+    "verification-unavailable": "Verificação indisponível",
+    "certificate-name-limit": "Limite de nomes de certificado atingido"
+} %}

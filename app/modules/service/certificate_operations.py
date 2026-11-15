@@ -51,6 +51,7 @@ def public_task(task):
     # while the Operations worker writes finish_date using utc_now.
     started_at = task.start_date.astimezone() if task.start_date else None
     return {'id': task.id, 'status': task.status, 'error_code': payload.get('error_code'),
+            'served_tls': payload.get('served_tls'),
             'name': payload['name'], 'action': 'upload_apply' if payload.get('destination') else 'update',
             'started_at': utc_iso(started_at),
             'finished_at': utc_iso(task.finish_date) if task.status in ('completed', 'failed') else None,
@@ -124,6 +125,7 @@ def enqueue(server_id, group_id, user_id, name, pem, revision, operation_id, *, 
             if server.server_id == server_id:
                 settings['expected_revision'] = revision
             payload['targets'][str(server.server_id)] = dict(address=server.ip, status='pending', settings=settings,
+                registration_key=server.registration_key,
                 identity=dict(ip=server.ip,port=server.port,cred_id=server.cred_id))
         task = InstallationTasks.create(service_name='HAProxy certificates', operation_type='certificate',
             operation_id=operation_id, operation_payload=serialize_operation_payload(payload),
@@ -266,6 +268,11 @@ def execute(task, *, renew=None, source_task_id=None):
                 save(task, payload)
             finish(task, payload, renew=renew)
             success = payload['phase'] == 'commit'
+            if success:
+                from app.modules.service.served_tls import verify
+                payload['served_tls'] = verify(payload['targets'], payload.get('metadata', {}),
+                                               task.group_id_id, task.user_id_id,
+                                               heartbeat=renew or (lambda: save(task, payload)))
             completed = dict(payload, phase='done', error_code=None if success else payload.get('failure_code'))
             completed.pop('bundle', None)
             save(task, completed, status='completed' if success else 'failed', finish_date=utc_now(),

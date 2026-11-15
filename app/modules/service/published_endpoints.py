@@ -97,7 +97,7 @@ def haproxy_bind_family(options):
 def parse(service,text):
     if len(text.encode())>2*1024*1024:raise ValueError('Configuration inventory exceeds 2 MiB')
     graph=haproxy.build_dependency_graph(text) if service=='haproxy' else nginx.build_dependency_graph(text) if service=='nginx' else apache_graph(text)
-    listener_families={}
+    listener_families={};tls_listeners=set()
     if service=='haproxy':
         current=None;indexed={node['id']:node for node in graph['nodes']};default_mode='tcp';section=''
         for raw in text.splitlines():
@@ -114,6 +114,7 @@ def parse(service,text):
                 mode=haproxy_bind_family(tokens[2:])
                 for address in tokens[1].split(','):
                     listener_families.setdefault((current['id'],address.strip()),set()).add(mode)
+                    if 'ssl' in tokens[2:]:tls_listeners.add((current['id'],address.strip()))
             elif current and tokens[0]=='acl' and len(tokens)>4 and tokens[2].lower() in ('hdr(host)','req.hdr(host)') and tokens[3]=='-i':
                 current['server_names'].extend(host_domains(tokens[4:]))
     indexed={node['id']:node for node in graph['nodes']};links={}
@@ -121,7 +122,7 @@ def parse(service,text):
     frontends=[]
     for front in graph['nodes']:
         if front['type'] not in ('frontend','listen','virtual_server'):continue
-        listeners=[]
+        listeners=[];secured=[]
         for address in front.get('addresses',[]):
             value=endpoint(address,listener=True)
             if value:
@@ -131,6 +132,7 @@ def parse(service,text):
                     if 'v6only' in modes:value['address_family']='v6only'
                     elif modes=={'v4v6'}:value['address_family']='v4v6'
                 listeners.append(value)
+                if (front['id'],address) in tls_listeners:secured.append(value)
         seen=set();stack=[front['id']];backends=[];unsupported=0;unresolved=0;evidence=[]
         while stack and len(seen)<2048:
             key=stack.pop()
@@ -164,6 +166,7 @@ def parse(service,text):
             not_inventoried=not_inventoried,unresolved_routes=unresolved,partial=partial,
             unresolved_route_evidence=evidence,
             routing='candidate dependencies; conditional routing is not fully evaluated'))
+        if service=='haproxy':frontends[-1]['tls_listeners']=secured
     if len(frontends)>128:raise ValueError('Too many frontends for a bounded inventory')
     return dict(frontends=frontends,partial=bool(graph.get('partial') or any(front['partial'] for front in frontends)),fingerprint=hashlib.sha256(text.encode()).hexdigest())
 
