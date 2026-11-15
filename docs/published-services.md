@@ -41,8 +41,7 @@ permission required). They are potential dependencies, not outage predictions:
 failover or redundant backends can preserve service. Current Pacemaker resource
 placement and arbitrary dynamic backend DNS are not inferred.
 
-Use **Actions → Diagnose** for live request-path evidence. It opens the existing service-card diagnostic dialog for that registered proxy. Served certificate state requires
-a TLS assessment: configured PEM files alone do not establish what clients see.
+Use **Actions → Diagnose** for live request-path evidence. It opens the existing service-card diagnostic dialog for that registered proxy. See [certificate deployment verification](certificate-deployment-verification.md) for one-time served-certificate evidence in certificate operation history. Configured PEM files alone do not establish what clients see.
 No private keys, full ACL conditions, certificate paths or credentials appear in
 the publication metadata. Reports are encrypted with the normal credential key.
 

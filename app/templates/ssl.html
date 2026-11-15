@@ -3,11 +3,12 @@
 {% block h2 %}{{ lang.certificates.title }}{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, select %}
+{% include 'include/certificate_verification.html' %}
 <script src="/static/js/add.js"></script>
-<script src="/static/js/ssl.js"></script>
+<script src="{{ url_for('static', filename='js/ssl.js', v='10.0-2') }}"></script>
 <div id="ssl-page">
 {% include 'include/certificates.html' %}
-<script src="/static/js/certificates.js"></script>
+<script src="{{ url_for('static', filename='js/certificates.js', v='10.0-2') }}"></script>
 <div class="overview-overflow">
 <table id="le_table">
     <caption><h3>Let's Encrypt</h3></caption>

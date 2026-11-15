@@ -3,6 +3,7 @@
 {% block h2 %}<span class="rw-workspace-title">Certificate sources</span>{% endblock %}
 {% block content %}
 {% from 'include/input_macros.html' import checkbox %}
+{% include 'include/certificate_verification.html' %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/table-6.3.9.css') }}">
 <link rel="stylesheet" href="{{ url_for('static',filename='css/pacemaker.css',v='10.0-1') }}">
 <main class="service-overview-page rw-operations-workspace" id="certificate-sources" data-api="{{ url_for('service.certificate_source_collection') }}">
@@ -37,5 +38,5 @@
         <p>Cluster targets include every current member, including standby nodes. The primary server must belong to the selected cluster. Every target requires HAProxy certificate permissions; cluster changes are locked during deployment.</p>
     </aside>
 </main>
-<script src="{{ url_for('static', filename='js/certificate-sources.js',v='9.3.0-2') }}" defer></script>
+<script src="{{ url_for('static', filename='js/certificate-sources.js',v='10.0-2') }}" defer></script>
 {% endblock %}

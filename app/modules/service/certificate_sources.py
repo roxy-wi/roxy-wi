@@ -81,6 +81,7 @@ def public(row):
     recovery = bool(child and deserialize_operation_payload(child.operation_payload).get('phase') in ('apply', 'rollback', 'commit') and
         (child.status in ('failed', 'created', 'published') or (child.status == 'running' and not active)))
     data.update(id=row.id, revision=row.revision, status=row.status, fingerprint=row.fingerprint, recovery_required=recovery,
+                served_tls=operations.public_task(child).get('served_tls') if child and child.group_id_id == row.group_id else None,
                 active_task_id=row.active_task_id, deployment_task_id=row.deployment_task_id,
                 next_check=utc_iso(row.next_check) if row.next_check else None,
                 last_check=utc_iso(row.last_check) if row.last_check else None,

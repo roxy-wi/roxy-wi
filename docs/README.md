@@ -5,6 +5,7 @@ and support matrix whenever a workflow, endpoint, deployment requirement or
 compatibility boundary changes. Website documentation is maintained separately;
 adding a Markdown file here does not publish it to roxy-wi.org.
 
+- [Verify the certificate actually served after deployment or renewal](certificate-deployment-verification.md)
 - [Published-service map, confirmation and node impact](published-services.md)
 - [SSH fingerprint confirmation and existing-server trust](ssh-host-keys.md)
 - [Request-path diagnostics and probe boundaries](proxy-diagnostics.md)

@@ -2124,3 +2124,29 @@
         "I": "Nettoyage"
     }
 } %}
+
+{% set certificate_verification = {
+    "title": "Vérification du déploiement",
+    "verified": "Certificat attendu présenté",
+    "mismatch": "Certificat différent",
+    "incomplete": "Vérification incomplète",
+    "expected": "Attendu",
+    "actual": "Présenté",
+    "observed": "Observé",
+    "target-unavailable": "Cible indisponible",
+    "listener-unavailable": "Écoute indisponible",
+    "no-discovered-listener": "Aucune écoute découverte pour ces noms",
+    "passive-staged": "Nœud passif : fichier préparé sans écoute active",
+    "configuration-changed": "Configuration modifiée pendant la vérification",
+    "running-configuration-unverified": "Configuration active non confirmée",
+    "probe-limit": "Limite de sondes atteinte",
+    "target-limit": "Limite de cibles atteinte",
+    "unsupported-certificate-name": "Nom de certificat non pris en charge",
+    "expected-certificate-unavailable": "Certificat attendu indisponible",
+    "no-certificate-names": "Aucun nom de certificat utilisable",
+    "unreachable": "Écoute injoignable",
+    "handshake-incomplete": "Négociation TLS incomplète",
+    "scope": "Constat ponctuel après déploiement. La livraison du certificat et la vérification des écoutes ont des résultats distincts. La surveillance continue relève de RMON.",
+    "verification-unavailable": "Vérification indisponible",
+    "certificate-name-limit": "Limite de noms de certificat atteinte"
+} %}
