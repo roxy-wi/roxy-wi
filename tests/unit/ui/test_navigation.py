@@ -1,6 +1,7 @@
 from pathlib import Path
 from types import SimpleNamespace
 
+import pytest
 from flask import g, render_template, request
 
 
@@ -8,7 +9,7 @@ LANGUAGES = ('en', 'ru', 'fr', 'es-ES', 'pt-br', 'zh')
 ROOT = Path(__file__).resolve().parents[3]
 
 
-def render_navigation(app, role):
+def render_navigation(app, role, services='1 2 3 4 5 6 7'):
     def fake_url_for(endpoint, **values):
         if endpoint == 'static':
             return f"/static/{values['filename']}"
@@ -26,7 +27,7 @@ def render_navigation(app, role):
         request.url_rule = SimpleNamespace(endpoint='overview.index')
         g.user_params = {
             'role': role,
-            'user_services': ('1', '2', '3', '4', '5', '6'),
+            'user_services': services,
         }
         language = app.jinja_env.get_template('languages/en.html').module
         return render_template(
@@ -88,7 +89,7 @@ def test_navigation_groups_existing_destinations_without_changing_access_guards(
     assert "g.user_params['role'] <= 3" in menu
     assert "g.user_params['role'] <= 2" in menu
     assert "g.user_params['role'] <= 1" in menu
-    for service_id in ('1', '2', '3', '4', '5', '6'):
+    for service_id in ('1', '2', '3', '4', '5', '6', '7'):
         assert f"'{service_id}' in g.user_params['user_services']" in menu
     assert '{% if oidc_available %}' in menu
 
@@ -129,6 +130,16 @@ def test_navigation_renders_role_specific_items(app):
     assert 'UDP listeners' not in guest_menu
     assert 'HAProxy' in guest_menu
     assert 'NGINX' in guest_menu
+
+
+@pytest.mark.parametrize('services,corosync,ha', [
+    ('5', False, True), ('7', True, True), ('5 7', True, True),
+    ('17', False, False), ('', False, False),
+])
+def test_navigation_separates_corosync_and_keepalived_access(app, services, corosync, ha):
+    menu = render_navigation(app, role=1, services=services)
+    assert ('id="menu-pacemaker"' in menu) == corosync
+    assert ('href="/ha/ha_cluster"' in menu) == ha
 
 
 def test_navigation_javascript_handles_state_search_and_active_routes():

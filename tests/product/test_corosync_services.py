@@ -21,6 +21,22 @@ def grant(product, services):
     User.update(user_services=services).where(User.user_id == product.admin.user_id).execute()
 
 
+@pytest.mark.parametrize('source', ['path', 'query', 'body'])
+@pytest.mark.parametrize('provider,expected', [('other', 400), ('pacemaker', 403)])
+def test_ha_provider_validation_is_distinct_from_permission_denial(product_client, product, source, provider, expected):
+    grant(product, '5')
+    if source == 'path':
+        response = product_client.get(f'/ha/api/readiness/{provider}/1')
+    elif source == 'query':
+        response = product_client.get('/ha/api/maintenance', query_string={'provider': provider, 'cluster_id': 1})
+    else:
+        response = product_client.post('/ha/api/maintenance', json={
+            'provider': provider, 'cluster_id': 1, 'server_id': 11,
+            'title': 'OS update', 'capacity_confirmed': True, 'capacity_evidence': 'Capacity checked',
+        })
+    assert response.status_code == expected
+
+
 @pytest.mark.parametrize('services,allowed', [('5', False), ('7', True), ('5 7', True), ('17', False), ('', False)])
 def test_corosync_access_is_independent_of_keepalived(product_client, product, readiness_cluster, services, allowed):
     HaCluster.create(name='Keepalived only', description='Separate provider', group_id=1)

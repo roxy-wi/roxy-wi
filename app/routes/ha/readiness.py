@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from app.middleware import get_user_params
 from app.modules.roxywi.exception import RoxywiConflictError, RoxywiResourceNotFound, RoxywiPermissionError, RoxywiValidationError
 from app.modules.db.db_model import HaCluster, PacemakerCluster, OperationalAssessment, HaMaintenancePlan
-from app.modules.service.ha_access import allowed_providers
+from app.modules.service.ha_access import SERVICE_IDS, allowed_providers
 from app.modules.service import ha_readiness as audit
 from app.routes.ha import bp
 
@@ -31,10 +31,11 @@ def access(handler):
             if plan:
                 requested.append(plan.provider)
         for provider in requested:
-            if provider is not None and not isinstance(provider, str):
-                abort(400)
-            if provider and provider not in providers:
-                abort(403)
+            if provider is not None:
+                if not isinstance(provider, str) or provider not in SERVICE_IDS:
+                    abort(400)
+                if provider not in providers:
+                    abort(403)
         if request.method != 'GET' and int(g.user_params['role']) > (2 if request.path.endswith(('/profile','/attest')) else 3):
             abort(403)
         try:

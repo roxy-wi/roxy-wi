@@ -95,7 +95,7 @@ def binding(monkeypatch):
     calls = []
     monkeypatch.setattr(connectors.CertWarden, 'fetch', lambda _settings: pem)
     monkeypatch.setattr(operations, 'authorize', lambda ident, *_args, **_kwargs: Server.get_by_id(ident))
-    monkeypatch.setattr(sources.user_sql, 'select_user_services', lambda _: '1 5')
+    monkeypatch.setattr(sources.user_sql, 'select_user_services', lambda _: '1 7')
     monkeypatch.setattr(certificates, 'catalog', lambda _: {'certificates': [dict(name='example.pem',
         revision=hashlib.sha256(pem.encode()).hexdigest(), can_update=True, directory='/certs',
         disk_status='matches',runtime_status='used',disk=dict(fingerprint=certificates.certificate_metadata(pem)['fingerprint']),

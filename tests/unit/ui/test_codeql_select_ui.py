@@ -17,12 +17,15 @@ def test_select_labels_are_text_and_preserve_option_values(scenario, label):
 const fs = require('fs'), vm = require('vm'), assert = require('assert');
 const root = process.argv[1], scenario = process.argv[2], label = process.argv[3];
 const elements = new Map(), requests = [], refreshes = [];
-function element() { return {value: '', text: '', attrs: {}, props: {}, children: []}; }
+function element() { return {value: '', text: '', attrs: {}, props: {}, data: {}, children: []}; }
 function wrap(items, selector = '') {
     const q = {length: items.length,
         val(value) {if (value === undefined) return items[0]?.value; items.forEach(e => e.value = String(value)); return q;},
         text(value) {if (value === undefined) return items[0]?.text; items.forEach(e => e.text = String(value)); return q;},
         attr(key, value) {if (value === undefined) return items[0]?.attrs[key]; items.forEach(e => e.attrs[key] = String(value)); return q;},
+        removeAttr(key) {items.forEach(e => delete e.attrs[key]); return q;},
+        data(key, value) {if (value === undefined) return items[0]?.data[key]; items.forEach(e => e.data[key] = value); return q;},
+        removeData(key) {items.forEach(e => delete e.data[key]); return q;},
         prop(key, value) {items.forEach(e => e.props[key] = value); return q;},
         append(child) {
             assert(child && typeof child !== 'string', 'Untrusted option passed to an HTML parser');
@@ -36,7 +39,7 @@ function wrap(items, selector = '') {
         nodes: items
     };
     for (const method of ['add', 'removeClass', 'addClass', 'button', 'checkboxradio', 'controlgroup',
-                          'dialog', 'show', 'hide', 'css', 'on', 'click']) q[method] = () => q;
+                          'dialog', 'show', 'hide', 'css', 'on', 'click', 'closest', 'find']) q[method] = () => q;
     return q;
 }
 function $(selector) {
@@ -72,12 +75,16 @@ function check(selector, value) {
     return children[0];
 }
 if (scenario === 'server') {
+    load('admin/host-keys.js');
     load('admin/server.js');
     $('#new-server-add').val(label); $('#new-ip').val('192.0.2.10');
     $('#credentials').val('4'); $('#new-server-group-add').val('1'); $('#new-port').val('22');
     context.addServer('dialog');
+    assert.strictEqual($('dialog').data('sshRequestPending'), true);
     assert.strictEqual(JSON.parse(requests.at(-1).data).hostname, label);
     requests.at(-1).success({id: 7, data: ''});
+    assert.strictEqual($('dialog').data('sshRequestPending'), undefined);
+    assert.strictEqual($('dialog').nodes[0].props.inert, false);
     check('select:regex(id, git-server)', 7);
     for (const name of ['backup-server', 'haproxy_exp_addserv', 'nginx_exp_addserv', 'apache_exp_addserv',
                         'node_exp_addserv', 'geoipserv', 'haproxyaddserv', 'nginxaddserv', 'apacheaddserv']) {
