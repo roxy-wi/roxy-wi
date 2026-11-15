@@ -140,6 +140,7 @@ class ServerRequest(BaseModel):
     apache: Optional[bool] = 0
     firewall_enable: Optional[bool] = 0
     scan_server: Optional[bool] = 1
+    corosync: bool = False
     ssh_host_key_confirmation: Optional[str] = Field(default=None, max_length=8192)
 
 

@@ -61,7 +61,7 @@ def configuration(row):
 
 def targets(data, group_id, user_id, *, write=True):
     if data.get('cluster_id'):
-        if '5' not in user_sql.select_user_services(user_id).split():
+        if '7' not in user_sql.select_user_services(user_id).split():
             raise certificates.CertificateError('Cluster permission is required for cluster certificate targets', 'permission_denied')
         rows = certificates.targets_for(data['server_id'], group_id, cluster_id=data['cluster_id'])
     else:

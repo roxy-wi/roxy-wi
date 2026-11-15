@@ -115,6 +115,9 @@ def adopt(body, group_id, user_id):
         cluster = service.register(ClusterCreate(name=body.name, description=body.description, members=body.members), group_id)
         cluster.corosync_settings = json.dumps(found['settings'])
         cluster.save(only=[PacemakerCluster.corosync_settings])
+        Server.update(corosync=1).where(
+            Server.server_id.in_([member.server_id for member in body.members])
+            & (Server.group_id == str(group_id))).execute()
         PacemakerChange.create(cluster=cluster, user_id=user_id, kind='cib', status='applied',
                                base_digest=found['base_digest'], candidate=service.encrypt(found['xml']),
                                previous=service.encrypt(found['xml']),

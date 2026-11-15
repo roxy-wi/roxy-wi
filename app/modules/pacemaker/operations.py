@@ -8,6 +8,7 @@ from app.modules.common.time import utc_now
 from app.modules.pacemaker import service
 from app.modules.pacemaker.schemas import Action
 from app.modules.roxywi.exception import RoxywiConflictError, RoxywiPublicError
+from app.modules.service.ha_access import has_provider_access
 
 
 def enqueue(cluster, user_id, action, data=None):
@@ -47,7 +48,7 @@ def execute(task):
         cluster = service.get_cluster(payload['cluster_id'], task.group_id_id)
         actor = User.get_or_none(User.user_id == task.user_id_id)
         monitoring = payload['action'] == 'monitor' and cluster.monitor_enabled
-        if not monitoring and (not actor or not actor.enabled or '5' not in user_sql.select_user_services(actor.user_id).split()):
+        if not monitoring and (not actor or not actor.enabled or not has_provider_access(actor.user_id, 'pacemaker')):
             raise ValueError('Cluster permissions were revoked')
         if not monitoring and int(user_sql.get_user_role_in_group(actor.user_id, task.group_id_id)) > 3:
             raise ValueError('Operator permissions were revoked')
@@ -153,7 +154,7 @@ def execute_witness(task, payload):
     from app.modules.pacemaker.qdevice import witness_server, install_witness
     try:
         actor = User.get_or_none(User.user_id == task.user_id_id)
-        if not actor or not actor.enabled or '5' not in user_sql.select_user_services(actor.user_id).split():
+        if not actor or not actor.enabled or not has_provider_access(actor.user_id, 'pacemaker'):
             raise ValueError('Witness permissions were revoked')
         if int(user_sql.get_user_role_in_group(actor.user_id, task.group_id_id)) > 3:
             raise ValueError('Operator permissions were revoked')

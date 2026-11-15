@@ -90,7 +90,7 @@ def test_package_plan_tracks_each_node_and_rejects_stale_or_unavailable_candidat
 def test_worker_executes_agent_install_through_identity_and_permission_checks(cluster, monkeypatch):
     calls = []
     monkeypatch.setattr(operations.User, 'get_or_none', lambda *_args: SimpleNamespace(user_id=1, enabled=True))
-    monkeypatch.setattr(operations.user_sql, 'select_user_services', lambda _id: '5')
+    monkeypatch.setattr(operations.user_sql, 'select_user_services', lambda _id: '7')
     monkeypatch.setattr(operations.user_sql, 'get_user_role_in_group', lambda *_args: 1)
     monkeypatch.setattr(agents, 'install', lambda *args: calls.append(args))
     task = operations.enqueue(cluster, 1, 'agent-install', {'package':'fence-agents-pve','plan_digest':'a'*64})

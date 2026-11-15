@@ -25,6 +25,7 @@ from app.modules.roxywi.exception import RoxywiConflictError,RoxywiResourceNotFo
 from app.modules.subscription.access import CHANGE_CENTER,require_feature
 from app.modules.roxy_wi_tools import GetConfigVar
 from app.modules.service.ha_topology import topology_guarded, change_lock
+from app.modules.service.ha_access import SERVICE_IDS, has_provider_access
 
 
 class Create(BaseModel):
@@ -52,11 +53,13 @@ class ListQuery(BaseModel):
         return self
 
 
-def plans(group_id: int, query: ListQuery) -> tuple[list[HaMaintenancePlan], int | None, str | None]:
+def plans(group_id: int, query: ListQuery, *, providers=None) -> tuple[list[HaMaintenancePlan], int | None, str | None]:
     """Fetch active plans plus one bounded history page for this registration."""
     rows = HaMaintenancePlan.select(HaMaintenancePlan, ConfigChange).join(
         ConfigChange, on=(HaMaintenancePlan.change_id == ConfigChange.id)
     ).where((HaMaintenancePlan.group_id == group_id) & (ConfigChange.group_id == group_id))
+    if providers is not None:
+        rows = rows.where(HaMaintenancePlan.provider.in_(providers))
     registration = None
     if query.provider is not None:
         cluster, _nodes = audit.subject(query.provider, query.cluster_id, group_id)
@@ -91,7 +94,7 @@ def parent(row):
     return change
 
 
-def approvers(group_id: int) -> list[dict]:
+def approvers(group_id: int, provider: str = 'keepalived') -> list[dict]:
     """List enabled HA administrators in the active group for approval guidance."""
     users = User.select(User.user_id, User.username, User.user_services).join(
         UserGroups, on=(User.user_id == UserGroups.user_id)
@@ -100,7 +103,7 @@ def approvers(group_id: int) -> list[dict]:
         & UserGroups.user_role_id.in_((1, 2))
         & (User.enabled == 1)
     ).distinct().order_by(User.username)
-    return [dict(id=user.user_id, name=user.username) for user in users if '5' in user.user_services.split()]
+    return [dict(id=user.user_id, name=user.username) for user in users if SERVICE_IDS[provider] in user.user_services.split()]
 
 
 def public(row, *, available_approvers: list[dict] | None = None) -> dict:
@@ -109,7 +112,7 @@ def public(row, *, available_approvers: list[dict] | None = None) -> dict:
     data=unseal(row.payload);change=parent(row)
     task=InstallationTasks.get_or_none(InstallationTasks.id==row.active_task_id) if row.active_task_id else None
     if available_approvers is None:
-        available_approvers = approvers(row.group_id)
+        available_approvers = approvers(row.group_id, row.provider)
     return dict(id=row.id,provider=row.provider,cluster_id=row.cluster_id,server_id=row.server_id,
         title=change.title,cluster_name=data.get('cluster_name',str(row.cluster_id)),node_name=data.get('node_name',str(row.server_id)),
         can_cancel=not row.active_task_id and not data.get('drained_at') and row.status in ('draft','reviewed','review-failed') and change.status in ('draft','validation_failed','pending_approval','approved'),
@@ -134,7 +137,8 @@ def create(body,group_id,user_id):
             server_id=body.server_id,payload=seal(dict(capacity_evidence=body.capacity_evidence,events=[],
                 cluster_name=cluster.name,registration_key=cluster.readiness_key,
                 node_name=next(n for n,s in nodes if s.server_id==body.server_id))))
-        change=ConfigChange.create(server_id=body.server_id,group_id=group_id,user_id=user_id,service='cluster',
+        change=ConfigChange.create(server_id=body.server_id,group_id=group_id,user_id=user_id,
+            service='corosync' if body.provider == 'pacemaker' else 'cluster',
             action='ha-maintenance',title=body.title,description='Reviewed HA node maintenance; capacity is operator-attested.',
             remote_path=f'ha://{body.provider}/{cluster.id}/{body.server_id}',draft_path='',rollback_path='',
             requires_approval=1,status='draft')
@@ -457,7 +461,7 @@ def execute_step(task,row,action,renew=lambda:None):
         if change.status!='approved' or not change.approved_by or data['review']['returning']!=returning:
             raise RoxywiConflictError('Approve the current matching checks before changing the node')
         approver=User.get_or_none(User.user_id==change.approved_by)
-        if not approver or not approver.enabled or approver.user_id==change.user_id or '5' not in user_sql.select_user_services(approver.user_id).split() or int(user_sql.get_user_role_in_group(approver.user_id,row.group_id))>2:
+        if not approver or not approver.enabled or approver.user_id==change.user_id or not has_provider_access(approver.user_id, row.provider) or int(user_sql.get_user_role_in_group(approver.user_id,row.group_id))>2:
             raise RoxywiValidationError('The independent approver no longer has the required permissions; review again')
         current=view(returning)
         if current['fingerprint']!=data['review']['view']['fingerprint']:raise RoxywiConflictError('Configuration changed after review; review again before changing the node')
@@ -506,7 +510,7 @@ def process(task,data,*,heartbeat=lambda:None):
         row=get(data['plan_id'],task.group_id_id)
         if row.active_task_id!=task.id:raise RoxywiConflictError('This task no longer owns the maintenance plan')
         actor=User.get_or_none(User.user_id==task.user_id_id)
-        if not actor or not actor.enabled or '5' not in user_sql.select_user_services(actor.user_id).split() or int(user_sql.get_user_role_in_group(actor.user_id,task.group_id_id))>3:
+        if not actor or not actor.enabled or not has_provider_access(actor.user_id, row.provider) or int(user_sql.get_user_role_in_group(actor.user_id,task.group_id_id))>3:
             raise RoxywiValidationError('Maintenance permissions were revoked')
         require_feature(CHANGE_CENTER)
         cluster,nodes=audit.subject(row.provider,row.cluster_id,row.group_id)

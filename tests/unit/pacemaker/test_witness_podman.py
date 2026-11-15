@@ -25,7 +25,7 @@ def test_podman_install_is_explicit_and_survives_worker_dispatch(monkeypatch):
     monkeypatch.setattr(qdevice,'witness_server',lambda *_:SimpleNamespace(ip='192.0.2.1',port=22,cred_id=7,server_id=1))
     monkeypatch.setattr(qdevice,'install_witness',lambda *args,**kw:calls.append((args,kw)))
     monkeypatch.setattr(operations.User,'get_or_none',lambda *_:SimpleNamespace(user_id=1,enabled=True))
-    monkeypatch.setattr(operations.user_sql,'select_user_services',lambda _:'5')
+    monkeypatch.setattr(operations.user_sql,'select_user_services',lambda _:'7')
     monkeypatch.setattr(operations.user_sql,'get_user_role_in_group',lambda *_:1)
     monkeypatch.setattr(operations.InstallationTasks,'update',lambda **_:SimpleNamespace(where=lambda *_:SimpleNamespace(execute=lambda:None)))
     payload=dict(server_id=1,container_engine='podman',identity=dict(ip='192.0.2.1',port=22,cred_id=7))

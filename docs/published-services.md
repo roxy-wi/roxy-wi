@@ -1,6 +1,6 @@
-# Published-service map
+# Service map
 
-Open **Operations → Published services**. Select a registered HAProxy, NGINX or
+Open **Services → Service map**. Select a registered HAProxy, NGINX or
 Apache proxy and **Discover proxy configuration**. The durable Operations job
 reads its configuration and interface addresses; discovery sends no application
 traffic and changes no remote files. Repeat for each proxy you want on the map.
@@ -21,7 +21,8 @@ live monitoring. **Refresh map** reads saved evidence; **Discover proxy
 configuration** obtains new evidence. A failed refresh retains the preceding
 successful snapshot. Its timestamp remains visible; Operations shows the failure.
 
-Open the row’s **Actions** menu. **Confirm relationship** records the operator, time and reason for a domain on an
+The compact **Actions** column contains icon buttons with tooltips.
+**Confirm relationship** records the operator, time and reason for a domain on an
 already discovered frontend. A manually supplied domain remains
 **operator-supplied**, even after confirmation. Confirmation never rewrites proxy
 configuration and does not prove DNS, traffic, TLS delivery or failover. It applies
@@ -98,7 +99,7 @@ Confirmation reads and per-snapshot limits use an `assessment_id` database index
 
 ## Shared interface
 
-The map uses the same operational workspace, primary/secondary buttons, status badges, action-menu macro and responsive jQuery UI dialog as the merged Roxy-WI pages. It adds no page-specific CSS. The shared table supports search, sorting, pagination and mobile column labels. Changing the theme uses the existing application theme. Empty results and refresh errors remain distinct, and a failed refresh keeps the last successful map visible.
+The map uses the shared workspace, buttons, status badges and responsive jQuery UI dialog. The shared table supports search, sorting, pagination and mobile column labels. The Actions column is not sortable and reserves space for three compact icon buttons; available actions depend on permissions and confirmation state. Changing the theme uses the existing application theme. Empty results and refresh errors remain distinct, and a failed refresh keeps the last successful map visible.
 
 ![Publication map in the dark theme](screenshots/service-map/map-dark-1440.png)
 

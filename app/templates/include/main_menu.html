@@ -40,16 +40,13 @@
 						</a>
 					</li>
 					{% endif %}
-					{% if '5' in g.user_params['user_services'] %}
+					{% if '5' in g.user_params['user_services'].split() or '7' in g.user_params['user_services'].split() %}
 					<li class="nav-item" data-nav-search="ha {{ lang.words.cluster|lower }}">
 						<a href="{{ url_for('ha.ha_cluster', service='cluster') }}" title="{{ lang.menu_links.ha.title }}"
 						   class="nav-link{% if request.url_rule.endpoint in ('ha.ha_cluster', 'ha.cluster_index') %} menu-active{% endif %}">
 							<span class="fas fa-project-diagram nav-icon" aria-hidden="true"></span><span class="nav-label">HA {{ lang.words.cluster }}</span>
 						</a>
 					</li>
-					{% endif %}
-					{% if '1' in g.user_params['user_services'] or '2' in g.user_params['user_services'] or '4' in g.user_params['user_services'] %}
-                    <li class="nav-item" data-nav-search="published service map impact"><a href="{{ url_for('insights.service_map_page') }}" class="nav-link{% if request.url_rule.endpoint == 'insights.service_map_page' %} menu-active{% endif %}"><span class="fas fa-project-diagram nav-icon" aria-hidden="true"></span><span class="nav-label">Published services</span></a></li>
 					{% endif %}
 				</ul>
 			</li>
@@ -59,6 +56,13 @@
 					<span class="nav-group-label">{{ lang.words.services|title() }}</span><span class="fas fa-chevron-down nav-chevron" aria-hidden="true"></span>
 				</button>
 				<ul class="nav-group-items">
+					{% if '1' in g.user_params['user_services'] or '2' in g.user_params['user_services'] or '4' in g.user_params['user_services'] %}
+					<li class="nav-item" data-nav-search="{{ lang.service_map.title|lower }} published service map impact">
+						<a href="{{ url_for('insights.service_map_page') }}" class="nav-link{% if request.url_rule.endpoint == 'insights.service_map_page' %} menu-active{% endif %}">
+							<span class="fas fa-project-diagram nav-icon" aria-hidden="true"></span><span class="nav-label">{{ lang.service_map.title }}</span>
+						</a>
+					</li>
+					{% endif %}
 					{% if '1' in g.user_params['user_services'] %}
 					<li class="p_menu nav-service" data-nav-search="haproxy">
 						<div class="nav-service-row">
@@ -139,7 +143,7 @@
 					</li>
 					{% endif %}
 
-                    {% if '5' in g.user_params['user_services'] %}
+                    {% if '7' in g.user_params['user_services'].split() %}
                     <li class="p_menu nav-service" data-nav-search="corosync pacemaker quorum fencing">
                         <div class="nav-service-row">
                             <a href="{{ url_for('pacemaker.index') }}" id="menu-pacemaker" class="nav-link nav-service-link">

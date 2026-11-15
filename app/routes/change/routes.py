@@ -116,7 +116,7 @@ def index():
 def list_changes():
     service = request.args.get('service') or None
     status = request.args.get('status') or None
-    if service and service not in ('haproxy', 'nginx', 'apache', 'keepalived','cluster'):
+    if service and service not in ('haproxy', 'nginx', 'apache', 'keepalived', 'cluster', 'corosync'):
         return _error_response(RoxywiValidationError('Unsupported service filter'))
     try:
         changes = change_sql.list_changes(g.user_params['group_id'], service=service, status=status)

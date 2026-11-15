@@ -74,7 +74,7 @@ def choices():
     group = int(g.user_params['group_id'])
     servers = Server.select().where((Server.group_id == str(group)) & Server.enabled & (Server.type_ip == 0))
     clusters = (PacemakerCluster.select().where(PacemakerCluster.group_id == group)
-                if '5' in g.user_params['user_services'].split() else [])
+                if '7' in g.user_params['user_services'].split() else [])
     return jsonify(providers=[{'id': name, 'name': cls.label, 'schema': cls.settings_model.model_json_schema(),
                                'secret_fields': cls.secret_fields} for name, cls in PROVIDERS.items()],
                    servers=[{'id': s.server_id, 'name': s.hostname} for s in servers],

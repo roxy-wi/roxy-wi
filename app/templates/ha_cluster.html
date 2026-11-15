@@ -13,8 +13,8 @@
 <main id="ha-clusters" class="service-overview-page" data-cards="{{ url_for('ha.cluster_cards') }}" data-plans="{{ url_for('ha.maintenance_active') if maintenance_enabled else '' }}">
     {% if g.user_params['role']|int <= 3 %}
     <div class="rw-table-toolbar">
-        <button type="button" class="rw-button rw-button-primary" onclick="createHaClusterStep1()" {% if not is_needed_tool %}disabled title="Ansible is required to create a Keepalived cluster"{% endif %}>Create Keepalived cluster</button>
-        <button type="button" class="rw-button rw-button-secondary" data-ha-setup="">Create Corosync cluster</button>
+        {% if '5' in g.user_params['user_services'].split() %}<button type="button" class="rw-button rw-button-primary" onclick="createHaClusterStep1()" {% if not is_needed_tool %}disabled title="Ansible is required to create a Keepalived cluster"{% endif %}>Create Keepalived cluster</button>{% endif %}
+        {% if '7' in g.user_params['user_services'].split() %}<button type="button" class="rw-button rw-button-secondary" data-ha-setup="">Create Corosync cluster</button>{% endif %}
     </div>
     {% endif %}
     <p id="ha-clusters-message" class="rw-form-help" role="status" aria-live="polite"></p>
@@ -22,7 +22,7 @@
     <p id="ha-clusters-empty" class="rw-empty-state" hidden>No HA clusters registered in this group.</p>
     <aside class="alert alert-info rw-page-help">Manage Keepalived and Corosync / Pacemaker clusters here. Open Actions on a cluster to check readiness or plan node maintenance. Each window includes the history for that cluster.</aside>
 </main>
-{% if g.user_params['role']|int <= 3 %}
+{% if g.user_params['role']|int <= 3 and '7' in g.user_params['user_services'].split() %}
 <div id="ha-corosync-dialog" style="display: none">{% include 'include/ha/corosync_setup.html' %}</div>
 <script src="{{ url_for('static', filename='js/pacemaker.js', v='10.0-3') }}" defer></script>
 {% endif %}

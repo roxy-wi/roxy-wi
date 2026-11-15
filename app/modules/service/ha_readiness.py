@@ -19,6 +19,7 @@ from app.modules.pacemaker.remote import Remote
 from app.modules.pacemaker.xml import configuration, digest, summary
 from app.modules.pacemaker.quorum import details
 from app.modules.roxywi.exception import RoxywiResourceNotFound, RoxywiConflictError
+from app.modules.service.ha_access import has_provider_access
 
 
 class ProfileRequest(BaseModel):
@@ -404,7 +405,7 @@ def execute(task):
     row=None
     try:
         actor=User.get_or_none(User.user_id==task.user_id_id)
-        if not actor or not actor.enabled or '5' not in user_sql.select_user_services(actor.user_id).split() or int(user_sql.get_user_role_in_group(actor.user_id,task.group_id_id))>3:
+        if not actor or not actor.enabled or not has_provider_access(actor.user_id, payload['provider']) or int(user_sql.get_user_role_in_group(actor.user_id,task.group_id_id))>3:
             raise ValueError('HA audit permissions were revoked')
         row=OperationalAssessment.get((OperationalAssessment.id==payload['assessment_id']) &
             (OperationalAssessment.group_id==task.group_id_id) & (OperationalAssessment.task_id==task.id))

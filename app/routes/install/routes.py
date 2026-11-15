@@ -73,7 +73,7 @@ def install_exporter(exporter):
     try:
         if exporter=='ha_cluster':
             from app.modules.pacemaker import exporter as ha_exporter
-            if int(g.user_params['role'])>3 or not roxywi_auth.is_access_permit_to_service('cluster'): abort(403)
+            if int(g.user_params['role'])>3 or not roxywi_auth.is_access_permit_to_service('corosync'): abort(403)
             ha_exporter.member_server(server_ip,g.user_params['group_id'])
             options={'listen_address':json_data.get('listen_address',server_ip),'port':json_data.get('port',9664)}
             ha_exporter.inventory(server_ip,ver,options)
@@ -97,7 +97,7 @@ def get_exporter_version(
 ) -> str:
     if exporter=='ha_cluster':
         from app.modules.pacemaker.exporter import member_server
-        if int(g.user_params['role'])>3 or not roxywi_auth.is_access_permit_to_service('cluster'):abort(403)
+        if int(g.user_params['role'])>3 or not roxywi_auth.is_access_permit_to_service('corosync'):abort(403)
         member_server(str(server_ip),g.user_params['group_id'])
     return service_common.get_exp_version(str(server_ip), exporter)
 
@@ -105,7 +105,7 @@ def get_exporter_version(
 @bp.get('/exporter/ha_cluster/status/<server_ip>')
 @validate()
 def ha_cluster_exporter_status(server_ip: Union[IPvAnyAddress, DomainName]):
-    if int(g.user_params['role'])>3 or not roxywi_auth.is_access_permit_to_service('cluster'):abort(403)
+    if int(g.user_params['role'])>3 or not roxywi_auth.is_access_permit_to_service('corosync'):abort(403)
     from app.modules.pacemaker.exporter import status
     try:
         return jsonify(data=status(str(server_ip),g.user_params['group_id']))

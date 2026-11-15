@@ -81,6 +81,9 @@ class ServerView(MethodView):
                   type: 'string'
                 keepalived:
                   type: 'integer'
+                corosync:
+                  type: 'integer'
+                  description: Whether Corosync / Pacemaker is installed on this server
                 keepalived_active:
                   type: 'integer'
                 keepalived_alert:
@@ -169,6 +172,9 @@ class ServerView(MethodView):
                 protected:
                   type: integer
                   description: Is the server protected from changes by a non-admin role
+                corosync:
+                  type: boolean
+                  description: Mark Corosync / Pacemaker as installed on this server
         responses:
           201:
             description: Server creation successful
@@ -189,7 +195,8 @@ class ServerView(MethodView):
             'firewall_enable': body.firewall_enable,
             'haproxy': body.haproxy,
             'nginx': body.nginx,
-            'apache': body.apache
+            'apache': body.apache,
+            'corosync': body.corosync,
         }
 
         try:

@@ -74,9 +74,10 @@ def confirm(body, group_id, user_id):
 
 def ha_dependencies(group_id, user_id, allowed):
     """Read registered topology once per map, regardless of proxy count."""
-    if '5' not in user_sql.select_user_services(user_id).split(): return {}
+    grants = user_sql.select_user_services(user_id).split()
+    if not {'5', '7'}.intersection(grants): return {}
     result = {}
-    clusters = list(HaCluster.select().where(HaCluster.group_id == int(group_id)))
+    clusters = list(HaCluster.select().where(HaCluster.group_id == int(group_id))) if '5' in grants else []
     cluster_ids = [cluster.id for cluster in clusters]
     members = {}; vips = {}
     if cluster_ids:
@@ -89,7 +90,7 @@ def ha_dependencies(group_id, user_id, allowed):
         dependency = dict(provider='keepalived', id=cluster.id, name=cluster.name, members=sorted(nodes),
             vips=vips.get(cluster.id, []), evidence='registered topology')
         for node in nodes: result.setdefault(node, []).append(dependency)
-    for cluster in PacemakerCluster.select().where(PacemakerCluster.group_id == int(group_id)):
+    for cluster in (PacemakerCluster.select().where(PacemakerCluster.group_id == int(group_id)) if '7' in grants else []):
         nodes = {int(item['server_id']) for item in json.loads(cluster.servers)} & allowed
         dependency = dict(provider='pacemaker', id=cluster.id, name=cluster.name, members=sorted(nodes),
             vips=[], evidence='registered membership; current resource placement is not inferred')

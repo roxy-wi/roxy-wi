@@ -64,7 +64,7 @@ def get_user_services(user_id: int) -> str:
     services = service_sql.select_services()
 
     return render_template(
-        'ajax/user_services.html', user_services=user_sql.select_user_services(user_id), id=user_id, services=services, lang=lang
+        'ajax/user_services.html', user_services=user_sql.select_user_services(user_id).split(), id=user_id, services=services, lang=lang
     )
 
 

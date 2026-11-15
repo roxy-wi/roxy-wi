@@ -51,6 +51,12 @@
 :is(#pacemaker-app, .rw-operations-workspace) table.overview th,
 :is(#pacemaker-app, .rw-operations-workspace) table.overview td { box-sizing: border-box; padding: 10px 12px; vertical-align: middle; overflow-wrap: anywhere; }
 :is(#pacemaker-app, .rw-operations-workspace) table.overview th { color: var(--rw-text-muted); background: var(--rw-surface-muted); text-align: left; }
+#map-table .map-actions-cell { width: 138px; white-space: nowrap; }
+#map-table th.map-actions-cell { cursor: default; background-image: none; }
+#map-table th.map-actions-cell::after { content: none; }
+#map-table .map-row-actions { display: flex; align-items: center; gap: 6px; }
+#map-table .map-row-actions .rw-icon-button { flex: 0 0 34px; box-sizing: border-box; color: inherit; text-decoration: none; }
+#map-table .map-row-actions .map-action-danger { color: var(--rw-danger); }
 :is(#pacemaker-app, .rw-operations-workspace) table:has(#pcmk-nodes, #pcmk-resources, #pcmk-history, #pcmk-members, #pcmk-membership-members) :is(th, td):last-child { width: 96px; }
 :is(#pacemaker-app, .rw-operations-workspace) .rw-table-shell:has(#pcmk-members, #pcmk-membership-members) table { min-width: 760px; }
 :is(#pacemaker-app, .rw-operations-workspace) table:has(#pcmk-members, #pcmk-membership-members) :is(th, td):nth-child(4) { width: 90px; }

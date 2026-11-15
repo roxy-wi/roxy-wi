@@ -2,6 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const root = document.getElementById('published-services');
     if (!root) return;
     const el = id => document.getElementById('map-' + id);
+    const text = JSON.parse(el('translations').textContent);
     const node = (tag, text) => {
         const value = document.createElement(tag);
         if (text !== undefined) value.textContent = text;
@@ -43,13 +44,21 @@ document.addEventListener('DOMContentLoaded', () => {
         if (jQuery(input).selectmenu('instance')) jQuery(input).selectmenu('refresh');
         else jQuery(input).selectmenu();
     }
-    function action(menu, text, run, danger = false) {
-        const button = node('button', text);
-        button.type = 'button';
-        button.className = 'admin-action-item' + (danger ? ' admin-action-item-danger' : '');
-        button.setAttribute('role', 'menuitem');
-        button.addEventListener('click', run);
-        menu.append(button);
+    function action(container, label, icon, run, danger = false) {
+        const button = node(typeof run === 'string' ? 'a' : 'button');
+        button.className = 'rw-icon-button' + (danger ? ' map-action-danger' : '');
+        button.title = label;
+        button.setAttribute('aria-label', label);
+        const glyph = node('span');
+        glyph.className = 'fas fa-' + icon;
+        glyph.setAttribute('aria-hidden', 'true');
+        button.append(glyph);
+        if (typeof run === 'string') button.href = run;
+        else {
+            button.type = 'button';
+            button.addEventListener('click', run);
+        }
+        container.append(button);
     }
     function render(item) {
         const row = node('tr'), domain = node('td'), proxy = node('td'), details = node('td'), actions = node('td');
@@ -71,20 +80,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const more = node('details');
         more.append(node('summary', 'Snapshot scope'), node('p', item.freshness), node('p', 'Host addresses: ' + item.addresses.join(', ')));
         details.append(more);
-        const wrapper = el('action-menu').content.firstElementChild.cloneNode(true);
-        wrapper.querySelector('.admin-actions-toggle').setAttribute('aria-label', 'Actions for ' + (item.domain || item.frontend) + ' on ' + item.server);
-        const menu = wrapper.querySelector('.admin-actions-menu');
-        const link = node('a', 'Diagnose'); link.className = 'admin-action-item'; link.setAttribute('role', 'menuitem');
-        link.href = '/insights/diagnostics?' + new URLSearchParams({service: item.service, server_id: String(item.server_id)}); menu.append(link);
-        if (root.dataset.write === '1' && item.identity_current) action(menu, 'Confirm relationship', () => {
+        const wrapper = node('div');
+        wrapper.className = 'map-row-actions';
+        wrapper.setAttribute('role', 'group');
+        wrapper.setAttribute('aria-label', text.actions_for + ' ' + (item.domain || item.frontend) + ' · ' + item.server);
+        action(wrapper, text.diagnose, 'stethoscope', '/insights/diagnostics?' +
+            new URLSearchParams({service: item.service, server_id: String(item.server_id)}));
+        if (root.dataset.write === '1' && item.identity_current) action(wrapper, text.confirm, 'check', () => {
             selected = item; el('domain').value = item.domain; el('note').value = ''; el('confirm-message').textContent = '';
             dialog.dialog('open');
         });
-        if (root.dataset.write === '1' && item.confirmation) action(menu, 'Retract confirmation', async () => {
+        if (root.dataset.write === '1' && item.confirmation) action(wrapper, text.retract, 'undo', async () => {
             try { await api('/confirm/' + item.confirmation.id, undefined, 'DELETE'); await refresh(); }
             catch (error) { message(error.message, true); }
         }, true);
-        actions.className = 'admin-actions-cell'; actions.append(wrapper);
+        actions.className = 'map-actions-cell'; actions.append(wrapper);
         row.append(domain, node('td', item.listeners.map(endpoint).join(', ') || 'Unknown'), proxy,
             node('td', item.backends.map(endpoint).join(', ') || 'None discovered'), details, actions);
         for (const cell of row.children) {

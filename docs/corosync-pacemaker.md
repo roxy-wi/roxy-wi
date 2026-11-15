@@ -17,7 +17,14 @@ profiles, Docker workflows, HA technology selection and SYN-flood settings.
 The dialog reuses the existing provisioning, discovery and witness APIs. Closing it does not
 cancel an installation. Open **Actions → Installation and logs** on the cluster to follow it again.
 
-HA cluster service permission (service ID 5) controls access. Operators at role
+The separate **Corosync / Pacemaker** permission (service ID 7) controls access.
+Manage it through **Administration → Users → Actions → Change Services**.
+The **HA cluster** permission (ID 5) controls Keepalived clusters. The shared HA
+overview shows only providers granted to the user. Existing users with ID 5
+receive ID 7 during the upgrade to preserve their previous Corosync access;
+the two permissions can then be granted or revoked independently.
+
+Operators at role
 levels 1–3 can configure clusters and open the setup dialog on **HA cluster**.
 Viewers can see status and history, but cannot
 read CIB snapshots, journals or credential-bearing configuration.
@@ -27,6 +34,15 @@ Roxy-WI group. Nodes need Python 3.8 or newer available as `python3`, SSH access
 actual Corosync `cluster_name` for an existing cluster; node names must match the
 managed host names for provisioning. Corosync addresses can be on a separate
 cluster network. Registration alone changes no remote configuration.
+
+**Administration → Servers → Actions → Change Services** also includes
+**Corosync / Pacemaker**. This flag records software installed on that server;
+changing it does not install or remove packages, change cluster membership, or
+grant user access. Server discovery detects `/etc/corosync/corosync.conf`.
+Provisioning and adoption record verified installations automatically. On
+upgrade, previously adopted or successfully provisioned clusters are marked;
+draft registrations alone are not treated as installed software. A standalone
+qnetd witness is not marked as a Corosync/Pacemaker cluster node.
 
 For an existing installation, choose **Adopt an existing cluster**, select one
 running node, and inspect the discovered cluster name, members, resources and

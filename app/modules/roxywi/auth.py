@@ -68,7 +68,7 @@ def is_access_permit_to_service(service: str) -> bool:
     service_id = service_sql.select_service_id_by_slug(service)
     claims = roxywi_common.get_jwt_token_claims()
     user_services = user_sql.select_user_services(claims['user_id'])
-    if str(service_id) in user_services:
+    if str(service_id) in user_services.split():
         return True
     else:
         return False

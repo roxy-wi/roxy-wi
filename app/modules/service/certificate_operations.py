@@ -14,6 +14,7 @@ from app.modules.operations.queue import serialize_operation_payload, deserializ
 from app.modules.roxy_wi_tools import GetConfigVar
 from app.modules.roxywi.exception import RoxywiResourceNotFound
 from app.modules.service import certificates, certificate_deployment
+from app.modules.service.ha_access import has_provider_access
 
 
 def operation_lock(operation_id):
@@ -84,6 +85,8 @@ def history(server_id, group_id, page=1, per_page=10):
 
 def enqueue(server_id, group_id, user_id, name, pem, revision, operation_id, *, destination=None, directory=None, cluster_id=None,
             source_id=None, source_task_id=None):
+    if cluster_id is not None and not has_provider_access(user_id, 'pacemaker'):
+        raise certificates.CertificateError('Corosync permission is required for cluster certificate targets', 'permission_denied')
     operation_id = str(UUID(str(operation_id)))
     if not name.endswith('.pem') or any(char in name for char in '/\\\r\n\x00;') or name in ('.', '..'):
         raise certificates.CertificateError('Invalid certificate name', 'invalid_path')
@@ -197,6 +200,8 @@ def execute(task, *, renew=None, source_task_id=None):
                 return 'owned'
         try:
             if payload['phase'] == 'apply':
+                if payload.get('cluster_id') is not None and not has_provider_access(task.user_id_id, 'pacemaker'):
+                    raise certificates.CertificateError('Corosync permission was revoked', 'permission_denied')
                 current_targets = (certificates.targets_for(payload['server_id'], task.group_id_id, cluster_id=payload['cluster_id'])
                                    if payload.get('cluster_id') is not None else
                                    certificates.targets_for(payload['server_id'], task.group_id_id))

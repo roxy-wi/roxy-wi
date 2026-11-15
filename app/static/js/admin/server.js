@@ -422,7 +422,7 @@ async function serverIsUp(server_id) {
 	});
 }
 function openChangeServerServiceDialog(server_id) {
-	let user_groups_word = translate_div.attr('data-user_groups');
+	let services_word = translate_div.attr('data-services3');
 	let hostname = $('#hostname-' + server_id).val();
 	$.ajax({
 		url: "/server/services/" + server_id,
@@ -433,7 +433,7 @@ function openChangeServerServiceDialog(server_id) {
 				height: "auto",
 				width: 700,
 				modal: true,
-				title: user_groups_word + ' ' + hostname,
+					title: services_word + ' ' + hostname,
 				buttons: [{
 					text: save_word,
 					click: function () {

@@ -111,8 +111,17 @@ def select_cluster_master_slaves(cluster_id: int, group_id: int, router_id: int)
 
 
 def cluster_slaves_query(cluster_id: int, router_id: int):
-	"""Keep the established server/member tuples without registration metadata."""
-	server_fields = [field for field in Server._meta.sorted_fields if field.name != 'registration_key']
+	"""Keep legacy tuple offsets stable when new server fields are added."""
+	server_fields = (
+		Server.server_id, Server.hostname, Server.ip, Server.group_id,
+		Server.type_ip, Server.enabled, Server.master, Server.cred_id,
+		Server.haproxy_alert, Server.haproxy_metrics, Server.port, Server.description,
+		Server.haproxy_active, Server.keepalived, Server.nginx, Server.haproxy,
+		Server.pos, Server.nginx_active, Server.firewall_enable, Server.nginx_alert,
+		Server.protected, Server.nginx_metrics, Server.keepalived_active,
+		Server.keepalived_alert, Server.apache, Server.apache_active,
+		Server.apache_alert, Server.apache_metrics,
+	)
 	return Server.select(*server_fields, *HaClusterSlave._meta.sorted_fields).join(HaClusterSlave).where(
 		(HaClusterSlave.cluster_id == cluster_id) & (HaClusterSlave.router_id == router_id)
 	)

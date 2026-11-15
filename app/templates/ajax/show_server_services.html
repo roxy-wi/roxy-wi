@@ -26,6 +26,12 @@
         <td><span class="add_user_group" title="{{lang.words.add|title()}} {{lang.words.service}}" onclick="addServiceToServer(3)">+</span></td>
     </tr>
     {% endif %}
+    {% if not server.corosync %}
+    <tr class="odd" id="add_service-7" data-service_name="Corosync / Pacemaker">
+        <td class="padding20" style="width: 100%">Corosync / Pacemaker</td>
+        <td><span class="add_user_group" title="{{lang.words.add|title()}} {{lang.words.service}}" onclick="addServiceToServer(7)">+</span></td>
+    </tr>
+    {% endif %}
     </tbody>
 </table>
 <table id="checked_services" style="width: 300px;">
@@ -55,5 +61,11 @@
         <td><span class="remove_user_group" onclick="removeServiceFromServer(3)" title="{{lang.words.delete|title()}} {{lang.words.service}}">-</span></td>
     </tr>
 	{% endif %}
+    {% if server.corosync %}
+    <tr class="odd" id="remove_service-7" data-service_name="Corosync / Pacemaker">
+        <td class="padding20" style="width: 100%">Corosync / Pacemaker</td>
+        <td><span class="remove_user_group" onclick="removeServiceFromServer(7)" title="{{lang.words.delete|title()}} {{lang.words.service}}">-</span></td>
+    </tr>
+    {% endif %}
     </tbody>
 </table>

@@ -173,3 +173,4 @@ def test_no_service_starts_until_all_nodes_are_prepared(cluster, monkeypatch):
     monkeypatch.setattr(service, 'wait_ready', lambda _cluster: None)
     bootstrap.provision(cluster, 1)
     assert calls == ['Preflight', 'Repositories'] * 2 + ['Packages and configuration'] * 2 + ['Start services'] * 2
+    assert all(server.corosync == 1 for _member, server in service.members(cluster))

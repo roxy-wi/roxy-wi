@@ -78,6 +78,7 @@ def test_adoption_verifies_all_nodes_and_keeps_an_encrypted_baseline(running_clu
     assert len(json.loads(service.decrypt(baseline.details))['corosync']) == 2
     assert {server_id for server_id, _args in calls} == {server.server_id for server in servers}
     assert adoption.discover(servers[0].server_id, 1)['existing_cluster_id'] == cluster.id
+    assert all(Server.get_by_id(server.server_id).corosync == 1 for server in servers)
 
 
 @pytest.mark.parametrize('field', ['xml', 'cmap'])

@@ -2,9 +2,9 @@ from functools import wraps
 from flask import abort, g, jsonify, redirect, request, url_for
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from app.middleware import get_user_params
-from app.modules.roxywi import auth
 from app.modules.roxywi.exception import RoxywiConflictError, RoxywiResourceNotFound, RoxywiPermissionError, RoxywiValidationError
-from app.modules.db.db_model import HaCluster, PacemakerCluster, OperationalAssessment
+from app.modules.db.db_model import HaCluster, PacemakerCluster, OperationalAssessment, HaMaintenancePlan
+from app.modules.service.ha_access import allowed_providers
 from app.modules.service import ha_readiness as audit
 from app.routes.ha import bp
 
@@ -18,8 +18,23 @@ def access(handler):
     @wraps(handler)
     @get_user_params()
     def wrapped(*args, **kwargs):
-        if not auth.is_access_permit_to_service('cluster'):
+        providers = allowed_providers(g.user_params['user_services'])
+        if not providers:
             abort(403)
+        requested = [kwargs.get('provider'), request.args.get('provider')]
+        body = request.get_json(silent=True) if request.is_json else None
+        if isinstance(body, dict):
+            requested.append(body.get('provider'))
+        if kwargs.get('plan_id'):
+            plan = HaMaintenancePlan.get_or_none(
+                (HaMaintenancePlan.id == kwargs['plan_id']) & (HaMaintenancePlan.group_id == g.user_params['group_id']))
+            if plan:
+                requested.append(plan.provider)
+        for provider in requested:
+            if provider is not None and not isinstance(provider, str):
+                abort(400)
+            if provider and provider not in providers:
+                abort(403)
         if request.method != 'GET' and int(g.user_params['role']) > (2 if request.path.endswith(('/profile','/attest')) else 3):
             abort(403)
         try:
@@ -49,7 +64,9 @@ def readiness():
 def subjects():
     group=g.user_params['group_id']
     return jsonify(data=[dict(provider=provider,id=row.id,name=row.name) for provider,model in
-        [('keepalived',HaCluster),('pacemaker',PacemakerCluster)] for row in model.select().where(model.group_id==group)])
+        [('keepalived',HaCluster),('pacemaker',PacemakerCluster)]
+        if provider in allowed_providers(g.user_params['user_services'])
+        for row in model.select().where(model.group_id==group)])
 
 
 @bp.get('/api/readiness/<provider>/<int:cluster_id>')

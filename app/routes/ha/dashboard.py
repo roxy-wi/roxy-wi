@@ -10,6 +10,7 @@ from app.modules.roxywi.exception import RoxywiInputError, RoxywiResourceNotFoun
 from app.modules.subscription.access import CHANGE_CENTER, is_feature_available
 from app.routes.ha import bp
 from app.routes.ha.readiness import access
+from app.modules.service.ha_access import allowed_providers
 
 
 def cluster_card(cluster: HaCluster | PacemakerCluster, provider: str) -> dict:
@@ -59,6 +60,7 @@ def cluster_index():
 def cluster_cards():
     cards = [cluster_card(cluster, provider) for provider, model in
              [('keepalived', HaCluster), ('pacemaker', PacemakerCluster)]
+             if provider in allowed_providers(g.user_params['user_services'])
              for cluster in model.select().where(model.group_id == g.user_params['group_id'])]
     cards.sort(key=lambda card: (card['name'].casefold(), card['provider'], card['id']))
     return render_template('ajax/ha/clusters.html', cards=cards, lang=g.user_params['lang'])

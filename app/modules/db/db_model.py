@@ -80,7 +80,7 @@ class User(BaseModel):
     group_id = CharField()
     ldap_user = IntegerField(constraints=[SQL('DEFAULT "0"')])
     enabled = IntegerField(constraints=[SQL('DEFAULT "1"')])
-    user_services = CharField(constraints=[SQL('DEFAULT "1 2 3 4 5 6"')])
+    user_services = CharField(default='1 2 3 4 5 6 7', constraints=[SQL('DEFAULT "1 2 3 4 5 6 7"')])
     last_login_date = DateTimeField(constraints=[SQL('DEFAULT "0000-00-00 00:00:00"')])
     last_login_ip = CharField(null=True)
 
@@ -119,6 +119,7 @@ class Server(BaseModel):
     apache_metrics = IntegerField(constraints=[SQL('DEFAULT 0')])
     registration_key = CharField(max_length=32, default=lambda: uuid4().hex, unique=True)
     ssh_host_key = TextField(null=True)
+    corosync = IntegerField(default=0, constraints=[SQL('DEFAULT 0')])
 
     class Meta:
         table_name = 'servers'

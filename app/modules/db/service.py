@@ -25,10 +25,12 @@ def update_hapwi_server(server_id, alert, metrics, active, service_name):
 
 
 @guarded_server
-def update_server_services(server_id: int, haproxy: int, nginx: int, apache: int, keepalived: int) -> bool:
+def update_server_services(server_id: int, haproxy: int, nginx: int, apache: int, keepalived: int,
+                           corosync: int | None = None) -> bool:
 	try:
+		additional = {} if corosync is None else {'corosync': corosync}
 		server_update = Server.update(
-			haproxy=haproxy, nginx=nginx, apache=apache, keepalived=keepalived
+			haproxy=haproxy, nginx=nginx, apache=apache, keepalived=keepalived, **additional
 		).where(Server.server_id == server_id)
 		server_update.execute()
 	except Exception as e:
@@ -172,6 +174,11 @@ def update_keepalived(serv):
 		Server.update(keepalived='1').where(Server.ip == serv).execute()
 	except Exception as e:
 		out_error(e)
+
+
+def update_corosync(server_ip: str) -> None:
+	"""Record a Corosync installation discovered on a registered server."""
+	Server.update(corosync=1).where(Server.ip == server_ip).execute()
 
 
 def update_apache(serv: str) -> None:

@@ -462,6 +462,9 @@ def update_server_after_creating(hostname: str, ip: str) -> None:
 		if is_file_exists(ip, keepalived_config_path):
 			service_sql.update_keepalived(ip)
 
+		if is_file_exists(ip, '/etc/corosync/corosync.conf'):
+			service_sql.update_corosync(ip)
+
 		if is_file_exists(ip, apache_config_path):
 			service_sql.update_apache(ip)
 
@@ -526,6 +529,8 @@ def show_server_services(server_id: int) -> str:
 
 
 def change_server_services(server_id: int, server_name: str, server_services: dict) -> str:
+	if not isinstance(server_services, dict) or any(value not in (0, 1) for value in server_services.values()):
+		return 'error: Service flags must be 0 or 1'
 	services = service_sql.select_services()
 	services_status = {}
 
@@ -535,7 +540,8 @@ def change_server_services(server_id: int, server_name: str, server_services: di
 				services_status[service.service_id] = v
 
 	try:
-		if service_sql.update_server_services(server_id, services_status[1], services_status[2], services_status[4], services_status[3]):
+		if service_sql.update_server_services(server_id, services_status[1], services_status[2], services_status[4], services_status[3],
+		                                     corosync=services_status.get(7)):
 			roxywi_common.logging('Roxy-WI server', f'Active services have been updated for {server_name}', login=1)
 			return 'ok'
 	except Exception as e:

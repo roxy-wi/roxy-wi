@@ -22,7 +22,7 @@ from app.modules.service.ha_topology import topology_lock
 @jwt_required()
 @get_user_params()
 def before_request():
-    if not auth.is_access_permit_to_service('cluster'):
+    if not auth.is_access_permit_to_service('corosync'):
         abort(403)
     if request.method != 'GET' and int(g.user_params['role']) > 3:
         abort(403)

@@ -14,7 +14,7 @@ from app.modules.roxywi.exception import RoxywiConflictError
 def witness(monkeypatch):
     server = Server.create(hostname='test-witness', ip='192.0.2.230', group_id='1')
     monkeypatch.setattr(operations.User, 'get_or_none', lambda *_args: SimpleNamespace(user_id=1, enabled=True))
-    monkeypatch.setattr(operations.user_sql, 'select_user_services', lambda _id: '5')
+    monkeypatch.setattr(operations.user_sql, 'select_user_services', lambda _id: '7')
     monkeypatch.setattr(operations.user_sql, 'get_user_role_in_group', lambda *_args: 1)
     yield server
     for task in InstallationTasks.select().where(InstallationTasks.service_name == 'Corosync witness: test-witness'):

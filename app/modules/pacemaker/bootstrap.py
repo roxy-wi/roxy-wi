@@ -3,6 +3,7 @@ import base64
 import json
 import secrets
 
+from app.modules.db.service import update_corosync
 from app.modules.roxywi.exception import RoxywiInputError
 from app.modules.pacemaker.remote import Remote
 from app.modules.pacemaker.platforms import SOURCE
@@ -116,6 +117,7 @@ def provision(cluster, user_id, *, syn_flood=False, fence_pve=False, log=None):
             renew_lock(cluster, token)
             result = json.loads(install_log.run(Remote(server), PREPARE, member.name, 'Packages and configuration',
                                                record, data=payload, timeout=600))
+            update_corosync(server.ip)
             if result['fence_pve_repaired']:
                 event(cluster, user_id, f'fence-pve-repair:{member.name}', 'completed')
         # Start only after every node has the same authenticated membership.
