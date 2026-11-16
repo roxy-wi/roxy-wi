@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Managed ACL feeds{% endblock %}
+{% block h2 %}Managed ACL feeds{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static',filename='css/table-6.3.9.css') }}">
+<main class="service-overview-page" id="managed-acl" data-api="{{ url_for('insights.acl_collection') }}" data-choices="{{ url_for('insights.choices') }}" data-write="{{ '1' if g.user_params['role']|int <=3 else '0' }}" data-admin="{{ '1' if g.user_params['role']|int <=2 else '0' }}">
+    <p>Fetch approved IP/CIDR sources into immutable versions. Review differences and target baselines, approve the deployment in Change Center, then apply an atomic HAProxy ACL transaction. Downloads never apply themselves.</p>
+    <p id="acl-message" class="rw-form-help" role="status" aria-live="polite"></p>
+    <section class="rw-panel"><div class="rw-table-toolbar"><button id="acl-refresh" type="button" class="rw-button rw-button-secondary">Refresh feeds</button>{% if g.user_params['role']|int <=3 %}<button id="acl-new" type="button" class="rw-button rw-button-primary">New managed feed</button>{% endif %}</div>
+        <div class="rw-table-shell"><table class="overview dataTable"><thead><tr class="overviewHead"><th>Feed / source</th><th>Approval / freshness</th><th>Deployment</th><th>Actions</th></tr></thead><tbody id="acl-rows"></tbody></table></div>
+    </section>
+    {% if g.user_params['role']|int <=3 %}<form id="acl-form" class="rw-panel" hidden><h3 id="acl-form-title">New managed feed</h3>
+        <div class="change-advanced-grid">
+            <div class="rw-form-field"><label for="acl-name">Name</label><input id="acl-name" class="form-control" required maxlength="128"></div>
+            <div class="rw-form-field"><label for="acl-provider">Source connector</label><select id="acl-provider" required></select></div>
+            <div class="rw-form-field"><label for="acl-url">HTTPS source URL</label><input id="acl-url" class="form-control" type="url" required maxlength="2048" placeholder="https://feeds.example.com/approved-ips.txt"></div>
+            <div class="rw-form-field"><label for="acl-interval">Download interval (minutes)</label><input id="acl-interval" class="form-control" type="number" min="5" max="10080" value="360" required></div>
+            <div class="rw-form-field"><label for="acl-stale">Stale after (hours)</label><input id="acl-stale" class="form-control" type="number" min="1" max="8760" value="24" required></div>
+            <div class="rw-form-field"><label for="acl-max">Maximum entries</label><input id="acl-max" class="form-control" type="number" min="1" max="100000" value="50000" required></div>
+            <div class="rw-form-field"><label for="acl-v4">Broadest IPv4 prefix length</label><input id="acl-v4" class="form-control" type="number" min="0" max="32" value="8" required></div>
+            <div class="rw-form-field"><label for="acl-v6">Broadest IPv6 prefix length</label><input id="acl-v6" class="form-control" type="number" min="0" max="128" value="16" required></div>
+        </div>
+        <p><label><input id="acl-private" type="checkbox"> Permit private HTTPS source addresses (requires global administrator approval)</label></p>
+        <div class="rw-form-field"><label for="acl-ca">Optional public source CA bundle (PEM)</label><textarea id="acl-ca" class="form-control" maxlength="131072"></textarea></div>
+        <p><label><input id="acl-enabled" type="checkbox"> Download periodically after source approval; deployment remains manual and reviewed</label></p>
+        <fieldset><legend>Discovered ACL targets</legend><div class="change-advanced-grid">
+            <div class="rw-form-field"><label for="acl-server">Registered HAProxy node</label><select id="acl-server"></select></div>
+            <div class="rw-form-field"><label for="acl-path">Persistent loaded src IP list</label><select id="acl-path"><option value="">Discover lists first</option></select></div>
+        </div><div class="rw-table-toolbar"><button id="acl-discover" class="rw-button rw-button-secondary" type="button">Discover IP lists</button><button id="acl-add-target" class="rw-button rw-button-secondary" type="button">Add target</button></div><div id="acl-targets"></div></fieldset>
+        <p class="rw-form-help">Use an existing persistent src IP ACL, not a map or string ACL. Source/target edits revoke source approval. Pending or interrupted deployment must finish recovery before edits.</p>
+        <div class="rw-table-toolbar"><button class="rw-button rw-button-primary" type="submit">Save feed</button><button id="acl-cancel" class="rw-button rw-button-secondary" type="button">Cancel</button></div>
+    </form>{% endif %}
+    <section class="rw-panel" id="acl-versions-panel" hidden><h3 id="acl-selected"></h3><p>Deployment and rollback reviews require Change Center access and an independent administrator approval.</p>
+        <div class="rw-table-shell"><table class="overview dataTable"><thead><tr class="overviewHead"><th>Version / fingerprint</th><th>State / entries</th><th>Target differences</th><th>Actions</th></tr></thead><tbody id="acl-versions"></tbody></table></div>
+    </section>
+    <section class="rw-panel rw-generated-config" id="acl-evidence" hidden><h3>Version evidence</h3><pre id="acl-diff"></pre><details><summary>Full candidate and reviewed target baselines</summary><div id="acl-content"></div></details></section>
+</main><script src="{{ url_for('static',filename='js/managed-acl.js') }}" defer></script>
+{% endblock %}

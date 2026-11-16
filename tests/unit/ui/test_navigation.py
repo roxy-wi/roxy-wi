@@ -142,6 +142,26 @@ def test_navigation_separates_corosync_and_keepalived_access(app, services, coro
     assert ('href="/ha/ha_cluster"' in menu) == ha
 
 
+@pytest.mark.parametrize('services,visible', [
+    ('1 2 3', True), ('1', True), ('11 2', False), ('', False),
+])
+def test_managed_acl_navigation_uses_exact_service_permissions(app, services, visible):
+    menu = render_navigation(app, role=1, services=services)
+    assert ('Managed ACL feeds' in menu) is visible
+    assert ('Managed ACL feeds' in render_navigation(app, role=4, services=services)) is visible
+
+
+def test_service_map_and_acl_links_preserve_the_services_group(app):
+    menu=render_navigation(app,role=1,services='1 7')
+    services=menu.split('data-nav-group="services"',1)[1].split('data-nav-group="monitoring"',1)[0]
+    assert menu.count('href="/insights/service_map_page"')==1
+    assert 'href="/insights/service_map_page"' in services
+    assert 'href="/insights/acl_page"' in services
+    corosync=render_navigation(app,role=1,services='7')
+    assert 'href="/ha/ha_cluster"' in corosync
+    assert 'Managed ACL feeds' not in corosync
+
+
 def test_navigation_javascript_handles_state_search_and_active_routes():
     script = (ROOT / 'app/static/js/script.js').read_text(encoding='utf-8')
 

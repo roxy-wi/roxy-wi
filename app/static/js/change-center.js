@@ -151,6 +151,13 @@ $(function () {
         const menuId = 'change-actions-menu-' + change.id;
         const menu = $('<div class="change-actions-menu" role="menu" hidden>').attr('id', menuId);
         primary.append(actionButton('fa-eye', i18n.details, 'details', change.id));
+        if(change.action==='acl-feed') {
+            if(change.status==='pending_approval' && currentRole<=2 && change.user_id!==currentUserId)
+                primary.append(actionButton('fa-user-check',i18n.approve,'approve',change.id));
+            primary.append($('<a class="ui-button ui-widget ui-corner-all">').attr('href','/insights/acl-feeds?change='+change.id).text('Managed ACL feeds'));
+            if(['pending_approval','approved'].includes(change.status))primary.append(actionButton('fa-times',i18n.cancel,'cancel',change.id));
+            actions.append(primary);return actions;
+        }
         if(change.action==='ha-maintenance') {
             if(change.maintenance && RoxywiMaintenance.canApprove(change.maintenance, currentUserId))
                 primary.append(actionButton('fa-user-check', i18n.approve, 'approve', change.id));

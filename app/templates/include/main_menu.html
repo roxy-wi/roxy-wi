@@ -63,6 +63,10 @@
 						</a>
 					</li>
 					{% endif %}
+					{% set acl_services = g.user_params['user_services'].split() if g.user_params['user_services'] is string else g.user_params['user_services'] %}
+					{% if '1' in acl_services %}
+					<li class="nav-item" data-nav-search="managed acl feeds ip cidr"><a href="{{ url_for('insights.acl_page') }}" class="nav-link{% if request.url_rule.endpoint == 'insights.acl_page' %} menu-active{% endif %}"><span class="fas fa-list-alt nav-icon" aria-hidden="true"></span><span class="nav-label">Managed ACL feeds</span></a></li>
+					{% endif %}
 					{% if '1' in g.user_params['user_services'] %}
 					<li class="p_menu nav-service" data-nav-search="haproxy">
 						<div class="nav-service-row">
