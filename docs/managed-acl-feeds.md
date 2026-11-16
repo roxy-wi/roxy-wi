@@ -1,6 +1,6 @@
 # Managed IP/CIDR ACL feeds
 
-**Operations → Managed ACL feeds** manages approved IP-list sources, immutable
+**Services → HAProxy → Managed ACL feeds** manages approved IP-list sources, immutable
 versions, review, deployment and rollback for HAProxy. It is deliberately separate
 from certificate providers and keeps source downloading behind a connector
 registry (`https-ip-list` initially). Additional formats/providers can supply the

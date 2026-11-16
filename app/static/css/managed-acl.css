@@ -1,0 +1,17 @@
+#managed-acl > .service-page-toolbar { margin-top: 0; }
+#managed-acl .rw-page-help { background-color: var(--rw-surface-muted); }
+#managed-acl .acl-actions-cell { width: 204px; }
+#managed-acl .acl-row-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+#managed-acl .acl-row-actions .rw-icon-button { flex: 0 0 30px; color: inherit; }
+#managed-acl .acl-row-actions .acl-delete { color: var(--rw-danger); }
+#managed-acl td p { margin: 6px 0 0; }
+#managed-acl .acl-fingerprint { display: block; margin-top: 6px; font-size: 11px; overflow-wrap: anywhere; }
+#managed-acl #acl-diff { max-height: 360px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+#managed-acl #acl-content textarea { min-height: 180px; }
+#acl-dialog .acl-target { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--rw-border); }
+#acl-dialog .acl-target span { min-width: 0; overflow-wrap: anywhere; }
+#acl-dialog .acl-target button { flex-shrink: 0; }
+#acl-dialog .acl-form-actions { justify-content: flex-end; margin-bottom: 0; }
+#acl-dialog .ui-checkboxradio-label { white-space: normal; }
+.ui-dialog.acl-feed-dialog { z-index: 10010 !important; }
+.acl-feed-overlay { z-index: 10009 !important; }

@@ -157,6 +157,10 @@ def test_service_map_and_acl_links_preserve_the_services_group(app):
     assert menu.count('href="/insights/service_map_page"')==1
     assert 'href="/insights/service_map_page"' in services
     assert 'href="/insights/acl_page"' in services
+    haproxy = services.split('data-nav-search="haproxy"', 1)[1].split('</ul>', 1)[0]
+    assert 'href="/insights/acl_page"' in haproxy
+    assert haproxy.index("Runtime API</a>") < haproxy.index('href="/insights/acl_page"')
+    assert menu.count('href="/insights/acl_page"') == 1
     corosync=render_navigation(app,role=1,services='7')
     assert 'href="/ha/ha_cluster"' in corosync
     assert 'Managed ACL feeds' not in corosync
