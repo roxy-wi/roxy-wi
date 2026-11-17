@@ -22,7 +22,7 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y podman openssh-server openssl fail2ban haproxy nginx libnginx-mod-http-modsecurity rsyslog logrotate gnupg pacemaker-cli-utils
+          sudo apt-get install -y podman openssh-server openssl fail2ban haproxy nginx libnginx-mod-http-modsecurity rsyslog logrotate gnupg pacemaker-cli-utils resource-agents-base resource-agents-extra
           # Ubuntu's rsyslog AppArmor profile permits /var/log/**, not /tmp/**.
           sudo install -d -m 0700 -o "$(id -u)" -g "$(id -g)" /var/log/roxywi-tests
           python -m pip install -r requirements.txt -r requirements-dev.txt
@@ -36,6 +36,11 @@ jobs:
         run: |
           test -x /usr/lib/systemd/system-generators/podman-system-generator
           python -m pytest tests/integration/test_podman_quadlet_linux.py -q --no-cov
+      - name: Verify guided Pacemaker candidates with native tools
+        run: |
+          command -v crm_verify
+          command -v crm_simulate
+          python -m pytest tests/unit/pacemaker/test_guided_editor.py -q --no-cov
       - name: Verify product workflows in Chromium
         env:
           ROXYWI_TEST_BROWSER: '1'
