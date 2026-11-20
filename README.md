@@ -110,6 +110,7 @@ or read the full [quick-start guide](https://roxy-wi.org/description/operations#
 | Compose for your infrastructure | [Deployment guide](https://roxy-wi.org/description/operations#compose), including MariaDB, HTTPS and persistent storage |
 | Podman on a Linux host | [Native Quadlet controller deployment](docs/podman-controller.md), with system or rootless user units, GPG-encrypted Podman secrets, SQLite and local HTTPS; awaiting Debian/EL VM qualification |
 | Kubernetes | [Published Helm chart](https://github.com/roxy-wi/roxy-wi/pkgs/container/roxy-wi-charts), [deployment guide](https://roxy-wi.org/description/operations#kubernetes) and [chart source](helm/roxy-wi) |
+| One-click deployment | [RepoCloud template](https://repocloud.io/details/Roxy-WI/) |
 
 ### Install the Helm chart
 
