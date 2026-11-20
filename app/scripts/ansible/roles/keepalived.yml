@@ -1,6 +1,66 @@
-- hosts: all
+- name: Observe actual VIP owners before changing any member
+  hosts: all
   become: yes
   become_method: sudo
   gather_facts: yes
+  any_errors_fatal: true
+  tasks:
+    - name: Remember all members for checks across serial batches
+      set_fact:
+        keepalived_members: "{{ ansible_play_hosts_all }}"
+        keepalived_vips: "{{ routers.values() | map(attribute='vip') | map('ansible.utils.ipaddr', 'address') | list }}"
+
+    - name: Read live addresses on every member
+      command:
+        argv: [ip, -j, address, show]
+      register: keepalived_initial_addresses
+      changed_when: false
+
+    - name: Remember which VIPs currently have an owner
+      set_fact:
+        keepalived_owned_vips: >-
+          {{ (keepalived_initial_addresses.stdout | from_json | map(attribute='addr_info')
+              | flatten | map(attribute='local') | map('ansible.utils.ipaddr', 'address') | list)
+             | intersect(keepalived_vips) }}
+
+    - name: Refuse competing owners before starting a rollout
+      assert:
+        that:
+          - keepalived_members | length >= 2
+          - keepalived_vips | length > 0
+          - false not in keepalived_vips
+          - >-
+            keepalived_members | map('extract', hostvars)
+            | selectattr('keepalived_owned_vips', 'contains', item) | list | length <= 1
+        fail_msg: Every existing VIP must have at most one owner before reconfiguration
+      loop: "{{ keepalived_vips }}"
+
+    - name: Preserve availability of VIPs that were already serving traffic
+      set_fact:
+        keepalived_required_vips: >-
+          {{ keepalived_members | map('extract', hostvars, 'keepalived_owned_vips')
+             | flatten | unique | list }}
+
+    - name: Put actual standby members before current VIP owners
+      group_by:
+        key: "{{ 'roxywi_keepalived_owners' if keepalived_owned_vips else 'roxywi_keepalived_standbys' }}"
+
+- name: Configure standby members one at a time
+  hosts: roxywi_keepalived_standbys
+  become: yes
+  become_method: sudo
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
+  roles:
+    - { role: keepalived }
+
+- name: Configure original VIP owners one at a time
+  hosts: roxywi_keepalived_owners
+  become: yes
+  become_method: sudo
+  gather_facts: false
+  serial: 1
+  any_errors_fatal: true
   roles:
     - { role: keepalived }

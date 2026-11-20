@@ -1,0 +1,37 @@
+---
+- name: Read live VIP ownership across the entire cluster
+  command:
+    argv: [ip, -j, address, show]
+  delegate_to: "{{ item }}"
+  loop: "{{ keepalived_members }}"
+  register: keepalived_observed_addresses
+  changed_when: false
+
+- name: Build a fresh owner map
+  set_fact:
+    keepalived_live_owners: {}
+
+- name: Record each node's current VIPs
+  set_fact:
+    keepalived_live_owners: >-
+      {{ keepalived_live_owners | combine({item.item:
+         (item.stdout | from_json | map(attribute='addr_info') | flatten
+          | map(attribute='local') | map('ansible.utils.ipaddr', 'address') | list)
+         | intersect(keepalived_vips)}) }}
+  loop: "{{ keepalived_observed_addresses.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Require a single owner for every previously available VIP
+  assert:
+    that:
+      - keepalived_live_owners.values() | select('contains', item) | list | length == 1
+    fail_msg: VIP ownership is missing or duplicated; stop the rollout
+  loop: "{{ keepalived_required_vips }}"
+
+- name: Reject duplicates for newly introduced VIPs too
+  assert:
+    that:
+      - keepalived_live_owners.values() | select('contains', item) | list | length <= 1
+    fail_msg: A VIP has competing owners; stop the rollout
+  loop: "{{ keepalived_vips }}"

@@ -1,0 +1,48 @@
+---
+- name: Restore only files changed by this attempt
+  when: keepalived_restore.result.get('changed', false)
+  block:
+    - name: Check for edits made after our deployment
+      stat:
+        path: "{{ keepalived_restore.path }}"
+        follow: false
+      register: keepalived_rollback_current
+
+    - name: Preserve concurrent changes and retain the backup for recovery
+      assert:
+        that:
+          - keepalived_rollback_current.stat.exists
+          - keepalived_rollback_current.stat.isreg
+          - not keepalived_rollback_current.stat.islnk
+          - keepalived_rollback_current.stat.checksum == keepalived_restore.result.checksum
+        fail_msg: Keepalived file changed after deployment; automatic rollback refused. Recover from the retained backup after inspecting concurrent edits.
+
+    - name: Restore the original configuration or helper
+      copy:
+        src: "{{ keepalived_restore.result.backup_file }}"
+        dest: "{{ keepalived_restore.path }}"
+        remote_src: true
+        owner: "{{ keepalived_restore.original.uid }}"
+        group: "{{ keepalived_restore.original.gid }}"
+        mode: "{{ keepalived_restore.original.mode }}"
+      when:
+        - keepalived_restore.original.exists
+        - keepalived_restore.result.backup_file is defined
+      no_log: true
+      diff: false
+
+    - name: Restore original metadata when only permissions changed
+      file:
+        path: "{{ keepalived_restore.path }}"
+        owner: "{{ keepalived_restore.original.uid }}"
+        group: "{{ keepalived_restore.original.gid }}"
+        mode: "{{ keepalived_restore.original.mode }}"
+      when:
+        - keepalived_restore.original.exists
+        - keepalived_restore.result.backup_file is not defined
+
+    - name: Remove a newly created file when there was no previous file
+      file:
+        path: "{{ keepalived_restore.path }}"
+        state: absent
+      when: not keepalived_restore.original.exists

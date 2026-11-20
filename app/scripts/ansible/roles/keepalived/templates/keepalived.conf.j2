@@ -6,21 +6,37 @@ global_defs {
 
 
 {%- if NGINX %}
+{% set check = (KEEPALIVED_PROXY_CHECKS | default({})).get('nginx', {}) %}
 #NGINX health-check for keepalive
 vrrp_script chk_nginx {
+    {% if check.get('engine', 'native') != 'native' %}
+    script "/etc/keepalived/roxy-wi-check-container {{check.engine}} {{check.container}}"
+    user root
+    {% else %}
     script "systemctl is-active --quiet nginx"
+    {% endif %}
     interval 2
-    weight 3
+    # A failed proxy must release the VIP even with nopreempt.
+    weight 0
+    init_fail
 }
 {% endif %}
 
 
 {%- if HAPROXY %}
+{% set check = (KEEPALIVED_PROXY_CHECKS | default({})).get('haproxy', {}) %}
 #HAProxy health-check for keepalive
 vrrp_script chk_haproxy {
+    {% if check.get('engine', 'native') != 'native' %}
+    script "/etc/keepalived/roxy-wi-check-container {{check.engine}} {{check.container}}"
+    user root
+    {% else %}
     script "systemctl is-active --quiet haproxy"
+    {% endif %}
     interval 2
-    weight 3
+    # A failed proxy must release the VIP even with nopreempt.
+    weight 0
+    init_fail
 }
 {% endif %}
 
@@ -30,12 +46,16 @@ vrrp_instance VI_{{router}} {
     {% for k, slave in vip.items() %}
     {% if k == ansible_host and slave is mapping %}
 
-    state {% if slave.master %}MASTER{% else %}BACKUP{%endif%}
+    state {% if slave.master and vip.return_master %}MASTER{% else %}BACKUP{%endif%}
 
     interface {{slave.eth}}
     priority {% if vip.return_master and slave.master %}152{% elif slave.master and not vip.return_master %}102{% else %}101{%endif%}
     {% endif %}
     {% endfor %}
+
+    {% if not vip.return_master %}
+    nopreempt
+    {% endif %}
 
     virtual_router_id {{router}}
 

@@ -271,6 +271,8 @@ def generate_geoip_inv(server_ip: str, installed_service: str, geoip_update: int
 
 
 def generate_kp_inv(json_data: json, installed_service) -> object:
+	from app.modules.connectors import containers
+
 	inv = {"server": {"hosts": {}}}
 	server_ips = []
 	cluster_id = int(json_data['cluster_id'])
@@ -279,6 +281,18 @@ def generate_kp_inv(json_data: json, installed_service) -> object:
 	apache = json_data['services']['apache']['enabled']
 	keepalived_path_logs = sql.get_setting('keepalived_path_logs')
 	syn_flood_protect = str(json_data['syn_flood'])
+	proxy_checks = {}
+	for service in ('haproxy', 'nginx'):
+		options = json_data['services'][service]
+		if not options['enabled']:
+			continue
+		engine = installation_engine(options)
+		proxy_checks[service] = {'engine': engine}
+		if engine != 'native':
+			# Match the container name used by the queued proxy installation.
+			proxy_checks[service]['container'] = containers.name(
+				sql.get_setting(f'{service}_container_name')
+			)
 	routers = {}
 	vips = ha_sql.select_cluster_vips(cluster_id)
 
@@ -301,6 +315,7 @@ def generate_kp_inv(json_data: json, installed_service) -> object:
 			"HAPROXY": haproxy,
 			"NGINX": nginx,
 			"APACHE": apache,
+			"KEEPALIVED_PROXY_CHECKS": proxy_checks,
 			"RESTART": 1,
 			"SYN_FLOOD": syn_flood_protect,
 			"keepalived_path_logs": keepalived_path_logs,

@@ -139,7 +139,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await jQuery.ajax({url: card.dataset.haStatusUrl, global: false});
             status = card.dataset.haProvider === 'pacemaker' ? response.health : response.status;
             state = response.data;
-            title = 'Last checked: ' + new Date().toLocaleString();
+            title = (response.message ? response.message + '\n' : '') +
+                'Last checked: ' + new Date().toLocaleString();
         } catch (error) { status = 'unknown'; title = errorText(error, 'Unable to check cluster status'); }
         health.set(key(card), {status, title, state});
         healthRequests.delete(key(card));

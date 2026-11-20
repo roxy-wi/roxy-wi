@@ -145,14 +145,13 @@ def get_masters(service):
 @check_services
 @get_user_params()
 def check_cluster_status(service: str, cluster_id: int):
-    try:
-        router_id = ha_sql.get_router_id(cluster_id, default_router=1)
-        slaves = ha_sql.select_cluster_slaves(cluster_id, router_id)
-    except Exception as e:
-        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot get slaves')
-    from app.modules.service.keepalived import collect, summary
-    statuses = [summary(collect(server_sql.get_server(slave[0]))) for slave in slaves]
-    healthy = sum(state in ('MASTER', 'BACKUP') for state in statuses)
-    status = 'ok' if statuses and healthy == len(statuses) else 'warning' if healthy else 'error'
+    from app.modules.service.keepalived import cluster_status
+    from app.modules.service.ha_access import allowed_providers
 
-    return jsonify({'status': status})
+    if 'keepalived' not in allowed_providers(g.user_params['user_services']):
+        return jsonify(error='Keepalived access is required'), 403
+    try:
+        result = cluster_status(cluster_id, g.user_params['group_id'])
+    except Exception as e:
+        return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot check cluster')
+    return jsonify(result)

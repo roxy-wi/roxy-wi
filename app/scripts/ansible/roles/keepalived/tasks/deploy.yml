@@ -1,0 +1,148 @@
+---
+- name: Verify ownership immediately before touching this member
+  include_tasks: observe.yml
+
+- name: Refuse to restart a standby that unexpectedly became the active owner
+  assert:
+    that:
+      - keepalived_owned_vips | length > 0 or keepalived_live_owners[inventory_hostname] | length == 0
+    fail_msg: VIP ownership changed before this standby was updated; retry with a fresh observation
+
+- name: Read current service states before taking a rollback snapshot
+  service_facts:
+
+- name: Remember the original Keepalived service state
+  set_fact:
+    keepalived_previous_service: "{{ ansible_facts.services.get('keepalived.service', {}) }}"
+
+- name: Inspect original managed files without following symbolic links
+  stat:
+    path: "{{ item }}"
+    follow: false
+  loop:
+    - /etc/keepalived/keepalived.conf
+    - /etc/keepalived/roxy-wi-check-container
+  register: keepalived_original_files
+
+- name: Refuse unmanaged file indirection
+  assert:
+    that:
+      - not item.stat.exists or (item.stat.isreg and not item.stat.islnk)
+    fail_msg: Managed Keepalived paths must be regular files
+  loop: "{{ keepalived_original_files.results }}"
+  loop_control:
+    label: "{{ item.item }}"
+
+- name: Apply the candidate and verify the running member
+  block:
+    - name: Install the container health check before enabling mandatory tracking
+      copy:
+        src: check-container.sh
+        dest: /etc/keepalived/roxy-wi-check-container
+        owner: root
+        group: root
+        mode: '0755'
+        backup: true
+      register: keepalived_helper_result
+      when: >-
+        (KEEPALIVED_PROXY_CHECKS | default({})).values()
+        | selectattr('engine', 'ne', 'native') | list | length > 0
+
+    - name: Validate the candidate before atomically replacing the live file
+      template:
+        src: keepalived.conf.j2
+        dest: /etc/keepalived/keepalived.conf
+        owner: root
+        group: root
+        mode: "{{ keepalived_original_files.results[0].stat.mode | default('0600') }}"
+        backup: true
+        validate: /usr/sbin/keepalived --config-test -f %s
+      register: keepalived_config_result
+      no_log: true
+      diff: false
+
+    - name: Start or restart Keepalived only when needed
+      service:
+        name: keepalived
+        daemon_reload: yes
+        state: "{{ 'restarted' if keepalived_config_result.changed or keepalived_helper_result.get('changed', false) else 'started' }}"
+        enabled: yes
+      register: keepalived_service_result
+
+    - name: Require a running Keepalived service
+      command:
+        argv: [systemctl, is-active, --quiet, keepalived]
+      changed_when: false
+      register: keepalived_running
+      until: keepalived_running.rc == 0
+      retries: 5
+      delay: 1
+
+    - name: Require a working proxy before continuing a live rollout
+      command:
+        argv: "{{ ['/etc/keepalived/roxy-wi-check-container', item.value.engine, item.value.container] if item.value.engine != 'native' else ['systemctl', 'is-active', '--quiet', item.key] }}"
+      loop: "{{ KEEPALIVED_PROXY_CHECKS | default({}) | dict2items }}"
+      when: keepalived_required_vips | length > 0
+      changed_when: false
+      register: keepalived_proxy_ready
+      until: keepalived_proxy_ready.rc == 0
+      retries: 5
+      delay: 1
+
+    - name: Allow VRRP elections and initial health checks to settle
+      pause:
+        seconds: 8
+      when: keepalived_config_result.changed or keepalived_helper_result.get('changed', false) or keepalived_service_result.changed
+
+    - name: Verify all previously available VIPs before the next member
+      include_tasks: observe.yml
+
+  rescue:
+    - name: Restore managed files without overwriting concurrent edits
+      include_tasks: rollback_file.yml
+      loop:
+        - result: "{{ keepalived_config_result | default({}) }}"
+          original: "{{ keepalived_original_files.results[0].stat }}"
+          path: /etc/keepalived/keepalived.conf
+        - result: "{{ keepalived_helper_result | default({}) }}"
+          original: "{{ keepalived_original_files.results[1].stat }}"
+          path: /etc/keepalived/roxy-wi-check-container
+      loop_control:
+        loop_var: keepalived_restore
+
+    - name: Restore the previous running and enabled state
+      service:
+        name: keepalived
+        state: "{{ 'restarted' if keepalived_previous_service.get('state') == 'running' else 'stopped' }}"
+        enabled: "{{ keepalived_previous_service.get('status') == 'enabled' }}"
+      when: >-
+        (keepalived_config_result | default({})).get('changed', false)
+        or (keepalived_helper_result | default({})).get('changed', false)
+        or (keepalived_service_result | default({})).get('changed', false)
+        or (keepalived_service_result | default({})).get('failed', false)
+
+    - name: Verify that the previously running service recovered
+      command:
+        argv: [systemctl, is-active, --quiet, keepalived]
+      changed_when: false
+      register: keepalived_recovered
+      until: keepalived_recovered.rc == 0
+      retries: 5
+      delay: 1
+      when: keepalived_previous_service.get('state') == 'running'
+
+    - name: Allow the restored configuration to settle
+      pause:
+        seconds: 8
+      when: >-
+        (keepalived_config_result | default({})).get('changed', false)
+        or (keepalived_helper_result | default({})).get('changed', false)
+        or (keepalived_service_result | default({})).get('changed', false)
+        or (keepalived_service_result | default({})).get('failed', false)
+
+    - name: Verify VIP availability after rollback
+      include_tasks: observe.yml
+
+    - name: Report the failed deployment after verifying rollback
+      fail:
+        msg: Keepalived configuration or health verification failed; previous files were restored and the rollout was stopped. Inspect the failing task and the retained backup files.

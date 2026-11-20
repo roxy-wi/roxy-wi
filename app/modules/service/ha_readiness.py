@@ -366,7 +366,8 @@ def collect(provider, cluster, nodes, current_profile, heartbeat=lambda:None):
         else: checks.append(check('fencing','unknown','No readable CIB; fencing cannot be assessed.'))
     else:
         vips=[v.vip.split('/')[0] for v in HaClusterVip.select().where(HaClusterVip.cluster_id==cluster.id)]
-        ownership={vip:[str(v['id']) for v in readable if vip in v['addresses']] for vip in vips}
+        from app.modules.service.keepalived import vip_owners
+        ownership={vip:list(map(str,ids)) for vip,ids in vip_owners(vips,readable).items()}
         checks.append(check('vip-ownership','observed' if ownership and len(readable)==len(nodes) and all(len(v)==1 for v in ownership.values()) else 'fail',
             'Each registered VIP must be present on exactly one reachable member.',dict(owners=ownership)))
         checks.append(check('service','observed' if len(readable)==len(nodes) and all(v['active'] for v in readable) else 'fail',
