@@ -121,6 +121,7 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 				$('#ha-cluster-desc').val(clusterSettings.description.replaceAll("'", ""));
 				$('#ha-cluster-master-interface').val(clusterSettings.eth);
 				$('#vrrp-ip').val(clusterSettings.vip);
+				$('#ha-cluster-vrid').val(clusterSettings.vrid ?? '');
 				if (clusterSettings.services.haproxy.enabled) {
 					$('#hap').prop('checked', true);
 					if (clusterSettings.services.haproxy.docker) {
@@ -187,6 +188,11 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 	let regx = /^[a-zA-Z0-9_-]+$/;
 	let dialog_div = $("#create-ha-cluster-step-1").dialog({
 		autoOpen: false,
+		classes: {'ui-dialog': 'rw-dialog-responsive ha-cluster-dialog'},
+		open: function () {
+			$('.ui-widget-overlay').last().addClass('ha-cluster-overlay');
+			$(this).find('select').selectmenu('option', 'appendTo', $(this).dialog('widget'));
+		},
 		resizable: false,
 		height: "auto",
 		width: 630,
@@ -224,6 +230,7 @@ function createHaClusterStep1(edited=false, cluster_id=0, clean=true) {
 					return false;
 				}
 				let jsonData = createJsonCluster('#enabled-check div div span');
+				if (readHaVrid('#ha-cluster-vrid') === undefined) return false;
 				if (!validateSlaves(jsonData)) {
 					return false;
 				}
@@ -249,6 +256,11 @@ function createHaClusterStep2(edited=false, cluster_id=0, jsonData='') {
 	}
 	let dialog_div = $("#create-ha-cluster-step-2").dialog({
 		autoOpen: false,
+		classes: {'ui-dialog': 'rw-dialog-responsive ha-cluster-dialog'},
+		open: function () {
+			$('.ui-widget-overlay').last().addClass('ha-cluster-overlay');
+			$(this).find('select').selectmenu('option', 'appendTo', $(this).dialog('widget'));
+		},
 		resizable: false,
 		height: "auto",
 		width: 630,
@@ -265,14 +277,12 @@ function createHaClusterStep2(edited=false, cluster_id=0, jsonData='') {
 		buttons: [{
 			text: save_word,
 			click: function () {
-				$(this).dialog("close");
-				saveCluster(jsonData, cluster_id, edited);
+				if (saveCluster(jsonData, cluster_id, edited)) $(this).dialog("close");
 			}
 		}, {
 			text: apply_word,
 			click: function () {
-				$(this).dialog("close");
-				saveCluster(jsonData, cluster_id, edited, 1);
+				if (saveCluster(jsonData, cluster_id, edited, 1)) $(this).dialog("close");
 			}
 		}, {
 			text: back_word,
@@ -290,7 +300,22 @@ function createHaClusterStep2(edited=false, cluster_id=0, jsonData='') {
 	});
 	dialog_div.dialog('open');
 }
+function readHaVrid(selector) {
+	const input = document.querySelector(selector);
+	const raw = input.value.trim();
+	const value = raw === '' ? null : Number(raw);
+	if (!input.checkValidity() || (value !== null && (!Number.isInteger(value) || value < 1 || value > 255))) {
+		toastr.error(input.dataset.vridError);
+		input.focus();
+		return undefined;
+	}
+	return value;
+}
 function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
+	const vrid = readHaVrid('#ha-cluster-vrid');
+	if (vrid === undefined) return false;
+	jsonData.vrid = vrid;
+	let saved = false;
 	let virt_server = 0;
 	let return_master = 0;
 	let syn_flood = 0;
@@ -351,9 +376,11 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 				toastr.error(data.error);
 			} else {
 				if (!edited) {
+					saved = true;
 					cluster_id = data.id;
 					RoxywiHAClusters.refresh();
 				} else {
+					saved = true;
 					RoxywiHAClusters.refresh();
 					$("#cluster-" + cluster_id).addClass("update", 1000);
 					setTimeout(function () {
@@ -363,9 +390,10 @@ function saveCluster(jsonData, cluster_id=0, edited=0, reconfigure=0) {
 			}
 		}
 	});
-	if (reconfigure) {
+	if (reconfigure && saved) {
 		Reconfigure(jsonData, cluster_id);
 	}
+	return saved;
 }
 function Reconfigure(jsonData, cluster_id) {
 	let servers = JSON.parse(JSON.stringify(jsonData));
@@ -427,6 +455,7 @@ function installServiceCluster(jsonData, service, cluster_id) {
 	});
 }
 function add_vip_ha_cluster(cluster_id, cluster_name, vip_id='', vip='', edited=0) {
+	$('#vrrp-ip-add-vrid').val('');
 	let save_word = translate_div.attr('data-save');
 	let tabel_title = $("#add-vip-table").attr('title');
 	let buttons = [];
@@ -437,6 +466,7 @@ function add_vip_ha_cluster(cluster_id, cluster_name, vip_id='', vip='', edited=
 			async: false,
 			success: function (data) {
 				let clusterSettings = JSON.parse(JSON.stringify(data));
+				$('#vrrp-ip-add-vrid').val(clusterSettings.vrid ?? '');
 				if (clusterSettings.return_master) {
 					$('#vrrp-ip-add-return_master').prop('checked', true);
 				} else {
@@ -468,8 +498,8 @@ function add_vip_ha_cluster(cluster_id, cluster_name, vip_id='', vip='', edited=
 				if (!validateSlaves(jsonData)) {
 					return false;
 				}
-				saveVip(jsonData, cluster_id, $(this), edited, vip_id);
 				toastr.clear();
+				saveVip(jsonData, cluster_id, $(this), edited, vip_id);
 			}
 		}, {
 			text: delete_word,
@@ -502,8 +532,8 @@ function add_vip_ha_cluster(cluster_id, cluster_name, vip_id='', vip='', edited=
 				if (!validateSlaves(jsonData)) {
 					return false;
 				}
-				saveVip(jsonData, cluster_id, $(this), edited, vip_id);
 				toastr.clear();
+				saveVip(jsonData, cluster_id, $(this), edited, vip_id);
 			}
 		}, {
 			text: cancel_word,
@@ -531,6 +561,11 @@ function add_vip_ha_cluster(cluster_id, cluster_name, vip_id='', vip='', edited=
 	$.getScript(ha);
 	let dialog_div = $("#add-vip").dialog({
 		autoOpen: false,
+		classes: {'ui-dialog': 'rw-dialog-responsive ha-cluster-dialog'},
+		open: function () {
+			$('.ui-widget-overlay').last().addClass('ha-cluster-overlay');
+			$(this).find('select').selectmenu('option', 'appendTo', $(this).dialog('widget'));
+		},
 		resizable: false,
 		height: "auto",
 		width: 630,
@@ -552,6 +587,11 @@ function add_vip_ha_cluster(cluster_id, cluster_name, vip_id='', vip='', edited=
 	dialog_div.dialog('open');
 }
 function saveVip(jsonData, cluster_id, dialog_id, edited, vip_id='', deleted=false) {
+	if (!deleted) {
+		const vrid = readHaVrid('#vrrp-ip-add-vrid');
+		if (vrid === undefined) return false;
+		jsonData.vrid = vrid;
+	}
 	let req_type = 'POST'
 	let return_master = 0
 	let virt_server = 0
@@ -737,6 +777,7 @@ function clearClusterDialog(edited=0) {
 	$('#ha-cluster-desc').val('');
 	$('#ha-cluster-master-interface').val('');
 	$('#vrrp-ip').val('');
+	$('#ha-cluster-vrid, #vrrp-ip-add-vrid').val('');
 	$('#vrrp-ip').prop("readonly", false);
 	$('#vrrp-ip-add').val('');
 	$('#vrrp-ip-edit').val('');

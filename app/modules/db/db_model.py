@@ -1089,9 +1089,14 @@ class HaClusterRouter(BaseModel):
     id = AutoField()
     cluster_id = ForeignKeyField(HaCluster, on_delete='Cascade')
     default = IntegerField(constraints=[SQL('DEFAULT "0"')])
+    # Nullable for upgrades; provisioning refuses an unassigned VRID.
+    vrid = IntegerField(
+        null=True, constraints=[SQL('CHECK (vrid BETWEEN 1 AND 255)')],
+    )
 
     class Meta:
         table_name = 'ha_cluster_routers'
+        indexes = ((('cluster_id', 'vrid'), True),)
 
 
 class HaClusterSlave(BaseModel):

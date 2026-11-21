@@ -4,7 +4,7 @@
 {% block content %}
 {% from 'include/input_macros.html' import input, checkbox, copy_to_clipboard, select %}
 <link rel="stylesheet" href="{{ url_for('static',filename='css/pacemaker.css',v='10.0-3') }}">
-<script src="{{ url_for('static', filename='js/ha.js', v='10.0-1') }}"></script>
+<script src="{{ url_for('static', filename='js/ha.js', v='10.1-2') }}"></script>
 <script src="/static/js/overview.js"></script>
 <link href="{{ url_for('static', filename='css/servers.css') }}" rel="stylesheet"/>
 <link href="{{ url_for('static', filename='css/ha.css') }}" rel="stylesheet">
@@ -77,6 +77,15 @@
             </td>
             <td>{{ input('vrrp-ip', size='14') }}</td>
         </tr>
+        <tr>
+            <td class="padding20"><label for="ha-cluster-vrid">VRID</label></td>
+            <td>
+                <input id="ha-cluster-vrid" type="number" min="1" max="255" step="1" class="form-control"
+                       placeholder="{{ lang.ha_page.vrid_auto|default('Automatic') }}" aria-describedby="ha-cluster-vrid-help"
+                       data-vrid-error="{{ lang.ha_page.vrid_error|default('VRID must be an integer between 1 and 255') }}">
+            </td>
+        </tr>
+        <tr><td colspan="2"><p id="ha-cluster-vrid-help" class="rw-form-help">{{ lang.ha_page.vrid_help|default('Optional, 1–255. Leave empty to assign automatically on creation or keep the current value on edit. Clusters sharing a network need distinct VRIDs. Changing a live VRID requires coordinated configuration on all members.') }}</p></td></tr>
         <tr>
             <td class="padding20">
                 {{lang.words.all|title()}} {{lang.words.servers}}
@@ -161,6 +170,15 @@
             </td>
             <td>{{ input('vrrp-ip-add', size='14') }}</td>
         </tr>
+        <tr>
+            <td class="padding20"><label for="vrrp-ip-add-vrid">VRID</label></td>
+            <td>
+                <input id="vrrp-ip-add-vrid" type="number" min="1" max="255" step="1" class="form-control"
+                       placeholder="{{ lang.ha_page.vrid_auto|default('Automatic') }}" aria-describedby="vrrp-ip-add-vrid-help"
+                       data-vrid-error="{{ lang.ha_page.vrid_error|default('VRID must be an integer between 1 and 255') }}">
+            </td>
+        </tr>
+        <tr><td colspan="2"><p id="vrrp-ip-add-vrid-help" class="rw-form-help">{{ lang.ha_page.vrid_help|default('Optional, 1–255. Leave empty to assign automatically on creation or keep the current value on edit. Clusters sharing a network need distinct VRIDs. Changing a live VRID requires coordinated configuration on all members.') }}</p></td></tr>
         <tr>
             <td class="padding20">{{lang.words.servers|title()}}</td>
             <td id="vip_servers"></td>

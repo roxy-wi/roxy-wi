@@ -1,5 +1,6 @@
 from flask.views import MethodView
 from flask_pydantic import validate
+from flask_pydantic.exceptions import ValidationError
 from flask_jwt_extended import jwt_required
 from flask import render_template, request, jsonify, g
 from playhouse.shortcuts import model_to_dict
@@ -13,6 +14,7 @@ import app.modules.service.installation as service_mod
 from app.middleware import get_user_params, page_for_admin, check_group, check_services
 from app.modules.common.common_classes import SupportClass
 from app.modules.roxywi.class_models import BaseResponse, IdResponse, HAClusterRequest, HAClusterVIP, GroupQuery
+from app.modules.roxywi.exception import RoxywiConflictError, RoxywiValidationError
 
 
 class HAMutationView(MethodView):
@@ -20,7 +22,6 @@ class HAMutationView(MethodView):
         if request.method in ('GET', 'HEAD', 'OPTIONS'):
             return super().dispatch_request(*args, **kwargs)
         from app.modules.service.ha_mutation import mutation
-        from app.modules.roxywi.exception import RoxywiConflictError
         body = request.get_json(silent=True) or {}
         servers = (body.get('servers') or []) if isinstance(body, dict) else []
         server_ids = []
@@ -34,6 +35,11 @@ class HAMutationView(MethodView):
                 return super().dispatch_request(*args, **kwargs)
         except RoxywiConflictError as error:
             return jsonify(error=error.public_message), 409
+        except RoxywiValidationError as error:
+            return jsonify(error=error.public_message), 400
+        except ValidationError:
+            # Preserve the application's field-level HTTP 400 validation response.
+            raise
         except Exception as error:
             return roxywi_common.handler_exceptions_for_json_data(error, 'Cannot mutate cluster')
 
@@ -86,6 +92,11 @@ class HAView(HAMutationView):
                 pos:
                   type: integer
                   description: Position
+                vrid:
+                  type: integer
+                  minimum: 1
+                  maximum: 255
+                  description: Assigned VRRP identifier for the default VIP, independent of the database router ID
                 return_master:
                   type: integer
                   description: Return master flag
@@ -174,6 +185,7 @@ class HAView(HAMutationView):
             for cluster in clusters:
                 settings = model_to_dict(cluster)
             settings.setdefault('vip', vip.vip)
+            settings['vrid'] = vip.router_id.vrid
             settings.setdefault('virt_server', is_virt)
             settings.setdefault('use_src', use_src)
             settings.setdefault('return_master', vip.return_master)
@@ -258,6 +270,11 @@ class HAView(HAMutationView):
                   type: integer
                 return_to_master:
                   type: string
+                vrid:
+                  type: integer
+                  minimum: 1
+                  maximum: 255
+                  description: Optional VRID for the default VIP. Omit or use null for automatic allocation within the cluster.
                 syn_flood:
                   type: integer
                 use_src:
@@ -283,6 +300,8 @@ class HAView(HAMutationView):
         """
         try:
             cluster_id = ha_cluster.create_cluster(body, self.group_id)
+        except (RoxywiConflictError, RoxywiValidationError):
+            raise
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create cluster')
 
@@ -346,6 +365,11 @@ class HAView(HAMutationView):
                   type: integer
                 return_to_master:
                   type: string
+                vrid:
+                  type: integer
+                  minimum: 1
+                  maximum: 255
+                  description: Optional VRID for the default VIP. Omit or use null to retain the current value.
                 syn_flood:
                   type: integer
                 use_src:
@@ -371,6 +395,8 @@ class HAView(HAMutationView):
         """
         try:
             ha_cluster.update_cluster(body, cluster_id, self.group_id)
+        except RoxywiConflictError:
+            raise
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update cluster')
 
@@ -482,6 +508,11 @@ class HAVIPView(HAMutationView):
                 id:
                   type: integer
                   description: ID of the HAVIP
+                vrid:
+                  type: integer
+                  minimum: 1
+                  maximum: 255
+                  description: Assigned VRRP identifier, independent of the database router ID
                 return_master:
                   type: integer
                   description: Return master flag
@@ -516,6 +547,7 @@ class HAVIPView(HAMutationView):
             vip = ha_sql.select_cluster_vip_by_vip_id(cluster_id, vip_id)
             slaves = ha_sql.select_cluster_slaves(cluster_id, vip.router_id)
             settings = model_to_dict(vip, recurse=False)
+            settings['vrid'] = vip.router_id.vrid
             is_virt = ha_sql.check_ha_virt(vip.id)
             settings.setdefault('virt_server', is_virt)
             settings['servers'] = []
@@ -570,6 +602,11 @@ class HAVIPView(HAMutationView):
                   type: string
                 virt_server:
                   type: integer
+                vrid:
+                  type: integer
+                  minimum: 1
+                  maximum: 255
+                  description: Optional VRRP ID; omit or null for automatic selection on creation or to keep the value on edit
                 return_master:
                   type: integer
                 use_src:
@@ -587,6 +624,8 @@ class HAVIPView(HAMutationView):
         try:
             vip_id = ha_cluster.insert_vip(cluster_id, body, self.group_id)
             return IdResponse(id=vip_id).model_dump(mode='json'), 201
+        except RoxywiConflictError:
+            raise
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot create VIP')
 
@@ -636,6 +675,11 @@ class HAVIPView(HAMutationView):
                   type: string
                 virt_server:
                   type: integer
+                vrid:
+                  type: integer
+                  minimum: 1
+                  maximum: 255
+                  description: Optional VRRP ID; omit or null for automatic selection on creation or to keep the value on edit
                 return_master:
                   type: string
                 use_src:
@@ -657,6 +701,8 @@ class HAVIPView(HAMutationView):
         try:
             ha_cluster.update_vip(cluster_id, vip.router_id, body, self.group_id)
             return BaseResponse().model_dump(mode='json'), 201
+        except RoxywiConflictError:
+            raise
         except Exception as e:
             return roxywi_common.handler_exceptions_for_json_data(e, 'Cannot update VIP')
 
@@ -745,6 +791,11 @@ class HAVIPsView(MethodView):
                         type: 'integer'
                   id:
                     type: 'integer'
+                  vrid:
+                    type: integer
+                    minimum: 1
+                    maximum: 255
+                    description: Assigned VRRP identifier, independent of the database router ID
                   return_master:
                     type: 'integer'
                   router_id:
@@ -757,7 +808,7 @@ class HAVIPsView(MethodView):
             description: Unexpected error
         """
         vips = ha_sql.select_cluster_vips(cluster_id)
-        vips = [model_to_dict(vip, recurse=False) for vip in vips]
+        vips = [dict(model_to_dict(vip, recurse=False), vrid=vip.router_id.vrid) for vip in vips]
         return jsonify(vips)
 
 

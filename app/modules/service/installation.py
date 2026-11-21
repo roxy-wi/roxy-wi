@@ -298,7 +298,11 @@ def generate_kp_inv(json_data: json, installed_service) -> object:
 
 	for vip in vips:
 		router_id = str(vip.router_id)
+		vrid = vip.router_id.vrid
+		if type(vrid) is not int or not 1 <= vrid <= 255:
+			raise ValueError('Keepalived router has no valid VRID; complete database migrations before provisioning')
 		routers[router_id] = {}
+		routers[router_id]['vrid'] = vrid
 		routers[router_id].setdefault('return_master', vip.return_master)
 		routers[router_id].setdefault('vip', vip.vip)
 		routers[router_id].setdefault('use_src', vip.use_src)

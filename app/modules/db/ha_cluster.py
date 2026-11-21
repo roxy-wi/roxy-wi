@@ -1,6 +1,8 @@
+from peewee import SqliteDatabase
+
 from app.modules.db.db_model import HaCluster, HaClusterVirt, HaClusterVip, HaClusterService, HaClusterSlave, Server, HaClusterRouter
 from app.modules.db.common import out_error
-from app.modules.roxywi.exception import RoxywiResourceNotFound
+from app.modules.roxywi.exception import RoxywiResourceNotFound, RoxywiConflictError, RoxywiValidationError
 
 
 def select_clusters(group_id: int):
@@ -195,25 +197,68 @@ def get_router(router_id: int) -> HaClusterRouter:
 		out_error(e)
 
 
-def create_ha_router(cluster_id: int, default: int = 0) -> int:
-	"""
-    Create HA Router
+def _validate_vrid(vrid):
+    if vrid is not None and (type(vrid) is not int or not 1 <= vrid <= 255):
+        raise RoxywiValidationError('VRID must be an integer between 1 and 255')
 
-    This method is used to create a HA (High Availability) router for a given cluster.
 
-    :param default:
-    :param cluster_id: The ID of the cluster for which the HA router needs to be created.
-    :return: The ID of the created HA router.
-    :rtype: int
+def _lock_vrid_pool(cluster_id):
+    """Lock the parent even when this cluster has no router rows yet."""
+    query = HaCluster.select(HaCluster.id).where(HaCluster.id == cluster_id)
+    if not isinstance(HaCluster._meta.database, SqliteDatabase):
+        query = query.for_update()
+    if query.get_or_none() is None:
+        raise RoxywiResourceNotFound('HA cluster not found')
 
-    :raises Exception: If an error occurs while creating the HA router.
 
+def create_ha_router(cluster_id: int, default: int = 0, vrid: int = None) -> int:
+    """Allocate a free wire VRID independently of the database primary key.
+
+    The service's topology lock serializes writers across controller workers.
+    Database locking and the unique index also prevent duplicate reservations.
+    Reservations belong to this cluster, including manually selected values.
     """
-	try:
-		last_id = HaClusterRouter.insert(cluster_id=cluster_id, default=default).on_conflict_ignore().execute()
-		return last_id
-	except Exception as e:
-		out_error(e)
+    database = HaClusterRouter._meta.database
+    transaction_args = ('IMMEDIATE',) if isinstance(database, SqliteDatabase) else ()
+    with database.atomic(*transaction_args):
+        _validate_vrid(vrid)
+        _lock_vrid_pool(cluster_id)
+        query = HaClusterRouter.select(HaClusterRouter.vrid).where(
+            HaClusterRouter.cluster_id == cluster_id).order_by(HaClusterRouter.vrid)
+        if not isinstance(database, SqliteDatabase):
+            query = query.for_update()
+        used = {row.vrid for row in query}
+        if vrid is not None and vrid in used:
+            raise RoxywiConflictError(f'VRID {vrid} is already used in this cluster')
+        if vrid is None:
+            vrid = next((value for value in range(1, 256) if value not in used), None)
+        if vrid is None:
+            raise RoxywiConflictError(
+                'No free Keepalived VRID: all 255 values are reserved in this cluster'
+            )
+        return HaClusterRouter.insert(cluster_id=cluster_id, default=default, vrid=vrid).execute()
+
+
+def update_router_vrid(cluster_id: int, router_id: int, vrid: int = None) -> None:
+    """Keep the current assignment unless an explicit unused VRID is requested."""
+    _validate_vrid(vrid)
+    database = HaClusterRouter._meta.database
+    transaction_args = ('IMMEDIATE',) if isinstance(database, SqliteDatabase) else ()
+    with database.atomic(*transaction_args):
+        _lock_vrid_pool(cluster_id)
+        router = HaClusterRouter.get_or_none(
+            (HaClusterRouter.cluster_id == cluster_id) & (HaClusterRouter.id == router_id))
+        if router is None:
+            raise RoxywiResourceNotFound('HA router not found in this cluster')
+        if vrid is None or vrid == router.vrid:
+            return
+        query = HaClusterRouter.select().where(
+            (HaClusterRouter.cluster_id == cluster_id) & (HaClusterRouter.vrid == vrid))
+        if not isinstance(database, SqliteDatabase):
+            query = query.for_update()
+        if query.exists():
+            raise RoxywiConflictError(f'VRID {vrid} is already used in this cluster')
+        HaClusterRouter.update(vrid=vrid).where(HaClusterRouter.id == router.id).execute()
 
 
 def delete_ha_router(router_id: int) -> int:

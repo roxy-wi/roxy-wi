@@ -57,7 +57,7 @@ vrrp_instance VI_{{router}} {
     nopreempt
     {% endif %}
 
-    virtual_router_id {{router}}
+    virtual_router_id {{vip.vrid}}
 
     #check if we are still running
     track_script {

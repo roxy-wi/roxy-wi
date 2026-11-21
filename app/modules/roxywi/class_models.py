@@ -197,6 +197,7 @@ class HAClusterService(BaseModel):
 
 
 class HAClusterVIP(BaseModel):
+    vrid: Optional[Annotated[int, Field(strict=True, ge=1, le=255)]] = None
     use_src: Optional[bool] = 1
     vip: IPvAnyAddress
     return_master: Optional[bool] = 1
@@ -205,6 +206,7 @@ class HAClusterVIP(BaseModel):
 
 
 class HAClusterRequest(BaseModel):
+    vrid: Optional[Annotated[int, Field(strict=True, ge=1, le=255)]] = None
     name: EscapedString
     description: Optional[EscapedString] = None
     return_master: Optional[bool] = 1

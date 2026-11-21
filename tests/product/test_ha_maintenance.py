@@ -218,13 +218,21 @@ def keepalived_maintenance(product,maintenance_cluster,monkeypatch):
     for ident in (11,33):HaClusterSlave.create(cluster_id=cluster,server_id=ident,router_id=router)
     HaClusterVip.create(cluster_id=cluster,router_id=router,vip='192.0.2.100/24')
     state=SimpleNamespace(cluster=cluster,actions=[],no_takeover=False,startup='enabled',startup_actions=[])
-    state.nodes={11:dict(id=11,name=product.server.hostname,digest='a'*64,active=True,addresses=['192.0.2.100'],includes=False),
-                 33:dict(id=33,name='Product standby',digest='b'*64,active=True,addresses=[],includes=False)}
+    state.nodes = {
+        11: dict(id=11, name=product.server.hostname, digest='a'*64, active=True,
+                 addresses=['192.0.2.100'], includes=False,
+                 instances=[dict(name=f'VI_{router.id}', state='MASTER')]),
+        33: dict(id=33, name='Product standby', digest='b'*64, active=True,
+                 addresses=[], includes=False,
+                 instances=[dict(name=f'VI_{router.id}', state='BACKUP')]),
+    }
     monkeypatch.setattr(audit,'keepalived_node',lambda c,n,s:copy.deepcopy(state.nodes[s.server_id]))
     def action(server,binding,operation):
         state.actions.append((server.server_id,operation));state.nodes[11]['active']=operation=='start'
         state.nodes[11]['addresses']=['192.0.2.100'] if operation=='start' else []
         state.nodes[33]['addresses']=[] if operation=='start' or state.no_takeover else ['192.0.2.100']
+        for node in state.nodes.values():
+            node['instances'][0]['state'] = 'MASTER' if node['addresses'] else 'BACKUP'
     monkeypatch.setattr(maintenance,'ka_action',action)
     def startup(server,operation,policy=None):
         state.startup_actions.append((server.server_id,operation,policy))

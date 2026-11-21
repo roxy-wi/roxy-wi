@@ -1,12 +1,14 @@
 from typing import Union
 
+from peewee import SqliteDatabase
+
 import app.modules.db.server as server_sql
 import app.modules.db.ha_cluster as ha_sql
 import app.modules.db.service as service_sql
 from app.modules.db.db_model import HaCluster, HaClusterRouter, HaClusterVip, HaClusterVirt
 import app.modules.roxywi.common as roxywi_common
 from app.modules.roxywi.class_models import HAClusterRequest, HAClusterVIP, HAClusterServersRequest
-from app.modules.roxywi.exception import RoxywiResourceNotFound
+from app.modules.roxywi.exception import RoxywiResourceNotFound, RoxywiConflictError, RoxywiValidationError
 from app.modules.service.ha_mutation import guarded
 
 
@@ -28,97 +30,113 @@ def get_services_dict(cluster: HAClusterRequest) -> dict:
 
 @guarded
 def create_cluster(cluster: HAClusterRequest, group_id: int) -> int:
-    servers = _get_servers_dict(cluster)
-    services = get_services_dict(cluster)
+    database = HaCluster._meta.database
+    transaction_args = ('IMMEDIATE',) if isinstance(database, SqliteDatabase) else ()
+    with database.atomic(*transaction_args):
+        servers = _get_servers_dict(cluster)
+        services = get_services_dict(cluster)
+        if cluster.vrid is not None and not servers:
+            raise RoxywiValidationError('Select cluster members before assigning a VRID')
 
-    try:
-        cluster_id = ha_sql.create_cluster(cluster.name, cluster.syn_flood, group_id, cluster.description)
-        roxywi_common.logging(cluster_id, 'New cluster has been created', keep_history=1, service='HA cluster')
-    except Exception as e:
-        raise Exception(f'error: Cannot create new HA cluster: {e}')
-
-    for service, value in services.items():
-        if not value['enabled']:
-            continue
         try:
-            service_id = service_sql.select_service_id_by_slug(service)
-            ha_sql.insert_cluster_services(cluster_id, service_id)
-            roxywi_common.logging(cluster_id, f'Service {service} has been enabled on the cluster', keep_history=1, service='HA cluster')
+            cluster_id = ha_sql.create_cluster(cluster.name, cluster.syn_flood, group_id, cluster.description)
+            roxywi_common.logging(cluster_id, 'New cluster has been created', keep_history=1, service='HA cluster')
         except Exception as e:
-            raise Exception(f'error: Cannot add service {service}: {e}')
+            raise Exception(f'error: Cannot create new HA cluster: {e}')
 
-    if servers is not None:
-        try:
-            router_id = ha_sql.create_ha_router(cluster_id, default=1)
-        except Exception as e:
-            raise Exception(f'error: Cannon create router: {e}')
-
-        _create_or_update_master_slaves_servers(cluster_id, servers, router_id, True)
-
-        if cluster.vip:
+        for service, value in services.items():
+            if not value['enabled']:
+                continue
             try:
-                vip_id = HaClusterVip.insert(cluster_id=cluster_id, router_id=router_id, vip=cluster.vip,
-                                             return_master=cluster.return_master).execute()
-                roxywi_common.logging(cluster_id, f'New vip {cluster.vip} has been created and added to the cluster',
-                                      keep_history=1, service='HA cluster')
+                service_id = service_sql.select_service_id_by_slug(service)
+                ha_sql.insert_cluster_services(cluster_id, service_id)
+                roxywi_common.logging(cluster_id, f'Service {service} has been enabled on the cluster', keep_history=1, service='HA cluster')
             except Exception as e:
-                raise Exception(f'error: Cannon add VIP: {e}')
+                raise Exception(f'error: Cannot add service {service}: {e}')
 
-            if cluster.virt_server and servers is not None:
-                add_or_update_virt(cluster, servers, cluster_id, vip_id, group_id)
+        if servers is not None:
+            try:
+                router_id = ha_sql.create_ha_router(cluster_id, default=1, vrid=cluster.vrid)
+            except RoxywiConflictError:
+                raise
+            except Exception as e:
+                raise Exception(f'error: Cannon create router: {e}')
 
-    return int(cluster_id)
+            _create_or_update_master_slaves_servers(cluster_id, servers, router_id, True)
+
+            if cluster.vip:
+                try:
+                    vip_id = HaClusterVip.insert(cluster_id=cluster_id, router_id=router_id, vip=cluster.vip,
+                                                 return_master=cluster.return_master).execute()
+                    roxywi_common.logging(cluster_id, f'New vip {cluster.vip} has been created and added to the cluster',
+                                          keep_history=1, service='HA cluster')
+                except Exception as e:
+                    raise Exception(f'error: Cannon add VIP: {e}')
+
+                if cluster.virt_server and servers is not None:
+                    add_or_update_virt(cluster, servers, cluster_id, vip_id, group_id)
+
+        return int(cluster_id)
 
 
 @guarded
 def update_cluster(cluster: HAClusterRequest, cluster_id: int, group_id: int) -> None:
-    servers = _get_servers_dict(cluster)
-    services = get_services_dict(cluster)
-
-    try:
-        ha_sql.update_cluster(cluster_id, cluster.name, cluster.description, cluster.syn_flood)
-    except Exception as e:
-        raise Exception(f'error: Cannot update HA cluster: {e}')
-
-    if servers:
-        try:
-            router_id = ha_sql.get_router_id(cluster_id, default_router=1)
-        except Exception as e:
-            raise Exception(f'error: Cannot get router: {e}')
+    database = HaCluster._meta.database
+    transaction_args = ('IMMEDIATE',) if isinstance(database, SqliteDatabase) else ()
+    with database.atomic(*transaction_args):
+        servers = _get_servers_dict(cluster)
+        services = get_services_dict(cluster)
 
         try:
-            update_slaves(servers, cluster_id, router_id)
+            ha_sql.update_cluster(cluster_id, cluster.name, cluster.description, cluster.syn_flood)
         except Exception as e:
-            raise Exception(e)
+            raise Exception(f'error: Cannot update HA cluster: {e}')
 
-        try:
-            update_vip(cluster_id, router_id, cluster, group_id)
-        except Exception as e:
-            raise Exception(e)
-
-    try:
-        ha_sql.delete_cluster_services(cluster_id)
-    except Exception as e:
-        raise Exception(f'error: Cannot delete old services: {e}')
-
-    for service, value in services.items():
-        if not value['enabled']:
-            continue
-        try:
-            service_id = service_sql.select_service_id_by_slug(service)
-            ha_sql.insert_cluster_services(cluster_id, service_id)
-        except Exception as e:
-            raise Exception(f'error: Cannot add service {service}: {e}')
-
-    virts = ha_sql.select_ha_virts(cluster_id)
-    if virts:
-        for virt in virts:
+        if servers:
             try:
-                add_or_update_virt(cluster, servers, cluster_id, virt.vip_id, group_id)
+                router_id = ha_sql.get_router_id(cluster_id, default_router=1)
             except Exception as e:
-                roxywi_common.logging(cluster_id, f'Cannot update cluster virtual server for VIP {virt.vip}: {e}', service='HA cluster')
+                raise Exception(f'error: Cannot get router: {e}')
 
-    roxywi_common.logging(cluster_id, f'Cluster {cluster.name} has been updated', keep_history=1, service='HA cluster')
+            try:
+                update_slaves(servers, cluster_id, router_id)
+            except Exception as e:
+                raise Exception(e)
+
+            try:
+                update_vip(cluster_id, router_id, cluster, group_id)
+            except RoxywiConflictError:
+                raise
+            except Exception as e:
+                raise Exception(e)
+
+        elif cluster.vrid is not None:
+            router_id = ha_sql.get_router_id(cluster_id, default_router=1)
+            ha_sql.update_router_vrid(cluster_id, router_id, cluster.vrid)
+
+        try:
+            ha_sql.delete_cluster_services(cluster_id)
+        except Exception as e:
+            raise Exception(f'error: Cannot delete old services: {e}')
+
+        for service, value in services.items():
+            if not value['enabled']:
+                continue
+            try:
+                service_id = service_sql.select_service_id_by_slug(service)
+                ha_sql.insert_cluster_services(cluster_id, service_id)
+            except Exception as e:
+                raise Exception(f'error: Cannot add service {service}: {e}')
+
+        virts = ha_sql.select_ha_virts(cluster_id)
+        if virts:
+            for virt in virts:
+                try:
+                    add_or_update_virt(cluster, servers, cluster_id, virt.vip_id, group_id)
+                except Exception as e:
+                    roxywi_common.logging(cluster_id, f'Cannot update cluster virtual server for VIP {virt.vip}: {e}', service='HA cluster')
+
+        roxywi_common.logging(cluster_id, f'Cluster {cluster.name} has been updated', keep_history=1, service='HA cluster')
 
 
 @guarded
@@ -142,77 +160,88 @@ def delete_cluster(cluster_id: int) -> None:
 
 @guarded
 def update_vip(cluster_id: int, router_id: int, cluster: Union[HAClusterRequest, HAClusterVIP], group_id: int) -> None:
-    vip_id = ha_sql.select_clusters_vip_id(cluster_id, router_id)
-    servers = _get_servers_dict(cluster)
+    database = HaCluster._meta.database
+    transaction_args = ('IMMEDIATE',) if isinstance(database, SqliteDatabase) else ()
+    with database.atomic(*transaction_args):
+        vip_id = ha_sql.select_clusters_vip_id(cluster_id, router_id)
+        servers = _get_servers_dict(cluster)
+        ha_sql.update_router_vrid(cluster_id, router_id, cluster.vrid)
 
-    try:
-        ha_sql.update_ha_cluster_vip(cluster_id, router_id, str(cluster.vip), cluster.return_master, cluster.use_src)
-    except Exception as e:
-        raise Exception(f'error: Cannot update VIP: {e}')
-
-    for value in servers:
         try:
-            ha_sql.update_slave(cluster_id, value['id'], value['eth'], value['master'], router_id)
+            ha_sql.update_ha_cluster_vip(cluster_id, router_id, str(cluster.vip), cluster.return_master, cluster.use_src)
         except Exception as e:
-            s = server_sql.get_server(value['id'])
-            raise Exception(f'error: Cannot add server {s.hostname}: {e}')
+            raise Exception(f'error: Cannot update VIP: {e}')
 
-    if cluster.virt_server:
-        add_or_update_virt(cluster, servers, cluster_id, vip_id, group_id)
-    else:
-        try:
-            if ha_sql.check_ha_virt(vip_id):
-                ha_sql.delete_ha_virt(vip_id)
-                roxywi_common.logging(cluster_id, f'Cluster virtual server for VIP: {cluster.vip} has been deleted', keep_history=1, service='HA cluster')
-        except Exception as e:
-            roxywi_common.logging(cluster_id, f'Cannot delete cluster virtual server for VIP {cluster.vip}: {e}', keep_history=1, service='HA cluster')
+        for value in servers:
+            try:
+                ha_sql.update_slave(cluster_id, value['id'], value['eth'], value['master'], router_id)
+            except Exception as e:
+                s = server_sql.get_server(value['id'])
+                raise Exception(f'error: Cannot add server {s.hostname}: {e}')
 
-    roxywi_common.logging(cluster_id, f'Cluster VIP {cluster.vip} has been updated', keep_history=1, service='HA cluster')
+        if cluster.virt_server:
+            add_or_update_virt(cluster, servers, cluster_id, vip_id, group_id)
+        else:
+            try:
+                if ha_sql.check_ha_virt(vip_id):
+                    ha_sql.delete_ha_virt(vip_id)
+                    roxywi_common.logging(cluster_id, f'Cluster virtual server for VIP: {cluster.vip} has been deleted', keep_history=1, service='HA cluster')
+            except Exception as e:
+                roxywi_common.logging(cluster_id, f'Cannot delete cluster virtual server for VIP {cluster.vip}: {e}', keep_history=1, service='HA cluster')
+
+        roxywi_common.logging(cluster_id, f'Cluster VIP {cluster.vip} has been updated', keep_history=1, service='HA cluster')
 
 
 @guarded
 def insert_vip(cluster_id: int, cluster: HAClusterVIP, group_id: int) -> int:
-    try:
-        slaves_count = ha_sql.select_count_cluster_slaves(cluster_id)
-        if slaves_count == 0:
-            try:
-                router_id = ha_sql.create_ha_router(cluster_id, default=1)
-            except Exception as e:
-                raise Exception(f'error: Cannon create a new default router: {e}')
-        else:
-            try:
-                router_id = ha_sql.create_ha_router(cluster_id)
-            except Exception as e:
-                raise Exception(f'error: Cannot create new router: {e}')
-    except Exception as e:
-        raise e
-
-    try:
-        vip = cluster.vip
-    except Exception as e:
-        raise Exception(f'Cannot get VIP: {e}')
-    try:
-        servers = _get_servers_dict(cluster)
-    except Exception as e:
-        raise Exception(f'Cannot get servers: {e}')
-
-    try:
-        vip_id = HaClusterVip.insert(cluster_id=cluster_id, router_id=router_id, vip=vip, use_src=cluster.use_src, return_master=cluster.return_master).execute()
-    except Exception as e:
-        raise Exception(f'error: Cannot save VIP {vip}: {e}')
-
-    for value in servers:
+    database = HaCluster._meta.database
+    transaction_args = ('IMMEDIATE',) if isinstance(database, SqliteDatabase) else ()
+    with database.atomic(*transaction_args):
         try:
-            ha_sql.insert_or_update_slave(cluster_id, value['id'], value['eth'], value['master'], router_id)
+            slaves_count = ha_sql.select_count_cluster_slaves(cluster_id)
+            if slaves_count == 0:
+                try:
+                    router_id = ha_sql.create_ha_router(cluster_id, default=1, vrid=cluster.vrid)
+                except RoxywiConflictError:
+                    raise
+                except Exception as e:
+                    raise Exception(f'error: Cannon create a new default router: {e}')
+            else:
+                try:
+                    router_id = ha_sql.create_ha_router(cluster_id, vrid=cluster.vrid)
+                except RoxywiConflictError:
+                    raise
+                except Exception as e:
+                    raise Exception(f'error: Cannot create new router: {e}')
         except Exception as e:
-            s = server_sql.get_server(value['id'])
-            raise Exception(f'error: Cannot add server {s.hostname}: {e}')
+            raise e
 
-    if cluster.virt_server:
-        add_or_update_virt(cluster, servers, cluster_id, vip_id, group_id)
+        try:
+            vip = cluster.vip
+        except Exception as e:
+            raise Exception(f'Cannot get VIP: {e}')
+        try:
+            servers = _get_servers_dict(cluster)
+        except Exception as e:
+            raise Exception(f'Cannot get servers: {e}')
 
-    roxywi_common.logging(cluster_id, f'New cluster VIP: {vip} has been created', keep_history=1, service='HA cluster')
-    return vip_id
+        try:
+            vip_id = HaClusterVip.insert(cluster_id=cluster_id, router_id=router_id, vip=vip, use_src=cluster.use_src, return_master=cluster.return_master).execute()
+        except Exception as e:
+            raise Exception(f'error: Cannot save VIP {vip}: {e}')
+
+        for value in servers:
+            try:
+                ha_sql.insert_or_update_slave(cluster_id, value['id'], value['eth'], value['master'], router_id)
+            except Exception as e:
+                s = server_sql.get_server(value['id'])
+                raise Exception(f'error: Cannot add server {s.hostname}: {e}')
+
+        if cluster.virt_server:
+            add_or_update_virt(cluster, servers, cluster_id, vip_id, group_id)
+
+        roxywi_common.logging(cluster_id, f'New cluster VIP: {vip} has been created', keep_history=1, service='HA cluster')
+        return vip_id
 
 
 @guarded

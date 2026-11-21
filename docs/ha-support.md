@@ -112,6 +112,45 @@ or to the container's physical host. A qnetd service on the Roxy-WI host is
 independent of the application container and must remain outside both cluster
 nodes' failure domains. See [deployment entry points](../README.md#deployment-choices).
 
+## Keepalived VRID allocation and health checks
+
+Each registered Keepalived router has a stored VRID in the range 1–255, separate
+from its database ID. Database IDs above 255 are supported. New routers receive
+a free VRID within their cluster. The cluster and VIP forms also accept a manual
+VRID. Leave the field empty for automatic selection on creation, or to retain the
+current assignment on edit. The API accepts the optional integer `vrid` on cluster
+and VIP POST/PUT requests; omission or `null` has the same behaviour. GET responses
+include the current `vrid`. Values outside 1–255 are rejected; an occupied value
+returns HTTP 409 without changing the cluster, VIP or member settings.
+
+Each cluster has its own pool of 255 values, so separate clusters can reuse VRIDs
+and the installation can manage more than 255 routers. Clusters on the same
+multicast network need distinct VRIDs: select them manually because Roxy-WI does
+not discover network segments or external VRRP routers. Exhaustion affects only
+the full cluster and does not leave a partially created VIP.
+Remove the old instance from its nodes before deleting its registration: a deleted
+router's VRID can be reused.
+
+The upgrade preserves existing router IDs 1–255 as their VRIDs, then assigns free
+values within each cluster to higher IDs. It does not push configurations to managed nodes. Existing
+valid wire identifiers stay unchanged; routers that previously generated an
+out-of-range VRID require configuration deployment after migration. Reverting
+this migration is refused because mapping VRIDs back to database IDs could change
+the identity of running VRRP instances.
+
+Regenerating configuration retains the assignment and the `VI_<database ID>`
+instance name. Changing a running cluster's VRID needs coordinated reconfiguration
+of every member; an ordinary rolling update can temporarily create independent
+VRRP elections. Schedule a maintenance window, stop Keepalived on the affected
+members, then apply the new configuration to all members before normal operation.
+Saving the form alone only changes the desired configuration in Roxy-WI.
+
+HAProxy and NGINX checks follow their selected installation runtime: native
+services use systemd, while managed rootful Docker/Podman containers are inspected
+by their configured names. Stopped, paused or restarting containers, and failed
+inspection commands, fail the check and prevent VIP ownership. This checks the
+service/container lifecycle, not application-level readiness.
+
 ## Optional SYN-flood protection
 
 The new-cluster installation offers an explicit **SYN-flood protection** checkbox.

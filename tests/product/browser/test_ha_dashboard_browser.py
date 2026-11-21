@@ -1,5 +1,6 @@
 """Cluster cards own their operational dialogs and retain async state safely."""
 import os
+import re
 
 import pytest
 from playwright.sync_api import expect
@@ -26,7 +27,7 @@ def close_panel(page):
 @pytest.mark.parametrize('width,theme', [(1440, 'light'), (390, 'light'), (1440, 'dark')])
 def test_common_cards_and_scoped_plan_history(
     logged_in, product_url, product_client, maintenance_cluster, keepalived_maintenance,
-    keepalived_probe, width, theme, tmp_path,
+    width, theme, tmp_path,
 ):
     active = create(product_client, maintenance_cluster)
     terminal = ka_create(product_client, keepalived_maintenance)
@@ -85,6 +86,41 @@ def test_common_cards_and_scoped_plan_history(
         page.evaluate('RoxywiHAClusters.refresh()')
     expect(page.locator('.ha-cluster-card')).to_have_count(0)
     expect(page.locator('#ha-clusters-empty')).to_be_visible()
+
+
+def test_keepalived_live_status_clears_previous_health_and_recovers(
+    logged_in, product_url, keepalived_maintenance, monkeypatch,
+):
+    page = logged_in
+    page.goto(product_url + '/ha/cluster')
+    card = page.locator('[data-ha-provider="keepalived"]')
+    badge = card.locator('[data-ha-health]')
+    expect(badge).to_have_text('UP')
+    expect(badge).to_have_attribute('title', re.compile('one MASTER and ready standby'))
+
+    standby = keepalived_maintenance.nodes[33]
+    standby['instances'][0]['state'] = 'FAULT'
+    with page.expect_response('**/ha/cluster/*/status'):
+        page.evaluate('RoxywiHAClusters.refresh()')
+    expect(badge).to_have_text('Degraded')
+    expect(badge).to_have_attribute('title', re.compile('a standby is not ready'))
+
+    def unavailable(_cluster, _name, _server):
+        raise RuntimeError('Private SSH detail')
+
+    with monkeypatch.context() as patch:
+        patch.setattr('app.modules.service.ha_readiness.keepalived_node', unavailable)
+        with page.expect_response('**/ha/cluster/*/status'):
+            page.evaluate('RoxywiHAClusters.refresh()')
+        expect(badge).to_have_text('Unknown')
+        expect(badge).to_have_attribute('title', re.compile('Not all members could be verified'))
+        assert 'Private SSH detail' not in page.content()
+
+    standby['instances'][0]['state'] = 'BACKUP'
+    with page.expect_response('**/ha/cluster/*/status'):
+        page.evaluate('RoxywiHAClusters.refresh()')
+    expect(badge).to_have_text('UP')
+    expect(badge).to_have_attribute('title', re.compile('one MASTER and ready standby'))
 
 
 def test_live_status_failure_clears_previous_health_and_recovers(

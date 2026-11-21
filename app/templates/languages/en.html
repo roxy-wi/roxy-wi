@@ -948,6 +948,9 @@
     }
 %}
 {% set ha_page = {
+    "vrid_auto": "Automatic",
+    "vrid_error": "VRID must be an integer between 1 and 255",
+    "vrid_help": "Optional, 1–255. Leave empty to assign automatically on creation or keep the current value on edit. Clusters sharing a network need distinct VRIDs. Changing a live VRID requires coordinated configuration on all members.",
     "ha": "High availability cluster",
     "has": "High availability clusters",
     "create_virt_server": "Roxy-WI will add VRRP address as a separate server",

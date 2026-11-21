@@ -11,6 +11,7 @@ import pytest
 import yaml
 
 from app.modules.service import installation
+from app.modules.db.db_model import HaClusterRouter
 
 
 ROLE_DIR = (
@@ -41,10 +42,11 @@ def render_config():
     return render
 
 
-def router(return_master, *, vip='192.0.2.100', master=MASTER):
+def router(return_master, *, vip='192.0.2.100', master=MASTER, vrid=1):
     """Use integer flags, as returned by the cluster inventory's SQL queries."""
     return {
         'vip': vip,
+        'vrid': vrid,
         'return_master': return_master,
         'use_src': 0,
         MASTER: {'master': int(master == MASTER), 'eth': 'eth0'},
@@ -113,7 +115,7 @@ def test_return_master_controls_preemption(render_config, return_master, host):
 def test_failback_policy_is_per_vip(render_config, host):
     config = render_config(host, {
         '1': router(0),
-        '2': router(1, vip='192.0.2.101', master=BACKUP),
+        '2': router(1, vip='192.0.2.101', master=BACKUP, vrid=2),
     })
     sticky = instance_lines(config, '1')
     returning = instance_lines(config, '2')
@@ -148,8 +150,9 @@ def generate_inventory(monkeypatch):
         'nginx_container_name': 'edge-web',
     }
     monkeypatch.setattr(installation.sql, 'get_setting', settings.__getitem__)
+    registered_router = HaClusterRouter(id=1000, vrid=42)
     monkeypatch.setattr(installation.ha_sql, 'select_cluster_vips', lambda _: [
-        SimpleNamespace(router_id=1, vip='192.0.2.100', return_master=0, use_src=0),
+        SimpleNamespace(router_id=registered_router, vip='192.0.2.100', return_master=0, use_src=0),
     ])
     monkeypatch.setattr(installation.ha_sql, 'select_cluster_slaves_for_inv', lambda _: [
         SimpleNamespace(server_id=SimpleNamespace(ip=host), master=int(index == 1), eth='eth0')
@@ -160,7 +163,8 @@ def generate_inventory(monkeypatch):
         lambda server_id: SimpleNamespace(ip={1: MASTER, 2: BACKUP}[server_id]),
     )
 
-    def generate(service, options, *, container_name=None):
+    def generate(service, options, *, container_name=None, vrid=42):
+        registered_router.vrid = vrid
         if container_name is not None:
             settings[f'{service}_container_name'] = container_name
         services = {
@@ -173,6 +177,24 @@ def generate_inventory(monkeypatch):
         }, 'keepalived')
 
     return generate
+
+
+@pytest.mark.parametrize('vrid', (1, 42, 255))
+def test_inventory_uses_stored_vrid_without_renaming_instance(
+    generate_inventory, render_config, vrid,
+):
+    inventory, _addresses = generate_inventory('haproxy', {'docker': False}, vrid=vrid)
+    for address, host in inventory['server']['hosts'].items():
+        assert host['routers']['1000']['vrid'] == vrid
+        config = render_config(address, host['routers'])
+        assert f'virtual_router_id {vrid}' in instance_lines(config, '1000')
+        assert 'virtual_router_id 1000' not in config
+
+
+@pytest.mark.parametrize('vrid', (None, 0, 256, -1, '42', True))
+def test_inventory_rejects_unassigned_or_invalid_vrid(generate_inventory, vrid):
+    with pytest.raises(ValueError, match='valid VRID'):
+        generate_inventory('haproxy', {'docker': False}, vrid=vrid)
 
 
 @pytest.mark.parametrize('service,name', (('haproxy', 'edge-proxy'), ('nginx', 'edge-web')))

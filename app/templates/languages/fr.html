@@ -887,6 +887,9 @@
     }
 %}
 {% set ha_page = {
+    "vrid_auto": "Automatique",
+    "vrid_error": "Le VRID doit être un nombre entier compris entre 1 et 255",
+    "vrid_help": "Facultatif, 1–255. Laissez ce champ vide pour attribuer automatiquement un VRID à la création ou conserver la valeur actuelle lors de la modification. Les clusters partageant le même réseau doivent utiliser des VRID distincts. La modification du VRID d’un cluster en service nécessite une application coordonnée de la configuration sur tous ses nœuds.",
     "ha": "La haute disponibilité cluster",
     "has": "La haute disponibilité clusters",
     "create_virt_server": "Roxy-WI ajoutera l'adresse VRRP en tant que serveur distinct",

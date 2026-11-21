@@ -40,9 +40,11 @@ def test_real_rollback_preserves_original_or_concurrent_file(tmp_path, scenario)
         backup = tmp_path / 'original.backup'
         backup.write_bytes(original)
         result['backup_file'] = str(backup)
+    private_data_dir = tmp_path / 'runner'
+    private_data_dir.mkdir()
     events = []
     run = ansible_runner.run(
-        private_data_dir=str(tmp_path / 'runner'),
+        private_data_dir=str(private_data_dir),
         inventory={'all': {'hosts': {'localhost': {
             'ansible_connection': 'local',
             'ansible_python_interpreter': sys.executable,
