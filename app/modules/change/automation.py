@@ -303,6 +303,8 @@ def record_event(
             created_at=utc_now(),
         )
         _queue_event_deliveries(event, change, target)
+        from app.modules.audit.domain import change_event
+        change_event(change, event, target)
         return event
     except Exception as exc:
         logger.error(

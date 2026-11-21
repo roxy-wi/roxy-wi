@@ -17,6 +17,7 @@ adding a Markdown file here does not publish it to roxy-wi.org.
 - [Roxy-WI controller deployment with Podman Quadlet](podman-controller.md)
 - [Guided Pacemaker topology, rules, bundles and operations](pacemaker-guided-editor.md)
 - [Verified container versions and deployment inventory](container-update-inventory.md)
+- [External audit and syslog export](external-audit.md)
 - [HA technologies, platforms, Docker and SYN protection](ha-support.md)
 - [Corosync/Pacemaker administration and HTTP API](corosync-pacemaker.md)
 - [Guided witness conversion and recovery](corosync-pacemaker-witness-migration.md)
