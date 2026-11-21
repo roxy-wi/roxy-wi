@@ -69,6 +69,21 @@ def update_user_password(password, user_id):
 		out_error(e)
 
 
+def rehash_user_password(verified_user, password):
+	"""Upgrade only the exact enabled local credential that was verified."""
+	from app.modules.roxywi.exception import RoxywiPublicError
+	hashed_password = roxy_wi_tools.Tools.get_hash(password)
+	changed = User.update(password=hashed_password).where(
+		(User.user_id == verified_user.user_id) &
+		(User.username == verified_user.username) &
+		(User.email == verified_user.email) &
+		(User.password == verified_user.password) &
+		(User.enabled == 1) & (User.ldap_user == 0)
+	).execute()
+	if not changed:
+		raise RoxywiPublicError('Account credentials changed; authenticate again')
+
+
 def delete_user(user_id):
 	try:
 		OidcIdentity.delete().where(OidcIdentity.user_id == user_id).execute()

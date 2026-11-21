@@ -22,6 +22,9 @@ def inject_feature_availability():
     if not user_params or not user_params.get('user'):
         return {'oidc_available': False, 'change_center_available': False}
 
+    if request.blueprint in ('local_auth', 'local_totp', 'passkeys'):
+        return {'oidc_available': False, 'change_center_available': False}
+
     subscription = roxywi_common.return_user_subscription()
 
     oidc_available = getattr(g, 'oidc_available', None)
@@ -41,7 +44,8 @@ def check_login():
     allowed_endpoints = (
         'login_page', 'api.do_login', 'oidc.public_providers', 'oidc.oidc_login', 'oidc.oidc_callback',
         'static', 'main.get_version', 'service.check_service', 'favicon',
-        'health.live', 'health.ready',
+        'health.live', 'health.ready', 'local_auth.login_complete',
+        'local_totp.enrollment_start', 'local_totp.enrollment_confirm',
     )
     if request.endpoint not in allowed_endpoints:
         try:
@@ -100,6 +104,10 @@ def login_page():
             print(str(e))
             return roxywi_common.handle_json_exceptions(e, 'Cannot check login password'), 401
         try:
+            from app.modules.authentication import security
+            challenge = security.before_password_login(user_params, request.json)
+            if challenge:
+                return challenge, 202
             response = roxywi_auth.do_login(user_params, next_url)
             logger.info(f'{login} login')
         except Exception as e:
