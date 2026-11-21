@@ -1,0 +1,11 @@
+.passkeys-panel { max-width: 1050px; margin: 25px 0; }
+.passkeys-panel h3 { background: transparent; }
+.passkeys-panel p { line-height: 1.6; }
+.passkeys-table { width: 100%; margin: 25px 0; }
+.passkeys-table td, .passkeys-table th { padding: 14px; text-align: left; }
+.passkeys-add { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.passkeys-add input { width: 300px; color: inherit; }
+#passkey-status { min-height: 26px; }
+#passkey-recovery { margin: 25px 0; padding: 20px; border: 1px solid #7794ac; border-radius: 4px; }
+#passkey-recovery pre { white-space: pre-wrap; color: inherit; background: transparent; }
+#passkey-login { margin-top: 15px; width: 100%; }
