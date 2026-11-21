@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{{ lang.personal_tokens.title }}{% endblock %}
+{% block h2 %}{{ lang.personal_tokens.title }}{% endblock %}
+{% block content %}
+{% set t = lang.personal_tokens %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/personal_tokens.css') }}">
+<script id="personal-token-translations" type="application/json">{{ t|tojson }}</script>
+<div class="personal-tokens-page">
+<p>{{ t.intro }}</p>
+<p id="personal-token-status" role="status" aria-live="polite"></p>
+<table class="overview" id="personal-token-table"><thead><tr>
+<th>{{ t.name }}</th><th>{{ t.group }}</th><th>{{ t.scopes }}</th><th>{{ t.expires }}</th><th>{{ t.used }}</th><th>{{ t.state }}</th><th>{{ lang.words.actions|title }}</th>
+</tr></thead><tbody></tbody></table>
+<form id="personal-token-form" data-group="{{ g.user_params.group_id }}">
+<h3>{{ t.create }}</h3>
+<label>{{ t.name }}<input class="form-control" name="name" required maxlength="128" autocomplete="off"></label>
+<label>{{ t.days }}<input class="form-control" name="expires_days" type="number" min="1" max="365" value="90" required></label>
+<p>{{ t.fixed_group }}: {{ g.user_params.group_id }}</p>
+<fieldset><legend>{{ t.scopes }}</legend><p>{{ t.least_privilege }}</p>
+{% for name in scopes %}<label class="personal-token-scope"><input type="checkbox" name="scope" value="{{ name }}">{{ t.scope_labels[name] }} <code>{{ name }}</code></label>{% endfor %}
+</fieldset>
+<label>{{ t.password }}<input class="form-control" name="password" type="password" autocomplete="current-password" maxlength="4096"></label>
+<label>{{ t.otp }}<input class="form-control" name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="32"></label>
+{% if security_available %}<button type="button" id="personal-token-passkey" hidden>{{ t.use_passkey }}</button>{% endif %}
+<button type="submit">{{ t.create }}</button>
+</form>
+<section id="personal-token-created" hidden>
+<h3>{{ t.once }}</h3><p>{{ t.copy_now }}</p>
+<label>{{ t.value }}<textarea class="form-control" id="personal-token-value" readonly rows="5" autocomplete="off" spellcheck="false"></textarea></label>
+<button type="button" id="personal-token-hide">{{ t.hide }}</button>
+</section>
+</div>
+{% if security_available %}<script src="{{ url_for('static', filename='js/security.js') }}"></script>{% endif %}
+<script src="{{ url_for('static', filename='js/personal_tokens.js') }}"></script>
+{% endblock %}
