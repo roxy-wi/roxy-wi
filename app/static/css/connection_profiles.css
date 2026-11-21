@@ -1,0 +1,17 @@
+#connection-profile-status { margin: 12px 0; min-height: 20px; }
+#connection-profile-form { margin-top: 20px; max-width: 900px; }
+.connection-profile-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.connection-profile-fields > label { display: flex; flex-direction: column; gap: 5px; }
+.connection-profile-fields input, .connection-profile-fields select { width: 100%; box-sizing: border-box; }
+.connection-profile-fields .connection-profile-inline, .connection-profile-inline { display: flex; flex-direction: row; align-items: center; gap: 6px; }
+.connection-profile-inline input { width: auto; }
+.connection-profile-secret { display: grid; gap: 5px; margin: 12px 0; }
+.connection-profile-secret textarea, .connection-profile-secret > input { width: 100%; box-sizing: border-box; }
+.connection-profile-secret textarea.form-control { min-height: 75px; }
+#connection-profile-form fieldset { margin: 20px 0; }
+#connection-profile-table button { margin: 3px; }
+@media (max-width: 650px) { .connection-profile-fields { grid-template-columns: 1fr; } }
+.connection-profiles-page { padding: 0 15px 15px; }
+
+#connection-profile-form input.form-control, #connection-profile-form textarea.form-control { color: inherit; background-color: transparent; }
+#connection-profile-form h3 { background: transparent; color: inherit; border-bottom: 1px solid #888; }
