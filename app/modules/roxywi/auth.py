@@ -195,7 +195,7 @@ def check_user_password(login: str, password: str) -> dict:
         password_matches, needs_rehash = roxy_wi_tools.Tools.check_password(password, user.password)
         if login == user.username and password_matches:
             if needs_rehash:
-                user_sql.update_user_password(password, user.user_id)
+                user_sql.rehash_user_password(user, password)
             return {'group': str(user.group_id), 'user': user.user_id, 'name': user.username}
         else:
             logger.authentication_failure()
