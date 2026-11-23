@@ -398,7 +398,7 @@ def get_version():
     version_status = roxy.versions()
     return jsonify(
         service_version=version_status['current_ver'],
-        latest_version=version_status['new_ver'],
+        latest_version=version_status['new_ver'] or '0',
         update_available=bool(version_status['need_update']),
     )
 
