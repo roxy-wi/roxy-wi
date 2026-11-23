@@ -1,0 +1,39 @@
+---
+- name: Inspect the existing container and database settings
+  ansible.builtin.include_tasks: container_inspect.yml
+
+- name: Create the configuration directory
+  ansible.builtin.file:
+    path: /etc/roxy-wi
+    state: directory
+    mode: '0755'
+
+- name: Create persistent worker storage
+  ansible.builtin.file:
+    path: "/var/lib/roxy-wi/containers/{{ roxywi_install.component }}"
+    state: directory
+    owner: '10001'
+    group: '10001'
+    mode: '0750'
+
+- name: Retain the configured database unless explicitly replaced
+  ansible.builtin.set_fact:
+    roxywi_container_environment: "{{ (roxywi_saved_container_env.content | default('e30=') | b64decode | from_json) | combine({roxywi_service_db_key: roxywi_container_database} if roxywi_container_database else {}) | combine(roxywi_install.environment) }}"
+  no_log: true
+
+- name: Save private container configuration for retries and runtime changes
+  ansible.builtin.copy:
+    content: "{{ roxywi_container_environment | to_json }}"
+    dest: "{{ roxywi_container_env_path }}"
+    owner: root
+    group: root
+    mode: '0600'
+  no_log: true
+
+- name: Write the Socket verification key
+  ansible.builtin.copy:
+    content: "{{ roxywi_install.public_key }}"
+    dest: /etc/roxy-wi/socket-ux-public.pem
+    mode: '0644'
+  when: roxywi_install.public_key is defined
+  no_log: true

@@ -1,0 +1,29 @@
+{% set ti = lang.tool_install %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/tool-install.css', v='10.1-3') }}">
+<div id="tool-install-dialog" hidden title="{{ ti.title }}">
+    <form id="tool-install-form" class="rw-form" autocomplete="off">
+        <input type="hidden" name="component">
+        <p><label for="tool-install-target">{{ ti.target }}</label><select id="tool-install-target" name="server_id"></select></p>
+        <p><label for="tool-install-engine">{{ ti.engine }}</label><select id="tool-install-engine" name="engine">
+            <option value="native">{{ ti.native }}</option><option value="docker">Docker</option><option value="podman">Podman</option>
+        </select></p>
+        <div id="tool-install-container-options" hidden>
+            <label for="tool-install-version">{{ ti.version }}</label><select id="tool-install-version" name="version"></select>
+            <p class="rw-form-help">{{ ti.container_help }}</p>
+        </div>
+        <div id="tool-install-worker-options">
+            <details id="tool-install-state-db">
+                <summary>{{ ti.database }}</summary>
+                <input type="password" class="form-control" id="tool-install-database" name="database_url" aria-label="{{ ti.database }}" autocomplete="new-password" maxlength="2048" placeholder="mysql://user:password@host/database">
+                <p class="rw-form-help">{{ ti.database_help }}</p>
+            </details>
+            <p id="tool-install-socket-options"><label for="tool-install-port">{{ ti.socket_port }}</label><input class="form-control" type="number" min="1" max="65535" value="8765" id="tool-install-port" name="socket_port"></p>
+        </div>
+        <p id="tool-install-current" role="status"></p>
+        <p id="tool-install-check-result" role="status"></p>
+        <aside class="alert alert-info rw-page-help">{{ ti.help }} <span id="tool-install-socket-help">{{ ti.socket_help }}</span></aside>
+    </form>
+</div>
+<script type="application/json" id="tool-install-messages">{{ ti|tojson }}</script>
+<script type="application/json" id="tool-install-options">{{ tool_install_options|tojson }}</script>
+<script src="{{ url_for('static', filename='js/admin/tool-install.js', v='10.1-6') }}" defer></script>

@@ -14,7 +14,6 @@ ADMIN_TEMPLATES = (
     'ajax/new_s3_backup.html',
     'ajax/new_git.html',
     'ajax/load_services.html',
-    'ajax/load_updateroxywi.html',
 )
 
 
@@ -66,7 +65,7 @@ def test_ajax_generated_admin_rows_keep_action_labels_and_icons():
 def test_tools_loader_renders_successful_html_instead_of_scanning_css_class_names():
     script = Path('app/static/js/admin/common.js').read_text(encoding='utf-8')
     loader = script.split('function loadServices()', 1)[1].split(
-        'function loadupdatehapwi()', 1
+        'function checkUpdateRoxy()', 1
     )[0]
 
     assert "$('#ajax-services-body').html(data)" in loader

@@ -50,7 +50,10 @@ def get_all_tools():
 	else:
 		tools = {}
 		for tool in query_res:
-			tools.setdefault(tool.name, {'current_version': tool.current_version, 'new_version': tool.new_version, 'desc': tool.desc})
+			tools[tool.name] = {
+				'current_version': tool.current_version, 'new_version': tool.new_version,
+				'is_roxy': bool(tool.is_roxy), 'desc': tool.desc,
+			}
 
 		return tools
 

@@ -1,6 +1,7 @@
 {% import 'languages/'+lang|default('en')+'.html' as lang %}
 {% from 'include/admin_action_menu.html' import admin_action_menu %}
 {% set dt = lang.service_diagnostics %}
+{% set u = lang.update_overview %}
 {% set services_name = {
 	'roxy-wi-web': { 'name': 'Web', 'desc': 'Roxy-WI HTTP API and user interface' },
 	'roxy-wi-scheduler': { 'name': 'Scheduler', 'desc': 'Runs scheduled Roxy-WI jobs' },
@@ -21,37 +22,55 @@
 {% set metadata = service.4|default({}) %}
 {% set service_info = services_name.get(service.0, {'name': service.0, 'desc': service.2.get('desc', '')}) %}
 {% set activity_label = 'connections' if service.0 == 'roxy-wi-socket' else 'assignments' %}
-{% set is_installed = 'is not installed' not in service.2['current_version'] and service.2['current_version'] not in ('', '0') %}
+{% set version = service.2 %}
+{% set is_installed = version.version_known %}
+{% set has_diagnostics = metadata.category in ('internal', 'distributed') %}
+{% set can_install = metadata.category == 'distributed' or (service.0 == 'roxy-wi-keep_alive' and package_deployment) %}
 {% set onclick_start_action = "confirmAjaxServiceAction('start', '"+service.0+"')" %}
 {% set onclick_stop_action = "confirmAjaxServiceAction('stop', '"+service.0+"')" %}
 <tr class="admin-tool-row" id="{{service.0}}">
     <td class="padding10 first-collumn"><b>{{service_info['name']}}</b></td>
     <td class="admin-tool-status-cell">
-        {% if metadata.get('category') in ('internal', 'distributed') %}<button type="button" class="service-diagnostics-trigger" data-service-name="{{ service_info.name }}" data-diagnostics-url="{{ url_for('admin.worker_diagnostics', service=service.0) }}" title="{{ dt.open }}">{% endif %}
         {% if service.1 in ('active', 'RUNNING') %}
             <span class="serverUp server-status" title="{{service_info['name']}} is running{% if service.3 %}; workers: {{ service.3.get('active', 0) }}; {{ activity_label }}: {{ service.3.get('assignments', 0) }}{% endif %}{% if metadata.get('last_heartbeat') %}; last heartbeat: {{ metadata.get('last_heartbeat') }}{% endif %}"></span>
             <span>{{ dt.running }}</span>
         {% elif service.1 in ('degraded', 'draining') %}
             <span class="serverWarn server-status" title="{{ service_info['name'] }} workers: active {{ service.3.get('active', 0) }}; degraded {{ service.3.get('degraded', 0) }}; draining {{ service.3.get('draining', 0) }}; stale {{ service.3.get('stale', 0) }}; {{ activity_label }} {{ service.3.get('assignments', 0) }}"></span>
             <span>{{ dt[service.1] }}</span>
-        {% elif service.1 in ('inactive', 'failed', 'activating', 'STOPPED', 'stale', 'stopped') and is_installed %}
+        {% elif service.1 in ('inactive', 'failed', 'activating', 'STOPPED', 'stale', 'stopped') and (is_installed or service.3 or version.version_source == 'inventory') %}
             <span class="serverDown server-status" title="{{service_info['name']}} is stopped{% if service.3 %}; stale workers: {{ service.3.get('stale', 0) }}; stopped workers: {{ service.3.get('stopped', 0) }}{% endif %}"></span>
             <span>{{ dt.stale if service.1 == 'stale' else dt.stopped }}</span>
         {% else %}
             <span class="serverNone server-status" title="{{service_info['name']}} status is unknown"></span>
-            <span>Unknown</span>
+            <span>{{ u[metadata.inventory_state] if metadata.inventory_state in ('not_detected', 'not_reported') else u.unknown_state }}</span>
         {% endif %}
-        {% if metadata.get('category') in ('internal', 'distributed') %}</button>{% endif %}
     </td>
     <td class="admin-tool-instances">
-        {{ metadata.get('instances', 0) }}{% if metadata.get('stale', 0) %} <button type="button" class="admin-tool-stale service-diagnostics-trigger" data-service-name="{{ service_info.name }}" data-diagnostics-url="{{ url_for('admin.worker_diagnostics', service=service.0) }}" title="{{ dt.open }}">+ {{ metadata.get('stale') }} {{ dt.stale }}</button>{% endif %}
+        {{ metadata.get('instances', 0) }}{% if metadata.get('stale', 0) %} <span class="admin-tool-stale">+ {{ metadata.stale }} {{ dt.stale }}</span>{% endif %}
     </td>
 	<td class="admin-version-cell">
-        {% if is_installed %}{{service.2['current_version']}}{% else %}—{% endif %}
+        {% if is_installed %}<b id="current-version-{{ service.0 }}" title="{{ u[version.version_source] }}">{{ version.current_version }}</b>{% else %}<span title="{{ u.unknown_version }}">—</span>{% endif %}
     </td>
+    <td class="admin-version-cell">{% if metadata.category == 'internal' %}{{ versions.new_ver or '—' }}{% else %}{{ version.new_version if version.latest_known else '—' }}{% endif %}</td>
 	<td class="admin-actions-cell">
-        {% if metadata.get('can_lifecycle') and is_installed %}
+        {% if has_diagnostics or can_install or (metadata.can_lifecycle and is_installed) %}
 		{% call admin_action_menu(lang.words.actions|title()) %}
+        {% if has_diagnostics %}
+        <button type="button" class="admin-action-item service-diagnostics-trigger" data-service-name="{{ service_info.name }}" data-diagnostics-url="{{ url_for('admin.worker_diagnostics', service=service.0) }}">
+            <span class="fas fa-info-circle" aria-hidden="true"></span> {{ dt.open }}
+        </button>
+        {% endif %}
+        {% if service.0 == 'roxy-wi-prometheus-exporter' and metadata.can_update_package %}
+        <button type="button" class="admin-action-item" onclick="updateService('roxy-wi-prometheus-exporter')">
+            <span class="fas fa-download" aria-hidden="true"></span> {{ lang.words.w_update|title() }}
+        </button>
+        {% endif %}
+        {% if can_install %}
+        <button type="button" class="admin-action-item" data-tool-install="{{ service.0|replace('roxy-wi-', '') }}">
+            <span class="fas fa-download" aria-hidden="true"></span> {{ lang.tool_install.install }}
+        </button>
+        {% endif %}
+        {% if metadata.get('can_lifecycle') and is_installed %}
 		<button type="button" id="start-{{ service.0 }}" class="admin-action-item" {% if service.1 in ('active', 'RUNNING', 'degraded') %}disabled{% else %}onclick="{{onclick_start_action}}"{% endif %}>
 			<span class="fas fa-play" aria-hidden="true"></span> {{lang.words.start|title()}}
 		</button>
@@ -61,6 +80,7 @@
 		<button type="button" id="stop-{{ service.0 }}" class="admin-action-item admin-action-item-danger" {% if service.1 in ('inactive', 'failed', 'STOPPED', 'stopped') %}disabled{% else %}onclick="{{onclick_stop_action}}"{% endif %}>
 			<span class="fas fa-stop" aria-hidden="true"></span> {{lang.words.stop|title()}}
 		</button>
+		{% endif %}
 		{% endcall %}
         {% elif metadata.get('can_lifecycle') and not is_installed %}
             {% if service.0 in ('rabbitmq-server', 'fail2ban') %}
@@ -77,10 +97,30 @@
 </tr>
 {% endmacro %}
 
+<tr id="roxy-wi" class="admin-tool-row">
+    <td class="padding10 first-collumn"><b>Roxy-WI</b></td>
+    <td>—</td><td>—</td>
+    <td class="admin-version-cell">{{ versions.current_ver }}</td>
+    <td class="admin-version-cell">{{ versions.new_ver or '—' }}</td>
+    <td class="admin-actions-cell">
+        {% call admin_action_menu(lang.words.actions|title()) %}
+            <button type="button" class="admin-action-item" onclick="checkUpdateRoxy()">
+                <span class="fas fa-sync" aria-hidden="true"></span> {{ lang.words.check|title() }} {{ lang.words.new4 }} {{ lang.words.versions }}
+            </button>
+            {% if package_deployment and versions.need_update %}
+            <button type="button" class="admin-action-item" onclick="updateService('roxy-wi')">
+                <span class="fas fa-download" aria-hidden="true"></span> {{ lang.words.w_update|title() }}
+            </button>
+            {% endif %}
+        {% endcall %}
+    </td>
+    <td>{{ lang.admin_page.desc.main_app }}{% if not package_deployment %}<br><small title="{{ u.external_help }}">{{ u.external_update }}</small>{% endif %}</td>
+    <td></td>
+</tr>
 {% for category, title in (('internal', 'Roxy-WI processes'), ('distributed', 'Distributed services'), ('local', 'Local and infrastructure services')) %}
     {% set category_services = services|selectattr('4.category', 'equalto', category)|list %}
     {% if category_services %}
-    <tr class="admin-tools-section"><td colspan="7">{{ title }}</td></tr>
+    <tr class="admin-tools-section"><td colspan="8">{{ title }}</td></tr>
     {% for service in category_services %}{{ render_service(service) }}{% endfor %}
     {% endif %}
 {% endfor %}

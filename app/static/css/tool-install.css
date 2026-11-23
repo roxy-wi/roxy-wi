@@ -1,0 +1,10 @@
+.ui-dialog.tool-install-dialog { z-index: 10010 !important; max-height: calc(100vh - 32px); }
+.tool-install-dialog .ui-dialog-content { max-height: calc(100vh - 170px) !important; overflow-y: auto; }
+.tool-install-dialog .ui-selectmenu-menu { z-index: 10012; }
+#tool-install-dialog [hidden] { display: none !important; }
+#tool-install-form p { margin: 12px 0; }
+#tool-install-form label { display: block; margin-bottom: 6px; }
+#tool-install-form .form-control { width: 100%; box-sizing: border-box; }
+#tool-install-form .rw-form-help { font-size: .9em; color: var(--color-secondary); }
+#tool-install-form .rw-page-help { margin-top: 16px; }
+#tool-install-dialog summary { cursor: pointer; padding: 8px 0; }

@@ -1,0 +1,6 @@
+---
+- name: Pull the Docker image
+  community.docker.docker_image:
+    name: "{{ roxywi_install.image }}"
+    source: pull
+  when: roxywi_service_engine == 'docker'

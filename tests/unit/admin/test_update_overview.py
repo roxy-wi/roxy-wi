@@ -11,7 +11,7 @@ from app.routes.admin import routes
 
 
 def service(name='roxy-wi-metrics', current='1.0', latest='4.0.0', workers=None):
-    return [name, 'unknown', {'current_version': current, 'new_version': latest},
+    return [name, 'unknown', {'current_version': current, 'new_version': latest, 'is_roxy': True},
             workers or {}, {'category': 'distributed', 'deployment_mode': 'compose'}]
 
 
@@ -33,9 +33,9 @@ def test_update_route_loads_evidence_and_disables_package_actions_in_containers(
     rows = [service()]
     monkeypatch.setattr(routes, 'get_update_services', lambda: rows)
     monkeypatch.setattr(routes, 'render_template', lambda name, **kwargs: captured.update(kwargs) or name)
-    with app.test_request_context('/admin/update'):
-        response = routes.update_roxywi()
-        assert response.get_data(as_text=True) == 'ajax/load_updateroxywi.html'
+    with app.test_request_context('/admin/tools'):
+        response = routes.show_tools()
+        assert response.get_data(as_text=True) == 'ajax/load_services.html'
         assert response.headers['Cache-Control'] == 'no-store'
     assert captured['services'] is rows
     assert captured['package_deployment'] is False
@@ -116,7 +116,7 @@ def test_package_updates_still_work_and_do_not_modify_stored_version_data():
     result = updates.prepare_updates([row], 'package', packages={'roxy-wi-metrics': row[2]})
     assert result[0][4]['can_update_package'] is True
     assert result[0][2]['current_version'] == '3.8'
-    assert row[2] == {'current_version': '3.8', 'new_version': '4.0.0'}
+    assert row[2] == {'current_version': '3.8', 'new_version': '4.0.0', 'is_roxy': True}
 
 
 def test_remote_worker_does_not_offer_an_update_of_a_missing_local_package():
@@ -138,7 +138,8 @@ def test_inventory_rejects_future_and_expired_snapshots(tmp_path, monkeypatch, a
     assert updates.load_inventory(now=now) is None
 
 
-@pytest.mark.parametrize('payload', ['{', '[]', '{"schema":1,"complete":false}', 'x' * (1024 * 1024 + 1)])
+@pytest.mark.parametrize('payload', ['{', '[]', '{"schema":1,"complete":false}', 'x' * (1024 * 1024 + 1)],
+                         ids=['bad-json', 'array', 'incomplete', 'oversized'])
 def test_bad_inventory_never_breaks_the_page(tmp_path, monkeypatch, payload):
     path = tmp_path / 'inventory.json'
     path.write_text(payload)
@@ -172,8 +173,8 @@ def test_malformed_inventory_records_cannot_confirm_installation(tmp_path, monke
 def test_update_page_renders_verified_versions_and_external_management(app, language):
     rows = updates.prepare_updates([service(workers=worker()),
                                     service('roxy-wi-prometheus-exporter')], 'compose')
-    with app.test_request_context('/admin/update'):
-        html = render_template('ajax/load_updateroxywi.html', services=rows, lang=language,
+    with app.test_request_context('/admin/tools'):
+        html = render_template('ajax/load_services.html', services=rows, lang=language,
                                versions={'current_ver':'9.2.0','new_ver':'9.3.0','need_update':1},
                                package_deployment=False)
     assert '4.0.0' in html
@@ -183,13 +184,14 @@ def test_update_page_renders_verified_versions_and_external_management(app, lang
 
 
 def test_package_update_action_renders_for_semantic_version_difference(app):
-    row = service(current='4.9',latest='4.10')
-    rows = updates.prepare_updates([row], 'package', packages={'roxy-wi-metrics': row[2]})
-    with app.test_request_context('/admin/update'):
-        html = render_template('ajax/load_updateroxywi.html', services=rows, lang='en',
+    row = service('roxy-wi-prometheus-exporter', current='4.9', latest='4.10')
+    row[4].update(category='local', can_lifecycle=True)
+    rows = updates.prepare_updates([row], 'package', packages={row[0]: row[2]})
+    with app.test_request_context('/admin/tools'):
+        html = render_template('ajax/load_services.html', services=rows, lang='en',
                                versions={'current_ver':'9.2.0','new_ver':'9.2.0','need_update':0},
                                package_deployment=True)
-    assert "updateService('roxy-wi-metrics')" in html
+    assert "updateService('roxy-wi-prometheus-exporter')" in html
 
 
 @pytest.fixture()
@@ -309,3 +311,19 @@ def test_publication_pins_directory_if_parent_is_replaced(collector, tmp_path, m
     collector.publish(runtime/'inventory.json', [])
     assert not (outside/'inventory.json').exists()
     assert json.loads((moved/'inventory.json').read_text())['complete'] is True
+
+
+def test_native_rpm_release_is_displayed_even_when_it_is_not_pep440():
+    name = 'rabbitmq-server'
+    row = service(name, current='4.3.6.1.el8')
+    versions = updates.prepare_updates([row], 'package', packages={name: row[2]})[0][2]
+    assert versions['version_known']
+    assert versions['current_version'] == '4.3.6.1.el8'
+    assert not versions['need_update']
+
+
+def test_equivalent_package_and_worker_versions_use_worker_spelling():
+    row = service(current='5.1.0.0', latest='5.1.0', workers=worker('5.1.0'))
+    versions = updates.prepare_updates([row], 'package', packages={row[0]: row[2]})[0][2]
+    assert versions['current_version'] == '5.1.0'
+    assert not versions['need_update']

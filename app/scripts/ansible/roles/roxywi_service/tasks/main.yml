@@ -1,0 +1,42 @@
+---
+- name: Validate the requested service and stage
+  ansible.builtin.assert:
+    that:
+      - roxywi_install.component in roxywi_service_versions
+      - roxywi_install.stage in ['check', 'install']
+      - roxywi_service_engine in ['native', 'docker', 'podman']
+      - roxywi_install.component != 'keep_alive' or roxywi_service_engine == 'native'
+    fail_msg: 'roxywi_error:invalid_configuration'
+
+- name: Read the host platform
+  ansible.builtin.setup:
+    gather_subset:
+      - '!all'
+  no_log: true
+
+- name: Require systemd and a supported package manager
+  ansible.builtin.assert:
+    that: ansible_facts.service_mgr == 'systemd'
+    fail_msg: 'roxywi_error:systemd_required'
+
+- name: Require a Debian or Red Hat package platform
+  ansible.builtin.assert:
+    that: ansible_facts.pkg_mgr in ['apt', 'dnf', 'dnf5', 'yum']
+    fail_msg: 'roxywi_error:unsupported_os'
+
+- name: Inspect the selected server before changing it
+  ansible.builtin.include_tasks: inspect.yml
+
+- name: Require shared storage before adding another worker host
+  ansible.builtin.assert:
+    that: >-
+      roxywi_install.worker_hosts | default([]) | difference([ansible_facts.hostname]) | length == 0 or
+      roxywi_install.environment.get(roxywi_service_db_key,
+        roxywi_existing_database if roxywi_service_engine == 'native' else roxywi_container_database)
+        is search('^[^a-zA-Z]?mysql([+]pymysql)?://')
+    fail_msg: 'roxywi_error:shared_database_required'
+  when: roxywi_install.stage == 'install' and roxywi_install.component in ['checker', 'metrics', 'portscanner']
+
+- name: Install, update or reconfigure the service
+  ansible.builtin.include_tasks: install.yml
+  when: roxywi_install.stage == 'install'

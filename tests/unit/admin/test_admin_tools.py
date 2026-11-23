@@ -3,8 +3,22 @@ from pathlib import Path
 import pytest
 from flask import render_template
 
-from app.modules.tools import common as tools_common
+from app.modules.tools import common as tools_common, updates
 from app.routes.admin import routes as admin_routes
+
+
+@pytest.mark.parametrize('latest,expected', [
+    ('5.2.9', ['5.2.9']), (' 5.3.0-rc1\n', ['5.3.0-rc1']),
+    ('0', []), ('', []), ('<html>Error</html>', []), ('latest', []),
+    ('other/image:5.2.9', []), ('5.2.9;command', []), ('5.' + '1' * 64, []),
+])
+def test_container_versions_use_only_release_values_from_database(monkeypatch, latest, expected):
+    monkeypatch.setattr(tools_common.roxy_sql, 'get_all_tools', lambda: {
+        'roxy-wi-checker': dict(current_version='5.0.0', new_version=latest),
+        'roxy-wi-keep_alive': dict(current_version='3.0', new_version='3.8.1'),
+        'roxy-wi-prometheus-exporter': dict(current_version='1.0', new_version='2.0'),
+    })
+    assert tools_common.tool_container_versions() == {'checker': expected}
 
 
 def test_tools_route_leaves_failures_to_the_global_error_handler(app, monkeypatch):
@@ -19,7 +33,7 @@ def test_tools_route_leaves_failures_to_the_global_error_handler(app, monkeypatc
         'get_services_status',
         lambda **_kwargs: (_ for _ in ()).throw(RuntimeError('tools failed')),
     )
-    monkeypatch.setattr(admin_routes.service_event_sql, 'worker_summary', lambda: {})
+    monkeypatch.setattr(updates.service_event, 'worker_summary', lambda: {})
 
     with app.test_request_context('/admin/tools'):
         with pytest.raises(RuntimeError, match='tools failed'):
@@ -32,7 +46,7 @@ def test_tools_route_passes_worker_heartbeats_to_status_loader(app, monkeypatch)
 
     monkeypatch.setattr(admin_routes.roxywi_auth, 'page_for_admin', lambda: None)
     monkeypatch.setattr(admin_routes.roxywi_common, 'get_user_lang_for_flask', lambda: 'en')
-    monkeypatch.setattr(admin_routes.service_event_sql, 'worker_summary', lambda: worker_states)
+    monkeypatch.setattr(updates.service_event, 'worker_summary', lambda: worker_states)
 
     def fake_get_services_status(**kwargs):
         captured.update(kwargs)
@@ -42,7 +56,7 @@ def test_tools_route_passes_worker_heartbeats_to_status_loader(app, monkeypatch)
     monkeypatch.setattr(admin_routes, 'render_template', lambda *_args, **_kwargs: 'rendered')
 
     with app.test_request_context('/admin/tools'):
-        assert admin_routes.show_tools() == 'rendered'
+        assert admin_routes.show_tools().get_data(as_text=True) == 'rendered'
 
     assert captured == {'update_cur_ver': 1, 'worker_states': worker_states}
 
@@ -153,12 +167,13 @@ def test_tools_template_renders_worker_health_and_version_before_actions(app):
     ]
 
     with app.test_request_context('/admin/tools'):
-        html = render_template('ajax/load_services.html', services=[service], lang='en')
+        html = render_template('ajax/load_services.html', services=updates.prepare_updates([service], 'package'),
+                               versions={'current_ver': '10.1', 'new_ver': '10.1'}, lang='en', package_deployment=True)
 
     assert 'serverWarn server-status' in html
     assert 'workers: active 1; degraded 1' in html
     assert 'Distributed services' in html
-    assert 'Worker deployment' in html
+    assert 'data-tool-install="checker"' in html
     assert html.index('admin-version-cell') < html.index('admin-actions-cell')
 
     admin_template = Path('app/templates/admin.html').read_text(encoding='utf-8')
@@ -182,7 +197,8 @@ def test_tools_template_labels_socket_activity_as_connections(app):
     ]
 
     with app.test_request_context('/admin/tools'):
-        html = render_template('ajax/load_services.html', services=[service], lang='en')
+        html = render_template('ajax/load_services.html', services=updates.prepare_updates([service], 'package'),
+                               versions={'current_ver': '10.1', 'new_ver': '10.1'}, lang='en', package_deployment=True)
 
     assert 'workers: 2; connections: 4' in html
 

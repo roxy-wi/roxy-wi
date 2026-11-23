@@ -1,0 +1,58 @@
+---
+- name: Configure the standalone worker
+  when: roxywi_install.component != 'keep_alive'
+  block:
+    - name: Create the worker configuration directory
+      ansible.builtin.file:
+        path: /etc/roxy-wi
+        state: directory
+        mode: '0755'
+
+    - name: Locate the previous managed environment
+      ansible.builtin.stat:
+        path: "{{ roxywi_service_env_path }}"
+      register: roxywi_previous_env_file
+
+    - name: Read the previous managed database setting
+      ansible.builtin.slurp:
+        src: "{{ roxywi_service_env_path }}"
+      register: roxywi_previous_env
+      when: roxywi_previous_env_file.stat.exists
+      no_log: true
+
+    - name: Write the worker environment while retaining an unspecified database
+      ansible.builtin.template:
+        src: environment.j2
+        dest: "{{ roxywi_service_env_path }}"
+        owner: root
+        group: root
+        mode: '0600'
+      no_log: true
+
+    - name: Write the Socket JWT verification key
+      ansible.builtin.copy:
+        content: "{{ roxywi_install.public_key }}"
+        dest: /etc/roxy-wi/socket-ux-public.pem
+        owner: root
+        group: root
+        mode: '0644'
+      when: roxywi_install.component == 'socket' and roxywi_install.public_key is defined
+      no_log: true
+
+    - name: Create the service override directory
+      ansible.builtin.file:
+        path: "/etc/systemd/system/{{ roxywi_service_unit }}.service.d"
+        state: directory
+        mode: '0755'
+
+    - name: Load the managed environment after package defaults
+      ansible.builtin.copy:
+        content: "[Service]\nEnvironmentFile={{ roxywi_service_env_path }}\n"
+        dest: "/etc/systemd/system/{{ roxywi_service_unit }}.service.d/20-roxy-wi-ux.conf"
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Reload service definitions
+      ansible.builtin.systemd_service:
+        daemon_reload: true

@@ -1,0 +1,13 @@
+---
+- name: Inspect the installed service
+  ansible.builtin.include_tasks: inspect.yml
+
+- name: Verify the requested running state
+  ansible.builtin.assert:
+    that: ansible_facts.services.get(roxywi_service_unit ~ '.service', {}).get('state') == 'running'
+  when: roxywi_service_engine == 'native'
+
+- name: Verify the container is running
+  ansible.builtin.assert:
+    that: roxywi_current_container.get('State', {}).get('Running', false)
+  when: roxywi_service_engine != 'native'

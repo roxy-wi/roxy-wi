@@ -1,0 +1,6 @@
+{% for name, value in roxywi_install.environment.items() %}
+{{ name }}={{ value | string | to_json(ensure_ascii=False) }}
+{% endfor %}
+{% for line in (roxywi_previous_env.content | default('') | b64decode).splitlines() if line.split('=', 1)[0].strip() not in roxywi_install.environment %}
+{{ line }}
+{% endfor %}

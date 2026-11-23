@@ -176,5 +176,12 @@ def check_geoip(service: Literal['haproxy', 'nginx'], server_ip: Union[IPvAnyAdd
 @bp.route('/task-status/<int:task_id>')
 @get_user_params()
 def get_task_status(task_id):
-    task = InstallationTasks.get((InstallationTasks.id == task_id) & (InstallationTasks.group_id == g.user_params['group_id']))
-    return jsonify({'task_id': task_id, 'status': task.status, 'service_name': task.service_name, 'error': task.error}), 200
+    task = InstallationTasks.get_or_none(
+        (InstallationTasks.id == task_id) & (InstallationTasks.group_id == g.user_params['group_id']))
+    if task is None:
+        abort(404)
+    response = dict(task_id=task_id, status=task.status, service_name=task.service_name, error=task.error)
+    if task.service_name.startswith('roxy-wi-') and task.error:
+        from app.modules.tools.common import tool_install_error
+        response['error_code'] = tool_install_error(task.error)
+    return jsonify(response)

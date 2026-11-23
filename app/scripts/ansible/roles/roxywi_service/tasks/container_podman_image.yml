@@ -1,0 +1,6 @@
+---
+- name: Pull the Podman image
+  containers.podman.podman_image:
+    name: "{{ roxywi_install.image }}"
+    state: present
+  when: roxywi_service_engine == 'podman'

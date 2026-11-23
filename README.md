@@ -111,6 +111,19 @@ or read the full [quick-start guide](https://roxy-wi.org/description/operations#
 | Podman on a Linux host | [Native Quadlet controller deployment](docs/podman-controller.md), with system or rootless user units, GPG-encrypted Podman secrets, SQLite and local HTTPS; awaiting Debian/EL VM qualification |
 | Kubernetes | [Published Helm chart](https://github.com/roxy-wi/roxy-wi/pkgs/container/roxy-wi-charts), [deployment guide](https://roxy-wi.org/description/operations#kubernetes) and [chart source](helm/roxy-wi) |
 
+In **Administration → Tools**, each optional service's menu provides **Install / update**.
+Checker, Metrics, Portscanner and Socket support packages, Docker and Podman on an
+existing server or the native Roxy-WI host. Keep Alive supports a local package only.
+Installation uses the Operations queue and Ansible; service health continues to use
+the existing heartbeat diagnostics. RabbitMQ settings come from Administration and
+must be reachable from the selected server.
+
+For local package installation, the native Operations worker needs passwordless sudo
+and permission to write package files. A systemd unit using `ProtectSystem=full` needs
+`ReadWritePaths=/usr /etc` in its service configuration. Ansible's local temporary
+files use the configured private data directory, so `ProtectHome=true` can remain
+enabled. Reload systemd and restart Operations after changing its unit.
+
 ### Install the Helm chart
 
 The chart is published at `oci://ghcr.io/roxy-wi/roxy-wi-charts`.

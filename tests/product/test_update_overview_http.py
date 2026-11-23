@@ -1,4 +1,6 @@
 import json
+
+from bs4 import BeautifulSoup
 from datetime import timedelta
 
 from app.modules.common.time import utc_now
@@ -20,13 +22,13 @@ def test_update_endpoint_uses_live_worker_evidence_and_stopped_inventory(product
     RoxyTool.update(new_version='4.0.0',current_version='1.0').where(RoxyTool.name=='roxy-wi-metrics').execute()
     RoxyTool.update(new_version='1.6',current_version='1.0').where(RoxyTool.name=='roxy-wi-prometheus-exporter').execute()
 
-    response = product_client.get('/admin/update')
+    response = product_client.get('/admin/tools')
 
     assert response.status_code == 200
     assert response.headers['Cache-Control'] == 'no-store'
     assert 'current-version-roxy-wi-metrics' in response.text
     assert '>4.0.0</b>' in response.text
-    exporter = response.text.split('data-update-service="roxy-wi-prometheus-exporter"',1)[1].split('</tr>',1)[0]
+    exporter = response.text.split('id="roxy-wi-prometheus-exporter"',1)[1].split('</tr>',1)[0]
     assert '>1.6</b>' in exporter
     assert 'Stopped' in exporter
     assert 'updateService(' not in response.text
@@ -36,16 +38,19 @@ def test_update_endpoint_uses_live_worker_evidence_and_stopped_inventory(product
 def test_update_endpoint_does_not_claim_seeded_components_are_installed(product_client, product, monkeypatch):
     monkeypatch.setenv('ROXYWI_DEPLOYMENT_MODE', 'compose')
     monkeypatch.setenv('ROXYWI_DEPLOYMENT_INVENTORY_FILE', str(product.root / 'missing.json'))
-    response = product_client.get('/admin/update')
+    response = product_client.get('/admin/tools')
     assert response.status_code == 200
     assert 'current-version-roxy-wi-metrics' not in response.text
     assert 'current-version-roxy-wi-keep_alive' not in response.text
     assert 'No current report' in response.text
+    table = BeautifulSoup(response.text, 'html.parser')
+    for name in ('fail2ban', 'rabbitmq-server'):
+        assert table.find(id=name).select('.admin-version-cell')[1].get_text(strip=True) == '—'
 
 
 def test_non_admin_cannot_read_deployment_versions(product_client, product, monkeypatch):
     monkeypatch.setattr('app.modules.tools.updates.load_inventory', lambda: (_ for _ in ()).throw(
         AssertionError('inventory read before authorization')))
     UserGroups.update(user_role_id=2).where(UserGroups.user_id==product.admin.user_id).execute()
-    response = product_client.get('/admin/update')
+    response = product_client.get('/admin/tools')
     assert response.status_code == 403

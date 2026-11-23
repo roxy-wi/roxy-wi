@@ -132,7 +132,8 @@ def test_successful_installation_activates_service_before_completing_task(monkey
 
 @pytest.mark.security
 @pytest.mark.parametrize('role,approved', [('haproxy', False), ('haproxy', True),
-                                          ('podman_proxy', False), ('ha_cluster_exporter', False)])
+                                          ('podman_proxy', False), ('ha_cluster_exporter', False),
+                                          ('roxywi_service', True)])
 def test_ansible_inventory_is_private_unique_and_removed_after_runner_error(tmp_path, monkeypatch, role, approved):
     private_data_dir = tmp_path / 'ansible'
     inventory_dir = private_data_dir / 'inventory'

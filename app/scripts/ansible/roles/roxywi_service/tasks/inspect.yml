@@ -1,0 +1,78 @@
+---
+- name: Read installed packages
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Read systemd service state
+  ansible.builtin.service_facts:
+
+- name: Check the local application needed by Keep Alive
+  ansible.builtin.stat:
+    path: "{{ roxywi_install.application_path }}/app/modules/db/sql.py"
+  register: roxywi_application
+  when: roxywi_install.component == 'keep_alive'
+
+- name: Require the local Roxy-WI application for Keep Alive
+  ansible.builtin.assert:
+    that:
+      - ansible_connection | default('ssh') == 'local'
+      - roxywi_application.stat.isreg | default(false)
+    fail_msg: 'roxywi_error:keep_alive_local'
+  when: roxywi_install.component == 'keep_alive'
+
+- name: Check RabbitMQ from the installation target
+  when: roxywi_install.component != 'keep_alive' and roxywi_install.rabbit_host is defined
+  block:
+    - name: Connect to the configured broker
+      ansible.builtin.wait_for:
+        host: "{{ roxywi_install.rabbit_host }}"
+        port: "{{ roxywi_install.rabbit_port }}"
+        connect_timeout: 3
+        timeout: 5
+        state: started
+  rescue:
+    - name: Report an unreachable broker
+      ansible.builtin.fail:
+        msg: 'roxywi_error:rabbit_unreachable'
+
+- name: Locate existing worker environment files
+  ansible.builtin.stat:
+    path: "{{ item }}"
+  loop:
+    - "/etc/roxy-wi/{{ roxywi_install.component }}.env"
+    - "{{ roxywi_service_env_path }}"
+  register: roxywi_environment_files
+  no_log: true
+
+- name: Read existing worker database configuration
+  ansible.builtin.slurp:
+    src: "{{ item.stat.path }}"
+  loop: "{{ roxywi_environment_files.results }}"
+  when: item.stat.exists
+  register: roxywi_existing_environments
+  no_log: true
+
+- name: Select the effective database setting without exposing it
+  ansible.builtin.set_fact:
+    roxywi_existing_database: "{{ (roxywi_existing_environments.results | selectattr('content', 'defined') | map(attribute='content') | map('b64decode') | join('\n') | regex_findall('(?m)^' ~ roxywi_service_db_key ~ '=(.*)$') | last) | default('') }}"
+  no_log: true
+
+- name: Return nonsecret installation facts
+  ansible.builtin.set_stats:
+    aggregate: false
+    data:
+      roxywi_service:
+        engine: native
+        installed: "{{ roxywi_service_package in ansible_facts.packages }}"
+        hostname: "{{ ansible_facts.hostname }}"
+        manager: "{{ ansible_facts.pkg_mgr }}"
+        unit: "{{ roxywi_service_unit }}"
+        package: "{{ roxywi_service_package }}"
+        minimum: "{{ roxywi_service_versions[roxywi_install.component] }}"
+        version: "{{ (ansible_facts.packages[roxywi_service_package] | default([]) | first | default({})).get('version', '') }}"
+        state: "{{ 'active' if ansible_facts.services.get(roxywi_service_unit ~ '.service', {}).get('state') == 'running' else 'inactive' }}"
+        shared_database: "{{ roxywi_existing_database is search('^[^a-zA-Z]?mysql([+]pymysql)?://') }}"
+
+- name: Inspect container installations and prevent conflicting runtimes
+  ansible.builtin.include_tasks: container_inspect.yml
+  when: roxywi_install.component != 'keep_alive'

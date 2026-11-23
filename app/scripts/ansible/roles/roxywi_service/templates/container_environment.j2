@@ -1,0 +1,3 @@
+{% for key, value in (roxywi_saved_container_env.content | b64decode | from_json).items() %}
+{{ key }}={{ value }}
+{% endfor %}

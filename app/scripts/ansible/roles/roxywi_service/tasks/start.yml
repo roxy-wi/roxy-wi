@@ -1,0 +1,6 @@
+---
+- name: Start the service and enable it on boot
+  ansible.builtin.systemd_service:
+    name: "{{ roxywi_service_unit }}"
+    enabled: true
+    state: restarted

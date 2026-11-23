@@ -1,4 +1,5 @@
 import re
+from urllib.parse import urlsplit
 from annotated_types import Gt, Le
 from typing import Optional, Annotated, Union, Literal, Any, Dict, List
 
@@ -872,3 +873,26 @@ class NginxProxyPassRequest(BaseModel):
     compression_min_length: Optional[int] = 1024
     compression_types: Optional[str] = 'text/plain text/css application/json application/javascript text/xml'
     security: Optional[NginxProxyPassSecurity]
+
+
+class ToolInstallRequest(BaseModel):
+    """Installation choices; host identity and credentials stay in Server/Cred."""
+
+    model_config = ConfigDict(extra='forbid')
+    component: Literal['checker', 'metrics', 'portscanner', 'socket', 'keep_alive']
+    engine: Literal['native', 'docker', 'podman'] = 'native'
+    version: str = Field(default='', max_length=64)
+    server_id: int | None = Field(default=None, strict=True, gt=0)
+    database_url: str = Field(default='', max_length=2048)
+    socket_port: int = Field(default=8765, strict=True, ge=1, le=65535)
+
+    @field_validator('database_url')
+    @classmethod
+    def plain_value(cls, value):
+        if any(ord(char) < 32 for char in value):
+            raise ValueError('Control characters are not allowed')
+        value = value.strip()
+        parsed = urlsplit(value)
+        if value and (parsed.scheme not in ('mysql', 'mysql+pymysql') or not parsed.hostname):
+            raise ValueError('Use a MySQL database URL')
+        return value

@@ -1,0 +1,49 @@
+---
+- name: Locate the selected runtime
+  ansible.builtin.stat:
+    path: "/usr/bin/{{ roxywi_service_engine }}"
+  register: roxywi_runtime
+
+- name: Install Docker using the existing Roxy-WI role
+  ansible.builtin.include_role:
+    name: docker
+  vars:
+    docker_users: []
+    docker_remove_podman: false
+    docker_install_python_dependencies: false
+  when: roxywi_service_engine == 'docker' and not roxywi_runtime.stat.exists
+
+- name: Install the Docker module dependency
+  ansible.builtin.package:
+    name: python3-requests
+    state: present
+  when: roxywi_service_engine == 'docker'
+
+- name: Start the Docker daemon
+  ansible.builtin.systemd_service:
+    name: docker
+    state: started
+    enabled: true
+  when: roxywi_service_engine == 'docker'
+
+- name: Install Podman
+  ansible.builtin.package:
+    name: podman
+    state: present
+  when: roxywi_service_engine == 'podman'
+
+- name: Check the Podman version
+  ansible.builtin.command:
+    argv: [/usr/bin/podman, --version]
+  register: roxywi_podman_version
+  changed_when: false
+  when: roxywi_service_engine == 'podman'
+
+- name: Require Podman with Quadlet support
+  ansible.builtin.assert:
+    that: (roxywi_podman_version.stdout | regex_search('[0-9]+\.[0-9]+\.[0-9]+')) is version('4.4.0', '>=')
+    fail_msg: 'roxywi_error:podman_version'
+  when: roxywi_service_engine == 'podman'
+
+- name: Pull the selected container image
+  ansible.builtin.include_tasks: "container_{{ roxywi_service_engine }}_image.yml"

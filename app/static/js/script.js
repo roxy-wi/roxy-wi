@@ -707,18 +707,11 @@ $( function() {
 			$("#tabs").tabs("option", "active", 6);
 			loadServices();
 		});
-		$(".updatehapwi").on("click", function () {
-			$('.menu li ul li').each(function () {
-				activeSubMenu($(this), 'updatehapwi');
-			});
-			$("#tabs").tabs("option", "active", 7);
-			loadupdatehapwi();
-		});
 		$(".oidc").on("click", function () {
 			$('.menu li ul li').each(function () {
 				activeSubMenu($(this), 'oidc');
 			});
-			$("#tabs").tabs("option", "active", 8);
+			$("#tabs").tabs("option", "active", 7);
 		});
 	}
 	$('.copyToClipboard').hover(function (){
@@ -1372,10 +1365,9 @@ function runInstallationTaskCheck(tasks_ids) {
 	toastr.info('Installation started. You can continue to use the system while it is installing');
 	tasks_ids.forEach(item => {
 		addItemToSessionStorageInstallTask(item);
-		setTimeout(function () {
-			setInterval(checkInstallationTask, 3000);
-		}, 5000);
 	});
+	clearInterval(checkInstallationTaskInterval);
+	checkInstallationTaskInterval = setInterval(checkInstallationTask, 3000);
 }
 function checkInstallationStatus(taskId) {
 	NProgress.configure({showSpinner: false});
@@ -1387,9 +1379,14 @@ function checkInstallationStatus(taskId) {
 				removeItemFromSessionStorage(taskId);
 			} else if (data.status === 'failed') {
 				const serviceName = escapeHtml(String(data.service_name || 'service'));
-				const operationError = escapeHtml(String(data.error || 'Unknown operations worker error'));
+				const messages = document.getElementById('tool-install-messages');
+				const translated = messages && data.error_code ? JSON.parse(messages.textContent)[data.error_code] : null;
+				const operationError = escapeHtml(String(translated || data.error || 'Unknown operations worker error'));
 				toastr.error('Cannot install ' + serviceName + '. Error: ' + operationError);
 				removeItemFromSessionStorage(taskId);
+			}
+			if (['completed', 'failed'].includes(data.status)) {
+				document.dispatchEvent(new CustomEvent('roxywi:installation-finished', {detail: data}));
 			}
 		}
 	});

@@ -7,12 +7,13 @@ import tempfile
 from pathlib import PurePosixPath
 from contextlib import contextmanager
 from typing import Callable, Union, Literal
-from packaging import version
 from urllib.parse import urlparse
 
 import ansible
 from ansible.module_utils.common.json import AnsibleJSONEncoder
 from ansible.utils.unsafe_proxy import wrap_var
+from packaging import version
+from packaging.specifiers import SpecifierSet
 from werkzeug.utils import secure_filename
 
 import app.modules.db.sql as sql
@@ -65,7 +66,7 @@ _ANSIBLE_ROLE_NAMES = (
 	'haproxy_exporter', 'haproxy_geoip', 'haproxy_section', 'keepalived',
 	'keepalived_exporter', 'ha_cluster_exporter', 'letsencrypt', 'letsencrypt_standalone', 'nginx',
 	'nginx_exporter', 'nginx_geoip', 'nginx_section', 'node_exporter',
-	's3_backup', 'udp', 'waf_haproxy', 'waf_nginx', 'podman_proxy',
+	's3_backup', 'udp', 'waf_haproxy', 'waf_nginx', 'podman_proxy', 'roxywi_service',
 )
 _ANSIBLE_PLAYBOOKS = {
 	role: f'{ANSIBLE_PROJECT_DIR}/roles/{role}.yml'
@@ -559,8 +560,9 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 			raise RuntimeError(f'Cannot start SSH agent: {error}') from error
 
 		ansible_runtime_environment = _prepare_ansible_runtime_dirs()
-		if ansible_role not in ('ha_cluster_exporter', 'podman_proxy'):
+		if ansible_role not in ('ha_cluster_exporter', 'podman_proxy', 'roxywi_service'):
 			_install_ansible_collections()
+		_prepare_service_collections(inv, ansible_role)
 		_install_ansible_roles(ansible_role)
 
 		for server_ip in server_ips:
@@ -629,7 +631,7 @@ def run_ansible(inv: dict, server_ips: list, ansible_role: str) -> dict:
 		)
 		if result.rc != 0:
 			raise RuntimeError(_ansible_runner_error(failure_events, output_lines))
-		return result.stats
+		return _ansible_result_stats(result, ansible_role)
 	finally:
 		_remove_inventory(inventory)
 		if agent_pid is not None:
@@ -648,8 +650,10 @@ def run_ansible_locally(inv: dict, ansible_role: str) -> dict:
 	proxy = sql.get_setting('proxy')
 	inv['server']['hosts']['localhost']['PROXY'] = proxy if proxy not in (None, '', 'None') else ''
 	ansible_runtime_environment = _prepare_ansible_runtime_dirs()
+	_prepare_service_collections(inv, ansible_role)
 
 	envvars = {
+		'ANSIBLE_REMOTE_TEMP': os.path.join(ANSIBLE_PRIVATE_DATA_DIR, 'remote-tmp'),
 		'ANSIBLE_DISPLAY_OK_HOSTS': 'no',
 		'ANSIBLE_SHOW_CUSTOM_STATS': 'no',
 		'ANSIBLE_DISPLAY_SKIPPED_HOSTS': "no",
@@ -681,7 +685,7 @@ def run_ansible_locally(inv: dict, ansible_role: str) -> dict:
 		)
 		if result.rc != 0:
 			raise RuntimeError(_ansible_runner_error(failure_events, output_lines))
-		return result.stats
+		return _ansible_result_stats(result, ansible_role)
 	finally:
 		_remove_inventory(inventory)
 
@@ -837,8 +841,22 @@ def _role_is_installed(role_name: str) -> bool:
 
 
 def _collection_is_installed(collection: str) -> bool:
-	collection_path = os.path.join('ansible_collections', *collection.split('.'))
-	return any(os.path.isdir(os.path.join(path, collection_path)) for path in ANSIBLE_COLLECTION_SEARCH_PATHS)
+	name, _, constraint = collection.partition(':')
+	collection_path = os.path.join('ansible_collections', *name.split('.'))
+	for search_path in ANSIBLE_COLLECTION_SEARCH_PATHS:
+		path = os.path.join(search_path, collection_path)
+		if not os.path.isdir(path):
+			continue
+		if not constraint:
+			return True
+		try:
+			with open(os.path.join(path, 'MANIFEST.json'), encoding='utf-8') as manifest:
+				installed_version = json.load(manifest)['collection_info']['version']
+			# Ansible loads the first directory, even if a later one is newer.
+			return isinstance(installed_version, str) and version.parse(installed_version) in SpecifierSet(constraint)
+		except (OSError, ValueError, KeyError):
+			return False
+	return False
 
 
 def _install_ansible_roles(ansible_role: str) -> None:
@@ -876,8 +894,37 @@ def _install_ansible_roles(ansible_role: str) -> None:
 			raise RuntimeError(f'Cannot install the {requirement[0]} Ansible role')
 
 
-def _install_ansible_collections() -> None:
-	collections = ('community.general', 'ansible.posix', 'community.docker', 'community.grafana', 'ansible.netcommon', 'ansible.utils')
+def _ansible_result_stats(result, ansible_role: str) -> dict:
+	"""Include optional-service facts omitted by Runner.stats in runner 2.x."""
+	if ansible_role != 'roxywi_service':
+		return result.stats
+	stats = dict(result.stats or {})
+	for event in getattr(result, 'events', ()):
+		if event.get('event') == 'playbook_on_stats':
+			stats['artifact_data'] = event.get('event_data', {}).get('artifact_data', {})
+	return stats
+
+
+def _prepare_service_collections(inv: dict, ansible_role: str) -> None:
+	"""Install only the collection required by the selected worker runtime."""
+	if ansible_role != 'roxywi_service':
+		return
+	for host in inv['server']['hosts'].values():
+		request = host.get('roxywi_install', {})
+		if request.get('stage') == 'check':
+			continue
+		collection = {'docker': 'community.docker:>=4.0.0,<5.0.0',
+			'podman': 'containers.podman:>=1.21.2,<2.0.0'}.get(request.get('engine'))
+		if collection:
+			collections = (collection,)
+			if request.get('engine') == 'docker' and request.get('stage') == 'install':
+				collections += ('community.general:>=9.0.0,<12.0.0',)  # Core 2.16-compatible repository role.
+			_install_ansible_collections(collections)
+
+
+def _install_ansible_collections(collections=None) -> None:
+	if collections is None:
+		collections = ('community.general', 'ansible.posix', 'community.docker', 'community.grafana', 'ansible.netcommon', 'ansible.utils')
 	trouble_link = 'Read <a href="https://roxy-wi.org/troubleshooting#ansible_collection" target="_blank" class="link">troubleshooting</a>'
 	missing_collections = [collection for collection in collections if not _collection_is_installed(collection)]
 	if not missing_collections:

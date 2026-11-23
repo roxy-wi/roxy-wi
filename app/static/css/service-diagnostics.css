@@ -1,9 +1,9 @@
-button.service-diagnostics-trigger {display:inline-flex; align-items:center; gap:6px; padding:2px 4px; margin:0; height:auto; min-width:22px; border:0; background:transparent; color:inherit; font:inherit; cursor:pointer; box-shadow:none; text-align:left;}
-button.service-diagnostics-trigger:hover {background:var(--color-gray-alpha); border-radius:4px;}
-button.service-diagnostics-trigger:focus-visible {outline:2px solid var(--color-blue); outline-offset:2px;}
+button.service-diagnostics-trigger:not(.admin-action-item) {display:inline-flex; align-items:center; gap:6px; padding:2px 4px; margin:0; height:auto; min-width:22px; border:0; background:transparent; color:inherit; font:inherit; cursor:pointer; box-shadow:none; text-align:left;}
+button.service-diagnostics-trigger:not(.admin-action-item):hover {background:var(--color-gray-alpha); border-radius:4px;}
+button.service-diagnostics-trigger:not(.admin-action-item):focus-visible {outline:2px solid var(--color-blue); outline-offset:2px;}
 #ajax-servers .admin-server-target {outline:2px solid var(--color-blue); outline-offset:-2px;}
-button.service-diagnostics-trigger .server-status-small, button.service-diagnostics-trigger .server-status {margin:0; flex-shrink:0;}
-.services-overview-meta button.service-diagnostics-trigger {padding:0; color:inherit; text-decoration:underline dotted; text-underline-offset:3px;}
+button.service-diagnostics-trigger:not(.admin-action-item) .server-status-small, button.service-diagnostics-trigger:not(.admin-action-item) .server-status {margin:0; flex-shrink:0;}
+.services-overview-meta button.service-diagnostics-trigger:not(.admin-action-item) {padding:0; color:inherit; text-decoration:underline dotted; text-underline-offset:3px;}
 #service-diagnostics {--sd-border:var(--color-gray); box-sizing:border-box; min-width:0;}
 #service-diagnostics a {color:var(--blue-color);}
 #service-diagnostics .sd-toolbar {display:flex; justify-content:flex-end; margin-bottom:12px;}

@@ -1,8 +1,10 @@
 from datetime import timedelta
 import os
+import re
 from pathlib import Path
 
 import pytest
+from flask_jwt_extended import create_access_token
 from playwright.sync_api import expect
 
 from app.modules.common.time import utc_now
@@ -26,6 +28,14 @@ def diagnostic_worker(product, monkeypatch):
                               metadata={'assignment_errors': {'metrics:nginx:server-11': 'Connection refused'}})
 
 
+def status_action(page, source, service='Metrics'):
+    if source == '/admin#tools':
+        row = page.locator('#roxy-wi-' + service.lower())
+        row.locator('.admin-actions-toggle').click()
+        return row.locator('.service-diagnostics-trigger')
+    return page.locator(f'.services-overview-name button[data-service-name="{service}"]')
+
+
 @pytest.mark.parametrize('locale,title,history_title', [
     ('en', 'Service diagnostics', 'Previous runs'), ('ru', 'Диагностика сервиса', 'Предыдущие запуски'),
     ('es-ES', 'Diagnóstico del servicio', 'Ejecuciones anteriores'),
@@ -40,7 +50,8 @@ def test_status_opens_localized_diagnostics_and_refreshes(logged_in, product_url
                        last_heartbeat=now - timedelta(hours=1), expires_at=now - timedelta(hours=1))
     page.context.add_cookies([{'name': 'lang', 'value': locale, 'url': product_url}])
     page.goto(product_url + '/admin#tools')
-    trigger = page.locator('#roxy-wi-metrics .admin-tool-status-cell button')
+    expect(page.locator('#roxy-wi-metrics .admin-tool-status-cell button')).to_have_count(0)
+    trigger = status_action(page, '/admin#tools')
     expect(trigger).to_be_visible()
     trigger.focus()
     page.keyboard.press('Enter')
@@ -67,7 +78,7 @@ def test_status_opens_localized_diagnostics_and_refreshes(logged_in, product_url
     assert dialog.evaluate('(node) => node.scrollWidth <= node.clientWidth + 1')
     page.keyboard.press('Escape')
     expect(dialog).to_be_hidden()
-    expect(trigger).to_be_focused()
+    expect(page.locator('#roxy-wi-metrics .admin-actions-toggle')).to_be_focused()
 
 
 def test_overview_status_opens_instance_history(logged_in, product_url, diagnostic_worker):
@@ -100,6 +111,40 @@ def test_overview_status_opens_instance_history(logged_in, product_url, diagnost
     expect(dialog.locator('.sd-worker')).to_have_count(1)
 
 
+@pytest.mark.parametrize('source', ['/admin#tools', '/overview'])
+def test_expired_session_returns_to_status_after_login(
+        logged_in, product_url, diagnostic_worker, app, product, source):
+    page = logged_in
+    page.route('**/overview/server/**', lambda route: route.fulfill(body=''))
+    page.route('**/metrics/*', lambda route: route.fulfill(status=503, json={'error': 'Synthetic host metrics unavailable'}))
+    page.goto(product_url + source)
+    trigger = status_action(page, source)
+    expect(trigger).to_be_visible()
+    # Expire an already open page's session; the diagnostics request uses the
+    # real JWT guard and must not disguise a 401 as a worker failure.
+    with app.app_context():
+        expired_token = create_access_token(
+            identity=str(product.admin.user_id),
+            additional_claims={'user_id': product.admin.user_id, 'group': 1},
+            expires_delta=timedelta(seconds=-1),
+        )
+    page.context.add_cookies([{
+        'name': app.config['JWT_ACCESS_COOKIE_NAME'], 'value': expired_token, 'url': product_url,
+    }])
+    trigger.click()
+    expect(page.get_by_role('textbox', name='Login', exact=True)).to_be_visible()
+    expect(page).to_have_url(re.compile(r'/login\?next='))
+    page.get_by_role('textbox', name='Login', exact=True).fill('admin')
+    page.get_by_role('textbox', name='Password', exact=True).fill('TestBootstrapPassword!')
+    page.get_by_role('button', name='Login', exact=True).click()
+    expect(page).to_have_url(product_url + source)
+    status_action(page, source).click()
+    dialog = page.get_by_role('dialog', name='Service diagnostics: Metrics', exact=True)
+    expect(dialog.locator('.sd-worker')).to_have_count(1)
+    expect(dialog).to_contain_text('metrics-one')
+    expect(dialog).to_contain_text('worker-ui')
+
+
 def test_web_shows_live_processes_separately_from_history(logged_in, product_url, diagnostic_worker):
     now = utc_now()
     for index, status in enumerate(('stopped', 'running', 'running')):
@@ -108,7 +153,7 @@ def test_web_shows_live_processes_separately_from_history(logged_in, product_url
                            last_heartbeat=now, expires_at=now + timedelta(minutes=5))
     page = logged_in
     page.goto(product_url + '/admin#tools')
-    page.locator('button[data-service-name="Web"]').click()
+    status_action(page, '/admin#tools', 'Web').click()
     dialog = page.get_by_role('dialog', name='Service diagnostics: Web', exact=True)
     expect(dialog.locator('.sd-worker')).to_have_count(1)
     expect(dialog.locator('.sd-worker')).to_have_attribute('data-worker-status', 'running')
@@ -126,7 +171,7 @@ def test_diagnostic_server_settings_navigate_to_exact_server(logged_in, product_
     page.route('**/overview/server/**', lambda route: route.fulfill(body=''))
     page.route('**/metrics/*', lambda route: route.fulfill(status=503, json={'error': 'Synthetic host metrics unavailable'}))
     page.goto(product_url + source)
-    trigger = page.locator('button[data-service-name="Metrics"]').first
+    trigger = status_action(page, source)
     trigger.click()
     dialog = page.get_by_role('dialog', name='Service diagnostics: Metrics', exact=True)
     dialog.get_by_role('link', name='Server settings', exact=True).click()
@@ -141,7 +186,7 @@ def test_diagnostic_server_settings_navigate_to_exact_server(logged_in, product_
     expect(page.locator('#hostname-11')).to_be_focused()
     page.locator('#admin-tabs a[href="#tools"]').click()
     page.reload()
-    page.locator('button[data-service-name="Metrics"]').first.click()
+    status_action(page, '/admin#tools').click()
     dialog.get_by_role('link', name='Server settings', exact=True).click()
     expect(page.locator('#hostname-11')).to_be_focused()
     expect(dialog).to_be_hidden()
@@ -150,7 +195,7 @@ def test_diagnostic_server_settings_navigate_to_exact_server(logged_in, product_
 def test_diagnostic_manage_services_link_closes_dialog(logged_in, product_url, diagnostic_worker):
     page = logged_in
     page.goto(product_url + '/admin#tools')
-    page.locator('button[data-service-name="Metrics"]').first.click()
+    status_action(page, '/admin#tools').click()
     dialog = page.get_by_role('dialog', name='Service diagnostics: Metrics', exact=True)
     dialog.get_by_role('link', name='Manage services', exact=True).click()
     expect(dialog).to_be_hidden()

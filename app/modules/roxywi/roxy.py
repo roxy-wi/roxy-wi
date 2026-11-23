@@ -42,19 +42,16 @@ def check_ver():
 def versions():
 	current_ver = get_service_version()
 	new_ver = roxy_sql.get_tool_new_version('roxy-wi')
-	json_data = {
-		'current_ver': current_ver,
-		'new_ver': new_ver,
-		'need_update': 0,
-	}
-
 	try:
-		if version.parse(current_ver) < version.parse(new_ver):
-			json_data['need_update'] = 1
-	except version.InvalidVersion as e:
-		roxywi_common.handle_json_exceptions(e, 'Cannot check new version')
+		available = version.Version(new_ver) if new_ver and new_ver.strip() != '0' else None
+	except version.InvalidVersion:
+		available = None
 
-	return json_data
+	return {
+		'current_ver': current_ver,
+		'new_ver': new_ver.strip() if available else '',
+		'need_update': int(available is not None and version.Version(current_ver) < available),
+	}
 
 
 def check_new_version(service):

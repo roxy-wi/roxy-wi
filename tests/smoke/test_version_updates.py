@@ -1,3 +1,5 @@
+import pytest
+
 from app import jobs
 import app.modules.db.roxy as roxy_sql
 from app.modules.db.db_model import RoxyTool
@@ -93,3 +95,11 @@ def test_roxywi_update_check_keeps_statistics_delivery(monkeypatch):
         'https://roxy-wi.org/version/get/roxy-wi',
         f'https://roxy-wi.org/version/send/{get_service_version()}',
     ]
+
+
+@pytest.mark.parametrize('latest', ['0', '', '<html>Service unavailable</html>'])
+def test_unavailable_release_does_not_offer_an_app_upgrade(monkeypatch, latest):
+    monkeypatch.setattr(roxy_sql, 'get_tool_new_version', lambda _: latest)
+    result = roxy.versions()
+    assert result['new_ver'] == ''
+    assert not result['need_update']

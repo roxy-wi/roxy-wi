@@ -43,6 +43,7 @@
 - name: Install pip3.
   package:
     name: python3-pip
+  when: docker_install_python_dependencies | bool
 
 - name: Update pip3.
   pip:
@@ -50,6 +51,7 @@
     extra_args: --upgrade
   vars:
     ansible_python_interpreter: /usr/bin/python3
+  when: docker_install_python_dependencies | bool
 
 - name: Install docker pips.
   pip:
@@ -58,3 +60,4 @@
       - docker-api
   vars:
     ansible_python_interpreter: /usr/bin/python3
+  when: docker_install_python_dependencies | bool

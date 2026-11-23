@@ -12,8 +12,6 @@ $( function() {
             loadServices();
         } else if (activeTab == '#settings') {
             loadSettings();
-        } else if (activeTab == '#updatehapwi') {
-            loadupdatehapwi();
         } else if (activeTab == '#backup') {
             loadBackup();
         } else if (activeTab == '#servers') {
@@ -33,17 +31,26 @@ window.onload = function() {
 			loadSettings();
 		} else if (activeTabIdx == 4) {
 			loadBackup();
-		} else if (activeTabIdx == 7) {
-			loadupdatehapwi();
 		}
 	}
 }
 function updateService(service, action='update') {
+	if (window.RoxywiToolInstall &&
+		['roxy-wi-checker', 'roxy-wi-metrics', 'roxy-wi-portscanner', 'roxy-wi-socket', 'roxy-wi-keep_alive'].includes(service)) {
+		window.RoxywiToolInstall.open(service.replace('roxy-wi-', ''));
+		return;
+	}
 	$("#ajax-update").html('')
 	$("#ajax-update").html(wait_mess);
 	$.ajax({
 		url: "/admin/tools/update/" + service,
 		type: "POST",
+		suppressGlobalError: true,
+		error: function (xhr) {
+			const detail = (xhr.responseJSON && xhr.responseJSON.error) || xhr.responseText || xhr.statusText;
+			RoxywiUI.toastError(detail, {action: 'POST /admin/tools/update/' + service});
+		},
+		complete: function () { $("#ajax-update").empty(); },
 		success: function (data) {
 			data = data.replace(/\s+/g, ' ');
 			if (data.indexOf('Complete!') != '-1' || data.indexOf('Unpacking') != '-1') {
@@ -85,7 +92,6 @@ function updateService(service, action='update') {
 				toastr.success(service + ' has been ' + action + 'ed');
 			}
 			$("#ajax-update").html('');
-			loadupdatehapwi();
 			loadServices();
 			loadVersion();
 		}
@@ -116,26 +122,11 @@ function loadServices() {
 		}
 	} );
 }
-function loadupdatehapwi() {
-	$.ajax({
-		url: "/admin/update",
-		success: function (data) {
-			data = data.replace(/\s+/g, ' ');
-			if (data.indexOf('danger') != '-1' || data.indexOf('unique') != '-1' || data.indexOf('error:') != '-1') {
-				toastr.error(data);
-			} else {
-				$('#ajax-updatehapwi-body').html(data);
-			}
-		}
-	} );
-}
 function checkUpdateRoxy() {
 	$.ajax({
 		url: "/admin/update/check",
 		type: "POST",
-		success: function (data) {
-			loadupdatehapwi();
-		}
+		success: function () { window.location.reload(); }
 	} );
 }
 function confirmAjaxServiceAction(action, service) {

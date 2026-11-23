@@ -1,0 +1,7 @@
+---
+- name: Install and start the service
+  ansible.builtin.include_tasks:
+    file: "{{ 'container_' if roxywi_service_engine != 'native' and install_step != 'verify' else '' }}{{ install_step }}.yml"
+  loop: [package, configure, start, verify]
+  loop_control:
+    loop_var: install_step

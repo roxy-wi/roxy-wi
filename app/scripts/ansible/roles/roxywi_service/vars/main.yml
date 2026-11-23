@@ -1,0 +1,15 @@
+---
+roxywi_service_versions:
+  checker: 5
+  metrics: 4
+  portscanner: 2
+  socket: 2
+  keep_alive: 3
+roxywi_service_unit: "roxy-wi-{{ roxywi_install.component }}"
+roxywi_service_package: "{{ roxywi_service_unit | replace('keep_alive', 'keep-alive') if ansible_facts.os_family == 'Debian' else roxywi_service_unit }}"
+roxywi_service_env_path: "/etc/roxy-wi/{{ roxywi_install.component }}-ux.env"
+roxywi_service_db_key: "{{ roxywi_install.component | upper }}_DATABASE_URL"
+roxywi_service_engine: "{{ roxywi_install.engine | default('native') }}"
+roxywi_container_unit: "roxywi-{{ roxywi_install.component }}-container"
+roxywi_container_env_path: "/etc/roxy-wi/{{ roxywi_install.component }}-container.json"
+roxywi_container_volumes: "{{ ['/var/lib/roxy-wi/containers/' ~ roxywi_install.component ~ ':/var/lib/roxy-wi/' ~ roxywi_install.component ~ ':Z'] + (['/etc/roxy-wi/socket-ux-public.pem:/etc/roxy-wi/socket-ux-public.pem:ro,z'] if roxywi_install.public_key is defined else []) }}"

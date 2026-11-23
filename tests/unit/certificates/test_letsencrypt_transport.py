@@ -2,6 +2,7 @@ import hashlib
 import json
 import os
 import shlex
+import socket
 import subprocess
 import sys
 from pathlib import Path
@@ -61,6 +62,8 @@ def deployment(tmp_path, monkeypatch):
     root.mkdir()
     monkeypatch.setattr(remote, 'ROOT', root)
     monkeypatch.setattr(remote.os, 'chown', lambda *args: None, raising=False)
+    if not hasattr(os, 'listxattr'):
+        monkeypatch.setattr(remote.os, 'listxattr', lambda path: [], raising=False)
     monkeypatch.setattr(remote, 'runtime_pid', lambda data: '123')
     monkeypatch.setattr(remote, 'runtime_request', lambda *args: 'Status: Used')
     monkeypatch.setattr(remote, 'verify_runtime', lambda *args, **kwargs: 'loaded')
@@ -352,6 +355,44 @@ def test_cached_pem_does_not_bypass_certbot_renewal_check(tmp_path, monkeypatch)
         certbot.obtain({'type': 'cloudflare', 'api_token': 'token', 'domains': ['example.com']},
                        SimpleNamespace(le_id=1, revision=1), SimpleNamespace(group_id='1'))
     assert len(calls) == 1
+
+
+@pytest.mark.parametrize('standalone', [True, False])
+def test_preflight_checks_standalone_port_without_issuing_or_reloading(
+        deployment, monkeypatch, standalone):
+    target, _root, data = deployment
+    command = MagicMock(return_value=b'')
+    socket_factory = MagicMock()
+    monkeypatch.setattr(remote, 'command', command)
+    monkeypatch.setattr(socket, 'socket', socket_factory)
+
+    assert remote.preflight(dict(data, standalone=standalone)) == {'checked': True}
+
+    command.assert_called_once_with(
+        ['haproxy', '-c', '-f', data['config_path']], 'HAProxy configuration validation')
+    if standalone:
+        socket_factory.assert_called_once_with(socket.AF_INET, socket.SOCK_STREAM)
+        listener = socket_factory.return_value.__enter__.return_value
+        listener.bind.assert_called_once_with(('0.0.0.0', 8888))
+        socket_factory.return_value.__exit__.assert_called_once_with(None, None, None)
+    else:
+        socket_factory.assert_not_called()
+    assert (target / 'example.pem').read_text() == 'OLD CERTIFICATE'
+    assert not list(target.glob('.roxywi-check-*'))
+
+
+def test_preflight_rejects_unavailable_standalone_port(deployment, monkeypatch):
+    _target, _root, data = deployment
+    monkeypatch.setattr(remote, 'command', lambda *args, **kwargs: b'')
+    socket_factory = MagicMock()
+    listener = socket_factory.return_value.__enter__.return_value
+    listener.bind.side_effect = OSError('Address already in use')
+    monkeypatch.setattr(socket, 'socket', socket_factory)
+
+    with pytest.raises(OSError, match='Address already in use'):
+        remote.preflight(dict(data, standalone=True))
+
+    socket_factory.return_value.__exit__.assert_called_once()
 
 
 def test_preflight_caa_inheritance_and_wildcard_authorization(monkeypatch):

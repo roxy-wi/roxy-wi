@@ -1,0 +1,89 @@
+---
+- name: Read service state when inspecting a container directly
+  ansible.builtin.service_facts:
+  when: ansible_facts.services is not defined
+
+- name: Locate an existing Podman boot definition
+  ansible.builtin.stat:
+    path: "/etc/containers/systemd/{{ roxywi_container_unit }}.container"
+  register: roxywi_quadlet
+
+- name: Require removal of the previous Podman definition before changing runtime
+  ansible.builtin.assert:
+    that: not roxywi_quadlet.stat.exists or roxywi_service_engine == 'podman'
+    fail_msg: 'roxywi_error:engine_conflict'
+  when: not roxywi_install.detect_runtime | default(false)
+
+- name: Locate container runtimes
+  ansible.builtin.stat:
+    path: "/usr/bin/{{ item }}"
+  loop: [docker, podman]
+  register: roxywi_runtimes
+
+- name: Inspect existing worker containers
+  ansible.builtin.command:
+    argv: ["/usr/bin/{{ item.item }}", inspect, --type, container, "{{ roxywi_service_unit }}"]
+  loop: "{{ roxywi_runtimes.results }}"
+  when: item.stat.exists
+  register: roxywi_containers
+  changed_when: false
+  failed_when: >-
+    roxywi_containers.rc != 0 and
+    not (roxywi_containers.stderr is search('(?i)no such (object|container)|no container with name'))
+  no_log: true
+
+- name: Identify existing container runtimes without retaining credentials
+  ansible.builtin.set_fact:
+    roxywi_existing_engines: "{{ roxywi_containers.results | selectattr('rc', 'defined') | selectattr('rc', 'equalto', 0) | map(attribute='item.item') | list }}"
+  no_log: true
+
+- name: Reject a container belonging to another runtime
+  ansible.builtin.assert:
+    that: roxywi_existing_engines | difference([roxywi_service_engine]) | length == 0
+    fail_msg: 'roxywi_error:engine_conflict'
+  when: not roxywi_install.detect_runtime | default(false)
+
+- name: Reject an active or enabled native service when selecting a container
+  ansible.builtin.assert:
+    that:
+      - ansible_facts.services.get(roxywi_service_unit ~ '.service', {}).get('state') != 'running'
+      - ansible_facts.services.get(roxywi_service_unit ~ '.service', {}).get('status') != 'enabled'
+    fail_msg: 'roxywi_error:engine_conflict'
+  when: roxywi_service_engine != 'native' and not roxywi_install.detect_runtime | default(false)
+
+- name: Select the existing container without logging its environment
+  ansible.builtin.set_fact:
+    roxywi_current_container: "{{ ((roxywi_containers.results | selectattr('rc', 'defined') | selectattr('rc', 'equalto', 0) | map(attribute='stdout') | first | default('[]')) | from_json | first) | default({}) }}"
+  no_log: true
+
+- name: Locate the persisted container environment
+  ansible.builtin.stat:
+    path: "{{ roxywi_container_env_path }}"
+  register: roxywi_container_env_file
+
+- name: Read the persisted container environment
+  ansible.builtin.slurp:
+    src: "{{ roxywi_container_env_path }}"
+  when: roxywi_container_env_file.stat.exists
+  register: roxywi_saved_container_env
+  no_log: true
+
+- name: Find the existing container database without exposing credentials
+  ansible.builtin.set_fact:
+    roxywi_container_database: "{{ (roxywi_saved_container_env.content | default('e30=') | b64decode | from_json).get(roxywi_service_db_key, (roxywi_current_container.get('Config', {}).get('Env', []) | select('match', '^' ~ roxywi_service_db_key ~ '=') | map('regex_replace', '^' ~ roxywi_service_db_key ~ '=', '') | first | default(''))) }}"
+  no_log: true
+
+- name: Return nonsecret container facts
+  ansible.builtin.set_stats:
+    aggregate: false
+    data:
+      roxywi_service:
+        engine: "{{ roxywi_existing_engines | first | default(roxywi_service_engine) }}"
+        installed: "{{ roxywi_existing_engines | length > 0 }}"
+        hostname: "{{ ansible_facts.hostname }}"
+        manager: "{{ roxywi_existing_engines | first | default(roxywi_service_engine) }}"
+        unit: "{{ roxywi_container_unit if (roxywi_existing_engines | first | default(roxywi_service_engine)) == 'podman' else roxywi_service_unit }}"
+        version: "{{ roxywi_current_container.get('Config', {}).get('Image', '') }}"
+        state: "{{ 'active' if roxywi_current_container.get('State', {}).get('Running', false) else 'inactive' }}"
+        shared_database: "{{ roxywi_container_database is search('^mysql([+]pymysql)?://') }}"
+  when: roxywi_service_engine != 'native' or (roxywi_install.detect_runtime | default(false) and roxywi_existing_engines | length > 0)

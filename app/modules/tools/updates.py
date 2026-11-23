@@ -1,4 +1,4 @@
-"""Evidence-backed versions for the update page, without container-engine access."""
+"""Evidence-backed versions for the Tools page, without container-engine access."""
 
 import json
 from datetime import datetime, timezone
@@ -84,8 +84,10 @@ def prepare_updates(services, mode, inventory=None, packages=None):
             if not reported:
                 evidence.extend(item.get('version') for item in deployed)
             source = 'worker' if reported else 'inventory'
-            if not reported:
-                status = 'active' if any(item.get('running') is True for item in deployed) else 'stopped'
+            if not workers:
+                running = sum(item['running'] for item in deployed)
+                status = 'active' if running else 'stopped'
+                metadata['instances'] = running
 
         local_version = packages.get(name, {}).get('current_version') if mode == 'package' else None
         if parsed_version(local_version) is not None:
@@ -98,15 +100,24 @@ def prepare_updates(services, mode, inventory=None, packages=None):
             evidence.append(local_version)
             source = 'package' if source == 'unknown' else source
 
-        current = sorted({value.strip() for value in evidence
-                          if isinstance(value, str) and parsed_version(value) is not None},
-                         key=Version)
-        latest = parsed_version(version.get('new_version'))
+        # A worker's 5.1.0 and its native package's 5.1.0.0 are one release.
+        releases = {}
+        for value in evidence:
+            release = parsed_version(value)
+            if release is not None:
+                releases.setdefault(release, value.strip())
+        latest = parsed_version(version.get('new_version')) if version.get('is_roxy') else None
+        display_version = ', '.join(releases[release] for release in sorted(releases))
+        # Native package releases can include distribution suffixes (e.g. .el9).
+        # Keep showing the installed release even when it cannot be compared as PEP 440.
+        if not display_version and local_version and str(local_version)[0].isdigit() and str(local_version) != '0':
+            display_version = str(local_version)
+            source = 'package'
         version.update(
-            current_version=', '.join(current),
-            version_known=bool(current),
+            current_version=display_version,
+            version_known=bool(display_version),
             version_source=source,
-            need_update=bool(latest and any(Version(value) < latest for value in current)),
+            need_update=bool(latest and any(release < latest for release in releases)),
             latest_known=latest is not None,
         )
         local = parsed_version(local_version)

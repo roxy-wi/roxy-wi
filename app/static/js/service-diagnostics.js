@@ -23,8 +23,15 @@ $(function () {
                     if (!Number.isNaN(date.getTime())) node.textContent = date.toLocaleString();
                 });
             })
-            .fail((_xhr, status) => {
-                if (current === generation && status !== 'abort') content.textContent = root.dataset.failed;
+            .fail((xhr, status) => {
+                if (current !== generation || status === 'abort') return;
+                if (xhr.status === 401) {
+                    const login = new URL(root.dataset.loginUrl, window.location.origin);
+                    login.searchParams.set('next', window.location.pathname + window.location.search + window.location.hash);
+                    window.location.assign(login.href);
+                    return;
+                }
+                content.textContent = root.dataset.failed;
             })
             .always(() => {
                 if (current === generation) { request = null; content.setAttribute('aria-busy', 'false'); }
@@ -37,7 +44,7 @@ $(function () {
     });
     root.hidden = false;
     $(document).on('click', '.service-diagnostics-trigger', function () {
-        trigger = this;
+        trigger = this.closest('.admin-actions')?.querySelector('.admin-actions-toggle') || this;
         url = this.dataset.diagnosticsUrl;
         dialog.dialog('option', 'title', `${root.dataset.title}: ${this.dataset.serviceName}`);
         dialog.dialog('open');

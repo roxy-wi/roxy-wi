@@ -1,0 +1,9 @@
+---
+- name: Read the worker environment
+  ansible.builtin.slurp:
+    src: "{{ roxywi_container_env_path }}"
+  register: roxywi_saved_container_env
+  no_log: true
+
+- name: Apply the selected runtime configuration
+  ansible.builtin.include_tasks: "container_{{ roxywi_service_engine }}_start.yml"

@@ -1,0 +1,10 @@
+---
+- name: Install an optional Roxy-WI service
+  hosts: server
+  become: true
+  gather_facts: false
+  roles:
+    - role: roxywi_service
+      environment:
+        http_proxy: "{{ PROXY }}"
+        https_proxy: "{{ PROXY }}"

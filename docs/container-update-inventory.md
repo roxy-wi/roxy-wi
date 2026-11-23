@@ -1,6 +1,6 @@
-# Container versions in Admin area → Update
+# Container versions in Admin area → Tools
 
-The update page uses active worker heartbeats for Checker, Metrics, Port Scanner
+The Tools page uses active worker heartbeats for Checker, Metrics, Port Scanner
 and Socket. It compares complete versions, including multiple active versions,
 instead of converting version strings to floating-point numbers. Database
 bootstrap values are not evidence that a container service is installed.

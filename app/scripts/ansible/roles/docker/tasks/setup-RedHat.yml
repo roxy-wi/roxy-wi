@@ -6,6 +6,7 @@
       - podman
       - podman-catatonit
     state: absent
+  when: docker_remove_podman | bool
 
 - name: Add Docker GPG key.
   rpm_key:

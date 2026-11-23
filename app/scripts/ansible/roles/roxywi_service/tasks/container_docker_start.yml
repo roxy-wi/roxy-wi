@@ -1,0 +1,14 @@
+---
+- name: Apply the Docker container configuration and startup policy
+  community.docker.docker_container:
+    name: "{{ roxywi_service_unit }}"
+    image: "{{ roxywi_install.image }}"
+    hostname: "{{ ansible_facts.hostname }}"
+    network_mode: host
+    env: "{{ roxywi_saved_container_env.content | b64decode | from_json }}"
+    volumes: "{{ roxywi_container_volumes }}"
+    restart_policy: always
+    state: started
+    restart: true
+  when: roxywi_service_engine == 'docker'
+  no_log: true

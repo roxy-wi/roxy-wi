@@ -1,0 +1,40 @@
+---
+- name: Read the installed service version
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Remember whether the existing service was running
+  ansible.builtin.set_fact:
+    roxywi_was_active: "{{ ansible_facts.services.get(roxywi_service_unit ~ '.service', {}).get('state') == 'running' }}"
+
+- name: Install the service using APT
+  ansible.builtin.apt:
+    name: "{{ roxywi_service_package }}"
+    state: latest
+    update_cache: true
+    cache_valid_time: 3600
+    dpkg_options: force-confdef,force-confold
+  when: ansible_facts.pkg_mgr == 'apt'
+
+- name: Install the service using DNF
+  ansible.builtin.dnf:
+    name: "{{ roxywi_service_package }}"
+    state: latest
+  when: ansible_facts.pkg_mgr != 'apt'
+
+- name: Stop a new worker started by package scripts before configuring it
+  ansible.builtin.systemd_service:
+    name: "{{ roxywi_service_unit }}"
+    state: stopped
+  when: not roxywi_was_active
+
+- name: Read the package version after installation
+  ansible.builtin.package_facts:
+    manager: auto
+
+- name: Require a supported service version
+  ansible.builtin.assert:
+    that:
+      - roxywi_service_package in ansible_facts.packages
+      - ansible_facts.packages[roxywi_service_package][0].version is version(roxywi_service_versions[roxywi_install.component] | string, '>=')
+    fail_msg: 'roxywi_error:package_version'

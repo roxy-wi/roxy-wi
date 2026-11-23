@@ -34,5 +34,10 @@ docker_yum_gpg_key: "{{ docker_repo_url }}/centos/gpg"
 # A list of users who will be added to the docker group.
 docker_users: [ "{{ ansible_user }}" ]
 
+# Legacy proxy roles use Python Docker clients; optional workers use modules
+# with distribution-packaged dependencies and can coexist with Podman.
+docker_install_python_dependencies: true
+docker_remove_podman: true
+
 # Docker daemon options as a dict
 docker_daemon_options: {}

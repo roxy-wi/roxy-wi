@@ -1,6 +1,8 @@
 import pytz
-from flask import render_template, g, jsonify, abort, make_response
+from flask import render_template, g, jsonify, abort, make_response, request
 from flask_jwt_extended import jwt_required
+from pydantic import ValidationError
+from werkzeug.exceptions import BadRequest, UnsupportedMediaType
 
 from app import scheduler
 from app.routes.admin import bp
@@ -9,7 +11,6 @@ import app.modules.db.user as user_sql
 import app.modules.db.group as group_sql
 import app.modules.db.server as server_sql
 import app.modules.db.service as service_sql
-import app.modules.db.service_event as service_event_sql
 import app.modules.db.roxy as roxy_sql
 from app.middleware import get_user_params
 import app.modules.roxywi.roxy as roxy
@@ -21,7 +22,8 @@ from app.modules.tools.updates import get_update_services
 from app.modules.tools.diagnostics import WORKER_SERVICES, service_diagnostics
 import app.modules.server.ssh as ssh_mod
 from app.views.admin.views import SettingsView
-from app.modules.roxywi.exception import RoxywiPermissionError
+from app.modules.roxywi.exception import RoxywiPermissionError, RoxywiValidationError, RoxywiConflictError
+from app.modules.roxywi.class_models import ToolInstallRequest
 from app.modules.subscription.access import (
     MANAGED_SERVICES,
     MANAGED_SERVICE_TOOLS,
@@ -78,11 +80,15 @@ def admin():
         'servers': servers,
         'roles': sql.select_roles(),
         'ldap_enable': sql.get_setting('ldap_enable'),
-        'package_deployment': roxy.deployment_mode() == 'package',
         'services': service_sql.select_services(),
         'user_subscription': user_subscription,
         'users_roles': user_sql.select_users_roles(),
         'user_roles': user_sql.select_user_roles_by_group(user_group),
+        'tool_install_options': dict(
+            local=tools_common.supports_local_tool_install(), versions=tools_common.tool_container_versions(),
+            servers=[dict(id=s.server_id, name=s.hostname, address=s.ip)
+                     for s in tools_common.installation_servers()]
+        ) if g.user_params['role'] == 1 else {},
     }
 
     return render_template('admin.html', **kwargs)
@@ -91,11 +97,16 @@ def admin():
 @bp.route('/tools')
 def show_tools():
     roxywi_auth.page_for_admin()
+    versions = roxy.versions()
+    services = get_update_services()
     lang = roxywi_common.get_user_lang_for_flask()
-    worker_states = service_event_sql.worker_summary()
-    services = tools_common.get_services_status(update_cur_ver=1, worker_states=worker_states)
 
-    return render_template('ajax/load_services.html', services=services, lang=lang)
+    response = make_response(render_template(
+        'ajax/load_services.html', services=services, versions=versions, lang=lang,
+        package_deployment=roxy.deployment_mode() == 'package',
+    ))
+    response.headers['Cache-Control'] = 'no-store'
+    return response
 
 
 @bp.get('/tools/<service>/diagnostics')
@@ -114,6 +125,7 @@ def worker_diagnostics(service):
 
 
 @bp.post('/tools/update/<service>')
+@get_user_params()
 def update_tools(service):
     roxywi_auth.page_for_admin()
 
@@ -121,10 +133,48 @@ def update_tools(service):
     if access_error is not None:
         return access_error
 
+    component = service.removeprefix('roxy-wi-')
+    if tools_common.tool_category(service) == 'distributed' or service == 'roxy-wi-keep_alive':
+        try:
+            body = _tool_install_request(component)
+            task_id = tools_common.install_tool(body)
+            return jsonify(status='accepted', tasks_ids=[task_id]), 202
+        except RoxywiConflictError as error:
+            return jsonify(error_code=error.public_message), 409
+        except RoxywiValidationError as error:
+            return jsonify(error_code=error.public_message), 400
+
     try:
         return tools_common.update_roxy_wi(service)
+    except RoxywiValidationError as error:
+        return jsonify(error=error.public_message), 502
     except Exception as e:
-        return f'error: {safe_error_message(e)}'
+        return jsonify(error=safe_error_message(e)), 500
+
+
+def _tool_install_request(component=None):
+    """Validate installation options without exposing submitted credentials."""
+    try:
+        data = request.get_json() if request.data else {}
+        if component is not None:
+            if not isinstance(data, dict) or data.get('component', component) != component:
+                raise RoxywiValidationError('invalid_configuration')
+            data = {**data, 'component': component}
+        return ToolInstallRequest.model_validate(data)
+    except (ValidationError, BadRequest, UnsupportedMediaType):
+        raise RoxywiValidationError('invalid_configuration') from None
+
+
+@bp.post('/tools/install/check')
+@get_user_params()
+def check_tool_installation():
+    roxywi_auth.page_for_admin()
+    require_feature(MANAGED_SERVICES)
+    try:
+        body = _tool_install_request()
+        return jsonify(tools_common.inspect_tool(body))
+    except (RoxywiValidationError, RuntimeError) as error:
+        return jsonify(error_code=tools_common.tool_install_error(error)), 400
 
 
 @bp.post('/tools/action/<service>/<any(start, stop, restart):action>')
@@ -150,21 +200,6 @@ def action_tools(service, action):
     if result.startswith('error:'):
         return jsonify({'status': 'failed', 'error': result.removeprefix('error: ')}), 500
     return result
-
-
-@bp.route('/update')
-def update_roxywi():
-    roxywi_auth.page_for_admin()
-    versions = roxy.versions()
-    services = get_update_services()
-    lang = roxywi_common.get_user_lang_for_flask()
-
-    response = make_response(render_template(
-        'ajax/load_updateroxywi.html', services=services, versions=versions, lang=lang,
-        package_deployment=roxy.deployment_mode() == 'package',
-    ))
-    response.headers['Cache-Control'] = 'no-store'
-    return response
 
 
 @bp.post('/update/check')
