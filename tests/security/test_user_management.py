@@ -6,6 +6,7 @@ from uuid import uuid4
 import pytest
 from flask_jwt_extended import create_access_token
 
+from app.modules.authentication import security
 from app.modules.db import user as user_sql
 from app.modules.db.db_model import Groups, User, UserGroups
 from app.modules.roxy_wi_tools import Tools
@@ -43,7 +44,9 @@ def accounts(app, monkeypatch):
 
     def headers(user):
         with app.app_context():
-            token = create_access_token(str(user.user_id), additional_claims={'group': user.group_id})
+            current, expected = security.capture_account(user.user_id)
+            claims = {'group': user.group_id, **security.login_proof(current, 'password', expected=expected)}
+            token = create_access_token(str(user.user_id), additional_claims=claims)
         return {'Authorization': f'Bearer {token}', 'Accept': 'application/json'}
 
     actor = create(2)
@@ -168,6 +171,10 @@ def test_group_admin_can_edit_own_profile_and_password_when_in_multiple_groups(
     headers = accounts.headers(accounts.actor)
     response = client.put(f'/user/{accounts.actor.user_id}', headers=headers, json=update_body(accounts.actor))
     assert response.status_code == 201, response.get_data(as_text=True)
+    # The preceding password update invalidates the old account-bound session.
+    response = client.post('/user/password', headers=headers, json={'pass': NEW_PASSWORD})
+    assert response.status_code == 401
+    headers = accounts.headers(User.get_by_id(accounts.actor.user_id))
     response = client.post('/user/password', headers=headers, json={'pass': NEW_PASSWORD})
     assert response.status_code == 200
 
