@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Passkeys{% endblock %}
+{% block h2 %}Passkeys{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/passkeys.css') }}">
+<section class="passkeys-panel" aria-labelledby="passkeys-title">
+    <h3 id="passkeys-title">Local account passkeys</h3>
+    <p>Sign in with your device PIN, fingerprint or security key. Your device must verify you.</p>
+    <p><a href="/security" class="link">Account security and recovery</a></p>
+    {% if not passkeys_enabled %}
+    <div class="alert alert-warning" style="display:block">Passkeys are unavailable. An administrator must configure the RP ID and allowed HTTPS origins.</div>
+    {% endif %}
+    <table class="overview passkeys-table">
+        <thead><tr><th>Name</th><th>Created (UTC)</th><th>Last used (UTC)</th><th>Action</th></tr></thead>
+        <tbody>{% for credential in passkeys %}
+        <tr><td>{{credential.name}}</td><td data-passkey-time="{{credential.created_at}}">{{credential.created_at}}</td>
+            <td data-passkey-time="{{credential.last_used_at or ''}}">Never used</td>
+            <td><button type="button" data-passkey-remove="{{credential.credential_hash}}">Remove</button></td></tr>
+        {% else %}<tr><td colspan="4">No passkeys registered.</td></tr>{% endfor %}</tbody>
+    </table>
+    <div class="passkeys-add">
+        <label for="passkey-name">Passkey name</label>
+        <input class="form-control" id="passkey-name" maxlength="80" placeholder="For example: work laptop" autocomplete="off">
+        <button type="button" id="passkey-add" {% if not passkeys_enabled %}disabled{% endif %}>Add passkey</button>
+    </div>
+    <p id="passkey-status" role="status" aria-live="polite"></p>
+    <div id="passkey-recovery" hidden>
+        <h3>Save your recovery codes</h3>
+        <p>Each code works once. Store them securely away from this device. They are shown only now.</p>
+        <pre id="passkey-recovery-codes"></pre>
+        <a class="link" href="/security/passkeys">I saved my codes</a>
+    </div>
+</section>
+<script>document.querySelectorAll('[data-passkey-time]').forEach(element => { if (element.dataset.passkeyTime) element.textContent = new Date(Number(element.dataset.passkeyTime) * 1000).toISOString().slice(0, 19).replace('T', ' '); });</script>
+{% endblock %}
